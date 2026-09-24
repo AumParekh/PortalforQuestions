@@ -77,7 +77,7 @@ export function HomeScreen() {
   const mocks = files.filter((f) => f.type === 'mock');
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-16 pt-4">
+    <div className="mx-auto max-w-[720px] px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))]">
       <header className="flex items-center justify-between gap-3">
         <span className="text-lg font-bold tracking-tight">FRM Part II</span>
         <ThemeToggle />

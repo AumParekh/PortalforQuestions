@@ -347,7 +347,7 @@ export function SessionSetupScreen() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-surface-light/85 backdrop-blur dark:border-slate-700 dark:bg-surface-dark/85">
+      <header className="sticky top-0 z-10 border-b pt-[env(safe-area-inset-top)] border-slate-200 bg-surface-light/85 backdrop-blur dark:border-slate-700 dark:bg-surface-dark/85">
         <div className="mx-auto flex max-w-[720px] items-center gap-2 px-2 py-2">
           <button
             type="button"

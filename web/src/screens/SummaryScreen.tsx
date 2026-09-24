@@ -107,7 +107,7 @@ export function SummaryScreen() {
   };
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-16 pt-6">
+    <div className="mx-auto max-w-[720px] px-4 pb-16 pt-[max(1.5rem,env(safe-area-inset-top))]">
       <h1 className="text-2xl font-bold tracking-tight">Session complete</h1>
 
       <section className="mt-5 rounded-2xl bg-card-light p-5 shadow-sm dark:bg-card-dark">
