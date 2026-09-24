@@ -8,8 +8,9 @@ function keyFor(kind: ScopeKind, q: Question): { key: string; label: string; sub
       return { key: `${q.subject}::${q.reading}`, label: q.reading, sublabel: q.subject };
     case 'topic':
       return { key: `${q.subject}::${q.topic}`, label: q.topic, sublabel: q.subject };
+    // LO codes restart per tier (CR-LO1 means different LOs in different tiers), so the LO text is the identity.
     case 'lo':
-      return { key: `${q.subject}::${q.lo}`, label: q.loText || q.lo, sublabel: `${q.subject} · ${q.lo}` };
+      return { key: `${q.subject}::${q.loText || q.lo}`, label: q.loText || q.lo, sublabel: q.subject };
   }
 }
 

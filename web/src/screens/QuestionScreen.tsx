@@ -8,10 +8,12 @@ import { Timer } from '../components/Timer';
 import { QuestionCard } from '../components/QuestionCard';
 import { SolutionPanel } from '../components/SolutionPanel';
 import { JumpDrawer } from '../components/JumpDrawer';
-import type { OptionKey } from '../types';
+import type { AnswerRecord, OptionKey } from '../types';
 
 const UNTIMED_SECONDS = 24 * 60 * 60;
 const TABLE_RE = /^\s*\|.*\|\s*$/m;
+// Shown for questions left unanswered when a finished session is reviewed: reveals the answer without scoring it.
+const UNANSWERED: AnswerRecord = { selected: '', correct: false, timeTakenSeconds: 0, timedOut: false };
 const KEY_MAP: Record<string, OptionKey> = { '1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' };
 
 function haptic(pattern: number | number[]) {
@@ -49,6 +51,8 @@ export function QuestionScreen() {
   const q = id ? byId[id] : undefined;
   const record = id ? answers[id] : undefined;
   const answered = !!record;
+  const reviewing = status === 'finished';
+  const shownRecord = record ?? (reviewing ? UNANSWERED : undefined);
   const isLast = currentIndex >= queue.length - 1;
   const timerEnabled = !!config?.timerEnabled;
   const timerSeconds = config?.timerSeconds ?? 120;
@@ -86,7 +90,7 @@ export function QuestionScreen() {
 
   const choose = useCallback(
     (key: OptionKey) => {
-      if (!q || useSession.getState().answers[q.id]) return;
+      if (!q || useSession.getState().status !== 'active' || useSession.getState().answers[q.id]) return;
       const correct = key === q.answer;
       answer(q.id, key, correct, elapsed);
       setJustAnswered(q.id);
@@ -96,6 +100,10 @@ export function QuestionScreen() {
   );
 
   const goNext = useCallback(() => {
+    if (reviewing) {
+      if (!isLast) next();
+      return;
+    }
     if (isLast) {
       const left = queue.length - answeredCount;
       if (left > 0 && !window.confirm(`Finish with ${left} unanswered question${left === 1 ? '' : 's'}?`)) return;
@@ -103,13 +111,18 @@ export function QuestionScreen() {
       return;
     }
     if (answered) next();
-  }, [answered, isLast, finishSession, next, queue.length, answeredCount]);
+  }, [reviewing, answered, isLast, finishSession, next, queue.length, answeredCount]);
 
+  const canSkip = !reviewing && !answered && !!q && (!isLast || !!config?.skipDrops);
   const doSkip = useCallback(() => {
-    if (!answered) skip();
-  }, [answered, skip]);
+    if (canSkip) skip();
+  }, [canSkip, skip]);
 
   const leave = () => {
+    if (reviewing) {
+      navigate('/summary');
+      return;
+    }
     if (!window.confirm('Leave this session?')) return;
     useSession.getState().reset();
     navigate('/setup');
@@ -128,7 +141,7 @@ export function QuestionScreen() {
         return;
       }
       if (k === 'ArrowRight' || (k === 'Enter' && !(e.target instanceof HTMLButtonElement) && !(e.target instanceof HTMLElement && e.target.closest('summary, a')))) {
-        if (answered) {
+        if (answered || reviewing) {
           e.preventDefault();
           goNext();
         }
@@ -143,7 +156,7 @@ export function QuestionScreen() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [drawerOpen, q, answered, choose, goNext, prev, doSkip, toggleMark, id]);
+  }, [drawerOpen, q, answered, reviewing, choose, goNext, prev, doSkip, toggleMark, id]);
 
   const isMarked = !!(id && marked[id]);
   const progress = queue.length > 0 ? (answeredCount / queue.length) * 100 : 0;
@@ -156,7 +169,7 @@ export function QuestionScreen() {
             <button
               type="button"
               onClick={leave}
-              aria-label="Leave session"
+              aria-label={reviewing ? 'Back to summary' : 'Leave session'}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
             >
               <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -189,7 +202,7 @@ export function QuestionScreen() {
               >
                 <Flag className="h-5 w-5" aria-hidden="true" fill={isMarked ? 'currentColor' : 'none'} />
               </button>
-              {timerEnabled && !answered && q && <Timer remaining={remaining} total={timerSeconds} compact={compact} />}
+              {timerEnabled && !answered && !reviewing && q && <Timer remaining={remaining} total={timerSeconds} compact={compact} />}
             </div>
           </div>
           {q && (
@@ -211,12 +224,12 @@ export function QuestionScreen() {
       <main className="mx-auto w-full max-w-[720px] flex-1 px-4 pb-8 pt-5">
         {q ? (
           <div className="space-y-6">
-            <QuestionCard question={q} record={record} animateFeedback={justAnswered === q.id} onSelect={choose} />
-            {record && (
+            <QuestionCard question={q} record={shownRecord} animateFeedback={justAnswered === q.id} onSelect={choose} />
+            {shownRecord && (
               <SolutionPanel
                 key={q.id}
                 question={q}
-                record={record}
+                record={shownRecord}
                 marked={isMarked}
                 onToggleMark={() => toggleMark(q.id)}
               />
@@ -240,7 +253,7 @@ export function QuestionScreen() {
             <ChevronLeft className="h-5 w-5" aria-hidden="true" />
             Prev
           </button>
-          {!answered && q && (
+          {canSkip && (
             <button
               type="button"
               onClick={doSkip}
@@ -253,12 +266,21 @@ export function QuestionScreen() {
           <button
             type="button"
             onClick={goNext}
-            disabled={!answered && !isLast}
+            disabled={reviewing ? isLast : !answered && !isLast}
             className="ml-auto inline-flex min-h-[48px] items-center gap-1 rounded-xl bg-primary px-4 font-semibold text-white hover:bg-primary-600 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
           >
-            {isLast ? 'Finish Session' : 'Next'}
-            {!isLast && <ChevronRight className="h-5 w-5" aria-hidden="true" />}
+            {isLast && !reviewing ? 'Finish Session' : 'Next'}
+            {(!isLast || reviewing) && <ChevronRight className="h-5 w-5" aria-hidden="true" />}
           </button>
+          {reviewing && (
+            <button
+              type="button"
+              onClick={() => navigate('/summary')}
+              className="inline-flex min-h-[48px] items-center rounded-xl border border-primary px-3 font-semibold text-primary hover:bg-primary-50 dark:hover:bg-primary/15"
+            >
+              Summary
+            </button>
+          )}
         </div>
       </footer>
 

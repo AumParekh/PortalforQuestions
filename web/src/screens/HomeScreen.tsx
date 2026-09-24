@@ -52,12 +52,12 @@ function FileCard({ file, onOpen }: { file: ContentFile; onOpen: (f: ContentFile
       </span>
       <span className="min-w-0 flex-1">
         <span className="block font-semibold leading-snug">{file.name}</span>
-        <span className="mt-1 block text-sm text-slate-600 dark:text-slate-400">
+        <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
           {file.questionIds.length} questions
           {tierCount > 0 && ` · ${tierCount} ${tierCount === 1 ? 'tier' : 'tiers'}`}
           {file.type === 'mock' && file.timeLimitMinutes ? ` · ${file.timeLimitMinutes} min` : ''}
         </span>
-        <span className="mt-2 block text-xs font-medium text-primary-600 dark:text-primary-100">
+        <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
           {file.type === 'mock' ? 'Start full mock' : 'Quick 20 · shuffled'}
         </span>
       </span>
@@ -92,7 +92,7 @@ export function HomeScreen() {
           <PlayCircle className="h-6 w-6 shrink-0" aria-hidden="true" />
           <span className="flex-1">
             <span className="block font-semibold">Resume session</span>
-            <span className="block text-sm opacity-80">
+            <span className="block text-[15px] opacity-80">
               {answeredCount} of {queueLength} answered
             </span>
           </span>
@@ -117,14 +117,14 @@ export function HomeScreen() {
         </span>
         <span className="flex-1">
           <span className="block text-lg font-semibold">New Session</span>
-          <span className="block text-sm text-white/80">Pick subjects, readings or LOs and configure your drill</span>
+          <span className="block text-[15px] text-white/80">Pick subjects, readings or LOs and configure your drill</span>
         </span>
         <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
       </button>
 
       {subjects.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Subjects</h2>
+          <h2 className="text-[15px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Subjects</h2>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {subjects.map((f) => (
               <FileCard key={f.path} file={f} onOpen={startSubject} />
@@ -135,7 +135,7 @@ export function HomeScreen() {
 
       {mocks.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Mock exams</h2>
+          <h2 className="text-[15px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Mock exams</h2>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {mocks.map((f) => (
               <FileCard key={f.path} file={f} onOpen={startMock} />

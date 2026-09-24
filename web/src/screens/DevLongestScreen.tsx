@@ -95,9 +95,9 @@ export function DevLongestScreen() {
       <ul className="mt-5 space-y-3">
         {extremes.map((e) => (
           <li key={e.label} className="rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark">
-            <div className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{e.label}</div>
-            <div className="mt-1 font-mono text-sm">{e.question.id}</div>
-            <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+            <div className="text-[15px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">{e.label}</div>
+            <div className="mt-1 font-mono text-[15px]">{e.question.id}</div>
+            <div className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">
               {e.question.subject} · {e.measure}
             </div>
           </li>

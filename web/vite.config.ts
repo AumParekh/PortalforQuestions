@@ -21,14 +21,20 @@ function contentPlugin(): Plugin {
     name: 'frm-content',
     configureServer(server) {
       server.middlewares.use('/content', (req, res, next) => {
-        const url = decodeURIComponent((req.url ?? '/').split('?')[0]);
+        let url: string;
+        try {
+          url = decodeURIComponent((req.url ?? '/').split('?')[0]);
+        } catch {
+          next();
+          return;
+        }
         if (url === '/manifest.json') {
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify(listContentFiles(CONTENT_DIR)));
           return;
         }
         const file = path.join(CONTENT_DIR, url);
-        if (!file.startsWith(CONTENT_DIR) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+        if (!file.startsWith(CONTENT_DIR + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
           next();
           return;
         }

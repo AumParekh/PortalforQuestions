@@ -1,4 +1,4 @@
-import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, Clock, Flag, ListChecks, XCircle } from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, Clock, Flag, ListChecks, MinusCircle, XCircle } from 'lucide-react';
 import type { AnswerRecord, Question } from '../types';
 import { Markdown } from './Markdown';
 
@@ -19,18 +19,23 @@ const CARD = 'rounded-2xl border border-slate-200 bg-card-light p-5 shadow-sm da
 export function SolutionPanel({ question, record, marked, onToggleMark }: Props) {
   const { operators, explanation } = question.trap;
   const hasTrap = operators.length > 0;
+  const notAnswered = record.selected === '' && !record.timedOut;
 
   return (
     <section className="space-y-4" aria-label="Solution">
       <div
         className={`flex items-start gap-3 rounded-2xl border p-4 ${
-          record.correct
+          notAnswered
+            ? 'border-amber-500/50 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-200'
+            : record.correct
             ? 'border-emerald-600/40 bg-emerald-50 text-emerald-800 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-200'
             : 'border-red-600/40 bg-red-50 text-red-800 dark:border-red-500/40 dark:bg-red-950/40 dark:text-red-200'
         }`}
         role="status"
       >
-        {record.timedOut ? (
+        {notAnswered ? (
+          <MinusCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+        ) : record.timedOut ? (
           <Clock className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
         ) : record.correct ? (
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
@@ -38,7 +43,9 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
           <XCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
         )}
         <p className="font-medium">
-          {record.timedOut
+          {notAnswered
+            ? `Not answered. The correct answer is ${question.answer.toUpperCase()}.`
+            : record.timedOut
             ? `Time's up. The correct answer is ${question.answer.toUpperCase()}.`
             : record.correct
               ? 'Correct.'

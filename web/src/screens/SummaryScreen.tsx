@@ -46,7 +46,7 @@ function AccuracyRing({ pct }: { pct: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-3xl font-bold tabular-nums">{pct}%</span>
-        <span className="text-xs text-slate-600 dark:text-slate-400">accuracy</span>
+        <span className="text-[15px] text-slate-600 dark:text-slate-400">accuracy</span>
       </div>
     </div>
   );
@@ -56,7 +56,7 @@ function Stat({ label, value, className = '' }: { label: string; value: string |
   return (
     <div className="rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700">
       <div className={`text-lg font-semibold tabular-nums ${className}`}>{value}</div>
-      <div className="text-xs text-slate-600 dark:text-slate-400">{label}</div>
+      <div className="text-[15px] text-slate-600 dark:text-slate-400">{label}</div>
     </div>
   );
 }
@@ -85,7 +85,8 @@ export function SummaryScreen() {
   const avgSeconds = answeredIds.length ? answerSeconds / answeredIds.length : 0;
 
   const openItem = (index: number) => {
-    useSession.setState({ status: 'active', currentIndex: index });
+    // Status stays 'finished', which the question screen treats as read-only review.
+    useSession.setState({ currentIndex: index });
     navigate('/session');
   };
 
@@ -157,7 +158,7 @@ export function SummaryScreen() {
       </div>
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Review</h2>
+        <h2 className="text-[15px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Review</h2>
         <ol className="mt-3 space-y-2">
           {queue.map((id, index) => {
             const a = answers[id];
@@ -176,22 +177,22 @@ export function SummaryScreen() {
                   onClick={() => openItem(index)}
                   className="flex min-h-[44px] w-full items-start gap-3 rounded-2xl bg-card-light p-4 text-left shadow-sm transition hover:shadow-md dark:bg-card-dark"
                 >
-                  <span className="w-7 shrink-0 pt-0.5 text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-400">
+                  <span className="w-7 shrink-0 pt-0.5 text-[15px] font-semibold tabular-nums text-slate-600 dark:text-slate-400">
                     {index + 1}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block leading-snug">{q ? q.topic : id}</span>
-                    <span className="mt-1 block text-xs text-slate-600 dark:text-slate-400">
+                    <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
                       {q ? `${q.subject} · ${q.id}` : 'Question not found'}
                     </span>
                   </span>
                   <span className="flex shrink-0 flex-col items-end gap-1">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[15px] font-medium ${badge.cls}`}>
                       <badge.Icon className="h-3.5 w-3.5" aria-hidden="true" />
                       {badge.text}
                     </span>
                     {marked[id] && (
-                      <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <span className="inline-flex items-center gap-1 text-[15px] text-amber-600 dark:text-amber-400">
                         <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
                         Marked
                       </span>

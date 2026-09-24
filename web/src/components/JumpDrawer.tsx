@@ -275,7 +275,7 @@ export function JumpDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                   aria-label="Grid view"
                   aria-pressed={view === 'grid'}
                   onClick={() => setView('grid')}
-                  className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${
+                  className={`flex h-11 w-11 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${
                     view === 'grid'
                       ? 'bg-primary text-white'
                       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -288,7 +288,7 @@ export function JumpDrawer({ open, onClose }: { open: boolean; onClose: () => vo
                   aria-label="List view"
                   aria-pressed={view === 'list'}
                   onClick={() => setView('list')}
-                  className={`flex h-10 w-10 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${
+                  className={`flex h-11 w-11 items-center justify-center rounded-md transition-colors duration-200 motion-reduce:transition-none ${
                     view === 'list'
                       ? 'bg-primary text-white'
                       : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700'
