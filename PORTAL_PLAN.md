@@ -128,6 +128,40 @@ it appears automatically once its JSON file exists.
 
 ---
 
+## 3b. True / False flashcards (added during Phase 2)
+
+A separate study mode built from the existing option analysis: each non-numerical
+answer option that makes a standalone claim becomes a statement to judge as True or
+False, with a short explanation.
+
+**Deck generation (content/flashcards/<SUBJECT>.json).** Only options from
+non-numerical questions; only complete, standalone claims (no fragments, numbers,
+formulas, or claims about a question's specific scenario). Truth is judged per
+option, not copied from the verdict: on "LEAST accurate / EXCEPT" questions the
+credited answer is the false statement, and an incorrect option that is true but not
+the best answer is skipped rather than marked false. Light rewording to make a claim
+standalone is allowed and flagged (`edited`, with `originalText`). Every slice is
+spot-checked by an independent verifier; disputed cards are dropped. Each card keeps
+`sourceId` so the full question is one tap away.
+
+```json
+{ "id": "TF-IR-T1-04-c", "sourceId": "IR-T1-04", "optionKey": "c",
+  "subject": "...", "tier": "...", "topic": "...", "lo": "...", "loText": "...", "reading": "...",
+  "statement": "...", "isTrue": true, "explanation": "...", "edited": false }
+```
+
+**Screen (`#/truefalse`).** Pick subjects/topics (or "missed before" / "never seen"),
+deck size, and order; one statement per card with large True / False buttons
+(keyboard T/F, swipe right/left); instant feedback with the explanation and a link to
+the source question; progress through the deck; end-of-deck summary.
+
+**Log.** Own IndexedDB stores (DB version 2): `tfState` (one row per card: attempts,
+correct, lastResult, lastAttempted) and `tfAttempts` (append-only). Answers count
+toward the daily streak and "Today's quest"; the dashboard shows a True/False card
+with accuracy and cards seen; a "missed statements" filter re-drills wrong cards.
+
+---
+
 ## 4. Progress data model
 
 Stored in **IndexedDB**, not `localStorage` (localStorage caps at 5–10MB and will fill

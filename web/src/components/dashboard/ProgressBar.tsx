@@ -1,16 +1,16 @@
 export function ProgressBar({ value, label, tone = 'bg-primary' }: { value: number; label: string; tone?: string }) {
   const pct = Math.max(0, Math.min(1, value)) * 100;
   return (
-    <div
-      className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
+    <span
+      className="block h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700"
       role="progressbar"
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(pct)}
     >
-      <div className={`h-full rounded-full ${tone} transition-[width] duration-500`} style={{ width: `${pct}%` }} />
-    </div>
+      <span className={`block h-full rounded-full ${tone} transition-[width] duration-500`} style={{ width: `${pct}%` }} />
+    </span>
   );
 }
 

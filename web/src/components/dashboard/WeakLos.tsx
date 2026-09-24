@@ -14,12 +14,12 @@ export function WeakLos({ groups }: { groups: GroupProgress[] }) {
   }
   return (
     <ul className="divide-y divide-slate-200 rounded-2xl bg-card-light shadow-sm dark:divide-slate-700 dark:bg-card-dark">
-      {groups.map((g) => (
+      {groups.map((g, i) => (
         <li key={g.key}>
           <button
             type="button"
             onClick={() => startLoDrill(g.key, g.questionIds)}
-            className="flex min-h-[56px] w-full items-start gap-3 p-4 text-left transition first:rounded-t-2xl last:rounded-b-2xl hover:bg-slate-50 dark:hover:bg-slate-800/60 sm:px-5"
+            className={`flex min-h-[56px] w-full items-start gap-3 p-4 text-left transition ${i === 0 ? 'rounded-t-2xl' : ''} ${i === groups.length - 1 ? 'rounded-b-2xl' : ''} hover:bg-slate-50 dark:hover:bg-slate-800/60 sm:px-5`}
           >
             <span className="min-w-0 flex-1">
               <span className="block break-words leading-snug">{g.label}</span>
