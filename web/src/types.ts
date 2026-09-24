@@ -78,6 +78,26 @@ export interface SessionConfig {
   trapOnly: boolean;
   wrongFirst: boolean;
   skipDrops: boolean;
+  /** Defaults to 'drill' when absent. */
+  mode?: SessionMode;
+  /** Free-text search applied before filters (see lib/search.ts). */
+  searchQuery?: string;
+  filters?: SessionFilters;
+}
+
+export type ProgressFilter = 'new' | 'wrong-last' | 'marked' | 'due';
+export type TimeTarget = 'fast' | 'medium' | 'slow';
+
+/** Structured filters from the Session Setup sheet; all combine with the scope selection and search using AND. */
+export interface SessionFilters {
+  status: ProgressFilter[];
+  trapOperators: TrapOperator[];
+  hasTrap: boolean | null;
+  hasTable: boolean | null;
+  hasFormula: boolean | null;
+  timeTarget: TimeTarget[];
+  minCorrect: number;
+  minWrong: number;
 }
 
 export interface AnswerRecord {
@@ -89,3 +109,59 @@ export interface AnswerRecord {
 }
 
 export type CellStatus = 'unseen' | 'current' | 'correct' | 'wrong' | 'skipped' | 'marked';
+
+export type SessionMode = 'drill' | 'review-wrong' | 'quest' | 'mock';
+
+/** One persisted row per question ever attempted (IndexedDB store "questionState"). */
+export interface QuestionState {
+  questionId: string;
+  subject: string;
+  reading: string;
+  topic: string;
+  lo: string;
+  loText: string;
+  totalAttempts: number;
+  totalCorrect: number;
+  totalWrong: number;
+  consecutiveCorrect: number;
+  lastResult: 'correct' | 'wrong' | null;
+  lastAttempted: string | null;
+  lastSelected: OptionKey | '' | null;
+  avgTimeSeconds: number;
+  // SM-2 fields; scheduling arrives in Phase 4, until then they keep their defaults.
+  interval: number;
+  repetition: number;
+  efactor: number;
+  dueDate: string | null;
+  markedForReview: boolean;
+}
+
+/** Append-only record of every answer (IndexedDB store "attempts"). */
+export interface AttemptRecord {
+  attemptId: string;
+  questionId: string;
+  timestamp: string;
+  sessionId: string;
+  selectedOption: OptionKey | '';
+  correctOption: OptionKey;
+  isCorrect: boolean;
+  timeTakenSeconds: number;
+  timedOut: boolean;
+  mode: SessionMode;
+}
+
+/** Written once when a session finishes (IndexedDB store "sessions"). */
+export interface SessionRecord {
+  sessionId: string;
+  startedAt: string;
+  endedAt: string;
+  mode: SessionMode;
+  scope: { kind: ScopeKind; keys: string[] };
+  totalQuestions: number;
+  answered: number;
+  skipped: number;
+  correct: number;
+  wrong: number;
+  accuracy: number;
+  avgTimeSeconds: number;
+}

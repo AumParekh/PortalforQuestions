@@ -2,11 +2,14 @@ import { useEffect } from 'react';
 import { useContent } from './store/content';
 import { useSession } from './store/session';
 import { navigate, useRoute } from './lib/router';
+import { initPersistence } from './lib/persistence';
+import { useUi } from './store/ui';
 import { HomeScreen } from './screens/HomeScreen';
 import { SessionSetupScreen } from './screens/SessionSetupScreen';
 import { QuestionScreen } from './screens/QuestionScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { DevLongestScreen } from './screens/DevLongestScreen';
+import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
 
 function Skeleton() {
   return (
@@ -22,16 +25,19 @@ export default function App() {
   const route = useRoute();
   const { status, error, load } = useContent();
   const sessionStatus = useSession((s) => s.status);
+  const persistenceReady = useUi((s) => s.persistenceReady);
 
   useEffect(() => {
     load();
+    initPersistence();
   }, [load]);
 
   // A session route with no active session (e.g. after reload) goes back to setup.
   useEffect(() => {
-    if (status === 'ready' && route === '/session' && sessionStatus === 'idle') navigate('/setup');
-    if (status === 'ready' && route === '/summary' && sessionStatus !== 'finished') navigate('/');
-  }, [status, route, sessionStatus]);
+    if (status !== 'ready' || !persistenceReady) return;
+    if (route === '/session' && sessionStatus === 'idle') navigate('/setup');
+    if (route === '/summary' && sessionStatus !== 'finished') navigate('/');
+  }, [status, persistenceReady, route, sessionStatus]);
 
   if (status === 'error') {
     return (
@@ -47,7 +53,7 @@ export default function App() {
       </div>
     );
   }
-  if (status !== 'ready') return <Skeleton />;
+  if (status !== 'ready' || !persistenceReady) return <Skeleton />;
 
   switch (route) {
     case '/setup':
@@ -56,6 +62,8 @@ export default function App() {
       return sessionStatus === 'idle' ? <Skeleton /> : <QuestionScreen />;
     case '/summary':
       return <SummaryScreen />;
+    case '/review':
+      return <ReviewWrongScreen />;
     case '/dev/longest':
       return <DevLongestScreen />;
     default:

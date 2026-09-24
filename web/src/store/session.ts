@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { AnswerRecord, CellStatus, OptionKey, SessionConfig } from '../types';
 
 interface SessionState {
+  sessionId: string | null;
   status: 'idle' | 'active' | 'finished';
   config: SessionConfig | null;
   /** Question ids in the order they will be presented. Skip may reorder or shrink this. */
@@ -24,7 +25,13 @@ interface SessionState {
   reset: () => void;
 }
 
+export function newId(prefix: string): string {
+  const rand = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}-${rand}`;
+}
+
 const empty = {
+  sessionId: null,
   status: 'idle' as const,
   config: null,
   queue: [],
@@ -40,7 +47,7 @@ export const useSession = create<SessionState>((set, get) => ({
   ...empty,
 
   start: (config, queue) =>
-    set({ ...empty, status: 'active', config, queue, startedAt: new Date().toISOString() }),
+    set({ ...empty, sessionId: newId('sess'), status: 'active', config, queue, startedAt: new Date().toISOString() }),
 
   answer: (id, selected, correct, timeTakenSeconds, timedOut = false) => {
     if (get().answers[id]) return;
