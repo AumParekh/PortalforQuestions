@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, LayoutGrid, SkipForward } from 'lucide-react';
 import { useSession } from '../store/session';
 import { useContent } from '../store/content';
@@ -10,6 +10,7 @@ import { SolutionPanel } from '../components/SolutionPanel';
 import { JumpDrawer } from '../components/JumpDrawer';
 import type { OptionKey } from '../types';
 
+const UNTIMED_SECONDS = 24 * 60 * 60;
 const TABLE_RE = /^\s*\|.*\|\s*$/m;
 const KEY_MAP: Record<string, OptionKey> = { '1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' };
 
@@ -55,15 +56,16 @@ export function QuestionScreen() {
   const answeredCount = queue.reduce((n, qid) => (answers[qid] ? n + 1 : n), 0);
 
   const onExpire = useCallback(() => {
-    if (!id || useSession.getState().answers[id]) return;
+    if (!timerEnabled || !id || useSession.getState().answers[id]) return;
     answer(id, '', false, timerSeconds, true);
     setJustAnswered(id);
     haptic([20, 40, 20]);
-  }, [id, answer, timerSeconds]);
+  }, [timerEnabled, id, answer, timerSeconds]);
 
+  // Always runs while unanswered so time taken is recorded even with the countdown off.
   const { remaining, elapsed } = useTimer(
-    timerSeconds,
-    timerEnabled && !answered && status === 'active' && !!q,
+    timerEnabled ? timerSeconds : UNTIMED_SECONDS,
+    !answered && status === 'active' && !!q,
     id,
     onExpire,
   );
@@ -77,12 +79,8 @@ export function QuestionScreen() {
     if (status === 'active' && queue.length === 0) finishSession();
   }, [status, queue.length, finishSession]);
 
-  const firstRender = useRef(true);
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    setJustAnswered(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [id]);
 
@@ -98,10 +96,14 @@ export function QuestionScreen() {
   );
 
   const goNext = useCallback(() => {
-    if (!answered) return;
-    if (isLast) finishSession();
-    else next();
-  }, [answered, isLast, finishSession, next]);
+    if (isLast) {
+      const left = queue.length - answeredCount;
+      if (left > 0 && !window.confirm(`Finish with ${left} unanswered question${left === 1 ? '' : 's'}?`)) return;
+      finishSession();
+      return;
+    }
+    if (answered) next();
+  }, [answered, isLast, finishSession, next, queue.length, answeredCount]);
 
   const doSkip = useCallback(() => {
     if (!answered) skip();
@@ -251,7 +253,7 @@ export function QuestionScreen() {
           <button
             type="button"
             onClick={goNext}
-            disabled={!answered}
+            disabled={!answered && !isLast}
             className="ml-auto inline-flex min-h-[48px] items-center gap-1 rounded-xl bg-primary px-4 font-semibold text-white hover:bg-primary-600 disabled:bg-slate-300 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
           >
             {isLast ? 'Finish Session' : 'Next'}

@@ -31,7 +31,8 @@ export function useTimer(durationSeconds: number, running: boolean, key: string,
     const update = () => {
       const ms = Math.min(totalMs, base + (Date.now() - startedAt));
       accRef.current = { key, ms };
-      setTick({ key, elapsed: Math.floor(ms / 1000) });
+      const secs = Math.floor(ms / 1000);
+      setTick((prev) => (prev.key === key && prev.elapsed === secs ? prev : { key, elapsed: secs }));
       if (ms >= totalMs && firedRef.current !== key) {
         firedRef.current = key;
         if (id !== undefined) window.clearInterval(id);
