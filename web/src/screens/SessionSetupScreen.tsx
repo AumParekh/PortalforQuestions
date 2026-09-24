@@ -1,17 +1,26 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, Check, ChevronDown, Play } from 'lucide-react';
-import type { CatalogItem, ScopeKind, SessionConfig, SessionOrder } from '../types';
+import { ArrowLeft, Check, ChevronDown, Play, X } from 'lucide-react';
+import type { CatalogItem, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
 import { useContent } from '../store/content';
+import { useProgress } from '../store/progress';
 import { useSession } from '../store/session';
+import { useUi } from '../store/ui';
 import { buildCatalog } from '../lib/catalog';
-import { buildQueue, countAvailable } from '../lib/queue';
+import { buildQueue, countAvailable, hasActiveFilters, localToday, matchesFilters, searchHits } from '../lib/queue';
+import { groupProgress } from '../lib/stats';
+import type { GroupProgress } from '../lib/stats';
 import { navigate } from '../lib/router';
+import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
+import { DUE_HINT, FilterChip, FilterSheet } from '../components/setup/FilterSheet';
+import { EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
 
 const STORAGE_KEY = 'frm.sessionSetup.v1';
-const PHASE2_HINT = 'Available after progress tracking (Phase 2)';
+const SEARCH_DEBOUNCE_MS = 150;
+const WEAK_THRESHOLD = 0.7;
 
 type Count = number | 'all';
+type RowChip = 'not-started' | 'weak' | 'trap';
 
 interface Options {
   count: Count;
@@ -19,14 +28,16 @@ interface Options {
   timerEnabled: boolean;
   timerMinutes: number;
   trapOnly: boolean;
+  wrongFirst: boolean;
   skipDrops: boolean;
 }
 
 interface Stored {
   scopeKind: ScopeKind;
   selectedKeys: string[];
-  trapFilter: boolean;
+  rowChips: RowChip[];
   options: Options;
+  filters: SessionFilters;
 }
 
 const SCOPES: { value: ScopeKind; label: string }[] = [
@@ -53,19 +64,27 @@ const MINUTES: { value: number; label: string }[] = [
   { value: 3, label: '3 min' },
   { value: 5, label: '5 min' },
 ];
+const ROW_CHIPS: { value: RowChip; label: string }[] = [
+  { value: 'not-started', label: 'Not started' },
+  { value: 'weak', label: 'Weak (<70%)' },
+  { value: 'trap', label: 'Has trap cards' },
+];
+const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'readings', topic: 'topics', lo: 'LOs' };
 
 const DEFAULTS: Stored = {
   scopeKind: 'subject',
   selectedKeys: [],
-  trapFilter: false,
+  rowChips: [],
   options: {
     count: 20,
     order: 'shuffled',
     timerEnabled: true,
     timerMinutes: 2,
     trapOnly: false,
+    wrongFirst: false,
     skipDrops: false,
   },
+  filters: EMPTY_FILTERS,
 };
 
 function pick<T>(value: unknown, allowed: { value: T }[], fallback: T): T {
@@ -86,20 +105,25 @@ function loadStored(): Stored {
     const d = data as Record<string, unknown>;
     const o = (d.options && typeof d.options === 'object' ? d.options : {}) as Record<string, unknown>;
     const def = DEFAULTS.options;
+    const rowChips = Array.isArray(d.rowChips) ? ROW_CHIPS.filter((c) => (d.rowChips as unknown[]).includes(c.value)).map((c) => c.value) : [];
+    // Setups saved before row chips existed only stored the trap chip as a boolean.
+    if (d.trapFilter === true && !rowChips.includes('trap')) rowChips.push('trap');
     return {
       scopeKind: pick(d.scopeKind, SCOPES, DEFAULTS.scopeKind),
       selectedKeys: Array.isArray(d.selectedKeys)
         ? d.selectedKeys.filter((k): k is string => typeof k === 'string')
         : [],
-      trapFilter: bool(d.trapFilter, DEFAULTS.trapFilter),
+      rowChips,
       options: {
         count: pick(o.count, COUNTS, def.count),
         order: pick(o.order, ORDERS, def.order),
         timerEnabled: bool(o.timerEnabled, def.timerEnabled),
         timerMinutes: pick(o.timerMinutes, MINUTES, def.timerMinutes),
         trapOnly: bool(o.trapOnly, def.trapOnly),
+        wrongFirst: bool(o.wrongFirst, def.wrongFirst),
         skipDrops: bool(o.skipDrops, def.skipDrops),
       },
+      filters: sanitizeFilters(d.filters),
     };
   } catch {
     return DEFAULTS;
@@ -108,7 +132,7 @@ function loadStored(): Stored {
 
 function saveStored(value: Stored) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...value, trapFilter: value.rowChips.includes('trap') }));
   } catch {
     // Storage may be unavailable (private mode, quota); setup still works without it.
   }
@@ -209,7 +233,44 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function ItemRow({ item, selected, onToggle }: { item: CatalogItem; selected: boolean; onToggle: () => void }) {
+function ProgressLine({ progress }: { progress: GroupProgress | undefined }) {
+  if (!progress || progress.attempted === 0) {
+    return <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">Not started</span>;
+  }
+  const pct = Math.round((progress.accuracy ?? 0) * 100);
+  const weak = (progress.accuracy ?? 0) < WEAK_THRESHOLD;
+  return (
+    <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
+      <span className="tabular-nums">
+        {progress.attempted}/{progress.total} done
+      </span>
+      <span aria-hidden="true"> · </span>
+      <span
+        className={`font-medium tabular-nums ${
+          weak ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'
+        }`}
+      >
+        {pct}% correct
+      </span>
+    </span>
+  );
+}
+
+function ItemRow({
+  item,
+  selected,
+  onToggle,
+  query,
+  matched,
+  progress,
+}: {
+  item: CatalogItem;
+  selected: boolean;
+  onToggle: () => void;
+  query: string;
+  matched: number | null;
+  progress: GroupProgress | undefined;
+}) {
   const n = item.questionIds.length;
   return (
     <button
@@ -231,41 +292,110 @@ function ItemRow({ item, selected, onToggle }: { item: CatalogItem; selected: bo
         {selected && <Check className="h-4 w-4" strokeWidth={3} />}
       </span>
       <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
-        <span className="block text-base leading-snug">{item.label}</span>
+        <span className="block text-base leading-snug">
+          <Highlight text={item.label} query={query} />
+        </span>
         {item.sublabel && (
           <span className="mt-0.5 block text-[15px] text-slate-600 dark:text-slate-400">{item.sublabel}</span>
         )}
+        <ProgressLine progress={progress} />
       </span>
-      <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[15px] font-medium tabular-nums text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-        {n} {n === 1 ? 'Q' : 'Qs'}
-      </span>
+      {matched === null ? (
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[15px] font-medium tabular-nums text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          {n} {n === 1 ? 'Q' : 'Qs'}
+        </span>
+      ) : (
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-yellow-100 px-2 py-0.5 text-[15px] font-medium tabular-nums text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-100">
+          {matched} of {n} match
+        </span>
+      )}
     </button>
   );
 }
 
 export function SessionSetupScreen() {
   const allQuestions = useContent((s) => s.questions);
+  const byId = useContent((s) => s.byId);
+  const states = useProgress((s) => s.states);
+  const pendingQuery = useUi((s) => s.pendingSetupQuery);
   // Mock exams run through their own flow; setup only draws from subject banks.
   const questions = useMemo(() => allQuestions.filter((q) => !q.file.startsWith('mocks/')), [allQuestions]);
 
   const [initial] = useState(loadStored);
   const [scopeKind, setScopeKind] = useState<ScopeKind>(initial.scopeKind);
   const [selectedKeys, setSelectedKeys] = useState<string[]>(initial.selectedKeys);
-  const [trapFilter, setTrapFilter] = useState(initial.trapFilter);
+  const [rowChips, setRowChips] = useState<RowChip[]>(initial.rowChips);
   const [options, setOptions] = useState<Options>(initial.options);
+  const [filters, setFilters] = useState<SessionFilters>(initial.filters);
   const [optionsOpen, setOptionsOpen] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [searchText, setSearchText] = useState(() => useUi.getState().pendingSetupQuery ?? '');
+  const [query, setQuery] = useState(searchText);
+  const autoSelectRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (searchText === query) return;
+    const t = window.setTimeout(() => setQuery(searchText), SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(t);
+  }, [searchText, query]);
 
   const catalog = useMemo(() => buildCatalog(questions, scopeKind), [questions, scopeKind]);
+
+  const searchActive = query.trim().length > 0;
+  const filtersActive = hasActiveFilters(filters);
+  const filterCount = activeFilterCount(filters);
+
+  const matchedIds = useMemo(() => {
+    if (!searchActive && !filtersActive) return null;
+    const hits = searchHits(query, questions);
+    const today = localToday();
+    const out = new Set<string>();
+    for (const q of questions) {
+      if (hits && !hits.has(q.id)) continue;
+      if (filtersActive && !matchesFilters(q, states[q.id], filters, today)) continue;
+      out.add(q.id);
+    }
+    return out;
+  }, [searchActive, filtersActive, query, questions, filters, states]);
+
+  const matchCounts = useMemo(() => {
+    if (!matchedIds) return null;
+    const m = new Map<string, number>();
+    for (const it of catalog) m.set(it.key, it.questionIds.reduce((n, id) => n + (matchedIds.has(id) ? 1 : 0), 0));
+    return m;
+  }, [catalog, matchedIds]);
+
+  const progressByKey = useMemo(() => {
+    const m = new Map<string, GroupProgress>();
+    for (const it of catalog) {
+      const qs = it.questionIds.map((id) => byId[id]).filter((q): q is Question => !!q);
+      const [g] = groupProgress(qs, states, () => ({ key: it.key, label: it.label }));
+      if (g) m.set(it.key, g);
+    }
+    return m;
+  }, [catalog, byId, states]);
 
   const trapItemKeys = useMemo(() => {
     const trapIds = new Set(questions.filter((q) => q.trap.operators.length > 0).map((q) => q.id));
     return new Set(catalog.filter((it) => it.questionIds.some((id) => trapIds.has(id))).map((it) => it.key));
   }, [questions, catalog]);
 
-  const visible = useMemo(
-    () => (trapFilter ? catalog.filter((it) => trapItemKeys.has(it.key)) : catalog),
-    [catalog, trapFilter, trapItemKeys],
-  );
+  const visible = useMemo(() => {
+    const notStarted = rowChips.includes('not-started');
+    const weak = rowChips.includes('weak');
+    const trap = rowChips.includes('trap');
+    return catalog.filter((it) => {
+      if (matchCounts && (matchCounts.get(it.key) ?? 0) === 0) return false;
+      if (trap && !trapItemKeys.has(it.key)) return false;
+      if (notStarted || weak) {
+        const g = progressByKey.get(it.key);
+        const isNew = !g || g.attempted === 0;
+        const isWeak = !!g && g.attempts > 0 && g.accuracy !== null && g.accuracy < WEAK_THRESHOLD;
+        if (!((notStarted && isNew) || (weak && isWeak))) return false;
+      }
+      return true;
+    });
+  }, [catalog, rowChips, matchCounts, trapItemKeys, progressByKey]);
 
   const groups = useMemo(() => {
     if (scopeKind === 'subject') return [{ subject: '', items: visible }];
@@ -283,6 +413,33 @@ export function SessionSetupScreen() {
     return new Set(selectedKeys.filter((k) => valid.has(k)));
   }, [catalog, selectedKeys]);
 
+  const hiddenSelected = useMemo(() => {
+    const shown = new Set(visible.map((it) => it.key));
+    let n = 0;
+    for (const k of selectedSet) if (!shown.has(k)) n++;
+    return n;
+  }, [visible, selectedSet]);
+
+  useEffect(() => {
+    if (pendingQuery === null) return;
+    setSearchText(pendingQuery);
+    setQuery(pendingQuery);
+    autoSelectRef.current = pendingQuery;
+    useUi.getState().setPendingSetupQuery(null);
+  }, [pendingQuery]);
+
+  // Arriving from the dashboard with a query: make "start with these" a single tap unless the saved selection already covers matches.
+  useEffect(() => {
+    const arrivedWith = autoSelectRef.current;
+    if (arrivedWith === null || questions.length === 0) return;
+    autoSelectRef.current = null;
+    const hits = searchHits(arrivedWith, questions);
+    const selectedIds = catalog.filter((it) => selectedSet.has(it.key)).flatMap((it) => it.questionIds);
+    if (selectedSet.size > 0 && (!hits || selectedIds.some((id) => hits.has(id)))) return;
+    setScopeKind('subject');
+    setSelectedKeys(buildCatalog(questions, 'subject').map((it) => it.key));
+  }, [questions, catalog, selectedSet, pendingQuery]);
+
   const config: SessionConfig = useMemo(
     () => ({
       scopeKind,
@@ -291,18 +448,21 @@ export function SessionSetupScreen() {
       order: options.order,
       timerEnabled: options.timerEnabled,
       timerSeconds: options.timerMinutes * 60,
-      trapOnly: trapFilter || options.trapOnly,
-      wrongFirst: false,
+      trapOnly: options.trapOnly,
+      wrongFirst: options.wrongFirst,
       skipDrops: options.skipDrops,
+      mode: 'drill',
+      searchQuery: searchActive ? query.trim() : undefined,
+      filters,
     }),
-    [scopeKind, selectedSet, options, trapFilter],
+    [scopeKind, selectedSet, options, searchActive, query, filters],
   );
 
-  const available = useMemo(() => countAvailable(config, questions), [config, questions]);
+  const available = useMemo(() => countAvailable(config, questions, states), [config, questions, states]);
 
   useEffect(() => {
-    saveStored({ scopeKind, selectedKeys: [...selectedSet], trapFilter, options });
-  }, [scopeKind, selectedSet, trapFilter, options]);
+    saveStored({ scopeKind, selectedKeys: [...selectedSet], rowChips, options, filters });
+  }, [scopeKind, selectedSet, rowChips, options, filters]);
 
   const setOption = <K extends keyof Options>(key: K, value: Options[K]) =>
     setOptions((prev) => ({ ...prev, [key]: value }));
@@ -316,6 +476,9 @@ export function SessionSetupScreen() {
   const toggleItem = (key: string) =>
     setSelectedKeys((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
 
+  const toggleChip = (chip: RowChip) =>
+    setRowChips((prev) => (prev.includes(chip) ? prev.filter((c) => c !== chip) : [...prev, chip]));
+
   const setMany = (keys: string[], on: boolean) =>
     setSelectedKeys((prev) => {
       if (!on) {
@@ -327,23 +490,39 @@ export function SessionSetupScreen() {
       return [...next];
     });
 
+  const clearSearch = () => {
+    setSearchText('');
+    setQuery('');
+  };
+
+  const countFor = (f: SessionFilters) =>
+    selectedSet.size === 0 ? null : countAvailable({ ...config, filters: f }, questions, states);
+
   const canStart = selectedSet.size > 0 && available > 0;
 
   const start = () => {
     if (!canStart) return;
-    const queue = buildQueue(config, questions);
+    const queue = buildQueue(config, questions, states);
     if (queue.length === 0) return;
     useSession.getState().start(config, queue);
     navigate('/session');
   };
 
   const sessionSize = options.count === 'all' ? available : Math.min(options.count, available);
+  const narrowed = searchActive || filtersActive || options.trapOnly;
   const counterText =
     selectedSet.size === 0
       ? 'Nothing selected'
-      : options.count === 'all' || sessionSize === available
-        ? `${available} ${available === 1 ? 'question' : 'questions'} selected`
-        : `${sessionSize} of ${available} questions`;
+      : available === 0
+        ? narrowed
+          ? 'No questions match'
+          : '0 questions'
+        : options.count === 'all' || sessionSize === available
+          ? `${available} ${available === 1 ? 'question' : 'questions'} selected`
+          : `${sessionSize} of ${available} questions`;
+
+  const pillClass =
+    'inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-slate-200 px-3.5 text-[15px] font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800';
 
   return (
     <div className="min-h-screen">
@@ -365,35 +544,54 @@ export function SessionSetupScreen() {
         <section aria-label="Scope" className="space-y-3">
           <Segmented label="Select by" value={scopeKind} options={SCOPES} onChange={changeScope} />
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              aria-pressed={trapFilter}
-              onClick={() => setTrapFilter((v) => !v)}
-              className={`min-h-[44px] rounded-full border px-4 text-[15px] font-medium transition-colors ${
-                trapFilter
-                  ? 'border-transparent bg-primary-50 text-primary-700 ring-1 ring-primary dark:bg-primary/15 dark:text-primary-100'
-                  : 'border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-              }`}
-            >
-              Has trap cards
-            </button>
-            {['Not started', 'Weak', 'Due'].map((chip) => (
-              <button
-                key={chip}
-                type="button"
-                aria-disabled="true"
-                title={PHASE2_HINT}
-                className="min-h-[44px] cursor-not-allowed rounded-full border border-dashed border-slate-300 px-4 text-[15px] text-slate-500 dark:border-slate-600 dark:text-slate-500"
-              >
-                {chip}
-              </button>
-            ))}
+          <SetupSearch
+            value={searchText}
+            onChange={setSearchText}
+            filterCount={filterCount}
+            onOpenFilters={() => setFiltersOpen(true)}
+          />
+
+          {(searchActive || filtersActive) && (
+            <div className="flex flex-wrap gap-2">
+              {searchActive && (
+                <button type="button" onClick={clearSearch} className={pillClass}>
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  Clear search
+                </button>
+              )}
+              {filtersActive && (
+                <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className={pillClass}>
+                  <X className="h-4 w-4" aria-hidden="true" />
+                  Clear {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
+                </button>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div role="group" aria-label={`Show ${SCOPE_NOUN[scopeKind]}`} className="flex flex-wrap gap-2">
+              {ROW_CHIPS.slice(0, 2).map((c) => (
+                <FilterChip key={c.value} active={rowChips.includes(c.value)} onClick={() => toggleChip(c.value)}>
+                  {c.label}
+                </FilterChip>
+              ))}
+              <FilterChip active={false} disabled title={DUE_HINT} onClick={() => {}}>
+                Due for review
+              </FilterChip>
+              <FilterChip active={rowChips.includes('trap')} onClick={() => toggleChip('trap')}>
+                Has trap cards
+              </FilterChip>
+            </div>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400">
+              Chips narrow the list of {SCOPE_NOUN[scopeKind]} below. Search and Filters narrow the questions that go into the
+              session.
+            </p>
           </div>
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[15px] text-slate-600 dark:text-slate-400">
               {selectedSet.size} of {catalog.length} selected
+              {hiddenSelected > 0 && ` · ${hiddenSelected} hidden`}
             </p>
             <div className="flex gap-2">
               <button
@@ -414,9 +612,30 @@ export function SessionSetupScreen() {
           </div>
 
           {visible.length === 0 ? (
-            <p className="rounded-2xl bg-card-light p-4 text-slate-600 shadow-sm dark:bg-card-dark dark:text-slate-400">
-              No items match the current filter.
-            </p>
+            <div className="space-y-3 rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark">
+              <p className="text-slate-600 dark:text-slate-400">
+                {searchActive && catalog.length > 0 && matchCounts && [...matchCounts.values()].every((n) => n === 0)
+                  ? `No questions match “${query.trim()}”${filtersActive ? ' with the current filters' : ''}.`
+                  : `No ${SCOPE_NOUN[scopeKind]} match the current search, filters and chips.`}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {searchActive && (
+                  <button type="button" onClick={clearSearch} className={pillClass}>
+                    Clear search
+                  </button>
+                )}
+                {filtersActive && (
+                  <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className={pillClass}>
+                    Clear filters
+                  </button>
+                )}
+                {rowChips.length > 0 && (
+                  <button type="button" onClick={() => setRowChips([])} className={pillClass}>
+                    Clear chips
+                  </button>
+                )}
+              </div>
+            </div>
           ) : (
             <div className="space-y-5">
               {groups.map((g) => {
@@ -438,7 +657,14 @@ export function SessionSetupScreen() {
                     <ul className="space-y-2">
                       {g.items.map((it) => (
                         <li key={it.key}>
-                          <ItemRow item={it} selected={selectedSet.has(it.key)} onToggle={() => toggleItem(it.key)} />
+                          <ItemRow
+                            item={it}
+                            selected={selectedSet.has(it.key)}
+                            onToggle={() => toggleItem(it.key)}
+                            query={searchActive ? query : ''}
+                            matched={matchCounts ? (matchCounts.get(it.key) ?? 0) : null}
+                            progress={progressByKey.get(it.key)}
+                          />
                         </li>
                       ))}
                     </ul>
@@ -486,6 +712,11 @@ export function SessionSetupScreen() {
                     );
                   })}
                 </div>
+                {options.order === 'weakest' && (
+                  <p className="text-[15px] text-slate-600 dark:text-slate-400">
+                    Lowest accuracy first. Questions you haven't tried count as 50%.
+                  </p>
+                )}
               </Field>
 
               <div className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -503,13 +734,15 @@ export function SessionSetupScreen() {
                 <Toggle
                   label="Trap cards only"
                   hint="Only questions with a trap explanation"
-                  checked={trapFilter || options.trapOnly}
-                  onChange={(v) => {
-                    setOption('trapOnly', v);
-                    if (!v) setTrapFilter(false);
-                  }}
+                  checked={options.trapOnly}
+                  onChange={(v) => setOption('trapOnly', v)}
                 />
-                <Toggle label="Wrong questions first" hint={PHASE2_HINT} checked={false} onChange={() => {}} disabled />
+                <Toggle
+                  label="Wrong questions first"
+                  hint="Questions you got wrong last time come first"
+                  checked={options.wrongFirst}
+                  onChange={(v) => setOption('wrongFirst', v)}
+                />
                 <Toggle
                   label="Skip drops question"
                   hint={options.skipDrops ? 'Skipped questions leave the session' : 'Skipped questions move to the end'}
@@ -538,6 +771,14 @@ export function SessionSetupScreen() {
           </button>
         </div>
       </div>
+
+      <FilterSheet
+        open={filtersOpen}
+        value={filters}
+        onApply={setFilters}
+        onClose={() => setFiltersOpen(false)}
+        countFor={countFor}
+      />
     </div>
   );
 }

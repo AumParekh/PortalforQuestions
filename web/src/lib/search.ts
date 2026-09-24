@@ -8,11 +8,13 @@ export interface SearchEntry {
   searchable: string;
 }
 
-let cache: { source: Question[]; index: SearchEntry[] } | null = null;
+// Keyed by the question array itself, so each screen's list is indexed once and reused.
+const cache = new WeakMap<Question[], SearchEntry[]>();
 
 /** Built once per loaded question array and reused; never rebuilt per keystroke. */
 export function getSearchIndex(questions: Question[]): SearchEntry[] {
-  if (cache?.source === questions) return cache.index;
+  const hit = cache.get(questions);
+  if (hit) return hit;
   const index = questions.map((q) => ({
     id: q.id,
     topic: q.topic,
@@ -31,7 +33,7 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
       .join(' \u0000 ')
       .toLowerCase(),
   }));
-  cache = { source: questions, index };
+  cache.set(questions, index);
   return index;
 }
 
