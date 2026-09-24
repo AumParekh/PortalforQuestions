@@ -58,7 +58,14 @@ export function openDb(): Promise<IDBDatabase> {
         db.createObjectStore('meta', { keyPath: 'key' });
       }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      const db = req.result;
+      db.onversionchange = () => {
+        db.close();
+        dbPromise = null;
+      };
+      resolve(db);
+    };
     req.onerror = () => reject(req.error);
     // Another tab holding an older version open; the open will proceed once it closes.
     req.onblocked = () => undefined;

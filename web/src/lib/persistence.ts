@@ -44,6 +44,12 @@ function sessionRecord(s: Snapshot): SessionRecord | null {
 
 let started = false;
 
+function saveSnapshot() {
+  const cur = useSession.getState();
+  const op = cur.status === 'idle' ? deleteMeta(SNAPSHOT_KEY) : setMeta(SNAPSHOT_KEY, snapshotOf(cur));
+  op.catch((e) => console.warn('[persistence] could not save session', e));
+}
+
 /**
  * Loads saved progress, restores an unfinished session, then mirrors session events into IndexedDB:
  * each new answer → attempt + question state, mark toggles → markedForReview, finish → session record.
@@ -108,10 +114,19 @@ export async function initPersistence(): Promise<void> {
 
     if (!available) return;
     window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(() => {
-      const cur = useSession.getState();
-      const op = cur.status === 'idle' ? deleteMeta(SNAPSHOT_KEY) : setMeta(SNAPSHOT_KEY, snapshotOf(cur));
-      op.catch((e) => console.warn('[persistence] could not save session', e));
-    }, 300);
+    // Answers and status changes are saved at once so a reload can't replay an already-recorded answer;
+    // navigation-only changes are debounced.
+    if (s.answers !== prev.answers || s.status !== prev.status || s.sessionId !== prev.sessionId) saveSnapshot();
+    else saveTimer = window.setTimeout(saveSnapshot, 300);
+  });
+
+  const flush = () => {
+    if (!available) return;
+    window.clearTimeout(saveTimer);
+    saveSnapshot();
+  };
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
   });
 }

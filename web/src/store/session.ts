@@ -14,7 +14,8 @@ interface SessionState {
   startedAt: string | null;
   endedAt: string | null;
 
-  start: (config: SessionConfig, queue: string[]) => void;
+  /** Returns false if the user kept their in-progress session instead. */
+  start: (config: SessionConfig, queue: string[]) => boolean;
   answer: (id: string, selected: OptionKey | '', correct: boolean, timeTakenSeconds: number, timedOut?: boolean) => void;
   next: () => void;
   prev: () => void;
@@ -46,8 +47,18 @@ const empty = {
 export const useSession = create<SessionState>((set, get) => ({
   ...empty,
 
-  start: (config, queue) =>
-    set({ ...empty, sessionId: newId('sess'), status: 'active', config, queue, startedAt: new Date().toISOString() }),
+  start: (config, queue) => {
+    const cur = get();
+    const answered = cur.queue.filter((id) => cur.answers[id]).length;
+    if (cur.status === 'active' && answered > 0) {
+      const msg = `You have a session in progress (${answered} of ${cur.queue.length} answered). Start a new one? The current one will be saved to your history.`;
+      if (!window.confirm(msg)) return false;
+      // Finishing first lets persistence record the interrupted session.
+      set({ status: 'finished', endedAt: new Date().toISOString() });
+    }
+    set({ ...empty, sessionId: newId('sess'), status: 'active', config, queue, startedAt: new Date().toISOString() });
+    return true;
+  },
 
   answer: (id, selected, correct, timeTakenSeconds, timedOut = false) => {
     if (get().answers[id]) return;

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useToday } from '../hooks/useToday';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -157,7 +158,8 @@ export function ReviewWrongScreen() {
   const [filtersOpen, setFiltersOpen] = useState(isWide);
 
   // Re-read the clock whenever attempts change so "today"/"yesterday" stay right after a drill.
-  const now = useMemo(() => new Date(), [attempts]);
+  const day = useToday();
+  const now = useMemo(() => new Date(), [attempts, day]);
 
   const lastMissedById = useMemo(() => {
     const map = new Map<string, string>();

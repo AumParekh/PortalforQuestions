@@ -14,6 +14,8 @@ interface ContentState {
   error: string | null;
   files: ContentFile[];
   questions: Question[];
+  /** Questions from subject banks only (mocks excluded); a stable array so derived caches stay warm. */
+  subjectQuestions: Question[];
   byId: Record<string, Question>;
   load: () => Promise<void>;
 }
@@ -35,6 +37,7 @@ export const useContent = create<ContentState>((set, get) => ({
   error: null,
   files: [],
   questions: [],
+  subjectQuestions: [],
   byId: {},
   load: async () => {
     if (get().status === 'loading' || get().status === 'ready') return;
@@ -67,7 +70,8 @@ export const useContent = create<ContentState>((set, get) => ({
       }
       const byId: Record<string, Question> = {};
       for (const q of questions) byId[q.id] = q;
-      set({ status: 'ready', files, questions, byId });
+      const subjectQuestions = questions.filter((q) => !q.file.startsWith('mocks/'));
+      set({ status: 'ready', files, questions, subjectQuestions, byId });
     } catch (e) {
       set({ status: 'error', error: e instanceof Error ? e.message : String(e) });
     }

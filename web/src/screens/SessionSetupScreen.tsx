@@ -107,6 +107,7 @@ function loadStored(): Stored {
     const def = DEFAULTS.options;
     const rowChips = Array.isArray(d.rowChips) ? ROW_CHIPS.filter((c) => (d.rowChips as unknown[]).includes(c.value)).map((c) => c.value) : [];
     // Setups saved before row chips existed only stored the trap chip as a boolean.
+    const legacyTrap = d.trapFilter === true && !Array.isArray(d.rowChips);
     if (d.trapFilter === true && !rowChips.includes('trap')) rowChips.push('trap');
     return {
       scopeKind: pick(d.scopeKind, SCOPES, DEFAULTS.scopeKind),
@@ -119,7 +120,7 @@ function loadStored(): Stored {
         order: pick(o.order, ORDERS, def.order),
         timerEnabled: bool(o.timerEnabled, def.timerEnabled),
         timerMinutes: pick(o.timerMinutes, MINUTES, def.timerMinutes),
-        trapOnly: bool(o.trapOnly, def.trapOnly),
+        trapOnly: legacyTrap || bool(o.trapOnly, def.trapOnly),
         wrongFirst: bool(o.wrongFirst, def.wrongFirst),
         skipDrops: bool(o.skipDrops, def.skipDrops),
       },
@@ -314,12 +315,11 @@ function ItemRow({
 }
 
 export function SessionSetupScreen() {
-  const allQuestions = useContent((s) => s.questions);
   const byId = useContent((s) => s.byId);
   const states = useProgress((s) => s.states);
   const pendingQuery = useUi((s) => s.pendingSetupQuery);
   // Mock exams run through their own flow; setup only draws from subject banks.
-  const questions = useMemo(() => allQuestions.filter((q) => !q.file.startsWith('mocks/')), [allQuestions]);
+  const questions = useContent((s) => s.subjectQuestions);
 
   const [initial] = useState(loadStored);
   const [scopeKind, setScopeKind] = useState<ScopeKind>(initial.scopeKind);

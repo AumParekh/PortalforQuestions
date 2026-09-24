@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import { useToday } from '../hooks/useToday';
 import {
   BarChart3,
   BookOpen,
@@ -163,10 +164,15 @@ export function HomeScreen() {
   const subjectIds = useMemo(() => new Set(subjectQuestions.map((q) => q.id)), [subjectQuestions]);
 
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
-  const streak = useMemo(() => streaks(attempts), [attempts]);
-  const today = useMemo(() => answeredToday(attempts), [attempts]);
+  const day = useToday();
+  const streak = useMemo(() => streaks(attempts), [attempts, day]);
+  const today = useMemo(() => answeredToday(attempts), [attempts, day]);
   const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
-  const wrongCount = useMemo(() => wrongQuestionStates(states).filter((s) => byId[s.questionId]).length, [states, byId]);
+  // Matches Review Wrong's default "Still wrong only" view.
+  const wrongCount = useMemo(
+    () => wrongQuestionStates(states).filter((s) => s.lastResult === 'wrong' && byId[s.questionId]).length,
+    [states, byId],
+  );
   const progressByPath = useMemo(() => {
     const out: Record<string, FileProgress> = {};
     for (const f of files) out[f.path] = fileProgress(f, states);

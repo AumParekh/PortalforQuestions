@@ -32,6 +32,18 @@ export default function App() {
     initPersistence();
   }, [load]);
 
+  // A restored session may reference questions a content update removed; drop them rather than strand the user.
+  useEffect(() => {
+    if (status !== 'ready' || !persistenceReady) return;
+    const s = useSession.getState();
+    if (s.status === 'idle') return;
+    const byId = useContent.getState().byId;
+    const queue = s.queue.filter((id) => byId[id]);
+    if (queue.length === s.queue.length) return;
+    if (queue.length === 0) s.reset();
+    else useSession.setState({ queue, currentIndex: Math.min(s.currentIndex, queue.length - 1) });
+  }, [status, persistenceReady]);
+
   // A session route with no active session (e.g. after reload) goes back to setup.
   useEffect(() => {
     if (status !== 'ready' || !persistenceReady) return;

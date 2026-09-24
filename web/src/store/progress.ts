@@ -56,7 +56,12 @@ export const useProgress = create<ProgressState>((set, get) => ({
     if (get().status !== 'idle') return;
     set({ status: 'loading' });
     try {
-      const [rows, attempts, sessions] = await Promise.all([getAll('questionState'), getAll('attempts'), getAll('sessions')]);
+      // A blocked or hung IndexedDB must not keep the app on the loading screen.
+      const timeout = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('IndexedDB timed out')), 4000));
+      const [rows, attempts, sessions] = await Promise.race([
+        Promise.all([getAll('questionState'), getAll('attempts'), getAll('sessions')]),
+        timeout,
+      ]);
       const states: Record<string, QuestionState> = {};
       for (const r of rows) states[r.questionId] = r;
       attempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
