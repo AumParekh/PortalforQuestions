@@ -90,7 +90,8 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ marked });
   },
 
-  finish: () => set({ status: 'finished', endedAt: new Date().toISOString() }),
+  // Keep the first end time so reviewing from the summary doesn't inflate session duration.
+  finish: () => set({ status: 'finished', endedAt: get().endedAt ?? new Date().toISOString() }),
 
   reset: () => set({ ...empty }),
 }));
