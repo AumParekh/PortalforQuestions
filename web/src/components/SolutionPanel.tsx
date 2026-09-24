@@ -14,7 +14,7 @@ function humanize(op: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-const CARD = 'rounded-2xl border border-slate-200 bg-card-light p-5 shadow-sm dark:border-slate-700 dark:bg-card-dark sm:p-6';
+const CARD = 'rounded-2xl border border-slate-200 bg-card-light p-4 shadow-sm dark:border-slate-700 dark:bg-card-dark sm:p-6';
 
 export function SolutionPanel({ question, record, marked, onToggleMark }: Props) {
   const { operators, explanation } = question.trap;
@@ -107,7 +107,7 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
       </div>
 
       {hasTrap && (
-        <div className="rounded-2xl border border-amber-500/50 bg-amber-50 p-5 shadow-sm dark:border-amber-500/40 dark:bg-amber-950/30 sm:p-6">
+        <div className="rounded-2xl border border-amber-500/50 bg-amber-50 p-4 shadow-sm dark:border-amber-500/40 dark:bg-amber-950/30 sm:p-6">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-3 py-1 text-[15px] font-semibold text-white dark:bg-amber-600">
               <AlertTriangle className="h-4 w-4" aria-hidden="true" />

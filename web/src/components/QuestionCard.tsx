@@ -21,7 +21,7 @@ export function QuestionCard({ question, record, animateFeedback, onSelect }: Pr
   const stemSize = question.question.length > 800 ? 'text-lg' : 'text-xl';
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl border border-slate-200 bg-card-light p-5 shadow-sm dark:border-slate-700 dark:bg-card-dark sm:p-6">
+      <div className="rounded-2xl border border-slate-200 bg-card-light p-4 shadow-sm dark:border-slate-700 dark:bg-card-dark sm:p-6">
         <Markdown className={`${stemSize} leading-relaxed`}>{question.question}</Markdown>
       </div>
       <div className="flex flex-col gap-3" role="group" aria-label="Answer options">
