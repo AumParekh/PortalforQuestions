@@ -250,7 +250,7 @@ export function FilterSheet({
                 ),
               )}
             </div>
-            <p className="text-[15px] text-slate-600 dark:text-slate-400">Due for review: {DUE_HINT.toLowerCase()}.</p>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400">Due for review unlocks when spaced repetition arrives in Phase 4.</p>
           </Section>
 
           <Section title="Trap type" hint="Questions with any of the selected traps.">
