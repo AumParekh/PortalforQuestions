@@ -4,11 +4,10 @@
 // "X, not Y" contrast, or a direction word (higher / lower, before / after, …). Every sentence is
 // the notes' own text; every option offered as a cue comes from the same reading (or area).
 import type { Corpus } from '../../corpus';
-import { learningObjectives } from '../../corpus';
 import type { Block, BlockType, ItemSrs, Objective, Reading, SubItem, SubItemLike, TrapCategory } from '../../types';
 import { isLearningObjective } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { splitMath, toDisplay } from '../../text';
+import { toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { AnswerKey } from './match';
@@ -151,13 +150,20 @@ export function splitSentences(unit: string): string[] {
     if (ch === '{') depth++;
     else if (ch === '}') depth = Math.max(0, depth - 1);
     else if (ch === '$') math = !math;
-    else if ((ch === '.' || ch === '?' || ch === '!') && depth === 0 && !math) {
-      const m = /^(['’”)]*)\s+(?=[A-Z\\$`“(0-9])/.exec(unit.slice(i + 1));
+    else if ((ch === '.' || ch === '?' || ch === '!') && !math) {
+      // A sentence may end inside a bold lead-in: "\textbf{… not dollar.} The source …".
+      const m = /^([}'’”)]*)\s+(?=[A-Z\\$`“(0-9])/.exec(unit.slice(i + 1));
       if (!m) continue;
+      const closing = (m[1].match(/\}/g) ?? []).length;
+      if (depth - closing !== 0) continue;
       const head = unit.slice(start, i + 1);
       if (ABBREV.test(head) || /(?:^|\s)[A-Z]\.$/.test(head)) continue;
+      // A short bold lead-in ("\term{Bootstrap historical simulation.} This is …") stays with its sentence.
+      if (closing > 0 && words(toDisplay(head)).length <= 6) continue;
       out.push((head + m[1]).trim());
       start = i + 1 + m[1].length;
+      i += m[1].length;
+      depth = 0;
     }
   }
   const rest = unit.slice(start).trim();
@@ -255,6 +261,8 @@ function answerOk(answer: string, kind: ClozeKind): boolean {
   if (!/[\p{L}\p{N}]/u.test(answer)) return false;
   const ws = words(answer);
   if (ws.length > 4) return false;
+  // Cross-references ("CR-14 e") are pointers, not content.
+  if (/\b[A-Z]{2,3}-\d+\b/.test(answer)) return false;
   if (kind !== 'number' && kind !== 'direction') {
     if (ws.every((w) => STOPWORDS.has(w.toLowerCase().replace(/[^a-z]/g, '')))) return false;
     if (!/\p{L}{2}/u.test(answer)) return false;
@@ -313,6 +321,8 @@ function macroTargets(s: string, block: Block): Target[] {
 
 function numberTargets(s: string, block: Block): Target[] {
   const out: Target[] = [];
+  // Trap boxes' numbers are mostly wrong-answer builds and intermediate results, not facts to hold.
+  if (block.type === 'trapbox') return out;
   const maths = mathRanges(s);
   for (const n of subItems(block.numeric_items)) {
     const text = subText(n).trim();
@@ -378,6 +388,13 @@ function directionTargets(s: string, block: Block, bulletId: string | null): Tar
   let m: RegExpExecArray | null;
   while ((m = DIRECTION_RE.exec(s))) {
     if (inRanges(m.index, maths)) continue;
+    // "the formula above", "see below", "sits above them": position in the text, not a direction.
+    if (/^(above|below)$/i.test(m[0])) {
+      const next = s.slice(m.index + m[0].length);
+      const prev = s.slice(0, m.index);
+      if (/^\s*([.,;:)]|$|them\b|it\b|this\b|these\b)/.test(next)) continue;
+      if (/\b(formula|equation|table|figure|example|see|shown|noted|discussed|listed|described|given|as)\s*$/i.test(prev)) continue;
+    }
     out.push({ kind: 'direction', start: m.index, end: m.index + m[0].length, answer: m[0], itemId: containerId(s, m.index, block, bulletId) });
   }
   return out;
@@ -420,8 +437,10 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
     const lCore = left.slice(Math.max(0, left.length - suffix - rCore.length), left.length - suffix);
     let p = 0;
     while (p < rCore.length - 1 && p < lCore.length - 1 && rCore[p] === lCore[p].w) p++;
-    const x = lCore.slice(p);
+    let x = lCore.slice(p);
     const y = rCore.slice(p);
+    while (x.length > 1 && /^(a|an|the)$/.test(x[0].w)) x = x.slice(1);
+    if (x.length && STOPWORDS.has(x[0].w)) continue;
     if (!x.length || x.length > 3 || x.some((t) => !/^[a-z][a-z-]*$/.test(t.w) || inRanges(t.start, maths))) continue;
     if (x.map((t) => t.w).join(' ') === y.join(' ')) continue;
     if (x.every((t) => STOPWORDS.has(t.w))) continue;
@@ -447,6 +466,10 @@ function titleOf(b: Block): string | null {
 /** Wraps a target into a candidate if the blanked sentence still reads as a clue. */
 function toCandidate(s: string, t: Target, block: Block, objectiveId: string, readingId: string, order: number): Candidate | null {
   if (!answerOk(t.answer, t.kind)) return null;
+  // A trap box's leading label ("\term{Sibling.}", "\textbf{Polarity:}") names the trap shape, not content.
+  if (block.type === 'trapbox' && (t.kind === 'term' || t.kind === 'bold') && !s.slice(0, t.start).trim() && /^[.:]/.test(s.slice(t.end).trim() || toDisplay(s.slice(t.start, t.end)).slice(-1))) {
+    return null;
+  }
   const tail = t.kind === 'term' || t.kind === 'bold' ? stripTrailingPunct(toDisplay(s.slice(t.start, t.end))).punct : '';
   const before = s.slice(0, t.start);
   const after = (tail ? tail + ' ' : '') + s.slice(t.end);
@@ -512,13 +535,11 @@ function blockSentences(block: Block, objectiveId: string, readingId: string, co
       if (first && block.type === 'defbox' && typeof block.title === 'string') {
         const deft = subItems(block.terms).find((x) => (x as { term_source?: string }).term_source === 'deftitle') ?? null;
         const title = stripTrailingPunct(toDisplay(block.title)).core;
-        if (deft?.id && title) {
-          const c = toCandidate(`\\textbf{${block.title}}: ${s}`, { kind: 'definition', start: 0, end: 9 + block.title.length, answer: title, itemId: deft.id }, block, objectiveId, readingId, order);
-          if (c) {
-            c.after = `: ${s}`;
-            c.before = '';
-          }
-          if (c) raw.push({ ...(c as unknown as Target) });
+        // Titles that list several things ("Liquid asset, liquid market", "The four term structures") aren't one term.
+        const listy = /,|^(the )?(two|three|four|five|six|seven|eight|nine|ten)\b|^\d/i.test(title);
+        if (deft?.id && title && !listy) {
+          const head = `\\textbf{${block.title}}`;
+          const c = toCandidate(`${head}: ${s}`, { kind: 'definition', start: 0, end: head.length, answer: title, itemId: deft.id }, block, objectiveId, readingId, order);
           if (c) {
             out.push({ objectiveId, blockId: block.id, order, targets: [c] });
             first = false;
@@ -634,7 +655,7 @@ function planChain(reading: Reading, input: BuildInput | null): ChainPlan | null
     const p = total - d;
     for (let s = 0; s + total <= links.length; s++) {
       const w = links.slice(s, s + total);
-      plans.push({ discovery: w.slice(0, d), pressure: w.slice(d, d + p), score: windowScore(w) + loBonus(objective) + 1 + rng() * 0.5 });
+      plans.push({ discovery: w.slice(0, d), pressure: w.slice(d, d + p), score: windowScore(w) + loBonus(objective) + 2 + rng() * 0.5 });
     }
   }
   for (let i = 0; i < ts.length; i++) {
@@ -695,13 +716,14 @@ function allTargets(reading: Reading): Candidate[] {
 function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () => number): string[] | null {
   const sentenceKey = ` ${key(toDisplay(`${c.before} ${c.after}`))} `;
   const ansKeys = c.accept.map(key);
+  const foilKey = c.foil ? key(c.foil) : null;
   const chosen: string[] = [];
   const taken = new Set(ansKeys);
   const ok = (x: string) => {
     const k = key(x);
     if (!k || taken.has(k)) return false;
     if (ansKeys.some((a) => a.includes(k) || k.includes(a))) return false;
-    if (c.kind !== 'number' && c.kind !== 'direction' && sentenceKey.includes(` ${k} `)) return false;
+    if (c.kind !== 'direction' && k !== foilKey && sentenceKey.includes(` ${k} `)) return false;
     return true;
   };
   const add = (x: string) => {
@@ -855,12 +877,12 @@ export function buildCloze(reading: Reading, input: BuildInput): MechanicPlan<Cl
   const first = chain.discovery.find((c) => c.kind === 'definition' || c.kind === 'term') ?? chain.discovery[0];
   const concept = namingFrom(reading, first);
   const o = reading.objectives.find((x) => x.id === first.objectiveId);
-  const los = learningObjectives(reading);
+  const text = objectiveText(o);
   return {
     rounds,
-    target: objectiveText(o) ? `the thread of ${first.objectiveId}: ${objectiveText(o)}` : `the thread of ${first.objectiveId}`,
+    target: text ? `the thread of ${first.objectiveId}: ${text}` : `the thread of ${first.objectiveId}`,
     opening: `${reading.reading_id} · Cloze Chain. A run of linked sentences from one thread of this reading, in the order the notes give them, each missing the word that carries it. Type what belongs. A cue is there if you ask — first a letter, then three choices — but a cue counts against how well you hold it.`,
-    concept: los.length || o ? concept : concept,
+    concept,
   };
 }
 

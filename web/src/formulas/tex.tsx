@@ -47,8 +47,9 @@ export const Tex = memo(function Tex({ latex, display = false, className = '', l
   const html = useMemo(() => renderTex(latex, display), [latex, display]);
   if (display) {
     return (
-      <div
-        className={`max-w-full overflow-x-auto overflow-y-hidden py-1 text-lg [&_.katex-display]:my-1 ${className}`}
+      // A block-level span, so a formula can sit inside a button.
+      <span
+        className={`block max-w-full overflow-x-auto overflow-y-hidden py-1 text-lg [&_.katex-display]:my-1 ${className}`}
         aria-label={label}
         dangerouslySetInnerHTML={{ __html: html }}
       />

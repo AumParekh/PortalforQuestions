@@ -329,16 +329,19 @@ export function checkBoard(text: string, targets: readonly BlurtTarget[], extras
     let hit: Hit | null = null;
     let near: Hit | null = null;
     let flipped: Hit | null = null;
-    units.forEach(({ i, text: unitText, ix }) => {
-      const r = scoreSegment(t, ix);
-      const h = { segment: i, text: unitText, score: r.score };
-      if (r.hit && (!hit || r.score > hit.score)) hit = h;
-      else if (r.flipped && !flipped) flipped = h;
-      else if (!r.hit && r.score >= 0.3 && (!near || r.score > near.score)) near = h;
-    });
+    for (const u of units) {
+      const r = scoreSegment(t, u.ix);
+      const h: Hit = { segment: u.i, text: u.text, score: r.score };
+      if (r.hit) {
+        if (!hit || r.score > hit.score) hit = h;
+      } else if (r.flipped) {
+        flipped ??= h;
+      } else if (r.score >= 0.3 && (!near || r.score > near.score)) near = h;
+    }
     results[t.itemId] = { itemId: t.itemId, hit, near: hit ? null : near, flipped: hit ? null : flipped };
-    const h = hit as Hit | null;
-    if (h) segmentHits[h.segment].push(t.itemId);
+    if (hit) segmentHits[hit.segment].push(t.itemId);
   }
+  // A "closest line" that already carried other items is not a near miss of this one.
+  for (const r of Object.values(results)) if (r.near && segmentHits[r.near.segment].length) r.near = null;
   return { segments, results, segmentHits };
 }

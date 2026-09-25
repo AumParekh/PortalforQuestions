@@ -7,7 +7,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Objective, Reading, SubItemLike } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { emphasised, toDisplay } from '../../text';
+import { emphasised, mathToPlain, splitMath, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { BlurtTarget, KeyWord, TargetKind } from './match';
@@ -41,6 +41,7 @@ export const MAX_EXTRAS = 40;
 const SKIP_BLOCKS = new Set(['exbox', 'table', 'tikzpicture', 'figcap']);
 /** Numbers are recall material only in statements of fact, not in examples or tables. */
 const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'trapbox', 'gapbox', 'notebox']);
+const TRAP_LABEL = /^[A-Z][A-Za-z]*(?:[ -][A-Za-z]+){0,2}(?:,\s*[A-Z]{1,4}-\d+\s*[a-z]?)?\s*[.:]\s+/;
 const LO_VERB = /^(Describe|Explain|Identify|Calculate|Compare|Evaluate|Distinguish|Assess|Define|Apply|Discuss|Summari[sz]e|Differentiate|Estimate|Interpret|Analy[sz]e|Contrast|Outline|Recogni[sz]e|Construct|Derive|List)\b/;
 
 function obj(x: SubItemLike): Record<string, unknown> | null {
@@ -58,20 +59,13 @@ export function leadSentence(plain: string): string {
   return lead;
 }
 
-/** Acronyms that stand for a term: an explicit "(EAD)" / all-caps token, or the term's initials. */
+/** Acronyms that stand for a term: an explicit "(EAD)", or the term itself when it is one ("IRC"). */
 export function acronymsOf(latex: string): string[] {
   const plain = plainOf(latex);
   const out = new Set<string>();
   for (const m of plain.matchAll(/\(([A-Za-z][A-Za-z0-9&-]{1,7})\)/g)) out.add(m[1].toLowerCase());
   const ws = plain.replace(/\([^)]*\)/g, ' ').split(/[^\p{L}\p{N}]+/u).filter(Boolean);
   if (ws.length === 1 && /^[A-Z][A-Za-z0-9]*[A-Z][A-Za-z0-9]*$/.test(ws[0]) && ws[0].length <= 7) out.add(ws[0].toLowerCase());
-  if (ws.length >= 2 && ws.length <= 6) {
-    const all = ws.map((w) => w[0].toLowerCase()).join('');
-    const minor = new Set(['of', 'the', 'a', 'an', 'and', 'to', 'for', 'in', 'on']);
-    const major = ws.filter((w) => !minor.has(w.toLowerCase())).map((w) => w[0].toLowerCase()).join('');
-    // Initials only count when they are long enough not to collide with ordinary words.
-    for (const a of [all, major]) if (a.length >= 3 && /^[a-z]+$/.test(a)) out.add(a);
-  }
   return [...out].filter((a) => a.length >= 2);
 }
 
@@ -104,7 +98,10 @@ function termTargets(b: Block): RawTarget[] {
     const plain = plainOf(text);
     const n = plain.split(/\s+/).length;
     if (plain.length < 2 || plain.length > 90 || n > 10) continue;
-    out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, keyText: plain, emph: [], acronyms: acronymsOf(text), values: [], key: `t:${contentStems(plain).join(' ')}` });
+    const acronyms = acronymsOf(text);
+    // "more than one", "no": marked, but nothing to recall on their own.
+    if (!contentStems(plain).some((x) => x.length >= 3) && acronyms.length === 0) continue;
+    out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, keyText: plain, emph: [], acronyms, values: [], key: `t:${contentStems(plain).join(' ')}` });
   }
   return out;
 }
@@ -117,9 +114,11 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     const id = str(o?.id);
     const text = str(o?.text) || str(o?.plain_text);
     if (!id || !text.trim()) continue;
-    const plain = plainOf(text);
+    let plain = plainOf(text);
     // Learning-objective restatements are the prompt, not recall material.
     if (b.type === 'keybox' && LO_VERB.test(plain)) continue;
+    // A trap bullet's lead-in label is its trap category ("Sibling, IM-2 e."), not content.
+    if (b.type === 'trapbox') plain = plain.replace(TRAP_LABEL, '');
     const lead = leadSentence(plain);
     const stems = contentStems(lead);
     if (stems.length < 3 || lead.split(/\s+/).length > 45) continue;
@@ -139,8 +138,9 @@ function numberTargets(b: Block): RawTarget[] {
     const context = str(o?.context);
     if (!id || !text.trim() || !context.trim()) continue;
     const ctxPlain = plainOf(context);
-    // Arithmetic lines and number lists are working, not facts to recall.
-    if (/\d\s*[-+−×*/=]\s*\$?\s*\d/.test(ctxPlain) || parseNumbers(ctxPlain).length > 5) continue;
+    // Arithmetic lines, number lists and display formulas are working, not facts to recall.
+    if (/\d%?\s*[-+−×*/=]\s*\$?\s*\d/.test(ctxPlain) || parseNumbers(ctxPlain).length > 5) continue;
+    if (splitMath(context).some((seg) => seg.kind === 'math' && mathToPlain(seg.tex) === null)) continue;
     const numPlain = plainOf(text);
     const parsed = parseNumbers(numPlain);
     const raw = typeof o?.value === 'number' ? (o.value as number) : parsed[0]?.value;
@@ -181,6 +181,8 @@ export function rawTargets(o: Objective): RawTarget[] {
   const objectiveText = o.text ?? '';
   for (const b of o.blocks ?? []) {
     if (!b || typeof b.id !== 'string' || SKIP_BLOCKS.has(b.type)) continue;
+    // A consolidated trap summary spans the whole reading; it sits under the last objective only by position.
+    if (b.type === 'trapbox' && /consolidated|summary/i.test(b.title ?? '')) continue;
     const items = [...termTargets(b), ...variableTargets(b), ...numberTargets(b), ...bulletTargets(b, objectiveText)];
     for (const t of items) {
       if (seen.has(t.key) || seen.has(t.itemId)) continue;
@@ -219,8 +221,12 @@ function finalise(t: RawTarget, df: Map<string, number>, n: number): BlurtTarget
   };
 }
 
-/** Finalised recall items of every learning objective in a reading. */
+const targetCache = new WeakMap<Reading, Map<string, BlurtTarget[]>>();
+
+/** Finalised recall items of every learning objective in a reading (cached per reading object). */
 export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
+  const cached = targetCache.get(reading);
+  if (cached) return cached;
   const raw = new Map<string, RawTarget[]>();
   for (const o of learningObjectives(reading)) {
     try {
@@ -233,6 +239,7 @@ export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
   const df = documentFrequency(all);
   const out = new Map<string, BlurtTarget[]>();
   for (const [id, items] of raw) out.set(id, items.map((t) => finalise(t, df, all.length)));
+  targetCache.set(reading, out);
   return out;
 }
 
@@ -260,6 +267,8 @@ const KIND_QUALITY: Record<TargetKind, number> = { term: 3, variable: 2, number:
 function quality(t: BlurtTarget): number {
   // Single-word terms without an acronym are thin recall targets; multi-word terms and acronyms are the vocabulary.
   if (t.kind === 'term' && t.keys.length <= 1 && t.acronyms.length === 0) return 1;
+  // Trap-box bullets are about how the exam misleads; the objective's own content comes first.
+  if (t.kind === 'point' && /\.trapbox\./.test(t.blockId)) return 1;
   return KIND_QUALITY[t.kind];
 }
 

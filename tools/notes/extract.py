@@ -573,8 +573,6 @@ class Plain(object):
                     i = j
                     continue
                 if base in NOOP:
-                    if base == 'selectfont':
-                        pass
                     i = j
                     continue
                 if base in DROP_ARGS:
@@ -717,7 +715,6 @@ def list_items(latex):
         for e in env_list:
             if e.name in LIST_ENVS:
                 inner_a, inner_b = e.a, e.e0
-                nested = [c for c in walk_envs(e.children)]
                 top_nested = e.children
                 blocked = [(c.b0, c.e1) for c in top_nested]
                 pos = []
@@ -740,7 +737,6 @@ def list_items(latex):
                     txt = mask(latex[q:end], [(a - q, b - q) for a, b in lists_inside])
                     out.append((label, txt, depth, e.name, p))
                 visit(e.children, depth + 1)
-                del nested
             else:
                 visit(e.children, depth)
     visit(envs, 1)
@@ -822,7 +818,6 @@ def parse_table(body):
             tok = m.group(0)
             if 'midrule' in tok:
                 pre_rules.append('midrule')
-            rc = HEADER_ROWCOLOR.match(tok.strip())
             if tok.strip().startswith('\\rowcolor'):
                 rowcolor = re.search(r'\{([^}]*)\}', tok).group(1)
             chunk = chunk[m.end():]
@@ -1748,9 +1743,6 @@ class ReadingParser(object):
                 b[k] = obj[k]
         b['rows'] = obj['rows']
         self.finalize(b, [(raw[len('\\begin{%s}' % e.name):], 'table')], 'table')
-        for row in b['rows']:
-            for m in NUM_RE.finditer(row['text']):
-                pass
         for bc in b.pop('_bold_cells', []):
             self.add_term(b, bc, 'bold_cell')
         self.last_visual = b
@@ -1913,7 +1905,6 @@ class ReadingParser(object):
         pos = e.b0
 
         # ---- meta / source notes
-        before_first_lo = not self.first_lo_seen
         is_summary = bool(title and re.search(r'consolidated trap summary', title, re.I))
         meta_reason = None
         if ctype == 'srcbox':
@@ -2151,8 +2142,6 @@ class ReadingParser(object):
                 options = opts
                 mcq_tables.append(c)
         if not options:
-            for label, it, depth, env in list_items(body):
-                pass
             lm = re.search(r'\\begin\{enumerate\}\[[^\]]*\\Alph\*', body)
             if lm:
                 sub = body[lm.start():]
