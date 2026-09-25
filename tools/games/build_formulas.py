@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Merge the per-slice formula cards and twin pairs into content/games/formulas.json.
 
-Usage: build_formulas.py <slice-dir> <twins.json>
+Usage: build_formulas.py <slice-dir> <twins.json> [<enrich-dir>]
 
 Cards that fail a hard check are dropped and reported; the build fails if more than 5% drop.
 Hard checks: required fields, unique ids, skeleton + slots rebuilds latex, no decoy equals a slot,
@@ -103,6 +103,57 @@ def check_card(c):
     return None
 
 
+REPAIR_CATEGORIES = {'Sign', 'Formula', 'Sibling'}
+
+
+def apply_enrichment(cards, enrich_dir):
+    """Adds Formula Repair annotations, question-bank worked lines and an output symbol.
+
+    A repair is kept only if substituting its bad piece into `marked` gives the corruption and
+    substituting its fix gives the true formula (whitespace-insensitive), exactly as the app does.
+    """
+    extra = {}
+    for f in sorted(glob.glob(os.path.join(enrich_dir, 'e[0-9]*.json'))):
+        extra.update(json.load(open(f)))
+    stats = {'repairs': 0, 'repair_rejected': 0, 'worked': 0, 'worked_rejected': 0, 'output': 0}
+    for c in cards:
+        e = extra.get(c['id'])
+        if not e:
+            continue
+        cors = c.get('corruptions') or []
+        for cor, r in zip(cors, e.get('repairs') or []):
+            if not r:
+                continue
+            ok = (
+                isinstance(r.get('marked'), str) and r['marked'].count('{{bad}}') == 1
+                and r.get('bad') and r.get('fix') and norm(r['bad']) != norm(r['fix'])
+                and norm(r['marked'].replace('{{bad}}', r['bad'])) == norm(cor.get('latex'))
+                and norm(r['marked'].replace('{{bad}}', r['fix'])) == norm(c['latex'])
+                and r.get('category') in REPAIR_CATEGORIES
+            )
+            distractors = [d for d in r.get('distractors') or [] if isinstance(d, str) and norm(d) not in {norm(r.get('fix')), norm(r.get('bad'))}] if ok else []
+            if ok and distractors:
+                cor['repair'] = {'marked': r['marked'], 'bad': r['bad'], 'fix': r['fix'], 'distractors': distractors, 'category': r['category']}
+                stats['repairs'] += 1
+            else:
+                stats['repair_rejected'] += 1
+        worked = []
+        for w in e.get('worked') or []:
+            if isinstance(w, dict) and isinstance(w.get('display'), str) and 0 < len(w['display']) <= 120 \
+                    and isinstance(w.get('value'), (int, float)) and math.isfinite(w['value']):
+                worked.append({'display': w['display'], 'value': w['value'], 'source': str(w.get('source') or '')})
+            else:
+                stats['worked_rejected'] += 1
+        if worked:
+            c['worked'] = worked
+            stats['worked'] += len(worked)
+        out = e.get('output')
+        if isinstance(out, dict) and out.get('symbol') and '=' not in c['latex']:
+            c['output'] = {'symbol': out['symbol']}
+            stats['output'] += 1
+    return stats
+
+
 def main():
     slice_dir, twins_path = sys.argv[1], sys.argv[2]
     cards, dropped, seen = [], [], set()
@@ -128,6 +179,8 @@ def main():
         return (area_order.get(area, 9), int(num) if num.isdigit() else 0, c['id'])
 
     cards.sort(key=sort_key)
+    if len(sys.argv) > 3:
+        print('enrichment', apply_enrichment(cards, sys.argv[3]))
     json.dump({'version': 1, 'formulas': cards, 'twins': twins}, open(OUT, 'w'), ensure_ascii=False, indent=1)
     print(f'{len(cards)} formulas, {len(twins)} twin pairs -> {OUT}')
     for d in dropped:
