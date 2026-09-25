@@ -104,7 +104,7 @@ for (const vp of VIEWPORTS) {
   // Every registered notes game, one session each, at phone width (where layouts break first).
   if (vp.width <= 375) {
     await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
-    const tab = page.getByRole('button', { name: /^\s*Mechanics\s*$/ }).first();
+    const tab = page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first();
     await tab.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
     await tab.click().catch(() => undefined);
     const names = await page.$$eval('li > button:not([disabled]) .g-strong', (els) => els.map((e) => e.textContent?.trim() ?? ''));
@@ -114,7 +114,7 @@ for (const vp of VIEWPORTS) {
       const label = `${vp.name} play game "${mech}"`;
       try {
         await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
-        await page.getByRole('button', { name: /^\s*Mechanics\s*$/ }).first().click({ timeout: 20000 });
+        await page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first().click({ timeout: 20000 });
         await page.locator('li > button:not([disabled])', { hasText: mech }).first().click();
         for (const name of [/Pick a reading for me/, /^\s*Start\s*$/, /^\s*Begin\s*$/]) {
           const b = page.getByRole('button', { name }).first();
