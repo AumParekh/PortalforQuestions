@@ -665,6 +665,9 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const started = useRef(performance.now());
   const raf = useRef<number | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
+  const candsRef = useRef<HTMLDivElement | null>(null);
+  /** Keyboard continuity: Next had focus when it was pressed, so focus the new round's first candidate. */
+  const refocus = useRef(false);
   const timed = phase === 'pressure';
 
   useEffect(() => {
@@ -686,6 +689,10 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const answer = (picked: number | null, byTimer: boolean) => {
     if (!round || answeredRef.current) return;
     answeredRef.current = true;
+    if (raf.current !== null) {
+      cancelAnimationFrame(raf.current);
+      raf.current = null;
+    }
     const c = picked === null ? null : round.payload.candidates[picked];
     const correct = !!c?.correct;
     onResult({ roundId: round.id, correct, timeMs: performance.now() - started.current, timedOut: byTimer });
@@ -735,6 +742,7 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const next = () => {
     if (stage !== 'settled') return;
     if (index + 1 < rounds.length) {
+      refocus.current = typeof document !== 'undefined' && document.activeElement === nextRef.current;
       answeredRef.current = false;
       started.current = performance.now();
       setStage('pick');
@@ -758,6 +766,12 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
+
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    candsRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus({ preventScroll: true } as FocusOptions);
+  }, [index]);
 
   // Keyboard: 1 / 2 / 3 pick a candidate.
   useEffect(() => {
@@ -856,7 +870,7 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
           />
         </figure>
 
-        <div className="tr-cands" role="group" aria-label={`Candidate ${qword}s`} style={{ '--tr-cand-min': `${candMin}px` } as CSSProperties}>
+        <div ref={candsRef} className="tr-cands" role="group" aria-label={`Candidate ${qword}s`} style={{ '--tr-cand-min': `${candMin}px` } as CSSProperties}>
           {p.candidates.map((c, j) => {
             // After a miss the tree's value lights only once the wrong branch has held for its beat.
             const lit = outcome?.correct || stage === 'reveal' || settled;
