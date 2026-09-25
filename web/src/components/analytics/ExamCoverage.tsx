@@ -9,7 +9,8 @@ import { ChartCard } from './ChartCard';
 import { pct } from './chartUtils';
 
 function caption(behind: SubjectCoverage | null, rows: SubjectCoverage[]): string {
-  if (!behind) return 'No subject banks loaded.';
+  if (rows.length === 0) return 'No subject banks loaded.';
+  if (!behind) return 'Every question tried and every answer right. Tap a subject for a 20-question drill.';
   if (rows.every((r) => r.attempted === 0)) {
     return `Nothing tried yet. Start with ${behind.subject}: ${pct(behind.weight)} of the exam.`;
   }

@@ -61,9 +61,12 @@ export function subjectCoverage(questions: Question[], states: Record<string, Qu
     .sort((a, b) => b.weight - a.weight || order.indexOf(a.code) - order.indexOf(b.code));
 }
 
-/** The subject most behind for its weight (largest gap), or null when there is nothing to compare. */
+/**
+ * The subject most behind for its weight (largest gap; ties go to the heavier subject, the order of `rows`), or null
+ * when there is nothing to compare or nothing is behind (every question tried and every answer right).
+ */
 export function mostBehind(rows: SubjectCoverage[]): SubjectCoverage | null {
   let worst: SubjectCoverage | null = null;
   for (const r of rows) if (!worst || r.gap > worst.gap + 1e-9) worst = r;
-  return worst;
+  return worst && worst.gap > 1e-9 ? worst : null;
 }

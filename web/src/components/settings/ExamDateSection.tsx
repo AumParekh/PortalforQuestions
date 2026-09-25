@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_EXAM_DATE, daysToExam, examCapDay, examPhase, isExamDay } from '../../games/examDate';
+import { CAP_DAYS_BEFORE_EXAM, DEFAULT_EXAM_DATE, daysToExam, examCapDay, examPhase, isExamDay } from '../../games/examDate';
 import { useSettings } from '../../lib/settings';
 import { localDay } from '../../formulas/storage';
 import { PHASE_LABEL, countdownText, formatExamDay } from '../dashboard/ExamPlan';
@@ -18,6 +18,11 @@ export function ExamDateSection() {
   const phase = examPhase(today, exam);
   const status = phase === 'after' || days === 0 ? countdownText(days, exam) : `${countdownText(days, exam)} · ${PHASE_LABEL[phase]}`;
   const invalid = draft !== '' && !isExamDay(draft);
+  // The cap only shapes reviews scheduled before exam − 2 (games/examDate.ts capNextDue).
+  const capNote =
+    days > CAP_DAYS_BEFORE_EXAM
+      ? `Reviews in every section are scheduled no later than ${formatExamDay(examCapDay(exam))}, two days before the exam.`
+      : 'Reviews answered from now on follow their normal spacing.';
 
   const change = (value: string) => {
     setDraft(value);
@@ -29,14 +34,15 @@ export function ExamDateSection() {
       <SettingsRow
         label="Exam date"
         htmlFor="exam-date"
-        hint={`${status}. Reviews in every section are scheduled no later than ${formatExamDay(examCapDay(exam))}, two days before the exam.`}
+        hint={`${status}. ${capNote}`}
       >
+        {/* min/max match the range isExamDay accepts, so the picker and the saved setting agree. */}
         <input
           id="exam-date"
           type="date"
           value={draft}
-          min="2025-01-01"
-          max="2030-12-31"
+          min="2000-01-01"
+          max="2100-12-31"
           required
           aria-invalid={invalid || draft === ''}
           onChange={(e: { currentTarget: HTMLInputElement }) => change(e.currentTarget.value)}

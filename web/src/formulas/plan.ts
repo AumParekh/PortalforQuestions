@@ -7,6 +7,7 @@ import { shuffle } from './random';
 import { buildMemory, buildRound } from './rounds';
 import type { Round } from './rounds';
 import { isDue, localDay } from './storage';
+import { effectiveDue } from '../games/examDate';
 import type { Formula, FormulaGame } from './types';
 
 export type SessionMode = FormulaGame | 'workout';
@@ -23,7 +24,8 @@ export function prioritise(formulas: Formula[], states: Record<string, GymState>
     const s = states[f.id];
     if (!s || s.totalAttempts === 0) return [2, '', 0];
     const accuracy = s.totalCorrect / Math.max(1, s.totalAttempts);
-    if (isDue(s, today)) return [0, s.dueDate ?? '', accuracy];
+    // Sorted by the day it counts as due (an older schedule past exam − 2 counts as due on exam − 2).
+    if (isDue(s, today)) return [0, s.dueDate ? effectiveDue(s.dueDate, s.interval, today) : '', accuracy];
     if (s.lastResult === 'wrong' || accuracy < 0.6) return [1, s.dueDate ?? '', accuracy];
     return [3, s.dueDate ?? '', accuracy];
   };

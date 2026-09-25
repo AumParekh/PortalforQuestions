@@ -62,6 +62,8 @@ export type PlanSection = 'questions' | 'formulas' | 'sense' | 'truefalse' | 'ga
 export interface PlanRow {
   key: PlanSection;
   count: number;
+  /** Most items one tap starts (the question bank's Due session takes 20 at a time); undefined = no limit. */
+  perSession?: number;
   onOpen: () => void;
 }
 
@@ -130,7 +132,8 @@ export function TodaysPlan({ rows, phase }: { rows: PlanRow[]; phase: ExamPhase 
         {ordered.map((r) => {
           const s = SECTION[r.key];
           const mins = minutesFor(r.key, r.count);
-          const detail = r.count > 0 ? `${r.count.toLocaleString()} ${r.count === 1 ? s.one : s.many} · about ${mins} min` : s.none;
+          const batch = r.perSession !== undefined && r.count > r.perSession ? ` · ${r.perSession} per session` : '';
+          const detail = r.count > 0 ? `${r.count.toLocaleString()} ${r.count === 1 ? s.one : s.many}${batch} · about ${mins} min` : s.none;
           return (
             <li key={r.key}>
               <button

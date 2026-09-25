@@ -268,6 +268,8 @@ export function HomeScreen() {
     return PLAN_ORDER[examInfo.phase].map((key) => ({
       key,
       count: counts[key],
+      // The row starts one "Due for review" session, which takes at most DUE_SESSION_CAP questions.
+      perSession: key === 'questions' ? DUE_SESSION_CAP : undefined,
       onOpen:
         key === 'questions'
           ? () => (questionDue.count > 0 ? startDueReview(states, byId, localDay()) : navigate('/setup'))
@@ -302,9 +304,6 @@ export function HomeScreen() {
         </div>
       </header>
 
-      <ExamCountdown days={examInfo.days} phase={examInfo.phase} exam={exam} onOpenSettings={() => navigate('/settings')} />
-      <TodaysPlan rows={planRows} phase={examInfo.phase} />
-
       {sessionStatus === 'active' && (
         <button
           type="button"
@@ -332,6 +331,10 @@ export function HomeScreen() {
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </button>
       )}
+
+      {/* Below Resume session, so a session in progress stays the first thing on the page. */}
+      <ExamCountdown days={examInfo.days} phase={examInfo.phase} exam={exam} onOpenSettings={() => navigate('/settings')} />
+      <TodaysPlan rows={planRows} phase={examInfo.phase} />
 
       {progressStatus === 'unavailable' && (
         <p className="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-2 text-[15px] text-slate-600 dark:border-slate-700 dark:text-slate-400">
