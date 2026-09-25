@@ -107,6 +107,7 @@ for (const vp of VIEWPORTS) {
     const tab = page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first();
     await tab.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
     await tab.click().catch(() => undefined);
+    await page.waitForSelector('li > button:not([disabled]) .g-strong', { timeout: 15000 }).catch(() => undefined);
     const names = await page.$$eval('li > button:not([disabled]) .g-strong', (els) => els.map((e) => e.textContent?.trim() ?? ''));
     if (names.length === 0) failures.push(`${vp.name} games: no mechanics listed`);
     for (const mech of names) {
@@ -115,7 +116,7 @@ for (const vp of VIEWPORTS) {
       try {
         await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
         await page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first().click({ timeout: 20000 });
-        await page.locator('li > button:not([disabled])', { hasText: mech }).first().click();
+        await page.locator('li > button:not([disabled])', { hasText: mech }).first().click({ timeout: 15000 });
         for (const name of [/Pick a reading for me/, /^\s*Start\s*$/, /^\s*Begin\s*$/]) {
           const b = page.getByRole('button', { name }).first();
           await b.waitFor({ state: 'visible', timeout: 15000 });
