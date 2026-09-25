@@ -11,8 +11,7 @@ const ROUTES = ['/', '/setup', '/truefalse', '/analytics', '/settings', '/review
 const PLAYABLE = [
   { route: '/truefalse', buttons: [/^\s*Start\s*$/], required: true },
   { route: '/formulas', buttons: [/^\s*Start\s*$/], required: true },
-  // Optional until content/games/sensecheck.json is generated.
-  { route: '/sense', buttons: [/^\s*Start\s*$/], required: false },
+  { route: '/sense', buttons: [/^\s*Start\s*$/], required: true },
   // Notes games: auto-pick Play (after the 9 MB notes file loads), the briefing's Start, then the arc's Begin.
   { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Start\s*$/, /^\s*Begin\s*$/], required: true },
 ];
