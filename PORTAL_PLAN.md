@@ -422,11 +422,17 @@ this" / "was I right" / "how many times wrong" — those all read straight from 
 question-state row. Dashboard-level aggregates (overall accuracy, weak LOs) are a
 single pass over the question-state store.
 
-**Spaced repetition (SM-2, via the `supermemo` package):** each attempt is graded 0–5
-from correctness + speed (5 = correct <15s, 4 = correct 15–30s, 3 = correct 30s+,
-2 = wrong-but-familiar, 1 = wrong, 0 = wrong-and-unfamiliar). The grade feeds SM-2,
-which returns updated `interval`/`repetition`/`efactor`/`dueDate`, overwriting the
-question-state row. "Today's Quest" = all questions with `dueDate <= today`.
+**Spaced repetition (SM-2, `src/lib/srs.ts`, as built):** each attempt is graded from
+correctness and speed:
+- 5 = correct within par (90 s, or the session timer when it is shorter);
+- 4 = correct but slower;
+- 1 = wrong or timed out, which is due again today.
+
+The plan's original 15 s / 30 s thresholds were dropped because most FRM calculation
+questions take longer, so they would have steadily lowered ease on correct answers. A correct
+answer given before the due date leaves the schedule alone, so cramming can't inflate intervals.
+Intervals run 1, 6, then × ease (floor 1.3, cap 3,650 days). "Due for review" is every
+attempted question with `dueDate <= today`.
 
 **Jump-drawer cell colour** reads directly off `lastResult` / `markedForReview` /
 session-local skip flags (skip status is session-scoped, not persisted long-term, so
