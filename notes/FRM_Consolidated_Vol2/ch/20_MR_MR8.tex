@@ -1,0 +1,596 @@
+\reading{MR-8}{Correlation Basics: Definitions, Applications, and Terminology}{strike}{7}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe financial correlation risk and the areas in which it appears in finance.
+\item Explain how correlation contributed to the global financial crisis of 2007--2009.
+\item Describe how correlation impacts the price of quanto options as well as other multi-asset
+      exotic options.
+\item Describe the structure, uses, and payoffs of a correlation swap.
+\item Estimate the impact of different correlations between assets in the trading book on the
+      VaR capital charge.
+\item Explain the role of correlation risk in market risk and credit risk.
+\item Explain how correlation risk relates to systemic and concentration risk.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-8 a}{Describe financial correlation risk and the areas in which it appears in finance.}
+
+\subsection{Correlation basics}
+Correlation explains the degree of relationship between two variables, and it is measured
+through correlation analysis. The measure of correlation is called the \term{correlation
+coefficient}. The degree of relationship is expressed by correlation, which ranges from $-1$ to
+$+1$.
+
+\begin{mrdefbox}[title={Financial correlation risk}]
+Financial correlation risk is the risk of financial loss due to adverse movements in correlation
+between two or more variables --- the risk that the relationship between different financial or
+non-financial assets changes unexpectedly, leading to potential financial losses. These
+variables can comprise any financial variables. As the correlation of asset returns increases,
+the risk of financial loss, which is often measured by the VaR concept, also increases.
+\end{mrdefbox}
+
+\subsection{Where it shows up}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.5cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Financial instruments} & \hdr{}\\
+Interest rates and commodity prices & Typically there is a \textit{negative} correlation. If
+  interest rates rise, commodity prices might fall, hurting commodity investors.\\
+\rowcolor{FRMSoft}
+Greek and Mexican bonds & During the 2012 Greek crisis, bonds in seemingly unrelated markets
+  also suffered, through a sudden \textit{positive} correlation with Greek bonds.\\
+The 2007 crisis & Showed how globally diversified portfolios could suffer when diverse assets
+  suddenly correlate positively in a downturn.\\
+\midrule
+\rowcolor{FRMNavy} \hdr{Non-financial} & \hdr{}\\
+Currency devaluation & In 2012, US exporters experienced losses due to devaluation of the euro
+  during the sovereign debt crisis.\\
+\rowcolor{FRMSoft}
+Growth linkages & Low GDP growth for the US had major adverse impacts on Asian and European
+  exporters.\\
+Political events & Uprisings in the Middle East can impact airline travel through rising oil
+  prices, affecting industries and investors in the travel sector.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection{Two categories of financial correlation}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.2cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Definition and examples}\\
+\textbf{1. Static}\newline correlations
+  & Measure how two or more financial assets are associated \textit{at a certain point in time}
+    or within a certain time period. Fixed over the period.
+    \begin{itemize}[topsep=2pt]
+    \item Correlating bond prices and their respective yields at a point in time.
+    \item The classic VaR model --- you calculate VaR for a certain period of time.
+    \item The copula approach for CDOs, measuring default correlations between all assets in
+          the CDO for a certain time period.
+    \item The binomial default correlation model.
+    \end{itemize}\\
+\rowcolor{FRMSoft}
+\textbf{2. Dynamic}\newline correlations
+  & Measure how two or more financial assets \textit{move together in time}. Changing over time.
+    \begin{itemize}[topsep=2pt]
+    \item ``Pairs trading'' --- where one asset is purchased and another is sold.
+    \item Within the deterministic correlation approaches, the Heston model (1993) correlates
+          the Brownian motions of assets.
+    \item Correlations behave randomly and unpredictably (stochastic correlation processes).
+    \end{itemize}\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}[title={Points just to consider}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Standard deviation and variance calculations help determine the risk of a portfolio.
+\item The focus is on risk-adjusted returns to assess portfolio performance.
+\item The return/risk ratio measures the average return of a portfolio relative to its risk,
+      influenced by correlation.
+\end{enumerate}
+\end{mrkeybox}
+
+\subsection{Correlation risk seen through a CDS}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  party/.style={rectangle, rounded corners=3pt, line width=0.9pt,
+    text width=3.3cm, align=center, inner sep=7pt, minimum height=1.6cm}]
+  \node[party, draw=FRMNavy!65, fill=PaleNavy] (inv) at (0,0)
+    {\textbf{Investor $i$}\\ the credit default swap \textit{buyer}};
+  \node[party, draw=FRMGold!70, fill=FRMPaper] (cpty) at (7.4,0)
+    {\textbf{Counterparty $C$}\\ the CDS \textit{seller}\\ (BNP Paribas)};
+  \node[party, draw=FRMRed!60, fill=PaleRed] (ref) at (0,-3.1)
+    {\textbf{Reference entity $r$}\\ the reference asset\\ (Spain)};
+
+  \draw[FRMNavy, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([yshift=7pt]inv.east) -- node[above, text=black]{Fixed CDS spread $s$}
+    ([yshift=7pt]cpty.west);
+  \draw[FRMGold, dashed, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([yshift=-9pt]cpty.west) -- node[below, text=black, align=center]
+    {USD 1m payout\\ if $r$ defaults} ([yshift=-9pt]inv.east);
+  \draw[FRMRed, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([xshift=-14pt]inv.south) -- node[left, text=black]{USD 1m} ([xshift=-14pt]ref.north);
+  \draw[FRMRed, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([xshift=14pt]ref.north) -- node[right, text=black]{coupon $k$} ([xshift=14pt]inv.south);
+
+  \draw[FRMGreen!70, dotted, line width=1.3pt] (ref.east) -- (cpty.south west);
+  \node[anchor=west, text=FRMGreen, align=left, fill=white, inner sep=2pt]
+    at (5.35,-2.35) {the correlation that\\ actually matters: $\rho(r, C)$};
+\end{tikzpicture}
+\end{center}
+\figcap{An investor hedging Spanish bond exposure with a CDS. The dotted line is the leg the
+notes are really about: the hedge only works if Spain and BNP Paribas do not go down together.}
+
+\begin{mrdefbox}[title={What the fixed CDS spread depends on}]
+\begin{enumerate}
+\item The reference asset's default probability.
+\item The joint default correlation between $r$ and BNP Paribas.
+\end{enumerate}
+\medskip
+If correlation \term{increases}, then the value of the CDS (or spread) will \term{decrease},
+because if both Spain and BNP Paribas default you get nothing --- this is \term{wrong-way risk}.
+\end{mrdefbox}
+
+\begin{mrtrapbox}[title={Non-monotonic}]
+The relationship between the CDS spread and correlation may be \term{non-monotonous}. If
+correlation increases from $+1$ to $-0.4$, the CDS spread may decrease slightly.
+\end{mrtrapbox}
+
+\subsection{Correlations in financial investments}
+We know from the Sharpe ratio that increased diversification increases risk-return performance:
+high diversification means low correlation between assets. In 1952, Harry Markowitz provided the
+foundation of modern investment theory by demonstrating the role that correlation plays in
+reducing risk.
+
+\begin{mrfmlbox}
+\[ \mu_P \;=\; w_X \mu_X + w_Y \mu_Y \qquad\qquad
+   \sigma_P \;=\; \sqrt{ w_X^2 \sigma_X^2 + w_Y^2 \sigma_Y^2 + 2\,w_X w_Y \,\mathrm{cov}_{XY} } \]
+\mrvk{$w_X$, $w_Y$ = portfolio weights;\quad $\mu_X$, $\mu_Y$ = mean returns;\quad
+$\sigma_X$, $\sigma_Y$ = standard deviations;\quad $\mathrm{cov}_{XY}$ = covariance between the
+two assets. Only the covariance term carries the correlation, and only that term can be
+negative.}{}
+\end{mrfmlbox}
+
+\begin{mrfmlbox}
+\[ \mathrm{cov}_{XY} \;=\; \frac{\sum_{t=1}^{n} (X_t - \mu_X)(Y_t - \mu_Y)}{n-1}
+   \qquad\qquad
+   \rho_{XY} \;=\; \frac{\mathrm{cov}_{XY}}{\sigma_X \sigma_Y} \]
+\mrvk{$n$ = number of return observations. Dividing the covariance by the two standard deviations
+is what rescales it onto the $[-1, +1]$ range.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\small
+\begin{tabular}{c r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Year} & \hdr{$X$} & \hdr{$Y$} & \hdr{Return $X$} & \hdr{Return $Y$}\\
+2009 & 90 & 150 & & \\
+\rowcolor{FRMSoft} 2010 & 120 & 180 & 0.3333 & 0.2000\\
+2011 & 105 & 340 & $(0.1250)$ & 0.8889\\
+\rowcolor{FRMSoft} 2012 & 170 & 320 & 0.6190 & $(0.0588)$\\
+2013 & 150 & 360 & $(0.1176)$ & 0.1250\\
+\rowcolor{FRMSoft} 2014 & 270 & 310 & 0.8000 & $(0.1389)$\\
+\midrule
+\multicolumn{3}{r}{\textit{Average return}} & \textbf{0.3019} & \textbf{0.2032}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{c r r r r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Year} & \hdr{Ret.\ $X$} & \hdr{Ret.\ $Y$} & \hdr{$X_t-\mu_X$}
+  & \hdr{$Y_t-\mu_Y$} & \hdr{$(X_t-\mu_X)^2$} & \hdr{$(Y_t-\mu_Y)^2$}
+  & \hdr{cross product}\\
+2010 & 0.3333 & 0.2000 & 0.0314 & $(0.0032)$ & 0.0010 & 0.0000 & $(0.0001)$\\
+\rowcolor{FRMSoft} 2011 & $(0.1250)$ & 0.8889 & $(0.4269)$ & 0.6857 & 0.1823 & 0.4701 & $(0.2927)$\\
+2012 & 0.6190 & $(0.0588)$ & 0.3171 & $(0.2621)$ & 0.1006 & 0.0687 & $(0.0831)$\\
+\rowcolor{FRMSoft} 2013 & $(0.1176)$ & 0.1250 & $(0.4196)$ & $(0.0782)$ & 0.1761 & 0.0061 & 0.0328\\
+2014 & 0.8000 & $(0.1389)$ & 0.4981 & $(0.3421)$ & 0.2481 & 0.1170 & $(0.1704)$\\
+\midrule
+\textit{Mean / sum} & \textbf{0.3019} & \textbf{0.2032} & & & 0.7079 & 0.6620 & $(0.5135)$\\
+\multicolumn{5}{r}{\textit{Variance}} & \textbf{0.1770} & \textbf{0.1655} & $(0.1284)$\\
+\multicolumn{5}{r}{\textit{Standard deviation}} & \textbf{0.4207} & \textbf{0.4068} & \\
+\multicolumn{5}{r}{\textit{Correlation}} & \multicolumn{2}{c}{$\mathbf{(0.7501)}$}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\[ \rho_{XY} \;=\; \frac{-0.1284}{0.4207 \times 0.4068} \;=\; \mathbf{-0.7501} \]
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.8cm,
+  xmin=-1, xmax=1, ymin=0, ymax=3.0,
+  xlabel={\scriptsize Correlation $\rho_{XY}$}, ylabel={\scriptsize Return / Risk},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={-0.9,-0.7,-0.5,-0.3,-0.1,0.1,0.3,0.5,0.7,0.9},
+  ytick={0,0.5,1.0,1.5,2.0,2.5,3.0},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.2pt, smooth] coordinates {
+(-0.9,2.7225)(-0.8,1.9278)(-0.7,1.5748)(-0.6,1.3641)(-0.5,1.2203)(-0.4,1.1141)
+(-0.3,1.0315)(-0.2,0.9649)(-0.1,0.9098)(0.0,0.8631)(0.1,0.8230)(0.2,0.7879)
+(0.3,0.7570)(0.4,0.7295)(0.5,0.7048)(0.6,0.6824)(0.7,0.6620)(0.8,0.6434)
+(0.9,0.6262)(1.0,0.6104)};
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:-0.7501,0) -- (axis cs:-0.7501,1.72);
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt] at (axis cs:-0.70,1.85)
+  {this portfolio, $\rho = -0.75$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Built from the $X$ and $Y$ statistics in the table above at equal weights. The ratio
+barely moves across the whole positive half of the range, then climbs steeply once correlation
+turns strongly negative. Diversification pays almost nothing until correlation goes negative,
+and then it pays enormously.}
+
+% ---------------------------------------------------------
+\lo{MR-8 b}{Explain how correlation contributed to the global financial crisis of 2007--2009.}
+
+\begin{enumerate}
+\item \term{Misinformed risk models.} Risk managers and investors underestimated the
+      correlations between different financial assets, especially in complex structured products
+      like collateralized debt obligations (CDOs). This led to a false sense of security and
+      mispricing of risk.
+\item \term{CDO tranche mismanagement.} Large hedge funds believed that they could hedge risk by
+      being \textit{long} the riskiest CDO tranches (equity) and \textit{short} the less risky
+      tranches (mezzanine). However, they did not fully grasp the correlation dynamics across
+      these tranches, resulting in substantial losses when the crisis hit.
+\item \term{Bond market impact.} The downgrading of bonds issued by U.S.\ automobile makers to
+      junk status, and the subsequent correlation shift among different bond tranches,
+      contributed to market turmoil. Correlations between bonds increased, causing price
+      declines and impacting investors.
+\item \term{CDO market growth.} The rapid growth of the CDO market, linked to overvalued real
+      estate and subprime mortgages, made it susceptible to severe losses when the housing
+      bubble burst. High correlations between these assets exacerbated the crisis.
+\item \term{Credit default swap market.} The CDS market also grew significantly, but some
+      institutions like AIG were not adequately prepared to cover their CDS liabilities, leading
+      to financial instability.
+\end{enumerate}
+
+\begin{mrkeybox}[title={Remember}]
+The underestimation of correlation risk, particularly in complex financial products, and the
+interconnectedness of various markets amplified the impact of the financial crisis.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-8 c}{Describe how correlation impacts the price of quanto options as well as other multi-asset exotic options.}
+
+Correlation trading strategies involve trading assets that have prices determined by the
+comovement of one or more assets over time. \term{Correlation options} have prices that are very
+sensitive to the correlation between two assets and are often referred to as \term{multi-asset
+options}.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{4.4cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Strategy} & \hdr{Payoff}\\
+a) Option on the higher of two stocks & Pays the maximum of the two stock prices,
+  $\max(S_1, S_2)$.\\
+\rowcolor{FRMSoft}
+b) Exchange option & Pays the difference between the prices of two assets.\\
+c) Spread call option & Pays the difference between two stock prices minus the strike price.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrtrapbox}[title={Remember the direction}]
+\term{Lower correlation often leads to higher option prices.} A lower correlation means one
+asset might go up while the other goes down, increasing the chance of a profitable outcome.
+\end{mrtrapbox}
+
+\subsection{Quanto options}
+A quanto option allows a domestic investor to exchange his potential option payoff in a foreign
+currency back into his home currency \term{at a fixed exchange rate}. Low correlation means a
+high quanto price.
+
+\begin{mrexbox}[title={Example --- a quanto call on the Nikkei}]
+An American believes the Nikkei will increase, but she is worried about a decreasing yen. The
+investor can buy a quanto call on the Nikkei, with the yen payoff being converted into dollars
+at a fixed exchange rate.
+\end{mrexbox}
+
+% ---------------------------------------------------------
+\lo{MR-8 d}{Describe the structure, uses, and payoffs of a correlation swap.}
+
+A correlation swap enables trading a \term{fixed} correlation rate between two or more assets
+against the \term{actual or realized} correlation.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  side/.style={rectangle, rounded corners=3pt, line width=0.9pt,
+    text width=3.6cm, align=center, inner sep=7pt, minimum height=1.5cm}]
+  \node[side, draw=FRMGreen!65, fill=PaleGreen] (buy) at (0,0)
+    {\textit{Buying correlation}\\ \textbf{fixed rate $\rho$ payer}};
+  \node[side, draw=FRMRed!60, fill=PaleRed] (sell) at (7.4,0)
+    {\textit{Selling correlation}\\ \textbf{fixed rate $\rho$ receiver}};
+  \draw[FRMNavy, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([yshift=8pt]buy.east) -- node[above, text=black]{fixed $\rho = 30\%$}
+    ([yshift=8pt]sell.west);
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=0.9pt]
+    ([yshift=-8pt]sell.west) -- node[below, text=black]{realized $\rho$}
+    ([yshift=-8pt]buy.east);
+  \node[anchor=north, text=FRMGreen, align=center] at (buy.south)
+    {\\ expects correlation \textbf{to increase}};
+  \node[anchor=north, text=FRMRed, align=center] at (sell.south)
+    {\\ expects correlation \textbf{to decrease}};
+\end{tikzpicture}
+\end{center}
+\figcap{The buyer pays a fixed correlation and receives whatever correlation actually turns out
+to be, so the buyer profits when correlation rises. It is structurally identical to any other
+fixed-for-floating swap, with correlation in place of an interest rate.}
+
+\subsection{To calculate the payoff (for the buyer)}
+\begin{enumerate}
+\item Figure out what the realized (stochastic) correlation is.
+\item Calculate the payoff.
+\end{enumerate}
+
+\begin{mrfmlbox}
+\[ \rho_{\text{realized}} \;=\; \frac{2}{n^2 - n} \sum_{i>j} \rho_{i,j}
+   \qquad\qquad
+   \text{Payoff} \;=\; \text{notional} \times
+   \left( \rho_{\text{realized}} - \rho_{\text{fixed}} \right) \]
+\mrvk{$n$ = number of assets in the portfolio;\quad $\rho_{i,j}$ = the realized pairwise
+correlation between assets $i$ and $j$, counted once per pair ($i > j$);\quad
+$(n^2-n)/2$ = the number of distinct pairs, which is why the factor is $2/(n^2-n)$.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- correlation swap payoff}]
+A correlation swap buyer pays a fixed correlation rate of 0.2 with a notional value of
+\$1 million for one year for a portfolio of \textbf{three} assets. The realized pairwise
+correlations of the daily log returns $[\ln(S_t/S_{t-1})]$ at maturity for the three assets are
+$\rho_{2,1} = 0.6$, $\rho_{3,1} = 0.2$, and $\rho_{3,2} = 0.04$. (Note that for all pairs
+$i > j$.) What is the correlation swap buyer's payoff?
+\tcblower
+\small
+The realized correlation is calculated as:
+\[ \rho_{\text{realized}} \;=\; \frac{2}{3^2 - 3} \times (0.6 + 0.2 + 0.04) \;=\; 0.28 \]
+The payoff for the correlation swap buyer is then:
+\[ \$1{,}000{,}000 \times (0.28 - 0.20) \;=\; \mathbf{\$80{,}000} \]
+\end{mrexbox}
+
+% ---------------------------------------------------------
+\lo{MR-8 e}{Estimate the impact of different correlations between assets in the trading book on the VaR capital charge.}
+
+\noindent\gapbadge\hspace{4pt}{\sffamily\fontsize{7.6}{9}\selectfont\color{black!55}%
+The source notes redirect this objective to the Investment Management book and develop nothing
+here. It is written below from the GARP curriculum so the objective is not left blank.}\par
+\vspace{6pt}
+
+\begin{mrgapbox}[title={What the objective asks for}]
+Given a trading-book portfolio, compute VaR under one correlation assumption, then re-compute it
+under a different correlation and state the direction and size of the change. The correlation
+enters VaR only through the covariance matrix.
+\end{mrgapbox}
+
+\subsection{Portfolio VaR with a covariance matrix}
+
+\begin{mrfmlbox}
+\[ \mathrm{VaR}_P \;=\; \sigma_P \times \alpha \times \sqrt{x}
+   \qquad\qquad
+   \sigma_P \;=\; \sqrt{ \beta_h \, C \, \beta_v } \]
+\mrvk{$\sigma_P$ = volatility of the portfolio, which is where the correlation between the assets
+enters;\quad $\alpha$ = the standard normal deviate at the chosen confidence level, so 2.3264 at
+99\%;\quad $x$ = the time horizon in days;\quad $\beta_h$ = the horizontal vector of invested
+amounts (price $\times$ quantity);\quad $\beta_v$ = the same vector written vertically;\quad
+$C$ = the covariance matrix of the asset returns.}{}
+\end{mrfmlbox}
+
+Each entry of the covariance matrix is built from the pairwise correlation and the two
+volatilities:
+\[ \mathrm{Cov}_{ij} \;=\; \rho_{ij}\, \sigma_i\, \sigma_j \]
+
+\begin{mrexbox}[title={Example --- 10-day VaR for a two-asset trading book}]
+What is the 10-day VaR for a two-asset portfolio with a correlation coefficient of 0.7, a daily
+standard deviation of returns of 2\% for asset 1 and 1\% for asset 2, with USD 10 million
+invested in asset 1 and USD 5 million in asset 2, at a 99\% confidence level?
+\tcblower
+\small
+\textbf{Step 1 --- build the covariance matrix.}
+\begin{align*}
+\mathrm{Cov}_{11} &= 1 \times 0.02 \times 0.02 = 0.0004 &
+\mathrm{Cov}_{12} &= 0.7 \times 0.02 \times 0.01 = 0.00014\\
+\mathrm{Cov}_{21} &= 0.7 \times 0.01 \times 0.02 = 0.00014 &
+\mathrm{Cov}_{22} &= 1 \times 0.01 \times 0.01 = 0.0001
+\end{align*}
+\[ C \;=\; \begin{pmatrix} 0.0004 & 0.00014 \\ 0.00014 & 0.0001 \end{pmatrix} \]
+
+\textbf{Step 2 --- multiply out $\beta_h C$.}
+\[ (10 \;\; 5)\begin{pmatrix} 0.0004 & 0.00014 \\ 0.00014 & 0.0001 \end{pmatrix}
+   = (0.0047 \;\; 0.0019) \]
+
+\textbf{Step 3 --- multiply by $\beta_v$ to get the portfolio variance.}
+\[ (0.0047 \;\; 0.0019)\begin{pmatrix} 10 \\ 5 \end{pmatrix}
+   = 10 \times 0.0047 + 5 \times 0.0019 = 0.0565 = 5.65\% \]
+
+\textbf{Step 4 --- take the root for $\sigma_P$.}
+\[ \sigma_P = \sqrt{0.0565} = 23.77\% \]
+
+\textbf{Step 5 --- scale by the deviate and the horizon.}
+\[ \mathrm{VaR}_P = 0.2377 \times 2.3264 \times \sqrt{10} = \mathbf{USD\ 1.7486 \text{ million}} \]
+
+\medskip
+\textbf{Interpretation.} We are 99\% certain that we will not lose more than USD 1.7486 million
+in the next 10 days due to correlated market price changes of assets 1 and 2.
+\end{mrexbox}
+
+\subsection{The impact of changing the correlation}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.4cm,
+  xmin=-1.05, xmax=1.05, ymin=1.0, ymax=1.95,
+  xlabel={\scriptsize Correlation between asset 1 and asset 2},
+  ylabel={\scriptsize 10-day 99\% VaR (USD m)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1},
+  ytick={1.0,1.2,1.4,1.6,1.8},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.2pt, smooth] coordinates {
+(-1.0,1.1035)(-0.9,1.1515)(-0.8,1.1976)(-0.7,1.2420)(-0.6,1.2848)(-0.5,1.3263)
+(-0.4,1.3665)(-0.3,1.4055)(-0.2,1.4435)(-0.1,1.4805)(0.0,1.5166)(0.1,1.5519)
+(0.2,1.5864)(0.3,1.6202)(0.4,1.6532)(0.5,1.6856)(0.6,1.7174)(0.7,1.7487)
+(0.8,1.7794)(0.9,1.8095)(1.0,1.8392)};
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:0.7,1.0) -- (axis cs:0.7,1.7487);
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:0.7,1.7487) {};
+\node[anchor=east, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt] at (axis cs:0.62,1.79)
+  {worked example: $\rho = 0.7 \Rightarrow 1.75$};
+\node[circle, fill=FRMNavy, inner sep=1.5pt] at (axis cs:-1,1.1035) {};
+\node[anchor=south west, font=\scriptsize\sffamily, text=FRMNavy] at (axis cs:-0.96,1.02)
+  {$\rho = -1 \Rightarrow 1.10$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The same two positions, the same volatilities, the same confidence level. Only the
+correlation changes. VaR runs from about USD 1.1 million at perfect negative correlation to
+about USD 1.9 million at perfect positive correlation, and the curve is concave, so the risk
+reduction accelerates as correlation falls.}
+
+\begin{mrkeybox}[title={The direction to state out loud}]
+The \term{lower} the correlation, the \term{lower} the risk measured by VaR, and so the lower
+the capital charge. Preferably the correlation is negative: if one asset decreases, the other on
+average increases, reducing the overall risk. The impact is strong, roughly a 70\% increase in
+VaR across the full correlation range in this example.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-8 f}{Explain the role of correlation risk in market risk and credit risk.}
+
+\subsection{Correlation risk and market risk}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Market risk encompasses various factors affecting asset prices, like interest rates,
+      currency fluctuations, and equity or commodity prices.
+\item VaR and expected shortfall are risk measures that \textit{consider correlations} in asset
+      prices.
+\item Inaccurate correlation estimates in VaR or ES calculations can lead to
+      \term{underestimating} market risk.
+\end{enumerate}
+
+\subsection{Correlation risk and credit risk}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Credit risk deals with the potential for borrowers to default on loans.
+\item \term{Migration risk} is the downgrading of a borrower's credit rating, increasing default
+      risk.
+\item \term{Default correlation} measures how likely multiple borrowers default simultaneously.
+\item \term{Lower} default correlation allows for \textit{better} diversification of credit risk
+      across lenders.
+\item The financial crisis of 2007--2009 is an example of how increased correlation between
+      seemingly uncorrelated assets (like mortgages and bonds) can amplify credit risk.
+\end{enumerate}
+
+% ---------------------------------------------------------
+\lo{MR-8 g}{Explain how correlation risk relates to systemic and concentration risk.}
+
+\subsection{Correlation risk and systemic risk}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Systemic risk refers to the potential collapse of the entire financial system.
+\item During a crisis, correlations between \textit{all} asset classes tend to increase, making
+      diversification less effective.
+\item The 2007 crisis exemplified this, with correlations between U.S.\ stocks, bonds, and
+      international equities rising significantly.
+\end{enumerate}
+
+\subsection{Concentration risk and correlation risk}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Concentration risk} is the risk of excessive exposure to a single borrower or a
+      specific industry.
+\item A \term{concentration ratio} measures the diversification of loan portfolios.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  chip/.style={rectangle, rounded corners=2.5pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.7pt, text width=2.5cm, align=center, inner sep=5pt, minimum height=0.95cm}]
+  \node[chip] (a) at (0,0) {Concentration\\ \textbf{ratio} $\downarrow$};
+  \node[chip] (b) at (3.35,0) {Concentration\\ \textbf{risk} $\downarrow$};
+  \node[chip] (c) at (6.70,0) {\textbf{Diversification}\\ $\uparrow$};
+  \node[chip] (d) at (10.05,0) {\textbf{Correlation}\\ $\downarrow$};
+  \foreach \x/\y in {a/b, b/c, c/d}{
+    \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=1pt] (\x) -- (\y);}
+\end{tikzpicture}
+\end{center}
+\figcap{All four move together. A lower concentration ratio means the book is spread across more
+borrowers, which cuts concentration risk, raises diversification, and shows up as lower
+effective correlation in the portfolio.}
+
+\begin{mrfmlbox}
+\[ P(AB) \;=\; \rho_{AB} \sqrt{ PD_A\,(1 - PD_A) \times PD_B\,(1 - PD_B) }
+   \;+\; PD_A \times PD_B \]
+\mrvk{$P(AB)$ = the joint probability that both $A$ and $B$ default;\quad $\rho_{AB}$ = the
+default correlation between them;\quad $PD_A$, $PD_B$ = the individual default probabilities.
+When $\rho_{AB} = 0$ the first term vanishes and the joint probability collapses to the simple
+product $PD_A \times PD_B$.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- EL, concentration ratio and joint default probability}]
+Commercial Bank Y has loans of \$2,500,000 to Company A and \$2,500,000 to Company B. The
+default probability is 5\% each. Assume LGD $= 100\%$. Calculate the expected loss, the
+concentration ratio, and the joint probability of default.
+\tcblower
+\small
+\textbf{Concentration ratio} $= 1/2 = \mathbf{0.5}$
+
+\medskip
+\textbf{Joint default probability and expected loss, at three correlations:}
+\begin{center}
+\begin{tabular}{c l r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{$\rho_{AB}$} & \hdr{$P(AB)$} & \hdr{$EL = P(AB) \times LGD \times EAD$}\\
+$1.0$ & $1.0\sqrt{0.00226} + 0.0025 = 0.05$ & \$250,000\\
+\rowcolor{FRMSoft}
+$0.5$ & $0.5\sqrt{0.00226} + 0.0025 = 0.02627$ & \$131,350\\
+$0$ & $0.05 \times 0.05 = 0.0025$ & \$12,500\\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.6cm, height=4.6cm,
+  xmin=-0.05, xmax=1.05, ymin=0, ymax=280000,
+  xlabel={\scriptsize Default correlation $\rho_{AB}$},
+  ylabel={\scriptsize Expected loss},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,0.25,0.5,0.75,1},
+  ytick={0,50000,100000,150000,200000,250000},
+  yticklabels={\$0,\$50k,\$100k,\$150k,\$200k,\$250k},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.2pt, domain=0:1, samples=40]
+  {(x*0.047539 + 0.0025)*5000000};
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:0,12500) {};
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:0.5,131350) {};
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:1,250000) {};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:0.03,28000)
+  {\$12,500};
+\node[anchor=south, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt] at (axis cs:0.5,140000)
+  {\$131,350};
+\node[anchor=east, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:0.97,232000)
+  {\$250,000};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Expected loss on the same two \$2.5m loans, plotted across the whole correlation range.
+It is linear in $\rho_{AB}$ and runs from \$12,500 at zero correlation to \$250,000 at perfect
+correlation --- a twentyfold difference from a single input the bank does not directly observe.}
+
+
+% ==========================================================

@@ -1,0 +1,236 @@
+\reading{LTR-9}{Liquidity Stress Testing}{STRIKE FIRST}{2}
+
+\begin{lrkeybox}[Learning objectives — official 2026 spine wording]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Differentiate between various types of liquidity, including funding, operational, strategic, contingent, and restricted liquidity.
+\item Estimate contingent liquidity via the liquid asset buffer.
+\item Discuss liquidity stress test design issues such as scope, scenario development, assumptions, outputs, governance, and integration with other risk models.
+\end{enumerate}
+{\footnotesize\color{FRMGrey}Source: Shyam Venkat and Stephen Baird, \textit{Liquidity Risk Management: A Practitioner's Perspective}, Chapter 3.}
+\end{lrkeybox}
+
+\begin{lrtrapbox}[Label collision]
+The Crash layer labels this reading \texttt{LO 72.a--c}; the Lecture layer uses the same \texttt{72} prefix for \textbf{LTR-13 Repurchase Agreements and Financing}, and labels this reading \texttt{67.a--c} --- which is in turn the Crash layer's prefix for \textbf{LTR-4}. Two collisions on one reading. Renumbered to the spine.
+\end{lrtrapbox}
+
+% =====================================================================
+\lo{LTR-9 a}{Differentiate between various types of liquidity, including funding, operational, strategic, contingent, and restricted liquidity.}
+
+\gapbadge
+\gapnote{Both source layers reproduce the four-quadrant taxonomy but neither states how \emph{funding} liquidity relates to the other four, which is what makes the objective's list of five look inconsistent with a four-item figure. The relationship below is written from the GARP curriculum (Venkat and Baird, Chapter 3).}
+
+\begin{lrgapbox}
+The objective names five types but the taxonomy figure shows four. The missing piece is that funding liquidity is the \emph{category}, not a fifth peer.
+\end{lrgapbox}
+
+\begin{lrdefbox}[The structure of the taxonomy]
+\textbf{Funding liquidity} is the umbrella. As a source of funding liquidity, businesses --- including financial institutions --- utilize liquidity for \textbf{four purposes}: \term{operational}, \term{restricted}, \term{contingent}, and \term{strategic}. Those four are the quadrants of the taxonomy; funding liquidity is what they are four uses \emph{of}.
+\end{lrdefbox}
+
+The taxonomy is laid out on two axes: horizontally from \textbf{short-term funding (operational requirements)} to \textbf{long-term funding (strategic planning)}, and vertically from \textbf{not available for drawdown under stress test} to \textbf{available funding under stress test}.
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{2.3cm} p{2.5cm} p{2.6cm} X@{}}
+\toprule
+\rowcolor{FRMSoft}\textbf{Type} & \textbf{Funding horizon} & \textbf{Available under stress?} & \textbf{What it is} \\
+\midrule
+\textbf{Operational} & Short-term & \textbf{Not} available for drawdown &
+Cash used to fund typical business operations and clear payment transactions on a \textbf{daily} basis. Levels of cash reserves vary widely by business and operating environment. \\
+\addlinespace
+\textbf{Contingent} & Short-term & \textbf{Available} &
+The \textbf{liquid asset buffer}, composed of a mixture of liquid investments, liquidity facility availability, and unrestricted deposits. Available to meet \textbf{general} financial obligations under a stress test. \\
+\addlinespace
+\textbf{Restricted} & Medium & Partly &
+Reserved for \textbf{specifically defined purposes arising from normal operations}, for example collateralization requirements. Attributed to underlying outflows under stress, but \textbf{not used for general} financial obligations. \\
+\addlinespace
+\textbf{Strategic} & Long-term & \textbf{Not} intended to fund daily operations under stress &
+Reserved for strategic business initiatives \textbf{outside} normal operations --- M\&A, capital improvement projects. Its \emph{high-quality asset portion} contributes to contingent funding. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\figcap{The discriminating axis is the third column. Only \textbf{contingent} liquidity is freely available for \emph{general} obligations under stress. Restricted liquidity is attributed to specific outflows; strategic is not meant for daily operations at all, though part of it feeds contingent funding; operational sits at the bottom of the availability axis.}
+
+\begin{lrtrapbox}[Restricted versus strategic: both are reserved, for different reasons]
+\textbf{Restricted} is reserved for purposes arising \emph{within} normal operations (collateral calls). \textbf{Strategic} is reserved for initiatives \emph{outside} normal operations (M\&A, capital projects). Same verb, opposite scope, and the pair is built for a sibling swap. The second half of the strategic entry is the subtler trap: its high-quality asset portion \emph{does} contribute to contingent funding, so a statement saying strategic liquidity is entirely unavailable under stress overstates it.
+\end{lrtrapbox}
+
+% =====================================================================
+\lo{LTR-9 b}{Estimate contingent liquidity via the liquid asset buffer.}
+
+\begin{lrfmlbox}[Stressed liquid asset buffer]
+\begin{align*}
+\text{Stressed liquid asset buffer} \;=\;& \text{Normal liquid asset buffer} \\
+&-\; \text{Stressed cash outflows} \;+\; \text{Stressed cash inflows}
+\end{align*}
+\vk{The normal liquid asset buffer is the starting stock of liquid investments, liquidity facility availability and unrestricted deposits. Stressed cash outflows are subtracted first; stressed cash inflows are added back. The residual is the contingent liquidity available under the stress scenario.}
+\end{lrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.6cm, height=6.4cm,
+  ybar stacked, bar width=30pt,
+  symbolic x coords={Normal LAB, Less: outflows, Plus: inflows, Stressed LAB},
+  xtick=data,
+  x tick label style={font=\scriptsize\sffamily, align=center},
+  ymin=0, ymax=60,
+  ylabel={Liquid asset buffer}, ylabel style={font=\small\sffamily},
+  tick label style={font=\scriptsize\sffamily},
+  ymajorgrids, grid style={FRMRule, dashed},
+  enlarge x limits=0.16,
+]
+\addplot[draw=none, fill=none, forget plot] coordinates {(Normal LAB,0) (Less: outflows,21) (Plus: inflows,21) (Stressed LAB,0)};
+\addplot[fill=PaleNavy, draw=FRMNavy] coordinates {(Normal LAB,50) (Less: outflows,29) (Plus: inflows,9) (Stressed LAB,30)};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt] at (axis cs:Less: outflows,54) {stressed outflow};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt] at (axis cs:Plus: inflows,35) {stressed inflow};
+\end{axis}
+\end{tikzpicture}
+\figcap{A waterfall, not four independent bars: the middle two columns are the \emph{steps} between the opening and closing buffer, floating above the axis. The shape carries the whole objective --- start with the normal buffer, take the stressed outflows out, put the stressed inflows back, and what remains is contingent liquidity. Values are illustrative of the source figure's shape, not a worked result.}
+\end{center}
+
+\begin{lrtrapbox}[Inflows are added \emph{after} outflows, and both are stressed]
+Two polarity errors are available here. First, the sign: outflows are subtracted, inflows added --- reversing them is the obvious build. Second, the scope: both legs are \textbf{stressed} figures, not normal ones. Using normal inflows against stressed outflows overstates the buffer, and that mixed-basis version is the more convincing distractor.
+\end{lrtrapbox}
+
+% =====================================================================
+\lo{LTR-9 c}{Discuss liquidity stress test design issues such as scope, scenario development, assumptions, outputs, governance, and integration with other risk models.}
+
+The design of the model should consider six factors: \textbf{organizational scope}, \textbf{scenario development}, \textbf{assumptions}, \textbf{outputs}, \textbf{governance}, and \textbf{integration with other risk models}.
+
+\subsection{1. Organizational scope}
+
+Liquidity stress testing should be tailored to the specific needs of the firm, taking into account the size and complexity of the organization, the level of risk involved, and liquidity transfer restrictions. More rigorous testing and more detailed reporting should be done for the crucial parts of the organization; less rigorous and less detailed reporting for the less crucial or less risky parts. Separate stress tests may be necessary for foreign entities and for any entity subject to liquidity transfer restrictions.
+
+\begin{itemize}
+\item \textbf{Liquidity transfer restrictions} --- foreign exchange controls may inhibit the conversion of foreign currency in off-shore legal entities.
+\item \textbf{Currency} --- the stress test should be performed in the currency of the entity being tested (the home country for the consolidated test), with careful consideration of the liquidity impact of currency conversion requirements.
+\item \textbf{Regulatory jurisdiction} --- various regulatory oversight regimes.
+\end{itemize}
+
+\subsection{2. Scenario development}
+
+Scenario development begins by establishing a \textbf{baseline} --- a benchmark for funding and liquidity. Both \textbf{historical} and \textbf{forward-looking (hypothetical)} scenarios are used, because there are limited historical examples of liquidity failures. Scenarios should:
+
+\begin{itemize}
+\item Distinguish between \textbf{systemic} and \textbf{idiosyncratic} risk.
+\item Distinguish between \textbf{levels of severity}.
+\item Clearly define the scenarios.
+\item Consider more holistic approaches to scenario development.
+\end{itemize}
+
+\begin{lrkeybox}[Reverse liquidity stress tests]
+These tests work \textbf{backward from the assumed end result of business failure} to identify the crucial factors leading to that failure. They are challenging because of the complexity of the factors involved.
+\end{lrkeybox}
+
+\begin{lrtrapbox}[Why hypothetical scenarios carry more weight here than elsewhere]
+The reading's stated reason is specific: there are \textbf{limited historical examples of liquidity failures}. That is a different justification from the one used in market-risk stress testing, and an option grounding the use of hypothetical scenarios in something else (model limitations, regulatory requirement) is off the reading even if it sounds sensible.
+\end{lrtrapbox}
+
+\subsection{3. Assumptions}
+
+Assumptions should be based on historical or market data to enhance their validity; qualitative and quantitative analyses are used to estimate segmentation levels for different cash flow types; and assumptions should be adjusted based on the stress scenario. Six assumptions have an outsized impact on the results:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{4.0cm} X@{}}
+\toprule
+\rowcolor{FRMSoft}\textbf{Assumption} & \textbf{What the reading says} \\
+\midrule
+\textbf{Investment portfolio haircuts} & Haircuts are applied to valuation discounts and \textbf{widen during systemic crises}. Different securities and their unique liquidity traits should be considered. \\
+\addlinespace
+\textbf{Deposit outflows} & Modelling sudden or early withdrawals is critical, but data availability is a challenge. \textbf{Behavioural segmentation} analyses depositor behaviour in stressed times. Factors to consider include \textbf{relationship tenure} and \textbf{credit usage}. \\
+\addlinespace
+\textbf{Unsecured wholesale funding} & Usually \textbf{heavily reduced}. Banks assume \textbf{little to no availability} during major stress events. \\
+\addlinespace
+\textbf{Collateral requirements} & \textbf{More} collateral is needed during stressed events, due to reduced collateral values and losses on derivatives positions. Historical data may be used to determine the additional requirement. \\
+\addlinespace
+\textbf{Other contingent liabilities} & Cash outflows from contingent liabilities such as guarantees, credit lines and trade financing should be modelled on historical information. \textbf{Noncontractual obligations} that help maintain business reputation should also be considered. \\
+\addlinespace
+\textbf{Business dial back} & The reduction in business activity assumed under the stress scenario. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{lrtrapbox}[Every assumption moves against the bank, and two carry extra scope]
+Under stress: haircuts \textbf{widen}, collateral requirements \textbf{rise}, wholesale funding \textbf{disappears}. All three are directional and all three get flipped. Two scope points are subtler: deposit behaviour is segmented on \textbf{relationship tenure and credit usage}, not on balance size; and contingent liabilities include \textbf{noncontractual} reputational obligations, not only contractual ones.
+\end{lrtrapbox}
+
+\subsection{4. Outputs}
+
+Liquidity stress testing generates outputs used to assess \textbf{structural} and \textbf{tactical} liquidity, against internal limits and regulatory requirements. The tests are typically conducted \textbf{quarterly} and provide essential information for the asset-liability management committee. The regular reporting package contains:
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{4.2cm} X@{}}
+\toprule
+\rowcolor{FRMSoft}\textbf{Output} & \textbf{Content} \\
+\midrule
+\textbf{Stress testing assumptions} & Details of stress levels, scenarios (systemic, idiosyncratic or combined) and contributing factors; cash flow projections resulting from the scenario. \\
+\addlinespace
+\textbf{Current liquidity position metrics} & Available liquidity compared with net cash outflows, considering \textbf{tactical} (e.g.\ 30 days) and \textbf{structural} (e.g.\ 12-month survival horizon) liquidity. LCR and similar ratios. \\
+\addlinespace
+\textbf{Prospective (future) liquidity position metrics} & Prospective available liquidity; \textbf{net non-core funding dependence}; potential over-concentration in specific funding channels, for example the percentage of funding from brokered deposits. Identify critical periods during the stress horizon requiring significant transactions. \\
+\addlinespace
+\textbf{Capital and performance metrics} & Long-term viability of the bank given regulatory capital requirements; decisions on capital allocation between liquid and less liquid investments on a cost-benefit basis. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{lrtrapbox}[Tactical versus structural, and the two horizons]
+\textbf{Tactical} $\approx$ 30 days. \textbf{Structural} $\approx$ a 12-month survival horizon. The two numbers attach to the two words and are offered swapped. Note also the reporting cadence: \textbf{quarterly}, to the \textbf{ALCO}.
+\end{lrtrapbox}
+
+\subsection{5. Governance and control}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{4.2cm} X@{}}
+\toprule
+\rowcolor{FRMSoft}\textbf{Body} & \textbf{Responsibility} \\
+\midrule
+\textbf{Asset-liability committee (ALCO)} & Consistent with its board, management risk committee and executive management delegated oversight of managing liquidity risk, the ALCO typically has \textbf{overall responsibility for the liquidity stress testing framework}. \\
+\addlinespace
+\textbf{Treasury unit} \newline \emph{first line of defence} & Typically has \textbf{ownership of the liquidity stress test modelling process}. \\
+\addlinespace
+\textbf{Independent risk management function} \newline \emph{second line of defence} & Responsible for providing \textbf{independent oversight} of liquidity. \\
+\addlinespace
+\textbf{Internal audit} \newline \emph{third line of defence} & Should \textbf{periodically review} the liquidity stress testing framework, procedures and controls, to ensure compliance with policy, regulatory and control requirements. \\
+\addlinespace
+\textbf{Model risk management} & A \textbf{separate group}, responsible for providing \textbf{independent validation}. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{lrtrapbox}[Five bodies, and model risk management is not one of the three lines]
+The three lines are Treasury, independent risk management, and internal audit --- the same ordering as in LTR-6. The ALCO sits \emph{above} them with overall framework responsibility, and \textbf{model risk management is a separate group} providing validation, not a fourth line and not part of the second. Governance items are won on \emph{who}, and this reading offers five candidates for four roles.
+\end{lrtrapbox}
+
+\subsection{6. Integration with other risk models}
+
+In theory the institution should maintain a \textbf{holistic risk model} assessing the impact on liquidity, capital and balance sheet structure under a \textbf{common set of scenarios}. Three integrations are given:
+
+\begin{enumerate}
+\item \textbf{Liquidity stress testing and capital stress testing.} Consider capital injections from the parent company to subsidiaries. Scenarios can vary in complexity, with assumptions based on expected systemic and idiosyncratic conditions. Evaluate the \emph{negative} impact of those capital injections on overall capital adequacy within the capital stress test.
+\item \textbf{Liquidity stress testing and asset-liability management.} Assess the impact of interest rate changes on bond-like liabilities and \term{disintermediation risk}. Link liquidity stress models with interest rate risk stress testing to analyse their combined effects.
+\item \textbf{Liquidity stress testing and funds transfer pricing (FTP).} One of the key objectives of any FTP framework is the \textbf{proper pricing of liquidity} --- whether provided by the treasury centre for lending purposes, or credited to liability-generating activities. Establish accurate pricing for liquidity, factoring in the cash holding requirements identified by the liquidity stress test, and charge the associated cost to the appropriate area.
+\end{enumerate}
+
+\begin{lrtrapbox}[The capital-injection point runs the direction people do not expect]
+A parent injecting capital into a subsidiary \emph{helps} the subsidiary's liquidity and \emph{hurts} group capital adequacy. The reading asks for the \textbf{negative} impact to be evaluated within the capital stress test. An option describing the injection as purely a mitigant has taken only the liquidity half.
+\end{lrtrapbox}
+
+\begin{lrtrapbox}[Consolidated trap summary — LTR-9]
+\begin{itemize}
+\item \textbf{Scope.} \textbf{Funding} liquidity is the umbrella; operational, restricted, contingent and strategic are the \textbf{four purposes} it is used for. Five names, four quadrants.
+\item \textbf{Sibling.} \textbf{Contingent} is the only one available for \emph{general} obligations under stress. \textbf{Restricted} is reserved for purposes \emph{inside} normal operations; \textbf{strategic} for initiatives \emph{outside} them.
+\item \textbf{Scope.} Strategic liquidity's \emph{high-quality asset portion} does contribute to contingent funding — it is not wholly unavailable.
+\item \textbf{Sign.} Stressed LAB $=$ normal LAB $-$ stressed outflows $+$ stressed inflows. Both legs stressed.
+\item \textbf{Polarity.} Under stress, haircuts \textbf{widen}, collateral requirements \textbf{rise}, unsecured wholesale funding is assumed \textbf{little to none}.
+\item \textbf{Definition.} Tactical $\approx$ 30 days; structural $\approx$ 12-month survival horizon. Reporting is \textbf{quarterly}, to the ALCO.
+\item \textbf{Role.} Three lines: Treasury (owns the model), independent risk management (oversight), internal audit (periodic review). ALCO holds overall framework responsibility. Model risk management is a \textbf{separate group} doing independent validation.
+\item \textbf{Definition.} Reverse stress tests work \textbf{backward from assumed failure}.
+\item \textbf{Scope.} Hypothetical scenarios are needed because \textbf{historical examples of liquidity failure are limited}.
+\item \textbf{Polarity.} Intra-group capital injections are a \emph{negative} for group capital adequacy even while relieving subsidiary liquidity.
+\end{itemize}
+\end{lrtrapbox}

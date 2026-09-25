@@ -1,0 +1,314 @@
+\reading{CR-15}{Counterparty Risk and Beyond}{DEFER}{0}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Describe counterparty risk and differentiate it from lending risk.
+\item Describe transactions that carry counterparty risk and explain how counterparty risk can arise in each transaction.
+\item Identify and describe institutions that take on significant counterparty risk.
+\item Describe credit exposure, credit migration, recovery, mark-to-market, replacement cost, default probability, loss given default, and the recovery rate.
+\item Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.
+\item Identify and describe the different ways institutions can quantify, manage, and mitigate counterparty risk.
+\item Identify and explain the costs of an OTC derivative.
+\item Explain the components of the X-Value Adjustment (xVA) term.
+\end{enumerate}
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-15 a}{Describe counterparty risk and differentiate it from lending risk.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.7cm} L{5.8cm} L{6.0cm}}
+\toprule
+ & \thead{Counterparty risk} & \thead{Lending risk} \\
+\midrule
+Definition & The risk that the other party to a financial contract will fail to
+  fulfil their side of the agreement &
+  The risk that the other party fails to pay some or all of a loan, due to
+  insolvency \\
+Where it exists & OTC derivatives (interest rate swaps, FX forwards, CDS) and
+  securities financing transactions (repos, reverse repos, securities borrowing
+  and lending) &
+  Loans, bonds, mortgages, credit cards \\
+Amount at risk & \textbf{Not constant}; the exposure varies between positive and
+  negative &
+  The notional amount at risk is usually known with a degree of certainty \\
+Who bears it & \textbf{Bilateral}: both parties take risk &
+  \textbf{Unilateral}: only one party takes risk, and it primarily affects the
+  lender \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The two rows that decide most questions are the bottom two. Lending risk
+is one-directional with a known principal; counterparty risk is two-directional
+with an exposure that swings with the value of the underlying.}
+
+\begin{crdefbox}[Pre-settlement and settlement risk]
+\term{Pre-settlement risk} is the risk that a counterparty will default
+\emph{prior} to the final settlement of the transaction, at expiration. This is
+what counterparty risk usually refers to.
+
+\smallskip
+\term{Settlement risk} arises \emph{at} final settlement, if there are timing
+differences between when each party performs on its obligations under the
+contract.
+\end{crdefbox}
+
+% =====================================================================
+\lo{CR-15 b}{Describe transactions that carry counterparty risk and explain how counterparty risk can arise in each transaction.}
+
+\subsection*{OTC derivatives}
+
+Because of customization --- to reduce basis risk --- a much greater amount of
+notional is traded OTC. Interest rate swaps, FX forwards and credit default swaps
+all carry counterparty risk.
+
+\begin{itemize}
+\item \term{Interest rate swaps.} Risk arises from the exchange of floating
+versus fixed cash flows.
+\item \term{Foreign exchange transactions.} Risk arises from the large notional
+amounts exchanged.
+\item \term{Credit default swaps.} Introduce additional risk through
+\term{wrong-way risk}, where a credit rating downgrade increases the likelihood
+of the counterparty defaulting at the same time as the protection is needed.
+\end{itemize}
+
+\subsection*{Securities financing transactions}
+
+Repos, reverse repos, and securities borrowing and lending. Risk exists if the
+borrower fails to repurchase the securities, or if the collateral value declines.
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+% leg 1
+\node[font=\scriptsize\bfseries, text=FRMNavy] at (2.6,2.35) {Opening leg};
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.9pt, circle, minimum size=0.95cm] (a1) at (0,1.1) {\textbf{A}};
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.9pt, circle, minimum size=0.95cm] (b1) at (5.2,1.1) {\textbf{B}};
+\draw[-{Stealth[length=5pt]}, FRMGold, line width=1pt] ($(a1.east)+(0,0.28)$) --
+  node[above, font=\scriptsize, inner sep=1.5pt]{Gov sec \$100M} ($(b1.west)+(0,0.28)$);
+\draw[-{Stealth[length=5pt]}, FRMGold, line width=1pt] ($(b1.west)-(0,0.28)$) --
+  node[below, font=\scriptsize, inner sep=1.5pt]{cash \$100M} ($(a1.east)-(0,0.28)$);
+% leg 2
+\node[font=\scriptsize\bfseries, text=FRMNavy] at (10.4,2.35) {Closing leg, at maturity};
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.9pt, circle, minimum size=0.95cm] (a2) at (7.8,1.1) {\textbf{A}};
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.9pt, circle, minimum size=0.95cm] (b2) at (13.0,1.1) {\textbf{B}};
+\draw[-{Stealth[length=5pt]}, FRMGreen, line width=1pt] ($(b2.west)+(0,0.28)$) --
+  node[above, font=\scriptsize, inner sep=1.5pt]{Gov sec \$100M} ($(a2.east)+(0,0.28)$);
+\draw[-{Stealth[length=5pt]}, FRMGreen, line width=1pt] ($(a2.east)-(0,0.28)$) --
+  node[below, font=\scriptsize, inner sep=1.5pt]{cash \$100M $+$ \$1M interest} ($(b2.west)-(0,0.28)$);
+\end{tikzpicture}
+\end{center}
+\figcap{A repo, both legs. A sells securities for cash and buys them back later at
+a higher price; the difference is the repo interest. The counterparty risk is not
+in either leg on its own but in the gap between them: B is exposed if A fails to
+repurchase, and both are exposed to a move in the collateral value in the
+meantime.}
+
+\begin{crkeybox}[The exclusion worth remembering]
+Exchange transactions do not carry counterparty risk.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-15 c}{Identify and describe institutions that take on significant counterparty risk.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.5cm} L{5.9cm} L{6.1cm}}
+\toprule
+\thead{Tier} & \thead{Who they are} & \thead{Characteristics} \\
+\midrule
+\term{Large derivatives player} & Typically a large bank, often known as a
+  \emph{dealer} &
+  A vast number of OTC derivatives trades on their books; trade with each other
+  and have many other clients; coverage of all or many asset classes; post
+  collateral against positions \\
+\term{Medium derivatives player} & Typically a smaller bank or other financial
+  institution, such as a hedge fund or pension fund &
+  Many OTC derivatives trades; trade with a relatively large number of clients;
+  cover several asset classes though may not be active in all; probably post
+  collateral, with some exceptions \\
+\term{Small derivatives player} & A large corporate or sovereign with significant
+  derivatives requirements &
+  A few OTC derivatives trades; potentially only a few counterparties; may be
+  specialized to a single asset class; \textbf{unable to commit to posting
+  collateral, or will post illiquid collateral} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The collateral column is the discriminating one, and it inverts the
+intuition: the smallest players, with the least capacity to absorb a loss, are
+also the ones least able to post collateral against it.}
+
+% =====================================================================
+\lo{CR-15 d}{Describe credit exposure, credit migration, recovery, mark-to-market, replacement cost, default probability, loss given default, and the recovery rate.}
+
+\begin{enumerate}
+\item \term{Credit exposure.} The potential loss if the counterparty defaults,
+considering current, future and contingent liabilities.
+\item \term{Credit migration.} A counterparty's creditworthiness can change over
+time. \emph{Deterioration} means increased default risk, especially for long-term
+contracts. \emph{Improvement} means reduced default risk, and is more likely for
+initially weak credit ratings.
+\item \term{Recovery rate.} The portion of the outstanding debt recoverable after
+a default. A 70\% recovery rate means a 30\% loss.
+\item \term{Loss given default (LGD).} One minus the recovery rate:
+$\mathrm{LGD} = 1 - \mathrm{RR}$.
+\item \term{Mark-to-market (MtM).} The current potential loss on all contracts
+with a counterparty, considering present values of future cash flows. Not a
+perfect measure, because it ignores netting, collateral and hedging.
+\item \term{Replacement cost.} The cost to replace the defaulted contract in the
+current market.
+\item \term{Default probability.} Treated in full at CR-9, where it is estimated
+from ratings, hazard rates, credit spreads and the Merton model.
+\end{enumerate}
+
+\begin{crtrapbox}[Credit migration cuts both ways]
+Improvement is more likely for \emph{initially weak} ratings and deterioration is
+more likely over \emph{long-term} contracts. Both directions are examinable and
+the conditions attached to each are swappable.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-15 e}{Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.}
+
+CVA is the valuation of counterparty risk on a bilateral trade: the present value
+of the expected cost to the institution of a counterparty default. The full
+definition and the credit-adjusted value identity are at \textbf{CR-12 b}.
+
+\begin{crkeybox}[CVA versus credit limits: they answer different questions]
+\term{CVA} helps you pick good counterparties and optimize netting: it prices the
+risk.
+
+\smallskip
+\term{Credit limits} ensure you do not overexpose yourself to any single
+counterparty: they cap the risk.
+\end{crkeybox}
+
+\subsection*{Quantifying counterparty risk, by level}
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Trade level.} Analyse the specific trade and its risk factors.
+\item \term{Counterparty level.} Consider risk-mitigating factors like netting and
+collateral for each counterparty.
+\item \term{Portfolio level.} Evaluate overall exposure, assuming limited defaults
+within a set period.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-15 f}{Identify and describe the different ways institutions can quantify, manage, and mitigate counterparty risk.}
+
+\subsection*{Managing counterparty risk}
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Choose high-quality counterparties.} The simplest method. Look for
+counterparties with strong credit ratings, who may not even need to provide
+collateral.
+\item \term{Cross-product netting.} Aggregate derivative transactions to net out
+exposures, reducing overall risk.
+\item \term{Close-out.} Immediately cancel all contracts with a defaulting
+counterparty, then net the values to determine who owes whom.
+\item \term{Collateralization.} Require posting of collateral to cover net
+exposures, \emph{theoretically} reducing exposure to zero.
+\item \term{Walkaway features.} Clauses allowing cancellation of a transaction if
+the other party defaults, especially where that benefits you financially.
+\item \term{Diversification.} Spread counterparty risk across a variety of
+institutions, reducing exposure to any single default.
+\item \term{Centralized clearinghouses.} Use exchanges that act as counterparty to
+all trades, centralizing and potentially reducing risk.
+\end{enumerate}
+
+\subsection*{Mitigating counterparty risk}
+
+\begin{enumerate}
+\item \term{Netting.} Offsetting negative and positive contract values with the
+same counterparty, so only the net debtor pays. Reduces the amount outstanding at
+any one time.
+\item \term{Collateral.} A deposit of cash or securities held against the value of
+the transaction. Theoretically eliminates risk, but carries administrative and
+liquidity risks.
+\item \term{Hedging.} Employ credit derivatives to shift risk, \emph{at the cost
+of creating market risk}. Less likely in practice for an end user: if a company is
+facing an investment bank on a rate swap it presumably has a legitimate business
+use for the swap. The bank can hedge that risk with another counterparty, but risk
+facing the smaller company is not eliminated.
+\item \term{Central counterparties (CCPs).} Centralize risk via clearinghouses. In
+theory this eliminates counterparty risk, but in a large systemic failure the CCP
+itself could be brought down, and it may create operational and systemic risks.
+\item \term{Other clauses.} Features such as resets or additional termination
+events, which periodically reset MtM values or terminate transactions early.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-15 g}{Identify and explain the costs of an OTC derivative.}
+
+The costs depend on which side of the trade you are on.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.0cm} L{11.5cm}}
+\toprule
+\thead{Positive MtM} & Your trade is profitable, and you are in the money. \\
+ & \term{Counterparty risk}: you are exposed if the counterparty defaults,
+especially on the \emph{uncollateralized} portion. \\
+ & \term{Funding cost}: you might incur funding costs for the collateralized
+part, depending on who chooses the collateral. \\
+\midrule
+\thead{Negative MtM} & Your trade is losing money, and you are out of the money. \\
+ & \term{Counterparty risk}: \emph{you} could default, if your own financial
+situation worsens. \\
+ & \term{Funding benefit}: you earn interest on any collateral you do not post.
+You might still incur funding costs on the collateralized part, depending on who
+chooses the collateral. \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The symmetry is the point. When you are in the money the counterparty risk
+is \emph{theirs to create and yours to bear}; when you are out of the money it is
+yours to create. Funding runs the opposite way: a cost when in the money, a
+benefit when out.}
+
+% =====================================================================
+\lo{CR-15 h}{Explain the components of the X-Value Adjustment (xVA) term.}
+
+xVA is a family of terms representing the various costs and benefits associated
+with OTC derivatives.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{1.8cm} L{8.6cm} L{3.6cm}}
+\toprule
+\thead{Term} & \thead{What it is} & \thead{Sign} \\
+\midrule
+\term{CVA} & Credit value adjustment: the valuation of counterparty risk on a
+  bilateral trade; the cost of the \emph{other party's} default &
+  \textbf{Negative} (a cost) \\
+\term{DVA} & Debt value adjustment: the counterpart to CVA, reflecting
+  \emph{your own} potential default risk &
+  \textbf{Positive} (a benefit) \\
+\term{FVA} & Funding value adjustment: the cost or benefit arising from funding
+  the transaction. A trade that partially hedges a book may offer funding relief,
+  since the net risk of the book is reduced &
+  Either, depending on the trade \\
+\term{ColVA} & Collateral value adjustment: the cost or benefit resulting from
+  embedded options in collateral agreements, and any additional collateral terms &
+  Either, depending on the trade \\
+\term{KVA} & Capital value adjustment: the cost of holding regulatory capital over
+  the entire life of the trade &
+  \textbf{Always a cost} \\
+\term{MVA} & Margin value adjustment: the cost of posting initial margin over the
+  life of the trade &
+  \textbf{Always a cost} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{More than the definitions themselves, the examinable content is the sign
+column: which terms are a debit and which a credit. Note that KVA and MVA are
+named for capital and \emph{initial} margin specifically, and neither can ever be
+a benefit.}
+
+\begin{crtrapbox}[The sign that is most often flipped]
+CVA is \term{negative} --- it is the cost of the counterparty defaulting on you.
+DVA, which is \emph{your own} default, is \term{positive}. FVA and ColVA can be
+either, depending on the trade. The costs associated with regulatory capital (KVA)
+and initial margin (MVA) are always going to be costs.
+\end{crtrapbox}

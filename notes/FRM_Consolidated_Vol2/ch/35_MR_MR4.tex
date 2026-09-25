@@ -1,0 +1,342 @@
+\reading{MR-4}{Backtesting VaR}{grind}{4}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe backtesting and exceptions and explain the importance of backtesting VaR models.
+\item Explain the significant difficulties in backtesting a VaR model.
+\item Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model
+      verification test.
+\item Identify and describe Type I and Type II errors in the context of a backtesting process.
+\item Explain the need to consider conditional coverage in the backtesting framework.
+\item Describe the Basel rules for backtesting.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-4 a}{Describe backtesting and exceptions and explain the importance of backtesting VaR models.}
+
+\begin{mrdefbox}[title={Backtesting}]
+Backtesting is the verification that actual losses are reasonably consistent with projected
+losses. Backtesting compares the history of VaR forecasts to actual (realized) portfolio
+returns.
+\end{mrdefbox}
+
+\begin{itemize}
+\item The number of observations falling outside VaR should be in line with the confidence
+      level.
+\item The number of exceedances is also known as the number of \term{exceptions}.
+\end{itemize}
+
+\begin{mrtrapbox}[title={The two failure directions}]
+\begin{itemize}
+\item \term{Too many exceptions:} the model underestimates risk.
+\item \term{Too few exceptions:} excess, or inefficient, allocation of capital across units.
+\end{itemize}
+\end{mrtrapbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.2cm, height=4.4cm,
+  xmin=0, xmax=60, ymin=-4.6, ymax=3.4,
+  axis y line=left, axis x line=bottom, axis line style={draw=black!55},
+  ylabel={\scriptsize Daily return},
+  ylabel style={font=\scriptsize}, tick label style={font=\scriptsize},
+  xlabel={\scriptsize Trading day}, xlabel style={font=\scriptsize},
+  ytick={-4,-2,0,2}, xtick={0,10,20,30,40,50,60}, clip=false]
+\addplot[FRMNavy!70, line width=0.6pt] coordinates {
+(1,0.4)(2,-0.9)(3,1.1)(4,0.2)(5,-1.4)(6,0.8)(7,-0.3)(8,1.6)(9,-2.1)(10,0.5)
+(11,-0.7)(12,1.2)(13,0.1)(14,-1.8)(15,2.0)(16,-0.4)(17,0.9)(18,-3.2)(19,1.4)(20,-0.6)
+(21,0.3)(22,1.7)(23,-1.1)(24,0.6)(25,-2.4)(26,1.0)(27,-0.2)(28,0.8)(29,-1.6)(30,1.3)
+(31,-0.5)(32,2.2)(33,-1.0)(34,0.4)(35,-3.9)(36,1.1)(37,-0.8)(38,0.7)(39,-2.0)(40,1.5)
+(41,-0.1)(42,0.9)(43,-1.3)(44,2.1)(45,-0.7)(46,0.5)(47,-2.6)(48,1.2)(49,-0.9)(50,0.6)
+(51,1.8)(52,-1.5)(53,0.2)(54,-3.5)(55,1.0)(56,-0.4)(57,0.8)(58,-1.9)(59,1.6)(60,-0.6)};
+\addplot[FRMRed, dashed, line width=0.9pt] coordinates {(0,-3.0)(60,-3.0)};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:60.6,-3.0)
+  {$-$VaR};
+\node[circle, draw=FRMRed, fill=FRMRed!25, inner sep=1.6pt] at (axis cs:18,-3.2) {};
+\node[circle, draw=FRMRed, fill=FRMRed!25, inner sep=1.6pt] at (axis cs:35,-3.9) {};
+\node[circle, draw=FRMRed, fill=FRMRed!25, inner sep=1.6pt] at (axis cs:54,-3.5) {};
+\node[anchor=north, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:35,-4.15)
+  {exceptions};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Each day's realized return is compared with the VaR forecast. The circled days are the
+ones that breached it. Counting those breaches, and asking whether there are about as many as
+the confidence level implies, is the whole of backtesting.}
+
+% ---------------------------------------------------------
+\lo{MR-4 b}{Explain the significant difficulties in backtesting a VaR model.}
+
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item VaR models use \term{static portfolios}, but real portfolios constantly change due to
+      price shifts and trading. This disparity complicates backtesting.
+\item VaR models often \term{exclude various risk factors} like intraday changes and transaction
+      costs, affecting the accuracy of backtesting.
+\item Using \term{short time frames} for backtesting, like daily holding periods, can help
+      mitigate some of the issues caused by omitted factors.
+\item The backtesting sample \term{may not fully represent true risk}, making it essential to
+      determine an acceptable level of exceptions.
+\item Backtesting involves comparing actual returns with \term{hypothetical returns} that
+      simulate VaR expectations based on static portfolios.
+\item When hypothetical returns fail in backtesting, it may be necessary to \term{adjust the VaR
+      modeling methodology} to enhance accuracy and risk assessment.
+\end{enumerate}
+
+% ---------------------------------------------------------
+\lo{MR-4 c}{Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.}
+
+\begin{mrdefbox}[title={Failure rate}]
+An unbiased measure of the number of exceptions as a proportion of the number of samples is
+called the failure rate.
+\end{mrdefbox}
+
+\begin{mrfmlbox}
+\[ \text{Failure rate} \;=\; \frac{N}{T} \]
+\mrvk{$N$ = number of exceptions;\quad $T$ = number of samples (observations in the backtest
+window).}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- failure rate}]
+A bank uses a 99\% confidence level VaR model over 252 trading days. The model predicts losses
+exceeding the threshold on 3 days, but in reality it happens on 6 days.
+\tcblower
+\small
+Failure rate $= 6 / 252 = \mathbf{2.38\%}$. This suggests the VaR model \term{underestimates
+risk}, since exceptions occur more often than expected (1\%).
+\end{mrexbox}
+
+The number of exceptions $x$ follows a binomial probability distribution. However, we can
+approximate the binomial distribution by the normal distribution.
+
+\begin{mrfmlbox}
+\[ z \;=\; \frac{x - pT}{\sqrt{p\,(1-p)\,T}} \]
+\mrvk{$x$ = observed number of exceptions;\quad $p$ = the tail probability implied by the
+confidence level, so $pT$ is the expected number of exceptions;\quad $T$ = number of
+observations.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- verifying the model}]
+In 1998, daily revenue of JP Morgan fell short of the downside (95\% VaR) band on 20 days, or
+more than 5\% of the time. Nine of these 20 occurrences fell within the August to October
+period. Test the model over $T = 252$ days at $p = 0.05$.
+\tcblower
+\small
+\[ z \;=\; \frac{20 - 0.05 \times 252}{\sqrt{0.05\,(1-0.05)\,252}} \;=\; \frac{7.4}{3.46}
+   \;=\; 2.14 \;>\; 1.96 \]
+We \term{reject} the hypothesis that the VaR model is unbiased.
+\end{mrexbox}
+
+% ---------------------------------------------------------
+\lo{MR-4 d}{Identify and describe Type I and Type II errors in the context of a backtesting process.}
+
+\begin{itemize}
+\item Users of VaR models need to \term{balance Type I errors against Type II errors}.
+\item Ideally, one would want to set a low Type I error rate and then have a test that creates a
+      very low Type II error rate, in which case the test is said to be \term{powerful}. However,
+      it is very difficult.
+\end{itemize}
+
+\begin{mrkeybox}[title={Error types}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item \term{Type I error:} rejecting an accurate model.
+\item \term{Type II error:} accepting an inaccurate model.
+\end{enumerate}
+\end{mrkeybox}
+
+\begin{center}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.0cm} >{\centering\arraybackslash}p{3.4cm} >{\centering\arraybackslash}p{3.4cm}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Decision} & \hdr{Correct} & \hdr{Incorrect}\\
+Accept & OK & \textbf{Type II}\\
+\rowcolor{FRMSoft} Reject & \textbf{Type I} & Power of test\\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Rows are the decision the backtest leads you to; columns are the true state of the
+model. The two diagonal cells are the two ways of being wrong.}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.4cm,
+  xmin=-3.2, xmax=8.5, ymin=0, ymax=0.47,
+  xlabel={\scriptsize Number of exceptions observed},
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel style={font=\scriptsize}, xtick={\empty},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.22)}, anchor=north, legend columns=-1, column sep=8pt},
+  clip=false]
+% Type I area: right tail of H0 beyond the cutoff
+\addplot[domain=1.55:5.0, samples=90, smooth, draw=none, fill=FRMNavy!35, forget plot]
+  {0.39894*exp(-(x^2)/2)} \closedcycle;
+% Type II area: left tail of H1 below the cutoff
+\addplot[domain=-0.6:1.55, samples=90, smooth, draw=none, fill=FRMRed!32, forget plot]
+  {0.39894*exp(-((x-3.1)^2)/2)} \closedcycle;
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=-3.2:5.2, samples=170]
+  {0.39894*exp(-(x^2)/2)};
+\addlegendentry{Model is \textbf{accurate} ($H_0$ true)}
+\addplot[FRMRed, line width=1.3pt, dashed, smooth, domain=-0.6:8.0, samples=170]
+  {0.39894*exp(-((x-3.1)^2)/2)};
+\addlegendentry{Model is \textbf{inaccurate} ($H_a$ true)}
+\draw[black!70, line width=1.0pt] (axis cs:1.55,0) -- (axis cs:1.55,0.43);
+\node[anchor=south, font=\scriptsize\sffamily, text=black!70, fill=white, inner sep=1.2pt]
+  at (axis cs:1.55,0.435) {critical value};
+\node[anchor=south west, font=\tiny\sffamily, text=FRMNavy, fill=white, inner sep=1.4pt,
+  align=left] at (axis cs:2.35,0.26) {\textbf{Type I}\\ reject an accurate model};
+\draw[FRMNavy!70, -{Stealth[length=3.5pt]}, line width=0.6pt]
+  (axis cs:2.32,0.27) -- (axis cs:1.95,0.075);
+\node[anchor=south east, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1.4pt,
+  align=right] at (axis cs:0.85,0.26) {\textbf{Type II}\\ accept an inaccurate model};
+\draw[FRMRed!70, -{Stealth[length=3.5pt]}, line width=0.6pt]
+  (axis cs:0.88,0.27) -- (axis cs:1.25,0.075);
+\node[anchor=south, font=\tiny\sffamily, text=black!60, fill=white, inner sep=1.2pt]
+  at (axis cs:5.6,0.16) {\textbf{power} of the test};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The grid above says \textit{what} the two errors are; this says \textit{where} they come
+from. Both errors live on the same critical value, which is why they trade off: slide the line
+right and the blue Type I area shrinks while the red Type II area grows. Moving the two curves
+further apart --- more observations, or a lower confidence level --- is what shrinks both at
+once, and that is exactly what the improvements below propose.}
+
+\subsection{Improvements to Type I and Type II errors}
+\begin{itemize}
+\item Ideally, one would want a framework that has very high \term{power}, or a high probability
+      of rejecting an incorrect model.
+\item The current framework could be improved by choosing a \term{lower VaR confidence level} or
+      by \term{increasing the number of data observations}.
+      \begin{itemize}
+      \item The horizon should be \term{as short as possible} in order to increase the number of
+            observations and to mitigate the effect of changes in the portfolio composition.
+      \item The confidence level \term{should not be too high}, because this decreases the
+            effectiveness, or power, of the statistical tests.
+      \end{itemize}
+\end{itemize}
+
+\subsection{Kupiec VaR backtest}
+
+\term{1. Unconditional coverage.} Kupiec (1995) determined a measure to accept or reject models
+using the tail points of a log-likelihood ratio (LR).
+
+The term \term{unconditional coverage} refers to the fact that we are not concerned about
+independence of exception observations or the timing of when the exceptions occur.
+
+Basically, the log-likelihood ratio $LR_{uc}$ is a test statistic to determine the hypothesis
+that the model is accurate.
+
+\begin{itemize}
+\item $H_0$: accurate model
+\item $H_a$: inaccurate model
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ LR_{uc} \;=\; -2\ln\!\left[ (1-p)^{T-N} p^{N} \right]
+   \;+\; 2\ln\!\left\{ \left[ 1 - (N/T) \right]^{T-N} (N/T)^{N} \right\} \]
+\mrvk{$p$ = the tail probability implied by the confidence level;\quad $N$ = number of
+exceptions;\quad $T$ = number of observations;\quad $N/T$ = the observed failure rate.}{}
+\end{mrfmlbox}
+
+\begin{mrkeybox}
+We would \term{reject the null hypothesis if $LR > 3.841$}.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-4 e}{Explain the need to consider conditional coverage in the backtesting framework.}
+
+\begin{itemize}
+\item So far the framework focuses on \term{unconditional coverage} because it ignores
+      conditioning, or time variation in the data. The observed exceptions, however, could
+      \term{cluster} or ``bunch'' closely in time, which also should invalidate the model.
+\item In theory, these occurrences should be evenly spread over time. If, instead, we observed
+      that 10 of these exceptions occurred over the last 2 weeks, this should raise a red flag.
+\end{itemize}
+
+\subsection{Conditional coverage models}
+
+\begin{mrfmlbox}
+\[ LR_{cc} \;=\; LR_{uc} \;+\; LR_{ind} \]
+\mrvk{$LR_{uc}$ = the unconditional coverage statistic, which tests whether the \textit{number} of
+exceptions is right;\quad $LR_{ind}$ = the independence statistic, which tests whether the
+exceptions are spread out or clustered;\quad $LR_{cc}$ = the combined conditional coverage
+statistic.}{}
+\end{mrfmlbox}
+
+\begin{itemize}
+\item Adjust $LR_{independence}$ to remove the feature of clustering.
+\item If $LR_{independence} > 3.84$, we reject independence and conclude cluster.
+\item $LR_{cc} = LR_{uc} + LR_{ind}$, thus if $LR_{cc} > 5.99$, we reject the model.
+\item If exceptions are determined to be serially dependent, then the model needs to be revised
+      to incorporate the correlations that are evident in current conditions.
+\end{itemize}
+
+\begin{mrtrapbox}[title={Two different critical values}]
+The independence test and the unconditional test are each compared against \textbf{3.84}; the
+combined conditional coverage statistic is compared against \textbf{5.99}. Using the wrong one
+of the two is a standard way to be caught out.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-4 f}{Describe the Basel rules for backtesting.}
+
+\begin{mrdefbox}[title={Basel Committee on backtesting}]
+Basel requires that Market VaR be computed at a \term{99\% confidence interval} and backtested
+for the past \term{1 year}.
+\end{mrdefbox}
+
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item We expect to have \term{2.5 exceptions} ($250 \times 0.01$) each year.
+\item Depending on the exceptions observed, the capital multiplier (the amount a bank must hold)
+      increases, and this lowers the bank's performance if the model used is incorrect.
+\end{enumerate}
+
+\begin{mrfmlbox}
+\[ \text{Economic capital} \;=\; \mathrm{VaR} \times (3 + k) \]
+\mrvk{$3$ = the base multiplier;\quad $k$ = the additional plus factor set by the zone the bank
+falls into, so that the total multiplier runs from 3 in the green zone to 4 in the red zone.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}p{4.6cm}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Zone} & \hdr{Exceptions observed} & \hdr{Multiplier}\\
+\textbf{Green} & 0 to 4 observations & 3\\
+\rowcolor{FRMSoft} \textbf{Yellow} & 5 to 9 observations & Increases from 3 to 4\\
+\textbf{Red} & 10 or more observations & 4\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The multiplier is based on the type of model error}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.8cm} p{3.6cm} >{\raggedright\arraybackslash}X p{2.6cm}@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Type of error} & \hdr{Why the exceptions occurred} & \hdr{Penalty}\\
+I & Basic integrity of the model is lacking & Incorrect data or errors in the programming
+  & Should apply\\
+\rowcolor{FRMSoft}
+II & Model accuracy needs improvement & The model does not describe risks precisely
+  & Should apply\\
+III & Intraday trading & Positions changed during the day & Should be considered\\
+\rowcolor{FRMSoft}
+IV & Bad luck & Markets were particularly volatile or correlations changed; these exceptions
+  should be expected to occur at least some of the time & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}
+Reducing the confidence interval reduces the probability of Type II errors. Also, using longer
+backtesting periods can help here.
+\end{mrkeybox}
+
+
+% ==========================================================

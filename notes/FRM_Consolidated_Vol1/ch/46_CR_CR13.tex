@@ -1,0 +1,402 @@
+\reading{CR-13}{Credit Derivatives}{DEFER}{2}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Describe a credit derivative, credit default swap (CDS), total return swap, and collateralized debt obligation (CDO).
+\item Explain how to account for credit risk exposure in valuing a CDS.
+\item Identify the default probabilities used to value a CDS.
+\item Evaluate the use of credit indices and fixed coupons in pricing CDS transactions.
+\item Define CDS forwards and CDS options.
+\item Describe the process of valuing a synthetic CDO using the spread payments approach and the Gaussian copula model of time to default approach.
+\item Define the two measures of implied correlation: compound (tranche) correlation and base correlation.
+\item Discuss alternative approaches used to estimate default correlation.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading]
+CR-13 exists only in the Crash layer.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-13 a}{Describe a credit derivative, credit default swap (CDS), total return swap, and collateralized debt obligation (CDO).}
+
+\subsection*{Credit default swap}
+
+A CDS is insurance against the risk of default by a specific company, the
+\term{reference entity}. It gives the buyer the right to sell bonds at face
+value, and imposes on the seller the obligation to buy bonds at face value, when
+a credit event occurs. The full mechanics are at \textbf{CR-9 g}.
+
+\begin{itemize}
+\item \term{CDS spread.} The total amount paid per year, as a percentage of
+notional principal, to buy protection.
+\item \term{Credit event definition.} Failure to make a payment, debt
+restructuring, or bankruptcy.
+\item \term{Settlement methods.} \emph{Physical settlement}: the buyer sells
+bonds to the seller at face value. \emph{Cash settlement}: a two-stage auction
+process determines the mid-market value of the cheapest deliverable bond, and the
+cash payoff is based on the auction results.
+\end{itemize}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective names four things. The source notes
+describe the CDS and, at objective f, the synthetic CDO, but never define a total
+return swap or a CDO. The following is written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for: total return swap and CDO]
+\textbf{Total return swap.} A total return swap is a type of credit derivative.
+It is an agreement to exchange the \emph{total return} on a bond, or any
+portfolio of assets, for a floating rate plus a spread. The total return includes
+coupons, interest, and the gain or loss on the asset over the life of the swap.
+
+\smallskip
+An example is a 5-year agreement with a notional principal of \$100 million to
+exchange the total return on a corporate bond for the floating rate plus 25 basis
+points. On coupon payment dates the \emph{payer} pays the coupons earned on an
+investment of \$100 million in the bond; the \emph{receiver} pays interest at the
+floating rate plus 25 basis points on a principal of \$100 million. At the end of
+the life of the swap there is a payment reflecting the change in value of the
+bond: if the bond rises 10\%, the payer pays \$10 million; if it falls 15\%, the
+receiver pays \$15 million. If there is a default on the bond, the swap is
+usually terminated and the receiver makes a final payment equal to the excess of
+\$100 million over the market value of the bond.
+
+\smallskip
+\textbf{Collateralized debt obligation.} An asset-backed security where the
+underlying assets are \emph{bonds} is known as a collateralized debt obligation.
+A waterfall is defined for the interest and principal payments on the bonds. The
+precise rules underlying the waterfall are complicated, but they are designed to
+ensure that if one tranche is more senior than another, it is more likely to
+receive promised interest payments and repayments of principal.
+
+\smallskip
+When a CDO is created from a bond portfolio in this way, the resulting structure
+is a \term{cash CDO}, as distinct from the synthetic CDO at objective f.
+\end{crgapbox}
+
+% =====================================================================
+\lo{CR-13 b}{Explain how to account for credit risk exposure in valuing a CDS.}
+
+Valuing a CDS means equating two present values: what the protection buyer expects
+to pay, and what the protection buyer expects to receive.
+
+\begin{crfmlbox}[The two legs, per period]
+\[ \text{expected payment} \;=\; \text{probability of survival} \times
+   \text{notional principal} \times s \]
+\[ \text{expected payoff} \;=\; (1-\text{recovery rate}) \times \mathrm{PD}
+   \times \text{notional principal} \]
+\vk{$s$ = the CDS spread. Payments are made only if the entity has \emph{survived}
+to the payment date, so they are weighted by the survival probability; payoffs
+occur only on default, so they are weighted by the default probability.}
+\end{crfmlbox}
+
+Defaults are assumed to occur \emph{mid-period}. That creates a third leg: if
+default occurs halfway through a year, the protection buyer owes half a year of
+accrued premium.
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\draw[FRMGrey, line width=1pt] (0,0) -- (11.4,0);
+\foreach \x/\lab in {0/0, 3.6/1, 7.2/2, 10.8/3}{
+  \draw[FRMGrey, line width=0.8pt] (\x,-0.12) -- (\x,0.12);
+  \node[below=3pt, font=\scriptsize] at (\x,-0.12) {\lab};
+}
+% payments up at 1,2,3
+\foreach \x in {3.6,7.2,10.8}
+  \draw[-{Stealth[length=5pt]}, FRMNavy, line width=1.1pt] (\x,0.1) -- (\x,1.35);
+\node[font=\scriptsize\bfseries, text=FRMNavy, anchor=west] at (0.15,1.35)
+  {expected payments (survival $\times$ notional $\times s$)};
+% payoffs down at 0.5,1.5,2.5
+\foreach \x in {1.8,5.4,9.0}
+  \draw[-{Stealth[length=5pt]}, FRMGold, line width=1.1pt] (\x,-0.1) -- (\x,-1.35);
+\node[font=\scriptsize\bfseries, text=FRMGold, anchor=west] at (0.15,-1.6)
+  {expected payoffs $(1-R)\times\mathrm{PD}\times$ notional, and accrual $=\mathrm{PD}\times s/2$};
+\foreach \x/\lab in {1.8/0.5, 5.4/1.5, 9.0/2.5}
+  \node[font=\scriptsize, text=FRMGold, anchor=west, fill=white, inner sep=1pt]
+    at (\x+0.16,-0.45) {\lab};
+\node[font=\scriptsize\itshape, text=FRMGrey, anchor=west] at (0.15,0.42)
+  {default assumed to occur mid-period};
+\end{tikzpicture}
+\end{center}
+\figcap{The timing asymmetry that makes the valuation work. Premium payments land
+on the anniversary dates; defaults are assumed to land halfway between them.
+That is why the payoff and accrual legs are discounted at 0.5, 1.5 and 2.5 while
+the payment leg is discounted at 1, 2 and 3, and why an accrual term exists at
+all.}
+
+\begin{crexbox}[Valuing a 3-year CDS]
+The hazard rate of the reference entity is 3\% per annum, the risk-free rate is
+4\% continuously compounded, and the recovery rate is 35\%. Find the breakeven
+CDS spread on \$1 of notional.
+\tcblower
+\textbf{Step 1. Survival and default probabilities.}
+\[ \mathrm{PS}_t = e^{-\lambda t} \qquad\qquad
+   \mathrm{PD}_t = \mathrm{PS}_{t-1} - \mathrm{PS}_t \]
+
+\centering\footnotesize
+\begin{tabular}{c r r}
+\toprule
+\thead{Year} & \thead{Probability of survival} & \thead{Probability of default} \\
+\midrule
+1 & 0.97045 & 0.0296 \\
+2 & 0.94176 & 0.0287 \\
+3 & 0.91393 & 0.0278 \\
+\bottomrule
+\end{tabular}
+
+\raggedright
+\smallskip
+\textbf{Step 2. PV of expected payments, per unit of spread $s$.}
+
+\centering\footnotesize
+\begin{tabular}{c r r r}
+\toprule
+\thead{Year} & \thead{Survival} & \thead{Discount factor} & \thead{PV of expected payment} \\
+\midrule
+1 & 0.97045 & 0.9608 & $0.9324s$ \\
+2 & 0.94176 & 0.9231 & $0.8693s$ \\
+3 & 0.91393 & 0.8869 & $0.8106s$ \\
+\midrule
+ & & \textbf{Total} & $\mathbf{2.6123s}$ \\
+\bottomrule
+\end{tabular}
+
+\raggedright
+\smallskip
+\textbf{Step 3. PV of expected accrual payments, at the mid-year default dates.}
+
+\centering\footnotesize
+\begin{tabular}{c r r r r}
+\toprule
+\thead{Time} & \thead{PD} & \thead{Accrual} & \thead{Discount factor} &
+\thead{PV of expected accrual} \\
+\midrule
+0.5 & 0.0296 & $0.0148s$ & 0.9802 & $0.0145s$ \\
+1.5 & 0.0287 & $0.0143s$ & 0.9418 & $0.0135s$ \\
+2.5 & 0.0278 & $0.0139s$ & 0.9048 & $0.0126s$ \\
+\midrule
+ & & & \textbf{Total} & $\mathbf{0.0406s}$ \\
+\bottomrule
+\end{tabular}
+
+\raggedright
+\smallskip
+\textbf{Step 4. PV of expected payoff, with a 35\% recovery rate.}
+
+\centering\footnotesize
+\begin{tabular}{c r r r r r}
+\toprule
+\thead{Time} & \thead{PD} & \thead{RR} & \thead{Expected payoff} &
+\thead{Discount factor} & \thead{PV of expected payoff} \\
+\midrule
+0.5 & 0.0296 & 35\% & 0.0192 & 0.9802 & 0.0188 \\
+1.5 & 0.0287 & 35\% & 0.0187 & 0.9418 & 0.0176 \\
+2.5 & 0.0278 & 35\% & 0.0181 & 0.9048 & 0.0164 \\
+\midrule
+ & & & & \textbf{Total} & \textbf{0.0528} \\
+\bottomrule
+\end{tabular}
+
+\raggedright
+\smallskip
+\textbf{Step 5. Set the two sides equal.}
+\[ \mathrm{PV}\bigl[E(\text{payments})\bigr] = \mathrm{PV}\bigl[E(\text{payoff})\bigr] \]
+\[ 2.6529\,s = 0.0528 \]
+\[ s = 0.0528 / 2.6529 = 0.0199 \text{, or } 1.99\%\text{, or } 199\text{ bps} \]
+\end{crexbox}
+
+\begin{crfmlbox}[The breakeven spread in one line]
+\[ s \;=\; \frac{C}{A+B} \]
+\vk{$A$ = PV of expected payments per unit of spread; $B$ = PV of expected accrual
+payments per unit of spread; $C$ = PV of the expected payoff. In the example above
+$A = 2.6123$, $B = 0.0406$ and $C = 0.0528$. Forgetting $B$ raises the computed
+spread, because the buyer is then credited with less value paid in.}
+\end{crfmlbox}
+
+\subsection*{Marking a CDS to market}
+
+\begin{crfmlbox}[Mark-to-market value]
+\[ \text{MtM value to the protection seller} \;=\;
+   \mathrm{PV}\bigl[E(\text{payments})\bigr] -
+   \mathrm{PV}\bigl[E(\text{payoff})\bigr] \]
+\vk{Stated from the \emph{seller's} side: the seller receives the premium leg and
+pays the protection leg, so the difference is positive to the seller when spreads
+have narrowed since inception. The buyer's mark is the negative of this.}
+\end{crfmlbox}
+
+\subsection*{Binary CDS}
+
+A binary CDS is a variation of a regular CDS with one key difference: upon
+default, the \term{full notional amount} is paid, regardless of the actual
+recovery rate. The price of protection for a binary CDS is therefore typically
+\emph{higher} than for a regular CDS.
+
+% =====================================================================
+\lo{CR-13 c}{Identify the default probabilities used to value a CDS.}
+
+\begin{crkeybox}[Which probabilities]
+Default probabilities used for valuing a CDS should be \term{risk-neutral}
+default probabilities. They can be estimated from bond prices, or derived from
+CDS quotes.
+\end{crkeybox}
+
+This follows the rule set out at CR-9 k: risk-neutral probabilities are for
+valuation, real-world probabilities for scenario analysis. A CDS valuation is a
+valuation.
+
+% =====================================================================
+\lo{CR-13 d}{Evaluate the use of credit indices and fixed coupons in pricing CDS transactions.}
+
+\subsection*{Credit indices}
+
+Credit indices are developed for tracking CDS spreads. Roughly, an index
+represents the average CDS spread on the underlying portfolio companies. The key
+portfolios are \term{CDX NA IG} (North America) and \term{iTraxx Europe}
+(Europe), each covering 125 reference entities.
+
+\begin{crexbox}[Cost of index protection]
+The 5-year CDX NA IG index is quoted as ask 66 basis points. A trader wants
+\$800,000 of protection on each company. What is the annual cost, and what happens
+on a default?
+\tcblower
+\[ 0.0066 \times \$800{,}000 \times 125 = \$660{,}000 \text{ per year} \]
+A company default reduces the annual payment by
+\[ \$660{,}000 / 125 = \$5{,}280 \]
+\end{crexbox}
+
+\subsection*{Fixed coupons}
+
+The fixed coupon is a standardized fee of 100 basis points (1\%) per year,
+typically paid by the protection buyer for investment-grade issuers. It simplifies
+contract settlement. Where the CDS spread exceeds the fixed coupon, the buyer pays
+an up-front premium. The full three-case table is at \textbf{CR-9 g}.
+
+\begin{crfmlbox}[Price of a CDS, and hence the up-front payment]
+\[ \text{price} \;=\; 100 - \bigl[100 \times D \times (s - c)\bigr] \]
+\vk{$D$ = the duration of the CDS; $s$ = the CDS spread; $c$ = the fixed coupon,
+both as decimals. When $s = c$ the price is 100 and no up-front payment changes
+hands. When $s > c$ the price falls below 100 and the \emph{buyer} pays the
+difference up front.}
+\end{crfmlbox}
+
+% =====================================================================
+\lo{CR-13 e}{Define CDS forwards and CDS options.}
+
+\begin{crdefbox}[Forwards and options on a CDS]
+A \term{CDS forward} is an \emph{obligation} to buy or sell a particular credit
+default swap on a particular reference entity at a particular future time $T$.
+
+\smallskip
+A \term{CDS option} is an \emph{option} to buy or sell a particular credit default
+swap on a particular reference entity at a particular future time $T$.
+\end{crdefbox}
+
+\subsection*{CDS strategies}
+
+\begin{enumerate}
+\item If the CDS spread is \emph{less than} the bond yield spread: buy the
+corporate bond, and buy CDS protection, to earn more than the risk-free rate.
+\item If the CDS spread is \emph{greater than} the bond yield spread: sell the
+corporate bond, and sell CDS protection, to borrow at less than the risk-free
+rate.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-13 f}{Describe the process of valuing a synthetic CDO using the spread payments approach and the Gaussian copula model of time to default approach.}
+
+\begin{crdefbox}[Synthetic CDO]
+The issuer typically \emph{sells CDS} on a reference portfolio of underlying
+assets. Synthetic CDOs use CDS contracts to mimic the cash flow of a traditional
+cash CDO without buying the actual debt. The issuer earns income by selling
+protection and pays out if there is a default, just as a traditional CDO does.
+\end{crdefbox}
+
+\subsection*{1) Spread payments approach}
+
+\begin{enumerate}[label=\alph*)]
+\item Calculate the present value of expected inflows (CDS spread payments) and
+outflows (credit losses).
+\item Adjust inflows based on the concept of \term{accrued payments}, as in the
+CDS valuation at objective b.
+\item Set the CDS spread to equate the PV of inflows with the PV of outflows,
+achieving a breakeven point: $s = C/(A+B)$.
+\end{enumerate}
+
+\subsection*{2) Gaussian copula approach}
+
+\begin{enumerate}[label=\alph*)]
+\item Model the default correlations among entities within the CDO using a
+Gaussian copula.
+\item Compute both unconditional and conditional probabilities of default,
+incorporating correlations.
+\item Estimate the expected losses for each tranche based on the probability and
+severity of defaults.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-13 g}{Define the two measures of implied correlation: compound (tranche) correlation and base correlation.}
+
+In the Gaussian copula model the recovery rate is usually assumed to be 40\%.
+This leaves the copula correlation $\rho$ as the \emph{only unknown parameter},
+so market participants can imply a correlation from market quotes for tranches.
+
+\begin{enumerate}
+\item \term{Compound (tranche) correlation.} Unique to each tranche. It is the
+correlation that, when plugged into the model, makes the calculated tranche spread
+match the market price. It often shows a \term{smile} pattern, with higher
+correlation for very risky \emph{and} very safe tranches.
+\item \term{Base correlation.} Considers the whole CDO. It adjusts the tranche
+correlations from point 1 to ensure the model-derived present value of losses for
+each tranche aligns with market prices. This adjustment leads to a \term{skew},
+where safer tranches have higher implied correlation.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.0cm, height=5.4cm,
+  xlabel={Tranche, from most junior to most senior},
+  ylabel={Implied correlation},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  symbolic x coords={equity,junior mezz,mezz,senior,super senior},
+  xtick=data, ymin=0, ymax=1, ytick=\empty,
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.34)}, anchor=north, legend columns=-1, column sep=10pt}]
+\addplot[draw=FRMNavy, line width=1.2pt, mark=*, mark size=1.8pt]
+  coordinates {(equity,0.62) (junior mezz,0.36) (mezz,0.28) (senior,0.42)
+  (super senior,0.68)};
+\addlegendentry{compound (tranche) correlation --- a \emph{smile}}
+\addplot[draw=FRMGold, line width=1.2pt, mark=square*, mark size=1.8pt]
+  coordinates {(equity,0.24) (junior mezz,0.36) (mezz,0.48) (senior,0.62)
+  (super senior,0.78)};
+\addlegendentry{base correlation --- a \emph{skew}}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Illustrative shapes only, no market data. The point is the difference in
+\emph{form}: compound correlation is computed tranche by tranche and comes out
+high at both ends and low in the middle, which is the smile. Base correlation is
+cumulative across the capital structure and rises monotonically, which is the
+skew. If asked which measure produces a smile and which a skew, this is the
+distinction.}
+
+% =====================================================================
+\lo{CR-13 h}{Discuss alternative approaches used to estimate default correlation.}
+
+The standard one-factor Gaussian copula model assumes a single factor drives
+defaults, which is not always true. The alternatives are:
+
+\begin{enumerate}
+\item \term{Heterogeneous models.} Allow for specification of different
+distributions for time to default for different reference entities included in
+the collateral pool.
+\item \term{Other copulas.} The Student's $t$ copula, Archimedean copula, the
+Clayton copula, and the Marshall-Olkin copula.
+\item \term{Random recovery rates and factor loadings.} Based on the negative
+relationship between default rates and recovery rates, established at CR-9 f.
+\item \term{Implied copula model.} Derived from market prices.
+\item \term{Dynamic models.} Structural and reduced-form models, which measure the
+evolution of loss on a collateral pool over time.
+\end{enumerate}

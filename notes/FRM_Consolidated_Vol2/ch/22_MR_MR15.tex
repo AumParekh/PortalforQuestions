@@ -1,0 +1,403 @@
+\reading{MR-15}{The Art of Term Structure Models: Volatility and Distribution}{strike}{7}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe the short-term rate process under a model with time-dependent volatility.
+\item Calculate the short-term rate change and determine the behavior of the standard deviation
+      of the rate change using a model with time-dependent volatility.
+\item Assess the efficacy of time-dependent volatility models.
+\item Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal
+      models.
+\item Calculate the short-term rate change and describe the basis point volatility using the CIR
+      and lognormal models.
+\item Describe lognormal models with deterministic drift and mean reversion.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-15 a}{Describe the short-term rate process under a model with time-dependent volatility.}
+
+This model extends previous rate models by incorporating \term{time-dependent volatility}. It is
+a natural extension of the Ho-Lee model, which includes non-constant volatility.
+
+\begin{mrfmlbox}
+\[ dr \;=\; \underbrace{\lambda(t)\,dt}_{\text{time-dependent \textbf{drift}}}
+   \;+\; \underbrace{\sigma(t)\,dw}_{\text{time-dependent \textbf{volatility}}} \]
+\mrvk{The drift term is the one carried over from the previous reading. The volatility term is
+what is new here: $\sigma$ is now a function of $t$ rather than a constant.}{}
+\end{mrfmlbox}
+
+% ---------------------------------------------------------
+\lo{MR-15 b}{Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.}
+
+\subsection{Model 3 --- time-dependent drift and volatility}
+Model 3 is a special case of time-dependent volatility models. It augments the Ho-Lee model with
+time-dependent volatility: the volatility of the short rate starts at the constant $\sigma$ and
+\term{exponentially declines to zero}.
+
+\begin{mrfmlbox}
+\[ dr \;=\; \lambda(t)\,dt \;+\; \sigma e^{-\alpha t}\,dw \]
+\mrvk{$\sigma$ = volatility at $t = 0$, which decreases exponentially to 0 for $\alpha > 0$;\quad
+$\alpha$ = the decay rate;\quad $\lambda(t)$ = the time-dependent drift.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- short-term rate change under Model 3}]
+Initial short-term rate $r_0 = 5\%$, drift $\lambda = 0.24\%$, time-dependent volatility
+$\sigma e^{-0.3t}$ starting at 1.50\%. The random variable $dw$ from a normal distribution is
+0.2, with mean 0 and standard deviation $\sqrt{1/12} = 0.2887$.
+\tcblower
+\small
+\begin{align*}
+dr &= 0.24\% \times \left(\tfrac{1}{12}\right) \;+\; 1.5\% \times e^{-0.3(1/12)} \times 0.2\\
+dr &= 0.02\% + 0.29\% \;=\; \mathbf{0.31\%}
+\end{align*}
+\end{mrexbox}
+
+\subsection{The standard deviation of the terminal distribution}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.4cm,
+  xmin=0, xmax=31, ymin=0, ymax=6.2,
+  xlabel={\scriptsize Horizon (years)},
+  ylabel={\scriptsize Standard deviation (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,5,10,15,20,25,30}, ytick={0,1,2,3,4,5,6},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMGold, dashed, line width=0.8pt, forget plot]
+  coordinates {(0,5.635)(31,5.635)};
+\node[anchor=east, font=\scriptsize\sffamily, text=FRMGold, fill=white, inner sep=1.5pt]
+  at (axis cs:30.5,5.95) {asymptote $= \sigma/\sqrt{2\alpha} = 5.63\%$};
+\addplot[FRMNavy, line width=1.3pt, smooth] coordinates {
+(0,0)(1,1.244)(2,1.738)(3,2.103)(5,2.650)(7,3.062)(10,3.535)(13,3.896)
+(15,4.093)(18,4.341)(20,4.480)(23,4.658)(25,4.760)(28,4.891)(30,4.967)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Standard deviation of the terminal distribution of short rates in Model 3, with
+$\sigma = 126$ bp and $\alpha = 0.025$. Because volatility decays, the cumulative uncertainty
+stops growing and flattens toward a ceiling rather than rising without bound as $\sqrt{T}$ would
+in a constant-volatility model.}
+
+% ---------------------------------------------------------
+\lo{MR-15 c}{Assess the efficacy of time-dependent volatility models.}
+
+\begin{mrkeybox}[title={Model 3 effectiveness}]
+\begin{enumerate}
+\item \term{More flexibility} for the short-term rate.
+\item Useful for pricing \term{multi-period derivatives} like interest rate caps and floors.
+\item \term{Volatility term structure:}
+  \begin{enumerate}[label=\alph*)]
+  \item If volatility starts at a constant $\sigma$ and then exponentially declines to zero,
+        volatility cannot be forecast for the longer term, so the volatility term structure is
+        \textbf{declining}.
+  \item Volatility is determined \textbf{independently} of the level of interest rates.
+  \end{enumerate}
+\item It leads to \term{parallel shifts} in the yield curve.
+\item \term{Model usage:}
+  \begin{enumerate}[label=\alph*)]
+  \item Valuations and hedging: use Vasicek or a mean reversion model.
+  \item Pricing options on fixed income products: use a Model 3 type, which accounts for
+        volatility changes.
+  \end{enumerate}
+\end{enumerate}
+\end{mrkeybox}
+
+\begin{mrtrapbox}[title={Model 3 versus Vasicek --- the sibling pair}]
+\begin{itemize}
+\item The behaviour of the standard deviation as a function of the time horizon in Model 3
+      \textit{resembles} the effect of mean reversion.
+\item If the initial volatility and decay rate $\alpha$ in Model 3 are set equal to the
+      volatility and mean reversion rate $k$ in the Vasicek model, the \term{terminal standard
+      deviations for both models become identical}.
+\item \term{Key difference:} Model 3 is a \textbf{parallel} shift model with no mean reversion.
+      Vasicek is a \textbf{nonparallel} shift model, because of the mean reversion effect.
+\end{itemize}
+That is the trap: identical terminal standard deviations, completely different shift behaviour.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-15 d}{Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.}
+\lo{MR-15 e}{Calculate the short-term rate change and describe the basis point volatility using the CIR and lognormal models.}
+
+\begin{mrtrapbox}[title={Issues with the existing models}]
+\term{Basis point volatility.} Existing models determine the basis point volatility of the
+short-term rate \textit{without considering the level of the short-term rate itself}. Two key
+concerns follow:
+\begin{enumerate}
+\item \term{Extreme inflation.} During periods of hyperinflation, expected rate changes for the
+      next period are substantially larger than in normal conditions.
+\item \term{Ultra-low interest rates.} In an environment with near-zero or slightly negative
+      interest rates, rate volatility naturally diminishes.
+\end{enumerate}
+\end{mrtrapbox}
+
+\subsection{Solution 1 --- the Cox-Ingersoll-Ross model}
+CIR accounts for the fact that the volatility of interest rates can change as a function of the
+level of the short-term rate, and that interest rates appear to have a mean-reverting feature.
+
+\begin{mrfmlbox}
+\[ dr \;=\; k(\theta - r)\,dt \;+\; \sigma\sqrt{r}\;dw \]
+\mrvk{$k$, $\theta$ = the mean reversion speed and long-run level, as in Vasicek;\quad
+$\sigma\sqrt{r}$ = the basis point volatility, which now \textit{rises with the level of the
+rate}. Volatility increases by the \textbf{square root} of the rate, so the increase is
+non-linear.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- CIR short-term rate calculation}]
+Current short-term rate 5\%, long-run value 24\%, mean reversion speed $k = 0.04$, volatility
+$\sigma = 1.50\%$, and a $dw$ realization of 0.2. Find the change in the short-term rate after
+one month.
+\tcblower
+\small
+\begin{align*}
+dr &= 0.04\,(24\% - 5\%)\left(\tfrac{1}{12}\right) \;+\; 1.5\% \sqrt{5\%} \times 0.2\\
+dr &= 0.063\% + 0.067\% \;=\; \mathbf{0.13\%}
+\end{align*}
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={The unit trap in $\sqrt{r}$}]
+The rate inside the square root is taken as a \textbf{decimal}, not as a percentage number.
+Here $\sqrt{5\%} = \sqrt{0.05} = 0.2236$, giving $1.5\% \times 0.2236 \times 0.2 = 0.067\%$.
+Using $\sqrt{5} = 2.236$ instead would give 0.67\%, ten times too large, and that wrong answer
+is exactly the kind of distractor that gets offered.
+\end{mrtrapbox}
+
+\subsection{Solution 2 --- lognormal models (Model 4)}
+The lognormal model maintains \term{constant yield volatility}, but basis point volatility will
+\term{increase with the short-term rate level}.
+
+\begin{mrfmlbox}
+\[ dr \;=\; a\,r\,dt \;+\; \sigma\,r\,dw \]
+\mrvk{$\sigma r$ = the basis point volatility, proportional to the level of the rate. Volatility
+increases \textbf{linearly} with the rate, in contrast to CIR's square root.}{}
+\end{mrfmlbox}
+
+\subsection{How the three volatility specifications compare}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.6cm,
+  xmin=0, xmax=20, ymin=0, ymax=2.3,
+  xlabel={\scriptsize Level of the short-term rate, $r$ (\%)},
+  ylabel={\scriptsize Basis point volatility (indexed to 1.0 at $r = 10\%$)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,5,10,15,20}, ytick={0,0.5,1.0,1.5,2.0},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.28)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[black!65, line width=1.2pt, dashed, domain=0:20, samples=2] {1};
+\addlegendentry{Normal models --- $\sigma$ constant}
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=0:20, samples=120] {sqrt(x/10)};
+\addlegendentry{CIR --- $\sigma\sqrt{r}$}
+\addplot[FRMRed, line width=1.3pt, dotted, domain=0:20, samples=2] {x/10};
+\addlegendentry{Lognormal --- $\sigma r$}
+\draw[black!35, line width=0.5pt, dashed] (axis cs:10,0) -- (axis cs:10,1);
+\node[circle, fill=black!55, inner sep=1.5pt] at (axis cs:10,1) {};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{All three curves are set equal at a 10\% rate so only the \textit{shape} differs. A
+normal model gives the same basis point volatility whether rates are at 1\% or 19\%. CIR bends
+over, because the square root grows more slowly than the rate. The lognormal model rises in a
+straight line through the origin, so at zero rates it gives zero volatility.}
+
+\subsection{Comparison between CIR and lognormal (terminal distributions)}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.6cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Point}\\
+a) & Both CIR and lognormal are designed to ensure the short-term rate remains
+  \term{non-negative}, a significant advantage when modeling interest rates. Both have a
+  \term{positive drift}, preventing negative rates.\\
+\rowcolor{FRMSoft}
+b) & In both cases \term{yield-based volatility is constant}; only basis point volatility
+  changes.\\
+c) & The \term{normal} distribution implies a positive probability of \textit{negative} interest
+  rates, especially over longer forecast horizons, which can be a drawback. CIR is more complex
+  but might be a better fit if volatility's dependence on the rate is crucial.\\
+\rowcolor{FRMSoft}
+d) & Both result in terminal distributions that are always \term{non-negative and
+  right-skewed}. This has important implications for pricing out-of-the-money options and other
+  instruments, where the distribution shape can impact pricing.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.0cm,
+  xmin=-4, xmax=16, ymin=0, ymax=0.30,
+  xlabel={\scriptsize Terminal short rate (\%)},
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel style={font=\scriptsize}, tick label style={font=\scriptsize},
+  xtick={-4,0,4,8,12,16},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  clip=false]
+\addplot[domain=-4:0, samples=60, smooth, draw=none, fill=FRMRed!30, forget plot]
+  {0.1329*exp(-((x-6)^2)/18)} \closedcycle;
+\addplot[black!70, line width=1.2pt, dashed, smooth, domain=-4:16, samples=160]
+  {0.1329*exp(-((x-6)^2)/18)};
+\addlegendentry{Normal --- symmetric, mass below zero}
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=0.05:16, samples=160]
+  {0.62*exp(-((ln(x)-1.55)^2)/0.42)/x};
+\addlegendentry{CIR / lognormal --- non-negative, right-skewed}
+\draw[FRMRed, line width=0.9pt] (axis cs:0,0) -- (axis cs:0,0.25);
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt,
+  align=left] at (axis cs:-3.8,0.215) {the normal model puts\\ real probability here};
+\draw[FRMRed, -{Stealth[length=3.5pt]}, line width=0.6pt]
+  (axis cs:-1.9,0.205) -- (axis cs:-1.4,0.135);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The shaded sliver to the left of zero is the whole problem with a normal model: it
+assigns genuine probability to negative rates, and that mass grows with the forecast horizon.
+CIR and lognormal terminal distributions stop dead at zero and lean right, which is what makes
+them better behaved for pricing out-of-the-money options.}
+
+% ---------------------------------------------------------
+\lo{MR-15 f}{Describe lognormal models with deterministic drift and mean reversion.}
+
+\subsection{1. The Salomon Brothers model --- lognormal with deterministic drift}
+In this model the natural logarithm of the short-term rate follows a normal distribution, and it
+is used to construct an interest rate tree based on that natural logarithm.
+
+\begin{mrfmlbox}
+\[ d\bigl[\ln(r)\bigr] \;=\; a(t)\,dt \;+\; \sigma\,dw \]
+\mrvk{$a(t)$ = the drift term, which varies across time just as in the Ho-Lee model. The crucial
+change is that the process is written on $\ln(r)$, not on $r$.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\tiny\sffamily},
+  lg/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, align=center},
+  rt/.style={rectangle, rounded corners=2pt, draw=FRMGreen!50, fill=PaleGreen,
+    line width=0.6pt, inner sep=3.5pt, align=center}]
+% log space
+\begin{scope}
+  \node[lg] (a) at (0,0) {$\ln r_0$};
+  \node[lg] (u) at (2.5,1.1) {$\ln r_0 + a_1 dt + \sigma\sqrt{dt}$};
+  \node[lg] (d) at (2.5,-1.1) {$\ln r_0 + a_1 dt - \sigma\sqrt{dt}$};
+  \node[lg] (uu) at (6.4,2.0) {$\ln r_0 + (a_1{+}a_2)dt + 2\sigma\sqrt{dt}$};
+  \node[lg] (mm) at (6.4,0) {$\ln r_0 + (a_1{+}a_2)dt$};
+  \node[lg] (dd) at (6.4,-2.0) {$\ln r_0 + (a_1{+}a_2)dt - 2\sigma\sqrt{dt}$};
+  \foreach \p/\q in {a/u, a/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMNavy!55, line width=0.6pt] (\p) -- (\q);}
+  \node[anchor=north, text=black!60] at (3.2,-2.8) {\textbf{the tree is built in $\ln(r)$ space}};
+\end{scope}
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\tiny\sffamily},
+  rt/.style={rectangle, rounded corners=2pt, draw=FRMGreen!50, fill=PaleGreen,
+    line width=0.6pt, inner sep=3.5pt, align=center}]
+  \node[rt] (a) at (0,0) {$r_0$};
+  \node[rt] (u) at (2.6,1.1) {$r_0\,e^{(a_1 dt + \sigma\sqrt{dt})}$};
+  \node[rt] (d) at (2.6,-1.1) {$r_0\,e^{(a_1 dt - \sigma\sqrt{dt})}$};
+  \node[rt] (uu) at (6.6,2.0) {$r_0\,e^{((a_1+a_2)dt + 2\sigma\sqrt{dt})}$};
+  \node[rt] (mm) at (6.6,0) {$r_0\,e^{(a_1+a_2)dt}$};
+  \node[rt] (dd) at (6.6,-2.0) {$r_0\,e^{((a_1+a_2)dt - 2\sigma\sqrt{dt})}$};
+  \foreach \p/\q in {a/u, a/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMGreen!55, line width=0.6pt] (\p) -- (\q);}
+  \node[anchor=north, text=black!60] at (3.3,-2.8)
+    {\textbf{exponentiating gives the rate tree}};
+\end{tikzpicture}
+\end{center}
+\figcap{The same tree twice. Above, additive steps in $\ln(r)$. Below, the same tree
+exponentiated back into rates, where the steps become \textit{multiplicative}.}
+
+\begin{mrkeybox}[title={Why this guarantees positive rates}]
+\begin{itemize}
+\item Future movements of the short rate in a lognormal model are \term{multiplicative} instead
+      of being \term{additive} as in normal models and the Ho-Lee model.
+\item The implication is that all rates in the tree will \textbf{always be positive}, since
+      $e^{x} > 0$ for all $x$.
+\end{itemize}
+\end{mrkeybox}
+
+\subsection{2. Lognormal model with mean reversion --- Black-Karasinski}
+The lognormal distribution combined with a mean-reverting process is known as the
+\term{Black-Karasinski} model. This model is very flexible, allowing for time-varying volatility
+\textit{and} mean reversion.
+
+\begin{mrfmlbox}
+\[ d\bigl[\ln(r)\bigr] \;=\; k(t)\bigl[\ln\theta(t) - \ln(r)\bigr]\,dt \;+\; \sigma(t)\,dw \]
+\mrvk{$k(t)$ = time-varying mean reversion speed;\quad $\theta(t)$ = time-varying long-run
+level;\quad $\sigma(t)$ = time-varying volatility. Every one of the three parameters can move
+through time, which is what makes the model flexible.}{}
+\end{mrfmlbox}
+
+\begin{mrtrapbox}
+This model does \term{not} produce a naturally recombining interest rate tree. To force the tree
+to recombine, the time steps $dt$ must be \term{recalibrated}.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\clearpage
+\section{Summary of all the term structure models}
+
+The source notes close MR-14 and MR-15 with a combined summary. It is reproduced here as a
+single reference table.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.6cm} p{5.0cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Model} & \hdr{Process} & \hdr{What it adds}\\
+\textbf{Model 1}
+  & $dr = \sigma\,dw$
+  & No drift; rates normally distributed.\\
+\rowcolor{FRMSoft}
+\textbf{Model 2}
+  & $dr = \lambda\,dt + \sigma\,dw$
+  & Adds a positive drift to Model 1, interpretable as a risk premium for longer horizons.\\
+\textbf{Ho-Lee}
+  & $dr = \lambda(t)\,dt + \sigma\,dw$
+  & Generalises the drift to be time-dependent.\\
+\rowcolor{FRMSoft}
+\textbf{Vasicek}
+  & $dr = k(\theta - r)\,dt + \sigma\,dw$
+  & Makes the drift depend on the current rate: mean reversion.\\
+\textbf{Model 3}
+  & $dr = \lambda(t)\,dt + \sigma e^{-\alpha t}\,dw$
+  & Time-dependent \textit{volatility}: $\sigma$ at $t=0$, decaying exponentially to 0 for
+    $\alpha > 0$.\\
+\rowcolor{FRMSoft}
+\textbf{CIR}
+  & $dr = k(\theta - r)\,dt + \sigma\sqrt{r}\,dw$
+  & Mean reverting with constant $\sigma$ but basis point volatility $\sigma\sqrt{r}$, which
+    increases at a \textit{decreasing} rate.\\
+\textbf{Model 4}\newline (lognormal, deterministic drift)
+  & $d[\ln(r)] = a(t)\,dt + \sigma\,dw$
+  & Yield volatility $\sigma$ constant, but basis point volatility $\sigma r$ increases with the
+    level of the rate.\\
+\rowcolor{FRMSoft}
+\textbf{Model 4}\newline (lognormal, mean reverting)
+  & $d[\ln(r)] = k(t)[\ln\theta(t) - \ln(r)]\,dt + \sigma(t)\,dw$
+  & Black-Karasinski. Adds mean reversion and time-varying volatility in log space.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}[title={The one-line way to hold all eight}]
+Read down the process column and watch what changes. Models 1, 2 and Ho-Lee vary the
+\textbf{drift constant}. Vasicek makes the drift depend on \textbf{where the rate is}. Model 3
+moves to varying the \textbf{volatility over time}. CIR and the lognormal models make the
+volatility depend on \textbf{the level of the rate} --- by $\sqrt{r}$ and by $r$ respectively.
+Black-Karasinski does both at once.
+\end{mrkeybox}
+
+
+% ==========================================================

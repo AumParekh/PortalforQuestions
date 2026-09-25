@@ -1,0 +1,225 @@
+% ============================================================================
+%  FRM PART II 2026 — CONSOLIDATED ROI VOLUME — UNIFIED HOUSE STYLE
+%  One visual style. Per-book argument adapters so chapter bodies stay intact.
+% ============================================================================
+\usepackage[a4paper,top=2.1cm,bottom=2.2cm,left=2.2cm,right=2.2cm,
+            headheight=24pt,footskip=26pt]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{TeX Gyre Termes}[Ligatures=NoCommon]
+\setsansfont{TeX Gyre Heros}[Scale=0.94, Ligatures=NoCommon]
+\setmonofont{TeX Gyre Cursor}[Scale=0.85]
+\setmathfont{Latin Modern Math}
+
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{ragged2e}
+\usepackage{needspace}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\pgfplotsset{
+  frmaxis/.style={
+    width=8.2cm, height=5.4cm,
+    axis line style={FRMRule},
+    tick label style={font=\scriptsize\sffamily, color=black!65},
+    label style={font=\scriptsize\sffamily, color=black!75},
+    title style={font=\small\sffamily\bfseries, color=FRMNavy},
+    grid=major, grid style={FRMRule!60, very thin},
+  }
+}
+\setlength{\emergencystretch}{2.5em}
+\clubpenalty=10000
+\usepgfplotslibrary{fillbetween}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric,calc,fit,backgrounds,decorations.pathreplacing}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tocloft}
+\usepackage{parskip}
+\usepackage{microtype}
+\setlength{\emergencystretch}{1.2em}
+
+% ---------------------------------------------------------------- palette
+\definecolor{FRMNavy}{HTML}{1B3A5C}
+\definecolor{FRMGold}{HTML}{9A6B10}
+\definecolor{FRMGreen}{HTML}{2E7D5B}
+\definecolor{FRMRed}{HTML}{A63A2E}
+\definecolor{FRMPaper}{HTML}{F7F5F0}
+\definecolor{FRMSoft}{HTML}{EDEFF2}
+\definecolor{FRMRule}{HTML}{C9D2DB}
+\definecolor{PaleNavy}{HTML}{E8EDF3}
+\definecolor{PaleGold}{HTML}{F7F0DD}
+\definecolor{PaleGreen}{HTML}{E6F1EC}
+\definecolor{PaleRed}{HTML}{F7E9E7}
+\definecolor{FRMGrey}{HTML}{5A6570}
+% legacy OR colour names mapped onto the unified palette
+\colorlet{navy}{FRMNavy}\colorlet{rust}{FRMGold}\colorlet{forest}{FRMGreen}
+\colorlet{gold}{FRMGold}\colorlet{cream}{PaleGold}\colorlet{softgray}{FRMSoft}
+\colorlet{midgray}{FRMGrey}\colorlet{paleblue}{PaleNavy}\colorlet{palenavy}{FRMRule}
+\colorlet{palerust}{PaleGold}\colorlet{palegreen}{PaleGreen}\colorlet{palegold}{PaleGold}
+\colorlet{palered}{PaleRed}\colorlet{teal}{FRMNavy}\colorlet{olive}{FRMGreen}
+
+% ---------------------------------------------------------------- tags
+\expandafter\def\csname tagcol@STRIKE FIRST\endcsname{FRMGreen}
+\expandafter\def\csname tagcol@QUICK WIN\endcsname{FRMNavy}
+\expandafter\def\csname tagcol@GRIND\endcsname{FRMGold}
+\expandafter\def\csname tagcol@DEFER\endcsname{FRMGrey}
+\newcommand{\tagword}[1]{%
+  \ifcsname tagcol@#1\endcsname
+    \textcolor{\csname tagcol@#1\endcsname}{\sffamily\bfseries #1}%
+  \else\textsf{\bfseries #1}\fi}
+\newcommand{\tagpill}[1]{%
+  \ifcsname tagcol@#1\endcsname
+    \begingroup\setlength{\fboxsep}{3pt}%
+    \colorbox{\csname tagcol@#1\endcsname!13}{%
+      \textcolor{\csname tagcol@#1\endcsname}{\sffamily\bfseries\footnotesize #1}}%
+    \endgroup\fi}
+\newcommand{\srcpill}[1]{\begingroup\setlength{\fboxsep}{3pt}%
+  \colorbox{FRMSoft}{\sffamily\bfseries\footnotesize\color{FRMNavy}SRC #1}\endgroup}
+
+% state set by the master file immediately before each \input
+\newcommand{\CurTag}{DEFER}
+\newcommand{\CurBook}{Consolidated Volume}
+\newcommand{\CurRd}{}
+\newcommand{\setchapctx}[3]{\renewcommand{\CurTag}{#1}%
+  \renewcommand{\CurBook}{#2}\renewcommand{\CurRd}{#3}}
+
+% ---------------------------------------------------------------- headings
+\setcounter{secnumdepth}{-1}
+\setcounter{tocdepth}{1}
+\renewcommand{\thepart}{}
+\titleformat{\part}[display]
+  {\sffamily\bfseries\color{FRMNavy}\filcenter}{}{0pt}{\Huge}
+  [\vspace{8pt}{\color{FRMGold}\rule{0.45\textwidth}{1.2pt}}]
+\titleformat{\chapter}[display]{\sffamily\bfseries\color{FRMNavy}\raggedright}{}{0pt}{\LARGE}
+\titlespacing*{\chapter}{0pt}{0pt}{14pt}
+\titleformat{\section}{\sffamily\bfseries\color{FRMNavy}\normalsize}{}{0pt}{}
+\titlespacing*{\section}{0pt}{14pt}{5pt}
+\titleformat{\subsection}{\sffamily\bfseries\color{FRMGold}\small}{}{0pt}{}
+\titlespacing*{\subsection}{0pt}{10pt}{3pt}
+\titleformat{\subsubsection}{\sffamily\bfseries\color{FRMNavy}\small}{}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{8pt}{2pt}
+
+% ---------------------------------------------------------------- chapter opener
+\newcounter{roirank}
+\newcommand{\readinghead}[4]{%
+  \refstepcounter{roirank}%
+  \chapter[\theroirank.\ \ #1 \,--\, #2 \ \textbullet\ \tagword{\CurTag}]{%
+    \texorpdfstring{{\color{FRMGold}#1}\quad #2}{#1 -- #2}}%
+  \markboth{#1\ \ #2}{}%
+  \vspace{-4pt}%
+  {\sffamily\footnotesize\color{FRMGrey}\CurBook\ \ \textbullet\ \
+   ROI rank \theroirank\ of 52}\par\vspace{4pt}%
+  \tagpill{\CurTag}\hspace{4pt}\srcpill{#4}\par\vspace{7pt}%
+  {\color{FRMRule}\hrule height 1pt}\par\vspace{10pt}}
+\newcommand{\reading}[4]{\readinghead{#1}{#2}{#3}{#4}}
+\newcommand{\lo}[2]{\section[#1 \,--\, #2]{\texorpdfstring{%
+  {\color{FRMGold}#1}\;\; #2}{#1 -- #2}}}
+\newcommand{\basics}[1]{\section[#1]{\texorpdfstring{#1}{#1}}}
+
+% ---------------------------------------------------------------- boxes (one design)
+\tcbset{frmbase/.style={
+  enhanced, breakable, boxrule=0pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  arc=1pt, fonttitle=\sffamily\bfseries\footnotesize,
+  attach boxed title to top left={xshift=6pt,yshift=-2pt},
+  boxed title style={boxrule=0pt, arc=1pt, left=5pt, right=5pt, top=2pt, bottom=2pt}}}
+\tcbset{frmnavy/.style={frmbase, colback=PaleNavy,  colframe=FRMNavy,
+  borderline west={2.4pt}{0pt}{FRMNavy},  coltitle=white, colbacktitle=FRMNavy}}
+\tcbset{frmgreen/.style={frmbase, colback=PaleGreen, colframe=FRMGreen,
+  borderline west={2.4pt}{0pt}{FRMGreen}, coltitle=white, colbacktitle=FRMGreen}}
+\tcbset{frmred/.style={frmbase, colback=PaleRed,   colframe=FRMRed,
+  borderline west={2.4pt}{0pt}{FRMRed},   coltitle=white, colbacktitle=FRMRed}}
+\tcbset{frmgold/.style={frmbase, colback=PaleGold,  colframe=FRMGold,
+  borderline west={2.4pt}{0pt}{FRMGold},  coltitle=white, colbacktitle=FRMGold}}
+\tcbset{frmfml/.style={enhanced, breakable, colback=white, colframe=FRMRule,
+  boxrule=0.6pt, left=8pt, right=8pt, top=6pt, bottom=6pt, arc=1pt,
+  fonttitle=\sffamily\bfseries\footnotesize\color{FRMNavy}, coltitle=FRMNavy,
+  colbacktitle=white, attach boxed title to top left={xshift=8pt,yshift=-6pt},
+  boxed title style={boxrule=0pt, colback=white}}}
+
+% -- MR and IM: optional argument is a tcolorbox KEY LIST
+\newtcolorbox{mrdefbox}[1][]{frmnavy, #1}
+\newtcolorbox{mrkeybox}[1][]{frmgreen,#1}
+\newtcolorbox{mrtrapbox}[1][]{frmred, #1}
+\newtcolorbox{mrexbox}[1][]{frmgold,  #1}
+\newtcolorbox{mrgapbox}[1][]{frmgold, #1}
+\newtcolorbox{mrfmlbox}[1][]{frmfml, #1}
+\newtcolorbox{imdefbox}[1][]{frmnavy, #1}
+\newtcolorbox{imkeybox}[1][]{frmgreen,#1}
+\newtcolorbox{imtrapbox}[1][]{frmred, #1}
+\newtcolorbox{imexbox}[1][]{frmgold,  #1}
+\newtcolorbox{imgapbox}[1][]{frmgold, #1}
+\newtcolorbox{imfmlbox}[1][]{frmfml, #1}
+
+% -- LR: optional argument is TITLE TEXT, with the book's own defaults
+\newtcolorbox{lrdefbox}[1][Definition]{frmnavy, title={#1}}
+\newtcolorbox{lrkeybox}[1][Key facts]{frmgreen,title={#1}}
+\newtcolorbox{lrtrapbox}[1][Exam trap]{frmred, title={#1}}
+\newtcolorbox{lrtrapboxnb}[1][Exam trap]{frmred, breakable=false, title={#1}}
+\newtcolorbox{lrexbox}[1][Worked example]{frmgold, title={#1}}
+\newtcolorbox{lrgapbox}[1][What the objective asks for]{frmgold, title={#1}}
+\newtcolorbox{lrfmlbox}[1][Formula]{frmfml, title={#1}}
+
+% ---------------------------------------------------------------- inline macros
+\newcommand{\term}[1]{{\color{FRMNavy}\bfseries #1}}
+\newcommand{\vk}[1]{{\par\vspace{-2pt}\small\textit{Where:} #1\par}}          % IM, LR
+\newcommand{\mrvk}[2]{{\par\vspace{-2pt}\small\textit{Where:} #1 #2\par}}      % MR (two args)
+\newcommand{\hdr}[1]{\textbf{\color{white}\sffamily\small #1}}
+\newcommand{\note}[1]{{\footnotesize\color{FRMGrey}#1}}
+\newcommand{\srcnote}[1]{\par\noindent{\small\color{FRMGrey}\raggedright #1\par}\vspace{4pt}}
+\newcommand{\gapnote}[1]{\par{\small\color{FRMGrey}#1}\par\vspace{2pt}}
+\newcommand{\figcap}[1]{{\par\vspace{2pt}\footnotesize\itshape\color{FRMGrey}#1\par\vspace{4pt}}}
+\newcommand{\figwrap}[2]{\par\vspace{4pt}%
+  \noindent\begin{minipage}{\linewidth}%
+    \centering #1\par\vspace{2pt}%
+    \raggedright\figcap{#2}%
+  \end{minipage}\par\vspace{2pt}}
+\newcommand{\gapbadge}{{\setlength{\fboxsep}{3pt}%
+  \colorbox{PaleGold}{\sffamily\bfseries\footnotesize\color{FRMGold}NOT IN THE SOURCE NOTES}}}
+
+% ---------------------------------------------------------------- tables
+\renewcommand{\arraystretch}{1.28}
+\setlength{\tabcolsep}{6pt}
+\newcommand{\thead}[1]{\sffamily\bfseries\footnotesize\color{FRMNavy}#1}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% ---------------------------------------------------------------- lists
+\setlist[itemize,1]{leftmargin=1.35em, itemsep=2pt, topsep=3pt, parsep=0pt,
+  label=\textcolor{FRMGold}{\rule[0.15em]{0.34em}{0.34em}}}
+\setlist[itemize,2]{leftmargin=1.2em, itemsep=2pt, topsep=2pt, parsep=0pt,
+  label=\textcolor{FRMNavy}{\scriptsize$\bullet$}}
+\setlist[enumerate,1]{leftmargin=1.6em, itemsep=2pt, topsep=3pt, parsep=0pt}
+
+% ---------------------------------------------------------------- contents
+\renewcommand{\cftchapfont}{\sffamily\bfseries\color{FRMNavy}}
+\renewcommand{\cftchappagefont}{\sffamily\bfseries\color{FRMNavy}}
+\renewcommand{\cftsecfont}{\small\color{black!80}}
+\renewcommand{\cftsecpagefont}{\small\color{black!80}}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+\setlength{\cftbeforechapskip}{6pt}
+\setlength{\cftsecindent}{14pt}
+\setlength{\cftchapnumwidth}{0pt}
+\renewcommand{\cftchappresnum}{}
+\setlength{\cftsecnumwidth}{0pt}
+\renewcommand{\cftsecpresnum}{}
+
+% ---------------------------------------------------------------- headers
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\sffamily\scriptsize\color{FRMNavy}\nouppercase{\leftmark}}
+\fancyhead[R]{\sffamily\scriptsize\color{FRMGold}FRM Part II 2026 \textbullet\ \CurBook}
+\fancyfoot[C]{\sffamily\small\color{FRMNavy}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\color{FRMRule}\hrule height 0.4pt}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\fancypagestyle{plain}{\fancyhf{}%
+  \fancyfoot[C]{\sffamily\small\color{FRMNavy}\thepage}%
+  \renewcommand{\headrulewidth}{0pt}}

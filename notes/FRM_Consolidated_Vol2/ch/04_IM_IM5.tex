@@ -1,0 +1,671 @@
+\reading{IM-5}{Portfolio Risk: Analytical Methods}{STRIKE FIRST}{6}
+
+\srcnote{Philippe Jorion, \textit{Value-at-Risk: The New Benchmark for Managing
+Financial Risk}, 3rd Edition (New York, NY: McGraw-Hill, 2007), Chapter 7.
+Printed as Chapter 5 in the GARP source volume.}
+
+\begin{imkeybox}[title={The five objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Define, calculate, and compare the following portfolio VaR measures: diversified and undiversified portfolio VaR, individual VaR, incremental VaR, marginal VaR, and component VaR.
+\item Explain the impact of correlation on portfolio risk.
+\item Apply the concept of marginal VaR in making portfolio management decisions.
+\item Explain and calculate the risk-minimizing position and the position that maximizes the ratio of expected return to risk.
+\item Explain the difference between risk management and portfolio management and describe how to use marginal VaR in portfolio management.
+\end{enumerate}
+\end{imkeybox}
+
+\begin{imtrapbox}[breakable=false,title={Read the notation before reading the formulas}]
+This reading conflates three distinct symbols, and it does so \emph{within itself}.
+The crash layer writes incremental VaR as $\text{MVaR}_A \times W_A$ while the
+lecture layer writes the same quantity as $\text{MVaR}_A \times P_A$; one slide
+uses $w_i$ for a portfolio \emph{weight} and another uses $w_T$ for a
+\emph{dollar position} of CAD 15 million. Throughout this volume:
+\term{$w_i$} is a weight, \term{$W$} is total portfolio value, and
+\term{$x_i$ or $P_i$} is a dollar position. Both of the notes' usages are carried
+across where they appear, with the meaning named each time. They are not silently
+merged.
+\end{imtrapbox}
+
+\basics{Basics: the delta-normal setting}
+
+\begin{itemize}
+\item \term{Delta-normal model:} all individual security returns are assumed
+normally distributed.
+\item \term{Traditional portfolio analysis:} based on variances and covariances,
+which is why it is sometimes called the \term{covariance matrix approach}.
+\end{itemize}
+
+\figwrap{%
+\begin{tikzpicture}[
+  hd/.style={draw=FRMNavy,fill=FRMNavy,rounded corners=1pt,inner sep=4pt,
+             font=\scriptsize\sffamily\bfseries,text=white,align=center,
+             text width=32mm},
+  bx/.style={draw=FRMRule,fill=white,rounded corners=1pt,inner sep=3.5pt,
+             font=\scriptsize\sffamily,align=center,text width=34mm},
+  ar/.style={-{Stealth[length=4pt]},FRMGold,line width=0.9pt}]
+\node[hd] (a) at (0,0) {Portfolio VaR measures};
+\node[bx,below=5mm of a] (a1) {individual VaR};
+\node[bx,below=2.5mm of a1] (a2) {diversified VaR};
+\node[bx,below=2.5mm of a2] (a3) {undiversified VaR};
+\draw[ar] (a) -- (a1);
+\node[hd] (b) at (4.9,0) {VaR tools};
+\node[bx,below=5mm of b] (b1) {marginal VaR};
+\node[bx,below=2.5mm of b1] (b2) {incremental VaR};
+\node[bx,below=2.5mm of b2] (b3) {component VaR};
+\draw[ar] (b) -- (b1);
+\node[hd] (c) at (9.8,0) {Risk management};
+\node[bx,below=5mm of c] (c1) {global minimum risk:\\ all MVaR equal};
+\node[bx,below=2.5mm of c1] (c2) {optimal portfolio:\\ all $E_i/\text{MVaR}_i$ equal};
+\draw[ar] (c) -- (c1);
+\draw[ar] (a.east) -- (b.west);
+\draw[ar] (b.east) -- (c.west);
+\end{tikzpicture}}%
+{The reading in three moves, redrawn from the source notes' own sketch. The first
+column \emph{measures} risk, the second \emph{decomposes} it so you can see which
+position is responsible, and the third \emph{acts} on it. Every objective in this
+reading sits in one of the three columns, and the arrows between them are the
+argument of the chapter: you cannot manage what you have not decomposed.}
+
+% ------------------------------------------------------------------
+\lo{IM-5 a}{Define, calculate, and compare the following portfolio VaR measures: diversified and undiversified portfolio VaR, individual VaR, incremental VaR, marginal VaR, and component VaR.}
+
+\subsection{Individual VaR}
+
+This is the VaR of an individual position \term{in isolation}.
+
+\begin{imfmlbox}
+\[ \text{VaR}_i = Z_c \times \sigma_i \times |P_i| = Z_c \times \sigma_i \times |w_i| \times P \]
+\vk{$P$ is portfolio value, $P_i$ the nominal amount invested in position $i$,
+$w_i$ its weight, $\sigma_i$ its volatility, and $Z_c$ the confidence multiplier.}
+\end{imfmlbox}
+
+\subsection{Diversified and undiversified VaR}
+
+\term{Diversified VaR} is the portfolio VaR, taking into account diversification
+benefits between components:
+\begin{imfmlbox}
+\[ \text{VaR}_p = Z_c \times \sigma_p \times P
+   \qquad\text{with}\qquad
+   \sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\rho_{12}\sigma_1\sigma_2 \]
+\end{imfmlbox}
+
+\term{Undiversified VaR} is simply the sum of the individual VaRs. If correlation
+is below 1, diversified VaR is less than undiversified VaR.
+
+\begin{imfmlbox}
+\[ \rho = 1:\quad \text{VaR}_p = \text{VaR}_1 + \text{VaR}_2
+   \qquad\qquad
+   \rho = 0:\quad \text{VaR}_p = \sqrt{\text{VaR}_1^2 + \text{VaR}_2^2} \]
+\end{imfmlbox}
+
+\subsection{The equally weighted $N$-asset case}
+
+There are three assumptions behind this formula:
+
+\begin{itemize}
+\item Each asset of the portfolio is equally weighted.
+\item Each individual position has the same standard deviation of return.
+\item Each pair of returns has only one correlation.
+\end{itemize}
+
+\begin{imfmlbox}
+\[ \sigma_P = \sigma\sqrt{\frac{1}{N} + \left(1 - \frac{1}{N}\right)\rho} \]
+\vk{$N$ is the number of positions, $\sigma$ the standard deviation for each
+position, and $\rho$ the correlation for each pair of positions.}
+\end{imfmlbox}
+
+\begin{imexbox}[title={Five positions, one correlation}]
+A portfolio has five positions of \$2 million each. The standard deviation of the
+returns is 30\% for each position. The correlation between each pair of returns
+is 0.2. Calculate the VaR using a $z$-score of 2.33.
+\begin{align*}
+\sigma_P &= 30\%\sqrt{\tfrac{1}{5} + \left(1 - \tfrac{1}{5}\right)0.2}
+  = 30\%\sqrt{0.2 + 0.16} = 30\%\sqrt{0.36} = 18\% \\[2pt]
+\text{VaR}_p &= Z_c \times \sigma_p \times V = (2.33)(18\%)(\$10\text{ million})
+  = \mathbf{\$4{,}194{,}000}
+\end{align*}
+\end{imexbox}
+
+\begin{imtrapbox}[breakable=false,title={The \$10 million is not given}]
+Five positions of \$2 million each. The stem gives the \emph{position} size and
+the answer needs the \emph{portfolio} size. Substituting \$2 million gives
+\$838,800, which is a real and plausible-looking number. This is the standard
+intermediate-result trap in this family of questions.
+\end{imtrapbox}
+
+\subsection{Marginal VaR}
+
+\begin{imdefbox}[title={Marginal VaR}]
+The change in portfolio VaR resulting from taking an \term{additional dollar} of
+exposure to a given component. It is also the partial derivative with respect to
+the component position.
+\end{imdefbox}
+
+\begin{imfmlbox}
+\[ \text{MVaR}_i = \frac{\partial\,\text{VaR}_p}{\partial(\text{monetary investment in } i)}
+  = Z_c\frac{\partial \sigma_p}{\partial w_i}
+  = Z_c\frac{\operatorname{cov}(R_i,R_p)}{\sigma_p} \]
+\vspace{-10pt}
+\[ \text{MVaR}_i = \frac{\text{VaR}_p}{\text{portfolio value}} \times \beta_i \]
+\vk{$\beta_i = \operatorname{cov}(R_i,R_p)/\sigma_p^2$. The second form is the one
+to reach for when the question gives a beta, and the first when it gives a
+covariance matrix.}
+\end{imfmlbox}
+
+\begin{imexbox}[title={Marginal VaR from a beta}]
+Portfolio X has a VaR of EUR 400,000. It holds four equally weighted assets, each
+valued at EUR 1,000,000. Asset A has a beta of 1.2.
+\[ \text{MVaR}_A = \frac{\text{VaR}_P}{\text{portfolio value}} \times \beta_A
+  = \frac{400{,}000}{4{,}000{,}000} \times 1.2 = \mathbf{0.12} \]
+Portfolio VaR will change by 0.12 for each euro change in Asset A.
+\end{imexbox}
+
+\subsection{Incremental VaR}
+
+\begin{imdefbox}[title={Incremental VaR}]
+The change in VaR owing to a \term{new position}. It differs from marginal VaR in
+that the amount added or subtracted can be large.
+\end{imdefbox}
+
+Incremental VaR requires a \term{full revaluation} of the portfolio VaR with the
+new trade:
+
+\begin{imfmlbox}
+\[ \text{Incremental VaR}_A = \text{VaR}_{P+A} - \text{VaR}_P
+   \qquad\qquad
+   \text{Incremental VaR}_A \approx \text{MVaR}_A \times P_A \]
+\vk{$P_A$ is the \emph{dollar} size of position $A$. The crash layer of the source
+notes writes this same quantity as $W_A$; it is a position, not the portfolio's
+total value.}
+\end{imfmlbox}
+
+The main drawback of the full-revaluation approach is that it requires a full
+revaluation of the portfolio VaR with the new trade, which is time-consuming for
+large portfolios. \term{If VaR is decreased, the new trade is risk-reducing or is
+a hedge}; otherwise the new trade is risk-increasing.
+
+\begin{imexbox}[title={Incremental VaR on an uncorrelated pair}]
+Assets A and B have volatilities of 6\% and 14\%, with \$4 million and \$2 million
+invested. They are uncorrelated. Compute the incremental VaR for an increase of
+\$10,000 in Asset A, at $z = 1.65$.
+
+Per-dollar covariances of each risk factor with the portfolio (in \$m):
+\[
+\begin{bmatrix}\operatorname{cov}(R_A,R_P)\\ \operatorname{cov}(R_B,R_P)\end{bmatrix}
+=\begin{bmatrix}0.06^2 & 0\\ 0 & 0.14^2\end{bmatrix}
+ \begin{bmatrix}\$4\\ \$2\end{bmatrix}
+=\begin{bmatrix}0.0144\\ 0.0392\end{bmatrix}
+\]
+The portfolio variance in dollar terms is
+$4(0.0144) + 2(0.0392) = 0.136$, so $\sigma_P = \sqrt{0.136}$.
+\begin{align*}
+\text{MVaR}_A &= 1.65 \times \frac{0.0144}{\sqrt{0.136}} = 0.064428 \\
+\text{MVaR}_B &= 1.65 \times \frac{0.0392}{\sqrt{0.136}} = 0.175388
+\end{align*}
+Since the two assets are uncorrelated, the incremental VaR of an additional
+\$10,000 in Position A is $\$10{,}000 \times 0.064428 = \mathbf{\$644.28}$.
+\end{imexbox}
+
+\subsection{Component VaR}
+
+\begin{imdefbox}[title={Component VaR}]
+A partition of the portfolio VaR that indicates \term{how much the portfolio VaR
+would change approximately if the given component were deleted}. By construction,
+component VaRs sum to portfolio VaR.
+\end{imdefbox}
+
+\begin{imfmlbox}
+\[ \text{CVaR}_i = (\text{MVaR}_i)(w_i \times P) = \text{VaR}_p \times \beta_i \times w_i
+   = (Z_c \sigma_i w_i P) \times \rho_i = \text{VaR}_i \times \rho_i \]
+\vk{the last form is the one worth memorising: \term{component VaR is individual
+VaR times the correlation with the portfolio}. Here $w_i$ is a weight and $P$ the
+portfolio value.}
+\end{imfmlbox}
+
+\begin{imexbox}[title={Component VaR from a correlation}]
+A portfolio is valued at CAD 248 million and contains CAD 15 million in stock T.
+The annualised standard deviations of the portfolio and of stock T are 16\% and
+13\%. The correlation between them is 0.45. Using a 1-year 95\% VaR with normal
+returns, what is the component VaR of stock T?
+
+\medskip
+\begin{tabular}{@{}ll@{}}
+A & CAD 0.096 million \\
+B & CAD 1.444 million \\
+C & CAD 2.041 million \\
+D & CAD 3.948 million \\
+\end{tabular}
+
+\medskip
+$\text{VaR}_T = 15 \times 0.13 \times 1.645 = \text{CAD } 3.208$ million, so
+\[ \text{CVaR}_T = \rho_{T,p} \times \text{VaR}_T = 0.45 \times 3.208
+   = \mathbf{\text{CAD } 1.444\text{ million}} \quad\text{(B)} \]
+\end{imexbox}
+
+\begin{imtrapbox}[breakable=false,title={Every distractor here is a real quantity}]
+CAD 3.948 is the individual VaR computed with the \emph{portfolio's} 16\%
+volatility instead of the stock's 13\%. CAD 3.208 --- the individual VaR itself
+--- is the classic intermediate-result answer and would be offered on a different
+day. Note also that this stem uses $w_T$ for the \emph{dollar value} of stock T,
+not a weight. The portfolio's CAD 248 million is never used: it is a red herring.
+\end{imtrapbox}
+
+\begin{imexbox}[title={Component and marginal VaR from a table}]
+\begin{center}\small
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Asset & Position value (\$000) & Return s.d.\ (\%) & Beta \\
+\midrule
+A & 400 & 3.60 & 0.5 \\
+B & 600 & 8.63 & 1.2 \\
+Portfolio & 1{,}000 & 5.92 & 1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+Calculate the component VaR of asset A and the marginal VaR of asset B at 95\%.
+
+\medskip
+\begin{tabular}{@{}ll@{}}
+A. & USD 21,773 and 0.1306 \\
+B. & USD 21,773 and 0.1169 \\
+C. & USD 19,477 and 0.1169 \\
+D. & USD 19,477 and 0.1306 \\
+\end{tabular}
+
+\medskip
+\begin{align*}
+\text{VaR}_p &= \alpha \times \sigma_p \times P = 1.645 \times 0.0592 \times 1{,}000{,}000 = \text{USD } 97{,}384\\
+\text{CVaR}_A &= 97{,}384 \times 0.5 \times \tfrac{400}{1000} = \text{USD } \mathbf{19{,}477}\\
+\text{MVaR}_B &= 97{,}384 \times 1.2 / 1{,}000{,}000 = \mathbf{0.1169}
+\end{align*}
+Answer: \textbf{C}.
+\end{imexbox}
+
+\begin{imtrapbox}[breakable=false,title={A two-by-two grid}]
+The four options are every combination of two right answers and two wrong ones.
+Getting the component VaR right and the marginal VaR wrong lands on a real
+offered answer, and so does the reverse. Neither half can be checked against the
+other --- which is the point of building options this way.
+\end{imtrapbox}
+
+\subsection{Computing portfolio VaR with the covariance matrix}
+
+\begin{imexbox}[title={A two-asset 10-day VaR}]
+A two-asset portfolio holds \$8 million in asset A and \$4 million in asset B. The
+correlation is 0.6; daily standard deviations are 1.5\% and 2.0\%. What is the
+10-day VaR at 99\% ($\alpha = 2.33$)?
+
+\medskip
+The covariance matrix, with $\operatorname{cov}_{12} = 0.6(0.015)(0.02) = 0.00018$:
+\[
+\begin{bmatrix}0.000225 & 0.00018\\ 0.00018 & 0.0004\end{bmatrix}
+\]
+Post-multiplying by the position vector and then pre-multiplying:
+\[
+\begin{bmatrix}8 & 4\end{bmatrix}
+\begin{bmatrix}0.000225 & 0.00018\\ 0.00018 & 0.0004\end{bmatrix}
+= \begin{bmatrix}0.00252 & 0.00304\end{bmatrix},
+\qquad
+\begin{bmatrix}0.00252 & 0.00304\end{bmatrix}\begin{bmatrix}8\\4\end{bmatrix} = 0.03232
+\]
+so the \emph{dollar} standard deviation is $\sqrt{0.03232} = 0.1798$ (\$m), and
+\[ \text{VaR}_P = \sigma_P \times \alpha \times \sqrt{t}
+   = 0.1798 \times 2.33 \times \sqrt{10} = \mathbf{\$1.3248\text{ million}} \]
+\end{imexbox}
+
+\begin{imtrapbox}[breakable=false,title={A dollar sigma, not a percentage sigma}]
+The source notes write this last line as $\text{VaR}_P = \sigma_P\alpha\sqrt{x}$.
+Two things are hidden in that. The $x$ is the \emph{holding period} in days, not a
+variable quantity; and $\sigma_P = 0.1798$ is measured in \emph{millions of
+dollars}, because the position vector was in millions. Multiplying it by the
+portfolio value again --- the reflex from the previous example --- overstates the
+answer by a factor of twelve.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-5 b}{Explain the impact of correlation on portfolio risk.}
+
+Correlation sets where portfolio risk sits between two hard bounds. At $\rho=1$
+the individual VaRs simply add; at $\rho=0$ they add in quadrature; and as $N$
+grows the equally weighted portfolio's volatility does not fall to zero but to a
+floor of $\sigma\sqrt{\rho}$.
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.4cm, height=5.6cm,
+  xmin=1, xmax=50, ymin=0, ymax=0.32,
+  xlabel={number of equally weighted positions $N$},
+  ylabel={portfolio volatility $\sigma_P$},
+  ytick={0,0.05,0.10,0.134,0.1897,0.30},
+  yticklabels={0,5\%,10\%,13.4\%,19.0\%,30\%},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.26)}, anchor=north, legend columns=-1, column sep=10pt},
+]
+\addplot[FRMRed, very thick, domain=1:50, samples=120]
+  {0.30*sqrt(1/x + (1-1/x)*0.4)};
+\addlegendentry{$\rho = 0.4$}
+\addplot[FRMNavy, very thick, domain=1:50, samples=120]
+  {0.30*sqrt(1/x + (1-1/x)*0.2)};
+\addlegendentry{$\rho = 0.2$}
+\addplot[FRMGreen, very thick, domain=1:50, samples=120]
+  {0.30*sqrt(1/x)};
+\addlegendentry{$\rho = 0$}
+\draw[FRMRed, dashed, thin] (axis cs:1,0.1897) -- (axis cs:50,0.1897);
+\draw[FRMNavy, dashed, thin] (axis cs:1,0.1342) -- (axis cs:50,0.1342);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMRed] at (axis cs:22,0.215) {floor $=\sigma\sqrt{\rho}$};
+\end{axis}
+\end{tikzpicture}}%
+{Why correlation, not the number of holdings, decides how much diversification
+you get. Each curve is
+$\sigma_P = \sigma\sqrt{1/N + (1-1/N)\rho}$ with $\sigma = 30\%$. Only the
+$\rho = 0$ case decays towards zero. With $\rho = 0.2$ the volatility is already
+within a whisker of its $13.4\%$ floor by twenty holdings, and adding a
+twenty-first position buys almost nothing. The dashed lines are $\sigma\sqrt{\rho}$
+--- the limit as $N \to \infty$, which is where $1/N$ vanishes and only the
+correlation term survives.}
+
+\begin{imkeybox}
+This is the same arithmetic as the five-position example above: $N = 5$,
+$\rho = 0.2$ and $\sigma = 30\%$ gives $18\%$, which is already two-thirds of the
+way from $30\%$ down to the $13.4\%$ floor.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-5 c}{Apply the concept of marginal VaR in making portfolio management decisions.}
+
+Over time, risk managers discovered that they could use the VaR process for
+active risk management. A typical question is: \term{which position should I
+alter to modify my VaR most effectively?}
+
+The three tools answer three different versions of that question:
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.7cm}XX@{}}
+\toprule
+\textbf{\sffamily\small Measure} & \textbf{\sffamily\small Question it answers} & \textbf{\sffamily\small Size of the change} \\
+\midrule
+Marginal VaR & What happens if I add one more dollar here? & Infinitesimal --- a derivative, a slope. \\
+Incremental VaR & What happens if I put this whole new trade on, or take this whole position off? & Large. Requires full revaluation. \\
+Component VaR & Of the risk I already have, how much is this position responsible for? & The current position. Sums to portfolio VaR. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{The three tools are not three ways of saying the same thing. They differ
+by the \emph{size of the change} being contemplated, and component VaR is the
+only one of the three that partitions the existing portfolio.}
+
+\gapbadge
+\srcnote{The notes carry GARP's Figure 5.2 --- the incremental-VaR revaluation
+flow --- but not Figure 5.4, which puts all four measures on a single curve. It is
+reconstructed below from GARP's own reported quantities for the two-currency
+portfolio, and every value on it has been recomputed.}
+
+\begin{imgapbox}[title={What the objective asks for}]
+The four measures are not four formulas. They are four different readings of
+\emph{one} curve: the portfolio VaR as a function of how much you hold.
+\end{imgapbox}
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.6cm, height=6.4cm,
+  xmin=-0.35, xmax=2.0, ymin=0, ymax=470,
+  xlabel={position in the euro (\$ million)},
+  ylabel={portfolio VaR (\$000)},
+  xtick={0,0.5,1,1.5,2}, ytick={0,105.6,165,257.7,350},
+  yticklabels={0,105.6,165.0,257.7,350},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.24)}, anchor=north, legend columns=-1, column sep=10pt},
+]
+\addplot[FRMNavy, very thick, domain=-0.35:2.0, samples=140]
+  {sqrt(27225 + 3.9*x + 39200*x^2)};
+\addlegendentry{portfolio VaR}
+\addplot[FRMRed, thick, dashed, domain=-0.1:1.6, samples=2]
+  {257.74 + 152.1*(x-1)};
+\addlegendentry{tangent at the current \$1m position}
+\addplot[only marks, mark=*, mark size=2.2pt, FRMNavy] coordinates {(1,257.74)};
+% incremental VaR bracket at x=0
+\draw[FRMGreen, line width=1pt, {Stealth[length=4pt]}-{Stealth[length=4pt]}]
+  (axis cs:0,165) -- (axis cs:0,257.74);
+\draw[black!35, thin, dotted] (axis cs:0,257.74) -- (axis cs:1,257.74);
+\draw[FRMGold, line width=1pt, {Stealth[length=4pt]}-{Stealth[length=4pt]}]
+  (axis cs:0.13,105.6) -- (axis cs:0.13,257.74);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMGreen] at (axis cs:0.21,200) {incremental VaR \$92.7k};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMGold] at (axis cs:0.21,150) {component VaR \$152.1k};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=east,
+      text=FRMRed] at (axis cs:1.95,330) {slope $=$ marginal VaR $=0.1521$};
+\draw[-{Stealth[length=4pt]}, FRMRed, thin] (axis cs:1.28,322) -- (axis cs:1.12,285);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=south,
+      text=FRMNavy] at (axis cs:-0.02,35) {best hedge};
+\draw[-{Stealth[length=4pt]}, FRMNavy, thin] (axis cs:-0.02,60) -- (axis cs:0,158);
+\end{axis}
+\end{tikzpicture}}%
+{All four measures on one curve, reconstructed for GARP's two-currency portfolio
+(\$2m CAD, \$1m EUR, portfolio VaR \$257,738). \term{Marginal VaR} is the slope of
+the tangent at the current position, $0.1521$ per dollar. \term{Component VaR},
+\$152.1k, is measured down the \emph{tangent} to a zero euro position.
+\term{Incremental VaR}, \$92.7k, is measured down the \emph{curve} to the same
+place. The gap between them --- nearly \$60k --- is the whole lesson: component
+VaR is a linear approximation to incremental VaR, and it is a poor one here
+because the euro is a third of a two-asset portfolio. The \term{best hedge} is
+where the curve bottoms out, which for this portfolio is a net zero euro
+position.}
+
+\begin{imtrapbox}[breakable=false,title={Down the tangent, or down the curve}]
+Component VaR and incremental VaR answer the same question --- what happens if
+this position goes away --- and give different numbers, \$152.1k against \$92.7k.
+Component VaR travels along the straight line; incremental VaR along the real
+curve. The approximation improves when the component is \emph{small} relative to
+the portfolio and degrades when it is large. A question that calls them equal, or
+that offers the component figure when it asked for the incremental one, is using
+exactly this gap.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-5 d}{Explain and calculate the risk-minimizing position and the position that maximizes the ratio of expected return to risk.}
+
+\subsection{From risk measurement to risk management}
+
+Taking \emph{only risk} into consideration leads to the \term{global minimum}.
+A manager can lower a portfolio's VaR by:
+
+\begin{itemize}
+\item lowering the position with the \term{highest} marginal VaR;
+\item adding to the position with the \term{lowest} marginal VaR.
+\end{itemize}
+
+\begin{imkeybox}[title={At the global minimum}]
+All marginal VaRs must be equal, and therefore all betas must be equal:
+\[ \text{MVaR}_i = \frac{\text{VaR}}{W} \times \beta_i = \text{constant} \]
+\end{imkeybox}
+
+\gapbadge
+\srcnote{The spine's verb is \emph{explain and calculate}. The notes explain both
+conditions and calculate neither. Both worked positions below are GARP's own
+(Chapter 5, Tables 5.4 and 5.5) for the two-currency portfolio, and every figure
+in them has been independently recomputed.}
+
+\begin{imexbox}[title={Calculating the risk-minimizing position}]
+\begin{center}\small
+\begin{tabular}{@{}lrrcrr@{}}
+\toprule
+& \multicolumn{2}{c}{\textbf{Original}} & & \multicolumn{2}{c}{\textbf{Risk-minimizing}} \\
+\cmidrule(r){2-3}\cmidrule(l){5-6}
+Asset & Position $w_i$ & MVaR & & Position $w_i$ & MVaR \\
+\midrule
+CAD & 66.67\% & 0.0528 & & 85.21\% & 0.0762 \\
+EUR & 33.33\% & 0.1521 & & 14.79\% & 0.0762 \\
+\midrule
+Diversified VaR & \multicolumn{2}{c}{\$257,738} & & \multicolumn{2}{c}{\$228,462} \\
+Volatility & \multicolumn{2}{c}{15.62\%} & & \multicolumn{2}{c}{13.85\%} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+The marginal VaR is higher for the EUR, so \term{the EUR position is cut first
+while adding to the CAD}. At the final position the marginal VaRs are equal and,
+equivalently, the betas are both 1.000:
+\[ \text{MVaR}_i = \frac{\$228{,}462}{\$3{,}000{,}000} \times 1.000 = 0.0762 \]
+The EUR weight falls from 33.33\% to 14.79\% and portfolio volatility falls from
+15.62\% to 13.85\%.
+\end{imexbox}
+
+\subsection{From risk management to portfolio management}
+
+Taking \emph{return and risk} into consideration leads to the \term{optimal
+portfolio}: maximise the Sharpe ratio, written here with VaR in the denominator.
+
+\begin{imfmlbox}
+\[ \frac{\overline{R_p} - \overline{R_f}}{\text{VaR}_p}
+   \qquad\text{maximised when}\qquad
+   \frac{R_i - R_f}{\text{MVaR}_i} = \frac{R_j - R_f}{\text{MVaR}_j}
+   = \frac{R_i - R_f}{\beta_i} = \text{constant} \]
+\end{imfmlbox}
+
+\begin{itemize}
+\item \term{Lower} the allocation to the position with the \term{lowest} excess
+expected return to marginal VaR.
+\item \term{Add} to the position with the \term{highest} excess expected return to
+marginal VaR.
+\end{itemize}
+
+\begin{imtrapbox}[breakable=false,title={A subscript the source notes lost}]
+The summary slide in the notes prints the optimality condition with
+$\text{MVaR}_i$ in \emph{both} denominators, so it reads as an identity that is
+trivially true. It should be $\text{MVaR}_i$ on the left and $\text{MVaR}_j$ on
+the right --- the whole content of the condition is that the ratio is the same
+\emph{across different assets}.
+\end{imtrapbox}
+
+\begin{imexbox}[title={Calculating the return-optimizing position}]
+Assume expected returns of 8\% for CAD and 5\% for EUR, in excess of the risk-free
+rate.
+\begin{center}\small
+\begin{tabular}{@{}lrrrcrrr@{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{Original}} & & \multicolumn{3}{c}{\textbf{Optimal}} \\
+\cmidrule(r){2-4}\cmidrule(l){6-8}
+Asset & $E_i$ & $w_i$ & $E_i/\beta_i$ & & $w_i$ & $\beta_i$ & $E_i/\beta_i$ \\
+\midrule
+CAD & 8.00\% & 66.67\% & 0.1301 & & 90.21\% & 1.038 & 0.0771 \\
+EUR & 5.00\% & 33.33\% & 0.0282 & & \phantom{0}9.79\% & 0.649 & 0.0771 \\
+\midrule
+Diversified VaR & \multicolumn{3}{c}{\$257,738} & & \multicolumn{3}{c}{\$230,720} \\
+Volatility & \multicolumn{3}{c}{15.62\%} & & \multicolumn{3}{c}{13.98\%} \\
+Expected return & \multicolumn{3}{c}{7.00\%} & & \multicolumn{3}{c}{7.71\%} \\
+Sharpe ratio & \multicolumn{3}{c}{0.448} & & \multicolumn{3}{c}{0.551} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\medskip
+The ratio $E_i/\beta_i$ is $0.08/0.615 = 0.1301$ for the CAD, greater than
+$0.05/1.770 = 0.0282$ for the EUR, so \term{the CAD position should be increased}.
+At the optimum the two ratios are identical at
+$0.08/1.038 = 0.05/0.649 = 0.0771$, which is the signal that there is no reason to
+deviate further. The portfolio expected return is
+$0.9021(8\%) + 0.0979(5\%) = 7.71\%$ and the Sharpe ratio rises from 0.448 to
+\textbf{0.551}.
+\end{imexbox}
+
+\begin{imkeybox}[title={A check that always works}]
+At both the minimum-risk and the optimal portfolio, the \emph{weighted average
+beta must equal one}, because every asset's beta is measured against the portfolio
+itself. Original: $0.6667(0.615) + 0.3333(1.770) = 1.000$. Optimal:
+$0.9021(1.038) + 0.0979(0.649) = 1.000$. If a candidate answer's weights and betas
+do not reconcile to one, the answer is wrong before any other check.
+\end{imkeybox}
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.4cm, height=6.0cm,
+  xmin=12.8, xmax=17.0, ymin=6.2, ymax=8.6,
+  xlabel={risk --- portfolio volatility (\%)},
+  ylabel={expected excess return (\%)},
+  xtick={13.85,15.62}, xticklabels={13.85,15.62},
+  ytick={7.00,7.56,7.71}, yticklabels={7.00,7.56,7.71},
+]
+\addplot[FRMNavy, very thick, smooth, domain=13.85:17, samples=60]
+  {7.556 + 1.02*sqrt(x-13.85)};
+\addplot[FRMRule, very thick, smooth, domain=13.85:16.4, samples=60]
+  {7.556 - 1.02*sqrt(x-13.85)};
+\addplot[FRMGold, thick, dashed, domain=0:17, samples=2] {0.5512*x};
+\addplot[only marks, mark=*, mark size=2.2pt, FRMRed]
+  coordinates {(15.62,7.00)};
+\addplot[only marks, mark=square*, mark size=2pt, FRMNavy]
+  coordinates {(13.85,7.556)};
+\addplot[only marks, mark=*, mark size=2.4pt, FRMGreen]
+  coordinates {(13.98,7.71)};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=east,
+      text=FRMRed] at (axis cs:15.46,6.82) {initial portfolio, SR $0.448$};
+\draw[-{Stealth[length=4pt]}, FRMRed, thin] (axis cs:15.50,6.86) -- (axis cs:15.60,6.97);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=east,
+      text=FRMNavy] at (axis cs:13.80,7.40) {minimum risk};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMGreen] at (axis cs:14.12,7.95) {optimal portfolio, SR $0.551$};
+\draw[-{Stealth[length=4pt]}, FRMGreen, thin] (axis cs:14.5,7.92) -- (axis cs:14.02,7.74);
+\end{axis}
+\end{tikzpicture}}%
+{The two destinations, and why they are different places. Cutting the euro on
+marginal VaR alone lands on the \emph{minimum-risk} portfolio at 13.85\%
+volatility. Taking expected return into account as well lands on the
+\emph{optimal} portfolio at 13.98\% --- slightly \emph{riskier}, but with a higher
+expected return and the steeper ray from the origin, which is the maximum Sharpe
+ratio. The minimum-risk portfolio's expected return of 7.56\% is computed from its
+own weights, $0.8521(8\%) + 0.1479(5\%)$, and its Sharpe ratio of 0.546 is lower
+than the optimum's 0.551. Minimising risk is not the same as optimising, and the
+gap between the two marked points is the difference between risk management and
+portfolio management.}
+
+% ------------------------------------------------------------------
+\lo{IM-5 e}{Explain the difference between risk management and portfolio management and describe how to use marginal VaR in portfolio management.}
+
+\begin{imdefbox}[title={The difference in one line}]
+\term{Risk management} asks only how to make the portfolio less risky, and its
+answer is the global minimum where all marginal VaRs are equal.
+\term{Portfolio management} asks how to get the best combination of expected
+return \emph{and} risk, and its answer is the optimal portfolio where all
+excess-return-to-marginal-VaR ratios are equal.
+\end{imdefbox}
+
+Marginal VaR is the instrument in both cases. What changes is what it is divided
+by: nothing in the first case, and the position's excess expected return in the
+second.
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-5}]
+\begin{itemize}
+\item \term{Notation.} $w_i$ is a weight, $W$ or $P$ is portfolio value, $P_i$ or
+$x_i$ is a dollar position. The source notes use $w$ for two of these three and
+$W$ for a position. Read what the symbol stands for in the stem, every time.
+\item \term{Intermediate result, IM-5 a.} Five positions of \$2 million is a \$10
+million portfolio. Individual VaR is offered when component VaR is asked for; the
+portfolio's total value is often a red herring.
+\item \term{Sibling, IM-5 a.} Marginal VaR is a derivative (one more dollar);
+incremental VaR is a whole trade; component VaR partitions what you already hold.
+Only component VaRs sum to portfolio VaR.
+\item \term{Approximation, IM-5 c.} Component VaR $\ne$ incremental VaR. The
+first travels down the tangent, the second down the curve. They agree only when
+the position is small relative to the portfolio.
+\item \term{Formula, IM-5 a.} $\text{CVaR}_i = \text{VaR}_i \times \rho_i$ and
+$\text{MVaR}_i = (\text{VaR}_p/P)\beta_i$. Given a correlation, reach for the
+first; given a beta, the second.
+\item \term{Polarity, IM-5 d.} Cut the position with the \emph{highest} marginal
+VaR; add to the one with the \emph{lowest}. For the optimal portfolio it reverses:
+add to the \emph{highest} excess-return-to-marginal-VaR ratio.
+\item \term{Sibling, IM-5 d.} Minimum-risk is not optimal. The optimal portfolio
+here is \emph{riskier} than the minimum-risk one, at 13.98\% against 13.85\%, and
+that is correct.
+\item \term{Definition, IM-5 b.} Diversification has a floor at
+$\sigma\sqrt{\rho}$, not at zero. Only $\rho = 0$ decays to nothing.
+\item \term{Units, IM-5 a.} When the position vector is in millions, the resulting
+$\sigma_P$ is in millions of dollars, not a percentage. Do not multiply by the
+portfolio value a second time.
+\end{itemize}
+\end{imtrapbox}
+
+% ==================================================================

@@ -1,0 +1,603 @@
+\reading{CR-5}{Introduction to Credit Risk Modeling and Assessment}{STRIKE FIRST}{8}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Explain the capital adequacy, asset quality, management, earnings, and liquidity (CAMEL) system used for evaluating the financial condition of a bank.
+\item Describe quantitative measurements and factors of credit risk, including probability of default, loss given default, exposure at default, expected loss, and time horizon.
+\item Estimate risk-weighted assets and capital adequacy ratio of a financial institution.
+\item Describe the judgmental approaches, empirical models, and financial models to predict default.
+\item Apply the Merton model to calculate default probability and the distance to default and describe the limitations of using the Merton model.
+\item Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody's-KMV model.
+\item Apply risk-adjusted return on capital (RAROC) to measure the performance of a loan.
+\end{enumerate}
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-5 a}{Explain the capital adequacy, asset quality, management, earnings, and liquidity (CAMEL) system used for evaluating the financial condition of a bank.}
+
+Analytical tools for credit risk management are widely used. One of the most
+common is \term{CAMEL} (capital, assets, management, earnings, and liquidity),
+which analyses a bank's overall health using five factors.
+
+\begin{enumerate}
+\item \term{Capital adequacy.} Regulation establishes a minimum capital reserve
+that all banks must maintain. This analysis should consider historical and
+current positioning. \emph{How much reserve does the bank have to cover losses?}
+\item \term{Asset quality.} Reviewers examine whether the bank's loans are
+performing or showing some signs of delinquency. This analysis considers interest
+rate risk and liquidity risk in relation to the bank's assets. \emph{Are the
+bank's loans performing well, or are there defaults?}
+\item \term{Management.} This portion of the analysis focuses on the quality of
+the bank's risk management structure. Business strategy, financial performance,
+and internal controls and policies are all considered. \emph{Does the bank have
+strong risk management practices?}
+\item \term{Earnings.} Core earnings should be reviewed. Examiners are
+specifically looking for the stability of earnings, net interest margin, return on
+assets, and future earnings potential, with an eye for the anticipated impact of
+stressed economic events. \emph{Is the bank profitable and prepared for economic
+downturns?}
+\item \term{Liquidity.} This category considers both the impact of interest rate
+risk on the bank's investments and the influence of liquidity risk. The goal is to
+understand if the bank has the potential for short-term liquidity events that
+could jeopardize the bank's viability. \emph{Does the bank have enough cash to
+meet short-term obligations?}
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-5 b}{Describe quantitative measurements and factors of credit risk, including probability of default, loss given default, exposure at default, expected loss, and time horizon.}
+
+\begin{enumerate}
+\item \term{Probability of default (PD).} This captures the chance of a borrower
+defaulting on their loan, typically defined as a late payment exceeding a certain
+threshold (e.g., 90 days). It is expressed as a percentage.
+\item \term{Exposure at default (EAD).} This represents the outstanding amount
+owed on the loan at the time of default. It is influenced by loan characteristics
+and can be a fixed amount or fluctuate (like credit lines). EAD is expressed in
+dollars.
+\item \term{Loss given default (LGD).} This reflects the percentage of the loan
+amount that is expected to be unrecoverable after default. Recovery rate (RR) is
+the inverse, calculated as 100\% minus LGD. Borrower-specific factors like
+industry and financial health can influence LGD estimates.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\node[draw=FRMGreen, fill=PaleGreen, line width=0.8pt, rounded corners=1pt,
+      text width=2.9cm, align=center, minimum height=1.25cm] (el) at (0,0)
+      {\textbf{Expected loss}\\\scriptsize (EL)\\\scriptsize \$};
+\node[font=\large] (eq) at (1.95,0) {$=$};
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.8pt, rounded corners=1pt,
+      text width=2.9cm, align=center, minimum height=1.25cm] (pd) at (3.9,0)
+      {\textbf{Probability of default}\\\scriptsize (PD)\\\scriptsize \%};
+\node[font=\large] (x1) at (5.85,0) {$\times$};
+\node[draw=FRMGold, fill=PaleGold, line width=0.8pt, rounded corners=1pt,
+      text width=2.9cm, align=center, minimum height=1.25cm] (lgd) at (7.8,0)
+      {\textbf{Loss given default}\\\scriptsize (LGD)\\\scriptsize \%};
+\node[font=\large] (x2) at (9.75,0) {$\times$};
+\node[draw=FRMGold, fill=PaleGold, line width=0.8pt, rounded corners=1pt,
+      text width=2.9cm, align=center, minimum height=1.25cm] (ead) at (11.7,0)
+      {\textbf{Exposure at default}\\\scriptsize (EAD)\\\scriptsize \$};
+% brackets
+\draw[FRMNavy, line width=0.8pt] (2.45,1.0) -- (2.45,1.3) -- (5.35,1.3) -- (5.35,1.0);
+\node[above, font=\scriptsize\bfseries, color=FRMNavy] at (3.9,1.3)
+  {Borrower risk quantification};
+\draw[FRMGold, line width=0.8pt] (6.35,1.0) -- (6.35,1.3) -- (13.15,1.3) -- (13.15,1.0);
+\node[above, font=\scriptsize\bfseries, text=FRMGold] at (9.75,1.3)
+  {Facility risk quantification};
+\node[below, font=\scriptsize, color=FRMGrey, align=left] at (6.5,-0.85)
+  {Inputs: risk rating \ \textbullet\ \ type of counterparty \ \textbullet\ \ guarantees};
+\end{tikzpicture}
+\end{center}
+\figcap{Expected loss calculation. The split above the boxes is the fact worth
+holding: PD is a property of the \emph{borrower}, while LGD and EAD are
+properties of the \emph{facility}. Two obligations to the same borrower share a
+PD but can carry very different LGD and EAD.}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The source notes cover PD, EAD and LGD but do not
+treat the time horizon, which the objective names explicitly. The following is
+written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for: time horizon]
+The main outcome of credit risk modelling and management systems is an estimate
+of the expected loss for a loan \emph{over a specific period}, which is usually
+set to be one year, in accordance with the standard time basis used for financial
+reporting.
+
+\smallskip
+Horizon also enters as a risk factor in its own right: the duration of the loan
+matters, because short-term allocations are generally less risky than long-term
+liabilities, due to the increasing uncertainty over longer time horizons.
+\end{crgapbox}
+
+% =====================================================================
+\lo{CR-5 c}{Estimate risk-weighted assets and capital adequacy ratio of a financial institution.}
+
+Banks should always have enough capital to match the risk of their assets. This
+amount of capital can be measured using the \term{capital adequacy ratio (CAR)}.
+A higher CAR indicates that a bank has a larger capital buffer and is therefore
+better equipped to absorb losses.
+
+\begin{crfmlbox}[Capital adequacy ratio]
+\[ \mathrm{CAR} \;=\; \frac{\text{capital}}{\text{risk-weighted assets}} \;\geq\; \alpha \]
+\vk{capital $=$ Tier 1 and Tier 2 capital; $\alpha$ $=$ the minimum requirement
+imposed by the regulator, 8\% under Basel II and 10.5\% under Basel III.}
+\end{crfmlbox}
+
+\term{Risk-weighted assets (RWA)} take into account the riskiness of a bank's
+assets. Assets are assigned a risk weight depending on the type of borrower and
+riskiness. There are two methods for deriving a bank's RWA.
+
+\subsection*{1) Standardized approach}
+
+A supervisory authority can prescribe predetermined weights for various asset
+categories. This method is easy to deploy, but it is based on data that is
+external to a given bank, so it is easy but less precise.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.2cm} L{12.3cm}}
+\toprule
+\thead{Risk weight} & \thead{Asset category} \\
+\midrule
+0\% & Cash, gold, claims on Organization of Economic Co-operation and
+Development (OECD) countries such as U.S. Treasury bonds, and insured residential
+mortgages \\
+20\% & Claims on OECD banks and government agencies like U.S. agency securities
+such as Fannie Mae and Freddie Mac, or municipal bonds \\
+50\% & Uninsured residential mortgages \\
+100\% & Loans to corporations, consumer loans, corporate bonds, claims on
+non-OECD banks \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Standardized-approach risk weights. Note that the insurance status of a
+residential mortgage moves it between the 0\% and the 50\% bucket, and that OECD
+membership is what separates the 20\% bucket from the 100\% one.}
+
+\subsection*{2) Internal ratings-based (IRB) approach}
+
+The IRB approach is customized to each bank and requires sophisticated modelling
+using historical data. Internal credit scores can be combined with historical
+data to estimate the PD and LGD.
+
+The RWA is then calculated using an \term{asymptotic single risk factor (ASRF)}
+model, which assumes the credit portfolio is diversified such that no
+idiosyncratic risk is left, that is, only systematic risk remains.
+
+The maturity adjustment has two components:
+
+\begin{enumerate}[label=\alph*)]
+\item First, capital requirements should \emph{increase} with maturity, because
+the risk of default increases as maturity increases.
+\item Second, borrowers with \emph{low} probabilities of default should have
+\emph{higher} adjustments than high PD borrowers. A borrower with a high PD
+already has a higher instance of default factored into their estimates.
+\end{enumerate}
+
+Basel III also strengthened bank capital requirements by:
+
+\begin{itemize}
+\item increasing the minimum capital ratio from 8\% to 10.5\%;
+\item adding rules on managing debt (leverage) and access to cash (liquidity);
+\item focusing on the risk of defaults by other banks (counterparty risk) in
+complex financial products; and
+\item requiring stricter risk management practices like stress testing and model
+validation.
+\end{itemize}
+
+% =====================================================================
+\lo{CR-5 d}{Describe the judgmental approaches, empirical models, and financial models to predict default.}
+
+There are three primary approaches for assessing the likelihood of default in
+credit risk models.
+
+\subsection*{1) Judgmental approach --- usable for both corporate and consumer loans}
+
+Relies on the experience and expertise of credit risk officers to assess the
+creditworthiness of a borrower. Factors known as the \term{5 Cs} --- the
+borrower's character, capacity, capital, collateral, and economic conditions ---
+are considered.
+
+\begin{itemize}
+\item \term{Advantages.} Useful when historical data is scarce (e.g., project
+finance where historical data may not be available); leverages the experience of
+credit analysts and benefits from human insight; flexible in assessing unique
+loan types.
+\item \term{Disadvantages.} Output quality is hard to validate, since human
+judgements are involved; may not update swiftly to changing conditions; impact on
+the entire credit portfolio is difficult to assess; lacks transparency and
+consistency.
+\end{itemize}
+
+\subsection*{2) Empirical (data-driven) models --- usable for both corporate and consumer loans}
+
+Use historical data (e.g., loans accepted, rejected, in good standing, and in
+default) to search for nontrivial patterns in the relationship between the
+likelihood of default and input variables, that is, risk factors. This
+data-driven approach can harness the power of machine learning (ML) to search for
+highly complex, nonlinear relationships.
+
+\begin{itemize}
+\item \term{Advantages.} Transparency and consistency in the credit risk process;
+predictive power and model structure can be validated empirically; ability to
+explore hypothesized relationships analytically; real-time market data updates to
+adjust to changing conditions; sector-specific market adjustments are possible.
+\item \term{Disadvantages.} Past data may not predict future outcomes, especially
+in volatile conditions; some inputs like financial statements are not updated in
+real time, potentially delaying risk information.
+\end{itemize}
+
+\subsection*{3) Theory-based financial models (market models) --- corporate loans only}
+
+Rely on economic and financial theory and financial market data. There are two
+primary types.
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Structural models.} This method assumes that default is an
+\emph{endogenous} process, which is influenced by the firm's internal structural
+characteristics (e.g., the Merton model).
+\item \term{Reduced-form models.} This method assumes that default is driven by a
+random \emph{exogenous} event (e.g., a Poisson jump process). The primary input
+sources for the credit risk structure are market data on credit derivatives and
+bonds.
+\end{enumerate}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.1cm} L{4.1cm} L{4.1cm} L{4.1cm}}
+\toprule
+ & \thead{Judgmental approach} & \thead{Empirical models} & \thead{Financial models} \\
+\midrule
+Data source & Qualitative data from experts (credit risk officers) &
+  Historical data from internal databases, CRAs, and external sources &
+  Market data on credit derivatives and bonds \\
+Methodology & Relies on expert judgment and qualitative analysis &
+  Analyzes historical data to identify patterns and relationships &
+  Based on normative economic and financial theory \\
+Inputs & 5C analysis: character, capacity, capital, collateral, conditions &
+  Borrower characteristics, loan status, external risk factors &
+  Market data on credit derivatives, bonds, and financial indicators \\
+Applicability & Can be used for both consumer and corporate loans &
+  Applicable to various loan types, consumer and corporate &
+  Primarily used for corporate borrowers \\
+Strengths & Useful for unique loans; provides qualitative insights &
+  Offers transparency, empirical validation, and real-time updates &
+  Based on economic theory; provides market-based assessments \\
+Weaknesses & Relies on expert judgment; lacks transparency and consistency &
+  May suffer during uncertain periods; requires accurate historical data &
+  Limited to corporate borrowers; may not capture market changes quickly \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The three approaches side by side. Applicability is the row that
+discriminates fastest: only the financial models are restricted to corporate
+borrowers.}
+
+% =====================================================================
+\lo{CR-5 e}{Apply the Merton model to calculate default probability and the distance to default and describe the limitations of using the Merton model.}
+
+The Merton model is a \term{structural} approach to predicting default. It
+assumes default occurs when the proprietary structure of the defaulting company is
+no longer worthwhile. It is based on Black-Scholes-Merton option pricing theory
+and evaluates various components of firm value.
+
+\begin{crkeybox}[Notation used in this section]
+\begin{tabular}{L{1.9cm} L{12.6cm}}
+$V_0$ & current value of the firm's assets \\
+$V_T$ & value of the firm's assets at time $T$ \\
+$D$ & total debt to be repaid at time $T$ \\
+$E_0$ & current value of the firm's equity \\
+$E_T$ & value of the firm's equity at time $T$ (i.e., $V_T - D$) \\
+$\sigma_V$ & asset volatility \\
+$\sigma_E$ & equity volatility \\
+\end{tabular}
+\end{crkeybox}
+
+\begin{crtrapbox}[Three symbols for the same object]
+The source notes write the face value of debt as \term{F} in the payoff formulas,
+as \term{D} in the Black-Scholes-Merton equity formula, and as \term{L} in the
+real-world probability of default formula. All three denote the same thing: the
+amount owed at $T$, which is the strike price of the option. They are carried
+here as written rather than silently harmonised, because the exam material draws
+on all three sources.
+\end{crtrapbox}
+
+\subsection*{Equity as a call, debt as a short put}
+
+\begin{crfmlbox}[Terminal payoffs]
+\[ S_T \;=\; \max(V_T - F,\,0) \qquad\qquad D_T \;=\; F - \max(F - V_T,\,0) \]
+\vk{$S_T$ = value of equity at $T$; $D_T$ = value of debt at $T$; $F$ = principal
+amount due on the zero-coupon bond. The equity payoff is that of a \emph{long
+call option} on the firm's assets struck at $F$. The debt payoff is the face
+amount less a \emph{short put} struck at $F$.}
+\end{crfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=13.0cm, height=5.8cm,
+  axis lines=left,
+  xlabel={Firm asset value at $T$, \ $V_T$ (\$m)},
+  ylabel={Value at $T$ (\$m)},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=0, xmax=100, ymin=0, ymax=68,
+  xtick={0,25,50,75,100}, ytick={0,25,50},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.32)}, anchor=north, legend columns=-1, column sep=10pt}]
+\addplot[draw=FRMNavy, line width=1.2pt, sharp plot]
+  coordinates {(0,0) (50,0) (100,50)};
+\addlegendentry{equity $S_T=\max(V_T-F,0)$}
+\addplot[draw=FRMGold, line width=1.2pt, sharp plot]
+  coordinates {(0,0) (50,50) (100,50)};
+\addlegendentry{debt $D_T=F-\max(F-V_T,0)$}
+\draw[FRMRed, dashed, line width=0.8pt] (axis cs:50,0) -- (axis cs:50,58);
+\node[font=\sffamily\scriptsize\bfseries, text=FRMRed, fill=white, inner sep=1.5pt]
+  at (axis cs:50,62) {$F=50$};
+\addplot[only marks, mark=*, mark size=1.7pt, draw=FRMGreen, fill=FRMGreen]
+  coordinates {(60,10) (40,0)};
+\node[font=\sffamily\scriptsize, text=FRMGreen, fill=white, inner sep=1.5pt]
+  at (axis cs:74,13) {$V_T=60 \Rightarrow S_T=10$};
+\node[font=\sffamily\scriptsize, text=FRMGreen, fill=white, inner sep=1.5pt]
+  at (axis cs:24,7) {$V_T=40 \Rightarrow S_T=0$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The firm's asset value at $T$ is split between the two claimants, and the
+split is a kinked function with its kink at the face value of the debt. Below
+$F$ the debtholders take everything and the equity is worth nothing; above $F$
+the debtholders are capped at $F$ and every further dollar goes to equity. The
+two worked points are the examples below.}
+
+\begin{crexbox}[Equity value at $T$]
+Calculate the value of the firm's equity at $T$, $S_T$, given that the principal
+amount due on the zero-coupon bond is \$50 million and the total value of the firm
+at $T$, $V_T$, is \$60 million. In addition, what is the value of equity if $V_T$
+is \$40 million?
+\tcblower
+\[ \text{Equity value} = \max(60 - 50,\,0) = 10 = \$10\ \text{million} \]
+\[ \text{Equity value} = \max(40 - 50,\,0) = 0 = \$0\ \text{million} \]
+\end{crexbox}
+
+\begin{crexbox}[Debt value at $T$]
+Calculate the value of the firm's debt at $T$, $D_T$, given that the principal
+amount due on the zero-coupon bond is \$50 million and the total value of the firm
+at $T$, $V_T$, is \$40 million. In addition, what is the value of debt if $V_T$ is
+\$60 million?
+\tcblower
+\[ \text{Debt value} = 50 - \max(50 - 40,\,0) = 50 - 10 = 40 = \$40\ \text{million} \]
+\[ \text{Debt value} = 50 - \max(50 - 60,\,0) = 50 - 0 = 50 = \$50\ \text{million} \]
+\end{crexbox}
+
+\subsection*{Value of equity using the BSM model}
+
+On the assumption of no dividends, the Black-Scholes-Merton equity value today is
+stated as follows.
+
+\begin{crfmlbox}[Equity as a call on firm assets]
+\[ E_0 \;=\; V_0 N(d_1) \;-\; D e^{-rT} N(d_2) \]
+\[ d_1 = \frac{\ln(V_0/D) + \bigl(r + \sigma_V^{2}/2\bigr)T}{\sigma_V\sqrt{T}}
+   \qquad\qquad
+   d_2 = d_1 - \sigma_V\sqrt{T} \]
+\vk{$N(\cdot)$ = cumulative normal distribution function; $r$ = risk-free rate;
+$T$ = time to repayment in years. Note the sign inside $d_1$: the drift term
+carries $+\sigma_V^{2}/2$, while $d_2$ written out in full carries
+$-\sigma_V^{2}/2$.}
+\end{crfmlbox}
+
+\subsection*{Distance to default}
+
+Distance to default measures the distance between a firm's current financial
+position and the point of default. DtD is the number of standard deviations the
+company's assets are away from the face value of the debt.
+
+\begin{crfmlbox}[Distance to default]
+\[ \mathrm{DtD} \;=\; d_2 \;=\;
+   \frac{\ln(V_0) - \ln(D) + \bigl(r - \sigma_V^{2}/2\bigr)T}{\sigma_V\sqrt{T}} \]
+\end{crfmlbox}
+
+\begin{crkeybox}[Direction]
+The higher (lower) the distance to default, the lower (higher) the probability of
+default.
+\end{crkeybox}
+
+\subsection*{Probability of default}
+
+\begin{itemize}
+\item The \term{risk-neutral probability of default}, $N(-d_2)$, is effectively
+the probability that shareholders will not exercise their option to repay the
+loan. This analysis assumes that the firm's assets grow at the risk-free rate.
+\item For the \term{real-world probability of default}, the expected return on the
+firm's assets $(\mu)$ is substituted for the risk-free rate $(r)$.
+\end{itemize}
+
+\begin{crfmlbox}[The two probabilities of default]
+\[ \text{Risk-neutral PD} \;=\; N(-d_2), \qquad N(-d_2) = 1 - N(d_2) \]
+\[ \text{Real-world PD} \;=\;
+   N\left[\,-\,\frac{\ln\!\left(\dfrac{A}{L}\right) + \left(\mu - \dfrac{\sigma_A^{2}}{2}\right)T}
+   {\sigma_A\sqrt{T}}\,\right] \]
+\vk{$A$ = current market value of the firm's assets; $L$ = face value of the debt
+(the default point); $\mu$ = expected return on the firm's assets; $\sigma_A$ =
+asset volatility. The only change from the risk-neutral version is $r$ becoming
+$\mu$.}
+\end{crfmlbox}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective asks for the limitations of the Merton
+model. The source notes carry the objective heading but no body text for this
+half. The following is written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for: limitations of the Merton model]
+\begin{enumerate}
+\item \term{The capital structure is assumed to be trivially simple.} The
+derivation assumes a firm with a single liability of face value $L$ maturing at a
+single date $T$. In practice $L$ is usually taken as the short-term debt reported
+on the balance sheet, which is a choice, not an observation.
+\item \term{The two key inputs are unobservable.} The current value of the
+firm's assets $A$ and the asset volatility $\sigma_A$ cannot be read off a
+market. They must be backed out by solving the equity-value equation and the
+equity-volatility equation simultaneously, which requires an iterative
+Newton-type algorithm.
+\item \term{The mapping from distance to default to a probability relies on
+normality.} The model converts DtD into a PD through the normal distribution. The
+Moody's-KMV EDF model exists precisely because that mapping is unrealistic: it
+replaces the normal distribution with an empirical distribution of default
+frequencies derived from historical data.
+\item \term{The real-world PD needs $\mu$, which must itself be estimated.} The
+standard approach is to solve the system first and then define $\mu$ as the rate
+of change in $A$ over past time periods, so the real-world probability inherits
+the estimation error of that step.
+\end{enumerate}
+\end{crgapbox}
+
+% =====================================================================
+\lo{CR-5 f}{Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody's-KMV model.}
+
+\begin{enumerate}
+\item \term{Merton model.} Uses an option pricing model and the borrower's
+short-term debt to estimate PD. Assumes a standardized normal distribution for
+default frequencies. The default point $L$ considers only short-term debt.
+\item \term{Moody's-KMV Expected Default Frequency (EDF) model.} Differs from
+Merton in two ways: it uses historical data to develop a distribution of default
+frequencies, which is more realistic; and the default point $L$ includes
+short-term debt \emph{and half of long-term debt}, which better reflects loan
+obligations.
+\item \term{CreditMetrics model.} Primarily used for estimating the market value
+of nonmarketable loans or loan portfolios, employing a peer-set analysis
+approach. This involves comparing a borrower's default risk to that of others,
+using a rating transition matrix that reflects changes in default rates over time.
+Model inputs include the borrower's credit rating, a transition matrix (detailing
+credit rating changes and default rates), historical recovery rates, and the bond
+market's yield margins.
+\end{enumerate}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective names four models. The source notes
+cover three and omit Credit Risk Plus entirely. The following is written from the
+GARP curriculum. CreditRisk+ is treated in full at CR-10.}
+
+\begin{crgapbox}[What the objective asks for: Credit Risk Plus (CreditRisk+)]
+In 1997 Credit Suisse Financial Products proposed a methodology for calculating
+VaR that it termed Credit Risk Plus. It involves analytic approximations that are
+well established in the \emph{insurance} industry.
+
+\smallskip
+Suppose an institution has $n$ loans of a certain type and the probability of
+default for each loan during a year is $q$, so the expected number of defaults is
+$qn$. Assuming default events are independent, the probability of $m$ defaults is
+binomial. If $q$ is small and $n$ large, this is approximated by the Poisson
+distribution:
+\[ \text{Prob}(m \text{ defaults}) \;=\; \frac{e^{-qn}(qn)^{m}}{m!} \]
+This holds approximately even when the probability of default is not the same for
+each loan, provided all the default probabilities are small and $q$ is the average
+probability of default over the next year for the loans in the portfolio.
+
+\smallskip
+In practice the default rate $q$ is itself uncertain and varies greatly from year
+to year. A convenient assumption is that $qn$ follows a gamma distribution, in
+which case the Poisson distribution becomes a \emph{negative binomial}
+distribution. As the standard deviation of $qn$ tends to zero the negative
+binomial converges back to the Poisson; as it increases, the probability of an
+extreme outcome involving a large number of defaults rises.
+\end{crgapbox}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.4cm} L{3.7cm} L{3.9cm} L{4.4cm}}
+\toprule
+ & \thead{Merton} & \thead{Moody's-KMV EDF} & \thead{CreditMetrics} \\
+\midrule
+Default point $L$ & Short-term debt only &
+  Short-term debt $+$ half of long-term debt &
+  Not a default-point model; uses a rating transition matrix \\
+Distribution used & Standardized normal &
+  Empirical distribution of historical default frequencies &
+  Transition probabilities from the migration matrix \\
+Primary use & PD for a single firm from option pricing &
+  PD for a single firm, calibrated to history &
+  Market value of nonmarketable loans and loan portfolios \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Merton versus Moody's-KMV is the sibling pair that matters most here.
+They share the option-pricing skeleton and differ on exactly two things: what
+goes into the default point, and whether the distance to default is mapped to a
+probability through the normal distribution or through history.}
+
+% =====================================================================
+\lo{CR-5 g}{Apply risk-adjusted return on capital (RAROC) to measure the performance of a loan.}
+
+RAROC is a method used to assess the profitability of a business considering the
+risk involved. It considers the income generated by a loan relative to the capital
+required to cover the default risk: a metric used to assess the performance of a
+loan by comparing financial outcomes to the economic capital required for those
+outcomes.
+
+\begin{itemize}
+\item \term{Loan revenue factors.} The spread $(s)$ between the loan rate and the
+bank's cost of capital; the fees $(f)$ attributable to the loan; the estimated
+loan losses $(l)$; the associated operating costs $(c)$; and relevant taxation
+$(x)$.
+\item \term{Capital at risk.} The loan's value $(L)$, its duration $(D)$, the
+current interest rate $(i)$, and the estimated change in interest rates
+$(\Delta i)$.
+\end{itemize}
+
+\begin{crfmlbox}[RAROC]
+\[ \mathrm{RAROC} \;=\; \frac{\text{loan revenues}}{\text{capital at risk}} \]
+\[ \text{loan revenues} \;=\; \text{loan value} \times (s + f - l - c)(1-x) \]
+\[ \Delta L \;\approx\; -\,L \times D \times \frac{\Delta i}{1+i} \]
+\vk{$s$ = spread, $f$ = fees, $l$ = expected loan losses, $c$ = operating costs,
+$x$ = tax rate, all as decimals; $L$ = loan value; $D$ = duration; $i$ = current
+interest rate; $\Delta i$ = expected change in rates. Note that the tax factor
+$(1-x)$ multiplies the \emph{whole} bracket, and that $l$ and $c$ are subtracted
+while $s$ and $f$ are added.}
+\end{crfmlbox}
+
+\begin{crexbox}[XYZ Bank: RAROC on a loan]
+Assume that XYZ Bank has a loan with a value of \$1,000,000. There is an
+associated commission of 0.1\%, the spread between the loan's interest rate and
+the bank's cost of capital is 0.65\%, the estimate of operating costs is 0.2\%,
+and their estimated tax rate is 11.1\%. Additionally, this loan has a duration of
+3.75 and an interest rate of 10.5\%. Interest rates are expected to increase by
+1.5\%.
+\tcblower
+\textbf{Loan revenues.}
+\[ \$1{,}000{,}000\,(0.0065 + 0.001 - 0 - 0.002)\,(1 - 0.111) = \$4{,}889.50 \]
+The bracket is $0.0055$; the after-tax factor is $0.889$; the product with
+\$1,000,000 is \$4,889.50. Note that estimated loan losses $l$ are zero here
+because none were given.
+
+\textbf{Capital at risk.}
+\[ \Delta L = -\,\$1{,}000{,}000\,(3.75)\left(\frac{0.015}{1.105}\right) = -\$50{,}904.98 \]
+The rate change is divided by $1+i = 1.105$, not by $i$.
+
+\textbf{RAROC.}
+\[ \mathrm{RAROC} = \frac{\$4{,}889.50}{\$50{,}904.98} = 9.61\% \]
+\end{crexbox}
+
+\begin{crkeybox}[Decision rule]
+The loan is profitable if its RAROC exceeds the \term{bank's cost of capital}.
+\end{crkeybox}
+
+\subsection*{An alternative denominator}
+
+There is an alternative method for estimating the capital at risk that uses
+historical values, and not market-based metrics like expected changes in interest
+rates. This method uses the unexpected loan loss in the RAROC denominator.
+
+\begin{crfmlbox}[Unexpected loan loss as capital at risk]
+\[ \text{unexpected loan loss} \;=\; \alpha \times \mathrm{LGD} \times \mathrm{EAD} \]
+\vk{$\alpha$ = an adjustment for unexpected default rates, derived from the
+distribution of historical default rates; LGD = loss given default; EAD =
+exposure at default.}
+\end{crfmlbox}
+
+If the distribution of default rates is assumed to be normal, then at the 99.5\%
+confidence level an analyst should set $\alpha = 2.6\sigma$. However, most loan
+distributions have some degree of skewness. For this reason it is more common to
+use a higher value (e.g., 5 or 6) based on the characteristics of the loan.

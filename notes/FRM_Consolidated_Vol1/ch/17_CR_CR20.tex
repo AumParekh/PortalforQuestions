@@ -1,0 +1,525 @@
+\reading{CR-20}{CVA}{STRIKE FIRST}{8}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Explain the motivation for and the challenges of pricing counterparty risk.
+\item Describe credit value adjustment (CVA).
+\item Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.
+\item Evaluate the impact of changes in the credit spread and recovery rate assumptions on CVA.
+\item Describe debt value adjustment (DVA) and bilateral CVA (BCVA).
+\item Explain the differences between unilateral CVA (UCVA) and BCVA, and between unilateral DVA (UDVA) and BCVA.
+\item Calculate DVA, BCVA, and BCVA as a spread.
+\item Explain how netting can be incorporated into the CVA calculation.
+\item Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.
+\item Explain the impact of incorporating collateralization into the CVA calculation, including the impact of margin period of risk, thresholds, and initial margins.
+\item Describe wrong-way risk and contrast it with right-way risk.
+\item Identify examples of wrong-way risk and examples of right-way risk.
+\item Discuss the impact of collateral on wrong-way risk.
+\item Identify examples of wrong-way collateral.
+\item Discuss the impact of wrong-way risk on central counterparties (CCPs).
+\item Describe the various wrong-way modeling methods including hazard rate approaches, structural approaches, parametric approaches, and jump approaches.
+\item Explain the implications of central clearing on wrong-way risk.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Seventeen objectives, not sixteen]
+CR-20 is the largest reading in Credit Risk. The official 2026 document lists
+\textbf{seventeen} objectives, a to q. Objective \textbf{g}, ``Calculate DVA,
+BCVA, and BCVA as a spread'', is the one most often dropped, which shifts every
+letter after it by one. The source notes independently letter this reading 37.a
+through 37.q, confirming the count.
+
+\smallskip
+CR-20 also exists only in the Crash layer.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-20 a}{Explain the motivation for and the challenges of pricing counterparty risk.}
+
+\begin{itemize}
+\item Accurate pricing allows financial institutions to set aside \term{reserves}
+to cover potential losses if a counterparty defaults on its obligations.
+\item Pricing counterparty risk helps assess the overall \term{risk profile} of a
+financial institution's portfolio, enabling better risk management strategies.
+\end{itemize}
+
+\subsection*{The challenges}
+
+\begin{enumerate}
+\item \term{Exotic products.} These often require complex valuation techniques
+like Monte Carlo simulation, so simplifications may be necessary for practical CVA
+calculations.
+\item \term{Path dependency.} Accurate future exposure assessment requires
+knowledge of the \emph{entire price path} of the underlying asset, so
+approximations in probability calculations are often used.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-20 b}{Describe credit value adjustment (CVA).}
+
+\begin{crdefbox}[CVA]
+When taking counterparty risk into account, credit value adjustment is the
+difference between the \term{risk-free value} and the \term{true value} of a
+transaction or portfolio.
+\end{crdefbox}
+
+% =====================================================================
+\lo{CR-20 c}{Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.}
+
+Assuming independence between PD, exposure and recovery --- that is, ignoring
+wrong-way risk --- the simplified CVA expression is as follows.
+
+\begin{crfmlbox}[Unilateral CVA]
+\[ \mathrm{UCVA} \;=\; -\mathrm{LGD}\sum_{i=1}^{m}
+   \mathrm{EPE}(t_i) \times \mathrm{PD}(t_{i-1},\,t_i) \]
+\vk{$\mathrm{EPE}(t_i)$ is the \emph{discounted} EPE for the relevant dates in the
+future; $\mathrm{PD}(t_{i-1}, t_i)$ is the marginal default probability over each
+interval. The leading minus sign makes CVA a \emph{negative} number: a reduction
+in the value of the portfolio.}
+\end{crfmlbox}
+
+\subsection*{CVA as a spread}
+
+Instead of computing the CVA as a stand-alone value, it can be expressed as a
+running spread, that is, a per annum charge. The formula assumes the EPE is
+\emph{constant over time} and equal to the average EPE.
+
+\begin{crfmlbox}[Unilateral CVA as a running spread]
+\[ \frac{\mathrm{CVA}(t,T)}{\mathrm{CDS}_{\text{premium}}(t,T)}
+   \;=\; -X^{\mathrm{CDS}} \times \text{average EPE} \]
+\vk{$X^{\mathrm{CDS}}$ is the counterparty's CDS spread. The whole
+LGD-and-default-probability apparatus collapses into the credit spread, which is
+why this form is so much quicker to apply --- and why it is only valid under the
+constant-EPE assumption.}
+\end{crfmlbox}
+
+% =====================================================================
+\lo{CR-20 d}{Evaluate the impact of changes in the credit spread and recovery rate assumptions on CVA.}
+
+\subsection*{Impact of the credit spread}
+
+The \term{shape of the credit curve} can have a material impact on CVA.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=7.6cm, height=4.8cm, name=lc,
+  xlabel={Maturity (years)}, ylabel={Credit spread (bps)},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=0, xmax=10, ymin=0, ymax=280, xtick={0,5,10},
+  grid=major, grid style={FRMRule!50, line width=0.3pt},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.34)}, anchor=north, legend columns=-1, column sep=6pt}]
+\addplot[draw=FRMRed, line width=1.1pt, smooth, domain=0.5:10, samples=40]
+  {60+18*x};
+\addlegendentry{upwards}
+\addplot[draw=FRMNavy, line width=1.1pt, sharp plot]
+  coordinates {(0.5,150) (10,150)};
+\addlegendentry{flat}
+\addplot[draw=FRMGreen, line width=1.1pt, smooth, domain=0.5:10, samples=40]
+  {260-22*x};
+\addlegendentry{inverted}
+\draw[FRMGrey, dashed, line width=0.7pt] (axis cs:5,0) -- (axis cs:5,150);
+\node[font=\sffamily\scriptsize, text=FRMGrey, fill=white, inner sep=1.5pt,
+  align=center] at (axis cs:5.0,208) {all pinned at\\150 bps at 5y};
+\end{axis}
+\begin{axis}[
+  ybar, bar width=15pt, width=6.8cm, height=4.8cm,
+  at={(lc.right of south east)}, anchor=left of south west, xshift=1.3cm,
+  ylabel={CVA}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  symbolic x coords={upwards,flat,inverted}, xtick=data,
+  ymin=-28, ymax=0, axis x line*=top, axis y line*=left,
+  nodes near coords, every node near coord/.append style={
+    font=\sffamily\scriptsize\bfseries, anchor=north,
+    /pgf/number format/.cd, fixed, zerofill, precision=1}]
+\addplot[draw=FRMNavy, fill=FRMNavy!45, area legend]
+  coordinates {(upwards,-24.6) (flat,-20.0) (inverted,-15.7)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Credit curve shapes on the left (illustrative, all pinned at the notes'
+five-year spread of 150 bps), and the resulting CVA on a ten-year receive-fixed
+interest rate swap on the right, at an LGD of 60\%. The upwards-sloping curve
+gives the largest CVA, mainly because it produces the largest \emph{extrapolated
+ten-year} spread; the inverted curve gives the smallest for the opposite reason.
+The spread is 23\% above the flat case and 21\% below it, from curves that agree
+exactly at five years.}
+
+\begin{itemize}
+\item CVA generally \term{increases} with an increasing credit spread.
+\item In default, CVA will \term{converge to the exposure} of the transaction or
+portfolio, which may be zero.
+\end{itemize}
+
+\subsection*{Impact of the recovery rate}
+
+\begin{crtrapbox}[The recovery rate pulls in two directions at once]
+Increasing the recovery rate will \textbf{increase} the implied probability of
+default but \textbf{reduce} the resulting CVA.
+
+\smallskip
+Why both: the implied hazard rate is $\lambda = s/(1-\mathrm{RR})$, so a higher RR
+shrinks the denominator and raises the implied PD. But CVA is scaled by
+$\mathrm{LGD} = 1-\mathrm{RR}$, which falls faster. At a 2\% spread, moving RR
+from 40\% to 60\% raises the implied hazard rate from 3.33\% to 5.00\% while
+cutting LGD from 60\% to 40\%, and the LGD effect dominates.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-20 e}{Describe debt value adjustment (DVA) and bilateral CVA (BCVA).}
+
+\begin{crdefbox}[DVA and BCVA]
+The key assumption behind unilateral CVA is that the party making the calculation
+\emph{itself} cannot default. \term{Debt value adjustment (DVA)} represents
+counterparty risk from the point of view of a party's \emph{own} default.
+
+\smallskip
+Consideration of a party's own default together with that of its counterparty
+leads to \term{bilateral CVA (BCVA)}.
+\end{crdefbox}
+
+\begin{crfmlbox}[BCVA and its two components]
+\[ \mathrm{BCVA} \;=\; \mathrm{CVA} + \mathrm{DVA} \]
+\[ \mathrm{CVA} = -\mathrm{LGD}_C \sum_{i=1}^{m}
+   \mathrm{EPE}(t_i)\times \mathrm{PD}_C(t_{i-1},t_i) \]
+\[ \mathrm{DVA} = -\mathrm{LGD}_I \sum_{i=1}^{m}
+   \mathrm{ENE}(t_i)\times \mathrm{PD}_I(t_{i-1},t_i) \]
+\vk{Subscript $C$ is the counterparty and $I$ the institution itself.
+$\mathrm{ENE}$ is the expected \emph{negative} exposure, that is, the EPE from the
+counterparty's perspective.}
+\end{crfmlbox}
+
+\begin{crtrapbox}[Why DVA is positive when both formulas start with a minus]
+Both CVA and DVA carry a leading minus sign, yet CVA is a cost and DVA is a
+benefit. The resolution is the sign of ENE.
+
+\smallskip
+ENE is \emph{negative} by construction, so $-\mathrm{LGD}_I \times
+(\text{negative}) \times \mathrm{PD}_I$ comes out \textbf{positive}. Worked
+through with $\mathrm{EPE}=100$, $\mathrm{ENE}=-80$, both LGDs 60\%,
+$\mathrm{PD}_C = 2\%$ and $\mathrm{PD}_I = 1.5\%$:
+\[ \mathrm{CVA} = -0.6(100)(0.02) = -1.20 \qquad
+   \mathrm{DVA} = -0.6(-80)(0.015) = +0.72 \]
+\[ \mathrm{BCVA} = -1.20 + 0.72 = -0.48 \]
+This is the same sign convention used at \textbf{CR-12 b}, where the
+credit-adjusted value is $f_{nd} - \mathrm{CVA} + \mathrm{DVA}$, and at
+\textbf{CR-15 h}, where the xVA table records CVA as negative and DVA as positive.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-20 f}{Explain the differences between unilateral CVA (UCVA) and BCVA, and between unilateral DVA (UDVA) and BCVA.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.6cm} L{5.7cm} L{6.2cm}}
+\toprule
+\thead{Measure} & \thead{Whose default is considered} & \thead{Relation to BCVA} \\
+\midrule
+\term{UCVA} & The \emph{counterparty's} default only. The institution assumes it
+  cannot itself default &
+  BCVA is UCVA \emph{plus} the DVA term, so BCVA is less negative than UCVA \\
+\term{UDVA} & The \emph{institution's own} default only &
+  BCVA is UDVA \emph{plus} the CVA term \\
+\term{BCVA} & \emph{Both} parties' defaults, each weighted by the other's
+  survival &
+  --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The distinction is entirely about whose default is admitted into the
+calculation. A unilateral measure switches one of the two terms off.}
+
+% =====================================================================
+\lo{CR-20 g}{Calculate DVA, BCVA, and BCVA as a spread.}
+
+The DVA and BCVA calculations are the formulas at objective e, worked through in
+the trap box there. The spread form extends the CVA spread of objective c to both
+sides.
+
+\begin{crfmlbox}[BCVA as a running spread]
+\[ \frac{\mathrm{BCVA}(t,T)}{\mathrm{CDS}_{\text{premium}}(t,T)}
+   \;=\; -X^{\mathrm{CDS}}_{C}\times \text{average EPE}
+   \;-\; X^{\mathrm{CDS}}_{I}\times \text{average ENE} \]
+\vk{$X^{\mathrm{CDS}}_{C}$ and $X^{\mathrm{CDS}}_{I}$ are the CDS spreads of the
+counterparty and of the institution itself. The second term is positive in value
+because average ENE is negative, exactly as in the stand-alone case.}
+\end{crfmlbox}
+
+\begin{crkeybox}[The structure to hold]
+Each party's \emph{own credit spread} multiplies the \emph{other side's}
+exposure. The counterparty's spread is applied to your positive exposure; your own
+spread is applied to your negative exposure. Swapping which spread goes with which
+exposure is the single easiest error in this formula.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-20 h}{Explain how netting can be incorporated into the CVA calculation.}
+
+Netting reduces the CVA price, as it nets --- that is, reduces --- exposure when
+trades are settled. Because CVA is linear in EPE, anything that lowers EPE lowers
+CVA in the same proportion.
+
+% =====================================================================
+\lo{CR-20 i}{Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.}
+
+\subsection*{Incremental CVA}
+
+Incremental CVA measures the change in CVA caused by a new trade, considering the
+impact of netting with existing trades. It helps assess the impact of a new trade
+on the overall CVA risk profile.
+
+\begin{crfmlbox}[Incremental CVA]
+\[ \Delta\mathrm{CVA}_{NS \to NS'} \;=\; \mathrm{CVA}_{NS'} - \mathrm{CVA}_{NS} \]
+\[ \Delta\mathrm{CVA}_{NS \to NS'} \;=\; -\mathrm{LGD}\sum_{i=1}^{m}
+   \mathrm{EPE}_{NS \to NS'}(t_i)\times \mathrm{PD}(t_{i-1},t_i) \]
+\vk{$\mathrm{CVA}_{NS}$ and $\mathrm{CVA}_{NS'}$ are the portfolio CVA before and
+after the change. The second line is the standalone formula of objective c with
+the \emph{incremental} EPE replacing the standalone EPE. This assumes the change
+does not alter the PD or LGD of the counterparty.}
+\end{crfmlbox}
+
+\begin{crtrapbox}[Correction: the source notes set two different things equal]
+The notes print this as ``$V(i) = \Delta\mathrm{CVA}_{NS,i} = \mathrm{CVA}(NS,i)
+- \mathrm{CVA}(NS)$'' and then define, in the same variable key, $V(i)$ as ``the
+risk-free value of new trade $i$''. Both cannot hold: the risk-free value of a new
+trade is not its incremental CVA.
+
+\smallskip
+The GARP form carries no $V(i)$ term. The incremental CVA is the portfolio CVA
+after the change less the portfolio CVA before it, and nothing else.
+\end{crtrapbox}
+
+Incremental CVA ensures that the CVA of a new transaction is represented by its
+contribution to the overall CVA at the time it is executed, which is what makes it
+chargeable to individual traders, businesses and ultimately clients. It applies
+not only to new transactions but also to unwinding, restructuring, and changes to
+contractual terms such as margin agreements.
+
+\begin{crkeybox}[Order matters, but only once]
+CVA depends on the \emph{order} in which transactions are executed, but does not
+change due to subsequent transactions. A trade charged at execution keeps its
+charge.
+\end{crkeybox}
+
+\subsection*{Marginal CVA}
+
+Marginal CVA isolates the CVA contribution of individual trades \emph{within} a
+netted portfolio. It provides a detailed analysis of which trades have the biggest
+impact on a counterparty's CVA. The formula is the same as standalone CVA but uses
+the \term{marginal expected exposure} instead of the standalone exposure.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.8cm} L{5.7cm} L{6.0cm}}
+\toprule
+ & \thead{Incremental CVA} & \thead{Marginal CVA} \\
+\midrule
+Question answered & What does \emph{adding this trade} do to portfolio CVA? &
+  How is the \emph{existing} portfolio CVA attributed across its trades? \\
+Exposure used & Incremental EPE, i.e.\ the change in EPE &
+  Marginal EPE \\
+When used & At execution, to charge the new trade &
+  After the fact, to analyse an existing book \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Both formulas are the standalone CVA with a different exposure measure
+substituted in. What separates them is the question, not the mathematics:
+incremental is forward-looking and trade-by-trade at execution, marginal is a
+decomposition of a book that already exists.}
+
+\subsection*{Converting CVA into a running spread}
+
+To integrate CVA costs into the pricing of instruments like swaps, divide the
+standalone CVA by the product of the risky duration and the notional amount.
+
+\begin{crexbox}[CVA as a running spread on a swap]
+For a CVA of $-90{,}000$ and a swap with a notional of \$100 million and a risky
+duration of 3.75, what is the running spread?
+\tcblower
+\[ \frac{-90{,}000}{3.75 \times \$100{,}000{,}000}
+   = \frac{-90{,}000}{375{,}000{,}000}
+   = -0.000240 \]
+which is \textbf{$-2.40$ basis points}.
+
+\smallskip
+Check the direction: the CVA is negative and so is the spread, meaning the charge
+is levied \emph{against} the counterparty in the pricing of the swap.
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-20 j}{Explain the impact of incorporating collateralization into the CVA calculation, including the impact of margin period of risk, thresholds, and initial margins.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{4.4cm} L{10.1cm}}
+\toprule
+\thead{Feature} & \thead{Effect on CVA} \\
+\midrule
+Collateral generally & \textbf{Reduces} CVA by lowering the counterparty's
+  expected exposure. It does \emph{not} affect the default probability \\
+Minimum transfer amounts & \textbf{Increase} CVA \\
+Thresholds & \textbf{Increase} CVA \\
+Higher initial margins \newline (negative thresholds) & \textbf{Decrease} CVA \\
+Margin period of risk & Defines the timeframe over which CVA is measured. As the
+  MPoR increases, CVA gradually approaches the \emph{uncollateralized} CVA \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The directions match CR-19 h exactly: lower MPoR, threshold and MTA are
+better, higher initial margin is better. Note the mechanism stated in the first
+row --- collateral works on \emph{exposure}, never on the probability of default.}
+
+% =====================================================================
+\lo{CR-20 k}{Describe wrong-way risk and contrast it with right-way risk.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.0cm} L{5.5cm} L{6.0cm}}
+\toprule
+ & \thead{Wrong-way risk (WWR)} & \thead{Right-way risk (RWR)} \\
+\midrule
+What happens & Exposure \textbf{increases} as the counterparty's credit quality
+  \textbf{worsens} &
+  Exposure \textbf{decreases} as the counterparty's credit quality
+  \textbf{improves} \\
+Effect on CVA & \textbf{Increases} CVA & \textbf{Reduces} CVA \\
+Effect on DVA & \textbf{Reduces} DVA & \textbf{Increases} DVA \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Three directions per column and all three flip together. The underlying
+idea is a single correlation: wrong-way risk is positive correlation between your
+exposure and the counterparty's default probability.}
+
+% =====================================================================
+\lo{CR-20 l}{Identify examples of wrong-way risk and examples of right-way risk.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.3cm} L{11.2cm}}
+\toprule
+\thead{Transaction} & \thead{Why it is wrong-way} \\
+\midrule
+\term{OTC put option} & You buy an out-of-the-money put on a stock from the
+  issuer. If the stock price falls (good for you), the issuer's creditworthiness
+  might also decline (bad for you). \textbf{Out-of-the-money puts have more WWR
+  than in-the-money puts} \\
+\term{Credit default swap} & You buy CDS protection against defaults on bonds
+  issued by a reference entity. If the reference entity defaults the value of
+  your protection increases, but the gain on the CDS and the default probability
+  of the \emph{protection seller} rise together \\
+\term{Foreign currency transactions} & You lend currency to a counterparty in an
+  emerging market. If their currency weakens (good for you), their
+  creditworthiness might also deteriorate \\
+\term{Foreign currency swaps} & You swap fixed-rate payments with a counterparty
+  in another currency. If interest rates fall in their currency (good for you),
+  their creditworthiness might also decline \\
+\term{Interest rate swaps} & You receive fixed and pay floating. If rates rise
+  (good for you), their creditworthiness might also decline \\
+\term{Commodity forwards} & You buy a forward to lock in a low oil price. If oil
+  prices rise (good for you), the counterparty might face pressure due to
+  concentrated positions \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Every row has the same shape: the move that is good for you is the move
+that is bad for them. That is the test to apply to any candidate example, and it
+is also why right-way risk examples are simply the same trades with the
+correlation reversed.}
+
+% =====================================================================
+\lo{CR-20 m}{Discuss the impact of collateral on wrong-way risk.}
+
+Collateral reduces exposure, but its effectiveness depends on \term{timing}.
+
+\begin{itemize}
+\item \term{Gradual exposure increase.} Collateral helps mitigate WWR.
+\item \term{Sudden exposure jump}, for example a currency devaluation. Collateral
+might be difficult to obtain in time.
+\end{itemize}
+
+\begin{crtrapbox}[Collateral is weakest exactly where wrong-way risk is worst]
+The wrong-way exposures that matter most are the jump-type ones --- a
+devaluation, a default of a reference entity --- and those are precisely the ones
+where the margin period of risk means the collateral call cannot be met in time.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-20 n}{Identify examples of wrong-way collateral.}
+
+\begin{crkeybox}[Wrong-way collateral]
+A \term{payer interest rate swap collateralized by government bonds}. When
+interest rates rise you benefit on the swap, so your exposure grows --- but the
+value of the government bonds posted as collateral falls at the same moment.
+
+\smallskip
+The exposure and the collateral move against each other, which is wrong-way risk
+located \emph{inside the collateral} rather than in the counterparty.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-20 o}{Discuss the impact of wrong-way risk on central counterparties (CCPs).}
+
+CCPs rely on collateral and default funds from members to cover losses. WWR makes
+CCPs vulnerable in two ways.
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Higher credit quality members may have higher WWR}, requiring
+adjustments in margin and default fund contributions.
+\item \term{Risky collateral posted by members} can increase WWR for the CCP.
+\end{enumerate}
+
+CCPs are therefore susceptible to WWR and need adjustments based on member credit
+quality and collateral risk.
+
+% =====================================================================
+\lo{CR-20 p}{Describe the various wrong-way modeling methods including hazard rate approaches, structural approaches, parametric approaches, and jump approaches.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.0cm} L{5.6cm} L{5.9cm}}
+\toprule
+\thead{Method} & \thead{How it works} & \thead{Assessment} \\
+\midrule
+\term{Hazard rate} \newline (intensity approach) &
+  Simulates credit spreads and calculates expected exposure when default occurs,
+  that is, at wider spreads &
+  Easy to implement, but \textbf{may underestimate WWR} due to weak dependence
+  between default and exposure \\
+\term{Structural} &
+  Maps default and exposure distributions from a \emph{bivariate} distribution.
+  WWR is identified as early default with high exposure, that is, positive
+  correlation &
+  \emph{Advantage}: uses the existing exposure distribution.
+  \emph{Disadvantage}: the information might not be relevant \\
+\term{Parametric} &
+  Examines the historical link between portfolio exposure and credit spreads. High
+  portfolio value together with a high credit spread indicates higher WWR &
+  Relies on historical data reflecting current scenarios \\
+\term{Jump} &
+  Assumes a \emph{jump} at default, for example a sharp currency devaluation. The
+  jump factor reflects the size of the devaluation &
+  \textbf{Most applicable to WWR} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The two ends of the table are the examinable pair. The hazard rate
+approach is the easiest to implement and the one most likely to \emph{under}state
+wrong-way risk; the jump approach is the one best suited to it, because the
+wrong-way events that matter are discontinuous.}
+
+% =====================================================================
+\lo{CR-20 q}{Explain the implications of central clearing on wrong-way risk.}
+
+Central clearing does not remove wrong-way risk; it relocates it. Because a CCP's
+protection is built on collateral and default fund contributions, and both of
+those can be impaired by the same events that raise member exposures, the CCP
+inherits the wrong-way risk of its members' positions and of the collateral they
+post.
+
+The two adjustments a CCP must therefore make are the ones at objective o: margin
+and default fund contributions scaled to member credit quality, and haircuts or
+eligibility rules scaled to the wrong-way risk in the collateral itself.

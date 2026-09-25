@@ -1,0 +1,478 @@
+\reading{MR-12}{Arbitrage Pricing with Term Structure Models}{defer}{3}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Calculate the expected discounted value of a zero-coupon security using a binomial tree.
+\item Construct and apply an arbitrage argument to price a call option on a zero-coupon security
+      using replicating portfolios.
+\item Define risk-neutral pricing and apply it to option pricing.
+\item Explain the difference between true and risk-neutral probabilities and apply this
+      difference to interest rate drift.
+\item Explain how the principles of arbitrage pricing of derivatives on fixed-income securities
+      can be extended over multiple periods.
+\item Define option-adjusted spread (OAS) and apply it to security pricing.
+\item Describe the rationale behind the use of recombining trees in option pricing.
+\item Calculate the value of a constant-maturity Treasury swap, given an interest rate tree and
+      the risk-neutral probabilities.
+\item Evaluate the advantages and disadvantages of reducing the size of the time steps on the
+      pricing of derivatives on fixed-income securities.
+\item Evaluate the appropriateness of the Black-Scholes-Merton model when valuing derivatives on
+      fixed-income securities.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-12 a}{Calculate the expected discounted value of a zero-coupon security using a binomial tree.}
+
+\begin{mrdefbox}[title={Binomial interest rate tree}]
+A model where interest rates can move up or down --- two possibilities --- in each period,
+creating a tree structure of possible interest rate paths over time.
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Nodes:} points where interest rates can move up (U) or down (L).
+\item \term{Forward rates:} rates at each node representing the next period's interest rate.
+\item \term{No arbitrage:} the values for on-the-run issues generated using an interest rate
+      tree should prohibit arbitrage opportunities.
+\end{enumerate}
+\end{mrdefbox}
+
+\subsection{Valuing an option-free bond with the tree, using backward induction}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Backward induction:} start from the bond's maturity and work backwards to its
+      current value.
+\item At each node, the bond value is the \term{average of discounted future values} from the
+      next two nodes.
+\item The discount rate is the \term{forward rate} associated with the current node.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  val/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, minimum width=1.25cm, align=center},
+  leaf/.style={rectangle, rounded corners=2pt, draw=black!35, fill=FRMSoft,
+    line width=0.6pt, inner sep=3.5pt, minimum width=1.1cm, align=center}]
+  \node[val] (root) at (0,0) {925.21};
+  \node[val] (u) at (3.3,1.5) {970.87};
+  \node[val] (d) at (3.3,-1.5) {980.39};
+  \node[val] (m) at (3.3,0) {975.61};
+  \node[leaf] (l1) at (6.9,2.3) {1,000};
+  \node[leaf] (l2) at (6.9,0.75) {1,000};
+  \node[leaf] (l3) at (6.9,-0.75) {1,000};
+  \node[leaf] (l4) at (6.9,-2.3) {1,000};
+  \draw[FRMNavy!70, line width=0.8pt] (root) -- node[above left=-2pt, text=black]{$.8024$} (u);
+  \draw[FRMNavy!70, line width=0.8pt] (root) -- node[below left=-2pt, text=black]{$.1976$} (d);
+  \draw[black!45, line width=0.7pt] (u) -- node[above left=-2pt, text=black]{$q$} (l1);
+  \draw[black!45, line width=0.7pt] (u) -- node[below left=-2pt, text=black]{$1-q$} (m);
+  \draw[black!45, line width=0.7pt] (m) -- (l2);
+  \draw[black!45, line width=0.7pt] (m) -- (l3);
+  \draw[black!45, line width=0.7pt] (d) -- node[above left=-2pt, text=black]{$q$} (m);
+  \draw[black!45, line width=0.7pt] (d) -- node[below left=-2pt, text=black]{$1-q$} (l4);
+  \node[anchor=west, text=black!60, align=left, text width=4.3cm] at (8.3,1.2)
+    {Do not forget to add a coupon or payoff into every node value derived.};
+  \node[anchor=west, text=black!60, align=left, text width=4.3cm] at (8.3,-1.2)
+    {If $q = 0.5$ it is a \textbf{real world} probability. If $q \neq 0.5$ it is
+     \textbf{risk-neutral}: it equates the current price with the market price.};
+\end{tikzpicture}
+\end{center}
+\figcap{Backward induction runs right to left. Each interior node is the probability-weighted
+average of the two nodes to its right, discounted one period at that node's own forward rate.}
+
+\begin{mrkeybox}[title={Two ways to build a risk-neutral interest rate tree}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Method 1:} adjust the \textit{interest rates} on the tree to match market prices of
+      on-the-run bonds, ensuring an arbitrage-free tree.
+\item \term{Method 2:} adjust the \textit{probabilities} to match market prices of bonds derived
+      from the model, resulting in risk-neutral probabilities.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-12 b}{Construct and apply an arbitrage argument to price a call option on a zero-coupon security using replicating portfolios.}
+
+\noindent\gapbadge\hspace{4pt}{\sffamily\fontsize{7.6}{9}\selectfont\color{black!55}%
+The source notes state this objective but never construct a replicating portfolio. The
+construction below is written from the GARP curriculum.}\par
+\vspace{6pt}
+
+\begin{mrgapbox}[title={Why this matters}]
+Risk-neutral pricing is a shortcut. The \textit{reason} it works is the replicating portfolio
+argument underneath it: if a portfolio of ordinary bonds reproduces the option's payoff in every
+state, then by the law of one price the option must cost what that portfolio costs, or there is
+a riskless arbitrage.
+\end{mrgapbox}
+
+\subsection{The setup}
+Price a call option expiring in six months to purchase \$1,000 face value of a then six-month
+zero at \$990.
+
+\begin{itemize}
+\item If on date 1 the six-month rate is \term{2.50\%}, a six-month zero sells for \$987.654, so
+      the right to buy it at \$990 is \term{worthless}.
+\item If the six-month rate is \term{1.50\%}, the price is \$992.556, so the option is worth
+      $992.556 - 990 = \mathbf{\$2.556}$.
+\end{itemize}
+
+\subsection{Build a portfolio that reproduces those two payoffs}
+Construct a portfolio on date 0 of six-month and one-year zeros such that it is worth \$0 in the
+up state and \$2.556 in the down state. Let $F^5$ and $F^1$ be the face values of the six-month
+and one-year zeros.
+
+\begin{mrfmlbox}
+\begin{align*}
+F^5 + 0.987654\,F^1 &= \$0 && \text{(up state)}\\
+F^5 + 0.992556\,F^1 &= \$2.556 && \text{(down state)}
+\end{align*}
+\mrvk{In the up state, the maturing six-month zero pays its face value $F^5$, and the once
+one-year zero --- now a six-month zero --- is worth 0.987654 per dollar of face. The same
+reading applies in the down state at the other price.}{}
+\end{mrfmlbox}
+
+Solving the two equations:
+\[ F^5 = -\$515.00 \qquad\qquad F^1 = \$521.4375 \]
+
+In words: the option is replicated by \term{buying} \$521.4375 face of one-year zeros and
+\term{shorting} \$515.00 face of six-month zeros on date 0.
+
+\subsection{Price it by the law of one price}
+\[ 0.990099\,F^5 + 0.978842\,F^1 \;=\; -0.990099 \times 515.00 + 0.978842 \times 521.4375
+   \;=\; \mathbf{\$0.504} \]
+
+\begin{mrtrapbox}[title={What enforces the price}]
+If the option cost \textit{less} than \$0.504, arbitrageurs could buy the option, short the
+replicating portfolio, keep the difference, and have no future liabilities. If it cost
+\textit{more}, they would short the option and buy the portfolio. Ruling out riskless arbitrage
+is what pins the price at \$0.504.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-12 c}{Define risk-neutral pricing and apply it to option pricing.}
+\lo{MR-12 d}{Explain the difference between true and risk-neutral probabilities and apply this difference to interest rate drift.}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  val/.style={rectangle, rounded corners=2pt, draw=FRMNavy!50, fill=PaleNavy,
+    line width=0.7pt, inner sep=4pt, minimum width=1.7cm, align=center},
+  leaf/.style={rectangle, rounded corners=2pt, draw=black!35, fill=FRMSoft,
+    line width=0.6pt, inner sep=4pt, minimum width=1.5cm, align=center}]
+  \node[val] (root) at (0,0) {\$90.006\\ 4.5749\%};
+  \node[val] (u) at (3.6,1.5) {\$93.299\\ 7.1826\%};
+  \node[val] (d) at (3.6,-1.5) {\$94.948\\ 5.3210\%};
+  \node[leaf] (l1) at (7.4,2.5) {\$100.00};
+  \node[leaf] (l2) at (7.4,1.0) {\$100.00};
+  \node[leaf] (l3) at (7.4,-1.0) {\$100.00};
+  \node[leaf] (l4) at (7.4,-2.5) {\$100.00};
+  \foreach \a/\b in {root/u, root/d, u/l1, u/l2, d/l3, d/l4}{
+    \draw[FRMNavy!60, line width=0.8pt] (\a) -- node[midway, sloped, above, text=black]
+      {$0.5$} (\b);}
+  \node[anchor=north, text=black!60] at (0,-2.6) {\textbf{Today}};
+  \node[anchor=north, text=black!60] at (3.6,-2.6) {\textbf{End of 1 year}};
+  \node[anchor=north, text=black!60] at (7.4,-2.6) {\textbf{End of 2 years}};
+  \node[anchor=west, text=FRMGold, align=left, text width=3.0cm] at (8.9,0)
+    {$q = 0.5$, so these are \textbf{true} probabilities. It is a zero-coupon bond.};
+\end{tikzpicture}
+\end{center}
+
+\begin{mrexbox}[title={Backward induction, three steps}]
+\small
+\begin{align*}
+\textbf{Step 1:}\quad V_{1,U} &= \frac{(\$100 \times 0.5) + (\$100 \times 0.5)}{1.071826}
+  = \$93.299\\[3pt]
+\textbf{Step 2:}\quad V_{1,L} &= \frac{(\$100 \times 0.5) + (\$100 \times 0.5)}{1.053210}
+  = \$94.948\\[3pt]
+\textbf{Step 3:}\quad V_{0} &= \frac{(\$93.299 \times 0.5) + (\$94.948 \times 0.5)}{1.045749}
+  = \$90.006
+\end{align*}
+\end{mrexbox}
+
+\begin{mrkeybox}[title={True versus risk-neutral probabilities}]
+\begin{itemize}
+\item If $q = 0.5$, the probabilities are \term{true} (real world) probabilities.
+\item If $q \neq 0.5$, the probabilities have been adjusted so that the model price equals the
+      observed market price. Those adjusted probabilities are the \term{risk-neutral}
+      probabilities, and pricing with them is \term{risk-neutral pricing}.
+\item The same adjustment can be made on the rates instead of the probabilities, which is where
+      the \term{interest rate drift} comes from: shifting the rates up or down across the tree
+      is the alternative to reweighting the branches.
+\end{itemize}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-12 e}{Explain how the principles of arbitrage pricing of derivatives on fixed-income securities can be extended over multiple periods.}
+
+\begin{mrexbox}[title={Example --- European call on a 3-year, 7\% coupon bond, strike 100}]
+The tree below is built in two passes. First fill in the bond price at every node by backward
+induction; then compute the option value at every node from those bond prices.
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\tiny\sffamily},
+  nd/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, text width=2.05cm, align=left}]
+  \node[nd] (root) at (0,0) {Int.\ rate = 3.00\%\\ Bond = \$105.01\\ \textbf{Option = \$0.45}};
+  \node[nd] (u) at (3.6,2.0) {Int.\ rate = 5.99\%\\ Bond = \$100.37\\ \textbf{Option = \$0.23}};
+  \node[nd] (d) at (3.6,-2.0) {Int.\ rate = 4.44\%\\ Bond = \$103.65\\ \textbf{Option = \$1.20}};
+  \node[nd] (uu) at (7.6,3.2) {Int.\ rate = 8.56\%\\ Bond = \$98.56\\ \textbf{Option = \$0.00}};
+  \node[nd] (mm) at (7.6,0) {Int.\ rate = 6.34\%\\ Bond = \$100.62\\ \textbf{Option = \$0.62}};
+  \node[nd] (dd) at (7.6,-3.2) {Int.\ rate = 4.70\%\\ Bond = \$102.20\\ \textbf{Option = \$2.20}};
+  \draw[FRMNavy!65, line width=0.8pt] (root) -- node[sloped, above, text=black]{0.76} (u);
+  \draw[FRMNavy!65, line width=0.8pt] (root) -- node[sloped, below, text=black]{0.24} (d);
+  \draw[black!45, line width=0.7pt] (u) -- node[sloped, above, text=black]{0.60} (uu);
+  \draw[black!45, line width=0.7pt] (u) -- node[sloped, above, text=black]{0.40} (mm);
+  \draw[black!45, line width=0.7pt] (d) -- node[sloped, above, text=black]{0.60} (mm);
+  \draw[black!45, line width=0.7pt] (d) -- node[sloped, below, text=black]{0.40} (dd);
+  \node[anchor=north, text=black!60] at (0,-3.9) {\textbf{Today}};
+  \node[anchor=north, text=black!60] at (3.6,-3.9) {\textbf{End of year 1}};
+  \node[anchor=north, text=black!60] at (7.6,-3.9) {\textbf{End of year 2}};
+\end{tikzpicture}
+\end{center}
+\figcap{A recombining tree: the middle node at year 2 is reached by an up-then-down move or a
+down-then-up move, and carries one rate either way. Bond prices in plain type, option values in
+bold.}
+
+\subsection{Step 1 --- find the bond prices}
+\begin{mrexbox}
+\small
+\textbf{Year 2 nodes} (one year to maturity, coupon 7, face 100):
+\[ \text{Mid: } \frac{107}{1.0634} = \$100.62 \qquad\qquad
+   \text{Bottom: } \frac{107}{1.0470} = \$102.20 \]
+
+\textbf{Year 1 nodes} (add the \$7 coupon to each year-2 price before discounting):
+\begin{align*}
+\text{Top: } &\frac{(\$105.56 \times 0.6) + (\$107.62 \times 0.4)}{1.0599} = \$100.37\\[3pt]
+\text{Bottom: } &\frac{(\$107.62 \times 0.6) + (\$109.20 \times 0.4)}{1.0444} = \$103.65
+\end{align*}
+
+\textbf{Today:}
+\[ \frac{(\$107.37 \times 0.76) + (\$110.65 \times 0.24)}{1.03} = \$105.01 \]
+\end{mrexbox}
+
+\subsection{Step 2 --- find the option values}
+\begin{mrexbox}
+\small
+\[ \frac{(\$0.00 \times 0.6) + (\$0.62 \times 0.4)}{1.0599} = \$0.23
+   \qquad\longrightarrow\qquad
+   \frac{(\$0.23 \times 0.76) + (\$1.20 \times 0.24)}{1.03} = \mathbf{\$0.45} \]
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={The step people drop}]
+The \$7 coupon must be added to each node's derived bond price \textit{before} it is discounted
+back a period. \$105.56 is \$98.56 plus the coupon; \$107.62 is \$100.62 plus the coupon. The
+option values, by contrast, carry no coupon.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-12 f}{Define option-adjusted spread (OAS) and apply it to security pricing.}
+
+\begin{mrdefbox}[title={Option-adjusted spread}]
+The option-adjusted spread is the spread that makes the \term{model value} --- calculated as the
+present value of projected cash flows --- equal to the \term{current market price}.
+\end{mrdefbox}
+
+\begin{mrexbox}[title={Applying OAS to the CMT swap below}]
+The model price of the CMT swap was \$1,466.63. Now assume the market price was instead
+\$1,464.40, which is \$2.23 \textit{less} than the model price. In this case, the OAS to be
+added to each discounted risk-neutral rate in the CMT swap binomial tree turns out to be
+\term{20 basis points}.
+\end{mrexbox}
+
+\begin{mrkeybox}[title={Direction}]
+The market price sits \textit{below} the model price, so the discount rates must be
+\textit{raised} to bring the model down to the market. A positive OAS is added to every rate in
+the tree.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-12 g}{Describe the rationale behind the use of recombining trees in option pricing.}
+
+\begin{mrdefbox}[title={Recombining and non-recombining}]
+If the interest rate in the middle node is the \term{same} irrespective of an up-then-down or a
+down-then-up move, the tree is \term{recombining}. Otherwise it is
+\term{non-recombining}.
+\end{mrdefbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  dot/.style={circle, fill=FRMNavy, inner sep=1.8pt},
+  dotr/.style={circle, fill=FRMRed, inner sep=1.8pt}]
+% recombining
+\begin{scope}
+  \node[dot] (a) at (0,0) {};
+  \node[dot] (b) at (1.5,0.9) {}; \node[dot] (c) at (1.5,-0.9) {};
+  \node[dot] (d) at (3.0,1.8) {}; \node[dot] (e) at (3.0,0) {}; \node[dot] (f) at (3.0,-1.8) {};
+  \foreach \p/\q in {a/b, a/c, b/d, b/e, c/e, c/f}{
+    \draw[FRMNavy!70, line width=0.8pt] (\p) -- (\q);}
+  \node[anchor=west, text=FRMNavy] at (3.2,0) {one middle node};
+  \node[anchor=north, text=black!70] at (1.8,-2.3) {\textbf{Recombining} --- 3 nodes at step 2};
+\end{scope}
+% non-recombining
+\begin{scope}[shift={(8.2,0)}]
+  \node[dotr] (a) at (0,0) {};
+  \node[dotr] (b) at (1.5,0.9) {}; \node[dotr] (c) at (1.5,-0.9) {};
+  \node[dotr] (d) at (3.0,1.8) {}; \node[dotr] (e1) at (3.0,0.45) {};
+  \node[dotr] (e2) at (3.0,-0.45) {}; \node[dotr] (f) at (3.0,-1.8) {};
+  \foreach \p/\q in {a/b, a/c, b/d, b/e1, c/e2, c/f}{
+    \draw[FRMRed!70, line width=0.8pt] (\p) -- (\q);}
+  \node[anchor=west, text=FRMRed] at (3.2,0) {two separate middle nodes};
+  \node[anchor=north, text=black!70] at (1.8,-2.3)
+    {\textbf{Non-recombining} --- 4 nodes at step 2};
+\end{scope}
+\end{tikzpicture}
+\end{center}
+\figcap{The rationale is arithmetic. A recombining tree grows to $n+1$ nodes after $n$ steps; a
+non-recombining tree grows to $2^n$. Over 30 steps that is 31 nodes against more than a billion,
+which is the difference between a tractable model and an impossible one.}
+
+% ---------------------------------------------------------
+\lo{MR-12 h}{Calculate the value of a constant-maturity Treasury swap, given an interest rate tree and the risk-neutral probabilities.}
+
+A CMT swap is an agreement to swap a floating rate for a Treasury rate, such as the 10-year
+rate. The rate tree can be used to price it.
+
+\begin{mrfmlbox}
+\[ \text{Payoff} \;=\; \left( \frac{\$1{,}000{,}000}{2} \right) \times
+   \bigl( y_{CMT} - \text{fixed rate} \bigr) \]
+\mrvk{$y_{CMT}$ = a \textit{semiannually compounded} yield of a predetermined maturity, observed
+on the payment date;\quad the division by 2 is the semiannual accrual;\quad the fixed rate in
+the worked example below is \textbf{7.00\%}.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\tiny\sffamily},
+  nd/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, text width=1.85cm, align=left}]
+  \node[nd] (root) at (0,0) {Rate = 7.00\%\\ \textbf{V = \$1,466.63}};
+  \node[nd] (u) at (3.5,1.8) {Rate = 7.25\%\\ \textbf{V = \$2,697.53}};
+  \node[nd] (d) at (3.5,-1.8) {Rate = 6.75\%\\ \textbf{V = $-$\$2,217.35}};
+  \node[nd] (uu) at (7.2,3.0) {Rate = 7.50\%\\ payoff \$2,500};
+  \node[nd] (mm) at (7.2,0) {Rate = 7.00\%\\ payoff \$0};
+  \node[nd] (dd) at (7.2,-3.0) {Rate = 6.50\%\\ payoff $-$\$2,500};
+  \draw[FRMNavy!65, line width=0.8pt] (root) -- node[sloped, above, text=black]{0.76} (u);
+  \draw[FRMNavy!65, line width=0.8pt] (root) -- node[sloped, below, text=black]{0.24} (d);
+  \draw[black!45, line width=0.7pt] (u) -- node[sloped, above, text=black]{0.60} (uu);
+  \draw[black!45, line width=0.7pt] (u) -- node[sloped, above, text=black]{0.40} (mm);
+  \draw[black!45, line width=0.7pt] (d) -- node[sloped, above, text=black]{0.60} (mm);
+  \draw[black!45, line width=0.7pt] (d) -- node[sloped, below, text=black]{0.40} (dd);
+  \node[anchor=north, text=black!60] at (0,-3.7) {\textbf{Today}};
+  \node[anchor=north, text=black!60] at (3.5,-3.7) {\textbf{Six months}};
+  \node[anchor=north, text=black!60] at (7.2,-3.7) {\textbf{One year}};
+\end{tikzpicture}
+\end{center}
+
+\subsection{Step 1 --- calculate the payoffs, floating minus fixed}
+\begin{mrexbox}
+\small
+\begin{align*}
+\text{payoff}_{1,U} &= \tfrac{1{,}000{,}000}{2} \times (7.25\% - 7.00\%) = \$1{,}250\\
+\text{payoff}_{1,L} &= \tfrac{1{,}000{,}000}{2} \times (6.75\% - 7.00\%) = -\$1{,}250\\
+\text{payoff}_{2,U} &= \tfrac{1{,}000{,}000}{2} \times (7.50\% - 7.00\%) = \$2{,}500\\
+\text{payoff}_{2,M} &= \tfrac{1{,}000{,}000}{2} \times (7.00\% - 7.00\%) = \$0\\
+\text{payoff}_{2,L} &= \tfrac{1{,}000{,}000}{2} \times (6.50\% - 7.00\%) = -\$2{,}500
+\end{align*}
+\end{mrexbox}
+
+\subsection{Step 2 --- value by backward induction}
+\begin{mrexbox}
+\small
+\begin{align*}
+V_{1,U} &= \frac{(\$2{,}500 \times 0.6) + (\$0 \times 0.4)}{1 + \tfrac{0.0725}{2}} + \$1{,}250
+  = \$2{,}697.53\\[4pt]
+V_{1,L} &= \frac{(\$0 \times 0.6) + (-\$2{,}500 \times 0.4)}{1 + \tfrac{0.0675}{2}} - \$1{,}250
+  = -\$2{,}217.35\\[4pt]
+V_{0} &= \frac{(\$2{,}697.53 \times 0.76) + (-\$2{,}217.35 \times 0.24)}{1 + \tfrac{0.07}{2}}
+  = \mathbf{\$1{,}466.63}
+\end{align*}
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={Do not forget the mid values}]
+Two things get dropped here. First, the \textbf{middle} year-1 payoff of \$0 still has to be
+carried into both $V_{1,U}$ and $V_{1,L}$ --- it is not the same as leaving the branch out.
+Second, the \textbf{six-month payoff itself} is added to the discounted value at that node:
+$+\$1{,}250$ at the upper node, $-\$1{,}250$ at the lower one.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-12 i}{Evaluate the advantages and disadvantages of reducing the size of the time steps on the pricing of derivatives on fixed-income securities.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{4.2cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Advantage} & \hdr{Disadvantage}\\
+Smaller time steps \term{increase model accuracy}. Daily steps enhance accuracy.
+  & They \term{add computational complexity} and require more computational resources.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-12 j}{Evaluate the appropriateness of the Black-Scholes-Merton model when valuing derivatives on fixed-income securities.}
+
+\begin{mrtrapbox}[title={Why BSM does not fit fixed income}]
+The Black-Scholes-Merton model is \term{not suitable} for fixed-income securities due to
+unrealistic assumptions:
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{No upper limit to the asset price.} Bonds have an upper limit.
+\item \term{Constant risk-free rate.} Interest rates change, and bonds are affected by exactly
+      that.
+\item \term{Constant bond price volatility.} Bond price volatility is not constant --- it falls
+      as the bond approaches maturity.
+\end{enumerate}
+\end{mrtrapbox}
+
+\subsection{Bonds with embedded options}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.4cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Callable bonds} & \hdr{}\\
+a) & \term{Negative convexity} due to the callable feature.\\
+\rowcolor{FRMSoft} b) & The price-yield curve \term{flattens} as yields decrease.\\
+c) & Capital gains are \term{capped} by the call price.\\
+\rowcolor{FRMSoft} d) & Increases \term{reinvestment risk}.\\
+\midrule
+\rowcolor{FRMNavy} \hdr{Putable bonds} & \hdr{}\\
+a) & The putable feature affects the price-yield relationship.\\
+\rowcolor{FRMSoft} b) & The put price serves as a \term{floor} value for the bond price.\\
+c) & Putable bonds are \term{less sensitive} to yield increases compared to non-putable bonds at
+  higher yields.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=6.3cm,
+  xmin=0, xmax=12, ymin=55, ymax=155,
+  xlabel={\scriptsize Yield (\%)}, ylabel={\scriptsize Bond price},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,2,4,6,8,10,12}, ytick={60,80,100,120,140},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[black!45, line width=1.0pt, smooth, domain=1.35:12, samples=120]
+  {60 + 420/(x+3.2)};
+\addlegendentry{Option-free bond}
+\addplot[FRMRed, line width=1.3pt, dashed, smooth, domain=1.35:12, samples=120]
+  {min(115, 60 + 420/(x+3.2))};
+\addlegendentry{Callable --- capped at the call price}
+\addplot[FRMGreen, line width=1.3pt, dotted, smooth, domain=1.35:12, samples=120]
+  {max(95, 60 + 420/(x+3.2))};
+\addlegendentry{Putable --- floored at the put price}
+\draw[FRMRed!55, line width=0.5pt, dashed] (axis cs:0,115) -- (axis cs:12,115);
+\draw[FRMGreen!55, line width=0.5pt, dashed] (axis cs:0,95) -- (axis cs:12,95);
+\node[anchor=west, font=\tiny\sffamily, text=FRMRed] at (axis cs:0.15,118) {call price};
+\node[anchor=west, font=\tiny\sffamily, text=FRMGreen] at (axis cs:0.15,91) {put price};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The embedded option shows up as a bend in the price-yield curve. The callable bond
+cannot rise past the call price as yields fall, which is what negative convexity looks like. The
+putable bond cannot fall past the put price as yields rise, which is why it is less sensitive to
+yield increases at the high end.}
+
+
+% ==========================================================

@@ -1,0 +1,424 @@
+\reading{CR-14}{Derivatives (Gregory Ch.2)}{DEFER}{1}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Define derivatives and explain how derivative transactions create counterparty credit risk.
+\item Compare and contrast exchange-traded derivatives and over-the-counter (OTC) derivatives, and discuss the features of their markets.
+\item Describe the process of clearing a derivative transaction.
+\item Identify the participants and describe the use of collateralization in the derivatives market.
+\item Define the International Swaps and Derivatives Association (ISDA) Master Agreement, the risk-mitigating features it provides, and the default events it covers.
+\item Describe the features and use of credit derivatives and discuss potential risks they may create.
+\item Describe central clearing of OTC derivatives and discuss the roles, mandate, advantages, and disadvantages of the central counterparty (CCP).
+\item Explain the margin requirements for both centrally-cleared and non-centrally-cleared derivatives.
+\item Define special purpose vehicles (SPVs), derivatives product companies (DPCs), monolines, and credit derivatives product companies (CDPCs) and describe the limitations of using them as risk mitigating methods.
+\item Describe the approaches used and the challenges faced in modeling derivatives risk.
+\end{enumerate}
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-14 a}{Define derivatives and explain how derivative transactions create counterparty credit risk.}
+
+\begin{crdefbox}[Derivative]
+A derivative represents a contractual agreement between two parties to buy or
+sell an underlying security, or to make a payment in the future. Derivatives can
+be short-term or long-term, and are used to manage risk (hedging) or to speculate
+on price movements. There are standardized versions, like futures, and custom
+ones, like swaps.
+\end{crdefbox}
+
+\begin{crdefbox}[Counterparty risk]
+Counterparty risk is the \emph{conditional} risk that the NPV of the investment
+is positive, but the counterparty fails to perform its obligations, so no profit
+is realized from the trade.
+\end{crdefbox}
+
+Counterparty risk is managed over time through \term{clearing}. This can be
+performed \emph{bilaterally}, where each counterparty manages the risk of the
+other, or \emph{centrally} through a central counterparty (CCP).
+
+Products carrying credit risk include loans, forwards, swaps, options and exotic
+options.
+
+% =====================================================================
+\lo{CR-14 b}{Compare and contrast exchange-traded derivatives and over-the-counter (OTC) derivatives, and discuss the features of their markets.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.6cm} L{5.7cm} L{6.2cm}}
+\toprule
+ & \thead{Exchange-traded} & \thead{Over-the-counter (OTC)} \\
+\midrule
+Contract & Standardized contracts with fixed terms: price, expiry, notional
+  amount & Privately negotiated between two parties, highly customizable to meet
+  specific needs \\
+Liquidity & Highly liquid and transparent &
+  Lower liquidity; most OTC markets are less liquid, though some, like foreign
+  exchange, remain highly liquid \\
+Clearing and settlement & Easy to clear and settle &
+  Harder to trade and unwind \\
+Flexibility & Lacks flexibility, since terms cannot be customized &
+  Allows precise risk management \\
+Exiting a position & Straightforward &
+  May require counterparty approval (\term{novation}) and can be costly or
+  unfavourable \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Every row is a trade-off of the same kind: standardization buys liquidity
+and cheap exit, customization buys precision and pays for it in both.}
+
+% =====================================================================
+\lo{CR-14 c}{Describe the process of clearing a derivative transaction.}
+
+\begin{crdefbox}[Clearing and settlement]
+\term{Clearing} is the process between \emph{execution} and \emph{settlement} in
+OTC derivative transactions. It records trade details, calculates margins, and
+ensures obligations are met.
+
+\smallskip
+\term{Settlement} is the final step: the actual transfer of cash or assets to
+fulfil the contract.
+
+\smallskip
+Both help reduce counterparty credit risk, that is, non-payment or non-delivery
+risk.
+\end{crdefbox}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.8pt, rounded corners=1pt,
+  text width=3.7cm, align=center, minimum height=1.6cm] (ex) at (0,0)
+  {\textbf{EXECUTION}\\[1pt]\scriptsize buyer and seller enter a legal obligation to buy or sell};
+\node[draw=FRMGold, fill=PaleGold, line width=0.8pt, rounded corners=1pt,
+  text width=3.7cm, align=center, minimum height=1.6cm] (cl) at (5.2,0)
+  {\textbf{CLEARING}\\[1pt]\scriptsize transaction is managed prior to settlement: margining, cash flow, payments};
+\node[draw=FRMGreen, fill=PaleGreen, line width=0.8pt, rounded corners=1pt,
+  text width=3.7cm, align=center, minimum height=1.6cm] (se) at (10.4,0)
+  {\textbf{SETTLEMENT}\\[1pt]\scriptsize securities and/or cash exchanged; legal obligations fulfilled};
+\draw[-{Stealth[length=5pt]}, FRMNavy, line width=1pt] (ex) -- (cl);
+\draw[-{Stealth[length=5pt]}, FRMGold, line width=1pt] (cl) -- (se);
+% routing
+\node[draw=FRMRule, fill=white, line width=0.6pt, text width=2.9cm,
+  align=center] (et) at (1.2,-2.6) {\scriptsize Exchange-traded};
+\node[draw=FRMRule, fill=white, line width=0.6pt, text width=2.9cm,
+  align=center] (otc) at (1.2,-4.1) {\scriptsize OTC-traded};
+\node[draw=FRMGreen, fill=PaleGreen, line width=0.7pt, text width=3.4cm,
+  align=center] (cc1) at (6.6,-2.6) {\scriptsize centrally cleared};
+\node[draw=FRMGreen, fill=PaleGreen, line width=0.7pt, text width=3.4cm,
+  align=center] (cc2) at (6.6,-3.75) {\scriptsize centrally cleared};
+\node[draw=FRMRed, fill=PaleRed, line width=0.7pt, text width=3.4cm,
+  align=center] (bc) at (6.6,-4.75) {\scriptsize bilaterally cleared};
+\draw[-{Stealth[length=4.5pt]}, FRMGrey, line width=0.8pt] (et) -- (cc1);
+\draw[-{Stealth[length=4.5pt]}, FRMGrey, line width=0.8pt] (otc) -- (cc2);
+\draw[-{Stealth[length=4.5pt]}, FRMGrey, line width=0.8pt] (otc) -- (bc);
+\end{tikzpicture}
+\end{center}
+\figcap{Clearing sits between execution and settlement, not at either end. The
+lower panel is the fact that gets tested: an exchange-traded derivative has only
+one route, and it is central clearing, while an OTC derivative can go either way.}
+
+\begin{itemize}
+\item \term{Bilateral clearing.} Counterparties manage risk independently. This is
+the traditional OTC market, and it remains prevalent.
+\item \term{Central clearing.} A third party, often a CCP, manages counterparty
+risk and collateralization. It requires standardization to implement and is not
+universally applicable to all OTC derivatives. \term{Multilateral compression}
+mimics central clearing functionalities.
+\end{itemize}
+
+% =====================================================================
+\lo{CR-14 d}{Identify the participants and describe the use of collateralization in the derivatives market.}
+
+\subsection*{Participants, by portfolio size}
+
+\begin{enumerate}
+\item \term{Large players (dealers): global banks.} Trade most derivatives and
+provide liquidity. Engage in extensive derivatives trading. Members of exchanges
+and central clearinghouses.
+\item \term{Medium-sized players: smaller banks and other financial institutions}
+such as hedge funds and pension funds. Involved in OTC derivatives activities;
+members of local exchanges and clearinghouses.
+\item \term{End users: large corporations, sovereigns, smaller financial
+institutions.} Use derivatives for hedging or investment, with limited
+derivatives use.
+\item \term{Third-party service providers.} Offer settlement, margining,
+collateral management, software, trade compression, and clearing services.
+\end{enumerate}
+
+\subsection*{Collateralization, by derivative type}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\foreach \i/\lab/\det/\col in {
+  0/{Exchange traded}/{simple, liquid, short-dated; centrally cleared; daily margin posting}/FRMGreen,
+  1/{OTC centrally cleared}/{illiquid or non-standardized, but centrally cleared; daily variation margin in cash}/FRMGreen,
+  2/{OTC collateralized}/{bilateral, no central clearing; parties post cash or securities}/FRMGold,
+  3/{OTC uncollateralized}/{bilateral; no collateral posted, or less and lower-quality collateral}/FRMRed}
+{
+  \node[draw=\col, fill=\col!10, line width=0.8pt, rounded corners=1pt,
+    text width=3.2cm, align=center, minimum height=2.0cm] at ({\i*3.75},0)
+    {\scriptsize\textbf{\lab}\\[2pt]\scriptsize\det};
+}
+\draw[-{Stealth[length=6pt]}, FRMRed, line width=1pt] (-1.85,-1.45) -- (13.1,-1.45)
+  node[midway, below, font=\scriptsize\itshape, text=FRMRed, fill=white,
+  inner sep=1.5pt] {increasing counterparty risk};
+\end{tikzpicture}
+\end{center}
+\figcap{The four tiers, ordered by the counterparty risk left standing. What moves
+along the row is not the product but the \emph{protection}: central clearing
+first, then daily margin, then collateral of any kind, then nothing.}
+
+% =====================================================================
+\lo{CR-14 e}{Define the International Swaps and Derivatives Association (ISDA) Master Agreement, the risk-mitigating features it provides, and the default events it covers.}
+
+\begin{crdefbox}[ISDA Master Agreement]
+Established by the International Swaps and Derivatives Association in 1985 and
+widely adopted since 1992, the ISDA Master Agreement is the industry standard
+legal framework governing OTC derivative transactions. Multiple transactions are
+covered under a general Master Agreement to form a \term{single legal contract} of
+indefinite term. Its components are a common core and an adjustable schedule for
+flexibility. Its objectives are to eliminate legal uncertainties and mitigate
+counterparty risk.
+\end{crdefbox}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{7.0cm} L{7.5cm}}
+\toprule
+\thead{Risk-mitigating features} & \thead{Default events covered} \\
+\midrule
+Collateral terms & Failure to pay or deliver \\
+Default events and termination & Breach of agreement \\
+Netting of transactions & Credit support default \\
+A defined close-out process mechanism & Misrepresentation \\
+ & Default under specified transaction \\
+ & Cross-default \\
+ & Bankruptcy \\
+ & Merger without assumption \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Four risk-mitigating features and eight default events. The objective
+names both halves explicitly, and the eight events are the half most often
+skipped.}
+
+% =====================================================================
+\lo{CR-14 f}{Describe the features and use of credit derivatives and discuss potential risks they may create.}
+
+Credit derivatives are complex financial instruments that can be used to hedge
+credit risk, but they introduce new risks. The CDS is the most common type: the
+buyer pays a premium for protection against a specific borrower's default.
+
+\begin{crtrapbox}[The risk they create]
+The credit derivatives market can be susceptible to \term{speculation}, which can
+increase risk in the financial system. The instrument that exists to transfer
+credit risk can therefore also be used to take it on by parties with no
+underlying exposure.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-14 g}{Describe central clearing of OTC derivatives and discuss the roles, mandate, advantages, and disadvantages of the central counterparty (CCP).}
+
+\subsection*{Role of the CCP}
+
+\begin{itemize}
+\item Interposes itself between counterparties, acting as \emph{buyer to sellers
+and seller to buyers}.
+\item Reallocates default losses through \term{netting, margining, and loss
+mutualisation}.
+\item Sets standards and rules for clearing members.
+\item Closes out positions of defaulting clearing members.
+\item Maintains financial resources --- cash variation margin, initial margin,
+default fund --- to cover losses.
+\item Has a documented plan for the very extreme situation in which all its
+financial resources are depleted.
+\end{itemize}
+
+\subsection*{The clearing mandate after the crisis}
+
+Prior to the global financial crisis there was no clear requirement for central
+clearing of OTC derivatives. Calls for central clearing emerged globally after
+Bear Stearns. \term{G20 leaders agreed in Pittsburgh in 2009} on requirements
+including:
+
+\begin{itemize}
+\item all standardised OTC derivatives to be traded on exchanges or electronic
+platforms;
+\item mandatory central clearing of standardised OTC derivatives;
+\item reporting of OTC derivatives to trade repositories; and
+\item higher capital requirements for non-centrally cleared OTC derivatives.
+\end{itemize}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{7.0cm} L{7.5cm}}
+\toprule
+\thead{Advantages of central clearing} & \thead{Disadvantages of central clearing} \\
+\midrule
+\term{Netting}: reduces counterparty risk by allowing netting of all trades &
+  \term{Loss mutualisation} may disperse losses across all clearing members \\
+\term{Margin management}: manages risks associated with portfolio value
+  fluctuations &
+  \term{Large price moves} and increased volatilities during close-outs can
+  result in market impact \\
+\term{Financial shock absorber}: absorbs the domino effect in case of member
+  default, ensuring swift termination of financial relations &
+  Requires sufficient financial resources, potentially burdening members \\
+ & Not all OTC derivatives can be centrally cleared, due to standardization and
+  liquidity requirements \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{crtrapbox}[Netting appears on both sides of the ledger]
+Netting is listed as an advantage, and loss mutualisation --- the mechanism that
+makes CCP netting work --- is listed as a disadvantage. They are the same
+property viewed from two positions: netting is good for the system and loss
+mutualisation is bad for the surviving members who fund it.
+\end{crtrapbox}
+
+Two further shortfalls: CCPs must be \emph{highly creditworthy} to prevent
+systemic shocks, and their cross-border activities are complicated by varying
+legal and regulatory environments. Reducing derivatives risk may also disadvantage
+other market participants, such as bondholders.
+
+% =====================================================================
+\lo{CR-14 h}{Explain the margin requirements for both centrally-cleared and non-centrally-cleared derivatives.}
+
+\begin{crkeybox}[The two regimes]
+\term{Centrally cleared.} Clearing members must post \emph{initial margin} and
+\emph{variation margin} and contribute to a \emph{default fund} to cover the
+losses of a defaulting clearing member. Initial margin is required on all trades;
+variation margin covers market value changes in the derivatives.
+
+\smallskip
+\term{Non-centrally cleared (bilateral).} Historically had no or only limited
+margin requirements. In recent years, to mitigate systemic risk, regulators
+globally have been moving to introduce margin requirements for bilateral trades
+similar to those under central clearing.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-14 i}{Define special purpose vehicles (SPVs), derivatives product companies (DPCs), monolines, and credit derivatives product companies (CDPCs) and describe the limitations of using them as risk mitigating methods.}
+
+\subsection*{Special purpose vehicle (SPV)}
+
+An SPV, also known as a special purpose entity, is an off-balance sheet,
+\term{bankruptcy-remote} entity that is legally separate from its sponsor. It is
+created primarily to reduce counterparty credit risk by isolating assets and
+liabilities from the parent institution, and is frequently used in structured
+notes.
+
+The structure works by transferring assets from the sponsor to the SPV so that
+investors in the SPV have priority claims, a priority often called a \term{flip
+provision}.
+
+\begin{crtrapbox}[SPVs transform risk rather than eliminate it]
+SPVs do not eliminate risk; they transform \emph{counterparty} risk into
+\emph{legal} risk. In the case of sponsor default, a bankruptcy court may
+consolidate the SPV's assets with the sponsor, treating them as if they were never
+transferred, which defeats the purpose of the isolation.
+
+\smallskip
+Jurisdiction matters: U.S.\ courts are more likely to allow consolidation, while
+U.K.\ courts avoid consolidation unless there is fraud. In the Lehman case a flip
+provision was declared unenforceable in the U.S., contradicting a U.K.\ ruling,
+which highlights the legal uncertainty.
+\end{crtrapbox}
+
+\subsection*{Derivatives product company (DPC)}
+
+A DPC is a separately capitalized entity created by a financial institution to
+achieve a high (AAA) credit rating and reduce counterparty risk in OTC
+derivatives. An originating bank sets up a bankruptcy-remote SPV and injects
+capital to gain a preferential and strong credit rating, typically triple-A. It
+works by distancing itself from the parent so that it can meet obligations even if
+the parent fails.
+
+Its credit quality depends on three factors:
+
+\begin{enumerate}[label=\alph*)]
+\item minimizing market risk through offsetting trades (\term{mirrored trades});
+\item structural support from the parent (transfer or orderly unwind); and
+\item strong internal risk management (mark-to-market and collateral).
+\end{enumerate}
+
+During the global financial crisis these assumptions failed. Lehman's DPCs went
+bankrupt and Bear Stearns' DPCs were stressed, showing that DPCs still face legal,
+market and operational risks.
+
+\subsection*{Monolines}
+
+Financial guarantee insurance companies with a \emph{single} business line,
+primarily providing credit enhancement (\term{credit wraps}) to improve bond
+ratings, especially in structured credit markets. They typically maintain very
+high credit ratings (AAA) and are active in CDS and structured products, allowing
+issuers to borrow at lower costs.
+
+\begin{crtrapbox}[The monoline failure mechanism]
+Monolines \term{do not post collateral} in normal market conditions, relying
+instead on their strong credit rating. During the crisis, losses on insured
+products rose, ratings were downgraded, and the downgrades \emph{triggered
+requirements to post collateral} --- at exactly the moment insured losses were
+rising. Several monoline insurers failed between 2007 and 2009.
+\end{crtrapbox}
+
+\subsection*{Credit derivative product companies (CDPCs)}
+
+CDPCs are similar to DPCs in structure but operate like monolines. They provide
+credit protection, often through instruments similar to credit default swaps, and
+generate income from the premiums received.
+
+\begin{itemize}
+\item Unlike DPCs, CDPCs \emph{do not} typically hedge their exposures with
+offsetting positions, so they are \textbf{not market neutral}.
+\item They are usually highly leveraged and retain significant exposure to credit
+risk.
+\item Like monolines, they do not post collateral in normal conditions and rely on
+maintaining high credit ratings.
+\end{itemize}
+
+During and after the crisis many CDPCs experienced large losses and failed.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.2cm} L{4.0cm} L{4.0cm} L{3.6cm}}
+\toprule
+ & \thead{Hedged with offsetting trades?} & \thead{Posts collateral in normal conditions?} &
+\thead{Principal weakness} \\
+\midrule
+\term{SPV} & --- & --- & Legal risk: court consolidation \\
+\term{DPC} & \textbf{Yes} (mirrored trades) & Yes (mark-to-market and collateral) &
+  Depends on parent support that failed in the crisis \\
+\term{Monoline} & No & \textbf{No} & Downgrade triggers collateral calls just as
+  losses arrive \\
+\term{CDPC} & \textbf{No} & \textbf{No} & Leverage plus no hedge plus reliance on
+  ratings \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The DPC is the odd one out: it is the only one of the four that both
+hedges and posts collateral. Monolines and CDPCs are distinguished from each other
+by the hedging column, not the collateral column.}
+
+% =====================================================================
+\lo{CR-14 j}{Describe the approaches used and the challenges faced in modeling derivatives risk.}
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Value at risk (VaR)} measures the worst loss over a specified short
+period at a given confidence level. VaR is simple and intuitive and does not
+depend on the shape of the loss distribution, but it does not reveal anything
+about the possible loss \emph{beyond} the confidence level.
+\item \term{Potential future exposure (PFE)} is the credit risk equivalent of VaR,
+relating to \emph{gains} and using a \emph{long} time horizon.
+\item \term{Expected shortfall (ES)} measures the average loss knowing that the
+loss is at least equal to VaR.
+\end{enumerate}
+
+\begin{crtrapbox}[The challenge]
+Financial institutions often combine these model types with other complex
+quantitative models using correlations, volatility and dependence factors.
+However, \emph{historical correlations are often poor predictors of future
+outcomes}, and they can change significantly during periods of stress --- which is
+precisely when the models are being relied upon.
+\end{crtrapbox}

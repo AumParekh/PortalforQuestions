@@ -1,0 +1,513 @@
+\reading{MR-14}{The Art of Term Structure Models: Drift}{strike}{7}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Construct and describe the effectiveness of a short-term interest rate tree assuming
+      normally distributed rates, both with and without drift.
+\item Calculate the short-term rate change and standard deviation of the rate change using a
+      model with normally distributed rates and no drift.
+\item Describe methods for addressing the possibility of negative short-term rates in term
+      structure models.
+\item Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.
+\item Describe uses and benefits of the arbitrage-free models and assess the issue of fitting
+      models to market prices.
+\item Describe the process of constructing a simple and recombining tree for a short-term rate
+      under the Vasicek Model with mean reversion.
+\item Calculate the Vasicek Model rate change, standard deviation of the rate change, expected
+      rate in $T$ years, and half-life.
+\item Describe the effectiveness of the Vasicek Model.
+\end{enumerate}
+\end{mrkeybox}
+
+\begin{mrdefbox}[title={Notation used throughout this reading}]
+\begin{itemize}
+\item $dr$ = change in interest rates over a small time interval $dt$
+\item $dt$ = small time interval, measured in years (one month $= 1/12$)
+\item $\sigma$ = annual basis point volatility of rate changes
+\item $dw$ = normally distributed random variable with mean 0 and standard deviation
+      $\sqrt{dt}$; for one month, $\sqrt{1/12} = 0.2887$
+\item $\lambda$ = drift term added to the interest rate
+\item $k$ = a parameter that measures the speed of reversion adjustment
+\item $\theta$ = long-run value of the short-term rate assuming risk neutrality
+\end{itemize}
+\end{mrdefbox}
+
+% ---------------------------------------------------------
+\lo{MR-14 a}{Construct and describe the effectiveness of a short-term interest rate tree assuming normally distributed rates, both with and without drift.}
+
+\subsection{Model 1 --- no drift}
+Model 1 is assumed to have an interest rate term structure with \term{no drift}.
+
+\begin{mrfmlbox}
+\[ dr \;=\; \sigma\, dw
+   \qquad\qquad
+   \text{tree: } \begin{cases} r_0 + \sigma\sqrt{dt} \\[2pt] r_0 - \sigma\sqrt{dt} \end{cases} \]
+\mrvk{with no drift term, the \textit{expected} change in the rate is zero. All that happens over
+a step is a symmetric $\pm\sigma\sqrt{dt}$ shock.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- calculating $dr$}]
+Start with an initial rate of 6\%. Assume an annual volatility of 1.20\%. After one month, with
+a random variable $dw$ of 0.2 drawn from a normal distribution:
+\tcblower
+\small
+\[ dr \;=\; 1.20\% \times 0.2 \;=\; 0.24\% \;=\; \mathbf{24 \text{ basis points}} \]
+The new rate after one month will be \textbf{6.24\%}.
+\end{mrexbox}
+
+% ---------------------------------------------------------
+\lo{MR-14 b}{Calculate the short-term rate change and standard deviation of the rate change using a model with normally distributed rates and no drift.}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  bx/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, align=center},
+  nx/.style={rectangle, rounded corners=2pt, draw=FRMGreen!50, fill=PaleGreen,
+    line width=0.6pt, inner sep=3.5pt, minimum width=1.25cm, align=center}]
+% symbolic
+\begin{scope}
+  \node[bx] (r0) at (0,0) {$r_0$};
+  \node[bx] (u) at (2.0,1.1) {$r_0 + \sigma\sqrt{dt}$};
+  \node[bx] (d) at (2.0,-1.1) {$r_0 - \sigma\sqrt{dt}$};
+  \node[bx] (uu) at (4.8,2.0) {$r_0 + 2\sigma\sqrt{dt}$};
+  \node[bx] (mm) at (4.8,0) {$r_0$};
+  \node[bx] (dd) at (4.8,-2.0) {$r_0 - 2\sigma\sqrt{dt}$};
+  \foreach \p/\q in {r0/u, r0/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMNavy!55, line width=0.7pt] (\p) -- node[sloped, above, text=black]{0.5} (\q);}
+\end{scope}
+% numeric
+\begin{scope}[shift={(8.8,0)}]
+  \node[nx] (r0) at (0,0) {6.000\%};
+  \node[nx] (u) at (1.9,1.1) {6.346\%};
+  \node[nx] (d) at (1.9,-1.1) {5.654\%};
+  \node[nx] (uu) at (4.1,2.0) {6.692\%};
+  \node[nx] (mm) at (4.1,0) {6.000\%};
+  \node[nx] (dd) at (4.1,-2.0) {5.308\%};
+  \foreach \p/\q in {r0/u, r0/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMGreen!55, line width=0.7pt] (\p) -- node[sloped, above, text=black]{0.5} (\q);}
+\end{scope}
+\end{tikzpicture}
+\end{center}
+\figcap{Model 1 recombines: an up-then-down move and a down-then-up move both land back on
+$r_0$. The rate can drift arbitrarily far in either direction over many steps, including below
+zero, which is the model's central weakness.}
+
+\begin{mrexbox}[title={Example --- the standard deviation of the rate change}]
+The current short-term rate is 6.18\%, volatility is 113 basis points per year, and the interval
+is one month.
+\tcblower
+\small
+\[ \sigma\sqrt{dt} \;=\; 1.13\% \times \sqrt{\tfrac{1}{12}} \;=\; 1.13\% \times 0.2887
+   \;=\; \mathbf{0.326\%} \text{, or 32.6 basis points per month} \]
+So the two date-1 nodes are $6.18\% + 0.326\% = \mathbf{6.506\%}$ and
+$6.18\% - 0.326\% = \mathbf{5.854\%}$.
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={Model 1 effectiveness}]
+\begin{enumerate}
+\item \term{Lacks flexibility}, but the tree is \term{recombining}.
+\item \term{Term structure of interest rates:} downward sloping, and rates can go negative, due
+      to the no-drift assumption.
+\item \term{Flat volatility term structure:} it predicts a flat term structure of volatility, in
+      contrast to the observed hump-shaped pattern.
+\item \term{Single-factor model:} it relies solely on the short-term rate, ignoring drift and
+      time-dependent volatility.
+\item Produces \term{parallel} yield curve shifts.
+\end{enumerate}
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-14 c}{Describe methods for addressing the possibility of negative short-term rates in term structure models.}
+
+A problem with Gaussian models is that the short-term rate can become \term{negative}. Two
+solutions:
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{4.0cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Method} & \hdr{How it works} & \hdr{The catch}\\
+\textbf{1. Use non-negative distributions}
+  & Use probability distributions that are always non-negative, such as lognormal or
+    chi-squared. This ensures rates can never go negative.
+  & May introduce other characteristics --- skewness, or volatilities --- that do not accurately
+    reflect real-world conditions.\\
+\rowcolor{FRMSoft}
+\textbf{2. Force negative rates to zero}
+  & Adjust the interest rate tree to ``force'' negative rates to be zero, constraining the
+    distribution from going below zero.
+  & Preferred in \textit{very low} interest rate environments, and it impacts a
+    \textbf{narrower} range of rates.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-14 d}{Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.}
+
+\subsection{First, Model 2 --- constant drift}
+This term structure model incorporates a \term{positive drift}, representing a risk premium for
+longer time horizons.
+
+\begin{mrfmlbox}
+\[ dr \;=\; \lambda\, dt \;+\; \sigma\, dw \]
+\mrvk{$\lambda$ = the positive constant drift, which captures two things at once: (1) a
+\textbf{risk premium} and (2) \textbf{expected return}.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  bx/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, align=center}]
+  \node[bx] (r0) at (0,0) {$r_0$};
+  \node[bx] (u) at (2.9,1.2) {$r_0 + \lambda dt + \sigma\sqrt{dt}$};
+  \node[bx] (d) at (2.9,-1.2) {$r_0 + \lambda dt - \sigma\sqrt{dt}$};
+  \node[bx] (uu) at (7.4,2.2) {$r_0 + 2\lambda dt + 2\sigma\sqrt{dt}$};
+  \node[bx] (mm) at (7.4,0) {$r_0 + 2\lambda dt$};
+  \node[bx] (dd) at (7.4,-2.2) {$r_0 + 2\lambda dt - 2\sigma\sqrt{dt}$};
+  \foreach \p/\q in {r0/u, r0/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMNavy!55, line width=0.7pt] (\p) -- node[sloped, above, text=black]{0.5} (\q);}
+\end{tikzpicture}
+\end{center}
+\figcap{The whole tree shifts up by $\lambda dt$ each step. The middle node at date 2 carries a
+\textit{single} value, $r_0 + 2\lambda dt$, so this tree recombines.}
+
+\begin{mrkeybox}[title={Model 2 effectiveness}]
+\begin{enumerate}
+\item \term{Term structure of interest rates:} due to the drift factor, the term structure will
+      reflect an \term{upward-sloping} curve.
+\item The tree \term{recombines} --- only one rate is produced at the middle node in year two.
+\item Researchers typically choose parameters $r_0$ and $\lambda$ based on the calibration of
+      observed rates, which enhances the model's fit to market data.
+\end{enumerate}
+\end{mrkeybox}
+
+\begin{mrtrapbox}[title={Limitation of a constant drift}]
+\begin{itemize}
+\item The estimated value of the drift could be relatively \term{high}, particularly if seen as
+      a risk premium only.
+\item If the drift is viewed as a combination of the \textit{risk premium} plus \textit{expected
+      rate changes}, the model implies rates are expected to keep increasing --- rates in year 10
+      will be higher than in year 9. This view is more suitable for the \term{short term}, as it
+      is harder to justify substantial increases in expected rates in the long run.
+\end{itemize}
+\end{mrtrapbox}
+
+\subsection{The Ho-Lee model --- time-dependent drift}
+The Ho-Lee model introduces greater flexibility by allowing the drift to vary over time. Each
+time period can have a different drift, which does not have to follow a consistent upward
+pattern and can even be negative.
+
+\begin{mrfmlbox}
+\[ dr \;=\; \lambda_t\, dt \;+\; \sigma\, dw \]
+\mrvk{$\lambda_t$ = a \textit{different} drift for each period. The drift still captures risk
+premium and expected return, but it is no longer forced to be the same number every step.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  bx/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, align=center}]
+  \node[bx] (r0) at (0,0) {$r_0$};
+  \node[bx] (u) at (2.9,1.2) {$r_0 + \lambda_1 dt + \sigma\sqrt{dt}$};
+  \node[bx] (d) at (2.9,-1.2) {$r_0 + \lambda_1 dt - \sigma\sqrt{dt}$};
+  \node[bx] (uu) at (7.8,2.2) {$r_0 + (\lambda_1+\lambda_2) dt + 2\sigma\sqrt{dt}$};
+  \node[bx] (mm) at (7.8,0) {$r_0 + (\lambda_1+\lambda_2) dt$};
+  \node[bx] (dd) at (7.8,-2.2) {$r_0 + (\lambda_1+\lambda_2) dt - 2\sigma\sqrt{dt}$};
+  \foreach \p/\q in {r0/u, r0/d, u/uu, u/mm, d/mm, d/dd}{
+    \draw[FRMNavy!55, line width=0.7pt] (\p) -- node[sloped, above, text=black]{0.5} (\q);}
+\end{tikzpicture}
+\end{center}
+
+\begin{mrkeybox}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item If $\lambda_1 = \lambda_2$, the Ho-Lee model \term{reduces to Model 2}.
+\item $\lambda_1$ and $\lambda_2$ are estimated from observed market prices --- they are
+      \term{calibrated}.
+\item Each drift can take a \term{negative} value as well.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-14 e}{Describe uses and benefits of the arbitrage-free models and assess the issue of fitting models to market prices.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.3cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{1. Arbitrage-free models} & \hdr{model price $=$ market price}\\
+\textbf{When used} & When the goal is to accurately price \term{illiquid or customized}
+  securities. These models ensure the model price aligns with the market price.\\
+\rowcolor{FRMSoft}
+\textbf{Useful for} & Pricing securities like on-the-run Treasury bonds, and options on bonds.\\
+\textbf{Drawbacks} & If the original model assumptions do not match real market conditions,
+  pricing accuracy can suffer. These models assume underlying market prices are \textit{accurate},
+  but they can be thrown off by temporary external shocks --- a sudden oversupply impacting market
+  prices, for instance.\\
+\midrule
+\rowcolor{FRMNavy} \hdr{2. Equilibrium models} & \hdr{relative analysis}\\
+\textbf{When used} & More suitable for \term{relative analysis}, where the goal is to compare the
+  value of one security to another.\\
+\rowcolor{FRMSoft}
+\textbf{Assumption} & In relative analysis it is assumed that both securities are already
+  properly priced, which makes equilibrium models more appropriate.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-14 f}{Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.}
+
+\begin{itemize}
+\item The Vasicek model assumes a \term{mean-reverting} process for the short-term interest rate,
+      which is a common assumption for the level of interest rates.
+\item Mean reversion is a reasonable assumption but clearly breaks down in periods of extremely
+      high inflation --- hyperinflation --- or similar structural breaks.
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ dr \;=\; k\,(\theta - r)\,dt \;+\; \sigma\, dw
+   \qquad\qquad
+   \theta \;\approx\; r_1 + \frac{\lambda}{k} \]
+\mrvk{$k$ = speed of reversion adjustment --- \textbf{high $k$ means faster mean reversion};\quad
+$\theta$ = long-run value of the short-term rate assuming risk neutrality;\quad $r$ = current
+interest rate level;\quad $r_1$ = the long-run \textit{true} rate of interest;\quad $\lambda$ =
+the annual drift.}{%
+\par\smallskip\textbf{\sffamily Read the drift term:} $k(\theta - r)$ is positive when the rate
+is below its long-run level and negative when it is above. That sign flip is the mean
+reversion.}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- $dr$ under the Vasicek model}]
+$k = 0.03$, annual standard deviation 150 basis points, a true long-term interest rate of 6\%, a
+current interest rate of 6.2\%, and annual drift of 0.36\%.
+\tcblower
+\small
+\[ \theta \;\approx\; 6\% + \frac{0.36\%}{0.03} \;=\; \mathbf{18\%} \]
+\[ dr \;=\; k(\theta - r)\,dt \;=\; 0.03\,(18\% - 6.2\%)\left(\tfrac{1}{12}\right)
+   \;=\; \mathbf{0.0295\%} \]
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={Remember}]
+For an interest rate tree using Vasicek, \term{add} volatility for up moves and \term{subtract}
+volatility for down moves:
+\[ dr = k(\theta - r)dt + \sigma\,dw \ \text{ for up moves}
+   \qquad
+   dr = k(\theta - r)dt - \sigma\,dw \ \text{ for down moves} \]
+\end{mrtrapbox}
+
+\subsection{Building the tree}
+
+\begin{mrexbox}[title={Step 1 --- the two date-1 nodes, from $r_0 = 6.200\%$}]
+\small
+\begin{align*}
+\text{up: }\ & 6.200\% + \frac{(0.03)(18\% - 6.200\%)}{12} + \frac{1.5\%}{\sqrt{12}}
+  = \mathbf{6.663\%}\\[3pt]
+\text{down: }\ & 6.200\% + \frac{(0.03)(18\% - 6.200\%)}{12} - \frac{1.5\%}{\sqrt{12}}
+  = \mathbf{5.796\%}
+\end{align*}
+\end{mrexbox}
+
+\begin{mrexbox}[title={Step 2 --- the date-2 nodes, recomputing the drift at each date-1 rate}]
+\small
+From the up node at 6.663\%:
+\begin{align*}
+& 6.663\% + \frac{(0.03)(18\% - 6.663\%)}{12} + \frac{1.5\%}{\sqrt{12}} = \mathbf{7.124\%}\\[3pt]
+& 6.663\% + \frac{(0.03)(18\% - 6.663\%)}{12} - \frac{1.5\%}{\sqrt{12}} = \mathbf{6.258\%}
+\end{align*}
+From the down node at 5.796\%, the same two steps give \textbf{6.260\%} and \textbf{5.394\%}.
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  nx/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, inner sep=3.5pt, minimum width=1.35cm, align=center},
+  sp/.style={rectangle, rounded corners=2pt, draw=FRMRed!55, fill=PaleRed,
+    line width=0.7pt, inner sep=3.5pt, minimum width=1.35cm, align=center}]
+  \node[nx] (r0) at (0,0) {6.200\%};
+  \node[nx] (u) at (2.6,1.4) {6.663\%};
+  \node[nx] (d) at (2.6,-1.4) {5.796\%};
+  \node[nx] (uu) at (5.6,2.4) {7.124\%};
+  \node[sp] (m1) at (5.6,0.38) {6.258\%};
+  \node[sp] (m2) at (5.6,-0.38) {6.260\%};
+  \node[nx] (dd) at (5.6,-2.4) {5.394\%};
+  \foreach \p/\q in {r0/u, r0/d, u/uu, u/m1, d/m2, d/dd}{
+    \draw[FRMNavy!55, line width=0.7pt] (\p) -- node[sloped, above, text=black]{0.5} (\q);}
+  \draw[FRMRed, {Stealth[length=4pt]}-{Stealth[length=4pt]}, line width=0.8pt]
+    (6.55,0.38) -- (6.55,-0.38);
+  \node[anchor=west, text=FRMRed, align=left, text width=4.1cm] at (6.8,0)
+    {two \textit{different} middle rates, so the tree does \textbf{not} recombine};
+\end{tikzpicture}
+\end{center}
+\figcap{Mean reversion is what breaks recombination. The drift applied from the up node is
+computed at 6.663\% and the drift from the down node at 5.796\%, so the two paths to the middle
+arrive two-tenths of a basis point apart.}
+
+\begin{mrkeybox}[title={Steps to make the tree recombining}]
+\begin{enumerate}
+\item Take an \term{average} of the two middle nodes:
+      $(6.258\% + 6.260\%) / 2 = \mathbf{6.259\%}$.
+\item Remove the assumption of 50\% up and 50\% down movements, generically replacing them with
+      $(p,\ 1-p)$ and $(q,\ 1-q)$.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-14 g}{Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in $T$ years, and half-life.}
+
+\begin{mrfmlbox}
+\textbf{Expected rate in $T$ years}
+\[ E[r_T] \;=\; \theta - (\theta - r_0)\,e^{-kT}
+   \qquad\text{equivalently}\qquad
+   E[r_T] \;=\; r_0\,e^{-kT} + \theta\bigl(1 - e^{-kT}\bigr) \]
+\mrvk{$r_0$ = the current short-term rate;\quad $\theta$ = the long-run mean-reverting level;\quad
+$k$ = the speed of mean reversion;\quad $T$ = the horizon in years. The gap between today's rate
+and the long-run level decays exponentially at rate $k$.}{}
+
+\medskip
+\textbf{Half-life}
+\[ \tau \;=\; \frac{\ln(2)}{k} \]
+\mrvk{$\tau$ = the time it takes for the difference between the current rate and the long-term
+mean to be reduced by \textit{half}.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- expected rate in 10 years}]
+Current short-term rate $r = 6.2\%$, mean reversion parameter $k = 0.03$, long-term
+mean-reverting level $\theta = 18\%$.
+\tcblower
+\small
+\textbf{1. Difference.} The gap between the current rate and the long-term average is
+$18\% - 6.2\% = 11.8\%$.
+
+\textbf{2. Decay.} That difference decays exponentially at the rate of mean reversion. After 10
+years the remaining difference is
+\[ 11.8\% \times e^{(-0.03 \times 10)} \;=\; \mathbf{8.74\%} \]
+
+\textbf{3. Expected rate.} The long-term average \textit{minus} the decayed difference:
+\[ 18\% - 8.74\% \;=\; \mathbf{9.26\%} \]
+\end{mrexbox}
+
+\begin{mrexbox}[title={Example continued --- half-life}]
+\small
+\[ \tau \;=\; \frac{\ln(2)}{0.03} \;=\; \frac{0.6931}{0.03} \;\approx\; \mathbf{23.1 \text{ years}} \]
+It takes approximately 23.1 years for the gap between the current rate of 6.2\% and the
+long-term average of 18\% to be halved --- that is, for the rate to reach around 12.1\%.
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.4cm,
+  xmin=0, xmax=60, ymin=5, ymax=19.5,
+  xlabel={\scriptsize Years ahead, $T$}, ylabel={\scriptsize Expected short rate (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,10,20,23.1,30,40,50,60},
+  xticklabels={0,10,20,,30,40,50,60},
+  ytick={6,9,12,15,18},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMGold, dashed, line width=0.9pt, forget plot]
+  coordinates {(0,18)(60,18)};
+\node[anchor=east, font=\scriptsize\sffamily, text=FRMGold, fill=white, inner sep=1.5pt]
+  at (axis cs:58,17.0) {$\theta = 18\%$ (long-run level)};
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=0:60, samples=120]
+  {18 - 11.8*exp(-0.03*x)};
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:23.1,5) -- (axis cs:23.1,12.1);
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:0,12.1) -- (axis cs:23.1,12.1);
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:23.1,12.1) {};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt]
+  at (axis cs:25,10.3) {half-life: $\tau = 23.1$ yrs $\Rightarrow$ rate $\approx 12.1\%$};
+\node[circle, fill=FRMNavy, inner sep=1.6pt] at (axis cs:10,9.26) {};
+\node[anchor=north west, font=\scriptsize\sffamily, text=FRMNavy, fill=white, inner sep=1.5pt]
+  at (axis cs:11.5,8.7) {$T = 10 \Rightarrow 9.26\%$};
+\node[anchor=west, font=\scriptsize\sffamily, text=black!60, fill=white, inner sep=1.5pt]
+  at (axis cs:2.0,6.6) {$r_0 = 6.2\%$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The expected rate never reaches $\theta$; it approaches it asymptotically. The half-life
+is where exactly half the original 11.8-point gap has closed, which is why the curve passes
+through 12.1\% at 23.1 years. Both worked answers sit on this one curve.}
+
+% ---------------------------------------------------------
+\lo{MR-14 h}{Describe the effectiveness of the Vasicek Model.}
+
+\begin{mrkeybox}[title={Vasicek model effectiveness}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Term structure of volatility:} declining volatility is produced, where short-term
+      volatility is relatively high while long-term volatility is comparatively low. Short-term
+      volatility is overstated and long-term volatility understated.
+\item \term{Term structure of interest rates:} specification is improved because the parameters
+      $r_0$ and $\theta$ are calibrated to match observed market prices.
+\item \term{Non-parallel shifts:} unlike some models, Vasicek can handle scenarios where interest
+      rate shocks have varying impacts across different maturities. Short-term rates are affected
+      more than long-term rates, and shocks dissipate as rates revert to the long-run mean.
+      No-drift models, by contrast, produce parallel shifts affecting all rates equally.
+\item \term{Effective for interest rate risk analysis} and yield curve modeling, where mean
+      reversion is a critical factor.
+\item \term{Interpretation of economic news:} a \textbf{larger} mean reversion parameter suggests
+      quicker absorption of economic news --- short-term news means high $k$. A \textbf{smaller}
+      parameter implies a more extended assimilation period --- longer-term news means low $k$.
+\end{enumerate}
+\end{mrkeybox}
+
+\subsection{The three drift specifications side by side}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=6.1cm,
+  xmin=0, xmax=30, ymin=4.5, ymax=13.5,
+  xlabel={\scriptsize Years ahead}, ylabel={\scriptsize Expected short rate (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,5,10,15,20,25,30}, ytick={5,7,9,11,13},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[black!60, line width=1.2pt, dashed, domain=0:30, samples=2] {6.2};
+\addlegendentry{Model 1 --- no drift}
+\addplot[FRMRed, line width=1.2pt, dotted, domain=0:30, samples=2] {6.2 + 0.22*x};
+\addlegendentry{Model 2 --- constant drift $\lambda$}
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=0:30, samples=120]
+  {18 - 11.8*exp(-0.03*x)};
+\addlegendentry{Vasicek --- mean reverting to $\theta$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{What the drift term actually does to the \textit{expected} path. Model 1 is flat forever.
+Model 2 rises in a straight line and never stops, which is the limitation the notes flag --- it
+is hard to justify rates rising without bound. Vasicek bends over toward $\theta$, which is why
+it produces a declining volatility term structure rather than a flat one.}
+
+\subsection{The four models in one table}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.0cm} p{3.0cm} p{2.1cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Model} & \hdr{Process} & \hdr{Tree} & \hdr{Term structure produced}\\
+\textbf{Model 1} & $dr = \sigma\,dw$ & Recombining
+  & Downward sloping; flat volatility structure; parallel shifts; rates can go negative.\\
+\rowcolor{FRMSoft}
+\textbf{Model 2} & $dr = \lambda\,dt + \sigma\,dw$ & Recombining
+  & Upward sloping, driven by the constant drift. Drift may be implausibly high over long
+    horizons.\\
+\textbf{Ho-Lee} & $dr = \lambda_t\,dt + \sigma\,dw$ & Recombining
+  & Any shape --- each period's drift is calibrated separately and can be negative.
+    Reduces to Model 2 if all $\lambda_t$ are equal.\\
+\rowcolor{FRMSoft}
+\textbf{Vasicek} & $dr = k(\theta - r)dt + \sigma\,dw$ & Non-recombining until the middle nodes
+    are averaged
+  & Declining volatility structure; non-parallel shifts; rates pulled toward $\theta$.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\figcap{The four models differ in one place only: the drift term. Model 1 has none, Model 2 has a
+constant, Ho-Lee has a time-varying constant, and Vasicek makes the drift depend on where the
+rate currently is. Everything else about the trees is identical.}
+
+
+% ==========================================================

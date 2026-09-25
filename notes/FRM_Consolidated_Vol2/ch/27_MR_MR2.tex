@@ -1,0 +1,354 @@
+\reading{MR-2}{Non-Parametric Approaches}{strike}{4}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Apply the bootstrap historical simulation approach to estimate coherent risk measures.
+\item Describe historical simulation using non-parametric density estimation.
+\item Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted,
+      and the filtered historical simulation approaches.
+\item Identify advantages and disadvantages of non-parametric estimation methods.
+\end{enumerate}
+\end{mrkeybox}
+
+\section{Basics}
+\begin{itemize}
+\item \term{Parametric methods:} which assume specific distributions like normal or lognormal.
+\item \term{Non-parametric estimation and bootstrapping} are data-driven approaches that do not
+      rely on specific assumptions about the underlying distribution. These methods are
+      particularly useful for VaR estimation when rare events occur in the tail of the
+      distribution.
+\end{itemize}
+
+% ---------------------------------------------------------
+\lo{MR-2 a}{Apply the bootstrap historical simulation approach to estimate coherent risk measures.}
+
+\term{Bootstrap historical simulation.} This is a straightforward method for estimating VaR.
+
+\begin{enumerate}[label=\textbf{\alph*)},leftmargin=1.9em]
+\item \term{VaR estimation:} it involves repeatedly sampling from the original data set,
+      calculating VaR for each sample, and returning the data. This process is done
+      \textit{with replacement}, meaning the same data points can be selected multiple times.
+      The best VaR estimate from the full data set is the average of all sample VaRs.
+\item \term{ES estimation:} the same process can be applied to estimate expected shortfall (ES),
+      where the tail region is divided into slices and VaRs are averaged at each slice. The best
+      estimate of ES for the original data set is the average of all the sample expected
+      shortfalls.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+% ---- parent distribution ----
+\begin{scope}[shift={(2.0,0)}]
+  \draw[FRMNavy, line width=0.9pt, fill=PaleNavy]
+    plot[smooth, domain=0:6, samples=100]
+    (\x, {1.35*exp(-((\x-2.1)^2)/1.7) + 0.98*exp(-((\x-4.3)^2)/1.3)})
+    -- (6,0) -- (0,0) -- cycle;
+  \draw[black!60, line width=0.6pt] (-0.1,0) -- (6.1,0);
+  \node[anchor=west, text=black!65] at (6.35,0.75) {Original data set};
+\end{scope}
+% ---- four resamples ----
+\foreach \i/\x/\v/\p/\q in {1/0.0/10/1.8/4.4, 2/2.6/5/2.4/4.0, 3/5.2/7/2.0/4.6, 4/7.8/8/2.5/4.2}{
+  \begin{scope}[shift={(\x,-2.6)}]
+    \draw[FRMNavy!85, line width=0.7pt, fill=PaleNavy!70]
+      plot[smooth, domain=0:6, samples=80]
+      ({\x*0.33}, 0);
+    \draw[FRMNavy!85, line width=0.7pt, fill=PaleNavy!70]
+      plot[smooth, domain=0:6, samples=80]
+      ({\x*0.33}, {0.42*(1.30*exp(-((\x-\p)^2)/1.5) + 0.95*exp(-((\x-\q)^2)/1.1))})
+      -- (1.98,0) -- (0,0) -- cycle;
+    \draw[black!55, line width=0.5pt] (-0.05,0) -- (2.03,0);
+  \end{scope}
+  \node[text=black!80] at (\x+0.99,-3.0) {VaR = \v\,M\$};
+}
+% ---- arrows ----
+\foreach \x in {0.99,3.59,6.19,8.79}{
+  \draw[FRMNavy!45, -{Stealth[length=4.5pt]}, line width=0.6pt]
+    (4.9,-0.18) .. controls (4.9,-1.1) and (\x,-1.3) .. (\x,-2.42);
+}
+\node[draw=FRMNavy, fill=PaleNavy, rounded corners=2pt, inner sep=5pt, text=black]
+  at (4.9,-3.85) {\textbf{Bootstrapping VaR} $=\;\dfrac{10+5+7+8}{4}\;=\;7.5$ M\$};
+\end{tikzpicture}
+\end{center}
+\figcap{One original data set is resampled four times with replacement. Each resample produces
+its own VaR, and the bootstrap estimate is the simple average of those four figures.}
+
+\begin{mrkeybox}
+Empirical analysis shows that bootstrapping provides more precise estimates of coherent risk
+measures compared to historical simulation alone.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-2 b}{Describe historical simulation using non-parametric density estimation.}
+
+The clear advantage of the traditional historical simulation approach is its \term{simplicity}.
+One obvious \term{drawback}, however, is that the discreteness of the data does not allow for
+estimation of VaRs between data points (e.g.\ 95.5\% VaR).
+
+\begin{mrkeybox}[title={Advantages of non-parametric density estimation}]
+\begin{itemize}
+\item Does not rely on restrictive assumptions about the underlying distribution.
+\item Allows for VaR calculation at various confidence levels.
+\end{itemize}
+\end{mrkeybox}
+
+\textbf{VaR calculation for 95.5\%.} Connecting the midpoints between histogram bars in the data
+set creates a \term{surrogate density function}. This non-parametric approach improves upon
+traditional historical simulation by enabling VaR calculation for a continuum of points in the
+data set.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+% (a) original histogram
+\begin{scope}
+  \fill[FRMSoft, draw=black!55] (0,0) rectangle (1.1,1.0);
+  \fill[FRMSoft, draw=black!55] (1.1,0) rectangle (2.2,1.8);
+  \fill[FRMSoft, draw=black!55] (2.2,0) rectangle (3.3,2.5);
+  \draw[FRMNavy, line width=1.1pt] (0.55,1.0) -- (1.65,1.8) -- (2.75,2.5) -- (3.3,2.62);
+  \node[anchor=south, text=black!70] at (1.65,3.0) {(a) Original histogram};
+\end{scope}
+% (b) surrogate density
+\begin{scope}[shift={(5.0,0)}]
+  \fill[FRMSoft, draw=black!45, dotted] (0.55,0) rectangle (1.65,1.0);
+  \fill[FRMSoft, draw=black!45, dotted] (1.65,0) rectangle (2.75,1.8);
+  \fill[FRMSoft, draw=black!45, dotted] (2.75,0) rectangle (3.85,2.5);
+  \fill[black!25, draw=black!60] (0,0) rectangle (0.55,1.0);
+  \fill[FRMNavy!30, draw=none] (0.55,1.0) -- (1.10,1.40) -- (1.10,1.0) -- cycle;
+  \draw[FRMNavy, line width=1.1pt] (0.55,1.0) -- (1.65,1.8) -- (2.75,2.5) -- (3.3,2.62);
+  \draw[black!60] (0,0) -- (3.85,0);
+  \node[anchor=south, text=black!70] at (1.9,3.0) {(b) Surrogate density function};
+\end{scope}
+\end{tikzpicture}
+\end{center}
+\figcap{Panel (a) is the raw histogram, where VaR can only be read off at a bar edge. Panel (b)
+joins the bar midpoints into a continuous surrogate density, so a confidence level falling
+between two bars --- 95.5\%, for instance --- now has a value.}
+
+% ---------------------------------------------------------
+\lo{MR-2 c}{Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.}
+
+The previous weighted historical simulation, discussed in \term{MR-1}, assumed that both current
+and past (arbitrary) $n$ observations up to a specified cutoff point are used when computing the
+current period VaR.
+
+\begin{itemize}
+\item Older observations beyond the cutoff date are assumed to have a zero weight and the
+      relevant $n$ observations have equal weight of $1/n$.
+\item \term{``Ghost effects''} of past events can persist in the computation of current VaR
+      until they disappear after $n$ periods.
+\end{itemize}
+
+This reading identifies \term{four improvements} to the traditional historical simulation method.
+
+\subsection{1) Age-weighted historical simulation}
+One adjustment to the equal-weighted assumption used in historical simulation is to weight
+recent observations more and distant observations less.
+
+Assume $w(1)$ is the probability weight for the observation that is one day old. Then $w(2)$ can
+be defined as $\lambda w(1)$, $w(3)$ can be defined as $\lambda^{2} w(1)$, and so on.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \node[anchor=west, text=black] at (0,0.66) {\textbf{Dec 2021}};
+  \node[anchor=east, text=black] at (15.6,0.66) {\textbf{Dec 2022}};
+  \draw[FRMNavy, line width=0.9pt] (0,0.32) -- (15.6,0.32);
+  \foreach \x/\l in {0.35/0, 0.95/1, 1.55/2, 2.15/3}{
+    \node[text=FRMGold] at (\x,0.00) {\l};}
+  \node[text=FRMGold] at (2.95,0.00) {$\cdots$};
+  \node[text=black!40] at (6.4,0.00) {$\cdots\qquad\cdots\qquad\cdots\qquad\cdots$};
+  \node[text=FRMGold] at (10.1,0.00) {$\cdots$};
+  \foreach \x/\l in {11.60/249, 12.95/250, 14.30/251, 15.35/252}{
+    \node[text=FRMGold] at (\x,0.00) {\l};}
+  \node[text=black] at (11.60,-0.72) {$\lambda^{3}\omega_{(1)}$};
+  \node[text=black] at (12.95,-0.72) {$\lambda^{2}\omega_{(1)}$};
+  \node[text=black] at (14.30,-0.72) {$\lambda\,\omega_{(1)}$};
+  \node[text=black] at (15.35,-0.72) {$\omega_{(1)}$};
+\end{tikzpicture}
+\end{center}
+\figcap{The 252 observations in the window, oldest on the left and newest on the right. The most
+recent observation carries the full weight $\omega_{(1)}$ and each step back in time multiplies
+that weight by another $\lambda$.}
+
+\begin{mrfmlbox}
+\[ w(i) \;=\; \frac{\lambda^{\,i-1}\,(1-\lambda)}{1-\lambda^{\,n}} \]
+\mrvk{$w(i)$ = probability weight given to the observation that is $i$ days old;\quad
+$\lambda$ = decay parameter, $0 < \lambda \le 1$;\quad $n$ = number of observations in the
+sample.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.2cm,
+  xmin=0, xmax=255, ymin=0, ymax=5.6,
+  xlabel={\scriptsize Age of the observation, $i$ (days)},
+  ylabel={\scriptsize Weight $w(i)$ (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,50,100,150,200,250}, ytick={0,1,2,3,4,5},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=8pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.3pt, smooth] coordinates {
+(1,5.000)(5,4.073)(10,3.151)(20,1.887)(30,1.130)(45,0.523)(60,0.243)(80,0.087)
+(100,0.031)(130,0.007)(160,0.001)(200,0.000)(252,0.000)};
+\addlegendentry{$\lambda = 0.95$ --- fast decay}
+\addplot[FRMNavy, line width=1.3pt, dashed, smooth] coordinates {
+(1,1.086)(5,1.044)(10,0.992)(20,0.898)(30,0.812)(45,0.698)(60,0.600)(80,0.491)
+(100,0.402)(130,0.297)(160,0.220)(200,0.147)(252,0.087)};
+\addlegendentry{$\lambda = 0.99$ --- slow decay}
+\addplot[FRMGreen, line width=1.3pt, dotted] coordinates {(1,0.397)(252,0.397)};
+\addlegendentry{$\lambda = 1$ --- no decay, plain HS}
+\node[anchor=west, font=\tiny\sffamily, text=FRMGreen, fill=white, inner sep=1.2pt]
+  at (axis cs:105,1.45) {$\lambda=1$: every observation weighted $1/n = 0.397\%$};
+\draw[FRMGreen!70, -{Stealth[length=3pt]}, line width=0.5pt]
+  (axis cs:150,1.35) -- (axis cs:155,0.47);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The same 252 observations under three decay parameters. At $\lambda = 0.95$ the weight
+has effectively vanished by day 60, so the VaR is being computed from about two months of data
+no matter how long the window is. At $\lambda = 0.99$ the oldest observation still carries 8\%
+of the newest one's weight. At $\lambda = 1$ the line is flat and the method collapses back to
+ordinary historical simulation. This is what ``close to 1 means slow decay'' actually looks
+like.}
+
+\begin{mrkeybox}[title={Remember --- the decay parameter}]
+The $\lambda$ term (decay parameter) is between 0 and 1, and reflects the exponential rate of
+decay in the weight or value given to an observation as it ages:
+\begin{itemize}
+\item a $\lambda$ \term{close to 1} indicates a slow rate of decay;
+\item a $\lambda$ \term{far away from 1} indicates a high rate of decay, so only the most very
+      recent data set is used;
+\item a $\lambda$ \term{of 1} means no decay, so all historic data is used --- just like
+      historical data simulation.
+\end{itemize}
+\end{mrkeybox}
+
+\subsection{2) Volatility-weighted historical simulation}
+The volatility-weighted historical simulation approach weights individual observations based on
+their volatility instead of their proximity to the current date.
+
+The intuition is that if recent volatility has \term{increased}, then using historical data will
+\term{underestimate} the current risk level. Similarly, if current volatility is markedly
+\term{reduced}, the impact of older data with higher periods of volatility will \term{overstate}
+the current risk level.
+
+\begin{mrfmlbox}
+\[ r^{*}_{t,i} \;=\; \left( \frac{\sigma_{T,i}}{\sigma_{t,i}} \right) r_{t,i}
+   \qquad\longrightarrow\qquad
+   \frac{\text{current volatility estimate}}{\text{volatility estimate at } t} \times r_t \]
+\mrvk{$r_{t,i}$ = the actual historical return on asset $i$ on day $t$;\quad
+$r^{*}_{t,i}$ = the volatility-adjusted return;\quad
+$\sigma_{T,i}$ = the current (most recent) volatility forecast for asset $i$;\quad
+$\sigma_{t,i}$ = the volatility forecast for asset $i$ that applied on day $t$.}{}
+\end{mrfmlbox}
+
+Thus, the volatility-adjusted return is replaced with a larger (smaller) expression if current
+volatility exceeds (is below) historical volatility on day $i$. Now, VaR, ES, and any other
+coherent risk measure can be calculated in the usual way after substituting historical returns
+with volatility-adjusted returns.
+
+\begin{mrkeybox}[title={Advantages of the volatility-weighted method}]
+\begin{enumerate}
+\item \term{Explicitly incorporates volatility:} the method takes into account the volatility of
+      the market, which provides a more accurate estimation compared to other historical methods
+      that do not explicitly consider volatility.
+\item \term{Sensible near-term estimates:} the method produces VaR estimates that are more
+      sensible and relevant in relation to current market conditions, allowing for better risk
+      assessment.
+\item \term{Higher VaR estimates:} the volatility-adjusted returns enable VaR estimates that are
+      higher than those obtained from using the historical data set alone, offering a more
+      conservative measure of risk.
+\end{enumerate}
+\end{mrkeybox}
+
+\subsection{3) Correlation-weighted historical simulation}
+\begin{itemize}
+\item Correlation-weighting is a little more involved than volatility-weighting.
+\item To see the principles involved, suppose for the sake of argument that we have already made
+      any volatility-based adjustments to our HS returns along Hull-White lines, but also wish to
+      adjust those returns to reflect changes in correlations.
+\end{itemize}
+
+\subsection{4) Filtered historical simulation (FHS)}
+Combines the historical simulation model with a GARCH or AGARCH model.
+
+\textbf{The steps for FHS are as follows:}
+\begin{enumerate}
+\item Firstly, use the historical return to find any surprise and thus reproduce volatility with
+      a GARCH or AGARCH model.
+\item Secondly, these volatility forecasts are then divided into the realized returns to produce
+      a set of standardized returns, which is i.i.d.
+\item The third stage involves bootstrapping from the set of standardized returns.
+\item Finally, each of these simulated returns gives us a possible end-of-tomorrow portfolio
+      value, and a corresponding possible loss, and we take the VaR to be the loss corresponding
+      to our chosen confidence level.
+\end{enumerate}
+
+
+\subsection{Summary: the four approaches compared}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.35cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Approach} & \hdr{What it re-weights, and how} & \hdr{Key point}\\
+\midrule
+\textbf{Age-weighted}
+  & Weights observations by \textit{how old they are}. The newest observation gets
+    $\omega_{(1)}$ and each further day back is multiplied by $\lambda$.
+  & $\lambda$ close to 1 decays slowly; $\lambda$ far from 1 decays fast; $\lambda = 1$
+    collapses back to plain historical simulation.\\
+\rowcolor{FRMSoft}
+\textbf{Volatility-\newline weighted}
+  & Weights observations by \textit{their volatility}, not their proximity to today. Each past
+    return is scaled by $\sigma_{T,i} / \sigma_{t,i}$.
+  & Raises past returns when current volatility is higher than it was then, and lowers them when
+    it is lower. Produces higher, more conservative VaR estimates.\\
+\textbf{Correlation-\newline weighted}
+  & Adjusts returns to reflect \textit{changes in correlations}, on top of any volatility
+    adjustment already made along Hull-White lines.
+  & More involved than volatility-weighting.\\
+\rowcolor{FRMSoft}
+\textbf{Filtered \newline (FHS)}
+  & Combines historical simulation with a \textit{GARCH or AGARCH} model: standardise the
+    returns by the volatility forecast, then bootstrap from the standardised set.
+  & The standardised returns are i.i.d., which is what makes the bootstrap step valid.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\figcap{The four differ only in what they re-weight: age-weighting uses time, volatility-weighting
+uses the volatility ratio, correlation-weighting uses the correlation structure, and filtered
+historical simulation replaces the raw returns with model-standardised ones before resampling.}
+
+% ---------------------------------------------------------
+\lo{MR-2 d}{Identify advantages and disadvantages of non-parametric estimation methods.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Advantages} & \hdr{Disadvantages}\\
+\midrule
+a.~Intuitive and conceptually simple.
+  & a.~Very dependent on the historical data set.\\
+\rowcolor{FRMSoft}
+b.~Do not depend on parametric assumptions.
+  & b.~Subject to ghost effect.\\
+c.~Accommodate any type of position.
+  & c.~If our data period was unusually quiet, non-parametric methods will often produce VaR or
+      ES estimates that are too low, and vice versa.\\
+\rowcolor{FRMSoft}
+d.~No need for covariance matrices, no curses of dimensionality.
+  & d.~Have difficulty (act slowly) handling shifts (permanent risk change) that take place
+      during our sample period.\\
+e.~Use data that are (often) readily available.
+  & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+% ==========================================================

@@ -1,0 +1,353 @@
+\reading{IM-4}{Portfolio Construction}{DEFER}{1}
+
+\srcnote{Richard Grinold and Ronald Kahn, \textit{Active Portfolio Management: A
+Quantitative Approach for Producing Superior Returns and Controlling Risk}, 2nd
+Edition (New York, NY: McGraw-Hill, 2000), Chapter 14. Printed as Chapter 4 in
+the GARP source volume.}
+
+\begin{imkeybox}[title={The nine objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Describe the inputs to the portfolio construction process and explain challenges faced when using these inputs.
+\item Evaluate the motivation for and the methods used for refining alphas in the implementation process.
+\item Describe neutralization and the different approaches used for refining alphas to be neutral.
+\item Explain the implications of transaction costs on portfolio construction.
+\item Describe practical issues in portfolio construction, including the determination of an appropriate risk aversion, aversions to specific risks, and proper alpha coverage.
+\item Describe portfolio revisions and rebalancing, and analyze the tradeoffs between alpha, risk, transaction costs, and time horizon.
+\item Determine the optimal no-trade region for rebalancing with transaction costs.
+\item Evaluate the strengths and weaknesses of the following portfolio construction techniques: screens, stratification, linear programming, and quadratic programming.
+\item Describe dispersion, explain its causes, and describe methods for controlling forms of dispersion.
+\end{enumerate}
+\end{imkeybox}
+
+\begin{imtrapbox}[breakable=false,title={Nine objectives at SRC 1}]
+This is the second-largest objective count in the area sitting on the lowest
+historical yield in it. The volume covers it in full; the tag tells you where to
+spend revision time, not what to omit.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-4 a}{Describe the inputs to the portfolio construction process and explain challenges faced when using these inputs.}
+
+\figwrap{%
+\begin{tikzpicture}[
+  inp/.style={draw=FRMNavy,fill=PaleNavy,rounded corners=1pt,inner sep=3.5pt,
+              font=\scriptsize\sffamily,text=FRMNavy,align=center},
+  hub/.style={draw=FRMRed,fill=PaleRed,rounded corners=2pt,inner sep=5pt,
+              font=\small\sffamily\bfseries,text=FRMRed,align=center},
+  tec/.style={draw=FRMRule,fill=white,rounded corners=1pt,inner sep=3.5pt,
+              font=\scriptsize\sffamily,align=center,text width=30mm},
+  ar/.style={-{Stealth[length=4pt]},FRMGold,line width=0.9pt}]
+\node[inp] (i1) at (-5.4,2.1) {Current portfolio};
+\node[inp] (i2) at (-2.7,2.7) {Alphas};
+\node[inp] (i3) at (0.2,2.7) {Covariance};
+\node[inp] (i4) at (3.0,2.1) {Active risk aversion};
+\node[inp] (i5) at (-4.2,1.15) {Transactions cost};
+\node[hub] (h) at (-1.2,0.2) {Portfolio construction};
+\foreach \n in {i1,i2,i3,i4,i5} \draw[ar] (\n) -- (h);
+\node[tec] (t1) at (-4.4,-1.5) {Screens};
+\node[tec] (t2) at (-1.2,-1.5) {Stratification};
+\node[tec] (t3) at (2.0,-1.5) {Linear programming};
+\node[tec] (t4) at (5.2,-1.5) {Quadratic programming};
+\draw[ar] (h) -- node[right,font=\scriptsize\sffamily,text=black!60,
+  fill=white,inner sep=1.5pt]{techniques} (-1.2,-1.0);
+\draw[FRMGold,line width=0.9pt] (-4.4,-1.0) -- (5.2,-1.0);
+\foreach \n in {t1,t2,t3,t4} \draw[ar] (\n.north|-{(0,-1.0)}) -- (\n.north);
+\end{tikzpicture}}%
+{The whole reading on one page. Five inputs feed the construction problem; four
+techniques solve it. Every later objective in this reading is either a way of
+cleaning one of the five inputs (refining alphas, neutralisation, choosing a risk
+aversion) or a consequence of one of them being costly (transaction costs, the
+no-trade region, dispersion). Redrawn from the source notes' own sketch.}
+
+We use mean-variance analysis to find the best mix based on these inputs.
+However, real-world limitations can restrict portfolio weights.
+
+\gapbadge
+\srcnote{The spine's objective has two halves --- the inputs \emph{and} the
+challenges faced when using them --- and the notes' heading carries only the
+first. The challenges are written below from GARP Chapter 4.}
+
+\begin{imgapbox}[title={What the objective asks for}]
+Not a list of five nouns, but which of the five you can actually trust.
+\end{imgapbox}
+
+\begin{imkeybox}[title={Only one input is reliable}]
+\begin{itemize}
+\item \term{The current portfolio} is the only input we can measure with near
+certainty.
+\item \term{Alphas} are often unreasonable and subject to hidden biases.
+\item \term{Covariances} and \term{transactions cost} estimates are noisy; we
+hope they are unbiased, but we know they are not measured with certainty.
+\item \term{Active risk aversion} is not certain either. Most active managers
+have a target level of active risk that must be made consistent with an active
+risk aversion.
+\end{itemize}
+Much of what follows in this reading is an indirect method of coping with noisy
+inputs.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-4 b}{Evaluate the motivation for and the methods used for refining alphas in the implementation process.}
+
+With alpha analysis, the alphas can be adjusted so that they are in line with the
+manager's desires for risk control and anticipated sources of value added. The
+three methods are:
+
+\begin{enumerate}
+\item \term{Scale the alphas.}
+\item \term{Trim alpha outliers.}
+\item \term{Neutralization.}
+\end{enumerate}
+
+\begin{imkeybox}
+Using refined alphas and then performing optimization can achieve the same goal
+as a constrained optimization approach, but has the advantage of focusing on the
+alpha inputs and the effects of individual constraints on portfolio returns.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-4 c}{Describe neutralization and the different approaches used for refining alphas to be neutral.}
+
+\begin{imdefbox}[title={Neutralization}]
+Neutralization is the removal of biases or undesirable bets from our alphas.
+\end{imdefbox}
+
+\begin{itemize}
+\item \term{Benchmark-neutral alphas.} Means that the benchmark has zero alpha.
+If our initial alphas imply an alpha for the benchmark, the neutralization
+process recenters the alphas to remove the benchmark alpha.
+\item \term{Cash-neutral alphas.} Alphas will not lead to any active cash
+position.
+\item \term{Risk-factor-neutral alphas.} If the manager does not have any ability
+to forecast the risk factors, we can use risk-factor-neutral alphas. Once
+neutralized, the alphas of the risk factors will be zero.
+\end{itemize}
+
+% ------------------------------------------------------------------
+\lo{IM-4 d}{Explain the implications of transaction costs on portfolio construction.}
+
+\begin{itemize}
+\item Trading fees and spreads eat into your returns compared to the benchmark.
+\item Unlike alphas, which are uncertain but predictable, \term{transaction costs
+are more certain but have some variability}.
+\item They convert a one-dimensional problem --- the trade-off between alpha and
+active risk --- into a \term{two-dimensional problem}: alpha, active risk, and
+transaction costs.
+\item Constructing, rebalancing and liquidating all incur transaction costs.
+\end{itemize}
+
+\begin{imtrapbox}[breakable=false,title={Costs are a point in time, returns are a period}]
+We must be careful to compare transactions costs incurred at a \emph{point in
+time} with returns and risk realized over a \emph{period of time}. That is why
+the costs have to be amortised over the horizon across which the alpha is
+expected to be realised --- and why the horizon is inseparable from the
+alpha/risk/cost trade-off in IM-4 f.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-4 e}{Describe practical issues in portfolio construction, including the determination of an appropriate risk aversion, aversions to specific risks, and proper alpha coverage.}
+
+\subsection{Determination of risk aversion}
+
+If we have better intuition about our information ratio and our desired amount of
+active risk, we can back out the risk aversion:
+
+\begin{imfmlbox}
+\[ \lambda_A = \frac{\text{IR}}{2\,\sigma_A} \]
+\vk{$\lambda_A$ is the active risk aversion, IR the information ratio, and
+$\sigma_A$ the desired active risk. \term{Percentages, not decimals}: verify what
+the optimizer expects.}
+\end{imfmlbox}
+
+\begin{imexbox}[title={Backing out a risk aversion}]
+If our information ratio is $0.5$ and we desire $5\%$ active risk:
+\[ \lambda_A = \frac{0.5}{2 \times 5} = 0.05 \]
+\end{imexbox}
+
+\subsection{Incorporation of specific risk aversion}
+
+Beyond overall risk, some investors dislike specific risks, for example a sector
+mismatch with the benchmark. A high aversion to specific risk reduces bets on any
+one stock.
+
+\subsection{Proper alpha coverage}
+
+What about stocks not in the benchmark, or without alpha forecasts?
+
+\begin{itemize}
+\item \term{Stocks outside the benchmark:} assign a zero benchmark weight but
+allow for an active weight, to capture potential alpha.
+\item \term{Stocks without alpha forecasts:} infer adjusted alphas based on those
+with forecasts.
+\end{itemize}
+
+% ------------------------------------------------------------------
+\lo{IM-4 f}{Describe portfolio revisions and rebalancing, and analyze the tradeoffs between alpha, risk, transaction costs, and time horizon.}
+
+\begin{itemize}
+\item If a manager knows how to make the correct trade-off between expected
+active return, active risk and transactions costs, \term{frequent revision will
+not present a problem}.
+\item If the manager is unsure of her ability to correctly specify alphas, active
+risk and transactions costs, she may resort to \term{less frequent revision as a
+safeguard}.
+\end{itemize}
+
+% ------------------------------------------------------------------
+\lo{IM-4 g}{Determine the optimal no-trade region for rebalancing with transaction costs.}
+
+\begin{imfmlbox}
+\[ \text{MCVA}_n = \alpha_n - 2 \times \lambda_A \times \psi \times \text{MCAR}_n \]
+\vk{$\text{MCVA}_n$ is stock $n$'s marginal contribution to value added --- how
+risk-adjusted alpha changes as the holding of the stock is increased, with an
+offsetting decrease in cash. $\text{MCAR}_n$ is its marginal contribution to
+active risk, the rate at which active risk changes as we add more of stock $n$.
+$\lambda_A$ is the active risk aversion and $\psi$ the active risk.}
+\end{imfmlbox}
+
+We can decide whether to trade by comparing the MCVA to the transactions costs.
+\term{As long as $\text{MCVA}_n$ stays within the negative cost of selling and
+the cost of purchase, the portfolio will remain optimal}, and we should not react
+to new information.
+
+\begin{imfmlbox}
+\[ -\text{SC}_n \;\le\; \text{MCVA}_n \;\le\; \text{PC}_n \qquad\Longrightarrow\qquad \text{do not trade} \]
+\vk{$\text{PC}_n$ is the purchase cost and $\text{SC}_n$ the sales cost for stock
+$n$. The band is \emph{asymmetric} whenever the two costs differ.}
+\end{imfmlbox}
+
+\gapbadge
+\srcnote{The notes state the band rule without ever putting numbers through it.
+The worked case below is GARP's own (Chapter 4), and it is what makes the
+asymmetry visible.}
+
+\begin{imexbox}[title={Working the band}]
+Take $\text{PC}_n = 0.50\%$ and $\text{SC}_n = 0.75\%$, so the no-trade band runs
+from $-0.75\%$ to $+0.50\%$.
+\begin{itemize}
+\item If $\text{MCVA}_n = 0.80\%$, it exceeds the purchase cost. Buying yields a
+net benefit of $0.80\% - 0.50\% = \mathbf{0.30\%}$.
+\item If $\text{MCVA}_n = -1.30\%$, it is below the negative of the sales cost.
+Decreasing the holding saves $1.30\%$ at the margin against a $0.75\%$ cost, for
+a net benefit of $1.30\% - 0.75\% = \mathbf{0.55\%}$.
+\end{itemize}
+\end{imexbox}
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.4cm, height=5.8cm,
+  xmin=0, xmax=10, ymin=-1.75, ymax=1.25,
+  xtick=\empty,
+  ylabel={$\text{MCVA}_n$ (\%)},
+  ytick={-1.30,-0.75,0,0.50,0.80},
+  yticklabels={$-1.30$,$-0.75$,$0$,$0.50$,$0.80$},
+]
+\fill[PaleGreen] (axis cs:0,-0.75) rectangle (axis cs:10,0.50);
+\draw[FRMGreen, thick] (axis cs:0,0.50) -- (axis cs:10,0.50);
+\draw[FRMGreen, thick] (axis cs:0,-0.75) -- (axis cs:10,-0.75);
+\draw[black!45, thin] (axis cs:0,0) -- (axis cs:10,0);
+\addplot[only marks, mark=*, mark size=2.2pt, FRMRed] coordinates {(3,0.80) (7,-1.30)};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMRed] at (axis cs:3.3,0.80) {buy: net $+0.30\%$};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMRed, anchor=east] at (axis cs:6.7,-1.30) {sell: net $+0.55\%$};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMGreen] at (axis cs:0.3,-0.14) {no-trade region};
+\node[font=\scriptsize\sffamily, anchor=west, text=black!55]
+  at (axis cs:8.6,0.60) {$+\text{PC}_n$};
+\node[font=\scriptsize\sffamily, anchor=west, text=black!55]
+  at (axis cs:8.6,-0.65) {$-\text{SC}_n$};
+\end{axis}
+\end{tikzpicture}}%
+{The no-trade band, drawn with GARP's own costs of $0.50\%$ to purchase and
+$0.75\%$ to sell. Note that the band is not symmetric about zero: because selling
+costs more than buying, the portfolio tolerates a larger \emph{negative} MCVA
+before it is worth acting. New information that moves MCVA anywhere inside the
+shaded region should be ignored --- which is the objective's real content, since
+the intuitive answer is that any new information warrants a trade.}
+
+% ------------------------------------------------------------------
+\lo{IM-4 h}{Evaluate the strengths and weaknesses of the following portfolio construction techniques: screens, stratification, linear programming, and quadratic programming.}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}XX@{}}
+\toprule
+\textbf{\sffamily\small Technique} & \textbf{\sffamily\small Strengths} & \textbf{\sffamily\small Weaknesses} \\
+\midrule
+Screens & Simple to use; allows filtering based on alpha or other criteria. \emph{Example:} selecting top alpha stocks for your portfolio from 100 stocks. & Can be overly simplistic; ignores diversification. \\
+Stratification & Ensures the portfolio reflects the benchmark's risk profile. \emph{Example:} selecting stocks by category (size, sector). & Limits flexibility; might miss alpha opportunities outside categories. \\
+Linear programming & More sophisticated than screens; considers multiple risk factors (size, beta). Can incorporate transaction costs and position size limits. & May result in a portfolio very close to the benchmark, potentially missing alpha. \\
+Quadratic programming & Theoretically the best method; uses alphas, risks and transactions costs for an optimal portfolio. Allows various constraints to be incorporated. & Highly sensitive to estimation errors, especially in covariances. Requires accurate data for all assets: 400 stocks lead to 79,800 covariance estimates. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{The four techniques, in increasing order of sophistication and of
+vulnerability. The progression is not a ranking of which to use: the last row's
+strength and weakness are the same property. Quadratic programming uses every
+input, which is exactly why it is the most exposed to the noise in those inputs
+that IM-4 a warned about.}
+
+\begin{imkeybox}[title={Where 79,800 comes from}]
+A covariance matrix over $N$ assets has $N(N-1)/2$ distinct pairwise covariances.
+For $N = 400$:
+\[ \frac{400 \times 399}{2} = 79{,}800 \]
+plus 400 variances on the diagonal, for 80,200 distinct entries in total. Every
+one of them is estimated, and every one carries error.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-4 i}{Describe dispersion, explain its causes, and describe methods for controlling forms of dispersion.}
+
+\begin{imdefbox}[title={Dispersion}]
+The difference between the maximum return and the minimum return for separate
+account portfolios. It is a measure of how an individual client's portfolio may
+differ from the manager's reported composite returns.
+\end{imdefbox}
+
+\subsection{Sources of dispersion}
+
+\begin{itemize}
+\item \term{Client-driven:} clients impose different constraints.
+\item Lack of attention to separate accounts.
+\end{itemize}
+
+\subsection{Controlling dispersion}
+
+If transactions costs were zero, rebalancing all the separate accounts so that
+they hold exactly the same assets in the same proportions would have no cost.
+Dispersion would disappear, at no cost to investors.
+
+With transactions costs, \term{managers should reduce dispersion only until
+further reduction would substantially lower returns on average}, because much
+higher transactions costs would be incurred.
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-4}]
+\begin{itemize}
+\item \term{Role, IM-4 a.} Only the \emph{current portfolio} is measured with
+near certainty. Alphas, covariances, transaction costs and risk aversion are all
+uncertain. A question that calls any of the other four reliable is corrupting
+this.
+\item \term{Formula, IM-4 e.} $\lambda_A = \text{IR}/(2\sigma_A)$, and the inputs
+are in \emph{percent}. IR $0.5$ with $5\%$ active risk gives $0.05$, not $0.005$.
+\item \term{Polarity, IM-4 g.} Trade when MCVA lies \emph{outside} the band. New
+information inside the band is ignored.
+\item \term{Sign, IM-4 g.} The band is $[-\text{SC}_n, +\text{PC}_n]$: the sales
+cost enters \emph{negatively}. Swapping the two ends, or making the band
+symmetric, is the standard corruption.
+\item \term{Sibling, IM-4 c.} Benchmark-neutral sets the \emph{benchmark's} alpha
+to zero; risk-factor-neutral sets the \emph{factors'} alphas to zero;
+cash-neutral removes the active \emph{cash} position. Three different things
+being set to zero.
+\item \term{Definition, IM-4 d.} Alphas are uncertain but predictable;
+transaction costs are more certain but variable. The asymmetry runs in the
+direction people do not expect.
+\item \term{Intermediate result, IM-4 h.} $79{,}800$ is the count of distinct
+\emph{pairwise covariances}, $N(N-1)/2$. The full matrix has $80{,}200$ distinct
+entries once the variances are included.
+\item \term{Scope, IM-4 i.} Dispersion is about \emph{separate accounts} against
+the composite, not about tracking error against a benchmark.
+\end{itemize}
+\end{imtrapbox}
+
+% ==================================================================

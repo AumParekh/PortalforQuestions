@@ -1,0 +1,481 @@
+\reading{CR-19}{Future Value and Exposure}{DEFER}{3}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.
+\item Compare the characterization of credit exposure to VaR methods and describe additional considerations used in the determination of credit exposure.
+\item Identify factors that affect the calculation of the credit exposure profile and summarize the impact of collateral on exposure.
+\item Identify typical credit exposure profiles for various derivative contracts and combination profiles.
+\item Explain how payment frequencies and exercise dates affect the exposure profile of various securities.
+\item Explain the general impact of aggregation on exposure, and the impact of aggregation on exposure when there is correlation between transaction values.
+\item Describe the differences between funding exposure and credit exposure.
+\item Explain the impact of collateralization on exposure and assess the risk associated with the remargining period, threshold, and minimum transfer amount.
+\item Assess the impact of collateral on counterparty risk and funding, with and without segregation or rehypothecation.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading, and the vocabulary reading for CVA]
+CR-19 exists only in the Crash layer. It is also where the exposure metrics that
+CR-20's CVA calculations consume are defined, so the definitions here are load
+bearing further on.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-19 a}{Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.6cm, height=6.2cm,
+  axis lines=left, xlabel={Future mark-to-market value},
+  ylabel={Probability},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=-3.4, xmax=3.6, ymin=0, ymax=0.56, ytick=\empty,
+  xtick={-3,-2,-1,0,1,2,3}, clip=true]
+\addplot[domain=-3.4:3.6, samples=200, draw=none, name path=curve]
+  {exp(-x^2/2)/sqrt(2*pi)};
+\path[name path=base] (axis cs:-3.4,0) -- (axis cs:3.6,0);
+\addplot[FRMGold!55] fill between[of=curve and base,
+  soft clip={domain=-3.4:0}];
+\addplot[FRMGreen!45] fill between[of=curve and base,
+  soft clip={domain=0:3.6}];
+\addplot[domain=-3.4:3.6, samples=200, smooth, draw=FRMNavy, line width=1.1pt]
+  {exp(-x^2/2)/sqrt(2*pi)};
+\draw[FRMNavy, line width=0.9pt] (axis cs:0,0) -- (axis cs:0,0.42);
+\node[above, font=\sffamily\scriptsize\bfseries, text=FRMNavy, fill=white,
+  inner sep=1.5pt] at (axis cs:0,0.42) {Expected MtM};
+\draw[-{Stealth[length=4pt]}, FRMGreen, line width=0.9pt]
+  (axis cs:0.8,0.03) -- (axis cs:0.8,0.30);
+\node[above, font=\sffamily\scriptsize\bfseries, text=FRMGreen, fill=white,
+  inner sep=1.5pt] at (axis cs:1.05,0.30) {EE};
+\draw[-{Stealth[length=4pt]}, FRMGold, line width=0.9pt]
+  (axis cs:-0.9,0.03) -- (axis cs:-0.9,0.30);
+\node[above, font=\sffamily\scriptsize\bfseries, text=FRMGold, fill=white,
+  inner sep=1.5pt] at (axis cs:-1.15,0.30) {NE};
+\draw[-{Stealth[length=4pt]}, FRMRed, line width=0.9pt]
+  (axis cs:2.6,0.01) -- (axis cs:2.6,0.22);
+\node[above, font=\sffamily\scriptsize\bfseries, text=FRMRed, fill=white,
+  inner sep=1.5pt] at (axis cs:2.6,0.22) {PFE};
+\node[font=\sffamily\scriptsize, text=FRMGold, fill=white, inner sep=1.5pt,
+  align=center] at (axis cs:-2.25,0.16) {average of NE\\is ENE};
+\node[font=\sffamily\scriptsize, text=FRMGreen, fill=white, inner sep=1.5pt,
+  align=center] at (axis cs:1.95,0.45) {average of EE\\is EPE};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMGold] at (axis cs:-2.6,0.02) {$(-)$};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMGreen] at (axis cs:2.9,0.02) {$(+)$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{All seven metrics live on one distribution: the distribution of the
+transaction's mark-to-market value at a future date. Everything to the right of
+zero is exposure to \emph{you}; everything to the left is exposure to the
+\emph{counterparty}. The right tail feeds CVA and the left tail feeds DVA, which
+is why the two adjustments at CR-12 b have opposite signs.}
+
+\begin{enumerate}
+\item \term{Expected MtM.} The average future value of a transaction. It can
+differ from the current MtM due to the passage of time and to cash flows.
+\item \term{Expected exposure (EE).} The potential loss if positive MtM occurs and
+the counterparty defaults. It is \emph{larger} than the expected MtM, because it
+conditions on the positive side only.
+\item \term{Potential future exposure (PFE).} The worst-case MtM scenario at a
+specific future point.
+\item \term{Expected positive exposure (EPE).} The average EE over time.
+\item \term{Negative exposure (NE).} The counterparty's perspective: negative
+future values. \term{Expected negative exposure (ENE)} is the opposite of EPE.
+\item \term{Effective EE and effective EPE.} Capture \term{rollover risk} in
+short-term transactions.
+\item \term{Maximum exposure.} The highest PFE over the life of the transaction.
+\end{enumerate}
+
+\begin{crfmlbox}[Where these feed through to pricing]
+\[ \mathrm{DVA} = -\mathrm{LGD}_I \sum_{i=1}^{m} \mathrm{ENE}(t_i)\times
+   \mathrm{PD}_I(t_{i-1}, t_i) \]
+\[ \mathrm{CVA} = -\mathrm{LGD}_C \sum_{i=1}^{m} \mathrm{EPE}(t_i)\times
+   \mathrm{PD}_C(t_{i-1}, t_i) \]
+\vk{Subscript $I$ denotes the institution making the calculation and $C$ the
+counterparty. DVA is driven by the institution's \emph{own} default probability
+applied to the negative exposure; CVA by the \emph{counterparty's} default
+probability applied to the positive exposure.}
+\end{crfmlbox}
+
+\subsection*{Effective EE and effective EPE}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.2cm, height=5.6cm,
+  axis lines=left, xlabel={Time}, ylabel={Expected exposure},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  xtick=\empty, ytick=\empty,
+  xmin=0, xmax=10, ymin=0, ymax=1.25, clip=true,
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.22)}, anchor=north, legend columns=-1, column sep=10pt}]
+\addplot[domain=0:10, samples=160, smooth, draw=FRMNavy, line width=1.1pt]
+  {1.02*sin(deg(x*3.1416/10))^1.15};
+\addlegendentry{EE}
+\addplot[draw=FRMRed, line width=1.1pt, sharp plot]
+  coordinates {(0,0) (1,0.42) (2,0.72) (3,0.91) (4,1.01) (5,1.02) (6,1.02)
+  (7,1.02) (8,1.02) (9,1.02) (10,1.02)};
+\addlegendentry{Effective EE (running maximum)}
+\addplot[draw=FRMGreen, line width=1pt, dashed, sharp plot]
+  coordinates {(0,0.86) (10,0.86)};
+\addlegendentry{Effective EPE}
+\addplot[draw=FRMGrey, line width=1pt, dotted, sharp plot]
+  coordinates {(0,0.65) (10,0.65)};
+\addlegendentry{EPE}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Effective EE is the \emph{running maximum} of EE, so it can never fall.
+That is what makes it capture rollover risk: a short-dated trade whose EE decays
+to zero would otherwise look harmless, when in practice it is rolled and the
+exposure returns. Because effective EE sits at or above EE everywhere, effective
+EPE necessarily sits at or above EPE.}
+
+% =====================================================================
+\lo{CR-19 b}{Compare the characterization of credit exposure to VaR methods and describe additional considerations used in the determination of credit exposure.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.9cm} L{5.5cm} L{6.1cm}}
+\toprule
+ & \thead{VaR} & \thead{Credit exposure} \\
+\midrule
+Purpose & Risk management only & \textbf{Both pricing and risk management} \\
+Horizon & Short-term risks & Various \emph{longer} timeframes \\
+Trends and volatility & Does not account for long-term market trends or
+  volatility & Does \\
+Cash flows & Overlooks future cash flows and contractual changes &
+  Includes these to assess future risks \\
+Mitigants & Does not include netting and collateral &
+  Incorporates these, despite the complexity \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Five differences, and the first is the one that drives the rest. Because
+credit exposure is used for \emph{pricing} as well as risk management, it has to
+carry everything that affects value over the life of the trade, not just the
+shape of a short-horizon loss distribution.}
+
+% =====================================================================
+\lo{CR-19 c}{Identify factors that affect the calculation of the credit exposure profile and summarize the impact of collateral on exposure.}
+
+Credit exposure gets more complex with:
+
+\begin{enumerate}[label=\alph*)]
+\item longer time horizons, which bring higher uncertainty;
+\item uneven cash flows, which increase risk;
+\item combined risk factors, for example cross-currency swaps;
+\item options and exercise decisions; and
+\item collateral, which reduces risk but brings complexities like delays and
+value fluctuations.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-19 d}{Identify typical credit exposure profiles for various derivative contracts and combination profiles.}
+
+\begin{center}
+\begin{tikzpicture}
+\pgfplotsset{prof/.style={width=4.4cm, height=3.2cm, axis lines=left,
+  xtick=\empty, ytick=\empty, xmin=0, xmax=1, ymin=0, ymax=1.15,
+  title style={font=\sffamily\scriptsize\bfseries, text=FRMNavy},
+  xlabel={\scriptsize time}, xlabel style={font=\sffamily\scriptsize,
+  at={(0.5,-0.02)}}}}
+\begin{axis}[prof, name=a, title={Bonds and loans}]
+\addplot[draw=FRMNavy, line width=1pt, sharp plot]
+  coordinates {(0,0.8) (1,0.8)};
+\addplot[draw=FRMGreen, line width=0.8pt, dashed, smooth, domain=0:1, samples=30]
+  {0.8+0.18*x};
+\addplot[draw=FRMRed, line width=0.8pt, dotted, smooth, domain=0:1, samples=30]
+  {0.8-0.28*x};
+\end{axis}
+\begin{axis}[prof, name=b, at={(a.right of south east)}, anchor=left of south west,
+  title={Swaps}]
+\addplot[draw=FRMNavy, line width=1pt, smooth, domain=0:1, samples=60]
+  {2.6*x*(1-x)^0.85};
+\end{axis}
+\begin{axis}[prof, name=c, at={(b.right of south east)}, anchor=left of south west,
+  title={FX products}]
+\addplot[draw=FRMNavy, line width=1pt, smooth, domain=0:1, samples=60]
+  {0.95*x^0.62};
+\end{axis}
+\begin{axis}[prof, name=d, at={(a.below south west)}, anchor=above north west,
+  yshift=-16pt, title={Long options}]
+\addplot[draw=FRMNavy, line width=1pt, smooth, domain=0:1, samples=60]
+  {0.92*x^1.5};
+\end{axis}
+\begin{axis}[prof, at={(d.right of south east)}, anchor=left of south west,
+  title={Credit default swaps}]
+\addplot[draw=FRMNavy, line width=1pt, smooth, domain=0:0.72, samples=40]
+  {0.55*x^0.8};
+\addplot[draw=FRMRed, line width=1pt, sharp plot]
+  coordinates {(0.72,0.44) (0.72,1.0) (1,1.0)};
+\node[font=\sffamily\scriptsize, text=FRMRed, anchor=west]
+  at (axis cs:0.24,0.93) {default};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The five characteristic shapes. Bonds and loans sit at roughly the
+notional, rising with interest rate risk (dashed) or falling with prepayments
+(dotted). Swaps \emph{peak}, because future payment uncertainty rises while the
+number of remaining payments falls. FX products increase monotonically, driven by
+FX volatility and a large final notional exchange. Long options rise until
+exercise. A CDS rises with widening spreads and then jumps to its maximum on
+default, set by the recovery rate.}
+
+\begin{itemize}
+\item \term{Bonds and loans.} Exposure is roughly equal to the notional value,
+with potential increases due to interest rate risk (bonds) or potential decreases
+due to prepayments (loans).
+\item \term{Swaps.} Typically show a \emph{peak} shape. This results from
+balancing future payment uncertainties against the diminishing risk of payments
+over time.
+\item \term{Foreign exchange products.} Often have monotonically increasing
+exposures, due to high volatility in FX rates, long maturities, and significant
+final notional payments. The primary risk comes from fluctuations in FX rates
+rather than interest rates.
+\item \term{Long options.} Exposure increases over time until the option is
+exercised, with the exact shape changing based on its position: in, out, or near
+the money.
+\item \term{Credit default swaps.} Exposure increases initially due to widening
+credit spreads, then reaches a maximum upon default, based on the recovery rate.
+\end{itemize}
+
+\begin{crtrapbox}[Wrong-way risk in credit derivatives]
+The effect of wrong-way risk leads to considerable counterparty risk for credit
+derivatives: the event that makes the CDS valuable is correlated with the event
+that makes the protection seller unable to pay.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-19 e}{Explain how payment frequencies and exercise dates affect the exposure profile of various securities.}
+
+\subsection*{Payment frequencies}
+
+\begin{itemize}
+\item \term{Unequal payments.} When payments \emph{received} are more frequent
+than payments made, the exposure profile shows a \emph{reduction} in exposure.
+More frequent cash inflows help mitigate the impact of future uncertainties.
+\item \term{Equal payments.} When payments are made and received at the same
+frequency, the exposure profile is typically smoother and less volatile.
+\end{itemize}
+
+\subsection*{Exercise dates}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.2cm} L{11.3cm}}
+\toprule
+\thead{Before the exercise date} & \term{Swaptions} generally have \emph{higher}
+  exposure than forward swaps, due to the potential for the option not to be
+  exercised if it is not profitable \\
+\thead{After the exercise date} & \term{Forward swaps} usually have \emph{higher}
+  exposure, because a forward swap has a fixed obligation to make payments while
+  the swaption might not be exercised \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The ranking flips at the exercise date. That flip is the whole content of
+this objective, and it is trivially easy to state backwards.}
+
+% =====================================================================
+\lo{CR-19 f}{Explain the general impact of aggregation on exposure, and the impact of aggregation on exposure when there is correlation between transaction values.}
+
+Netting agreements allow offsetting positions between parties to reduce overall
+exposure. This is effective when trades have opposite MtM values.
+
+\begin{itemize}
+\item \term{Positive correlation} reduces netting benefits, as similarly directed
+trades have little or no offsetting potential.
+\item \term{Negative correlation} provides the most benefit, as perfectly
+offsetting trades lead to a 100\% netting benefit, that is, zero overall risk.
+\end{itemize}
+
+\begin{crfmlbox}[Netting factor]
+\[ \text{netting factor} \;=\; \frac{\sqrt{n + n(n-1)\bar{\rho}}}{n} \]
+\vk{$n$ = number of exposures; $\bar{\rho}$ = average correlation. The factor is
+the ratio of net exposure to the sum of individual exposures, so a
+\textbf{lower netting factor is better}.}
+\end{crfmlbox}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.0cm} L{4.6cm} L{6.9cm}}
+\toprule
+\thead{$\bar{\rho}$} & \thead{Netting benefit} & \thead{Netting factor} \\
+\midrule
+$\bar{\rho} = 1$ & No netting benefit & $100\%$ \\
+$\bar{\rho} = 0$ & Good netting benefit & Depends on the number of exposures, but
+  lower: $1/\sqrt{n}$ \\
+$\bar{\rho} = -1$ & Maximum netting benefit & $0\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{crtrapbox}[Correction: the $\bar{\rho}=-1$ row holds only for two exposures]
+The claim that $\bar{\rho}=-1$ gives a netting factor of zero is true when
+$n = 2$, and \emph{undefined} for $n > 2$. At $n = 3$ and $\bar{\rho} = -1$ the
+expression under the root is $3 + 3(2)(-1) = -3$, and the square root of a
+negative number is not available. The reason is that an average pairwise
+correlation of $-1$ is not attainable across more than two exposures.
+
+\smallskip
+The correct general statement: the netting factor reaches zero at
+\[ \bar{\rho} = -\frac{1}{n-1} \]
+which is the \emph{lowest attainable} average correlation for $n$ exposures. For
+$n=2$ that is $-1$, which recovers the notes' row; for $n=10$ it is only
+$-0.111$.
+\end{crtrapbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.2cm, height=5.6cm,
+  xlabel={Number of exposures $n$}, ylabel={Netting factor},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=1, xmax=50, ymin=0, ymax=1.08,
+  grid=major, grid style={FRMRule!50, line width=0.3pt},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=8pt}]
+\addplot[domain=1:50, samples=80, smooth, draw=FRMRed, line width=1.1pt]
+  {sqrt(x+x*(x-1)*1.0)/x};
+\addlegendentry{$\bar{\rho}=1$}
+\addplot[domain=1:50, samples=80, smooth, draw=FRMGold, line width=1.1pt]
+  {sqrt(x+x*(x-1)*0.5)/x};
+\addlegendentry{$\bar{\rho}=0.5$}
+\addplot[domain=1:50, samples=80, smooth, draw=FRMNavy, line width=1.1pt]
+  {sqrt(x+x*(x-1)*0.25)/x};
+\addlegendentry{$\bar{\rho}=0.25$}
+\addplot[domain=1:50, samples=80, smooth, draw=FRMGreen, line width=1.1pt]
+  {sqrt(x)/x};
+\addlegendentry{$\bar{\rho}=0$}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Netting factor against portfolio size, for four average correlations. Two
+readings. At $\bar{\rho}=1$ the line is flat at 100\%: adding trades buys nothing,
+whatever the size. At $\bar{\rho}=0$ the factor falls as $1/\sqrt{n}$. In between,
+each curve flattens quickly toward $\sqrt{\bar{\rho}}$ --- so beyond roughly
+twenty exposures, extra trades add almost no further netting benefit and the
+benefit is governed almost entirely by the correlation.}
+
+% =====================================================================
+\lo{CR-19 g}{Describe the differences between funding exposure and credit exposure.}
+
+\begin{crkeybox}[The one-line mapping]
+Counterparty defaults $\Rightarrow$ positive exposure $\Rightarrow$ \term{funding
+costs}.
+
+\smallskip
+The bank itself defaults $\Rightarrow$ negative exposure $\Rightarrow$
+\term{funding benefit}.
+\end{crkeybox}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.7cm} L{5.6cm} L{6.2cm}}
+\toprule
+ & \thead{Funding exposure} & \thead{Credit exposure} \\
+\midrule
+Value definition & \textbf{Objective}: the cost of obtaining funds &
+  \textbf{Subjective}: assumptions about loss recovery \\
+Margin period of risk & Does not necessarily assume default &
+  Considers default and the time to liquidate collateral \\
+Aggregation & Considers the \emph{entire portfolio} for potential reuse of margin &
+  Focuses on netting \emph{individual counterparties} \\
+Wrong-way risk & Not considered &
+  Considers factors that increase default likelihood while also decreasing
+  collateral value \\
+Segregation & Rules might be \emph{less} restrictive &
+  Rules are more restrictive \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% =====================================================================
+\lo{CR-19 h}{Explain the impact of collateralization on exposure and assess the risk associated with the remargining period, threshold, and minimum transfer amount.}
+
+\begin{crdefbox}[Margin period of risk]
+The MPoR is the time from a collateral call to the actual delivery of collateral.
+It represents the critical exposure period for the party seeking collateral.
+\end{crdefbox}
+
+\begin{crfmlbox}[Exposure during the margin period of risk]
+\[ \mathrm{EE} \;=\; 0.4 \times \sigma_E \times \sqrt{T_M}
+   \qquad\qquad
+   \mathrm{PFE} \;=\; k \times \sigma_E \times \sqrt{T_M} \]
+\vk{$\sigma_E$ = annual volatility of the exposure; $T_M$ = the remargin period
+expressed in years; $k$ = the quantile multiplier for the chosen confidence level.
+For a 10-day remargin period, $\sqrt{T_M} = \sqrt{10/252} = 0.1992$.
+
+\smallskip
+The 0.4 is not arbitrary. For a zero-mean normal variable,
+$E[\max(X,0)] = \sigma/\sqrt{2\pi} = 0.3989\,\sigma$, which rounds to 0.4. EE and
+PFE are therefore the same quantity read at two different points of the same
+distribution: its positive mean, and its $k$-th quantile.}
+\end{crfmlbox}
+
+\subsection*{Limitations of the PFE calculation}
+
+\begin{enumerate}[label=\alph*)]
+\item It assumes strong collateralization.
+\item It does not account for uncertainty in collateral volatility. Collateral
+volatility needs to be considered when using non-cash collateral.
+\item It ignores liquidity and liquidation risks.
+\end{enumerate}
+
+\subsection*{Modelling collateral: which direction helps}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{5.4cm} L{9.1cm}}
+\toprule
+\thead{Parameter} & \thead{Direction that reduces exposure} \\
+\midrule
+Margin period of risk (MPoR) & \textbf{Lower} is better \\
+Threshold & \textbf{Lower} is better \\
+Minimum transfer amount & \textbf{Lower} is better \\
+Initial margin & \textbf{Higher} is better \\
+Rounding & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Four of the five have a direction, and initial margin is the odd one out:
+it is the only parameter where \emph{more} is better. The other three are all
+frictions that let exposure build before collateral arrives.}
+
+\begin{crtrapbox}[Collateral is path-dependent]
+The amount of collateral requested depends on how much was requested in the past.
+The mechanism, through the minimum transfer amount, is set out at
+\textbf{CR-17 c}.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-19 i}{Assess the impact of collateral on counterparty risk and funding, with and without segregation or rehypothecation.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{4.4cm} L{4.9cm} L{5.2cm}}
+\toprule
+\thead{Collateral form} & \thead{Counterparty risk} & \thead{Funding} \\
+\midrule
+\term{Cash, non-segregated} & Reduced & Reduced costs \\
+ & \multicolumn{2}{l}{\emph{Best case: reduces both}} \\
+\term{Securities, rehypothecated} & Mitigated if haircuts are sufficient &
+  Reduced costs \\
+ & \multicolumn{2}{l}{\emph{Good option: mitigates both}} \\
+\term{Segregated cash or securities} & Reduced &
+  \textbf{No funding benefit}, due to limited reusability \\
+\term{Counterparty bonds, rehypothecated} &
+  \textbf{Problematic}: they become worthless upon default &
+  Reduced costs \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The last two rows are the interesting ones and they fail in opposite
+directions. Segregation protects against counterparty risk and kills the funding
+benefit. Counterparty bonds deliver the funding benefit and are worthless exactly
+when the counterparty risk crystallises, which is wrong-way risk inside the
+collateral itself.}

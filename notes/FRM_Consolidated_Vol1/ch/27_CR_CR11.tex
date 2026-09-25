@@ -1,0 +1,319 @@
+\reading{CR-11}{Portfolio Credit Risk}{STRIKE FIRST}{6}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Define and calculate default correlation for credit portfolios.
+\item Identify drawbacks in using the correlation-based credit portfolio framework.
+\item Assess the impact of correlation on a credit portfolio and its Credit VaR.
+\item Describe the use of a single factor model to measure portfolio credit risk, including the impact of correlation.
+\item Define beta and calculate the asset return correlation of any pair of firms using the single factor model.
+\item Estimate the probability of a joint default of any pair of credits and the default correlation between any pair of credits using the single factor model.
+\item Describe how Credit VaR can be calculated using a simulation of joint defaults.
+\item Assess the effect of granularity on Credit VaR.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading]
+CR-11 exists only in the Crash layer. There is no Class Lecture treatment.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-11 a}{Define and calculate default correlation for credit portfolios.}
+
+The default correlation for a two-credit portfolio, assuming the outcomes are
+Bernoulli-distributed random variables, rests on four mutually exclusive events.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{4.0cm} c c c L{3.6cm}}
+\toprule
+\thead{Event} & \thead{$x_1$} & \thead{$x_2$} & \thead{$x_1x_2$} &
+\thead{Default probability} \\
+\midrule
+Firm 1 defaults & 1 & 0 & 0 & $\pi_1 - \pi_{12}$ \\
+Firm 2 defaults & 0 & 1 & 0 & $\pi_2 - \pi_{12}$ \\
+Both default & 1 & 1 & 1 & $\pi_{12}$ \\
+No default & 0 & 0 & 0 & $1 - \pi_1 - \pi_2 + \pi_{12}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The four events and their probabilities. Note that ``firm 1 defaults''
+means firm 1 alone, so the joint probability $\pi_{12}$ is subtracted out of it;
+the four probabilities sum to 1 by construction.}
+
+\begin{crfmlbox}[Default correlation for a two-credit portfolio]
+\[ \rho_{12} \;=\; \frac{\pi_{12} - \pi_1\pi_2}
+   {\sqrt{\pi_1(1-\pi_1)}\;\sqrt{\pi_2(1-\pi_2)}} \]
+\vk{$\pi_1, \pi_2$ = the individual (marginal) default probabilities;
+$\pi_{12}$ = the joint default probability. The denominator is the product of the
+two Bernoulli standard deviations. If the two default events are independent then
+$\pi_{12} = \pi_1\pi_2$ and the numerator, and hence the correlation, is zero.}
+\end{crfmlbox}
+
+% =====================================================================
+\lo{CR-11 b}{Identify drawbacks in using the correlation-based credit portfolio framework.}
+
+\begin{enumerate}
+\item \term{Too many calculations.} The number of calculations required to
+analyse all possible default scenarios increases dramatically as the number of
+firms in the portfolio grows.
+\item \term{Limited applicability.} The framework struggles to model certain
+features like guarantees, revolving credit agreements, and convertible bonds.
+\item \term{Data limitations.} Estimating default correlations is difficult due
+to the rarity of defaults and the impact of specific data horizons and
+industries.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-11 c}{Assess the impact of correlation on a credit portfolio and its Credit VaR.}
+
+The effects of default, default correlation, and loss given default are important
+determinants in measuring credit portfolio risk.
+
+\begin{crfmlbox}[Credit VaR]
+\[ 95\%\ \mathrm{CVaR} \;=\; \text{95th percentile of the unrecovered credit loss}
+   \;-\; \text{Expected Loss} \]
+\vk{The percentile figure is the worst case loss (WCL) at the chosen confidence
+level. Credit VaR is the \emph{excess} of the worst case over the expected loss,
+which is why it can come out negative when the confidence level is not demanding
+enough to produce any default at all.}
+\end{crfmlbox}
+
+\begin{crexbox}[Example 1: perfect correlation, $\rho = 1$]
+Given a portfolio with notional value of \$1,000,000 and 20 credit positions.
+Each credit has a PD of 2\% and an RR of 0. Each credit position is an obligation
+from the \emph{same obligor}, so that the credit portfolio has a default
+correlation equal to 1. What is the credit value at risk at the 99\% and 95\%
+confidence levels for this portfolio?
+\tcblower
+With $\rho = 1$ the portfolio behaves as if there is only one credit: either
+everything defaults or nothing does, with probability 2\%.
+
+\[ \mathrm{EL} = \$1{,}000{,}000 \times 2\% = \$20{,}000 \]
+
+\textbf{At 99\%.} The 1\% tail is inside the 2\% default probability, so the
+worst case is total loss:
+\[ \mathrm{WCL}(99\%) = \$1{,}000{,}000 \]
+\[ \mathrm{CVaR}(99\%) = \$1{,}000{,}000 - \$20{,}000 = \$980{,}000 \]
+
+\textbf{At 95\%.} The 5\% tail is wider than the 2\% default probability, so at
+the 95th percentile no default has occurred:
+\[ \mathrm{WCL}(95\%) = \$0 \]
+\[ \mathrm{CVaR}(95\%) = \$0 - \$20{,}000 = -\$20{,}000 \]
+\end{crexbox}
+
+\begin{crexbox}[Example 2: zero correlation, $\rho = 0$]
+Given a portfolio with a value of \$1,000,000 and 50 credits. Each credit is
+equally weighted and has a terminal value of \$20,000 each if no default occurs.
+Each credit has a PD of $\pi$ and an RR of zero. What is the credit VaR at the
+95\% confidence level if $\pi$ is 2\% and the default correlation is 0? The 95th
+percentile of the number of defaults based on this distribution is 3.
+\tcblower
+With $\rho = 0$ the number of defaults is binomially distributed.
+
+\[ \mathrm{EL} = \$1{,}000{,}000 \times 2\% = \$20{,}000 \]
+\[ \mathrm{WCL}(95\%) = 3 \times \$20{,}000 = \$60{,}000 \]
+\[ \mathrm{CVaR}(95\%) = \$60{,}000 - \$20{,}000 = \$40{,}000 \]
+
+\smallskip
+Where the 3 comes from: under a binomial with $n=50$ and $p=0.02$, the cumulative
+probability of 2 or fewer defaults is 92.16\% and of 3 or fewer is 98.22\%. Three
+is therefore the smallest number of defaults that covers the 95th percentile.
+\end{crexbox}
+
+\begin{crkeybox}[What the pair of examples shows]
+Same expected loss of \$20,000 in both. But at the 95\% level the perfectly
+correlated portfolio has a credit VaR of $-\$20{,}000$ and the independent
+portfolio has $+\$40{,}000$. Correlation does not move the expected loss; it moves
+the shape of the tail, and it can move it in either direction depending on where
+the confidence level falls relative to the default probability.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-11 d}{Describe the use of a single factor model to measure portfolio credit risk, including the impact of correlation.}
+
+\subsection*{Model assumption}
+
+The firm's asset return is represented as a function of two random variables: the
+return on a \term{market factor} $m$ that captures the correlation between
+default and the general state of the economy, and a \term{shock} $\varepsilon$
+capturing idiosyncratic risk. Both $m$ and $\varepsilon$ are standard normal
+variables and are not correlated with one another.
+
+\begin{crfmlbox}[The single-factor decomposition]
+\[ a_i \;=\; \beta_i m + \sqrt{1-\beta_i^{2}}\;\varepsilon_i
+   \qquad\text{with}\qquad E(a_i) = 0, \quad \mathrm{Var}(a_i) = 1 \]
+\vk{$a_i$ = the asset return of firm $i$; $\beta_i$ = the firm's loading on the
+market factor. The coefficient on the shock is $\sqrt{1-\beta_i^{2}}$ precisely so
+that the total variance stays at 1, which keeps $a_i$ standard normal.}
+\end{crfmlbox}
+
+\subsection*{Unconditional default probability}
+
+The unconditional default distribution is a standard normal distribution. In the
+single-factor model, the cumulative return distribution of any pair of credits
+$i$ and $j$ is a \term{bivariate standard normal} with a correlation coefficient
+equal to $\beta_i\beta_j$.
+
+\subsection*{Conditional default probability}
+
+Let $m$ take on a particular value $\bar{m}$. The distance to default now has only
+one random driver, $\varepsilon$. The conditional distribution is normal with a
+mean of $\beta_i\bar{m}$ and a standard deviation of $\sqrt{1-\beta_i^{2}}$.
+
+\begin{crfmlbox}[Conditional cumulative default probability]
+\[ p(\bar{m}) \;=\; \Phi\!\left(\frac{k_i - \beta_i\bar{m}}
+   {\sqrt{1-\beta_i^{2}}}\right) \]
+\vk{$k_i$ = the default threshold for firm $i$, the value of the asset return at
+or below which the firm defaults. $\Phi$ is the standard normal cumulative
+distribution function. The numerator is the \emph{new} distance to default given
+the market factor; the denominator is the standard deviation under conditional
+independence.}
+\end{crfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.4cm, height=6.0cm,
+  xlabel={Market factor realization $\bar{m}$},
+  ylabel={Conditional PD, $p(\bar{m})$},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=-4, xmax=2, ymin=0, ymax=1.0,
+  grid=major, grid style={FRMRule!50, line width=0.3pt},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt}]
+\addplot[draw=FRMGreen, line width=1.1pt, smooth]
+  coordinates {(-4.00,0.05920) (-3.50,0.04810) (-3.00,0.03873) (-2.50,0.03090)
+  (-2.00,0.02443) (-1.50,0.01914) (-1.00,0.01486) (-0.50,0.01142) (0.00,0.00870)
+  (0.50,0.00657) (1.00,0.00491) (1.50,0.00363) (2.00,0.00267)};
+\addlegendentry{$\beta=0.2$}
+\addplot[draw=FRMNavy, line width=1.1pt, smooth]
+  coordinates {(-4.00,0.35158) (-3.50,0.25152) (-3.00,0.16893) (-2.50,0.10618)
+  (-2.00,0.06230) (-1.50,0.03404) (-1.00,0.01730) (-0.50,0.00816) (0.00,0.00357)
+  (0.50,0.00145) (1.00,0.00054) (1.50,0.00019) (2.00,0.00006)};
+\addlegendentry{$\beta=0.5$}
+\addplot[draw=FRMRed, line width=1.1pt, smooth]
+  coordinates {(-4.00,0.92647) (-3.50,0.78328) (-3.00,0.54644) (-2.50,0.29116)
+  (-2.00,0.11187) (-1.50,0.02983) (-1.00,0.00539) (-0.50,0.00065) (0.00,0.00005)
+  (0.50,0.00000) (1.00,0.00000) (1.50,0.00000) (2.00,0.00000)};
+\addlegendentry{$\beta=0.8$}
+\addplot[only marks, mark=*, mark size=2pt, draw=FRMGold, fill=FRMGold]
+  coordinates {(-0.5,0.00816)};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMGold, fill=white, inner sep=1.5pt]
+  at (axis cs:0.78,0.14) {worked example: $0.82\%$};
+\draw[-{Stealth[length=4pt]}, FRMGold] (axis cs:0.05,0.115) -- (axis cs:-0.45,0.03);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Conditional default probability against the market factor, for a default
+threshold of $k=-2.33$. All three curves describe firms with the same 1\%
+unconditional default probability; what differs is $\beta$. A low-beta firm is
+nearly flat, so the economy barely matters to it. A high-beta firm is close to
+zero in good states and above 50\% by $\bar{m}=-3$. That fanning out \emph{is}
+the correlation: it is what makes defaults arrive together.}
+
+% =====================================================================
+\lo{CR-11 e}{Define beta and calculate the asset return correlation of any pair of firms using the single factor model.}
+
+\term{Beta} is the firm's loading on the market factor in the decomposition
+above: the coefficient $\beta_i$ that determines how much of the firm's asset
+return is driven by the systematic factor rather than by its own idiosyncratic
+shock.
+
+\begin{crfmlbox}[Asset return correlation of a pair]
+\[ \mathrm{corr}(a_i, a_j) \;=\; \beta_i\beta_j \]
+\vk{And where all firms share the same loading $\beta_i = \beta$, the pairwise
+asset return correlation for any two firms is simply $\beta^{2}$.}
+\end{crfmlbox}
+
+\begin{crexbox}[Conditional default probability in the single-factor model]
+Given a firm with a beta of 0.5 and a default threshold of $-2.33$, the
+unconditional PD is $N(-2.33) = 1\%$. If the market factor is $-0.5$, what is the
+conditional cumulative PD?
+\tcblower
+\textbf{Conditional mean.}
+\[ \beta_i\bar{m} = 0.5 \times (-0.5) = -0.25 \]
+
+\textbf{Conditional variance and standard deviation.}
+\[ 1 - 0.5^{2} = 0.75 \qquad\Rightarrow\qquad \sqrt{0.75} = 0.8660 \]
+
+\textbf{Conditional cumulative PD.}
+\[ N\!\left[\frac{-2.33 - (-0.25)}{0.8660}\right]
+   = N(-2.4018) = 0.8156\% \]
+
+\smallskip
+Note the direction: a market factor of $-0.5$ is a \emph{mildly good} state
+relative to the default threshold, and the conditional PD of 0.82\% comes out
+\emph{below} the unconditional 1\%.
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-11 f}{Estimate the probability of a joint default of any pair of credits and the default correlation between any pair of credits using the single factor model.}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The source notes jump from objective e to objective
+g. This objective is absent from both layers. The following is written from the
+GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for]
+Assume the parameters are the same for all firms, so $\beta_i = \beta$, $k_i = k$
+and $\pi_i = \pi$. The pairwise asset return correlation for any two firms is
+then $\beta^{2}$.
+
+\smallskip
+\textbf{Joint default probability.} Two firms default together when \emph{both}
+asset returns fall at or below the common threshold $k$. Because the pair of
+returns is bivariate standard normal with correlation $\beta^{2}$, the joint
+default probability is the bivariate normal cumulative probability evaluated at
+that corner:
+\[ \pi_{12} \;=\; \Phi_2\bigl(k,\,k;\,\beta^{2}\bigr)
+   \;=\; P\bigl[-\infty \leq a_1 \leq k,\; -\infty \leq a_2 \leq k\bigr] \]
+
+\textbf{Default correlation.} Substituting this joint probability into the
+two-credit correlation formula of objective a, with identical parameters, gives
+\[ \rho \;=\; \frac{\Phi_2(k,k;\beta^{2}) - \pi^{2}}{\pi(1-\pi)} \]
+which is the general expression from objective a specialised to a pair of
+identical firms.
+\end{crgapbox}
+
+\begin{crkeybox}[Two sanity checks on the formula]
+At $\beta = 0$ the asset returns are independent, so
+$\Phi_2(k,k;0) = \pi^{2}$, the numerator vanishes, and the default correlation is
+zero, as it must be.
+
+\smallskip
+\textbf{Asset correlation and default correlation are not the same number, and the
+gap is large.} For a typical low investment-grade default probability of
+$\pi = 0.01$, a default correlation of 0.05 requires an asset return correlation
+$\beta^{2}$ of about 0.31, which is $\beta \approx 0.56$. Recovering $\beta$ from
+a target default correlation requires a numerical procedure; there is no closed
+form.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-11 g}{Describe how Credit VaR can be calculated using a simulation of joint defaults.}
+
+A credit VaR under the copula methodology is computed by:
+
+\begin{enumerate}
+\item defining the copula function;
+\item simulating default times;
+\item obtaining market values and profit and loss data for each scenario using
+the simulated default times; and
+\item computing the portfolio distribution statistics by adding the simulated
+terminal value results.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-11 h}{Assess the effect of granularity on Credit VaR.}
+
+\begin{crkeybox}[Granularity]
+As a credit portfolio becomes \term{more granular}, the credit VaR
+\term{decreases}.
+
+\smallskip
+However, when the default probability is \emph{low}, the credit VaR is not
+impacted as much when the portfolio becomes more granular.
+\end{crkeybox}

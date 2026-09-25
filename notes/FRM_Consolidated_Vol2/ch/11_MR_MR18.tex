@@ -1,0 +1,488 @@
+\reading{MR-18}{Fundamental Review of the Trading Book}{strike}{8}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe the changes to the Basel framework for calculating market risk capital under the
+      Fundamental Review of the Trading Book (FRTB) and the motivations for these changes.
+\item Compare the various liquidity horizons proposed by the FRTB for different asset classes
+      and explain how a bank can calculate its expected shortfall using the various horizons.
+\item Explain the FRTB revisions to Basel regulations in the following areas: classification of
+      positions in the trading book compared to the banking book; backtesting; profit and loss
+      attribution; credit risk; and securitizations.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-18 a}{Describe the changes to the Basel framework for calculating market risk capital under the Fundamental Review of the Trading Book (FRTB) and the motivations for these changes.}
+
+In May 2012 the Basel Committee on Banking Supervision introduced a consultative document titled
+the Fundamental Review of the Trading Book. The final version, published as the \term{Minimum
+Capital Requirements for Market Risk}, covered the shift from VaR to expected shortfall, new
+methods for calculating capital under stressed conditions, and liquidity horizons varying by
+asset class.
+
+\subsection{How the framework evolved}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  era/.style={rectangle, rounded corners=3pt, line width=0.9pt,
+    text width=4.1cm, align=center, inner sep=6pt, minimum height=2.1cm}]
+  \node[era, draw=black!45, fill=FRMSoft] (b1) at (0,0)
+    {\textbf{Basel I}\\[3pt] Market risk capital based on \textbf{VaR}\\ 10-day horizon\\
+     99\% confidence};
+  \node[era, draw=FRMGold!70, fill=FRMPaper] (b25) at (5.1,0)
+    {\textbf{Basel II.5}\\[3pt] Added a \textbf{stressed VaR} measure\\ over 250 days,
+     \textit{in addition to} the current measure};
+  \node[era, draw=FRMNavy!60, fill=PaleNavy] (frtb) at (10.2,0)
+    {\textbf{FRTB}\\[3pt] \textbf{Stressed expected shortfall}\\ 97.5\% confidence\\
+     over a 250-day stressed period};
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (b1) -- (b25);
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (b25) -- (frtb);
+  \node[anchor=north, text=black!60, align=center, text width=3.4cm] at (2.55,-1.25)
+    {\textit{recent losses only}};
+  \node[anchor=north, text=black!60, align=center, text width=3.6cm] at (7.65,-1.25)
+    {\textit{adds stressed conditions, but still asks ``how bad?''}};
+\end{tikzpicture}
+\end{center}
+\figcap{Two changes happen at the FRTB step, and they are easy to conflate. The \textit{measure}
+changes from VaR to ES, and the \textit{confidence level} changes from 99\% to 97.5\%. The
+stressed-period requirement carries over, so the FRTB measure is a stressed ES, not a current
+one.}
+
+\begin{mrtrapbox}[title={The motivation in one line}]
+VaR only asks \term{``how bad can things get?''} --- it reports the threshold and says nothing
+about what lies beyond it. ES asks how bad things are \textit{on average} once that threshold is
+breached.
+\end{mrtrapbox}
+
+\subsection{Problem with VaR, scenario 1: a normal distribution}
+
+For normal distributions with mean $\mu$ and standard deviation $\sigma$, the two measures are
+\term{nearly identical}:
+
+\begin{center}
+\small
+\begin{tabular}{l l}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Measure} & \hdr{Value}\\
+99\% VaR & $\mu + 2.326\,\sigma$\\
+\rowcolor{FRMSoft} 97.5\% Expected Shortfall & $\mu + 2.338\,\sigma$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=nrm, width=6.6cm, height=4.6cm,
+  xmin=-1, xmax=4.2, ymin=0, ymax=0.45,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize Loss, in $\sigma$}, xlabel style={font=\scriptsize},
+  xtick={0,1,2,3,4}, tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Normal: the two coincide},
+  clip=false]
+\addplot[black!80, line width=1.1pt, smooth, domain=-1:4.2, samples=160]
+  {0.39894*exp(-(x^2)/2)};
+\addplot[domain=2.326:4.2, samples=60, smooth, draw=none, fill=FRMRed!25, forget plot]
+  {0.39894*exp(-(x^2)/2)} \closedcycle;
+\draw[FRMNavy, line width=1.0pt] (axis cs:2.326,0) -- (axis cs:2.326,0.095);
+\draw[FRMRed, line width=1.0pt] (axis cs:2.338,0) -- (axis cs:2.338,0.075);
+\node[anchor=west, font=\tiny\sffamily, text=FRMNavy, fill=white, inner sep=1.2pt]
+  at (axis cs:2.5,0.16) {99\% VaR $= 2.326\sigma$};
+\node[anchor=west, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1.2pt]
+  at (axis cs:2.5,0.10) {97.5\% ES $= 2.338\sigma$};
+\end{axis}
+\begin{axis}[name=fat, at={($(nrm.east)+(1.5cm,0)$)}, anchor=west,
+  width=6.6cm, height=4.6cm,
+  xmin=-1, xmax=6.5, ymin=0, ymax=0.45,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize Loss, in $\sigma$}, xlabel style={font=\scriptsize},
+  xtick={0,2,4,6}, tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}Fat-tailed: they separate},
+  clip=false]
+\addplot[black!80, line width=1.1pt, smooth, domain=-1:6.5, samples=200]
+  {0.355*exp(-(x^2)/2) + 0.030*exp(-(x^2)/40)};
+\addplot[domain=2.20:6.5, samples=90, smooth, draw=none, fill=FRMRed!25, forget plot]
+  {0.355*exp(-(x^2)/2) + 0.030*exp(-(x^2)/40)} \closedcycle;
+\draw[FRMNavy, line width=1.0pt] (axis cs:2.20,0) -- (axis cs:2.20,0.11);
+\draw[FRMRed, line width=1.0pt] (axis cs:4.20,0) -- (axis cs:4.20,0.09);
+\node[anchor=west, font=\tiny\sffamily, text=FRMNavy, fill=white, inner sep=1.2pt]
+  at (axis cs:2.35,0.20) {99\% VaR};
+\node[anchor=west, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1.2pt]
+  at (axis cs:3.1,0.13) {97.5\% ES --- much further out};
+\draw[FRMRed, {Stealth[length=4pt]}-{Stealth[length=4pt]}, line width=0.7pt]
+  (axis cs:2.25,0.045) -- (axis cs:4.15,0.045);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The shaded region is the tail ES averages over. On the left, a normal distribution: the
+tail is thin, so averaging over it lands almost exactly where the VaR cut is, and the two
+measures differ by 0.012$\sigma$. On the right, heavier tails: the same tail region now contains
+far larger losses, so the average is pulled well beyond the VaR threshold. \textbf{This is the
+whole argument for the switch}, and it is invisible in the normal case.}
+
+\subsection{Problem with VaR, scenario 2: a bond portfolio}
+
+\begin{mrexbox}[title={Example --- VaR reports nothing}]
+A \$950 million bond portfolio. If it defaults, the loss is 40\% of principal, or
+$0.40 \times \$950\text{m} = \mathbf{\$380 \text{ million}}$. The probability of default is
+2\%.
+\tcblower
+\small
+\textbf{VaR at 95\%:} the 95th percentile outcome is \textit{no default}, because only 2\% of
+outcomes involve a loss at all. So the 95\% VaR is \textbf{\$0} --- VaR reports that the
+portfolio is riskless.
+
+\medskip
+\textbf{ES:} expected shortfall looks at what happens \textit{beyond} the threshold, and there
+the \$380 million default loss is sitting. It is the only thing in the tail, and VaR does not
+see it.
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={A precision point on this example}]
+The source notes state the expected shortfall as \$380 million. Strictly, \$380 million is the
+loss \textit{conditional on default}. Expected shortfall is the probability-weighted average
+across the whole tail, so with a 2\% default probability inside a 5\% tail it would be
+\[ \frac{0.02}{0.05} \times \$380\text{m} \;=\; \$152 \text{ million} \]
+The teaching point is unaffected and is the one to carry into the exam: \term{VaR reports \$0
+while the portfolio can lose \$380 million}. But know which number is which if a question asks
+you to compute ES rather than describe it.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-18 b}{Compare the various liquidity horizons proposed by the FRTB for different asset classes and explain how a bank can calculate its expected shortfall using the various horizons.}
+
+\begin{mrdefbox}[title={Liquidity horizons}]
+FRTB uses \term{five} liquidity horizons: 10, 20, 60, 120 and 250 days. These reflect the time
+needed to sell an asset or hedge its risk in \textit{stressed} markets. A 60-day horizon assumes
+three months to recover from price volatility.
+\end{mrdefbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.0cm,
+  xbar, bar width=13pt,
+  xmin=0, xmax=290, ymin=-0.7, ymax=4.7,
+  xlabel={\scriptsize Liquidity horizon (days)},
+  xlabel style={font=\scriptsize}, tick label style={font=\scriptsize},
+  xtick={0,50,100,150,200,250},
+  ytick={0,1,2,3,4},
+  yticklabels={{Cat.\ 5},{Cat.\ 4},{Cat.\ 3},{Cat.\ 2},{Cat.\ 1}},
+  nodes near coords, nodes near coords style={font=\tiny\sffamily, color=black!70},
+  every node near coord/.append style={/pgf/number format/fixed},
+  axis line style={draw=black!55}, clip=false]
+\addplot[fill=PaleNavy, draw=FRMNavy!65, line width=0.4pt] coordinates {
+(250,0)(120,1)(60,2)(20,3)(10,4)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{l r >{\raggedright\arraybackslash}p{7.4cm}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Category} & \hdr{Horizon} & \hdr{Example asset class}\\
+Category 1 & 10 days & Most liquid equities\\
+\rowcolor{FRMSoft} Category 2 & 20 days & Investment-grade sovereign credit spreads\\
+Category 3 & 60 days & Medium liquidity assets\\
+\rowcolor{FRMSoft} Category 4 & 120 days & Non-investment grade corporate credit spreads\\
+Category 5 & 250 days & Structured products\\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The horizons are not evenly spaced: the jump from category 4 to category 5 is larger
+than the whole span from category 1 to category 3. Structured products are assumed to take
+twenty-five times as long to exit as liquid equities.}
+
+\subsection{Calculating ES across the horizons}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.0cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Approach} & \hdr{Method}\\
+\textbf{Old / initial idea} & Use \term{overlapping time periods} for stress testing. Measure
+  stressed P\&L changes over multiple trials, scaling up from shorter to longer time periods,
+  create a distribution, and calculate ES from it.\\
+\rowcolor{FRMSoft}
+\textbf{Revised: Internal Models Approach (IMA)} & Use a \term{10-day base horizon} with
+  \textbf{nested shocks}: successive shocks to categories, with each ES calculated by holding
+  the \textit{more liquid} categories constant. Scaling accounts for nested risk factors, by the
+  square root of the time horizon differences.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\tiny\sffamily},
+  cell/.style={rectangle, draw=black!40, line width=0.5pt, minimum width=1.55cm,
+    minimum height=0.62cm, align=center},
+  shk/.style={cell, fill=FRMRed!25, draw=FRMRed!55},
+  hld/.style={cell, fill=black!8, draw=black!30}]
+  \foreach \c [count=\i from 0] in {1,2,3,4,5}{
+    \node[font=\tiny\sffamily, text=black!65] at (\i*1.6+1.9,0.62) {Cat.\ \c};}
+  % ES1
+  \node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (0.95,0) {$ES_1$};
+  \foreach \i in {0,1,2,3,4}{\node[shk] at (\i*1.6+1.9,0) {shock};}
+  % ES2
+  \node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (0.95,-0.75) {$ES_2$};
+  \node[hld] at (1.9,-0.75) {held};
+  \foreach \i in {1,2,3,4}{\node[shk] at (\i*1.6+1.9,-0.75) {shock};}
+  % ES3
+  \node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (0.95,-1.5) {$ES_3$};
+  \foreach \i in {0,1}{\node[hld] at (\i*1.6+1.9,-1.5) {held};}
+  \foreach \i in {2,3,4}{\node[shk] at (\i*1.6+1.9,-1.5) {shock};}
+  % ES4
+  \node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (0.95,-2.25) {$ES_4$};
+  \foreach \i in {0,1,2}{\node[hld] at (\i*1.6+1.9,-2.25) {held};}
+  \foreach \i in {3,4}{\node[shk] at (\i*1.6+1.9,-2.25) {shock};}
+  % ES5
+  \node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (0.95,-3.0) {$ES_5$};
+  \foreach \i in {0,1,2,3}{\node[hld] at (\i*1.6+1.9,-3.0) {held};}
+  \node[shk] at (4*1.6+1.9,-3.0) {shock};
+  \node[anchor=north, text=black!60, align=center, text width=9.5cm] at (5.1,-3.5)
+    {each row shocks one fewer category, always dropping the \textbf{most liquid} one};
+\end{tikzpicture}
+\end{center}
+\figcap{The nesting, laid out. $ES_1$ shocks everything on a 10-day horizon. $ES_2$ holds
+category 1 constant and shocks categories 2 to 5. Each successive row freezes one more of the
+liquid categories, so only the progressively less liquid exposures keep moving. The formula
+below then combines them.}
+
+\begin{mrfmlbox}
+\[ ES \;=\; \sqrt{\,ES_1^{2} \;+\; \sum_{j=2}^{5}\left( ES_j
+   \sqrt{\frac{LH_j - LH_{j-1}}{10}} \right)^{\!2}} \]
+\mrvk{$ES_1$ = the 10-day ES with all categories shocked;\quad $ES_j$ = the ES with categories $j$
+through 5 shocked and the more liquid ones held constant;\quad $LH_j$ = the liquidity horizon of
+category $j$;\quad the division by 10 rebases each horizon difference onto the 10-day base, and
+the square root is the usual time scaling.}{}
+\end{mrfmlbox}
+
+\begin{mrkeybox}[title={Until the IMA is approved}]
+Banks currently use the \term{Revised Standardized Approach}, which groups assets into buckets
+based on risk and then applies a formula using asset values, weights and correlations to produce
+a standardized risk measure for each bucket.
+\end{mrkeybox}
+
+\subsection{The standardized approach, in three components}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  top/.style={rectangle, rounded corners=3pt, draw=FRMGold!70, fill=FRMPaper,
+    line width=0.9pt, text width=4.8cm, align=center, inner sep=6pt},
+  comp/.style={rectangle, rounded corners=3pt, line width=0.8pt,
+    text width=3.4cm, align=center, inner sep=6pt, minimum height=1.1cm},
+  sub/.style={rectangle, rounded corners=2pt, draw=FRMNavy!45, fill=PaleNavy,
+    line width=0.6pt, text width=3.1cm, align=center, inner sep=4pt}]
+  \node[top] (cap) at (5.2,2.2) {\textbf{Capital requirement}\\ \textit{sum of three components}};
+  \node[comp, draw=FRMNavy!60, fill=PaleNavy] (rs) at (0,0)
+    {\textbf{1. Risk sensitivity}\\ seven risk classes};
+  \node[comp, draw=FRMGreen!60, fill=PaleGreen] (dr) at (5.2,0)
+    {\textbf{2. Default risk charge}\\ jump-to-default};
+  \node[comp, draw=FRMRed!60, fill=PaleRed] (rr) at (10.4,0)
+    {\textbf{3. Residual risk}\\ e.g.\ exotic options};
+  \foreach \t in {rs,dr,rr}{
+    \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (cap) -- (\t);}
+  \node[sub] (d) at (0,-1.45) {\textbf{Delta} risk charge};
+  \node[sub] (v) at (0,-2.25) {\textbf{Vega} risk charge};
+  \node[sub] (c) at (0,-3.05) {\textbf{Curvature} risk charge};
+  \draw[black!35, line width=0.6pt] (rs.south) -- (0,-1.13);
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.5cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Charge} & \hdr{What it measures}\\
+\textbf{Delta} & The sensitivity of the portfolio to \term{percentage changes in the prices} of
+  underlying assets.\\
+\rowcolor{FRMSoft}
+\textbf{Vega} & The sensitivity of the value of the portfolio to \term{small changes in
+  volatility}.\\
+\textbf{Curvature} & A capital charge for the bank's \term{gamma} risk exposure.\\
+\rowcolor{FRMSoft}
+\textbf{Residual} & Risks that \textit{cannot} be handled by the delta/vega/curvature approach,
+  such as exotic options.\\
+\textbf{Default risk} & \term{Jump-to-default} risk, calculated by multiplying each exposure by
+  \textbf{LGD} and a \textbf{default risk weight}, both specified by the Basel Committee.
+  Credit \textit{spread} risk, by contrast, is handled through delta/vega/curvature.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}[title={The seven risk classes}]
+General interest rate risk, foreign exchange risk, commodity risk, equity risk, and \textbf{three}
+categories of credit spread risk --- corresponding to trading desks.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-18 c}{Explain the FRTB revisions to Basel regulations in the following areas: classification of positions in the trading book compared to the banking book; backtesting; profit and loss attribution; credit risk; and securitizations.}
+
+\subsection{1. Trading book versus banking book}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Trading book} & \hdr{Banking book}\\
+\textbf{Valuation} & Marked to market & Held to maturity\\
+\rowcolor{FRMSoft}
+\textbf{Capital} & \textbf{Lower} capital requirements & \textbf{Higher} capital requirements\\
+\textbf{Entry test} & Must meet \textit{both}: (a) the bank has the \textbf{ability to trade}
+  the asset, and (b) the bank \textbf{physically manages the risk} of the asset on the trading
+  desk. Day-to-day price changes must also affect the bank's equity and solvency. & ---\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrtrapbox}[title={Restrictions on reclassification}]
+\begin{itemize}
+\item Once assigned to either book, assets \term{cannot be reclassified}, except in
+      extraordinary circumstances --- a firm-wide shift in accounting practice, for instance.
+\item Any capital benefit from shifting an asset is \term{disallowed}: the original capital
+      requirement must be retained.
+\end{itemize}
+\medskip
+The purpose is to prevent \textbf{regulatory arbitrage}, enhance risk management, and improve
+transparency. The lower capital charge on the trading book is precisely what creates the
+incentive to game the boundary.
+\end{mrtrapbox}
+
+\subsection{2. Backtesting}
+
+\begin{mrkeybox}[title={Why stressed ES is not backtested}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item It is more difficult to backtest \term{ES} compared to VaR.
+\item It is \term{not possible} to backtest a \textit{stressed} measure at all.
+\end{enumerate}
+So FRTB backtests a \textbf{VaR} measure instead, even though capital is based on ES.
+\end{mrkeybox}
+
+\begin{center}
+\small
+\begin{tabular}{l >{\raggedright\arraybackslash}p{6.2cm} r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Requirement} & \hdr{Detail} & \hdr{Exception limit}\\
+Horizon & One day & ---\\
+\rowcolor{FRMSoft} Window & Most recent 12 months of data & ---\\
+Confidence & 99\% & more than \textbf{12}\\
+\rowcolor{FRMSoft} Confidence & 97.5\% & more than \textbf{30}\\
+\midrule
+Scope & \multicolumn{2}{>{\raggedright\arraybackslash}p{8.6cm}}{\textbf{Each trading desk}
+  backtests separately. Both confidence levels must be used.}\\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Breaching either limit forces the desk onto the \textbf{standardized approach} for
+capital until neither condition continues to exist. Note the pairing: the \textit{lower}
+confidence level carries the \textit{higher} exception allowance, because a 97.5\% model is
+expected to be breached more often.}
+
+\subsection{3. Profit and loss attribution}
+
+Banks must compare the actual profit or loss in a day with that predicted by their models. Two
+measures are calculated.
+
+\begin{mrfmlbox}
+\[ \text{Measure 1} \;=\; \frac{\text{mean of } D}{\text{standard deviation of } A}
+   \qquad\qquad
+   \text{Measure 2} \;=\; \frac{\text{variance of } D}{\text{variance of } A} \]
+\mrvk{$D$ = the difference between actual and model profit/loss;\quad $A$ = the actual profit/loss
+for a given day. Measure 1 tests for \textit{bias} --- is the model systematically off. Measure
+2 tests for \textit{noise} --- how much of the variation the model fails to explain.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+% measure 1 band
+  \draw[black!45, line width=0.7pt] (0,0) -- (11.0,0);
+  \fill[PaleGreen, draw=FRMGreen!60, line width=0.7pt] (4.15,-0.32) rectangle (6.85,0.32);
+  \foreach \x/\l in {0.6/-30\%, 2.4/-20\%, 4.15/-10\%, 5.5/0, 6.85/+10\%, 8.6/+20\%, 10.4/+30\%}{
+    \draw[black!45] (\x,-0.12) -- (\x,0.12);
+    \node[anchor=north, text=black!60] at (\x,-0.36) {\l};}
+  \node[text=FRMGreen] at (5.5,0) {\textbf{pass}};
+  \node[anchor=west, text=FRMRed] at (0.1,0.62) {fail};
+  \node[anchor=east, text=FRMRed] at (10.9,0.62) {fail};
+  \node[anchor=south, text=black!70] at (5.5,0.62)
+    {\textbf{Measure 1} must sit between $\pm 10\%$};
+% measure 2 band
+  \draw[black!45, line width=0.7pt] (0,-2.7) -- (11.0,-2.7);
+  \fill[PaleGreen, draw=FRMGreen!60, line width=0.7pt] (0.6,-3.02) rectangle (4.15,-2.38);
+  \foreach \x/\l in {0.6/0, 2.4/10\%, 4.15/20\%, 6.0/30\%, 7.8/40\%, 9.6/50\%}{
+    \draw[black!45] (\x,-2.82) -- (\x,-2.58);
+    \node[anchor=north, text=black!60] at (\x,-3.06) {\l};}
+  \node[text=FRMGreen] at (2.4,-2.7) {\textbf{pass}};
+  \node[anchor=west, text=FRMRed] at (4.35,-2.08) {fail};
+  \node[anchor=south, text=black!70] at (5.5,-2.08)
+    {\textbf{Measure 2} must be under $20\%$};
+\end{tikzpicture}
+\end{center}
+\figcap{Measure 1 is two-sided because bias in either direction is a failure. Measure 2 is
+one-sided because there is no such thing as too little unexplained variance. If either ratio
+falls outside its band on \textbf{four or more occasions} in a 12-month period, capital must be
+computed using the standardized approach.}
+
+\subsection{4. Credit risk}
+
+FRTB provides a modification of the IRC. For instruments dependent on the credit risk of a
+particular company, \term{two} types of risk are identified.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.0cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Risk type} & \hdr{Treatment}\\
+\textbf{a) Credit spread risk} & The risk that a credit asset's spread changes, affecting its
+  mark-to-market value. Managed through the \term{expected shortfall} calculation process.\\
+\rowcolor{FRMSoft}
+\textbf{b) Jump-to-default risk} & The risk of immediate and significant loss due to the default
+  of an issuer. Subject to an \term{incremental default risk (IDR) charge}, which applies to
+  \textit{all} risk assets including equities, and is calculated using a \textbf{99.9\% VaR with
+  a 1-year horizon}.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrtrapbox}[title={The IRC replacement assumption}]
+Under the old \term{IRC} process, banks assumed a \textbf{constant level of risk} by replacing
+deteriorated positions with similar risk assets. For example, an A-rated bond with a three-month
+liquidity horizon suffering a credit loss would be replaced with another A-rated bond.
+
+\medskip
+\term{FRTB change:} simplifying assumptions like replacement are dropped, in favour of
+\textbf{incremental marking to market without assuming replacement}.
+\end{mrtrapbox}
+
+\subsection{5. Securitizations}
+
+The \term{Comprehensive Risk Measure (CRM)} was introduced in Basel II.5 to address the risks of
+securitized products such as asset-backed securities and collateralized debt obligations.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  st/.style={rectangle, rounded corners=3pt, line width=0.9pt,
+    text width=4.3cm, align=center, inner sep=6pt, minimum height=1.6cm}]
+  \node[st, draw=FRMRed!60, fill=PaleRed] (old) at (0,0)
+    {\textbf{Basel II.5}\\ banks use their \textit{own models} for CRM, subject to approval};
+  \node[st, draw=black!40, fill=FRMSoft] (prob) at (5.4,0)
+    {\textbf{The problem}\\ widely varying capital charges across banks for the
+     \textit{same} portfolio};
+  \node[st, draw=FRMGreen!60, fill=PaleGreen] (new) at (10.8,0)
+    {\textbf{FRTB}\\ mandates the \textit{standardized approach} for securitizations};
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (old) -- (prob);
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (prob) -- (new);
+\end{tikzpicture}
+\end{center}
+\figcap{The motivation is consistency, not conservatism. Internal models were not judged too
+lenient; they were judged too \textit{variable}, so the same portfolio attracted different
+capital at different banks.}
+
+\begin{mrkeybox}[title={The pattern across all five areas}]
+Read the five revisions together and one theme runs through every one of them: FRTB narrows the
+scope for \term{bank discretion}. The trading-book boundary is fixed, reclassification is
+barred, desks that fail backtests lose their internal model, desks that fail P\&L attribution
+lose their internal model, and securitizations lose internal models outright.
+\end{mrkeybox}

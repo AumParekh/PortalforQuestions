@@ -1,0 +1,375 @@
+\reading{MR-16}{The Vasicek and Gauss+ Models}{defer}{2}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe the structure of the Gauss+ model and discuss the implications of this structure
+      for the model's ability to replicate empirically observed interest rate dynamics.
+\item Compare and contrast the dynamics, features, and applications of the Vasicek model and the
+      Gauss+ model.
+\item Calculate changes in the short-term, medium-term, and long-term interest rate factors
+      under the Gauss+ model.
+\item Explain how the parameters of the Gauss+ model can be estimated from empirical data.
+\end{enumerate}
+\end{mrkeybox}
+
+\section{Basics}
+
+\term{Interest rate modeling} is crucial for risk management and for pricing interest rate
+securities and derivatives. Good models explain the term structure and are consistent with
+implied volatilities.
+
+\begin{mrkeybox}[title={Objectives of a good model}]
+\begin{itemize}
+\item \term{Consistency with market prices} --- must match bond and derivative prices.
+\item \term{Market expectations} --- should reflect mean reversion and volatility trend.
+\end{itemize}
+\end{mrkeybox}
+
+\subsection{The Vasicek model, recalled}
+The Vasicek model uses a \term{single factor} to model how short-term interest rates change over
+time. Its main characteristic is mean reversion, where the short-term rate $r_t$ tends to revert
+to its long-term average $\theta$. It is useful for simple applications like pricing zero-coupon
+bonds and applying basic hedging techniques.
+
+\begin{mrtrapbox}[title={Its drawbacks}]
+\begin{enumerate}
+\item It fails to replicate complex term structure shapes and real-world volatility patterns.
+\item It fails to account for observed changes in volatility across maturities.
+\item It fails to adequately incorporate macroeconomic trends and monetary policy shifts.
+\end{enumerate}
+\end{mrtrapbox}
+
+\subsection{How interest rates are observed in the market}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \draw[black!55, line width=0.7pt] (0,-0.3) -- (0,5.4);
+  \draw[black!55, line width=0.7pt] (0,-0.3) -- (9.2,-0.3);
+  \node[anchor=east, text=black!60, rotate=90, anchor=south] at (-0.55,2.4) {Rate level};
+  \node[anchor=north, text=black!60] at (4.6,-0.45) {Time};
+
+  \draw[FRMGold, dashed, line width=1.2pt] (0.2,4.9) -- (6.6,5.15);
+  \node[anchor=west, text=FRMGold] at (6.8,5.15) {$\mu$ \ \textit{(constant long-run target)}};
+
+  \draw[FRMNavy, dashed, line width=1.2pt] (0.2,3.5) -- (6.6,3.85);
+  \node[anchor=west, text=FRMNavy] at (6.8,3.85)
+    {\textbf{LT} \ \textit{inflation, long-term trends}};
+
+  \draw[FRMGreen, dashed, line width=1.2pt] (0.2,2.1) -- (6.6,2.5);
+  \node[anchor=west, text=FRMGreen] at (6.8,2.5)
+    {\textbf{MT} \ \textit{business cycles, monetary policy}};
+
+  \draw[FRMRed, dashed, line width=1.2pt] (0.2,0.6) -- (6.6,0.85);
+  \node[anchor=west, text=FRMRed] at (6.8,0.85) {\textbf{ST} \ \textit{fed funds rate}};
+\end{tikzpicture}
+\end{center}
+\figcap{Four levels, each pulled toward the one above it. The short-term rate reacts quickly to
+the medium-term factor, the medium-term factor adjusts more gradually to the long-term factor,
+and the long-term factor shifts slowest of all toward the constant $\mu$.}
+
+\begin{mrkeybox}[title={Note on the medium-term factor}]
+Medium-term rates are affected in \term{two} ways:
+\begin{enumerate}
+\item Effects from short-term rates.
+\item Their own independent volatility.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-16 a}{Describe the structure of the Gauss+ model and discuss the implications of this structure for the model's ability to replicate empirically observed interest rate dynamics.}
+
+Compared to the Vasicek model, the Gauss+ model is a more sophisticated \term{multifactor}
+framework that provides a better representation of real-world interest rate behaviours.
+
+\begin{mrfmlbox}
+\begin{align*}
+dr_t &= -\alpha_r\,(r_t - m_t)\,dt\\[3pt]
+dm_t &= -\alpha_m\,(m_t - l_t)\,dt \;+\; \sigma_m\!\left(\rho\,dW_t^{1}
+        + \sqrt{1-\rho^{2}}\;dW_t^{2}\right)\\[3pt]
+dl_t &= -\alpha_l\,(l_t - \mu)\,dt \;+\; \sigma_l\,dW_t^{1}
+\end{align*}
+\mrvk{$r_t$, $m_t$, $l_t$ = the short-, medium- and long-term factors;\quad $\mu$ = the constant
+long-run target;\quad $\alpha_r$, $\alpha_m$, $\alpha_l$ = the three mean reversion speeds;\quad
+$\sigma_m$, $\sigma_l$ = volatilities of the medium- and long-term factors;\quad $\rho$ = the
+correlation between them.}{%
+\par\smallskip In the $dm_t$ equation, $\rho\,dW_t^{1}$ is the randomness \textbf{associated
+with} the long-term factor, and $\sqrt{1-\rho^{2}}\,dW_t^{2}$ is the portion of randomness that
+is \textbf{independent} of it.}
+\end{mrfmlbox}
+
+\begin{mrtrapbox}[title={The single most examinable feature}]
+There is \term{no volatility term} in the $dr_t$ equation. The short-term rate has \textit{no
+random shock of its own}; it only drifts toward $m_t$. That is deliberate: it reflects a central
+bank pegging the policy rate, and it is what keeps short-rate volatility low so the model can
+produce a \textbf{hump-shaped} volatility term structure instead of a declining one.
+
+\medskip
+It is also where the name comes from. ``Gauss'' means rates are normally distributed. The
+``$+$'' flags that the model has \textbf{three factors but only two sources of risk}, $dW^1$ and
+$dW^2$ --- an unusual state variable that is not itself a source of risk.
+\end{mrtrapbox}
+
+\subsection{The cascade of convergence}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  fac/.style={rectangle, rounded corners=3pt, line width=0.9pt,
+    text width=2.55cm, align=center, inner sep=6pt, minimum height=1.25cm}]
+  \node[fac, draw=FRMRed!60, fill=PaleRed] (r) at (0,0)
+    {\textbf{$r_t$} short-term\\ \textit{fed funds}};
+  \node[fac, draw=FRMGreen!60, fill=PaleGreen] (m) at (3.7,0)
+    {\textbf{$m_t$} medium-term\\ \textit{business cycle}};
+  \node[fac, draw=FRMNavy!60, fill=PaleNavy] (l) at (7.4,0)
+    {\textbf{$l_t$} long-term\\ \textit{inflation}};
+  \node[fac, draw=FRMGold!70, fill=PaleGold] (mu) at (11.1,0)
+    {\textbf{$\mu$} constant\\ \textit{long-run target}};
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (r) -- (m);
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (m) -- (l);
+  \draw[FRMGold, -{Stealth[length=5pt]}, line width=1.1pt] (l) -- (mu);
+  \node[anchor=north, text=black!65, align=center] at (1.85,-0.75)
+    {pulled toward, \textbf{fastest}\\ half-life 0.66 yr};
+  \node[anchor=north, text=black!65, align=center] at (5.55,-0.75)
+    {pulled toward, \textbf{slower}\\ half-life 1.09 yr};
+  \node[anchor=north, text=black!65, align=center] at (9.25,-0.75)
+    {pulled toward, \textbf{slowest}\\ half-life 42.0 yr};
+\end{tikzpicture}
+\end{center}
+\figcap{Each factor is pulled toward the one to its right, and only $\mu$ is constant. If $r$ is
+below $m$ it rises; if $r$ is above $m$ it falls; if $r = m$ there is no change in the short
+rate. The half-lives are from the estimated parameters in MR-16 d and show how far apart the
+three speeds are: under a year, about a year, and four decades.}
+
+\begin{mrkeybox}[title={Key model characteristics}]
+\begin{itemize}
+\item \term{Mean reversion:} a cascade of convergence, $r \rightarrow m \rightarrow l
+      \rightarrow \mu$. Only $\mu$ is constant; the other factors are dynamic.
+\item \term{Speed of adjustment:} short-term rates react fastest, medium-term factors adjust
+      more gradually, long-term factors shift slowest.
+\item \term{Correlation:} changes in $m$ and $l$ are linked through the parameter $\rho$.
+\item \term{Volatility:} the model can be calibrated to match the \textbf{hump-shaped}
+      volatility term structure observed in markets --- low short-term volatility, higher
+      medium-term volatility, declining long-term volatility.
+\item \term{Pricing:} the model can be used to price bonds, swaps, caps, and floors.
+\end{itemize}
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.4cm,
+  xmin=0, xmax=31, ymin=0, ymax=90,
+  xlabel={\scriptsize Term (years)},
+  ylabel={\scriptsize Yield volatility (basis points)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,5,10,15,20,25,30}, ytick={0,20,40,60,80},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.3pt, dashed, smooth, domain=0.5:30, samples=100]
+  {85*exp(-0.075*x)};
+\addlegendentry{Vasicek --- declining}
+\addplot[FRMNavy, line width=1.3pt, smooth] coordinates {
+(0.5,28)(1,38)(2,54)(3,64)(4,70)(5,73)(6,74)(7,73.5)(8,72)(10,68)
+(12,64)(15,58)(20,50)(25,44)(30,39)};
+\addlegendentry{Gauss+ --- hump-shaped, as observed}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Why the missing volatility term matters. A mean-reverting single-factor model like
+Vasicek can only produce a volatility curve that falls from its highest point at the short end.
+Empirical and implied volatility curves hump: low at the very short end, peaking at intermediate
+terms, then declining. Suppressing the short-rate shock is what lets Gauss+ reproduce that
+shape.}
+
+% ---------------------------------------------------------
+\lo{MR-16 b}{Compare and contrast the dynamics, features, and applications of the Vasicek model and the Gauss+ model.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Vasicek} & \hdr{Gauss+}\\
+\textbf{Factors} & One: the short-term rate. & Three: $r$, $m$, $l$ --- but only \textbf{two}
+  sources of risk.\\
+\rowcolor{FRMSoft}
+\textbf{Short-rate shock} & Present: $\sigma\,dw$. & \textbf{Absent.} $r$ only drifts toward
+  $m$.\\
+\textbf{Volatility term structure} & Declining, highest at the short end. &
+  \textbf{Hump-shaped}, matching what is observed.\\
+\rowcolor{FRMSoft}
+\textbf{Dynamics} & Single mean reversion to a constant $\theta$. & A cascade: $r \to m \to l
+  \to \mu$, at three very different speeds.\\
+\textbf{Suited to} & Simple applications: pricing zero-coupon bonds, basic hedging. &
+  Advanced applications: yield curve modeling, derivative pricing, risk management.\\
+\rowcolor{FRMSoft}
+\textbf{Weakness} & Cannot replicate complex term structure shapes, observed volatility across
+  maturities, or macroeconomic and policy shifts. & More parameters to estimate; more complex to
+  implement.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}
+The Vasicek model is a \term{simpler framework} suitable for basic applications but suffers from
+significant limitations in modeling real-world interest rate dynamics, particularly for
+derivative pricing and term structure flexibility. The Gauss+ model addresses these deficiencies
+with its multi-factor structure, cascading dynamics, and enhanced ability to fit market data.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-16 c}{Calculate changes in the short-term, medium-term, and long-term interest rate factors under the Gauss+ model.}
+
+\noindent\gapbadge\hspace{4pt}{\sffamily\fontsize{7.6}{9}\selectfont\color{black!55}%
+The source notes jump from objective 16.b straight to 16.d. This objective is absent from both
+layers and is written below from the GARP curriculum.}\par
+\vspace{6pt}
+
+\begin{mrgapbox}[title={What the objective asks for}]
+Given today's three factors, the estimated parameters, and a realization of the two random
+shocks, compute $dr$, $dm$ and $dl$ over a short interval. The three equations from MR-16 a are
+the whole of it; the work is bookkeeping, and the trap is which shock enters which equation.
+\end{mrgapbox}
+
+\begin{mrkeybox}[title={Read each equation before plugging in}]
+\begin{itemize}
+\item $dr$ has \term{no random term at all}. It is pure drift.
+\item $dl$ is driven by $dW^{1}$ \term{only}.
+\item $dm$ is driven by \term{both} shocks, weighted $\rho$ and $\sqrt{1-\rho^{2}}$, which is
+      what gives it correlation $\rho$ with the long-term factor while keeping its own total
+      volatility equal to $\sigma_m$.
+\end{itemize}
+\end{mrkeybox}
+
+\begin{mrexbox}[title={Example --- one month of factor changes}]
+Today $r = 2.00\%$, $m = 3.00\%$, $l = 4.00\%$. Parameters: $\alpha_r = 1.0547$,
+$\alpha_m = 0.6358$, $\alpha_l = 0.0165$, $\sigma_m = 109.2$ bp, $\sigma_l = 96.4$ bp,
+$\rho = 0.212$, $\mu = 10.555\%$. Over $dt = 1/12$, the shocks realize as $dW^{1} = 0.10$ and
+$dW^{2} = -0.05$.
+\tcblower
+\small
+\textbf{Short-term factor} --- drift only:
+\[ dr = -1.0547\,(2.00\% - 3.00\%)\left(\tfrac{1}{12}\right) = \mathbf{+0.0879\%} \]
+The short rate is \textit{below} the medium-term factor, so it is pulled \textbf{up}.
+
+\medskip
+\textbf{Medium-term factor} --- drift plus both shocks, with
+$\sqrt{1 - 0.212^{2}} = 0.9773$:
+\begin{align*}
+\text{drift} &= -0.6358\,(3.00\% - 4.00\%)\left(\tfrac{1}{12}\right) = +0.0530\%\\
+\text{shock} &= 1.092\%\bigl[(0.212)(0.10) + (0.9773)(-0.05)\bigr] = -0.0302\%\\
+dm &= 0.0530\% - 0.0302\% = \mathbf{+0.0228\%}
+\end{align*}
+The drift pulls it up toward $l$, but the shock partly offsets.
+
+\medskip
+\textbf{Long-term factor} --- drift plus $dW^{1}$ only:
+\begin{align*}
+\text{drift} &= -0.0165\,(4.00\% - 10.555\%)\left(\tfrac{1}{12}\right) = +0.0090\%\\
+\text{shock} &= 0.964\% \times 0.10 = +0.0964\%\\
+dl &= 0.0090\% + 0.0964\% = \mathbf{+0.1054\%}
+\end{align*}
+\end{mrexbox}
+
+\begin{mrtrapbox}[title={What the three answers show}]
+The long-term factor moves the \textit{most} this month, at 10.5 basis points, despite having by
+far the slowest mean reversion. That is because almost all of its move is the random shock ---
+its drift contributes under one basis point, since $\alpha_l$ is tiny. Meanwhile the short rate
+moves 8.8 basis points with no randomness at all. \term{Slow mean reversion does not mean a
+small move}; it means the factor is not pulled back quickly once it moves.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-16 d}{Explain how the parameters of the Gauss+ model can be estimated from empirical data.}
+
+The parameters can be estimated using \term{maximum likelihood} techniques. However, there is a
+simplified approach that employs the following steps. This procedure is possible when random
+components are not used to determine mean reversion speeds.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{1.4cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Step} & \hdr{What you do}\\
+\textbf{1} & Select a \term{proxy for the short-term rate} --- the fed funds rate, for
+  example.\\
+\rowcolor{FRMSoft}
+\textbf{2} & \term{Regress} the changes in the short-term rate against changes in a medium-term
+  rate (a 2-year rate) and a longer-term rate (a 10-year rate).\\
+\textbf{3} & Find the mean reversion speeds $\alpha_r$, $\alpha_m$ and $\alpha_l$ that replicate
+  the sensitivities seen in Step 2. This is possible because the regression coefficients
+  \term{do not depend on the volatility parameters}, only on the mean reversion parameters.\\
+\rowcolor{FRMSoft}
+\textbf{4} & From market data, determine the \term{volatility term structure}. This can be found
+  from the observed volatility of rates, or from the volatilities the market uses to price
+  interest rate derivatives.\\
+\textbf{5} & Find the volatility and correlation parameters $\sigma_m$, $\sigma_l$ and $\rho$
+  such that the volatility term structure from Step 4 is replicated.\\
+\rowcolor{FRMSoft}
+\textbf{6} & Find the long-term reversion level $\mu$ by \term{minimizing the squared errors} of
+  observed yields versus estimated yields.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}[title={Why the staging works}]
+The estimation splits cleanly because the model's regression coefficients depend only on the
+mean reversion parameters and not on the volatility parameters. That lets Steps 2 and 3 pin down
+the $\alpha$'s before any volatility is touched, and Steps 4 and 5 then pin down the
+$\sigma$'s and $\rho$ with the $\alpha$'s already fixed.
+\end{mrkeybox}
+
+\subsection{The estimated parameters, for reference}
+
+\begin{center}
+\small
+\begin{tabular}{l r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Parameter} & \hdr{Estimate} & \hdr{Half-life (years)}\\
+$\alpha_r$ & 1.0547 & 0.66\\
+\rowcolor{FRMSoft} $\alpha_m$ & 0.6358 & 1.09\\
+$\alpha_l$ & 0.0165 & 42.01\\
+\midrule
+\rowcolor{FRMSoft} $\sigma_m$ & 109.2 bp & \\
+$\sigma_l$ & 96.4 bp & \\
+\rowcolor{FRMSoft} $\rho$ & 0.212 & \\
+$\mu$ & 10.555\% & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Estimated from US Treasury zero coupon yields, January 2014 to January 2022. The mean
+reversion speeds come out in exactly the order the economics predicts: the central bank reaction
+is fastest, the medium-term factor's reversion next, and the long-term factor's reversion to
+$\mu$ slowest by a wide margin.}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.4cm, height=4.4cm,
+  xmin=0.15, xmax=100, xmode=log, ymin=0, ymax=4,
+  xlabel={\scriptsize Half-life in years (log scale)},
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel style={font=\scriptsize}, tick label style={font=\scriptsize},
+  xtick={0.25,0.5,1,2,5,10,25,50,100},
+  xticklabels={0.25,0.5,1,2,5,10,25,50,100},
+  clip=false]
+\addplot[only marks, mark=*, mark size=2.6pt, color=FRMRed] coordinates {(0.66,3)};
+\addplot[only marks, mark=*, mark size=2.6pt, color=FRMGreen] coordinates {(1.09,2)};
+\addplot[only marks, mark=*, mark size=2.6pt, color=FRMNavy] coordinates {(42.01,1)};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:0.78,3)
+  {$\alpha_r$ --- short rate, \textbf{0.66 yr}};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMGreen] at (axis cs:1.30,2)
+  {$\alpha_m$ --- medium-term factor, \textbf{1.09 yr}};
+\node[anchor=east, font=\scriptsize\sffamily, text=FRMNavy] at (axis cs:35,1)
+  {$\alpha_l$ --- long-term factor, \textbf{42.0 yr}};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The three half-lives on a log scale, because on a linear scale the first two would sit
+on top of each other. The long-term factor reverts roughly sixty times more slowly than the
+short rate, which is the quantitative content of the phrase ``cascade of convergence''.}
+
+
+% ==========================================================

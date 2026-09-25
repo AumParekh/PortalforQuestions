@@ -1,0 +1,389 @@
+\reading{MR-13}{Expectations, Risk Premium, Convexity, and the Shape of the Term Structure}{defer}{2}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Explain the role of interest rate expectations in determining the shape of the term
+      structure.
+\item Apply a risk-neutral interest rate tree to assess the effect of volatility on the shape of
+      the term structure.
+\item Estimate the convexity effect using Jensen's inequality.
+\item Identify the components into which the return on a bond can be decomposed, and calculate
+      the expected return on a bond for a risk-averse investor.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-13 a}{Explain the role of interest rate expectations in determining the shape of the term structure.}
+
+\subsection{Three calculations you will need}
+
+\begin{mrfmlbox}
+\textbf{1. Spot rate given the price of a bond}
+\[ \$0.85763 \;=\; \frac{\$1}{\bigl(1 + \hat{r}(2)\bigr)^{2}} \]
+\vspace{-10pt}
+\[ \text{PV} = -0.85763,\ \ \text{FV} = 1,\ \ \text{PMT} = 0,\ \ N = 2
+   \ \Rightarrow\ I/Y = \mathbf{7.9816\%} \]
+\vspace{-4pt}
+\mrvk{$\hat{r}(2)$ = the implied 2-year spot rate. Solve the price equation for the rate, or use
+the TVM keys.}{}
+
+\medskip
+\textbf{2. Spot rate given expected future spot rates}
+\[ \frac{\$1}{(1.08)(1.10)} \;=\; \frac{\$1}{\bigl(1+\hat{r}(2)\bigr)^{2}}
+   \qquad\longrightarrow\qquad
+   \hat{r}(2) = \sqrt[2]{(1.08)(1.10)} - 1 = \sqrt{1.188} - 1 = \mathbf{8.995\%} \]
+\vspace{-4pt}
+\mrvk{Chain the one-year rates, then take the $n$th root. This is the pure expectations result
+with \textit{no} volatility and \textit{no} risk premium.}{}
+
+\medskip
+\textbf{3. Price of a bond}
+\[ \text{1-year zero} = \frac{\$1}{1.08} = \$0.92593
+   \qquad\qquad
+   \text{2-year zero} = \frac{\$1}{(1.08)(1.08)} = \$0.85734 \]
+\end{mrfmlbox}
+
+\subsection{How expectations shape the curve}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.5cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Flat yield curve} & \hdr{Upward-sloping} & \hdr{Downward-sloping}\\
+\textbf{1-year rate} & 8\% & 8\% & 8\%\\
+\rowcolor{FRMSoft}
+\textbf{Expected 1-year rates} & 8\% for the next two years & 10\% and 12\% in one and two years
+  & 6\% and 4\% in one and two years\\
+\textbf{Spot rates} &
+  1-year: 8\%\newline 2-year: 8\%\newline 3-year: 8\% &
+  1-year: 8\%\newline 2-year: 8.995\%\newline 3-year: 9.988\% &
+  1-year: 8\%\newline 2-year: 6.995\%\newline 3-year: 5.987\%\\
+\rowcolor{FRMSoft}
+\textbf{Result} & Yield curve is flat; investors are willing to lock in rates for two or three
+  years at 8\%. & Upward-sloping, because expected future rates exceed the current rate. &
+  Downward-sloping, because expected future rates are lower than the current rate.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.6cm, height=5.5cm,
+  xmin=0.7, xmax=3.3, ymin=5.0, ymax=10.8,
+  xlabel={\scriptsize Maturity (years)}, ylabel={\scriptsize Spot rate (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={1,2,3}, ytick={5,6,7,8,9,10},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMGreen, line width=1.2pt, mark=*, mark size=1.6pt]
+  coordinates {(1,8)(2,8.995)(3,9.988)};
+\addlegendentry{Rising expectations}
+\addplot[black!65, line width=1.2pt, dashed, mark=*, mark size=1.6pt]
+  coordinates {(1,8)(2,8)(3,8)};
+\addlegendentry{Flat expectations}
+\addplot[FRMRed, line width=1.2pt, dotted, mark=*, mark size=1.6pt]
+  coordinates {(1,8)(2,6.995)(3,5.987)};
+\addlegendentry{Falling expectations}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{All three curves start at the same 8\% one-year rate. Everything that happens after that
+is driven purely by what the market expects future one-year rates to be. Under pure
+expectations, nothing else is in the model.}
+
+\begin{mrkeybox}[title={Pure expectations theory}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Under pure expectations theory, the term structure is a function of expected future spot
+      rates, and the shape of the spot rate curve is determined \term{solely} by expected future
+      spot rates.
+\item Hence forecasts can be very useful in describing the shape and level of the term structure
+      over short-term horizons, \term{but} probably only the \textit{level} of rates --- not the
+      \textit{shape}.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-13 b}{Apply a risk-neutral interest rate tree to assess the effect of volatility on the shape of the term structure.}
+
+Now put \term{volatility} into interest rate expectations. Assuming risk neutrality, the decision
+tree below gives the price of a 2-year zero-coupon bond with a face value of \$1 using the
+expected rates.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  rt/.style={circle, draw=FRMNavy!55, fill=PaleNavy, line width=0.7pt, inner sep=2.5pt,
+    minimum size=0.82cm},
+  pv/.style={rectangle, rounded corners=2pt, draw=FRMGreen!55, fill=PaleGreen,
+    line width=0.7pt, inner sep=3.5pt, minimum width=1.5cm, align=center},
+  lf/.style={rectangle, rounded corners=2pt, draw=black!35, fill=FRMSoft,
+    line width=0.6pt, inner sep=3pt, minimum width=0.75cm}]
+% rate tree
+\begin{scope}
+  \node[rt] (r0) at (0,0) {8\%};
+  \node[rt] (ru) at (1.9,1.15) {10\%};
+  \node[rt] (rd) at (1.9,-1.15) {6\%};
+  \node[lf] (a) at (3.9,2.0) {12\%};
+  \node[lf] (b) at (3.9,0) {8\%};
+  \node[lf] (c) at (3.9,-2.0) {4\%};
+  \foreach \p/\q in {r0/ru, r0/rd, ru/a, ru/b, rd/b, rd/c}{
+    \draw[FRMNavy!60, line width=0.7pt] (\p) -- node[sloped, above, text=black]{50\%} (\q);}
+  \node[anchor=north, text=black!60] at (1.9,-2.8) {\textbf{Expected rates}};
+\end{scope}
+% price tree
+\begin{scope}[shift={(8.3,0)}]
+  \node[pv] (p0) at (0,0) {\$0.85763};
+  \node[pv] (pu) at (2.2,1.15) {\$0.90909};
+  \node[pv] (pd) at (2.2,-1.15) {\$0.94340};
+  \node[lf] (x) at (4.3,2.0) {\$1};
+  \node[lf] (y1) at (4.3,0.5) {\$1};
+  \node[lf] (y2) at (4.3,-0.5) {\$1};
+  \node[lf] (z) at (4.3,-2.0) {\$1};
+  \foreach \p/\q in {p0/pu, p0/pd, pu/x, pu/y1, pd/y2, pd/z}{
+    \draw[FRMGreen!60, line width=0.7pt] (\p) -- node[sloped, above, text=black]{50\%} (\q);}
+  \node[anchor=north, text=black!60] at (2.2,-2.8) {\textbf{Resulting prices}};
+\end{scope}
+\draw[FRMGold, -{Stealth[length=5pt]}, line width=1pt] (5.1,0) -- (6.5,0);
+\end{tikzpicture}
+\end{center}
+\figcap{The expected price in one year at the upper node is $\$1/1.10 = \$0.90909$; at the lower
+node, $\$1/1.06 = \$0.94340$. Discounting the average back one more year at 8\% gives today's
+price.}
+
+\begin{mrexbox}
+\small
+\[ \bigl[0.5 \times (\$0.90909 / 1.08)\bigr] + \bigl[0.5 \times (\$0.94340 / 1.08)\bigr]
+   \;=\; \mathbf{\$0.85763} \]
+With the present value in hand, solve for the implied 2-year spot rate:
+\[ \text{PV} = -0.85763,\ \text{FV} = 1,\ \text{PMT} = 0,\ N = 2
+   \ \Rightarrow\ I/Y = \mathbf{7.9816\%} \]
+\end{mrexbox}
+
+\begin{mrkeybox}[title={Impact of volatility}]
+When there is uncertainty regarding expected rates, the volatility of expected rates causes the
+future spot rates to be \term{lower}. With the implied rate, the value of convexity for the
+2-year zero-coupon bond is:
+\[ 8\% - 7.9816\% \;=\; 0.0184\% \;=\; \mathbf{1.84 \text{ basis points}} \]
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-13 c}{Estimate the convexity effect using Jensen's inequality.}
+
+\begin{mrdefbox}[title={The convexity effect}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item This effect considers the \term{curvature} of the relationship between bond price and
+      interest rates.
+\item The convexity effect arises from a special case of \term{Jensen's inequality}.
+\item Jensen's inequality states that the expected value of a convex function of a random
+      variable is \textit{greater than or equal to} the convex function of the expected value of
+      the variable.
+\end{enumerate}
+\end{mrdefbox}
+
+\begin{mrfmlbox}
+\[ E\!\left[ \frac{1}{1+r} \right] \;>\; \frac{1}{E(1+r)} \]
+\mrvk{$r$ = the uncertain future rate. The left side averages the \textit{discount factors}; the
+right side discounts at the \textit{average rate}. Because $1/(1+r)$ is convex, averaging first
+and inverting second gives a smaller number than inverting first and averaging second.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+% ---- left panel: why the inequality holds ----
+\begin{axis}[name=conc, width=6.5cm, height=5.2cm,
+  xmin=0, xmax=0.52, ymin=0.62, ymax=1.03,
+  xlabel={\scriptsize Rate $r$}, ylabel={\scriptsize $1/(1+r)$},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={0,0.1,0.2,0.3,0.4,0.5},
+  xticklabels={0,10\%,20\%,30\%,40\%,50\%},
+  ytick={0.7,0.8,0.9,1.0},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}The shape, exaggerated},
+  axis line style={draw=black!55}, clip=false]
+\addplot[black!80, line width=1.1pt, smooth, domain=0:0.52, samples=120] {1/(1+x)};
+\addplot[FRMRed, line width=1.0pt, dashed] coordinates {(0.05,0.952381)(0.45,0.689655)};
+\node[circle, fill=black!55, inner sep=1.4pt] at (axis cs:0.05,0.952381) {};
+\node[circle, fill=black!55, inner sep=1.4pt] at (axis cs:0.45,0.689655) {};
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:0.25,0.821018) {};
+\node[circle, fill=FRMGreen, inner sep=1.7pt] at (axis cs:0.25,0.8) {};
+\draw[FRMGold, line width=0.8pt] (axis cs:0.25,0.8) -- (axis cs:0.25,0.821018);
+\node[anchor=west, font=\tiny\sffamily, text=FRMGold, fill=white, inner sep=1.2pt]
+  at (axis cs:0.27,0.845) {the gap};
+\node[anchor=north, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1.2pt]
+  at (axis cs:0.13,0.90) {chord};
+\node[anchor=south, font=\tiny\sffamily, text=black!70, fill=white, inner sep=1.2pt]
+  at (axis cs:0.36,0.73) {curve};
+\end{axis}
+% ---- right panel: the gap at the example's own numbers ----
+\begin{axis}[name=zoom, at={($(conc.east)+(1.5cm,0)$)}, anchor=west,
+  width=6.5cm, height=5.2cm,
+  xmin=0.058, xmax=0.102, ymin=0, ymax=38,
+  xlabel={\scriptsize Rate $r$},
+  ylabel={\scriptsize Gap, in units of $10^{-5}$},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={0.06,0.07,0.08,0.09,0.10},
+  xticklabels={6\%,7\%,8\%,9\%,10\%},
+  ytick={0,10,20,30},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}The gap, at the example's numbers},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMGold, line width=1.2pt, smooth] coordinates {
+(0.060,0.0)(0.065,14.093)(0.070,24.046)(0.075,29.917)(0.080,31.764)
+(0.085,29.642)(0.090,23.605)(0.095,13.706)(0.100,0.0)};
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:0.08,0) -- (axis cs:0.08,31.764);
+\node[circle, fill=FRMRed, inner sep=1.7pt] at (axis cs:0.08,31.764) {};
+\node[anchor=north, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1.2pt,
+  align=center] at (axis cs:0.08,29.0)
+  {$0.92624 - 0.92593$\\ $= 0.00031$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Left, on an exaggerated rate range so the shape is visible: the chord joining two rate
+outcomes lies \textit{above} the curve at the midpoint, and that vertical gap is the convexity
+effect. Right, the same gap computed at this example's own 6\% and 10\% outcomes. It peaks at
+the midpoint, 8\%, at $0.00031$ --- which is exactly $\$0.92624 - \$0.92593$. Plotted on the
+discount-factor axis the gap would be invisible, which is why it is plotted on its own.}
+
+\begin{mrexbox}[title={Example --- applying Jensen's inequality}]
+Assume that next year there is a 50\% probability that 1-year spot rates will be 10\% and a 50\%
+probability that they will be 6\%. Demonstrate Jensen's inequality for a 2-year zero-coupon bond
+with a face value of \$1.
+\tcblower
+\small
+\textbf{Left-hand side} --- the expected price in one year using the 1-year spot rates of 10\%
+and 6\%:
+\[ E\!\left[\frac{\$1}{1+r}\right] = 0.5 \times \frac{\$1}{1.10} + 0.5 \times \frac{\$1}{1.06}
+   = \$0.92624 \]
+
+\textbf{Right-hand side} --- the expected price using an expected rate of 8\%:
+\[ \frac{\$1}{0.5 \times 1.10 + 0.5 \times 1.06} = \frac{\$1}{1.08} = \$0.92593 \]
+
+So the left-hand side is greater: $\$0.92624 > \$0.92593$.
+
+\medskip
+\textbf{Now discount one more year at 8\%.} The left-hand side becomes
+$\$0.92624 / 1.08 = \mathbf{\$0.85763}$. The right-hand side is the 2-year zero discounted for
+two years at 8\%, $\$1 / 1.08^2 = \mathbf{\$0.85734}$.
+
+Again the left-hand side is greater: $\$0.85763 > \$0.85734$.
+
+\medskip
+Since the 2-year zero-coupon price is \textit{higher} than the price achieved through
+straightforward discounting, its implied rate must be \term{lower} than 8\%.
+\end{mrexbox}
+
+\begin{mrkeybox}[title={Remember this relationship}]
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \node[rectangle, rounded corners=3pt, draw=FRMGold!70, fill=PaleGold, line width=0.8pt,
+    inner sep=6pt, align=center] (c) at (0,0) {\textbf{Value of}\\ \textbf{convexity} $\uparrow$};
+  \node[rectangle, rounded corners=3pt, draw=FRMNavy!55, fill=PaleNavy, line width=0.8pt,
+    inner sep=6pt] (v) at (5.0,0.85) {\textbf{Volatility} $\uparrow$};
+  \node[rectangle, rounded corners=3pt, draw=FRMNavy!55, fill=PaleNavy, line width=0.8pt,
+    inner sep=6pt] (m) at (5.0,-0.85) {\textbf{Maturity} $\uparrow$};
+  \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (c) -- (v);
+  \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (c) -- (m);
+  \node[anchor=south, text=black!60] at (2.6,0.42) {is affected by};
+\end{tikzpicture}
+\end{center}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-13 d}{Identify the components into which the return on a bond can be decomposed, and calculate the expected return on a bond for a risk-averse investor.}
+
+\noindent\gapbadge\hspace{4pt}{\sffamily\fontsize{7.6}{9}\selectfont\color{black!55}%
+The source notes cover the risk-premium calculation but never identify the three components of
+bond return. That half of the objective is written below from the GARP curriculum.}\par
+\vspace{6pt}
+
+\begin{mrgapbox}[title={The three components of bond return}]
+The instantaneous return on a zero-coupon bond decomposes into exactly three pieces:
+\[ \frac{dP}{P} \;=\; \underbrace{f(T)\,dt}_{\text{passage of time}}
+   \;-\; \underbrace{D\,dr}_{\text{rate change}}
+   \;+\; \underbrace{\tfrac{1}{2}\,C\,\sigma^{2}\,dt}_{\text{convexity}} \]
+\begin{itemize}
+\item \term{Passage of time.} With the term structure unchanged, the bond earns the forward rate
+      $f(T)$ corresponding to its term.
+\item \term{Duration.} Increases in the rate reduce the bond's return in proportion to its
+      duration $D$.
+\item \term{Convexity.} The volatility of rates --- movement either up \textit{or} down ---
+      increases return in proportion to convexity $C$. Across portfolios with the same duration,
+      more convex portfolios gain more as rates move, whichever way they move.
+\end{itemize}
+Taking expectations replaces $dr$ with $E[dr]$ and leaves the other two terms unchanged.
+\end{mrgapbox}
+
+\subsection{Expected return for a risk-averse investor}
+
+\begin{mrgapbox}[title={Risk-neutral versus risk-averse}]
+\term{Risk-neutral} investors require no risk premium, so they demand that every bond offer an
+expected return equal to the short-term rate. \term{Risk-averse} investors demand higher
+expected returns for bonds with greater interest rate risk, and that risk is measured by
+duration. The premium is proportional to duration and does \textit{not} depend on the
+characteristics of any individual bond.
+\end{mrgapbox}
+
+\begin{mrfmlbox}
+\[ E\!\left[\frac{dP}{P}\right] \;=\; r_0\,dt \;+\; \lambda\,D\,dt \]
+\mrvk{$r_0$ = the short-term rate;\quad $\lambda$ = the risk premium per year of duration
+risk;\quad $D$ = the bond's duration. The premium scales with duration, so a longer bond earns
+more of it.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- expected return with a duration-based premium}]
+The short-term rate is 1\%, the duration of a bond is 5, and the risk premium is 10 basis points
+per year of duration risk. What is the bond's expected return?
+\tcblower
+\small
+\[ 1\% + \bigl(5 \times 0.1\%\bigr) \;=\; \mathbf{1.5\%} \text{ per year} \]
+\end{mrexbox}
+
+\subsection{Price and return with a risk premium, from the source notes}
+
+\begin{mrdefbox}[title={Risk premium}]
+The risk premium is the price for risk-averse investors to bear uncertainty.
+\end{mrdefbox}
+
+\begin{mrexbox}[title={Calculate the price of the 2-year zero with a 20 basis point risk premium}]
+The rate tree is 8\% today, moving to 10\% or 6\% with equal probability. Add 20 basis points to
+each one-year rate at the next node.
+\tcblower
+\small
+\[ P \;=\; \frac{\left[ \dfrac{\$1}{1.102} + \dfrac{\$1}{1.062} \right] \times 0.5}{1.08}
+   \;=\; \frac{\bigl[\$0.90744 + \$0.94162\bigr] \times 0.5}{1.08}
+   \;=\; \mathbf{\$0.85605} \]
+\end{mrexbox}
+
+\begin{mrexbox}[title={Calculate the return on the 2-year zero with a 20 basis point risk premium}]
+\small
+The bond is bought today at \$0.85605. In one year it will be worth \$0.90909 or \$0.94340 with
+equal probability, using the \textit{un}-premium-adjusted rates.
+\[ \text{expected return} \;=\;
+   \frac{\bigl[\$0.90909 + \$0.94340\bigr] \times 0.5 - \$0.85605}{\$0.85605}
+   \;=\; \mathbf{0.082 \text{, or } 8.2\%} \]
+\end{mrexbox}
+
+\begin{mrkeybox}[title={Read the result}]
+The one-year rate is 8\%, and the expected return on the two-year bond is 8.2\%. The extra 20
+basis points is exactly the risk premium, which is what a risk-averse investor demanded for
+bearing the extra period of rate uncertainty.
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \fill[PaleNavy, draw=FRMNavy!60, line width=0.7pt] (0,0) rectangle (9.6,0.8);
+  \fill[PaleGold, draw=FRMGold!70, line width=0.7pt] (9.6,0) rectangle (10.2,0.8);
+  \node[text=FRMNavy] at (4.8,0.4) {\textbf{short rate 8.00\%}};
+  \node[anchor=west, text=FRMGold] at (10.4,0.4) {\textbf{$+$ 0.20\% risk premium}};
+  \node[anchor=north, text=black!60] at (5.1,-0.3)
+    {total expected return on the 2-year zero $=$ \textbf{8.20\%}};
+\end{tikzpicture}
+\end{center}
+\figcap{The risk premium is additive on top of the short rate. Nothing else changes.}
+
+
+% ==========================================================

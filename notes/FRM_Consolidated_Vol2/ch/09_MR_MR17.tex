@@ -1,0 +1,538 @@
+\reading{MR-17}{Volatility Smiles and Volatility Surfaces}{strike}{9}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe a volatility smile and volatility skew.
+\item Explain the implications of put-call parity on the implied volatility of call and put
+      options.
+\item Compare the shape of the volatility smile (or skew) to the shape of the implied
+      distribution of the underlying asset price and to the pricing of options on the underlying
+      asset.
+\item Describe characteristics of foreign exchange rate distributions and their implications on
+      option prices and implied volatility.
+\item Describe the volatility smile for equity options and foreign currency options and provide
+      possible explanations for its shape.
+\item Describe alternative ways of characterizing the volatility smile.
+\item Describe volatility term structures and volatility surfaces and how they may be used to
+      price options.
+\item Explain the impact of the volatility smile on the calculation of an option's Greek letter
+      risk measures.
+\item Explain the impact of a single asset price jump on a volatility smile.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-17 a}{Describe a volatility smile and volatility skew.}
+
+\begin{mrdefbox}[title={Volatility smile}]
+The pattern or shape of \term{implied volatility} plotted against the ratio of an option's
+\term{strike price to the underlying asset's price}. It is a graphical representation showing
+how implied volatility varies across different strike prices of options.
+\end{mrdefbox}
+
+\begin{mrdefbox}[title={Volatility skew}]
+A term used specifically in the context of \term{equity} options. It refers to the pattern or
+shape of implied volatility plotted against the strike prices of equity options.
+\end{mrdefbox}
+
+\begin{mrkeybox}[title={How implied volatility is determined}]
+Use the Black-Scholes-Merton model. The call price is a function of six inputs,
+$C = f\{S,\ T,\ r,\ \sigma,\ D,\ X\}$. Five are observable; $\sigma$ is not. Set the model price
+equal to the market price and solve backwards for the $\sigma$ that makes them equal. That
+$\sigma$ is the implied volatility.
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=sm, width=6.6cm, height=4.6cm,
+  xmin=0.70, xmax=1.30, ymin=12, ymax=26,
+  xlabel={\scriptsize $X / S_0$}, ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={0.8,0.9,1.0,1.1,1.2}, ytick={15,20,25},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Foreign currency: a \textit{smile}},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.4pt, smooth, domain=0.72:1.28, samples=80]
+  {16 + 62*(x-1)^2};
+\node[anchor=south, font=\tiny\sffamily, text=black!65] at (axis cs:1.0,12.6) {ATM};
+\draw[black!35, dashed, line width=0.5pt] (axis cs:1,12) -- (axis cs:1,16);
+\end{axis}
+\begin{axis}[name=sk, at={($(sm.east)+(1.5cm,0)$)}, anchor=west,
+  width=6.6cm, height=4.6cm,
+  xmin=0.70, xmax=1.30, ymin=12, ymax=26,
+  xlabel={\scriptsize $X / S_0$}, ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={0.8,0.9,1.0,1.1,1.2}, ytick={15,20,25},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}Equity: a \textit{skew} or ``smirk''},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.4pt, smooth, domain=0.72:1.28, samples=80]
+  {14.5 + 9.5*exp(-4.2*(x-0.72))};
+\node[anchor=south, font=\tiny\sffamily, text=black!65] at (axis cs:1.0,12.6) {ATM};
+\draw[black!35, dashed, line width=0.5pt] (axis cs:1,12) -- (axis cs:1,16.8);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Both plot implied volatility against moneyness, and both are read left to right as
+strike rising. The currency smile is roughly symmetric about the money. The equity skew falls
+monotonically: low-strike options carry the highest implied volatility and the curve never turns
+back up.}
+
+% ---------------------------------------------------------
+\lo{MR-17 b}{Explain the implications of put-call parity on the implied volatility of call and put options.}
+
+Put-call parity provides a relationship between the prices of European call and put options when
+they have the same strike price and time to maturity.
+
+\begin{mrfmlbox}
+\[ c - p \;=\; S - PV(X)
+   \qquad\text{equivalently}\qquad
+   p + S_0 e^{-qT} \;=\; c + K e^{-rT} \]
+\mrvk{$c$, $p$ = call and put prices;\quad $S_0$ = spot price;\quad $q$ = dividend yield;\quad
+$K$ (or $X$) = strike;\quad $r$ = risk-free rate;\quad $T$ = time to maturity.}{}
+\end{mrfmlbox}
+
+Rearranging parity and subscripting the option prices as market or Black-Scholes-Merton prices
+gives two equations:
+
+\begin{mrfmlbox}
+\begin{align*}
+p_{mkt} + S_0 e^{-qt} &= c_{mkt} + PV(X)\\
+p_{BSM} + S_0 e^{-qt} &= c_{BSM} + PV(X)
+\end{align*}
+Subtracting the second from the first:
+\[ \boxed{\;p_{mkt} - p_{BSM} \;=\; c_{mkt} - c_{BSM}\;} \]
+\end{mrfmlbox}
+
+\begin{mrkeybox}[title={What this means}]
+\begin{itemize}
+\item Given the same strike price and time to expiration, option market prices that deviate from
+      those dictated by BSM \term{deviate by the same amount} whether they are calls or puts.
+\item Since any deviation in prices is the same, the implied volatility of a call and a put will
+      be \term{equal} for the same strike price and time to expiration.
+\end{itemize}
+\medskip
+\textbf{Why this is useful:} put-call parity lets you infer the volatility for calls given the
+volatility of puts. A single smile curve therefore serves both.
+\end{mrkeybox}
+
+\begin{mrtrapbox}
+The equality is between a \textit{call} and a \textit{put} at the \textbf{same} strike and
+maturity. It says nothing about implied volatilities at \textit{different} strikes --- those
+differ, and that difference is the smile.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-17 c}{Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.}
+
+\begin{mrtrapbox}[title={Labelling note}]
+This objective appears in the source notes as an unlabelled page headed ``Distributions and Fat
+Tails Concept'', sitting between objectives b and d. It is a full examinable objective and is
+labelled \textbf{MR-17 c} here.
+\end{mrtrapbox}
+
+The shape of the smile is a direct consequence of how the \term{implied} distribution differs
+from the \term{lognormal} distribution that BSM assumes. Wherever the implied distribution has
+more probability mass than lognormal, options struck in that region are worth more than BSM
+says, and implied volatility there is higher.
+
+\begin{center}
+\begin{tikzpicture}
+% ============ ROW 1: FOREIGN CURRENCY ============
+\begin{axis}[name=fxd, width=5.9cm, height=3.9cm,
+  xmin=-4, xmax=4, ymin=0, ymax=0.52,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xtick={-1.6,1.6}, xticklabels={$K_1$,$K_2$},
+  tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}FX: implied vs lognormal},
+  clip=false]
+\addplot[FRMNavy, line width=1.2pt, smooth, domain=-4:4, samples=160]
+  {0.455*exp(-(x^2)/1.0) + 0.055*exp(-(x^2)/14)};
+\addplot[black!60, line width=1.0pt, dashed, smooth, domain=-4:4, samples=160]
+  {0.39894*exp(-(x^2)/2)};
+\node[anchor=south, font=\tiny\sffamily, text=FRMNavy, fill=white, inner sep=1pt]
+  at (axis cs:-2.9,0.075) {fatter};
+\node[anchor=south, font=\tiny\sffamily, text=FRMNavy, fill=white, inner sep=1pt]
+  at (axis cs:2.9,0.075) {fatter};
+\draw[FRMNavy!60, -{Stealth[length=3pt]}, line width=0.5pt]
+  (axis cs:-2.9,0.068) -- (axis cs:-2.6,0.030);
+\draw[FRMNavy!60, -{Stealth[length=3pt]}, line width=0.5pt]
+  (axis cs:2.9,0.068) -- (axis cs:2.6,0.030);
+\end{axis}
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMGold, align=center]
+  at ($(fxd.east)+(0.15cm,0)$)
+  {\textbf{both tails}\\ \textbf{fatter}\\[2pt] $\Downarrow$\\[2pt] both ends\\ \textbf{dearer}};
+\draw[FRMGold, -{Stealth[length=5.5pt]}, line width=1.2pt]
+  ($(fxd.east)+(2.35cm,0)$) -- ($(fxd.east)+(3.35cm,0)$);
+\begin{axis}[name=fxs, at={($(fxd.east)+(4.25cm,0)$)}, anchor=west,
+  width=5.9cm, height=3.9cm,
+  xmin=0.70, xmax=1.30, ymin=13, ymax=27,
+  xlabel={\scriptsize $X/S_0$}, ylabel={\scriptsize Implied vol (\%)},
+  xlabel style={font=\tiny}, ylabel style={font=\tiny},
+  tick label style={font=\tiny},
+  xtick={0.8,1.0,1.2}, ytick={15,20,25},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}$\Rightarrow$ a \textit{smile}},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.4pt, smooth, domain=0.72:1.28, samples=80]
+  {16 + 62*(x-1)^2};
+\end{axis}
+
+% ============ ROW 2: EQUITY ============
+\begin{axis}[name=eqd, at={($(fxd.south)+(0,-2.05cm)$)}, anchor=north,
+  width=5.9cm, height=3.9cm,
+  xmin=-4, xmax=4, ymin=0, ymax=0.52,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xtick={-1.6,1.6}, xticklabels={$K_1$,$K_2$},
+  tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}Equity: implied vs lognormal},
+  clip=false]
+\addplot[FRMRed, line width=1.2pt, smooth, domain=-4:4, samples=160]
+  {0.455*exp(-((x-0.25)^2)/1.0) + 0.10*exp(-((x+2.6)^2)/2.2)};
+\addplot[black!60, line width=1.0pt, dashed, smooth, domain=-4:4, samples=160]
+  {0.39894*exp(-(x^2)/2)};
+\node[anchor=south, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1pt]
+  at (axis cs:-3.0,0.115) {fatter};
+\node[anchor=south, font=\tiny\sffamily, text=black!55, fill=white, inner sep=1pt]
+  at (axis cs:2.9,0.055) {thinner};
+\draw[FRMRed!60, -{Stealth[length=3pt]}, line width=0.5pt]
+  (axis cs:-3.0,0.108) -- (axis cs:-2.7,0.062);
+\draw[black!45, -{Stealth[length=3pt]}, line width=0.5pt]
+  (axis cs:2.9,0.048) -- (axis cs:2.6,0.020);
+\end{axis}
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMGold, align=center]
+  at ($(eqd.east)+(0.15cm,0)$)
+  {\textbf{left tail}\\ \textbf{fatter only}\\[2pt] $\Downarrow$\\[2pt] only low\\ strikes dearer};
+\draw[FRMGold, -{Stealth[length=5.5pt]}, line width=1.2pt]
+  ($(eqd.east)+(2.35cm,0)$) -- ($(eqd.east)+(3.35cm,0)$);
+\begin{axis}[name=eqs, at={($(eqd.east)+(4.25cm,0)$)}, anchor=west,
+  width=5.9cm, height=3.9cm,
+  xmin=0.70, xmax=1.30, ymin=13, ymax=27,
+  xlabel={\scriptsize $X/S_0$}, ylabel={\scriptsize Implied vol (\%)},
+  xlabel style={font=\tiny}, ylabel style={font=\tiny},
+  tick label style={font=\tiny},
+  xtick={0.8,1.0,1.2}, ytick={15,20,25},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}$\Rightarrow$ a \textit{skew}},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.4pt, smooth, domain=0.72:1.28, samples=80]
+  {14.5 + 9.5*exp(-4.2*(x-0.72))};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The distribution on the left \textit{is} the curve on the right, read a different way.
+Top row: the currency implied distribution is fatter than lognormal in \textbf{both} tails, so
+options struck well below \textit{and} well above the money are dearer than BSM says, and implied
+volatility rises at both ends. Bottom row: the equity implied distribution is fatter in the
+\textbf{left} tail only and thinner in the right, so only low-strike options are dear and
+implied volatility falls monotonically. Same mechanism, different tail asymmetry, different
+curve.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.4cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Implied distribution versus lognormal} & \hdr{Resulting implied volatility shape}\\
+\textbf{Foreign currency} & Heavier left tail \textit{and} heavier right tail
+  & Rises at both ends: a \textbf{smile}\\
+\rowcolor{FRMSoft}
+\textbf{Equity} & Heavier left tail, thinner right tail
+  & Falls across the range: a \textbf{skew} or smirk\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-17 d}{Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.}
+\lo{MR-17 e}{Describe the volatility smile for equity options and foreign currency options and provide possible explanations for its shape.}
+
+\subsection{Foreign currency options --- a smile}
+The volatility pattern used by traders to price currency options often exhibits a volatility
+smile. This depicts implied volatilities that are \term{higher for deep in-the-money and deep
+out-of-the-money} options compared to at-the-money options.
+
+\begin{mrtrapbox}[title={Why currencies smile}]
+Two of the conditions for an asset price to have a \term{lognormal} distribution are:
+\begin{enumerate}
+\item The volatility of the asset is \textbf{constant}.
+\item The price of the asset changes \textbf{smoothly, with no jumps}.
+\end{enumerate}
+\medskip
+The volatility of an exchange rate is far from constant, and exchange rates frequently exhibit
+\term{jumps} --- sometimes in response to the actions of central banks. Currency traders must
+therefore think there is a greater chance of extreme price movement than a lognormal
+distribution predicts, and empirical evidence indicates that this is the case.
+\end{mrtrapbox}
+
+\begin{mrkeybox}[title={Remember}]
+\term{Long-dated} options tend to exhibit \textbf{less} of a volatility smile pattern than
+shorter-dated options.
+\end{mrkeybox}
+
+\subsection{Equity options --- a skew}
+The equity option volatility smile is different from the currency pattern. The smile is more of
+a \term{``smirk''}, or skew, showing a higher implied volatility for \textbf{low strike price}
+options. There is essentially an inverse relationship between implied volatility and
+$X/S_0$.
+
+Equity traders believe the probability of \term{large down movements} in price is greater than
+large up movements, as compared with a lognormal distribution.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.8cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Explanation} & \hdr{Mechanism}\\
+\textbf{1. Leverage} & As equity prices fall, the firm's leverage \textit{rises}, which makes
+  the equity riskier and \textbf{volatility increases}. So a falling price and a rising
+  volatility go together.\\
+\rowcolor{FRMSoft}
+\textbf{2. Crashophobia} & Market participants are simply afraid of another market crash, so
+  they place a premium on the probability of stock prices falling precipitously. Deep
+  out-of-the-money \textit{puts} exhibit high premiums since they provide protection against a
+  substantial drop in equity prices.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-17 f}{Describe alternative ways of characterizing the volatility smile.}
+
+The smiles characterized so far examine the relationship between implied volatility and the
+ratio $X/S_0$. All the alternatives replace that independent variable.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{1.0cm} p{3.2cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Replace $X/S_0$ with} & \hdr{Consequence}\\
+\textbf{1} & The \term{strike price} $X$ alone
+  & Results in a \textbf{less stable} volatility smile: implied volatilities for options with
+    different strike prices may be more inconsistent or less smooth.\\
+\rowcolor{FRMSoft}
+\textbf{2} & The strike over the \term{forward price}, $X/F_0$
+  & The forward price represents the theoretical expected stock price at maturity. Traders
+    sometimes prefer it as a better gauge of at-the-money option prices because it reflects the
+    expected future value of the underlying.\\
+\textbf{3} & The option's \term{delta}
+  & Allows traders to study volatility smiles of options \textit{other} than European and
+    American --- that is, \textbf{exotic} options.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-17 g}{Describe volatility term structures and volatility surfaces and how they may be used to price options.}
+
+\begin{mrdefbox}[title={Volatility term structure}]
+Implied volatilities as a function of \term{time to expiration} for \term{at-the-money} option
+contracts.
+\end{mrdefbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.2cm,
+  xmin=0, xmax=5, ymin=8, ymax=32,
+  xlabel={\scriptsize Maturity (years)},
+  ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,1,2,3,4,5}, ytick={10,15,20,25,30},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=0.1:5, samples=100]
+  {20 - 9*exp(-0.9*x)};
+\addlegendentry{Short-dated volatility \textbf{low} $\Rightarrow$ increasing in maturity}
+\addplot[FRMRed, line width=1.3pt, dashed, smooth, domain=0.1:5, samples=100]
+  {20 + 10*exp(-0.9*x)};
+\addlegendentry{Short-dated volatility \textbf{high} $\Rightarrow$ decreasing in maturity}
+\addplot[black!40, line width=0.7pt, dotted, domain=0:5, samples=2] {20};
+\node[anchor=west, font=\tiny\sffamily, text=black!55, fill=white, inner sep=1.2pt]
+  at (axis cs:3.6,18.3) {long-run level};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Both cases converge toward the same long-run level, which is the point. When short-dated
+volatilities are low from a historical perspective, volatility is an increasing function of
+maturity; when they are high, it is an inverse function. This is related to, but slightly
+different in meaning from, the mean-reverting characteristic often exhibited by implied
+volatility.}
+
+\subsection{The volatility surface}
+A volatility surface is nothing other than a \term{combination of a volatility term structure
+with volatility smiles} --- those implied volatilities away from the money. The surface provides
+guidance in pricing options with any strike or maturity structure.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.8cm, height=5.4cm,
+  xmin=0.72, xmax=1.28, ymin=13, ymax=30,
+  xlabel={\scriptsize $X / S_0$ \ (the \textit{smile} axis)},
+  ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0.8,0.9,1.0,1.1,1.2}, ytick={15,20,25,30},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=8pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.3pt, smooth, domain=0.74:1.26, samples=80]
+  {17 + 150*(x-1)^2};
+\addlegendentry{1 month}
+\addplot[FRMGold, line width=1.3pt, dashed, smooth, domain=0.74:1.26, samples=80]
+  {18 + 85*(x-1)^2};
+\addlegendentry{6 months}
+\addplot[FRMGreen, line width=1.3pt, dotted, smooth, domain=0.74:1.26, samples=80]
+  {19 + 42*(x-1)^2};
+\addlegendentry{1 year}
+\addplot[FRMNavy, line width=1.3pt, dashdotted, smooth, domain=0.74:1.26, samples=80]
+  {19.6 + 16*(x-1)^2};
+\addlegendentry{2 years}
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The surface, shown as a family of smiles rather than a wireframe. Reading across any one
+curve is the smile; reading down through the curves at a fixed strike is the term structure.
+Together they are the surface. Note how the curvature flattens as maturity lengthens --- that is
+the same fact as ``long-dated options exhibit less of a smile''.}
+
+\begin{mrkeybox}[title={What the surface is for}]
+The volatility term structure and volatility surfaces serve as important tools for a trader to
+\term{validate the accuracy and consistency of a pricing model}. By comparing model-generated
+implied volatilities with market observations, traders can ensure their pricing mechanism
+produces option prices in line with prevailing market prices.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-17 h}{Explain the impact of the volatility smile on the calculation of an option's Greek letter risk measures.}
+
+The formulas for delta and the other Greeks assume that the implied volatility \term{remains the
+same} when the asset price changes. This is not what is usually expected to happen, so option
+Greeks may be affected by the implied volatility of an option.
+
+\begin{mrkeybox}[title={Two competing effects}]
+\begin{enumerate}
+\item As the equity price \textbf{increases}, $K/S_0$ \textbf{decreases}, and moving left along
+      the skew curve means the volatility \textbf{increases}.
+\item There is a \textbf{negative correlation} between equity prices and their volatilities. As
+      a result, the \textit{entire curve} moves \textbf{down} when equity prices increase, and
+      \textbf{up} when equity prices decrease.
+\end{enumerate}
+\medskip
+\term{The second effect dominates the first.} So implied volatilities tend to move \textbf{down}
+when the equity price moves \textbf{up}, and up when it moves down.
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.4cm, height=5.0cm,
+  xmin=0.72, xmax=1.28, ymin=12, ymax=28,
+  xlabel={\scriptsize $X / S_0$}, ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0.8,0.9,1.0,1.1,1.2}, ytick={15,20,25},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.30)}, anchor=north, legend columns=-1, column sep=10pt},
+  axis line style={draw=black!55}, clip=false]
+\addplot[black!60, line width=1.3pt, smooth, domain=0.74:1.26, samples=80]
+  {16 + 11*exp(-4.2*(x-0.74))};
+\addlegendentry{Original curve}
+\addplot[FRMRed, line width=1.3pt, dashed, smooth, domain=0.74:1.26, samples=80]
+  {13.2 + 11*exp(-4.2*(x-0.74))};
+\addlegendentry{After the equity price rises --- whole curve shifts \textbf{down}}
+\draw[FRMRed, -{Stealth[length=4.5pt]}, line width=0.9pt]
+  (axis cs:1.12,17.6) -- (axis cs:1.12,14.8);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Effect 2 is the vertical shift of the whole curve; effect 1 is the slide left along it.
+Because the shift dominates the slide, a rise in the equity price ends up \textit{lowering}
+implied volatility rather than raising it.}
+
+\begin{mrtrapbox}[title={The result to memorise}]
+The delta that takes the relationship between implied volatilities and equity prices into
+account is the \term{minimum variance delta}.
+\begin{center}
+\large $\Delta_{BSM} \;>\; \Delta_{\text{minimum variance}}$
+\end{center}
+The delta used in the Black-Scholes-Merton model is \textbf{higher} than the minimum variance
+delta.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-17 i}{Explain the impact of a single asset price jump on a volatility smile.}
+
+\begin{mrtrapbox}[title={Where this page came from}]
+In the source notes this material sits stranded \textit{inside} the Gauss+ chapter, several
+readings away, labelled ``LO 15.i''. It belongs here.
+\end{mrtrapbox}
+
+\begin{mrdefbox}[title={Price jumps}]
+Price jumps refer to \term{sudden and significant movements} in the price of an underlying
+asset. They can occur for various reasons, such as the anticipation of significant news events
+that could impact the asset's value.
+\end{mrdefbox}
+
+\begin{mrkeybox}[title={Effect on the distribution}]
+A single anticipated jump can cause the distribution of price changes to become \term{bimodal}.
+The \textbf{expected return and standard deviation remain the same} as in a unimodal
+distribution --- what changes is the shape.
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=bim, width=6.5cm, height=4.4cm,
+  xmin=-4.5, xmax=4.5, ymin=0, ymax=0.32,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize Price change}, xlabel style={font=\scriptsize},
+  xtick={\empty},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Distribution becomes bimodal},
+  legend style={font=\tiny\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.18)}, anchor=north, legend columns=-1, column sep=6pt},
+  clip=false]
+\addplot[black!60, line width=1.0pt, dashed, smooth, domain=-4.5:4.5, samples=160]
+  {0.28*exp(-(x^2)/4.5)};
+\addlegendentry{Unimodal}
+\addplot[FRMNavy, line width=1.3pt, smooth, domain=-4.5:4.5, samples=200]
+  {0.155*exp(-((x+2.1)^2)/1.5) + 0.155*exp(-((x-2.1)^2)/1.5)};
+\addlegendentry{With an anticipated jump}
+\end{axis}
+\begin{axis}[name=frown, at={($(bim.east)+(1.5cm,0)$)}, anchor=west,
+  width=6.5cm, height=4.4cm,
+  xmin=0.72, xmax=1.28, ymin=14, ymax=30,
+  xlabel={\scriptsize $X / S_0$}, ylabel={\scriptsize Implied volatility (\%)},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={0.8,0.9,1.0,1.1,1.2}, ytick={15,20,25,30},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}The volatility \textit{frown}},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMRed, line width=1.4pt, smooth, domain=0.74:1.26, samples=80]
+  {27 - 130*(x-1)^2};
+\node[anchor=south, font=\tiny\sffamily, text=black!65] at (axis cs:1.0,27.2) {ATM highest};
+\draw[black!35, dashed, line width=0.5pt] (axis cs:1,14) -- (axis cs:1,27);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Left: the anticipated jump splits the distribution into two humps, one for each outcome,
+with the same mean and standard deviation as before. Right: because the mass has moved
+\textit{away} from the centre toward two specific outcomes rather than into the tails,
+at-the-money options become the expensive ones and the curve turns upside down.}
+
+\begin{mrtrapbox}[title={Smile versus frown --- a polarity pair}]
+\begin{itemize}
+\item \term{Smile:} at-the-money implied volatility is the \textbf{lowest}; deep ITM and deep
+      OTM are highest. Caused by fat tails in both directions.
+\item \term{Frown:} at-the-money implied volatility is the \textbf{highest}; OTM and ITM options
+      are lower. Caused by a single anticipated price jump.
+\end{itemize}
+In the context of price jumps, implied volatility is affected by the presence of the jumps and
+the probabilities assigned to significant upward or downward movements. As a result,
+at-the-money options tend to have \textbf{higher} implied volatility compared to out-of-the-money
+or in-the-money options.
+\end{mrtrapbox}
+
+
+% ==========================================================

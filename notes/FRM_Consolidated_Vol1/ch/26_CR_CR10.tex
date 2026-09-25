@@ -1,0 +1,256 @@
+\reading{CR-10}{Credit Value at Risk}{STRIKE FIRST}{6}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Compare market risk value at risk (VaR) with credit VaR in terms of definition, time horizon, and tools for measuring them.
+\item Define and calculate Credit VaR.
+\item Describe the use of rating transition matrices for calculating credit VaR.
+\item Describe the application of the Vasicek's model to estimate capital requirements under the Basel II internal-ratings-based (IRB) approach.
+\item Explain the Vasicek's model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of estimating the probability distribution of losses arising from defaults as well as modeling the default correlation.
+\item Define credit spread risk and assess its impact on calculating credit VaR.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading]
+CR-10 exists only in the Crash layer. There is no Class Lecture treatment.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-10 a}{Compare market risk value at risk (VaR) with credit VaR in terms of definition, time horizon, and tools for measuring them.}
+
+Credit risk VaR is similar to market VaR, but focuses on potential losses from
+loan defaults, downgrades, and credit spread changes.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.0cm} L{5.6cm} L{5.9cm}}
+\toprule
+ & \thead{Market VaR} & \thead{Credit VaR} \\
+\midrule
+Loss driver & Market price movements &
+  Loan defaults, downgrades, and credit spread changes \\
+\term{Time horizon} & One \textbf{day} & One \textbf{year} \\
+\term{Calculation tools} & Historical simulation is workable &
+  Requires more complex models than the historical simulation used for market
+  VaR \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The horizon difference is a factor of roughly 250 trading days, and it is
+the reason the tools diverge: a one-day window has enough usable history for
+simple simulation, and a one-year window does not.}
+
+% =====================================================================
+\lo{CR-10 b}{Define and calculate Credit VaR.}
+
+Two factors drive the calculation of credit VaR:
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Credit correlation.} How defaults of different companies are
+interconnected.
+\item \term{Rating transitions.} Transition matrices show historical likelihoods
+of companies moving between credit ratings, for example AAA to AA.
+\end{enumerate}
+
+The worked calculation of credit VaR is carried out at \textbf{CR-11 c}, where
+both the perfectly correlated and the independent cases are computed on the same
+portfolio.
+
+% =====================================================================
+\lo{CR-10 c}{Describe the use of rating transition matrices for calculating credit VaR.}
+
+Rating transition matrices predict credit rating changes over time, and are used
+for calculating credit VaR.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{l r r r r r r r r}
+\toprule
+\thead{Initial} & \multicolumn{8}{c}{\thead{Year-end rating}} \\
+\cmidrule(l){2-9}
+\thead{rating} & \thead{AAA} & \thead{AA} & \thead{A} & \thead{BBB} &
+\thead{BB} & \thead{B} & \thead{CCC/C} & \thead{D} \\
+\midrule
+AAA & 89.85 & 9.35 & 0.55 & 0.05 & 0.11 & 0.03 & 0.05 & 0.00 \\
+AA & 0.50 & 90.76 & 8.08 & 0.49 & 0.05 & 0.06 & 0.02 & 0.02 \\
+A & 0.03 & 1.67 & 92.61 & 5.23 & 0.27 & 0.12 & 0.02 & 0.05 \\
+BBB & 0.00 & 0.10 & 3.45 & 91.93 & 3.78 & 0.46 & 0.11 & 0.17 \\
+BB & 0.01 & 0.03 & 0.12 & 5.03 & 86.00 & 7.51 & 0.61 & 0.70 \\
+B & 0.00 & 0.02 & 0.08 & 0.17 & 5.18 & 85.09 & 5.66 & 3.81 \\
+CCC/C & 0.00 & 0.00 & 0.12 & 0.20 & 0.65 & 14.72 & 50.90 & 33.42 \\
+D & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 0.00 & 100.00 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{One-year rating transition matrix for 1981--2020, in \%. Each row sums to
+100 (to rounding). Two structural features are worth noting: the diagonal
+dominates everywhere except CCC/C, and the D row is absorbing --- once in
+default, the probability of staying there is 100\%.}
+
+\subsection*{Powering the matrix to other horizons}
+
+Matrices can be \term{powered} to project multi-year transitions, or
+\term{rooted} for periods shorter than a year.
+
+\begin{crexbox}[Extending and shortening the horizon]
+The one-year probability of an AAA-rated issuer remaining AAA is 89.85\%. What is
+the probability over three years, and over three months?
+\tcblower
+\textbf{Expanding.} For three years, raise to the third power:
+\[ 0.8985^{3} = 0.7254 \text{, or } 72.54\% \]
+
+\textbf{Shortening.} For three months, take the fourth root:
+\[ 0.8985^{1/4} = 0.9736 \text{, or } 97.36\% \]
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-10 d}{Describe the application of the Vasicek's model to estimate capital requirements under the Basel II internal-ratings-based (IRB) approach.}
+
+Vasicek's Gaussian copula model is a method used on a portfolio of loans to
+calculate high percentiles of the distribution of the default rate. It gives the
+\term{worst case default rate (WCDR)}.
+
+\begin{crfmlbox}[Worst case default rate, and the capital requirement]
+\[ \mathrm{WCDR}(T,X) \;=\; N\!\left(\frac{N^{-1}(\mathrm{PD})
+   + \sqrt{\rho}\,N^{-1}(X)}{\sqrt{1-\rho}}\right) \]
+\[ \text{Capital requirement} \;=\; \sum_{i=1}^{n}
+   \mathrm{WCDR}_i(T,X)\times \mathrm{EAD}_i \times \mathrm{LGD}_i \]
+\vk{$T$ = the time horizon; $X$ = the confidence level; PD = probability of
+default; $\rho$ = the correlation factor; $N^{-1}$ = the inverse cumulative
+normal. Note that $\rho$ appears twice, as $\sqrt{\rho}$ in the numerator and
+$\sqrt{1-\rho}$ in the denominator, so raising it pushes the ratio up from both
+directions.}
+\end{crfmlbox}
+
+\begin{itemize}
+\item $\rho$, the correlation factor, should reflect the \term{asset return
+correlation} between companies. Return on investment or return on equity can be
+used as proxies when direct correlation is difficult to assess.
+\item One challenge of Vasicek's model is the \term{lack of incorporation of tail
+correlation}, meaning extreme events that fall outside the expected probability
+distribution.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.2cm, height=5.8cm,
+  xlabel={Correlation factor $\rho$},
+  ylabel={Worst case default rate (\%)},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=0, xmax=0.4, ymin=0, ymax=36,
+  xtick={0,0.1,0.2,0.3,0.4}, xticklabels={0,0.10,0.20,0.30,0.40},
+  grid=major, grid style={FRMRule!50, line width=0.3pt}]
+\addplot[draw=FRMNavy, line width=1.2pt, smooth]
+  coordinates {(0.000,1.000) (0.020,2.816) (0.040,4.062) (0.060,5.275)
+  (0.080,6.500) (0.100,7.750) (0.120,9.033) (0.140,10.352) (0.160,11.711)
+  (0.180,13.111) (0.200,14.553) (0.220,16.038) (0.240,17.568) (0.260,19.144)
+  (0.280,20.767) (0.300,22.438) (0.320,24.158) (0.340,25.929) (0.360,27.751)
+  (0.380,29.626) (0.400,31.556)};
+\addplot[draw=FRMGreen, line width=1pt, dashed, sharp plot]
+  coordinates {(0,1) (0.4,1)};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMGreen, fill=white, inner sep=1.5pt]
+  at (axis cs:0.075,3.1) {PD $=1\%$};
+\addplot[only marks, mark=*, mark size=2pt, draw=FRMRed, fill=FRMRed]
+  coordinates {(0.20,14.553)};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMRed, fill=white, inner sep=1.5pt]
+  at (axis cs:0.267,11.2) {$\rho=0.20 \Rightarrow 14.55\%$};
+\draw[-{Stealth[length=4pt]}, FRMRed] (axis cs:0.238,12.1) -- (axis cs:0.205,14.0);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{WCDR at a 99.9\% confidence level for a portfolio with a 1\% probability
+of default, plotted against the correlation factor. At zero correlation the worst
+case equals the PD itself. A correlation of only 0.20 --- a modest number ---
+multiplies the worst case default rate by more than fourteen. This is why the
+capital requirement is so sensitive to $\rho$, and why the model's inability to
+capture tail correlation matters.}
+
+% =====================================================================
+\lo{CR-10 e}{Explain the Vasicek's model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of estimating the probability distribution of losses arising from defaults as well as modeling the default correlation.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.6cm} L{5.6cm} L{6.3cm}}
+\toprule
+\thead{Model} & \thead{What distribution it estimates} &
+\thead{How it handles correlation} \\
+\midrule
+\term{Vasicek} & The probability distribution of \emph{losses} &
+  A single systematic factor influencing default probabilities \\
+\term{CreditRisk+} & The probability distribution of the \emph{number of
+  defaults}: Poisson, or negative binomial &
+  Through uncertainty in the default rate itself, rather than an explicit
+  correlation parameter \\
+\term{CreditMetrics} & The probability distribution of losses, using a
+  \emph{ratings transition matrix}. Considers the impact of \textbf{downgrades}
+  as well as defaults &
+  A correlation model that determines the joint probability distribution of
+  rating changes for different companies, via a \textbf{Gaussian copula} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The discriminating row is the middle column. Vasicek and CreditMetrics
+both model losses; CreditRisk+ models the \emph{number of defaults}, which is a
+different random variable. CreditMetrics is the only one of the three that
+captures downgrades short of default.}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective asks how each model handles default
+correlation. The source notes name the Poisson and negative binomial
+distributions for CreditRisk+ but do not say where either comes from or how the
+model represents correlation at all. The following is written from the GARP
+curriculum. CreditRisk+ was forward-referenced here from CR-5 f.}
+
+\begin{crgapbox}[What the objective asks for: Credit Risk Plus]
+In 1997 Credit Suisse Financial Products proposed a methodology for calculating
+VaR that it termed Credit Risk Plus. It involves analytic approximations that are
+well established in the \emph{insurance} industry.
+
+\smallskip
+Suppose an institution has $n$ loans of a certain type and the probability of
+default for each loan during a year is $q$, so the expected number of defaults is
+$qn$. Assuming default events are \emph{independent}, the probability of $m$
+defaults is binomial. If $q$ is small and $n$ large, this is approximated by the
+Poisson distribution:
+\[ \text{Prob}(m \text{ defaults}) \;=\; \frac{e^{-qn}(qn)^{m}}{m!} \]
+This holds approximately even when the probability of default is not the same for
+each loan, provided all the default probabilities are small and $q$ is the
+average probability of default over the next year for the loans in the portfolio.
+
+\smallskip
+\textbf{Where the correlation enters.} In practice the default rate $q$ is itself
+uncertain and varies greatly from year to year. A convenient assumption is that
+$qn$, the expected number of defaults, follows a \term{gamma distribution} with
+mean $\mu$ and standard deviation $\sigma$. The Poisson distribution then becomes
+a \term{negative binomial} distribution.
+
+\smallskip
+As $\sigma$ tends to zero the negative binomial converges back to the Poisson, so
+the Poisson case is the zero-correlation limit. As $\sigma$ increases, the
+probability of an extreme outcome involving a large number of defaults rises.
+Correlation in CreditRisk+ is therefore expressed as \emph{uncertainty about the
+default rate}, not as a pairwise correlation parameter.
+\end{crgapbox}
+
+% =====================================================================
+\lo{CR-10 f}{Define credit spread risk and assess its impact on calculating credit VaR.}
+
+\begin{crdefbox}[Credit spread risk]
+Credit spread risk is the potential impact of changes in credit spreads on the
+value of credit-sensitive products in the \term{trading book}. It affects the
+probability of default and the potential loss distribution.
+\end{crdefbox}
+
+How it is incorporated depends on the method used:
+
+\begin{itemize}
+\item \term{Historical simulation.} The impact of credit spread risk can be
+considered by collecting changes in credit spreads for each firm that the bank
+was exposed to during the observation period.
+\item \term{CreditMetrics.} A rating transitions matrix is calculated and a Monte
+Carlo simulation incorporates historical data to model credit spread changes,
+allowing for the calculation of portfolio value and obtaining VaR.
+\end{itemize}

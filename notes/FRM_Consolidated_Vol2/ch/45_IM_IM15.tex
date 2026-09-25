@@ -1,0 +1,151 @@
+\reading{IM-15}{Market-Driven Scenarios: An Approach for Plausible Scenario Construction}{DEFER}{0}
+
+\srcnote{Bennett W. Golub (ed.), \textit{BlackRock's Guide to Fixed-Income Risk
+Management} (Wiley, 2024), Chapter 5. No GARP source book covers this reading.}
+
+\begin{imkeybox}[title={The four objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Describe and evaluate the market-driven scenario (MDS) approach used to develop scenarios for stress testing investment portfolios.
+\item Describe the scenario z-score, the volatility z-score, the correlation z-score, and the Mahalanobis distance, and explain how these are used in estimating the likelihood of occurrence and magnitude of scenarios.
+\item Explain steps in the process of defining and developing market-driven scenarios, and describe the application of the MDS approach in the example provided.
+\item Describe challenges and considerations that may arise when implementing the market-driven scenario approach.
+\end{enumerate}
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-15 a}{Describe and evaluate the market-driven scenario (MDS) approach used to develop scenarios for stress testing investment portfolios.}
+
+\begin{itemize}
+\item \term{Historical replay} reruns a past episode such as 2008 or 1998. It is
+defensible and easy to explain, but \term{the next crisis rarely takes the same
+shape}, and the exposures in the portfolio today may have no counterpart in the
+historical episode.
+\item \term{Macro-narrative stress testing} starts from a path for GDP,
+unemployment and inflation. It is the \term{regulatory norm}, but it requires a
+long and uncertain mapping from macro variables down to the market prices that
+actually move the portfolio.
+\end{itemize}
+
+\begin{imdefbox}[title={What MDS does instead}]
+Shock a \emph{small set of core market variables directly}, then propagate those
+shocks to every other asset using the estimated joint distribution of returns ---
+so the scenario is expressed in the same units as the portfolio from the start,
+with no macro-to-market mapping to defend.
+\end{imdefbox}
+
+% ------------------------------------------------------------------
+\lo{IM-15 b}{Describe the scenario z-score, the volatility z-score, the correlation z-score, and the Mahalanobis distance, and explain how these are used in estimating the likelihood of occurrence and magnitude of scenarios.}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.3cm}p{2.6cm}X@{}}
+\toprule
+\textbf{\sffamily\small Measure} & \textbf{\sffamily\small Expression} & \textbf{\sffamily\small What it tells you} \\
+\midrule
+Scenario z-score & $z = (x - \mu)/\sigma$ & How extreme \emph{one} move is against its own history. A $z$ of 3 is a three-standard-deviation move. Larger absolute values mean more severe and less likely. \term{Univariate only.} \\
+Volatility z-score & $z_\sigma = (\sigma_{\text{scen}} - \mu_\sigma)/\sigma_\sigma$ & Whether the scenario implies an unusually turbulent \emph{regime}. A scenario can use modest return shocks while still assuming a volatility environment that is itself historically extreme. \\
+Correlation z-score & $z_\rho = (\rho_{\text{scen}} - \mu_\rho)/\sigma_\rho$ & Whether the assumed \emph{co-movement} is out of line with history --- for instance equities and bonds falling together when they normally offset. \\
+Mahalanobis distance & $d^2 = (x-\mu)'\Sigma^{-1}(x-\mu)$ & The \term{multivariate} analogue: how far the whole shock vector sits from the centre of the joint distribution, \emph{accounting for the correlations between the shocks}. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{Three univariate measures and one multivariate one. The first three each
+standardise a single feature of the scenario; only the Mahalanobis distance asks
+whether the shocks are plausible \emph{together}.}
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=9.6cm, height=5.6cm,
+  xmin=-4.2, xmax=4.2, ymin=-4.2, ymax=4.2,
+  xlabel={shock to asset 1 (standard deviations)},
+  ylabel={shock to asset 2},
+  xtick={-3,0,3}, ytick={-3,0,3},
+]
+\draw[FRMRule, thick, rotate around={35:(axis cs:0,0)}]
+  (axis cs:0,0) ellipse [x radius=3.3cm, y radius=1.0cm];
+\draw[FRMRule, thin, rotate around={35:(axis cs:0,0)}]
+  (axis cs:0,0) ellipse [x radius=2.1cm, y radius=0.62cm];
+\addplot[only marks, mark=*, mark size=2.4pt, FRMGreen] coordinates {(2.4,2.4)};
+\addplot[only marks, mark=*, mark size=2.4pt, FRMRed] coordinates {(2.4,-2.4)};
+\draw[black!35, thin] (axis cs:-4.2,0) -- (axis cs:4.2,0);
+\draw[black!35, thin] (axis cs:0,-4.2) -- (axis cs:0,4.2);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=south west,
+      text=FRMGreen, anchor=south east] at (axis cs:2.25,2.55) {A: plausible};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=north west,
+      text=FRMRed, anchor=north east] at (axis cs:2.25,-2.55) {B: implausible};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=black!55] at (axis cs:-4.0,3.6) {joint distribution};
+\end{axis}
+\end{tikzpicture}}%
+{Why the univariate measures are not enough. \term{Points A and B have identical
+z-scores on both axes} --- each is a $2.4$-sigma move in each asset. A sits along
+the grain of the joint distribution and is plausible; B cuts against it and is far
+less likely. \term{Only the multivariate measure separates them}, because only it
+knows that the two assets normally move together.}
+
+\begin{imkeybox}[title={How the two readings of a scenario combine}]
+\term{Severity is read from the z-scores; likelihood is read from the Mahalanobis
+distance.} A scenario is useful when it is \emph{severe enough to matter and close
+enough to be defensible}. If $d$ is very large the scenario may be dismissed as
+fantasy by the board; if $d$ is small it will not stress anything.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-15 c}{Explain steps in the process of defining and developing market-driven scenarios, and describe the application of the MDS approach in the example provided.}
+
+\begin{enumerate}
+\item \term{Define the narrative.} State the triggering event and its economic
+logic --- a sovereign credit event, an energy shock, an abrupt policy surprise, a
+geopolitical escalation. The narrative exists to make the scenario
+\term{communicable} and to \term{discipline the choice of core assets}.
+\item \term{Shock the core assets.} Identify the small set of variables the event
+acts on directly and set the size and sign of each shock. Calibrate from
+historical analogues, from option-implied moves, or from expert judgement.
+\term{Keep the core small; every additional anchor is another judgement to
+defend.}
+\item \term{Test plausibility.} Compute the scenario, volatility and correlation
+z-scores and the Mahalanobis distance for the core vector. If the combination is
+implausible, revise the shocks or the narrative before going further. \term{This
+is the step that distinguishes MDS from ad hoc scenario invention.}
+\item \term{Propagate.} Map the core shocks onto every other exposure using the
+estimated joint distribution, and revalue the portfolio.
+\end{enumerate}
+
+% ------------------------------------------------------------------
+\lo{IM-15 d}{Describe challenges and considerations that may arise when implementing the market-driven scenario approach.}
+
+\begin{itemize}
+\item \term{Correlation instability and breakdown.} Diversification fails
+precisely when the scenario bites. Conditional correlations \term{rise toward one
+in a crisis}, so a matrix fitted on ordinary conditions \term{systematically
+understates the loss}.
+\item \term{Linearity of propagation.} The conditional expectation is a
+\term{linear projection}. Options, convertibles, credit and anything with an
+asymmetric payoff require \term{full revaluation}, and their own second-order
+behaviour is not captured by the projection at all.
+\item \term{Conditional mean is not a worst case.} Propagation gives the
+\emph{expected} move in peripheral assets given the core shock. The residual
+uncertainty around that expectation is discarded, so \term{a single point scenario
+understates the dispersion of outcomes}.
+\item \term{Plausibility against severity.} The two pull in opposite directions. A
+scenario extreme enough to be interesting may be too implausible to be accepted.
+\end{itemize}
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-15}]
+\begin{itemize}
+\item \term{Sibling, IM-15 a.} Historical replay reruns a past episode;
+macro-narrative starts from GDP and inflation and is the \emph{regulatory norm};
+MDS shocks market variables directly. Only MDS avoids the macro-to-market mapping.
+\item \term{Scope, IM-15 b.} The three z-scores are \emph{univariate}; only the
+Mahalanobis distance is multivariate. Two scenarios with identical z-scores can
+have very different plausibility.
+\item \term{Role, IM-15 b.} \term{z-scores give severity; Mahalanobis distance
+gives likelihood.} Swapping the two is the standard corruption.
+\item \term{Polarity, IM-15 d.} Correlations rise toward one in a crisis, so a
+normal-period matrix \emph{understates} the loss. It does not overstate it.
+\item \term{Definition, IM-15 d.} Propagation returns a \emph{conditional mean},
+not a worst case. The dispersion around it is thrown away.
+\end{itemize}
+\end{imtrapbox}
+
+% ==================================================================

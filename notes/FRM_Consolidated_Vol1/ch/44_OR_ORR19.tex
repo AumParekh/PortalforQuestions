@@ -1,0 +1,466 @@
+\chapterhead{58}{ORR-19}{Range of Practices and Issues in Economic Capital Frameworks}{4}{1}
+
+\begin{ornotebox}{About this chapter}
+The crash course original covers only risk measures and risk aggregation. The
+remainder of LO 58.a, and all of LO 58.b, c and d, are re-typeset here from the
+class lecture notes that complete this reading.
+\end{ornotebox}
+
+\lohead{58}{a}{Within the economic capital implementation framework, describe the
+challenges that appear in: defining and calculating risk measures; risk
+aggregation; validation of models; dependency modeling in credit risk; evaluating
+counterparty credit risk; and assessing interest rate risk in the banking book.}
+
+\orsub{Risk measures and risk aggregation}
+
+\orsubb{Key properties of a coherent risk measure}
+
+\begin{lettered}
+\item \textbf{Monotonicity:} higher returns suggest lower risk.
+\item \textbf{Subadditivity:} risk of a portfolio $\leq$ sum of individual asset
+risks.
+\item \textbf{Positive homogeneity:} risk scales with the portfolio size.
+\item \textbf{Translation invariance:} risk depends on portfolio contents.
+\end{lettered}
+
+\orsubb{Ideal characteristics of risk measures}
+
+\begin{center}
+\begin{tikzpicture}[font=\fontsize{8.2}{10}\selectfont,
+  ch/.style={text width=4.6cm,align=center,rounded corners=3pt,inner sep=6pt,
+             fill=paleblue,draw=palenavy,line width=0.6pt,text=navy}]
+\node[ch] at (-5.2, 0.55) {a) Intuitive};
+\node[ch] at ( 0.0, 0.55) {b) Stable};
+\node[ch] at ( 5.2, 0.55) {c) Easy to compute and understand};
+\node[ch] at (-5.2,-0.85) {d) Coherent};
+\node[ch] at ( 0.0,-0.85) {e) Economically interpretable};
+\node[ch] at ( 5.2,-0.85) {f) Allows simple risk decomposition};
+\end{tikzpicture}
+\end{center}
+\orfigcap{Six characteristics of an ideal risk measure.}
+
+\orsubb{Common risk measures}
+
+\noindent\begin{minipage}{\textwidth}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{@{}L{0.28\textwidth}Y@{}}
+\rowcolor{navy} \thd{Measure} & \thd{Assessment}\\
+{\tabfont \textbf{1. Standard deviation}} & {\tabfont Easy to calculate but not coherent; violates monotonicity.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{2. Value at Risk (VaR)}} & {\tabfont Most commonly used but not coherent; violates subadditivity.}\\
+{\tabfont \textbf{3. Expected Shortfall (ES)}} & {\tabfont More stable than VaR but less interpretable.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{4. Spectral / distorted measures}} & {\tabfont Not intuitive or commonly used.}\\
+\end{tabularx}
+\end{minipage}
+\orfigcap{Four risk measures, and where each falls short.}
+
+\orsubb{Challenges of risk measures}
+\begin{lettered}
+\item No single measure perfectly captures all aspects of risk.
+\item VaR and ES are the most common measures, but neither is perfect.
+\end{lettered}
+
+\orsubb{Risk aggregation}
+
+Involves combining various risk types (market, credit, operational, business) into
+a single measure. Challenges include:
+
+\begin{lettered}
+\item Classifying risks into types (market, credit, operational, business).
+\item Aggregating risks across different time horizons and confidence levels.
+\item Accounting for dependencies between different risk types.
+\end{lettered}
+
+\orsub{Validation of models}
+
+\begin{orkeybox}
+Validation is the process of proving that a model works as intended. It is good
+for testing risk sensitivity, but less effective for checking extreme losses (tail
+events, high quantiles). Economic capital models are harder to validate because
+they produce a loss \emph{distribution}, not a single forecast.
+\end{orkeybox}
+
+\orsubb{Qualitative validation}
+
+\noindent\begin{minipage}{\textwidth}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{@{}L{0.24\textwidth}YY@{}}
+\rowcolor{navy} \thd{Process} & \thd{Purpose} & \thd{Main challenge}\\
+{\tabfont \textbf{1. Use test}} & {\tabfont Regulators rely more on models if the bank uses them for internal decisions.} & {\tabfont Regulators struggle to see which model properties are actually used versus ignored.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{2. Qualitative review}} & {\tabfont Review documentation, methodology, algorithms, and risk drivers.} & {\tabfont Ensuring the model works in theory, captures correct risk drivers, and has accurate maths.}\\
+{\tabfont \textbf{3. Systems implementation}} & {\tabfont Conduct User Acceptance Testing (UAT) and code checks before rolling out.} & {\tabfont Ensure no implementation errors.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{4. Management oversight}} & {\tabfont Senior management reviews and uses model outputs.} & {\tabfont Management must correctly interpret results.}\\
+{\tabfont \textbf{5. Data quality checks}} & {\tabfont Ensure data is accurate, complete, and relevant.} & {\tabfont Detect missing or incorrect data.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{6. Sensitivity testing}} & {\tabfont Test assumptions (correlations, recovery rates, tail distributions).} & {\tabfont Assess impact of assumption changes.}\\
+\end{tabularx}
+\end{minipage}
+\orfigcap{Six qualitative validation processes.}
+
+\orsubb{Quantitative validation processes}
+
+\noindent\begin{minipage}{\textwidth}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{@{}L{0.26\textwidth}YY@{}}
+\rowcolor{navy} \thd{Process} & \thd{Purpose} & \thd{Main challenge}\\
+{\tabfont \textbf{1. Validate inputs and parameters}} & {\tabfont Check model inputs such as correlations.} & {\tabfont Correct inputs alone cannot eliminate model error.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{2. Model replication}} & {\tabfont Reproduce model results independently.} & {\tabfont Simply re-running the same algorithms is insufficient; rarely used in practice.}\\
+{\tabfont \textbf{3. Benchmarking}} & {\tabfont Compare with standard models or reference portfolios.} & {\tabfont Shows consistency, not necessarily accuracy.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{4. Backtesting}} & {\tabfont Compare predicted outcomes with actual outcomes.} & {\tabfont Difficult for economic capital models with long horizons.}\\
+{\tabfont \textbf{5. P\&L attribution}} & {\tabfont Compare actual profits and losses with model risk drivers.} & {\tabfont Not widely used outside of market risk pricing models.}\\
+\rowcolor{paleblue}
+{\tabfont \textbf{6. Stress testing}} & {\tabfont Test model under extreme scenarios.} & {\tabfont Focuses on extreme scenarios rather than day-to-day absolute accuracy.}\\
+\end{tabularx}
+\end{minipage}
+\orfigcap{Six quantitative validation processes.}
+
+\orsub{Dependency modeling in credit risk}
+
+Measures how defaults of different borrowers are related. Important because
+defaults are not independent, especially during economic downturns. In general,
+dependencies can be modelled using credit risk portfolio models, models using
+copulas, and models based on the asymptotic single-risk factor (ASRF) model.
+
+\orsubb{Asymptotic Single-Risk Factor (ASRF) model}
+
+The foundation for the IRB framework under Basel II to compute capital
+requirements.
+
+\begin{checks}
+\item Assumes a single systematic risk factor and infinite portfolio granularity.
+\item \textbf{Challenge:} banks must justify how they handle the single-factor
+limitation and how they calibrate correlations.
+\end{checks}
+
+\orsubb{Model assumptions}
+
+Many assumptions may not hold in reality:
+
+\begin{enumerate}
+\item[\textcolor{rust}{\sffamily\bfseries 1)}] Gaussian copula (normal
+dependence).
+\item[\textcolor{rust}{\sffamily\bfseries 2)}] Normally distributed default
+drivers.
+\item[\textcolor{rust}{\sffamily\bfseries 3)}] Stable correlations over time.
+\item[\textcolor{rust}{\sffamily\bfseries 4)}] Common risk factors fully explain
+default correlation.
+\end{enumerate}
+
+\orsubb{Major model weaknesses and impacts: the tail-risk and clustering problem}
+
+\begin{lettered}
+\item \textbf{Underestimation of capital.} Traditional models fail to explain the
+time-clustering of defaults seen in real markets.
+\item \textbf{PD/LGD correlation.} Models often fail to integrate the correlation
+between Probability of Default and Loss Given Default. Ignoring LGD variability
+leads to severe underestimation of required economic capital.
+\end{lettered}
+
+\orsubb{Data source errors}
+
+\begin{itemize}
+\item \textbf{Business cycle bias.} Rating changes vary wildly between expansions
+and recessions. If the sample calibration period is poorly chosen, correlation
+estimates will be heavily distorted.
+\item \textbf{The equity price proxy problem.} Many models use observable equity
+prices to approximate unobservable asset returns.
+  \begin{itemize}
+  \item \emph{The flaw:} this relationship is unobservable and often nonlinear.
+  \item \emph{The impact:} equity prices contain noise irrelevant to credit risk,
+  causing inaccurate correlation estimates.
+  \end{itemize}
+\end{itemize}
+
+\orsubb{Regulatory approach (Basel II) challenges}
+
+When banks rely strictly on regulatory-type models, they face unique hurdles:
+
+\begin{checks}
+\item \textbf{Data scarcity:} limited historical data makes estimating
+correlations difficult.
+\item \textbf{Model inconsistency:} the bank's internal assumptions often conflict
+with the underlying maths of the Basel II model.
+\end{checks}
+
+\orsub{Evaluating counterparty credit risk}
+
+Such a task is a significant challenge because it requires obtaining data from
+multiple systems, measuring exposures from an enormous number of transactions
+(including many that exhibit optionality) spanning a wide range of time periods,
+monitoring collateral and netting arrangements, and categorising exposures across
+many counterparties.
+
+\orsubb{Market risk-related challenges to counterparty Exposure at Default (EAD) estimation}
+
+Counterparty exposure uses market risk simulations, similar to VaR, but with two
+key differences:
+
+\begin{enumerate}
+\item[\textcolor{rust}{\sffamily\bfseries 1)}] No netting across counterparties is
+allowed; exposures must be calculated at the netting set level, increasing
+computational complexity.
+\item[\textcolor{rust}{\sffamily\bfseries 2)}] Unlike VaR's single short-term
+horizon, EAD requires multiple future time horizons, meaning market factors and
+exposures must be simulated far into the future.
+\end{enumerate}
+
+\orsubb{Credit risk-related challenges to PD and LGD estimation}
+
+Banks must estimate Probability of Default (PD) and Loss Given Default (LGD) for
+each counterparty and transaction. This is particularly difficult for hedge funds,
+where information on leverage, volatility, and investment strategy is often
+limited. Even for counterparties with existing relationships, banks still need
+transaction-specific LGD estimates.
+
+\orsubb{Interaction between market risk and credit risk: wrong-way risk}
+
+\begin{ordefbox}{Wrong-way risk}
+Wrong-way risk occurs when exposure increases as the counterparty's credit quality
+deteriorates.
+\end{ordefbox}
+
+\begin{itemize}
+\item Measuring it requires understanding the market risk factors affecting the
+counterparty and comparing them with the bank's own exposures.
+\item It is difficult to identify and quantify, especially for less transparent
+counterparties, and requires long-horizon, high-confidence economic capital models.
+\end{itemize}
+
+\orsubb{Operational risk-related challenges in managing counterparty credit risk}
+
+\begin{itemize}
+\item Managing counterparty credit risk requires specialised systems and
+experienced personnel.
+\item Complex activities such as daily limit monitoring, mark-to-market, collateral
+management, and intraday liquidity and credit monitoring increase the likelihood
+of operational errors.
+\item Quantifying operational risk is particularly difficult for new products,
+rapidly growing businesses, and rare but severe events.
+\end{itemize}
+
+\orsubb{Differences in risk profiles between margined and non-margined counterparties}
+
+The main difference lies in the forecasting period:
+
+\begin{lettered}
+\item \textbf{Margined counterparties:} short forecasting horizon due to frequent
+collateral exchanges.
+\item \textbf{Non-margined counterparties:} longer forecasting horizon because
+exposures remain uncollateralised for longer.
+\end{lettered}
+
+Using different time horizons makes risk aggregation more difficult.
+
+\orsubb{Aggregation challenges}
+
+Moving from single-counterparty risk to firm-wide economic capital significantly
+increases complexity. Aggregating exposures across derivatives, securities
+financing, market risk, credit risk, and operational risk requires enormous
+computational power and data, and many banks still struggle due to outdated
+systems.
+
+\orsub{Assessing interest rate risk in the banking book}
+
+\orsubb{Optionality in the banking book}
+
+A major challenge is measuring nonlinear risk from embedded options.
+
+\begin{lettered}
+\item \textbf{Asset side:} products such as mortgages, mortgage-backed securities
+(MBS), and consumer loans contain prepayment options, creating uncertain cash
+flows and making interest rate risk difficult to measure.
+\item \textbf{Liability side:} non-maturity deposits contain two embedded options:
+  \begin{itemize}
+  \item The bank can decide the interest rate paid and when to change it.
+  \item The depositor can withdraw funds at any time without penalty.
+  \end{itemize}
+\end{lettered}
+
+The interaction of these options creates significant valuation and interest rate
+sensitivity challenges, requiring complex stochastic-path models.
+
+\orsubb{Banks' pricing behaviour}
+
+Models must estimate the persistence of non-maturity deposits and determine deposit
+rates based on market conditions, customer relationships, competitive power, and
+business policies. Pricing must also incorporate credit risk, requiring models that
+link credit spreads to changes in macroeconomic conditions and interest rates.
+Therefore, interest rate stress scenarios should jointly consider interest rate and
+credit risk.
+
+\orsubb{Choice of stress scenarios}
+
+Using simple interest rate shocks has several limitations:
+
+\begin{checks}
+\item They are not probability-based, making them difficult to integrate into
+VaR-based economic capital models.
+\item They may not reflect the current interest rate or economic environment.
+\item They ignore changes in the slope and curvature of the yield curve.
+\item They do not allow an integrated analysis of interest rate risk and credit
+risk in the banking book.
+\end{checks}
+
+% ---------------------------------------------------------------------
+\lohead{58}{b}{Describe the recommendations by the Bank for International
+Settlements (BIS) that supervisors should consider in order to make effective use
+of internal risk measures, such as economic capital, that are not designed for
+regulatory purposes.}
+
+\orsub{BIS recommendations for supervisors}
+
+\begin{enumerate}
+\item[\textcolor{rust}{\sffamily\bfseries 1.}] \textbf{Use in capital adequacy.}
+Economic capital models should be actively used in decision-making to assess
+capital adequacy. The board should understand the difference between gross
+(stand-alone) risk and net (diversified) risk while setting the bank's risk
+tolerance.
+\item[\textcolor{rust}{\sffamily\bfseries 2.}] \textbf{Senior management.} Senior
+management should provide strong commitment and oversight. They must understand the
+importance of economic capital and ensure adequate governance, infrastructure, and
+resources are in place.
+\item[\textcolor{rust}{\sffamily\bfseries 3.}] \textbf{Transparency and
+decision-making.} Economic capital results should be clear, transparent, and easy
+to interpret. The models should support business decisions and provide flexibility
+for firm-wide stress testing.
+\item[\textcolor{rust}{\sffamily\bfseries 4.}] \textbf{Risk identification.} Banks
+should identify all relevant risk drivers, positions, and exposures to ensure
+accurate measurement of economic capital. Risks that are difficult to quantify
+should be assessed using stress testing, scenario analysis, or sensitivity
+analysis.
+\item[\textcolor{rust}{\sffamily\bfseries 5.}] \textbf{Risk measures.} There is no
+universally best risk measure. Banks should understand the strengths and
+limitations of their chosen risk measures before using them for economic capital.
+\item[\textcolor{rust}{\sffamily\bfseries 6.}] \textbf{Risk aggregation.} Risk
+aggregation should combine different risk types using consistent methodologies. The
+aggregation process should reflect the bank's business model, risk profile, and
+interrelationships among risks.
+\item[\textcolor{rust}{\sffamily\bfseries 7.}] \textbf{Validation.} Economic
+capital models should be thoroughly validated through multiple tests to ensure they
+perform as intended. The estimated capital should be sufficient to absorb
+unexpected losses at the selected confidence level.
+\item[\textcolor{rust}{\sffamily\bfseries 8.}] \textbf{Dependency modeling.} Banks
+should assess whether the credit dependency (correlation) assumptions used in their
+models are appropriate. Model limitations should be addressed through stress
+testing and scenario analysis.
+\item[\textcolor{rust}{\sffamily\bfseries 9.}] \textbf{Counterparty credit risk.}
+Banks should select an appropriate method to measure counterparty credit risk and
+supplement it with stress testing. The aggregation of exposures should be carefully
+reviewed to obtain a firm-wide view of risk.
+\item[\textcolor{rust}{\sffamily\bfseries 10.}] \textbf{Interest rate risk in the
+banking book (IRRBB).} Banks should carefully model embedded options in banking
+products. They should also understand the trade-offs between earnings-based and
+economic value-based approaches when measuring interest rate risk.
+\end{enumerate}
+
+% ---------------------------------------------------------------------
+\lohead{58}{c}{Explain benefits and impacts of using an economic capital framework
+within the following areas: credit portfolio management; risk-based pricing;
+customer profitability analysis; and management incentives.}
+
+\orsub{Benefits and impacts of using an economic capital framework}
+
+\orsubb{1) Credit portfolio management}
+\begin{checks}
+\item A loan with a higher stand-alone risk does not necessarily contribute more
+risk to the portfolio.
+\item A loan's marginal contribution to the portfolio is therefore critical to
+assessing the concentration of the portfolio.
+\item Economic capital is a measurement of the level of concentration.
+\end{checks}
+
+\orsubb{2) Risk-based pricing}
+\begin{checks}
+\item Pricing decisions are based on expected risk-adjusted return on capital
+(RAROC).
+\item Pricing decisions include: (1) cost of funding, (2) expected loss,
+(3) allocated economic capital, and (4) additional return required by
+shareholders.
+\item Can be used to maximise the bank's profitability.
+\end{checks}
+
+\orsubb{3) Customer profitability analysis}
+\begin{checks}
+\item The analysis is complicated in that many risks need to be aggregated at
+customer level.
+\item Customers need to be segmented in terms of ranges of net return per unit of
+risk.
+\item Economic capital is used in maximising the risk-return tradeoff.
+\end{checks}
+
+\orsubb{4) Management incentives}
+\begin{checks}
+\item Compensation schemes are a minor consideration in terms of the actual uses of
+economic capital measures at the business unit level.
+\item Management incentives is the issue that motivates bank managers to
+participate in the technical aspects of the economic capital allocation process.
+\end{checks}
+
+% ---------------------------------------------------------------------
+\lohead{58}{d}{Describe best practices and assess key concerns for the governance
+of an economic capital framework.}
+
+\orsub{Best practices for the governance of an economic capital framework}
+
+\orsubb{1) Senior management commitment}
+\begin{checks}
+\item The successful implementation of an economic capital framework depends on the
+involvement and experience of the senior management group.
+\end{checks}
+
+\orsubb{2) The business unit and its level of expertise}
+\begin{checks}
+\item Governance structures differ among banks.
+\item Each business unit within the bank will manage its risk in accordance with
+the amount of allocated capital.
+\item The responsibilities for allocating capital within business units will also
+vary among banks, as will the flexibility to reallocate capital during the
+budgeting period.
+\end{checks}
+
+\orsubb{3) The timing of economic capital measurement and disclosures}
+\begin{checks}
+\item Most banks will compute economic capital on either a monthly or quarterly
+basis.
+\item Implementation of Basel II has fostered public disclosure of quantitative
+information on economic capital measures among banks.
+\end{checks}
+
+\orsubb{4) Policies and procedures for owning, developing, validating, and monitoring economic capital models}
+\begin{checks}
+\item Formal policies and procedures encourage the consistent application of
+economic capital across the bank.
+\item The owner of the economic capital model will usually oversee the economic
+capital framework.
+\end{checks}
+
+\orsub{Key concerns for governance and application}
+
+\begin{enumerate}
+\item[\textcolor{rust}{\sffamily\bfseries 1.}] \textbf{Senior management
+commitment.} Economic capital is effective only when senior management fully
+supports it and uses it for strategic planning and business decisions.
+\item[\textcolor{rust}{\sffamily\bfseries 2.}] \textbf{Role of stress testing.}
+Banks should use integrated stress tests to better assess the impact of adverse
+scenarios on economic capital, rather than relying on isolated stress tests.
+\item[\textcolor{rust}{\sffamily\bfseries 3.}] \textbf{Measuring risk.} Economic
+capital can be measured on an absolute or relative basis. Its interpretation
+depends on assumptions about diversification, management actions, and how well the
+model captures risk.
+\item[\textcolor{rust}{\sffamily\bfseries 4.}] \textbf{Economic capital is not the
+only measure.} It should not be the sole determinant of required capital. Banks
+must balance shareholders' preference for lower capital (higher profitability) with
+rating agencies' preference for higher capital (greater solvency).
+\item[\textcolor{rust}{\sffamily\bfseries 5.}] \textbf{Available capital
+resources.} There is no standard definition of available capital across banks. Most
+banks use adjusted Tier 1 capital as the basis for available capital.
+\item[\textcolor{rust}{\sffamily\bfseries 6.}] \textbf{Transparency.} Economic
+capital models should be transparent, well-documented, and easy to understand.
+Greater transparency improves their credibility and usefulness in business
+decision-making.
+\end{enumerate}

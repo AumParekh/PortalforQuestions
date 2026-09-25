@@ -1,0 +1,440 @@
+\reading{MR-5}{VaR Mapping}{grind}{4}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Explain the principles underlying VaR mapping and describe the mapping process.
+\item Explain how the mapping process captures general and specific risks, and calculate these
+      risks in a portfolio given a set of primitive risk factors.
+\item Differentiate among the three methods of mapping portfolios of fixed-income securities.
+\item Summarize how to map a fixed-income portfolio into positions of standard instruments.
+\item Describe how mapping of risk factors can support stress testing.
+\item Explain how VaR can be calculated and used relative to a performance benchmark.
+\item Describe the method of mapping forwards, forward rate agreements, interest rate swaps,
+      and options.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-5 a}{Explain the principles underlying VaR mapping and describe the mapping process.}
+
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Modern financial portfolios often include a vast array of assets such as bonds, stocks,
+      currencies, commodities, and derivatives.
+\item \term{Mapping} is the process of simplifying a large number of individual positions into a
+      smaller number of aggregate positions based on elementary or primitive risk factors.
+\end{enumerate}
+
+\begin{mrexbox}[title={Examples}]
+\begin{enumerate}
+\item \term{Currency forwards.} A trader's desk with many dollar/euro forward contracts can
+      aggregate these based on the major risk factor, the dollar/euro spot exchange rate.
+\item \term{Bonds.} Map risks according to changing yields as bonds mature.
+\item \term{Non-historical securities.} Map new assets like IPOs to existing risk factors.
+\end{enumerate}
+\end{mrexbox}
+
+\begin{mrkeybox}[title={Benefits of VaR mapping}]
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Simplification:} makes detailed data simpler.
+\item \term{Efficiency:} focuses on fewer, significant risk factors to lessen computational load.
+\item \term{Flexibility:} adapts to market or portfolio changes without needing extensive
+      historical data.
+\item \term{Predictive insight:} forecasts risks based on current and future market conditions.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-5 b}{Explain how the mapping process captures general and specific risks, and calculate these risks in a portfolio given a set of primitive risk factors.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{4.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{What it is} & \hdr{Examples}\\
+\midrule
+\textbf{1. General risk factors}\newline (primitive risk factors)
+  & Capture broad market movements that affect most assets in the portfolio to some degree.
+  & Interest rates, equity market indices, etc.\\
+\rowcolor{FRMSoft}
+\textbf{2. Specific risk}\newline (unsystematic risk)
+  & Arises from factors unique to individual assets or asset classes within the portfolio. It
+    represents the variability \textit{not} explained by general risk factors.
+  & Company-specific risks --- strikes, the PD of an individual bond, etc.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrtrapbox}[title={The tradeoff}]
+The mapping process aims to \term{minimize specific risk} by using a sufficient number of
+general factors. The more factors you include, the more precisely you capture the overall risk
+of the portfolio --- but the computation will be a lot. So keep a balanced set of general risk
+factors.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-5 c}{Differentiate among the three methods of mapping portfolios of fixed-income securities.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{1.9cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{} & \hdr{Principal mapping} & \hdr{Duration mapping} & \hdr{Cash flow mapping}\\
+\midrule
+\textbf{What it does}
+  & Focuses solely on the risk associated with the repayment of principal amounts.
+  & Maps the risk of bonds to zero-coupon bonds with equivalent durations.
+  & Decomposes bond risk into the risk associated with each bond's cash flows.\\
+\rowcolor{FRMSoft}
+\textbf{Accuracy}
+  & Simplest approach among the three methods.
+  & More accurate than principal mapping as it considers the timing of cash flows.
+  & Most precise method but also the most complex, as it accounts for the timing and amount of
+    cash flows.\\
+\textbf{Catch}
+  & \textit{Limitation:} ignores coupon payments, thus oversimplifying the risk assessment.
+  & \textit{Challenge:} difficult to find a zero-coupon bond with an exact duration matching the
+    portfolio.
+  & \textit{Complexity:} high (incorporates correlations).\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{mrkeybox}[title={Remember the ordering}]
+\begin{center}
+\large $\mathrm{VaR}(\text{principal}) \;>\; \mathrm{VaR}(\text{duration}) \;>\;
+\mathrm{VaR}(\text{diversified})$
+\end{center}
+\end{mrkeybox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=10.4cm, height=4.6cm,
+  xbar, bar width=16pt,
+  xmin=2.50, xmax=3.10, ymin=-1.0, ymax=2.7,
+  xlabel={\scriptsize VaR (\$ millions) --- note the axis starts at 2.50},
+  xlabel style={font=\scriptsize}, tick label style={font=\scriptsize},
+  xtick={2.5,2.6,2.7,2.8,2.9,3.0},
+  ytick={0,1,2},
+  yticklabels={{Cash flow\\(diversified)},{Duration},{Principal}},
+  yticklabel style={align=right, font=\scriptsize},
+  nodes near coords, nodes near coords style={font=\scriptsize\sffamily, color=black!75},
+  every node near coord/.append style={/pgf/number format/fixed,
+    /pgf/number format/precision=3},
+  axis line style={draw=black!55}, clip=false]
+\addplot[fill=PaleRed, draw=FRMRed!65, line width=0.4pt] coordinates {(2.968,2)};
+\addplot[fill=PaleGold, draw=FRMGold!70, line width=0.4pt] coordinates {(2.737,1)};
+\addplot[fill=PaleGreen, draw=FRMGreen!65, line width=0.4pt] coordinates {(2.615,0)};
+\draw[black!35, {Stealth[length=3.5pt]}-{Stealth[length=3.5pt]}, line width=0.6pt]
+  (axis cs:2.615,-0.34) -- (axis cs:2.968,-0.34);
+\node[anchor=north, font=\tiny\sffamily, text=black!60, fill=white, inner sep=1.2pt]
+  at (axis cs:2.79,-0.52) {a \$353k spread on identical positions};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The same \$200 million portfolio, three mapping methods, three answers. The axis is
+zoomed so the gaps are visible --- all three sit between \$2.6m and \$3.0m. Each step down
+adds information: duration accounts for the \textit{timing} of cash flows and principal mapping
+does not, and cash-flow mapping additionally accounts for the \textit{correlations} between
+maturity buckets. More information means less apparent risk, which is why the ordering runs the
+way it does --- and why it is a memorisable rule rather than a coincidence.}
+
+% ---------------------------------------------------------
+\lo{MR-5 d}{Summarize how to map a fixed-income portfolio into positions of standard instruments.}
+
+\begin{mrexbox}[title={Example --- the same portfolio under all three methods}]
+\textbf{Bond A:} 1 year, \$100 million, 3.5\% coupon. \quad
+\textbf{Bond B:} 5 year, \$100 million, 5\% coupon.\\
+Macaulay duration $= 2.768$. \quad Average maturity of bonds $= 3$ years.
+\end{mrexbox}
+
+\begin{center}
+\small
+\begin{tabular}{c r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Maturity} & \hdr{VaR \%}\\
+1 & 0.4696\\
+\rowcolor{FRMSoft} 2 & 0.9868\\
+3 & 1.4841\\
+\rowcolor{FRMSoft} 4 & 1.9714\\
+5 & 2.4261\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \draw[FRMNavy, {Stealth[length=5pt]}-{Stealth[length=5pt]}, line width=0.9pt]
+    (0,0) -- (8.4,0);
+  \draw[black!70, line width=0.8pt] (0.9,-0.16) -- (0.9,0.16);
+  \draw[black!70, line width=0.8pt] (7.5,-0.16) -- (7.5,0.16);
+  \draw[FRMGold, line width=1.1pt] (6.0,-0.22) -- (6.0,0.22);
+  \node[anchor=north, text=black] at (0.9,-0.24) {2 year};
+  \node[anchor=north, text=black] at (7.5,-0.24) {3 year};
+  \node[anchor=north, text=FRMGold] at (6.0,-0.24) {\textbf{2.768 years}};
+  \node[anchor=south, text=black] at (0.9,0.26) {VaR 0.9868};
+  \node[anchor=south, text=black] at (7.5,0.26) {VaR 1.4841};
+\end{tikzpicture}
+\end{center}
+\figcap{The 2.768-year duration falls between the 2-year and 3-year grid points, so its VaR\,\%
+has to be interpolated between the two published figures rather than read off directly.}
+
+The VaR of a 2.768-year maturity zero-coupon bond is interpolated as follows:
+\[ 0.9868 + (1.4841 - 0.9868) \times (2.768 - 2) \;=\; 0.9868 + (0.4973 \times 0.768)
+   \;=\; \mathbf{1.3687} \]
+
+\subsection{1) Principal mapping calculation}
+\begin{mrfmlbox}
+\[ \mathrm{VaR}(\text{portfolio}) \;=\; NP \times \mathrm{VaR}(\text{average maturity of bonds}) \]
+\mrvk{$NP$ = notional principal of the portfolio;\quad the VaR\,\% is read off at the
+\textit{average maturity}, here 3 years.}{}
+\end{mrfmlbox}
+\[ \text{Principal mapping VaR} \;=\; \$200 \text{ million} \times 1.4841\% \;=\;
+   \mathbf{\$2.968 \text{ million}} \]
+
+\subsection{2) Duration mapping calculation}
+\begin{mrfmlbox}
+\[ \mathrm{VaR}(\text{portfolio}) \;=\; \mathrm{VaR}(\text{interpolated}) \times NP \]
+\mrvk{the interpolated VaR\,\% is taken at the portfolio's \textit{duration}, here 2.768 years.}{}
+\end{mrfmlbox}
+\[ \text{Duration mapping VaR} \;=\; \$200 \text{ million} \times 1.3687\% \;=\;
+   \mathbf{\$2.737 \text{ million}} \]
+
+\subsection{3) Cash flow mapping}
+\begin{mrfmlbox}
+\[ \text{Undiversified VaR} \;=\; \sum \left( PV(\text{cash flow}) \times \mathrm{VaR}\,\% \right) \]
+\mrvk{Diversified VaR additionally considers the correlations between the maturity buckets.}{}
+\end{mrfmlbox}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{c r r r r r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Year} & \hdr{$x$} & \hdr{$x \times V$} & \hdr{1Y} & \hdr{2Y} & \hdr{3Y}
+  & \hdr{4Y} & \hdr{5Y} & \hdr{$x\Delta$VaR}\\
+\multicolumn{3}{c}{} & \multicolumn{5}{c}{\scriptsize\textit{Correlation matrix (R)}} & \\
+1 & 104.83 & 0.4923 & 1 & 0.894 & 0.887 & 0.871 & 0.861 & 1.17\\
+\rowcolor{FRMSoft} 2 & 4.63 & 0.0457 & 0.894 & 1 & 0.99 & 0.964 & 0.954 & 0.115\\
+3 & 4.42 & 0.0656 & 0.887 & 0.99 & 1 & 0.992 & 0.987 & 0.170\\
+\rowcolor{FRMSoft} 4 & 4.24 & 0.0836 & 0.871 & 0.964 & 0.992 & 1 & 0.996 & 0.217\\
+5 & 81.88 & 1.9864 & 0.861 & 0.954 & 0.987 & 0.996 & 1 & 5.168\\
+\midrule
+\multicolumn{2}{r}{\textbf{Undiversified VaR}} & \textbf{2.674} & & & & & & 6.840\\
+\multicolumn{2}{r}{\textbf{Diversified VaR}} & \textbf{2.615} & & & & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Each year's present-valued cash flow $x$ is multiplied by that maturity's VaR\,\% to give
+$x \times V$. Summing that column ignores correlation and gives the undiversified VaR; applying
+the correlation matrix instead gives the smaller diversified figure.}
+
+% ---------------------------------------------------------
+\lo{MR-5 e}{Describe how mapping of risk factors can support stress testing.}
+
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item Stress testing a portfolio with the assumption of \term{perfect correlation} allows for a
+      simpler evaluation of potential risks without considering the complexity of correlation
+      effects.
+\item However, this method is \term{not accurate} if actual correlations are not perfect.
+\end{enumerate}
+
+\begin{mrkeybox}[title={Just remember}]
+When assuming perfect correlation (correlation $= 1$), the portfolio VaR is equal to the
+\term{sum of the individual VaRs} --- the undiversified VaR.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-5 f}{Explain how VaR can be calculated and used relative to a performance benchmark.}
+
+\subsection{Benchmarking a portfolio}
+Benchmarking VaR compares the VaR of your portfolio to a reference portfolio, typically an
+index. This helps assess the risk of your portfolio relative to a standard.
+
+\textbf{Steps involved:}
+\begin{enumerate}
+\item \term{Match durations.} Ensure your portfolio and the benchmark portfolio have similar
+      durations to compare risks from interest rate changes. This might involve adjusting
+      weightings in your portfolio.
+\item \term{Calculate absolute VaR.} Multiply the VaR percentages (the risk measure for
+      individual holdings) by the market value of each asset in your portfolio. Sum these
+      products to get the total VaR for your portfolio. Do the same for the benchmark.
+\item \term{Calculate tracking error VaR.} This measures the difference between your portfolio's
+      VaR and the benchmark's VaR. It reflects how closely your portfolio's VaR tracks the
+      benchmark's VaR due to interest rate movements.
+\end{enumerate}
+
+Tracking error can be used to compute the variance reduction (similar to R-squared in a
+regression) as follows:
+
+\begin{mrfmlbox}
+\[ \text{Variance improvement} \;=\; 1 - \left( \frac{\text{tracking error}}
+   {\text{benchmark VaR}} \right)^{\!2} \]
+\mrvk{tracking error = the VaR of the difference between the portfolio and the benchmark;\quad
+benchmark VaR = the absolute VaR of the reference portfolio.}{}
+\end{mrfmlbox}
+
+\begin{mrkeybox}
+The higher this ratio, the lower the tracking error VaR --- which is actually good.
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-5 g}{Describe the method of mapping forwards, forward rate agreements, interest rate swaps, and options.}
+
+\subsection{Mapping approaches for linear derivatives}
+
+\subsubsection{1) Forwards and futures}
+These are the simplest types of derivatives. Since their value is linear in the underlying spot
+rates, their risk can be constructed easily from basic building blocks. We can use the
+\term{delta-normal VaR} calculation here for linear portfolios.
+
+\begin{mrexbox}[title={Example --- diversified VaR of a currency forward}]
+Suppose you wish to compute the diversified VaR of a forward contract that is used to purchase
+100 million euros in exchange for \$126.5 million one year from now. This forward position is
+analogous to the following three separate risk positions:
+\begin{enumerate}
+\item A short position in a U.S.\ Treasury bill.
+\item A long position in a one-year euro bill.
+\item A long position in the euro spot market.
+\end{enumerate}
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  legbox/.style={rectangle, rounded corners=2.5pt, line width=0.8pt,
+    text width=3.05cm, align=center, inner sep=6pt, minimum height=1.35cm}]
+  \node[legbox, draw=FRMGold!70, fill=FRMPaper, text width=4.2cm, minimum height=1.1cm]
+    (fwd) at (0,1.9) {\textbf{1-year forward}\\ buy EUR 100m for \$126.5m};
+  \node[legbox, draw=FRMRed!60, fill=PaleRed] (l1) at (-4.0,0)
+    {\textbf{(1) Short USD bill}\\ borrow dollars today};
+  \node[legbox, draw=FRMNavy!60, fill=PaleNavy] (l2) at (0,0)
+    {\textbf{(2) Long EUR bill}\\ lend euros for one year};
+  \node[legbox, draw=FRMGreen!60, fill=PaleGreen] (l3) at (4.0,0)
+    {\textbf{(3) Long EUR spot}\\ convert dollars to euros};
+  \foreach \t in {l1,l2,l3}{
+    \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (fwd) -- (\t);}
+  \node[anchor=north, text=black!60, text width=11cm, align=center] at (0,-0.95)
+    {each leg is then mapped to its own primitive risk factor};
+\end{tikzpicture}
+\end{center}
+\figcap{The single forward contract is broken into the three primitive exposures it is
+economically equivalent to, and each is then mapped to its own risk factor.}
+
+\begin{center}
+\scriptsize
+\begin{tabular}{l r r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Risk factor} & \hdr{Price/Rate} & \hdr{VaR\%} & \hdr{EUR Spot}
+  & \hdr{1Yr EUR} & \hdr{1Yr US}\\
+\multicolumn{3}{c}{} & \multicolumn{3}{c}{\scriptsize\textit{Correlation matrix}}\\
+EUR spot & 1.2500 & 4.5381 & 1.000 & 0.115 & 0.073\\
+\rowcolor{FRMSoft} Long EUR bill & 0.0170 & 0.1396 & 0.115 & 1.000 & $-0.047$\\
+Short USD bill & 0.0292 & 0.2121 & 0.073 & $-0.047$ & 1.000\\
+\rowcolor{FRMSoft} EUR forward & 1.2650 & & & & \\
+\bottomrule
+\end{tabular}
+\hspace{6pt}
+\begin{tabular}{l r r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Position} & \hdr{PV factor} & \hdr{CF} & \hdr{$x$} & \hdr{$|x_i|\,V_i$}
+  & \hdr{$x\Delta$VaR}\\
+EUR spot & & & 122.911 & 5.578 & 31.116\\
+\rowcolor{FRMSoft} Long EUR bill & 0.9777 & 100.0 & 122.911 & 0.172 & 0.142\\
+Short USD bill & 0.9678 & 126.5 & 122.911 & 0.261 & $-0.036$\\
+\midrule
+\textbf{Undiversified VaR} & & & & \textbf{6.010} & 31.221\\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Left: the monthly VaR of each primitive risk factor and how the three factors correlate.
+Right: the same three legs valued and summed. The $|x_i|V_i$ column adds to the undiversified
+VaR.}
+
+\begin{mrkeybox}[title={Note}]
+The volatility of the \term{spot contract} is the highest by far. This is much greater than the
+VaR for the EUR 1-year bill and the VaR for the USD bill.
+\end{mrkeybox}
+
+\subsubsection{2) Forward rate agreements}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item FRAs are forward contracts that allow users to lock in an interest rate at some future
+      date.
+\item The \term{buyer} of an FRA locks in a borrowing rate; the \term{seller} locks in a lending
+      rate. In other words, the ``long'' receives a payment if the spot rate is above the
+      forward rate.
+\end{enumerate}
+
+\begin{mrexbox}[title={Example --- VaR of an FRA}]
+Suppose that you sold a $6 \times 12$ FRA on \$100 million. This is equivalent to borrowing
+\$100 million for 6 months and investing the proceeds for 12 months. Assuming that the 360-day
+spot rate is 4.5\% and the 180-day spot rate is 4.1\%, the present value of the notional
+\$100 million contract is
+\[ x \;=\; \frac{\$100}{1.0205} \;=\; \$97.991 \text{ million} \]
+\end{mrexbox}
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{7.4cm}@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{PaleNavy}
+\textbf{Short $6\times12$ FRA} = short/borrow 6-month bill \;+\; long/invest 12-month bill\\
+\midrule
+\rowcolor{PaleNavy}
+\textbf{Long $6\times12$ FRA} = long/invest 6-month bill \;+\; short/borrow 12-month bill\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{center}
+\small
+\begin{tabular}{l r r r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Position} & \hdr{PV(CF), $x$} & \hdr{VaR\%} & \hdr{} & \hdr{}
+  & \hdr{$|x_i|\,V_i$} & \hdr{$x\Delta$VaR}\\
+\multicolumn{3}{c}{} & \multicolumn{2}{c}{\scriptsize\textit{Correlations (R)}} & & \\
+180 days & $-97.991$ & 0.1629 & 1 & 0.79 & 0.160 & $-0.0325$\\
+\rowcolor{FRMSoft} 360 days & 97.991 & 0.4696 & 0.79 & 1 & 0.460 & 0.1537\\
+\midrule
+\textbf{Undiversified VaR} & & & & & \textbf{0.620} & 0.1212\\
+\textbf{Diversified VaR} & & & & & \textbf{0.348} & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The two legs are of opposite sign and 0.79 correlated, so most of the risk cancels: the
+diversified VaR of 0.348 is barely half the undiversified 0.620.}
+
+\subsubsection{3) Interest rate swaps}
+Interest rate swaps are commonly used to exchange interest rates from fixed to floating rates or
+from floating to fixed rates. Thus, an interest rate swap can be broken down into fixed and
+floating parts. The \term{fixed part is priced with a coupon-paying bond} and the \term{floating
+part is priced as a floating-rate note}.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  legbox/.style={rectangle, rounded corners=2.5pt, line width=0.8pt,
+    text width=4.6cm, align=center, inner sep=6pt, minimum height=1.25cm}]
+  \node[legbox, draw=FRMGold!70, fill=FRMPaper, text width=4.0cm, minimum height=1.25cm]
+    (sw) at (-4.4,0) {\textbf{4-year swap}\\ pay fixed, receive floating};
+  \node[legbox, draw=FRMRed!60, fill=PaleRed] (fx) at (2.1,1.0)
+    {\textbf{Short} a coupon-paying bond\\ \textit{(the fixed leg you pay)}};
+  \node[legbox, draw=FRMGreen!60, fill=PaleGreen] (fl) at (2.1,-1.0)
+    {\textbf{Long} a floating-rate note\\ \textit{(the floating leg you receive)}};
+  \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (sw.east) -- (fx.west);
+  \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=0.9pt] (sw.east) -- (fl.west);
+\end{tikzpicture}
+\end{center}
+\figcap{A pay-fixed, receive-floating swap is mapped as a short position in a coupon bond
+alongside a long position in a floating-rate note.}
+
+\subsection{Mapping approaches for nonlinear derivatives}
+\begin{itemize}
+\item \term{Option pricing.} While the option delta captures the option's sensitivity to the
+      underlying price at a specific point, it is not constant. For options, the relationship is
+      inherently non-linear.
+\item \term{Short horizons.} The delta-normal method can be a reasonable approximation for short
+      timeframes (e.g.\ one day) when the delta is relatively stable. For long-dated options,
+      delta-normal is not accurate.
+\end{itemize}
+
+% ==========================================================

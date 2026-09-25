@@ -1,0 +1,251 @@
+\reading{IM-16}{Liquidity Risk Management}{STRIKE FIRST}{2}
+
+\srcnote{Bennett W. Golub (ed.), \textit{BlackRock's Guide to Fixed-Income Risk
+Management} (Wiley, 2024), Chapter 7. No GARP source book covers this reading.}
+
+\begin{imtrapbox}[breakable=false,title={The title carries no parenthetical}]
+GARP's title for this reading is simply \term{Liquidity Risk Management}. The
+``(investment funds)'' the transcribed spine carried was an editorial addition,
+not GARP's wording.
+\end{imtrapbox}
+
+\begin{imkeybox}[title={The five objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Explain best practices for managing liquidity risk in an investment fund.
+\item Explain potential challenges fund managers face when managing liquidity risk in fixed-income portfolios, including challenges related to data modeling.
+\item Describe and apply different approaches to model asset liquidity, including an approach to modeling infrequently traded bonds and the t-cost model to calculate transaction costs for corporate bonds.
+\item Identify examples of extraordinary measures that regulators may allow funds to take to meet unanticipated redemption requests, and explain when each measure may be allowed.
+\item Explain approaches to manage and model redemption risk in an investment fund, including the redemption waterfall, approaches to model a fund's level of redemption-at-risk, and approaches to optimize liquidity to meet redemption requests.
+\end{enumerate}
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-16 a}{Explain best practices for managing liquidity risk in an investment fund.}
+
+\begin{imdefbox}[title={Fund liquidity risk}]
+The risk that a fund may be \term{unable to obtain enough liquidity to meet
+investor redemptions}. It can arise as a \emph{byproduct} of other issues, such as
+poor fund performance or reputational problems involving managers.
+\end{imdefbox}
+
+The most effective response is a robust, \term{top-down governance structure}
+supported by a liquidity risk management framework built on four elements:
+\term{liquidity risk measurement} (identify and quantify risks; assess how quickly
+assets can be sold); \term{liquidity risk management} (monitor the liquidity
+profile continuously; compare redemption risk against limits); \term{portfolio
+construction}; and \term{governance}.
+
+\begin{imkeybox}[title={The core objective has two sides}]
+Ensure \term{enough cash to meet redemptions} --- \emph{but} avoid
+\term{leaving remaining investors with the illiquid assets}. Selling the liquid
+holdings first meets today's redemption and hands tomorrow's problem to whoever
+stayed.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-16 b}{Explain potential challenges fund managers face when managing liquidity risk in fixed-income portfolios, including challenges related to data modeling.}
+
+Following the Global Financial Crisis, low interest rates led to a surge in
+corporate borrowing, including more complex bond issuances --- and a shift in
+market behaviour.
+
+\begin{imkeybox}[title={Price takers to price makers}]
+\term{Before the crisis}, asset managers were \term{price takers}, relying on
+dealer quotes. \term{After the crisis} they became \term{price makers}, setting
+prices and searching for counterparties. The consequences: \term{thinner markets}
+with lower trading volume, \term{wider bid-ask spreads}, and \term{higher price
+impact} for large trades.
+\end{imkeybox}
+
+Large trades are often split into smaller orders, but liquidity becomes more
+expensive when trades must be executed quickly, especially for complex securities.
+
+\subsection{Data availability}
+
+\renewcommand{\arraystretch}{1.2}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}X@{}}
+\toprule
+TRACE, as it was & FINRA's TRACE system provides bond price and volume data, but \term{trade sizes are capped}: high-yield trades above \term{\$1 million} are reported as ``\$1M+'' and investment-grade trades above \term{\$5 million} as ``\$5M+''. This creates ambiguity --- \term{\$6 million and \$60 million look the same} --- making liquidity estimation less accurate. Models try to infer actual volumes from historical patterns, but this can fail in changing market conditions. \\
+TRACE now & Provides \term{uncapped} trade volumes at CUSIP level, but with a \term{six-month delay}. \\
+MiFID II & Intraday price and volume data for \emph{liquid} bonds; \term{one-month delayed} data for less liquid bonds; and \term{mandatory reporting of transaction costs}. \\
+Proposed & A \term{consolidated tape} in Europe, combining data across venues. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{The data problem in one table. Note what the fixes trade away: the cap is
+removed only at the price of a six-month delay, so the data becomes accurate
+exactly when it stops being timely. The two numbers most worth carrying are the
+\term{\$1 million high-yield} and \term{\$5 million investment-grade} caps ---
+the higher threshold applies to the \emph{more} liquid category.}
+
+% ------------------------------------------------------------------
+\lo{IM-16 c}{Describe and apply different approaches to model asset liquidity, including an approach to modeling infrequently traded bonds and the t-cost model to calculate transaction costs for corporate bonds.}
+
+\subsection{The days-to-liquidate approach}
+
+Estimates how long it takes to unwind a position, from three components:
+
+\begin{imfmlbox}
+\[ \text{days to liquidate} = \frac{\text{trade size}}{\text{participation rate} \times \text{ADV}} \]
+\vk{\term{trade size} is based on redemptions, leverage and derivatives exposure;
+\term{participation rate} is the percentage of average daily volume that can be
+sold without major price impact --- hard to estimate, and related to \term{latent
+liquidity}; \term{ADV} is average trading volume over a period, estimable from
+market data or proxies.}
+\end{imfmlbox}
+
+\subsection{Infrequently traded bonds}
+
+When bonds do not trade frequently, direct estimation becomes unreliable. A
+\term{random forest regression} --- a machine learning technique --- is well suited
+to \term{nonlinearity, missing data and large sets of explanatory variables},
+assuming expected volume on no-trade days is zero. Analysts supplement the data
+using \term{comparable bonds} (similar risk and characteristics) and \term{dealer
+inventory data} (bid-ask quotes indicating potential supply and demand).
+
+\begin{imtrapbox}[breakable=false,title={Quoted liquidity is not executed liquidity}]
+Both supplementary sources have the same limitation: \term{quoted liquidity is
+often higher than actual executed liquidity}, which points back to latent
+liquidity. To address the uncertainty, liquidity is often expressed as a
+\term{range rather than a single number}, estimated using tail measures. Note also
+the direction on volume variability: when variance is high, \term{ADV may
+understate potential liquidity}, making it a \emph{conservative} measure.
+\end{imtrapbox}
+
+\subsection{Transaction cost (t-cost) modelling}
+
+T-cost modelling assesses how costly it is to liquidate positions, balancing two
+competing objectives:
+
+\begin{imkeybox}
+\term{Liquidate quickly} $\rightarrow$ higher price impact. \quad
+\term{Maintain liquidity} $\rightarrow$ lower returns or delayed execution.
+\end{imkeybox}
+
+It uses intraday benchmark prices, empirical transaction data and bond-specific
+attributes to forecast both \term{fixed costs} and \term{market impact costs},
+with regression techniques estimating certain components.
+
+\begin{imdefbox}[title={Implementation shortfall}]
+The primary purpose of t-cost modelling is to estimate \term{market impact},
+measured as the difference between the \term{traded price} (actual execution) and
+the \term{order-arrival benchmark price} or another appropriate pre-trade
+benchmark.
+\end{imdefbox}
+
+\begin{imtrapbox}[breakable=false,title={Which benchmark, and how to weight}]
+Using the \emph{previous end-of-day price} as the benchmark is misleading, because
+it includes market-driven price movements that occurred \emph{before} execution.
+An \term{intraday pre-trade benchmark} is best practice. When estimating costs,
+\term{weight observations by trade size} to avoid bias from many small trades, and
+use security-level data where available. Machine learning methods --- clustering,
+tree models, neural networks --- further improve estimates.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-16 d}{Identify examples of extraordinary measures that regulators may allow funds to take to meet unanticipated redemption requests, and explain when each measure may be allowed.}
+
+Advance planning remains the most effective way to manage redemption pressure, but
+funds may need extraordinary measures when normal liquidity tools are
+insufficient. These are \term{rarely used but must be deployable quickly}.
+
+\begin{imkeybox}[title={``Break glass'' testing}]
+Legal, operations, risk management and trading teams should conduct
+\term{``break glass'' testing} to ensure each measure can be activated quickly if
+required. A tool that exists on paper but has never been exercised is not a tool.
+\end{imkeybox}
+
+\term{Temporary borrowing} provides a short-term liquidity buffer, allowing the
+fund to meet redemptions without immediately selling illiquid assets. Common
+sources include \term{repos, overdrafts and credit facilities}. It avoids forced
+selling, although it is permitted only within regulatory limits.
+
+% ------------------------------------------------------------------
+\lo{IM-16 e}{Explain approaches to manage and model redemption risk in an investment fund, including the redemption waterfall, approaches to model a fund's level of redemption-at-risk, and approaches to optimize liquidity to meet redemption requests.}
+
+Outflows can be driven by macroeconomic developments, poor fund performance,
+reputational issues, or fund-specific factors such as investor profiles and
+concentration.
+
+\begin{imkeybox}[title={The main objective}]
+Manage redemptions \term{fairly and equitably across all investors} --- those
+redeeming, those subscribing, and \emph{those remaining in the fund}. The third
+group is the one an ad hoc response forgets.
+\end{imkeybox}
+
+The \term{redemption waterfall} for '40 Act funds is a multi-layer approach to
+meeting redemption requests when assets are insufficient at one level. Stress
+testing is a natural extension of redemption modelling.
+
+\subsection{Modelling redemption-at-risk}
+
+Analysts estimate worst-case outflows --- for example a \term{99th-percentile,
+five-day scenario} --- using historical flows. This forms the \term{HRaR model}
+and provides stress signals. Three limitations:
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Limited history.} New or fast-growing funds may not show meaningful
+outflows.
+\item \term{Unpredictable behaviour.} Investor actions can be idiosyncratic.
+\item \term{Data gaps.} Managers may lack visibility due to intermediaries such as
+custodians.
+\end{enumerate}
+
+Large outflows usually result from a mix of \term{systemic factors} (macro shocks,
+sector-wide disruptions) and \term{idiosyncratic factors} (investor behaviour, peer
+performance, cash needs, reputational or regulatory events). Machine learning can
+improve HRaR by capturing multiple factors and nonlinearities, helping estimate an
+\term{upper bound} of redemptions.
+
+\subsection{Liquidity optimization}
+
+Fund liquidity management can be framed as an \term{optimization problem} in which
+managers balance liquidity, transaction costs and portfolio risk while meeting
+redemption obligations. Each security $i$ has a market value $m_i$, a notional
+value $n_i$, and a proportion sold $p_{i,t}$; the first step is to determine the
+optimal \term{pro rata} fraction, and the objective is then maximised subject to
+constraints.
+
+\renewcommand{\arraystretch}{1.2}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm}X@{}}
+\toprule
+\textbf{\sffamily\small Constraint} & \textbf{\sffamily\small What it enforces} \\
+\midrule
+Redemption & Total liquidation meets the required outflow $v$ over a specified period --- for example \$200 million in two days. Guarantees sufficient cash generation. \\
+ADV & Security $i$ has an ADV of $v_i$ and belongs to sector $j$ with an assigned \term{participation rate} $r_j$; sales are capped accordingly. \\
+Time-lag & Some assets cannot be sold immediately ($d_i$ days of delay --- IPO lockups, for instance). Reflects real-world restrictions. \\
+Risk & Well-managed portfolios also stay \term{below a specified risk threshold} $R$ after the sales. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{Four constraints, and a warning attached to all of them: \term{the
+optimization is ultimately constrained by the quality and availability of the
+model's input data.} Every constraint above needs a number that IM-16 b has just
+finished explaining is hard to observe.}
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-16}]
+\begin{itemize}
+\item \term{Definition, IM-16 a.} Fund liquidity risk is about meeting
+\emph{redemptions}, and it arises as a \emph{byproduct} of performance or
+reputational problems.
+\item \term{Polarity, IM-16 b.} Managers moved from price \emph{takers} to price
+\emph{makers} after the crisis, and the result was \emph{worse} liquidity: thinner
+markets, wider spreads, higher impact.
+\item \term{Number, IM-16 b.} TRACE caps are \$1 million for \emph{high-yield} and
+\$5 million for \emph{investment-grade}. The higher cap applies to the more liquid
+category. Uncapped data now exists but with a six-month delay; MiFID II's delay for
+illiquid bonds is one month.
+\item \term{Polarity, IM-16 c.} \term{Quoted liquidity exceeds executed
+liquidity}, and high volume variance means ADV \emph{understates} liquidity ---
+making it conservative, not aggressive.
+\item \term{Definition, IM-16 c.} Implementation shortfall uses the
+\term{order-arrival} or intraday pre-trade benchmark, \emph{not} the previous
+close.
+\item \term{Role, IM-16 c.} Weight observations by \emph{trade size}; unweighted
+data is biased by many small trades.
+\item \term{Scope, IM-16 e.} Fairness runs to three groups: redeeming,
+subscribing, and \emph{remaining}.
+\end{itemize}
+\end{imtrapbox}
+
+% ==================================================================

@@ -1,0 +1,524 @@
+\reading{CR-22}{Structured Credit Risk}{STRIKE FIRST}{7}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Describe common types of structured products.
+\item Describe tranching and the distribution of credit losses in a securitization.
+\item Describe a waterfall structure in a securitization.
+\item Identify the key participants in the securitization process and describe conflicts of interest that can arise in the process.
+\item Calculate and evaluate one or two iterations of interim cashflows in a three-tiered securitization structure.
+\item Describe the treatment of excess spread in a securitization structure and estimate the value of the overcollateralization account at the end of each year.
+\item Explain the tests on the excess spread that a custodian must go through at the end of each year to determine the cash flow to the overcollateralization account and to the equity noteholders.
+\item Describe a simulation approach to calculating credit losses for different tranches in a securitization.
+\item Explain how the default probabilities and default correlations affect the credit risk in a securitization.
+\item Explain how default sensitivities for tranches are measured.
+\item Describe risk factors that impact structured products.
+\item Define implied correlation and describe how it can be measured.
+\item Identify the motivations for using structured credit products.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Two layers, three numbering schemes, and a duplicated block]
+The Crash layer numbers this reading 28, the Lecture layer numbers it 40, and the
+duplicate of the Lecture block numbers it 24. The Lecture layer also uses its own
+letters, which run one behind the spine from objective c onward: its ``40.g'' is
+the spine's h, its ``40.h'' is i, and so on.
+
+\smallskip
+The Lecture layer covers spine objectives a, b, d, and h through m. It omits
+\textbf{c, e, f and g} --- the waterfall and all three calculation objectives.
+Everything below is renumbered to the spine.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-22 a}{Describe common types of structured products.}
+
+\begin{enumerate}
+\item \term{Covered bonds.} Mortgage loans are aggregated into a \term{cover
+pool} by which a bond issue is secured. The cover pool \textbf{stays on the
+balance sheet} of the bank rather than being sold off-balance sheet. The bank
+promises to pay back the borrowed money and interest \emph{no matter how the
+mortgages perform}. Unlike typical securitizations, covered bonds do not create a
+separate entity, and investors can hold the bank responsible if there are issues.
+Investors have priority over other creditors in case of bank default.
+\item \term{Mortgage pass-through securities.} In contrast to covered bonds,
+these are \textbf{true off-balance sheet} securitizations. Investors receive cash
+flows based entirely on the performance of the pool, less associated fees paid to
+the servicer. Less default risk, as they are agency MBS, but prepayment risk still
+exists.
+\item \term{Collateralized mortgage obligations (CMOs).} MBS divided into tranches
+with different predetermined conditions. The most basic structure is the
+\term{waterfall} or \term{sequential pay} structure, where Tranche 1 receives all
+principal and its portion of interest in each period until it is paid off. Other
+tranches receive interest until Tranche 1 is paid off, then they receive
+principal.
+\item \term{Structured credit products.} Backed by risky debt instruments and
+divided into tranches with different credit risks. The equity tranche is the
+riskiest and the first to bear losses from defaults; if it is wiped out, the next
+junior tranche takes the risk. The senior tranche has the highest credit rating
+and the lowest chance of writedowns.
+\item \term{Asset-backed securities (ABS).} The most general category: any pool of
+cash-generating assets can be bundled and tranched. MBS is a specific type of ABS.
+Others include CBO, CDO, CLO, CMO, and even complex securities like CDO-squared.
+\end{enumerate}
+
+\begin{crkeybox}[Four dimensions on which structured credit products vary]
+Underlying collateral; the size and number of tranches; whether the pool is
+passive or actively managed; and whether it is \term{revolving}, that is, whether
+loan proceeds are reinvested in new assets during a revolving period.
+\end{crkeybox}
+
+\begin{crtrapbox}[The covered bond is the odd one out]
+It is the only product on the list where the collateral stays on the issuer's
+balance sheet and the issuer remains liable regardless of pool performance.
+Everything else on the list transfers the performance risk to the investor.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-22 b}{Describe tranching and the distribution of credit losses in a securitization.}
+
+The capital structure of a securitization refers to the \term{priority} assigned
+to the different tranches.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.8cm} L{5.8cm} L{5.9cm}}
+\toprule
+\thead{Tranche} & \thead{Priority} & \thead{Return} \\
+\midrule
+\term{Senior} & Top of the capital structure; highest priority to receive
+  principal and interest &
+  Perceived safest, so receives the \emph{lowest} coupon \\
+\term{Mezzanine} & Junior to senior; absorbs losses after the equity tranche &
+  Relatively high coupon or spread \\
+\term{Equity} & Lowest priority; absorbs \emph{first} losses; smallest part of
+  the structure &
+  Variable return, that is, the residual \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Credit enhancement}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.1cm} L{11.4cm}}
+\toprule
+\thead{Type} & \thead{Description} \\
+\midrule
+\term{External} & Buying insurance, or \term{wraps}, from a third party such as a
+  monoline insurer \\
+\term{Overcollateralization} & \textbf{Hard} credit enhancement: the asset pool
+  value exceeds the total bond value, for example 101 mortgages backing 100
+  mortgage bonds. Provides protection \emph{at origination} \\
+\term{Excess spread} & \textbf{Soft} credit enhancement: the difference between
+  cash collected from the assets and payments made to bondholders. Saved in a
+  trust and available to make up \emph{future} shortfalls \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Hard versus soft is the distinction to hold, and it maps onto timing.
+Overcollateralization is present from day one; excess spread has to be earned
+year by year before it protects anything.}
+
+% =====================================================================
+\lo{CR-22 c}{Describe a waterfall structure in a securitization.}
+
+A waterfall structure details the distribution of collateral cash flows to the
+different classes of bondholders.
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize,
+  box/.style={draw, line width=0.8pt, rounded corners=1pt, text width=5.0cm,
+              align=center, minimum height=0.78cm}]
+\node[box, draw=FRMNavy, fill=PaleNavy] (coll) at (0,0)
+  {\scriptsize\textbf{Collateral cash flows}};
+\node[box, draw=FRMGrey, fill=FRMSoft, below=4pt of coll] (fees)
+  {\scriptsize less fees and defaults};
+\node[box, draw=FRMGreen, fill=PaleGreen, below=4pt of fees] (sen)
+  {\scriptsize\textbf{Senior} claims paid first};
+\node[box, draw=FRMGold, fill=PaleGold, below=4pt of sen] (mez)
+  {\scriptsize\textbf{Mezzanine} claims, if senior paid in full};
+\node[box, draw=FRMRed, fill=PaleRed, below=4pt of mez] (eq)
+  {\scriptsize\textbf{Equity} receives the residual};
+\node[box, draw=FRMNavy, fill=PaleNavy, text width=4.0cm,
+  below right=0.55cm and 1.9cm of eq] (oc)
+  {\scriptsize\textbf{Overcollateralization}\\\scriptsize\textbf{trust account}};
+\foreach \a/\b in {coll/fees, fees/sen, sen/mez, mez/eq}
+  \draw[-{Stealth[length=5pt]}, FRMNavy, line width=0.9pt] (\a) -- (\b);
+\draw[-{Stealth[length=5pt]}, FRMNavy, line width=0.9pt] (eq.east) -| (oc.north);
+\node[font=\scriptsize, align=left, text=FRMNavy, fill=white, inner sep=2pt,
+  anchor=west] at ($(eq.east)+(0.25,0.42)$)
+  {\scriptsize excess above the OC trigger is diverted};
+\draw[-{Stealth[length=6pt]}, FRMGrey, line width=1pt]
+  (-3.6,0.45) -- (-3.6,-3.55)
+  node[midway, left, font=\scriptsize\itshape, text=FRMGrey, rotate=90,
+  anchor=south, yshift=4pt] {order of payment};
+\end{tikzpicture}
+\end{center}
+\figcap{The equity tranche typically receives the residual cash flows once the
+senior and mezzanine investor claims are satisfied. If the cash flows to equity
+holders exceed the overcollateralization trigger, the excess is diverted to a
+trust account. Fees and defaults reduce the net cash flows available for
+distribution before any tranche is paid.}
+
+% =====================================================================
+\lo{CR-22 d}{Identify the key participants in the securitization process and describe conflicts of interest that can arise in the process.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.9cm} L{5.6cm} L{6.0cm}}
+\toprule
+\thead{Participant} & \thead{Role} & \thead{Conflict of interest} \\
+\midrule
+\term{Originator / sponsor} & Funds the original loans and may supply most of the
+  collateral & --- \\
+\term{Underwriter} & Structures the issue, engineers the tranches, sells the
+  bonds. Warehouses the collateral and faces marketing and collateral-value risk &
+  --- \\
+\term{Credit rating agencies} & Provide credit ratings, influencing the size of
+  tranches; may require enhancements &
+  Conflicted between generating profit and allocating larger portions of the
+  capital structure to lower-interest-paying senior notes \\
+\term{Servicer} & Collects and distributes collateral cash flows and fees;
+  provides liquidity on late payments and handles defaults &
+  May \textbf{delay foreclosure to increase fees}, while investors want quick
+  resolutions \\
+\term{Manager} \newline (actively managed pools) & Monitors the credit quality of
+  the collateral &
+  May lack clear incentives to monitor continually \\
+\term{Custodians and trustees} & Administrative: verify documents, disburse and
+  transfer funds between accounts & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Three of the six participants carry a named conflict, and each conflict
+runs in a different direction: the rating agency's distorts the capital structure,
+the servicer's distorts the timing of recoveries, and the manager's is a conflict
+of \emph{omission}.}
+
+% =====================================================================
+\lo{CR-22 e}{Calculate and evaluate one or two iterations of interim cashflows in a three-tiered securitization structure.}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}This objective, and objectives f and g, are
+\emph{calculate} and \emph{estimate} verbs. The Lecture layer omits all three
+entirely. The Crash layer gives the mechanics in prose and then instructs:
+``Please Solve an example from the book for this.'' The structure, assumptions and
+worked iterations below are written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objectives ask for: the structure and its assumptions]
+\textbf{The structure.} Underlying debt instruments of \$100 million with a coupon
+of Libor $+$ 350 bps, funded by an equity note of \$5 million, mezzanine debt of
+\$10 million at Libor $+$ 500 bps, and senior debt of \$85 million at Libor $+$
+50 bps.
+
+\smallskip
+\textbf{The assumptions.} The swap curve is flat at 5\%. All loans and liabilities
+mature in five years, and all coupons and loan interest payments are annual and
+occur at year end. A defaulted loan pays \emph{no} interest for the year in which
+it defaults or after; there is no partial interest. Recovery is 40\%, and the
+recovery amount is paid into the overcollateralization account rather than through
+the waterfall --- otherwise the equity would perversely benefit from defaults. The
+overcollateralization account earns the money market rate of 5\%.
+
+\smallskip
+\textbf{The overcollateralization mechanism.} Instead of letting all the excess
+spread flow to the equity note, up to \$1,750,000 per year is diverted to the
+overcollateralization account. Funds in the account are used to pay bond interest
+if collateral interest is insufficient. Any remaining funds are released to the
+equity tranche \emph{only at maturity}.
+\end{crgapbox}
+
+\begin{crexbox}[The structure with no defaults]
+Compute the annual cash flows and the excess spread assuming no defaults, and
+confirm the attachment points.
+\tcblower
+\begin{align*}
+\text{Collateral} &= (0.050 + 0.0350)\times \$100{,}000{,}000 = \$8{,}500{,}000 \\
+\text{Mezzanine} &= (0.050 + 0.0500)\times \$10{,}000{,}000 = \$1{,}000{,}000 \\
+\text{Senior} &= (0.050 + 0.0050)\times \$85{,}000{,}000 = \$4{,}675{,}000
+\end{align*}
+The bond coupon due, $B$, is $\$1{,}000{,}000 + \$4{,}675{,}000 =
+\$5{,}675{,}000$, a constant for every year.
+
+\smallskip
+\textbf{Excess spread with no defaults:}
+\[ \$8{,}500{,}000 - \$5{,}675{,}000 = \$2{,}825{,}000 \]
+
+\textbf{Attachment points.} The mezzanine attachment point is the equity tranche
+as a share of the pool, $5/100 = \mathbf{5\%}$. The senior attachment point is
+equity plus mezzanine, $15/100 = \mathbf{15\%}$. There is initially no
+overcollateralization.
+
+\smallskip
+\textbf{Weighted average spread on the debt tranches:}
+\[ \frac{(10 \times 500) + (85 \times 50)}{95} = \frac{9{,}250}{95}
+   = \mathbf{97.4\ \text{bps}} \]
+The junior bond has a much wider spread than the senior and much less credit
+enhancement.
+\end{crexbox}
+
+\begin{crexbox}[Two iterations of interim cash flows at a 5\% default rate]
+The pool holds 100 loans of \$1 million each. The default rate is 5\% annually,
+defaulted collateral is not replaced, and defaults are assumed to occur evenly.
+Track years 1 and 2.
+\tcblower
+\textbf{Year 1.} Defaults $= 5\% \times 100 = 5.00$ loans, leaving 95.00
+surviving.
+\begin{align*}
+\text{Loan interest } B_1 &= 95.00 \times \$1{,}000{,}000 \times 0.085
+  = \$8{,}075{,}000 \\
+\text{Excess spread} &= \$8{,}075{,}000 - \$5{,}675{,}000 = \$2{,}400{,}000
+\end{align*}
+Excess spread exceeds the \$1,750,000 cap, so \$1,750,000 is diverted to the
+overcollateralization account and $\$2{,}400{,}000 - \$1{,}750{,}000 =
+\$650{,}000$ is paid to equity.
+
+Recovery $= 5.00 \times \$1{,}000{,}000 \times 40\% = \$2{,}000{,}000$, also paid
+into the account.
+\[ \text{OC balance, end of year 1} = \$1{,}750{,}000 + \$2{,}000{,}000
+   = \mathbf{\$3{,}750{,}000} \]
+
+\smallskip
+\textbf{Year 2.} Defaults $= 5\% \times 95.00 = 4.75$ loans, leaving 90.25
+surviving. \emph{The annual number of defaults falls because the pool has
+shrunk.}
+\begin{align*}
+\text{Loan interest } B_2 &= 90.25 \times \$1{,}000{,}000 \times 0.085
+  = \$7{,}671{,}250 \\
+\text{Excess spread} &= \$7{,}671{,}250 - \$5{,}675{,}000 = \$1{,}996{,}250
+\end{align*}
+Still above the cap, so \$1,750,000 is diverted and \$246,250 goes to equity.
+
+Recovery $= 4.75 \times \$1{,}000{,}000 \times 40\% = \$1{,}900{,}000$.
+
+The existing balance earns the money market rate:
+\[ \text{OC balance, end of year 2}
+   = \$3{,}750{,}000 (1.05) + \$1{,}750{,}000 + \$1{,}900{,}000
+   = \mathbf{\$7{,}587{,}500} \]
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-22 f}{Describe the treatment of excess spread in a securitization structure and estimate the value of the overcollateralization account at the end of each year.}
+
+The three-tiered waterfall has scheduled payments to the senior and mezzanine
+tranches. The equity tranche receives cash flows only if excess spread is positive,
+that is, if interest collected exceeds interest owed to senior plus mezzanine.
+
+\begin{crfmlbox}[Excess spread and the overcollateralization account]
+\[ \text{excess spread}_t \;=\; B_t - B \]
+\[ \mathrm{OC}_t \;=\; \min\bigl(\max(\text{excess spread}_t,\,0),\; K\bigr) \]
+\[ \text{OC balance}_t \;=\; \text{OC balance}_{t-1}(1+r)
+   \;+\; \mathrm{OC}_t \;+\; \text{recovery}_t \]
+\vk{$B_t$ = aggregate loan interest received by the trust at the end of year $t$;
+$B$ = bond coupon interest due to both the junior and senior bonds, a constant;
+$K$ = the maximum amount divertible annually, here \$1,750,000; $r$ = the money
+market rate. The account increases from recovery of defaulted assets and from the
+diversion of spread, and earns the money market rate on its balance.}
+\end{crfmlbox}
+
+If excess spread is \emph{negative} --- interest collected is less than interest
+owed to senior plus mezzanine --- the OC account will use all of its available
+funds until depleted.
+
+\begin{crkeybox}[Where the structure breaks]
+With 100 loans at \$1 million paying 8.5\%, excess spread turns negative once
+fewer than
+\[ \frac{\$5{,}675{,}000}{\$1{,}000{,}000 \times 0.085} = 66.76 \]
+loans survive. Below that point the overcollateralization account starts being
+drawn down rather than built up, and the equity has already been receiving nothing
+for some time.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-22 g}{Explain the tests on the excess spread that a custodian must go through at the end of each year to determine the cash flow to the overcollateralization account and to the equity noteholders.}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize,
+  t/.style={draw=FRMNavy, fill=PaleNavy, line width=0.8pt, rounded corners=1pt,
+            text width=5.4cm, align=center, minimum height=0.8cm},
+  o/.style={draw, line width=0.8pt, rounded corners=1pt, text width=4.6cm,
+            align=center, minimum height=1.25cm}]
+\node[t] (q1) at (0,0) {\scriptsize Is excess spread $> 0$?};
+\node[o, draw=FRMRed, fill=PaleRed] (no1) at (7.4,0)
+  {\scriptsize\textbf{No}\\[1pt]\scriptsize OC account pays the shortfall on the bonds, until depleted. Equity receives nothing};
+\node[t, below=1.35cm of q1] (q2) {\scriptsize Does it exceed the cap $K$?};
+\node[o, draw=FRMGold, fill=PaleGold] (no2) at (7.4,-1.85)
+  {\scriptsize\textbf{No}\\[1pt]\scriptsize all of it is diverted to the OC account. Equity receives nothing};
+\node[o, draw=FRMGreen, fill=PaleGreen] (yes2) at (7.4,-3.85)
+  {\scriptsize\textbf{Yes}\\[1pt]\scriptsize $K$ is diverted to the OC account; the excess over $K$ is paid to equity};
+\draw[-{Stealth[length=5pt]}, FRMRed, line width=0.9pt] (q1) -- (no1);
+\draw[-{Stealth[length=5pt]}, FRMNavy, line width=0.9pt] (q1) -- (q2)
+  node[midway, right, font=\scriptsize, text=FRMNavy] {yes};
+\draw[-{Stealth[length=5pt]}, FRMGold, line width=0.9pt] (q2) -- (no2);
+\draw[-{Stealth[length=5pt]}, FRMGreen, line width=0.9pt] (q2.south) |- (yes2.west);
+\end{tikzpicture}
+\end{center}
+\figcap{The two tests the custodian runs at each year end, and the three outcomes
+they produce. Note that equity receives cash in exactly \emph{one} of the three
+branches, and that any balance left in the account is released to equity only at
+maturity --- so the equity holder is last in line twice over.}
+
+% =====================================================================
+\lo{CR-22 h}{Describe a simulation approach to calculating credit losses for different tranches in a securitization.}
+
+Defaults happen at different times, loans have different default risks, and loans
+can be correlated, so a simulation approach is needed to address this complexity.
+
+\begin{enumerate}
+\item \term{Estimate critical parameters.} Determine default intensity from market
+spread data, and estimate correlations between loans. Correlation is challenging
+to estimate precisely because of a lack of usable market data, so \term{copulas}
+are used.
+\item \term{Generate default time simulations.} Use simulations to create various
+scenarios as to \emph{when} and \emph{if} each security defaults.
+\item \term{Compute portfolio credit losses.} Calculate credit losses for each
+tranche across all simulation scenarios to determine the frequency and timing of
+credit losses.
+\end{enumerate}
+
+The credit losses can be lined up to assess the impact on the capital structure.
+The \emph{tail} of the distribution identifies the \term{credit VaR} for each
+tranche.
+
+% =====================================================================
+\lo{CR-22 i}{Explain how the default probabilities and default correlations affect the credit risk in a securitization.}
+
+\subsection*{Increasing default probability, holding correlation constant}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.6cm} c c}
+\toprule
+\thead{Tranche} & \thead{Mean value} & \thead{Credit VaR} \\
+\midrule
+Equity tranche & $\downarrow$ & $\downarrow$ \\
+Mezzanine tranche & $\downarrow$ & $\uparrow$ then $\downarrow$ \\
+Senior tranche & $\downarrow$ & $\uparrow$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Value falls everywhere --- that column is uniform and uninteresting. The
+credit VaR column is where the discrimination is: it falls for equity (less
+variation in returns, since writedowns become near-certain), rises for senior
+(more variation), and for mezzanine rises at low default levels like a senior bond
+and then falls at high default levels like equity.}
+
+\subsection*{Increasing correlation}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.2cm} L{11.2cm}}
+\toprule
+\thead{Tranche} & \thead{Effect of \emph{increasing} correlation on value} \\
+\midrule
+\term{Senior} & \textbf{Falls.} Higher correlation makes extreme pool-wide losses
+  possible, which is the only thing that can reach a senior tranche. Equivalently,
+  \emph{decreasing} correlation increases senior value \\
+\term{Equity} & \textbf{Rises.} The possibility of zero or very few credit losses
+  increases with high correlation \\
+\term{Mezzanine} & \textbf{Mixed.} At \emph{low} default rates increasing
+  correlation decreases mezzanine value; at \emph{high} default rates it increases
+  it \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Correlation is a bet on dispersion, and the two ends of the capital
+structure take opposite sides of it. At low correlation defaults are predictable
+and close to their expected value, which assures the equity tranche of writedowns
+and protects the senior. At high correlation outcomes become extreme in both
+directions, which is good for equity and bad for senior. Mezzanine sits in between
+and flips.}
+
+% =====================================================================
+\lo{CR-22 j}{Explain how default sensitivities for tranches are measured.}
+
+For all increases in default rates, equity values fall and bond losses rise. That
+is universally true. When correlations change from higher or lower levels, we see
+a \term{convex, nonlinear} impact, which affects each tranche differently and
+gives each a different risk profile. A granular measure of sensitivity is
+therefore needed.
+
+\begin{crdefbox}[Default '01]
+The \term{default '01} measures the impact of an increase of one basis point in
+the default probability. To compute it, increase and decrease the default
+probability by 10 bps and revalue each tranche at these new values.
+\end{crdefbox}
+
+\begin{crkeybox}[The gamma of the default '01]
+The \emph{gamma} of the default '01 --- the rate of change in the rate of default
+sensitivity --- is highest, that is most sensitive, in \term{low-correlation}
+environments. As losses become large, the '01 has less of an effect.
+
+\smallskip
+This is the same idea as a deeply in-the-money option going even deeper in the
+money: it has an almost one-for-one impact on the price of the asset, and the
+gamma is low.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-22 k}{Describe risk factors that impact structured products.}
+
+\begin{enumerate}
+\item \term{Systematic risk.} Even a well-diversified pool of loans cannot
+eliminate systematic risk. High correlations can lead to severe damage to the
+portfolio, especially for \emph{senior} tranches, increasing the likelihood of
+writedowns.
+\item \term{Tranche thinness.} Equity and mezzanine tranches are relatively thin,
+so the 95\% and 99\% credit VaR sit close together. A small change in value can
+result in a large loss, and breached tranches are more likely to incur significant
+losses.
+\item \term{Loan granularity.} A pool with fewer but larger loans, for example
+commercial mortgages, is more susceptible to unexpected defaults than a pool with
+many smaller loans, for example residential mortgages. Reducing the number of
+loans while increasing their size raises the probability of tail events.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-22 l}{Define implied correlation and describe how it can be measured.}
+
+\begin{crdefbox}[Implied correlation]
+Implied correlation is a very similar concept to the implied volatility of an
+equity option. By using observed market prices and a pricing model for tranches,
+the unique implied correlation can be derived: it is the correlation level that
+must be plugged into the model to reproduce the market price of a tranche.
+\end{crdefbox}
+
+The process involves three steps:
+
+\begin{enumerate}[label=\alph*)]
+\item Use the observable CDS term structure to extract risk-neutral default
+probabilities and recovery rates.
+\item Assuming constant pairwise correlation, feed the market prices for the
+respective tranches together with the default estimates into a copula.
+\item Calculate the risk-neutral implied correlation, that is, the base
+correlation, per tranche.
+\end{enumerate}
+
+\begin{crkeybox}[Correlation skew]
+Implied correlation estimates may vary among tranches, leading to a
+\term{correlation skew}. The distinction between compound (tranche) correlation
+and base correlation, and the smile-versus-skew shapes they produce, is at
+\textbf{CR-13 g}.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-22 m}{Identify the motivations for using structured credit products.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.2cm} L{11.2cm}}
+\toprule
+\thead{Party} & \thead{Motivation} \\
+\midrule
+\term{Loan originators} & Lower cost funding by selling loans into a
+  securitization pool, especially if the loans are high quality and
+  well-diversified \\
+\term{Investors} & Access to a diversified pool of loans they would not otherwise
+  reach, and the ability to \emph{choose} a desired level of risk and return by
+  selecting different tranches \\
+\bottomrule
+\end{tabular}
+\end{center}

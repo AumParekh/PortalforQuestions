@@ -1,0 +1,391 @@
+\reading{IM-1}{Factor Theory}{STRIKE FIRST}{5}
+
+\srcnote{Andrew Ang, \textit{Asset Management: A Systematic Approach to Factor
+Investing} (New York, NY: Oxford University Press, 2014), Chapter 6.
+Printed as Chapter 1 in the GARP source volume.}
+
+\begin{imkeybox}[title={The six objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Describe factors that impact asset prices and explain the theory of factor risk premiums.
+\item Discuss the capital asset pricing model (CAPM) including its assumptions and explain how factor risk is addressed in the CAPM.
+\item Explain the implications of using the CAPM to value assets, including equilibrium and optimal holdings, exposure to factor risk, its treatment of diversification benefits, and shortcomings of the CAPM.
+\item Describe multifactor models and compare and contrast multifactor models to the CAPM.
+\item Explain how stochastic discount factors are created and apply them in the valuation of assets.
+\item Describe efficient market theory and explain how markets can be inefficient.
+\end{enumerate}
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-1 a}{Describe factors that impact asset prices and explain the theory of factor risk premiums.}
+
+\subsection{Factors that impact asset prices}
+
+There are three similarities between food and assets:
+
+\begin{itemize}
+\item Factors matter, not assets.
+\item Assets are bundles of factors.
+\item Different investors need different risk factors.
+\end{itemize}
+
+There is one difference, however, between factors and nutrients. Nutrients are
+inherently good for you. \term{Factor risks are bad.}
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=5mm,
+  bx/.style={draw=FRMNavy,fill=PaleNavy,rounded corners=1pt,inner sep=4pt,
+             font=\scriptsize\sffamily,text=FRMNavy,minimum width=17mm,align=center},
+  hd/.style={draw=FRMNavy,fill=FRMNavy,rounded corners=1pt,inner sep=4pt,
+             font=\scriptsize\sffamily\bfseries,text=white,minimum width=22mm,align=center},
+  ar/.style={-{Stealth[length=4pt]},FRMGold,line width=1pt}]
+
+% left group
+\node[hd] (food) at (0,0) {Food};
+\node[hd,below=9mm of food] (nutr) {Nutrients};
+\draw[ar] (food) -- (nutr);
+\node[bx,below left=9mm and 10mm of nutr.south] (n1) {Fibre};
+\node[bx,below=9mm of nutr] (n2) {Fat};
+\node[bx,below right=9mm and 10mm of nutr.south] (n3) {Protein};
+\draw[ar] (nutr) -- (n1); \draw[ar] (nutr) -- (n2); \draw[ar] (nutr) -- (n3);
+
+% right group
+\node[hd] (asset) at (7.4,0) {Asset};
+\node[hd,below=9mm of asset] (rf) {Risk factors};
+\draw[ar] (asset) -- (rf);
+\node[bx,below left=9mm and 10mm of rf.south] (r1) {Market\\risk};
+\node[bx,below=9mm of rf] (r2) {Credit\\risk};
+\node[bx,below right=9mm and 10mm of rf.south] (r3) {Liquidity\\risk};
+\draw[ar] (rf) -- (r1); \draw[ar] (rf) -- (r2); \draw[ar] (rf) -- (r3);
+
+% mapping
+\draw[{Stealth[length=5pt]}-{Stealth[length=5pt]},FRMGold,line width=1pt]
+  (nutr.east) -- node[above,font=\scriptsize\sffamily,fill=white,inner sep=1.5pt,text=FRMGold]{same idea}
+  node[below,font=\scriptsize\sffamily,fill=white,inner sep=1.5pt,text=FRMRed]{opposite sign} (rf.west);
+\end{tikzpicture}
+\end{center}
+\figcap{The analogy and the place where it breaks. You do not eat nutrients
+directly, and you do not hold factors directly; both are consumed through the
+bundles that contain them. The mapping is exact until you reach the sign:
+nutrients are good and you pay for them, whereas factor risks are bad and you
+are paid to bear them.}
+
+\subsection{The theory of factor risk premiums}
+
+The factor theory is trying to explain the phenomenon:
+
+\begin{imkeybox}
+Investors exposed to losses during bad times are compensated by risk premiums in
+good times.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-1 b}{Discuss the capital asset pricing model (CAPM) including its assumptions and explain how factor risk is addressed in the CAPM.}
+
+The basic intuition of the CAPM still holds true:
+
+\begin{itemize}
+\item That the factors underlying the assets determine asset risk premiums and
+that these risk premiums are compensation for investors' losses during bad times.
+\item It predicts that asset risk premiums depend only on the asset's beta and
+there is only one factor that matters, the market portfolio.
+\end{itemize}
+
+\begin{imfmlbox}
+\[ E(R_P) = R_f + \beta_P\left[E(R_M) - R_f\right] \]
+\vk{$E(R_P)$ is the expected return on the portfolio; $R_f$ the risk-free rate;
+$\beta_P$ the portfolio's sensitivity to the single priced factor; and
+$E(R_M)-R_f$ the market risk premium.}
+\end{imfmlbox}
+
+\subsection{The seven assumptions behind the CAPM}
+
+\begin{enumerate}
+\item Investors only have financial wealth.
+\item Investors have mean-variance utility.
+\item Investors have single period investment horizon.
+\item Investors have homogeneous (identical) expectations.
+\item No taxes or transactions costs.
+\item All investors are price takers.
+\item Information is free and available to everyone.
+\end{enumerate}
+
+\begin{imtrapbox}[title={Assumption 5 is about taxes, not just friction}]
+The source notes give assumption 5 as ``markets are frictionless.'' GARP's
+wording is \term{no taxes or transactions costs}, and the difference is
+examinable: Ang treats taxes as a systematic factor in their own right, which the
+word ``frictionless'' does not convey. When this assumption is relaxed, two
+distinct premiums appear, a tax effect and a liquidity effect.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-1 c}{Explain the implications of using the CAPM to value assets, including equilibrium and optimal holdings, exposure to factor risk, its treatment of diversification benefits, and shortcomings of the CAPM.}
+
+\subsection{Lessons learnt from the CAPM}
+
+\begin{enumerate}
+\item \term{Don't hold an individual asset, hold the factor} (the market risk premium).
+\item Each investor has his \term{own optimal exposure} of factor risk.
+\item The average investor holds the market (MVE $=$ market portfolio).
+\item The factor risk premium has an economic story.
+\item \term{Risk is factor exposure} (beta matters how much the risk is to be taken).
+\item Assets paying off in bad times have low risk premiums; in some
+circumstances they are also defined as valuable assets such as gold.
+\end{enumerate}
+
+\begin{imfmlbox}
+\[ E(R_m) - R_f \;=\; \bar{\gamma}\,\sigma_m^{2} \]
+\vk{$\bar{\gamma}$ is the risk aversion of the ``average'' investor --- the
+wealth-weighted average degree of risk aversion across all investors --- and
+$\sigma_m^{2}$ is the variance of the market portfolio.}
+\end{imfmlbox}
+
+\noindent which indicates that the risk premium should be compensated by average
+risk aversion or the variance of the market.
+
+\begin{imtrapbox}[breakable=false,title={A symbol the source notes lost}]
+The notes render this equation as $E(R_m)-R_f = {}^{-}\sigma^2$, with the
+$\bar{\gamma}$ reduced to a stray macron. Restored above from the GARP source
+(Equation 1.1). Both drivers matter and each is a separate lever: the premium
+rises when the average investor becomes \emph{more} risk averse, and it rises
+when the market becomes \emph{more} volatile. A distractor that raises one and
+lowers the other is the natural corruption here.
+\end{imtrapbox}
+
+\subsection{Shortcomings of the CAPM}
+
+The seven assumptions above are the shortcomings: each one, when relaxed,
+generates an additional risk premium that the CAPM cannot price. Deviations from
+the CAPM are expected to be largest in \term{illiquid, inefficient markets},
+where the perfect-information assumption fails hardest.
+
+% ------------------------------------------------------------------
+\lo{IM-1 d}{Describe multifactor models and compare and contrast multifactor models to the CAPM.}
+
+\begin{itemize}
+\item Multifactor models recognize that \term{bad times can be defined more
+broadly} than just bad returns on the market portfolio.
+\item The first multifactor model was the \term{arbitrage pricing theory (APT)},
+developed by Stephen Ross (1976).
+\item In equilibrium, investors must be compensated for bearing these multiple
+sources of factor risk.
+\item While the CAPM captures the notion of bad times solely by means of low
+returns of the market portfolio, \term{each factor in a multifactor model
+provides its own definition of bad times}.
+\end{itemize}
+
+\gapbadge
+\srcnote{The notes state the difference between the two models but do not carry
+the comparison itself. The table below is written from the GARP curriculum
+(Ang, Chapter 1, \textit{Multifactor Model Lessons}), which sets the same six
+lessons side by side --- which is precisely what this objective's
+``compare and contrast'' asks for.}
+
+\begin{imgapbox}[title={What the objective asks for}]
+Not ``what is a multifactor model'' but \emph{what changes and what does not}
+when you move from one factor to many. Five of the six lessons survive
+essentially unchanged; only the wording of Lessons 1, 4 and 5 shifts.
+\end{imgapbox}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabularx}{\textwidth}{@{}p{1.5cm}XX@{}}
+\toprule
+& \textbf{\sffamily\small CAPM (market factor)} & \textbf{\sffamily\small Multifactor models} \\
+\midrule
+\textbf{Lesson 1} & Diversification works. The market diversifies away idiosyncratic risk. & Diversification works. The \emph{tradeable version of a factor} diversifies away idiosyncratic risk. \\
+\textbf{Lesson 2} & Each investor has her own optimal exposure of the market portfolio. & Each investor has her own optimal exposure of \emph{each} factor risk. \\
+\textbf{Lesson 3} & The average investor holds the market. & The average investor holds the market. \\
+\textbf{Lesson 4} & The market factor is priced in equilibrium under the CAPM assumptions. & Risk premiums exist for each factor assuming \emph{no arbitrage or equilibrium}. \\
+\textbf{Lesson 5} & Risk of an asset is measured by the CAPM beta. & Risk of an asset is measured in terms of the \emph{factor exposures (factor betas)} of that asset. \\
+\textbf{Lesson 6} & Assets paying off in bad times \emph{when the market return is low} are attractive, and these assets have low risk premiums. & Assets paying off in bad times are attractive, and these assets have low risk premiums. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{The six CAPM lessons and their multifactor counterparts. Lesson 3 is
+identical in both columns, and it is the one candidates most often assume must
+have changed. Lesson 4 is the sharpest distinction: the CAPM needs full
+equilibrium, whereas a multifactor risk premium needs only no arbitrage.}
+
+% ------------------------------------------------------------------
+\lo{IM-1 e}{Explain how stochastic discount factors are created and apply them in the valuation of assets.}
+
+\subsection{Pricing kernels}
+
+To capture the composite bad times over multiple factors, the new asset pricing
+approach uses the notion of a \term{pricing kernel}. This is also called a
+\term{stochastic discount factor (SDF)}.
+
+Just as the CAPM gives rise to assets having betas with respect to the market,
+multiple factors in the SDF give rise to a multi-beta relation for an asset's
+risk premium:
+
+\begin{imfmlbox}
+\[ E(r_i) = r_f + \beta_{i,1}E(f_1) + \beta_{i,2}E(f_2) + \cdots + \beta_{i,K}E(f_K) \]
+\vk{$\beta_{i,k}$ is the beta of asset $i$ with respect to factor $k$, and
+$E(f_k)$ is the risk premium of factor $k$.}
+\end{imfmlbox}
+
+For macro factors, $f_1$ could be inflation and $f_2$ could be economic growth,
+for example. Bad times are characterized by times of high inflation, low economic
+growth, or both.
+
+\gapbadge
+\srcnote{The objective has two verbs --- \emph{created} and \emph{applied in
+valuation} --- and the notes serve neither. They give the end result, the
+multi-beta relation above, without the SDF that produces it or the pricing
+equation that uses it. Both halves are written below from the GARP curriculum
+(Ang, Chapter 1, Equations 1.3 to 1.8).}
+
+\begin{imgapbox}[title={What the objective asks for}]
+How $m$ is \emph{built} (it is a function of the factors, and the CAPM is the
+special case where that function is linear in the market return), and how $m$ is
+\emph{used} to price an asset (multiply the payoff by $m$ and take an
+expectation, instead of dividing the payoff by one plus a discount rate).
+\end{imgapbox}
+
+\subsection{How the SDF is created}
+
+We denote the SDF as $m$. It is an index of bad times, indexed by many different
+factors and states of nature. The CAPM is the special case in which $m$ is
+\emph{linear in the market return}:
+
+\begin{imfmlbox}
+\[ m = a + b \times r_m \]
+\vk{$a$ and $b$ are constants. The coefficient $b$ is \term{negative}: low values
+of the SDF correspond to bad times, which in the CAPM are given by low returns of
+the market.}
+\end{imfmlbox}
+
+Generalising, the SDF is allowed to depend on a vector of factors
+$F = (f_1, f_2, \ldots, f_K)$, so that $m = m(F)$, where each of the $K$ factors
+itself defines a different kind of bad time. A second advantage follows: the
+CAPM restricts $m$ to be linear, whereas the world is nonlinear, and the general
+form can carry that nonlinearity.
+
+\begin{imtrapbox}[title={Sign and requirement, both corruptible}]
+$b$ is negative, not positive. And the requirement for an SDF to exist is only
+\term{no arbitrage}; it is the CAPM, and other specific forms of $m$, that
+require the additional onerous assumptions. A distractor that reverses this ---
+claiming the SDF needs equilibrium while the CAPM needs only no arbitrage ---
+is the standard corruption.
+\end{imtrapbox}
+
+\subsection{Applying the SDF in valuation}
+
+\begin{center}
+\begin{tikzpicture}[
+  bx/.style={draw=FRMRule,fill=white,rounded corners=1pt,inner sep=5pt,
+             font=\scriptsize\sffamily,align=center,text width=38mm},
+  hd/.style={draw=FRMNavy,fill=FRMNavy,rounded corners=1pt,inner sep=4pt,
+             font=\scriptsize\sffamily\bfseries,text=white,align=center,text width=38mm},
+  ar/.style={-{Stealth[length=4pt]},FRMGold,line width=1pt}]
+\node[hd] (a) at (0,0) {Discount-rate model};
+\node[bx,below=5mm of a] (a2) {$P_i = E\!\left[\dfrac{\text{payoff}_i}{1+E(r_i)}\right]$\\[3pt]
+  discount rate from the CAPM:\\ $E(r_i)=r_f+\beta_i[E(r_m)-r_f]$};
+\draw[ar] (a) -- (a2);
+\node[hd] (b) at (7.0,0) {SDF model};
+\node[bx,below=5mm of b] (b2) {$P_i = E\!\left[m \times \text{payoff}_i\right]$\\[3pt]
+  the discounting is done \emph{inside}\\ the expectation, state by state};
+\draw[ar] (b) -- (b2);
+\draw[{Stealth[length=5pt]}-{Stealth[length=5pt]},FRMGold,line width=1pt]
+  (a2.east) -- node[above,font=\scriptsize\sffamily,fill=white,inner sep=1.5pt,text=FRMGold]
+  {same price} (b2.west);
+\end{tikzpicture}
+\end{center}
+\figcap{Two routes to one price. The traditional model divides by a single
+discount rate that is constant across states; the SDF model multiplies by $m$,
+which varies across states, so bad states are weighted more heavily. Where the
+CAPM works, both give the same answer --- the SDF route simply does not need the
+CAPM's assumptions to get there.}
+
+Dividing both sides of the pricing equation by the asset's current price gives a
+relation that must hold for every asset:
+
+\begin{imfmlbox}
+\[ 1 = E\!\left[m \times (1+r_i)\right] \]
+A special case occurs when the payoffs are constant, which gives a risk-free
+asset, so the price of a risk-free bond is simply
+$\dfrac{1}{1+r_f} = E\!\left[m \times 1\right] = E(m)$.
+\end{imfmlbox}
+
+The risk premium can then be written in a relation closely parallel to the
+security market line:
+
+\begin{imfmlbox}
+\[ E(r_i) - r_f \;=\; \underbrace{\frac{\operatorname{cov}(r_i,m)}{\operatorname{var}(m)}}_{\textstyle \beta_{i,m}}
+   \;\times\; \underbrace{\left(-\frac{\operatorname{var}(m)}{E(m)}\right)}_{\textstyle \lambda_m} \]
+\vk{$\beta_{i,m}$ is the beta of the asset with respect to the SDF, and
+$\lambda_m$ is the price of ``bad times'' risk. The negative sign is what makes
+the intuition work: the higher the payoff of the asset in bad times, the higher
+$\operatorname{cov}(r_i,m)$ and $\beta_{i,m}$, and therefore the \emph{lower} its
+expected return.}
+\end{imfmlbox}
+
+\begin{imkeybox}
+Assets that pay off in bad times are valuable to hold, so prices for these assets
+are high and expected returns are low. This is Lesson 6 stated as an equation.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-1 f}{Describe efficient market theory and explain how markets can be inefficient.}
+
+\subsection{Efficient market theory}
+
+\begin{itemize}
+\item The ``classical'' notions of weak, semi-strong, and strong efficiency were
+laid out by Fama (1970) and are obsolete.
+\item In that year, the Nobel Prize committee also gave Robert Shiller the prize,
+representing the opposite viewpoint (nearly efficient) of behavioral, or
+non-rational, influences on financial markets.
+\item Grossman and Stiglitz develop a model in which markets are
+\term{near-efficient}. Active managers search for pockets of inefficiency, and in
+doing so cause the market to be almost efficient.
+\item In these pockets of inefficiency, active managers earn excess returns as a
+reward for gathering and acting on costly information.
+\end{itemize}
+
+\begin{imdefbox}[title={The Grossman--Stiglitz paradox}]
+Due to the existence of information costs, market efficiency and competitive
+equilibrium are incompatible, and prices cannot be fully displayed. If prices
+already revealed everything, nobody would pay to gather information --- and then
+prices would reveal nothing.
+\end{imdefbox}
+
+\subsection{Why markets can be inefficient}
+
+\begin{itemize}
+\item In a \term{rational} explanation, high returns compensate for losses during
+bad times. The key is defining those bad times and deciding whether these are
+actually bad times for an individual investor.
+\item In a \term{behavioral} explanation, high expected returns result from
+agents' under- or overreaction to news or events. Behavioral biases can also
+result from the inefficient updating of beliefs or ignoring some information.
+\item For some risk premiums, the most compelling explanations are rational (as
+with the volatility risk premium), for some behavioral (e.g.\ momentum), and for
+some others a combination of rational and behavioral stories prevails (like
+value/growth investing).
+\end{itemize}
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-1}]
+\begin{itemize}
+\item \term{Sign, IM-1 c.} $E(R_m)-R_f = \bar{\gamma}\sigma_m^2$. Both terms push
+the premium the same way. Higher risk aversion \emph{or} higher market variance
+raises the premium.
+\item \term{Sign, IM-1 e.} $b$ in $m = a + b\,r_m$ is negative. Low $m$ means bad
+times in the CAPM.
+\item \term{Polarity, IM-1 e.} Higher covariance with the SDF gives a
+\emph{lower} risk premium, because $\lambda_m$ carries a minus sign. Assets that
+pay off in bad times are expensive and earn little.
+\item \term{Scope, IM-1 e.} An SDF requires only no arbitrage. The CAPM requires
+far more. Do not swap these round.
+\item \term{Sibling, IM-1 d.} Lesson 3 is the same under both models. Lessons 1,
+4 and 5 are the ones that change wording.
+\item \term{Role, IM-1 f.} Grossman--Stiglitz is about the \emph{cost of
+information} making full efficiency self-defeating. It is not a behavioral
+argument.
+\item \term{Definition, IM-1 a.} Nutrients are good and factor risks are bad.
+The analogy is deliberately asymmetric and the asymmetry is the testable point.
+\end{itemize}
+\end{imtrapbox}
+
+% ==================================================================

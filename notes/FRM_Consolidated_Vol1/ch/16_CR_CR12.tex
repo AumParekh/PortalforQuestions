@@ -1,0 +1,221 @@
+\reading{CR-12}{Credit Risk (Hull Ch.24)}{STRIKE FIRST}{8}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Assess the credit risks of derivatives.
+\item Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).
+\item Calculate the probability of default using credit spreads.
+\item Describe, compare, and contrast various credit risk mitigants and their role in credit analysis.
+\item Describe the significance of estimating default correlation for credit portfolios and distinguish between reduced form and structural default correlation models.
+\item Describe the Gaussian copula model for time to default and calculate the probability of default using the one-factor Gaussian copula model.
+\item Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading]
+CR-12 exists only in the Crash layer.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-12 a}{Assess the credit risks of derivatives.}
+
+Bilaterally cleared derivatives are governed by the ISDA Master Agreement. For
+transactions between financial institutions, variation margin is exchanged and
+initial margin is posted with third parties.
+
+\begin{crkeybox}[When the non-defaulting party actually loses]
+There is a potential loss to the non-defaulting party in two situations:
+
+\begin{enumerate}
+\item The total value of transactions is \term{positive to the non-defaulting
+party} and \emph{exceeds} the collateral posted by the defaulting party.
+\item The total value of transactions is \term{positive to the defaulting party},
+and the collateral posted by the non-defaulting party is \emph{greater} than that
+value.
+\end{enumerate}
+
+The second case is the one that is easy to miss: the non-defaulting party can be
+out of the money on the trades and still lose, through over-posted collateral it
+cannot recover.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-12 b}{Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).}
+
+\begin{crdefbox}[The two adjustments]
+\term{Credit valuation adjustment (CVA)} is the present value of the expected cost
+to the bank of a default by the counterparty.
+
+\smallskip
+\term{Debt valuation adjustment (DVA)} is the present value of the expected cost
+to the counterparty of a default by the bank. The bank's potential default is
+\emph{advantageous to the bank}, as it implies a chance that the bank may not need
+to fulfil required payments on its derivatives. DVA, a cost to the counterparty,
+therefore increases the value of the derivatives portfolio to the bank.
+\end{crdefbox}
+
+\begin{crdefbox}[No-default value and credit-adjusted value]
+The \term{no-default value} of outstanding transactions is their value assuming
+neither side will default. Derivatives pricing models such as
+Black-Scholes-Merton provide no-default values. Write it $f_{nd}$.
+
+\smallskip
+The \term{credit-adjusted value}, that is, the value of the outstanding
+transactions when possible defaults are taken into account, is
+\[ f_{nd} - \mathrm{CVA} + \mathrm{DVA} \]
+\end{crdefbox}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.8pt, rounded corners=1pt,
+      text width=3.9cm, align=center, minimum height=1.3cm] (nd) at (0,0)
+      {\textbf{No-default value}\\[1pt]$f_{nd}$\\[1pt]\scriptsize from a standard pricing model};
+\node[draw=FRMRed, fill=PaleRed, line width=0.8pt, rounded corners=1pt,
+      text width=3.6cm, align=center, minimum height=1.3cm] (cva) at (5.4,1.35)
+      {\textbf{$-$ CVA}\\[1pt]\scriptsize cost of the \emph{counterparty}\\\scriptsize defaulting};
+\node[draw=FRMGreen, fill=PaleGreen, line width=0.8pt, rounded corners=1pt,
+      text width=3.6cm, align=center, minimum height=1.3cm] (dva) at (5.4,-1.35)
+      {\textbf{$+$ DVA}\\[1pt]\scriptsize cost to the counterparty of \emph{the bank} defaulting};
+\node[draw=FRMGold, fill=PaleGold, line width=0.8pt, rounded corners=1pt,
+      text width=3.9cm, align=center, minimum height=1.3cm] (ca) at (11.0,0)
+      {\textbf{Credit-adjusted value}\\[1pt]$f_{nd}-\mathrm{CVA}+\mathrm{DVA}$};
+\draw[-{Stealth[length=5pt]}, FRMRed, line width=0.9pt] (nd) -- (cva);
+\draw[-{Stealth[length=5pt]}, FRMGreen, line width=0.9pt] (nd) -- (dva);
+\draw[-{Stealth[length=5pt]}, FRMRed, line width=0.9pt] (cva) -- (ca);
+\draw[-{Stealth[length=5pt]}, FRMGreen, line width=0.9pt] (dva) -- (ca);
+\end{tikzpicture}
+\end{center}
+\figcap{The two adjustments pull in opposite directions, and the signs are the
+examinable part. CVA is subtracted because the counterparty might default on the
+bank. DVA is \emph{added} because the bank might default on the counterparty,
+which is a benefit to the bank. Note also which party each adjustment is named
+for: CVA is about the counterparty's credit, DVA about the bank's own.}
+
+\begin{crfmlbox}[CVA and DVA as discounted sums]
+\[ \mathrm{CVA} \;=\; \sum_{i=1}^{N} q_i v_i
+   \qquad\qquad
+   \mathrm{DVA} \;=\; \sum_{i=1}^{N} q_i^{*} v_i^{*} \]
+\vk{The life of the longest outstanding derivative, $T$ years, is divided into
+$N$ subintervals. $q_i$ = the probability of a \emph{counterparty} default in
+subinterval $i$ and $v_i$ = the present value of the resulting loss; the starred
+quantities are the corresponding figures for a \emph{bank} default.}
+\end{crfmlbox}
+
+% =====================================================================
+\lo{CR-12 c}{Calculate the probability of default using credit spreads.}
+
+This is the hazard rate approximation $\bar{\lambda} = s(T)/(1-\mathrm{RR})$,
+worked in full with its bootstrapping at \textbf{CR-9 e}.
+
+% =====================================================================
+\lo{CR-12 d}{Describe, compare, and contrast various credit risk mitigants and their role in credit analysis.}
+
+\begin{enumerate}
+\item \term{Netting.} Involves offsetting positive and negative cash flows
+between two parties, reducing overall exposure. Simplifies risk management and
+settlement processes.
+\item \term{Collateral agreements.} Involve the exchange of assets, cash or
+securities, to mitigate potential losses in the event of default. Marketable
+securities are subject to a \term{haircut} to calculate the cash equivalent.
+\item \term{Downgrade triggers.} Clauses triggering collateral requirements or
+contract termination when a counterparty's credit rating falls below a specified
+level.
+\end{enumerate}
+
+\begin{crtrapbox}[The limit of a downgrade trigger]
+Downgrade triggers \emph{do not} provide protection against a relatively big jump
+in a counterparty's credit rating. They work against gradual deterioration, which
+is precisely the case in which the counterparty is least likely to fail suddenly.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-12 e}{Describe the significance of estimating default correlation for credit portfolios and distinguish between reduced form and structural default correlation models.}
+
+Default correlation measures the tendency of multiple entities to default
+simultaneously. It is important in the determination of probability distributions
+for default losses from a portfolio.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.4cm} L{6.0cm} L{6.1cm}}
+\toprule
+ & \thead{Reduced form models} & \thead{Structural models} \\
+\midrule
+Mechanism & Assume \emph{stochastic hazard rates} which are correlated with
+  macroeconomic factors &
+  Based on Merton's model; link defaults to \emph{asset values}. Correlation is
+  introduced by assuming the stochastic process followed by the assets of company
+  A is correlated with that followed by the assets of company B \\
+Correlations produced & \textbf{Low} default correlations &
+  \textbf{High} default correlations \\
+Practicality & Easy to calculate &
+  Time consuming \\
+Economic cycle & Reflects economic cycles' impact on default correlations & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The trade-off runs one way down the table: the model that is easy to
+compute produces correlations that are too low, and the model that produces
+realistic correlations is expensive to run.}
+
+% =====================================================================
+\lo{CR-12 f}{Describe the Gaussian copula model for time to default and calculate the probability of default using the one-factor Gaussian copula model.}
+
+To determine the time to default, a Gaussian copula model can be used to quantify
+the correlation between the probability distributions of times to default for
+multiple companies. Both real-world and risk-neutral default probabilities may be
+used.
+
+\begin{crfmlbox}[One-factor Gaussian copula: default probability conditional on the factor]
+\[ Q(T \mid F) \;=\; N\!\left(\frac{N^{-1}\bigl[Q(T)\bigr] - \sqrt{\rho}\,F}
+   {\sqrt{1-\rho}}\right) \]
+\vk{$Q(T)$ = the unconditional cumulative default probability by time $T$; $F$ =
+the realization of the common factor; $\rho$ = the copula correlation parameter.
+A \emph{low} value of $F$ is a bad state of the world and raises the conditional
+default probability.}
+\end{crfmlbox}
+
+\begin{crtrapbox}[Why this formula has a minus sign and the WCDR formula has a plus]
+The worst case default rate at CR-10 d is written
+$N\bigl[(N^{-1}(\mathrm{PD}) + \sqrt{\rho}N^{-1}(X))/\sqrt{1-\rho}\bigr]$, with a
+\emph{plus}. This is the same equation. The worst case at confidence $X$ is the
+one produced by a sufficiently bad factor realization, that is,
+$F = -N^{-1}(X)$, and substituting that into the formula above flips the sign of
+the middle term. Both forms are correct; what matters is remembering that $F$
+enters \emph{negatively} and the percentile $X$ enters \emph{positively}.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-12 g}{Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.}
+
+\begin{crfmlbox}[Credit VaR from the one-factor Gaussian copula]
+\[ \text{Credit VaR} \;=\; L\,(1-R)\,\mathrm{WCDR} \]
+\vk{$L$ = the size of the loan portfolio; $R$ = the recovery rate; WCDR = the
+worst case default rate at the chosen confidence level, computed as at CR-10 d.}
+\end{crfmlbox}
+
+\begin{crexbox}[One-factor Gaussian copula on a retail portfolio]
+Suppose that a bank has a total of \$100 million of retail exposures. The one-year
+probability of default averages 2\% and the recovery rate averages 60\%. The
+copula correlation parameter is estimated as 0.1. What is the 99.9\% worst case
+default rate, and the one-year 99.9\% credit VaR?
+\tcblower
+\[ V(0.999, 1) = N\!\left(\frac{N^{-1}(0.02) + \sqrt{0.1}\,N^{-1}(0.999)}
+   {\sqrt{1-0.1}}\right) = 0.128 \]
+Step by step: $N^{-1}(0.02) = -2.0537$ and $N^{-1}(0.999) = 3.0902$, so the
+numerator is $-2.0537 + (0.3162)(3.0902) = -1.0766$, and dividing by
+$\sqrt{0.9} = 0.9487$ gives $-1.1348$. Then $N(-1.1348) = 0.1282$.
+
+\smallskip
+The one-year 99.9\% credit VaR is therefore
+\[ 100 \times 0.128 \times (1 - 0.6) = \$5.13 \text{ million} \]
+Note that the unrounded WCDR of 0.12824 is what produces \$5.13 million; using
+0.128 exactly would give \$5.12 million.
+\end{crexbox}
+
+The \term{CreditMetrics} route to credit VaR is described at CR-10 e: a ratings
+transition matrix is built and a Monte Carlo simulation, with a Gaussian copula
+governing the joint rating changes, produces the portfolio value distribution
+from which VaR is read.
+
+% =====================================================================

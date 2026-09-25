@@ -1,0 +1,295 @@
+\reading{LTR-1}{Liquidity Risk}{STRIKE FIRST}{6}
+
+\begin{lrkeybox}[Learning objectives — official 2026 spine wording]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Explain and calculate liquidity trading risk via cost of liquidation and liquidity-adjusted VaR (LVaR).
+\item Identify examples of liquidity funding risk, funding sources, and lessons learned from real cases: Northern Rock, Ashanti Goldfields, and Metallgesellschaft.
+\item Evaluate Basel III liquidity risk ratios and BIS principles for sound liquidity risk management.
+\item Explain liquidity black holes and identify the causes of positive feedback trading.
+\end{enumerate}
+{\footnotesize\color{FRMGrey}Source: John C. Hull, \textit{Risk Management and Financial Institutions}, 5th Edition, Chapter 24.}
+\end{lrkeybox}
+
+% =====================================================================
+\lo{LTR-1 a}{Explain and calculate liquidity trading risk via cost of liquidation and liquidity-adjusted VaR (LVaR).}
+
+\begin{lrdefbox}[Liquidity trading risk]
+The risk of moving the price of an asset adversely in the act of buying or selling it.
+\end{lrdefbox}
+
+Transaction liquidity risk is low if assets can be liquidated, or a position covered, \term{quickly, cheaply, and without moving the price too much}. A market is said to be \term{liquid} if market participants can put on or unwind positions quickly, without excessive transactions costs and without excessive price deterioration.
+
+\subsection{Bid-offer spread as a measure of liquidity}
+
+\begin{itemize}
+\item Higher \term{OFFER} price: the price at which a trader \emph{sells} to you.
+\item Lower \term{BID} price: the price at which a trader \emph{buys} from you.
+\item The difference between the bid and ask prices is a cost of liquidity.
+\end{itemize}
+
+\begin{lrfmlbox}[Dollar and proportional bid-offer spread]
+\[ p = \text{Offer price} - \text{Bid price} \qquad\qquad
+   s = \frac{\text{Offer price} - \text{Bid price}}{\text{Mid-market price}} \]
+\vk{$p$ = dollar bid-offer spread; $s$ = proportional bid-offer spread, a pure number; the mid-market price is halfway between the bid and the offer and can be regarded as the fair price.}
+\end{lrfmlbox}
+
+In liquidating a position an institution incurs a cost equal to $s\alpha/2$, where $\alpha$ is the dollar mid-market value of the position. The halving is there because a trade is done on one side of the mid only: a buy at the offer, a sell at the bid.
+
+\subsection{Cost of liquidation}
+
+\begin{lrfmlbox}[Cost of liquidation — normal and stressed markets]
+\[ \text{Cost of liquidation (normal market)} \;=\; \sum_{i=1}^{n} \frac{s_i\,\alpha_i}{2} \]
+\[ \text{Cost of liquidation (stressed market)} \;=\; \sum_{i=1}^{n} \frac{(\mu_i + \lambda\sigma_i)\,\alpha_i}{2} \]
+\vk{$s_i$ = estimated proportional bid-offer spread in normal conditions for instrument $i$; $\alpha_i$ = dollar value of the position in instrument $i$; $n$ = number of positions; $\mu_i$ and $\sigma_i$ = mean and standard deviation of the \emph{proportional} bid-offer spread for instrument $i$; $\lambda$ = the confidence parameter for the spread. For a worst-case spread exceeded only 1\% of the time, with normally distributed spreads, $\lambda = 2.326$.}
+\end{lrfmlbox}
+
+\begin{lrtrapbox}[Three polarity and input traps in this formula]
+\begin{itemize}
+\item \textbf{$\lambda$ is applied to the spread distribution, not the price distribution.} It is the confidence level for how wide the spread gets, not for how far the price moves. That is what separates this from VaR.
+\item \textbf{$\mu_i$ and $\sigma_i$ are proportional, not dollar.} The source notes state $\mu$ and $\sigma$ in dollars first and then convert. Using the dollar figures directly against $\alpha_i$ inflates the answer by the price level.
+\item \textbf{Equation (1.2) assumes spreads in all instruments are perfectly correlated.} This looks overly conservative and is not: when liquidity tightens, spreads widen together. Diversification reduces market risk; it does not necessarily reduce liquidity trading risk.
+\end{itemize}
+\end{lrtrapbox}
+
+\gapbadge
+\gapnote{The source notes give both formulas but pose no worked example. The following two examples are written from the GARP curriculum (Hull, Chapter 24, Examples 1.1 and 1.2).}
+
+\begin{lrexbox}[A two-instrument book, normal market]
+A financial institution has bought 10 million shares of one company and 50 million ounces of a commodity. The shares are bid \$89.5, offer \$90.5. The commodity is bid \$15.00, offer \$15.10. What is the cost of liquidation in a normal market?
+
+\tcblower
+\textbf{Step 1 — mid-market prices.}
+\[ \text{Shares: } \tfrac{89.5+90.5}{2} = 90.00 \qquad \text{Commodity: } \tfrac{15.00+15.10}{2} = 15.05 \]
+
+\textbf{Step 2 — dollar value of each position, $\alpha_i$.}
+\[ \alpha_{\text{shares}} = 90 \times 10 = \$900\text{ million} \qquad
+   \alpha_{\text{comm}} = 15.05 \times 50 = \$752.50\text{ million} \]
+
+\textbf{Step 3 — proportional spreads, $s_i$.}
+\[ s_{\text{shares}} = \frac{1.00}{90} = 0.01111 \qquad
+   s_{\text{comm}} = \frac{0.10}{15.05} = 0.006645 \]
+
+\textbf{Step 4 — apply equation (1.1).}
+\[ \frac{900 \times 0.01111}{2} + \frac{752.5 \times 0.006645}{2} = 5.00 + 2.50 = \mathbf{\$7.5\text{ million}} \]
+
+\textbf{What this means.} \$7.5 million is what it costs to walk this book out of the door on a quiet day — half the spread, paid on every dollar of position. It is a cost, not a loss from price movement; the mid-market price has not moved at all in this calculation.
+\end{lrexbox}
+
+\begin{lrexbox}[The same book, stressed market]
+For the same positions, the mean and standard deviation of the \emph{dollar} bid-offer spread for the shares are \$1.0 and \$2.0. For the commodity both are \$0.1. Spreads are normally distributed. Find the cost of liquidation that will not be exceeded with 99\% confidence.
+
+\tcblower
+\textbf{Step 1 — convert the spread moments to proportional terms} by dividing by the mid-market price.
+\[ \mu_{\text{shares}} = \tfrac{1.0}{90} = 0.01111 \qquad \sigma_{\text{shares}} = \tfrac{2.0}{90} = 0.02222 \]
+\[ \mu_{\text{comm}} = \sigma_{\text{comm}} = \tfrac{0.1}{15.05} = 0.006645 \]
+
+\textbf{Step 2 — set $\lambda$.} A 1\% worst case under normality gives $\lambda = 2.326$.
+
+\textbf{Step 3 — the stressed proportional spread for each instrument.}
+\[ \text{Shares: } 0.01111 + 2.326 \times 0.02222 = 0.06279 \]
+\[ \text{Commodity: } 0.006645 + 2.326 \times 0.006645 = 0.02210 \]
+
+\textbf{Step 4 — apply equation (1.2).}
+\[ 0.5 \times 900 \times 0.06279 \;+\; 0.5 \times 752.5 \times 0.02210 \;=\; 28.26 + 8.32 = \mathbf{\$36.58\text{ million}} \]
+
+\textbf{What this means.} Almost \textbf{five times} the normal-market cost, from the same positions, with no change in price whatsoever. The entire difference is the spread widening. That multiple is the point of the objective: liquidity trading risk is not a rounding error on a stressed day.
+\end{lrexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.5cm, height=6.6cm,
+  ybar stacked, bar width=34pt, enlarge x limits=0.42,
+  symbolic x coords={Normal market, Stressed market},
+  xtick=data,
+  ymin=0, ymax=44,
+  ylabel={Cost of liquidation (\$ million)},
+  ylabel style={font=\small\sffamily},
+  tick label style={font=\small\sffamily},
+  ymajorgrids, grid style={FRMRule, dashed},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.18)}, anchor=north, legend columns=-1, column sep=10pt},
+  area legend,
+]
+\addplot[fill=PaleNavy, draw=FRMNavy] coordinates {(Normal market,5.00) (Stressed market,28.26)};
+\addlegendentry{Shares position}
+\addplot[fill=PaleGold, draw=FRMGold] coordinates {(Normal market,2.50) (Stressed market,8.32)};
+\addlegendentry{Commodity position}
+\node[font=\small\sffamily\bfseries, fill=white, inner sep=1.5pt] at (axis cs:Normal market,10.5) {\$7.5m};
+\node[font=\small\sffamily\bfseries, fill=white, inner sep=1.5pt] at (axis cs:Stressed market,40.0) {\$36.58m};
+\end{axis}
+\end{tikzpicture}
+\figcap{The same book, the same prices, two spread assumptions. Stressing the spread alone multiplies the liquidation cost by roughly 4.9$\times$. Note that the shares dominate the increase: their spread volatility ($\sigma = 0.02222$) is twice their mean spread, while the commodity's mean and standard deviation are equal, so the shares absorb far more of the $\lambda\sigma$ term.}
+\end{center}
+
+\subsection{Liquidity-adjusted VaR}
+
+VaR estimates a worst-case change in the mark-to-market valuation of the trading book. The cost-of-liquid\-ation measures estimate the cost of liquidating a book \emph{if market prices do not change}. They deal with different risks, so some researchers combine them.
+
+\begin{lrfmlbox}[Liquidity-adjusted VaR]
+\[ \text{LVaR (normal market)} \;=\; \text{VaR} \;+\; \sum_{i=1}^{n}\frac{s_i\,\alpha_i}{2} \]
+\[ \text{LVaR (stressed market)} \;=\; \text{VaR} \;+\; \sum_{i=1}^{n}\frac{(\mu_i + \lambda\sigma_i)\,\alpha_i}{2} \]
+\vk{Notation as above. LVaR is regular VaR \emph{plus} the cost of unwinding — the two are added, never averaged or maximised.}
+\end{lrfmlbox}
+
+\begin{lrtrapbox}[The addition is unconditional]
+LVaR adds the full liquidation cost to the full VaR. No correlation adjustment, no diversification benefit between the two terms. A distractor that takes $\sqrt{\text{VaR}^2 + \text{cost}^2}$ is built from exactly the instinct a Part 1 candidate brings with them.
+\end{lrtrapbox}
+
+% =====================================================================
+\lo{LTR-1 b}{Identify examples of liquidity funding risk, funding sources, and lessons learned from real cases: Northern Rock, Ashanti Goldfields, and Metallgesellschaft.}
+
+\begin{lrdefbox}[Liquidity funding risk]
+The risk relating to a financial institution's ability to meet its cash needs as they arise. The key to managing it is predicting cash needs and ensuring they can be met in adverse scenarios.
+\end{lrdefbox}
+
+\subsection{The main sources of liquidity for a financial institution}
+
+\begin{itemize}
+\item Holdings of cash and Treasury securities.
+\item The ability to liquidate trading book positions.
+\item The ability to borrow money at short notice.
+\item The ability to offer favourable terms to attract retail and wholesale deposits at short notice.
+\item The ability to securitize assets (such as loans) at short notice.
+\item Borrowings from the central bank.
+\end{itemize}
+
+\subsection{The three cases}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{3.05cm} X X@{}}
+\toprule
+\rowcolor{FRMSoft}\textbf{Case} & \textbf{What they did} & \textbf{Why the cash ran out} \\
+\midrule
+\textbf{Northern Rock} & Relied on short-term funding for long-term loans (mortgages). & When lenders became wary after the 2007 crisis, it could not access cash and faced a bank run. \\
+\addlinespace
+\textbf{Ashanti Goldfields} & Used gold forwards to hedge against falling gold prices. & Gold prices \emph{rose}. It could not meet the margin calls because the underlying asset (gold) was illiquid and not easily sold quickly. \\
+\addlinespace
+\textbf{Metallgesellschaft} & Sold long-dated fixed-price oil supply contracts, hedged with short-dated futures rolled forward. & Oil prices \emph{fell}, producing margin calls on the futures it could not meet. The long-dated contracts that offset them produced no cash. \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\figcap{The shared mechanism, and the one worth stating aloud: in all three the \emph{economics} were arguably sound and the \emph{cash timing} was not. Ashanti and Metallgesellschaft are a matched pair in which the price moved in opposite directions, and GARP builds distractors by swapping them.}
+
+\begin{lrtrapbox}[Polarity: which way did the price move?]
+Ashanti was hurt by a \textbf{rising} gold price; Metallgesellschaft by a \textbf{falling} oil price. Both were hedgers facing margin calls, so the direction word is the only discriminator in a four-statement audit. State the direction and the actor out loud before locking any answer on these two.
+\end{lrtrapbox}
+
+\begin{lrkeybox}[The lesson GARP draws]
+The lesson is \emph{not} that firms should avoid hedging. It is that they should ensure they have access to funding to handle the cash flow mismatches that can arise in extreme circumstances.
+\end{lrkeybox}
+
+% =====================================================================
+\lo{LTR-1 c}{Evaluate Basel III liquidity risk ratios and BIS principles for sound liquidity risk management.}
+
+Basel III introduced two liquidity risk requirements: the \term{liquidity coverage ratio (LCR)} and the \term{net stable funding ratio (NSFR)}.
+
+\begin{enumerate}
+\item \textbf{LCR} ensures banks have enough high-quality liquid assets to survive a 30-day stressed period.
+\item \textbf{NSFR} focuses on long-term funding stability, requiring banks to have enough stable funding to cover their assets.
+\end{enumerate}
+
+\gapbadge
+\gapnote{The source notes name both ratios but print neither formula and neither implementation detail. The following is written from the GARP curriculum (Hull, Chapter 24).}
+
+\begin{lrgapbox}
+The objective says \emph{evaluate} the ratios. That requires the ratio definitions, what sits in each numerator and denominator, and the stress scenario that defines the LCR's 30-day window.
+\end{lrgapbox}
+
+\begin{lrfmlbox}[The two Basel III liquidity ratios]
+\[ \text{LCR} \;=\; \frac{\text{High-quality liquid assets}}{\text{Net cash outflows in a 30-day period}} \;\geq\; 100\% \]
+\[ \text{NSFR} \;=\; \frac{\text{Amount of stable funding}}{\text{Required amount of stable funding}} \;\geq\; 100\% \]
+\vk{NSFR numerator: each category of funding (capital, wholesale deposits, retail deposits, and so on) multiplied by an \term{available stable funding (ASF)} factor reflecting its stability. NSFR denominator: assets and off-balance-sheet items requiring funding, each multiplied by a \term{required stable funding (RSF)} factor.}
+\end{lrfmlbox}
+
+\begin{lrkeybox}[The LCR's 30-day stress scenario, and the implementation dates]
+The 30-day period in the LCR is one of \textbf{acute stress} involving: a downgrade of three notches (for example AA+ to A+), a partial loss of deposits, a complete loss of wholesale funding, increased haircuts on secured funding, and drawdowns on lines of credit.
+
+LCR was phased in between 2015 and 2019 — 60\% required in 2015, 100\% in 2019. The NSFR implementation date was 1 January 2018.
+\end{lrkeybox}
+
+\begin{lrtrapbox}[ASF versus RSF: which side is which]
+\term{ASF} weights sit in the \textbf{numerator} and are applied to \textbf{funding} (liabilities and capital) — the more stable the funding, the higher the factor. \term{RSF} weights sit in the \textbf{denominator} and are applied to \textbf{assets} — the harder the asset is to liquidate, the more stable funding it requires. Swapping the two is a textbook 5B.2 sibling swap and it is offered on both papers.
+\end{lrtrapbox}
+
+\subsection{BIS principles for sound liquidity risk management}
+
+\begin{itemize}
+\item Cover 17 areas for effective liquidity risk management by banks.
+\item Emphasise strong governance, risk tolerance, liquidity measurement, diversification of funding sources, and stress testing.
+\item Require a contingency funding plan and high-quality liquid assets.
+\item Mandate clear public disclosures by banks and comprehensive assessments by supervisors.
+\end{itemize}
+
+\begin{lrkeybox}[The first principle, and it is a role question]
+A bank is \textbf{responsible for the sound management of its own liquidity risk}, and should establish a robust liquidity risk management framework that ensures it maintains sufficient liquidity, including a cushion of unencumbered, high-quality liquid assets. The supervisor assesses; the bank owns.
+\end{lrkeybox}
+
+% =====================================================================
+\lo{LTR-1 d}{Explain liquidity black holes and identify the causes of positive feedback trading.}
+
+\begin{lrdefbox}[Liquidity black hole]
+A situation where liquidity has dried up in a particular market because everyone wants to sell and no one wants to buy, or vice versa. Sometimes called a \term{crowded exit}.
+\end{lrdefbox}
+
+\begin{center}
+\small
+\begin{tabularx}{\textwidth}{@{}p{4.3cm} X X@{}}
+\toprule
+\rowcolor{FRMSoft} & \textbf{Negative feedback traders} & \textbf{Positive feedback traders} \\
+\midrule
+\textbf{Behaviour} & Buy when prices fall, sell when prices rise & Sell when prices fall, buy when prices rise \\
+\textbf{Style label} & Value investing & Momentum investing \\
+\textbf{Effect on the market} & \textbf{Stabilising} & \textbf{Destabilising} \\
+\textbf{When they dominate} & The market is liquid & Prices are liable to be unstable; the market may become one-sided and illiquid \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.2cm, height=6.2cm,
+  xlabel={Time}, ylabel={Price},
+  xlabel style={font=\small\sffamily}, ylabel style={font=\small\sffamily},
+  tick label style={font=\scriptsize\sffamily},
+  xmin=0, xmax=10, ymin=55, ymax=118,
+  ymajorgrids, grid style={FRMRule, dashed},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.22)}, anchor=north, legend columns=1, row sep=1pt},
+]
+\addplot[FRMGreen, thick, sharp plot] coordinates
+  {(0,100)(1,96)(2,99)(3,94)(4,98)(5,95)(6,99)(7,96)(8,100)(9,97)(10,99)};
+\addlegendentry{Negative feedback dominates: buying into falls damps the move}
+\addplot[FRMRed, thick, sharp plot] coordinates
+  {(0,100)(1,96)(2,92)(3,86)(4,82)(5,76)(6,71)(7,67)(8,63)(9,60)(10,58)};
+\addlegendentry{Positive feedback dominates: selling into falls feeds the move}
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west] at (axis cs:5.4,104) {market stays two-sided};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west] at (axis cs:4.1,66.5) {crowded exit};
+\draw[-{Stealth[length=4pt]}, FRMRed] (axis cs:6.1,65.8) -- (axis cs:8.8,61.0);
+\end{axis}
+\end{tikzpicture}
+\figcap{The same initial shock, two trader populations. The mechanism is not that positive feedback traders are wrong about value — it is that their reaction function has the same sign as the price move, so each round of selling manufactures the next. That is what turns a price fall into a black hole.}
+\end{center}
+
+\begin{lrkeybox}[Causes of positive feedback trading]
+\begin{itemize}
+\item Trend trading
+\item Stop-loss rules
+\item Dynamic hedging
+\end{itemize}
+All three share one feature worth naming: each \emph{mechanically} requires selling as the price falls. None of them is a judgement about value.
+\end{lrkeybox}
+
+\begin{lrtrapbox}[Consolidated trap summary — LTR-1]
+\begin{itemize}
+\item \textbf{Polarity.} Negative feedback = buy on falls = stabilising. Positive = sell on falls = destabilising. Reversing this pair is the single most likely distractor in this reading.
+\item \textbf{Polarity.} Ashanti = gold price \emph{rose}; Metallgesellschaft = oil price \emph{fell}.
+\item \textbf{Sibling.} ASF (funding, numerator) versus RSF (assets, denominator).
+\item \textbf{Input twin.} $\mu$ and $\sigma$ in equation (1.2) are \emph{proportional} spreads, not dollar spreads.
+\item \textbf{Sign.} LVaR = VaR \emph{plus} liquidation cost. Straight addition.
+\item \textbf{Scope.} $\lambda$ is the confidence level on the \emph{spread} distribution, not on the price distribution.
+\item \textbf{Intermediate result.} In a two-instrument cost-of-liquidation question, each instrument's own contribution (\$5.00m, \$2.50m, \$28.26m, \$8.32m here) is a natural offered distractor. Read whether the question asks for the book or for one leg.
+\end{itemize}
+\end{lrtrapbox}

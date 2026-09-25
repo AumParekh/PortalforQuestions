@@ -1,0 +1,743 @@
+\reading{CR-9}{Estimating Default Probabilities}{STRIKE FIRST}{8}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Compare agencies' ratings to internal credit rating systems.
+\item Describe Altman's Z-score methodology and apply it to predict a firm's default and to classify a sample of firms by credit quality.
+\item Describe the relationship between borrower rating and probability of default.
+\item Describe a rating migration matrix and calculate the probability of default, cumulative probability of default, and marginal probability of default.
+\item Define the hazard rate and use it to define probability functions for default time as well as to calculate conditional and unconditional default probabilities.
+\item Describe recovery rates and their dependencies on default rates.
+\item Define a credit default swap (CDS) and explain its mechanics including the obligations of both the default protection buyer and the default protection seller.
+\item Describe CDS spreads and explain how CDS spreads can be used to estimate hazard rates.
+\item Define and explain CDS-bond basis.
+\item Compare default probabilities calculated from historical data with those calculated from credit yield spreads.
+\item Describe the difference between real-world and risk-neutral default probabilities and determine which one to use in the analysis of credit risk.
+\item Calculate the value of a firm's debt and equity, the volatility of firm value, and the volatility of firm equity using the Merton model.
+\item Calculate distance to default and default probability using the Merton model.
+\item Assess the quality of the default probabilities produced by the Merton model, the Moody's KMV model, and the Kamakura model.
+\end{enumerate}
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-9 a}{Compare agencies' ratings to internal credit rating systems.}
+
+Credit ratings provided by rating agencies assess the credit quality of larger
+publicly traded bond issuers, indicating their ability to repay debt.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{6.9cm} L{7.6cm}}
+\toprule
+\thead{Agencies' ratings (large firms)} & \thead{Internal credit rating systems (SMEs)} \\
+\midrule
+Provided by established agencies: Moody's, S\&P, Fitch &
+  Major agencies typically do not cover small and mid-sized firms, so lenders
+  rely on internally developed systems \\
+Publicly available information used for assessment &
+  Built by the lender using financial statement metrics \\
+\textbf{Stability in ratings}; agencies adopt a long-term view on
+creditworthiness &
+  Used for estimating probabilities of default directly \\
+\textbf{Avoiding reversals} &
+  Factors: profitability (e.g., return on equity and return on assets); liquidity
+  (e.g., quick ratio); solvency (e.g., debt-to-equity); balance sheet ratios \\
+Focus on \textbf{long-term changes in creditworthiness}: issuer performance
+through economic cycles, to mitigate short-term volatility's impact on ratings &
+  \textbf{Importance of cash in loan repayment}: since repayment relies on cash,
+  lenders analyse the cash flow statement to assess repayment ability \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The contrast that carries the weight is deliberate stability versus
+direct estimation. Agencies rate through the cycle and avoid reversals; an
+internal system is built to produce a PD number the lender can use now.}
+
+% =====================================================================
+\lo{CR-9 b}{Describe Altman's Z-score methodology and apply it to predict a firm's default and to classify a sample of firms by credit quality.}
+
+\subsection*{Linear discriminant analysis}
+
+\term{Linear discriminant analysis (LDA)} is a statistical method used for
+classification and dimensionality reduction. Its main goal is to find a linear
+combination of features that characterizes or separates two or more classes in
+the data.
+
+A \term{scoring function} is a linear function of variables produced by an LDA.
+The variables are chosen based on their estimated contribution to the likelihood
+of default, and come from an extensive pool of qualitative features and
+accounting ratios.
+
+LDA categorizes companies into two groups: those that are doing well
+(\term{solvent}) and those that are struggling (\term{insolvent}). The challenge
+is to predict which companies will become insolvent \emph{before} it happens. To
+do this, the model assigns an Altman Z-score to each company.
+
+\subsection*{Altman's Z-score}
+
+The Z-score predicts the likelihood of a company going into bankruptcy from five
+accounting ratios.
+
+\begin{crfmlbox}[Altman's Z-score, original model for publicly traded manufacturing companies]
+\[ Z \;=\; 1.2X_1 + 1.4X_2 + 3.3X_3 + 0.6X_4 + 0.999X_5 \]
+\vk{$X_1$ = working capital / total assets; $X_2$ = retained earnings / total
+assets; $X_3$ = earnings before interest and taxes / total assets; $X_4$ = market
+value of equity / book value of total liabilities; $X_5$ = sales / total assets.
+Note that $X_4$ is the only ratio whose denominator is not total assets, and the
+only one that uses a \emph{market} value in the numerator.}
+\end{crfmlbox}
+
+The higher the Z-score, the better (more solvent). The Z-score cut-off, also
+known as the \term{discriminant threshold}, was set at $Z = 2.675$.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{4.0cm} L{7.0cm}}
+\toprule
+\thead{Z-score} & \thead{Interpretation} \\
+\midrule
+Greater than 3.0 & Unlikely to default \\
+Between 2.7 and 3.0 & On alert \\
+Between 1.8 and 2.7 & Good chance of default \\
+Less than 1.8 & Very high probability of financial embarrassment \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{crexbox}[Altman Z-score]
+Consider a company for which working capital is 170,000, total assets are
+670,000, earnings before interest and taxes is 60,000, sales are 2,200,000, the
+market value of equity is 380,000, total liabilities is 240,000, and retained
+earnings is 300,000.
+\tcblower
+\begin{align*}
+X_1 &= 170{,}000 / 670{,}000 = 0.254 \\
+X_2 &= 300{,}000 / 670{,}000 = 0.448 \\
+X_3 &= 60{,}000 / 670{,}000 = 0.0896 \\
+X_4 &= 380{,}000 / 240{,}000 = 1.583 \\
+X_5 &= 2{,}200{,}000 / 670{,}000 = 3.284
+\end{align*}
+The Z-score is
+\[ 1.2 \times 0.254 + 1.4 \times 0.448 + 3.3 \times 0.0896 + 0.6 \times 1.583
+   + 0.999 \times 3.284 = 5.46 \]
+The Z-score indicates that the company is not in danger of defaulting in the near
+future. Note that $X_5$ alone contributes 3.28 of the 5.46: the asset turnover
+term dominates the total for a company with high sales relative to its asset
+base.
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-9 c}{Describe the relationship between borrower rating and probability of default.}
+
+\begin{enumerate}
+\item \term{Inverse relationship.} Higher borrower ratings indicate a lower
+probability of default (AAA), while lower ratings (B) suggest a higher risk of
+default.
+\item \term{Investment-grade dynamics.} For investment-grade bonds, the
+probability of default generally \emph{increases} over the initial years,
+reflecting potential financial deterioration over time.
+\item \term{Non-investment-grade trends.} Non-investment-grade bonds show an
+initial increase in default risk, which may \emph{decrease} over time if the
+issuer survives the early critical period. This indicates possible financial
+stabilization and an improvement in perceived creditworthiness after surviving
+the initial high-risk phase.
+\end{enumerate}
+
+% =====================================================================
+\lo{CR-9 d}{Describe a rating migration matrix and calculate the probability of default, cumulative probability of default, and marginal probability of default.}
+
+S\&P borrower ratings range from AAA (highest rating, best quality) to D (lowest
+rating, in payment default). On this scale, investment-grade bonds are rated from
+AAA to BBB and non-investment-grade (junk) bonds from BB to D.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{l r r r r r r r r}
+\toprule
+\thead{Rating} & \thead{1} & \thead{2} & \thead{3} & \thead{4} & \thead{5} &
+\thead{7} & \thead{10} & \thead{15} \\
+\midrule
+AAA & 0.00 & 0.03 & 0.13 & 0.24 & 0.34 & 0.51 & 0.70 & 0.90 \\
+AA & 0.02 & 0.06 & 0.11 & 0.21 & 0.30 & 0.49 & 0.70 & 0.99 \\
+A & 0.05 & 0.13 & 0.22 & 0.33 & 0.46 & 0.76 & 1.20 & 1.84 \\
+BBB & 0.16 & 0.43 & 0.75 & 1.14 & 1.54 & 2.27 & 3.24 & 4.54 \\
+BB & 0.63 & 1.93 & 3.46 & 4.99 & 6.43 & 8.89 & 11.64 & 14.65 \\
+B & 3.34 & 7.80 & 11.75 & 14.89 & 17.35 & 20.99 & 24.62 & 28.24 \\
+CCC/C & 28.30 & 38.33 & 43.42 & 46.36 & 48.58 & 50.75 & 52.76 & 54.76 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Cumulative issuer-weighted default rates for 1981--2020, in \%, by time
+horizon in years. Source: S\&P Global Ratings Research. Every figure in this
+table is \emph{cumulative}; the marginal and conditional probabilities below are
+all derived from differences within a row.}
+
+\begin{crfmlbox}[The three probabilities from one table]
+\[ \text{Cumulative PD}(t) \;=\; \text{read directly from the table} \]
+\[ \text{Marginal (unconditional) PD}(t) \;=\; \text{Cumulative PD}(t) -
+   \text{Cumulative PD}(t-1) \]
+\[ \text{Conditional PD}(t) \;=\; \frac{\text{Marginal PD}(t)}
+   {\text{Survival probability}(t-1)} \]
+\vk{Survival probability$(t-1) = 1 - \text{Cumulative PD}(t-1)$. The marginal
+probability is unconditional: it is the chance of defaulting in year $t$ viewed
+from today. The conditional probability is the chance of defaulting in year $t$
+\emph{given} survival to the start of it, so it is always the larger of the two.}
+\end{crfmlbox}
+
+\begin{crexbox}[Marginal probability of default from the matrix]
+For a bond with an initial rating of AA, calculate the marginal probability of
+default for the third year.
+\tcblower
+Use the cumulative probabilities for year 2 and year 3:
+\[ \mathrm{MPD}(3) = P(3) - P(2) = 0.11\% - 0.06\% = 0.05\% \]
+\end{crexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\pgfplotsset{
+  mpd/.style={
+    ybar, bar width=9pt, width=7.4cm, height=5.4cm,
+    xlabel={Year}, symbolic x coords={1,2,3,4}, xtick=data, ymin=0,
+    xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+    tick label style={font=\sffamily\scriptsize},
+    axis y line*=left, axis x line*=bottom,
+    nodes near coords,
+    every node near coord/.append style={font=\sffamily\tiny,
+      /pgf/number format/.cd, fixed, precision=2}}}
+\begin{axis}[mpd, name=left, ylabel={Marginal PD (\%)}, ymax=5.6,
+  title={\sffamily\scriptsize\bfseries\color{FRMRed}B rated}]
+\addplot[draw=FRMRed, fill=FRMRed!45, area legend]
+  coordinates {(1,3.34) (2,4.46) (3,3.95) (4,3.14)};
+\end{axis}
+\begin{axis}[mpd, at={(left.south east)}, xshift=2.0cm, anchor=south west,
+  ylabel={Marginal PD (\%)}, ymax=0.13, ytick={0,0.05,0.10}, yticklabels={0,0.05,0.10},
+  title={\sffamily\scriptsize\bfseries\color{FRMNavy}AA rated}]
+\addplot[draw=FRMNavy, fill=FRMNavy!45, area legend]
+  coordinates {(1,0.02) (2,0.04) (3,0.05) (4,0.10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Marginal default probabilities derived from the table above, and the
+picture behind objective c. \textbf{The two panels are on different vertical
+scales} --- note the axis maxima, which differ by a factor of more than forty ---
+because on a shared scale the AA bars are invisible. What the panels are for is
+the \emph{shape}. The investment-grade profile climbs steadily. The
+non-investment-grade profile peaks in year 2 and then falls, because a B-rated
+issuer that survives the early critical period has demonstrably stabilised.}
+
+% =====================================================================
+\lo{CR-9 e}{Define the hazard rate and use it to define probability functions for default time as well as to calculate conditional and unconditional default probabilities.}
+
+\begin{crdefbox}[Hazard rate]
+The hazard rate, also known as \term{default intensity}, is represented by the
+(constant) parameter $\lambda$. The probability of default over the next small
+time interval $dt$ is $\lambda\,dt$.
+\end{crdefbox}
+
+\begin{crfmlbox}[Probability of default by time $t$]
+\[ Q(t) \;=\; 1 - e^{-\bar{\lambda}(t)\times t} \]
+\vk{$\bar{\lambda}(t)$ = the \emph{average} hazard rate between time 0 and time
+$t$. $Q(t)$ is a cumulative probability. Survival to $t$ is
+$e^{-\bar{\lambda}(t)t}$.}
+\end{crfmlbox}
+
+\begin{crexbox}[Hazard rate of 1.5\% per year]
+Suppose the hazard rate is a constant 1.5\% per year.
+\tcblower
+Cumulative PD by the end of the first year:
+\[ 1 - e^{-0.015 \times 1} = 0.0149 \]
+Cumulative PD by the end of the second year:
+\[ 1 - e^{-0.015 \times 2} = 0.0296 \]
+The cumulative PDs by the end of the third, fourth, and fifth years are similarly
+0.0440, 0.0582, and 0.0723.
+
+\smallskip
+The \textbf{unconditional} PD during the fourth year:
+\[ 0.0582 - 0.0440 = 0.0142 \]
+The \textbf{conditional} PD in the fourth year, conditional on no earlier default:
+\[ 0.0142 \,/\, (1 - 0.0440) = 0.0149 \]
+\end{crexbox}
+
+\begin{crexbox}[Hazard rate of 2\% per year]
+Assume a 2\% hazard rate.
+\tcblower
+The probability of default by the end of Year 4 is $7.69\% = 1 - e^{-0.02\times4}$.
+
+By the end of Year 5 it is $9.52\% = 1 - e^{-0.02\times5}$.
+
+The \textbf{unconditional} probability of default during Year 5 is
+$9.52\% - 7.69\% = 1.83\%$.
+
+The \textbf{conditional} probability of default in Year 5, conditional on no
+earlier default, is $1.83\% / (1 - 7.69\%) = 1.98\%$.
+\end{crexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=12.6cm, height=5.8cm,
+  xlabel={Year}, ylabel={Probability of default in that year (\%)},
+  xlabel style={font=\sffamily\scriptsize}, ylabel style={font=\sffamily\scriptsize},
+  tick label style={font=\sffamily\scriptsize},
+  xmin=0.5, xmax=20.5, ymin=1.1, ymax=2.15,
+  xtick={1,5,10,15,20},
+  grid=major, grid style={FRMRule!50, line width=0.3pt},
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.32)}, anchor=north, legend columns=-1, column sep=10pt}]
+\addplot[domain=1:20, samples=20, draw=FRMNavy, line width=1.1pt, sharp plot,
+  mark=*, mark size=1.2pt]
+  {100*exp(-0.02*(x-1))*(1-exp(-0.02))};
+\addlegendentry{unconditional (marginal) PD in year $t$}
+\addplot[domain=1:20, samples=2, draw=FRMGold, line width=1.1pt, sharp plot]
+  {100*(1-exp(-0.02))};
+\addlegendentry{conditional PD in year $t$}
+\addplot[only marks, mark=*, mark size=2pt, draw=FRMRed, fill=FRMRed]
+  coordinates {(5,1.8281)};
+\node[font=\sffamily\scriptsize\bfseries, text=FRMRed, fill=white, inner sep=1.5pt]
+  at (axis cs:8.4,1.60) {$1.83\%$ at $t=5$};
+\draw[-{Stealth[length=4pt]}, FRMRed] (axis cs:6.9,1.65) -- (axis cs:5.25,1.80);
+\node[font=\sffamily\scriptsize\bfseries, text=FRMGold, fill=white, inner sep=1.5pt]
+  at (axis cs:15.5,2.06) {constant at $1.98\%$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The two probabilities under a constant 2\% hazard rate, plotted year by
+year. The conditional probability never moves: given survival to the start of any
+year, the chance of defaulting in it is always $1-e^{-0.02}=1.98\%$. The
+unconditional probability decays, because it is the conditional probability
+multiplied by the shrinking chance of having survived that long. They coincide
+only in year 1, and the gap widens forever after. The 1.83\% computed in the
+example above is the year-5 point on the navy line.}
+
+\subsection*{Approximating hazard rates from credit spreads}
+
+\begin{crfmlbox}[Hazard rate from a credit spread]
+\[ \bar{\lambda} \;=\; \frac{s(T)}{1-\mathrm{RR}} \]
+\vk{$\bar{\lambda}$ = average hazard rate; $s(T)$ = credit spread for maturity
+$T$ (a CDS spread or a bond yield spread); RR = recovery rate. The denominator is
+the loss given default, so the spread is being grossed up by the fraction
+actually lost on default.}
+\end{crfmlbox}
+
+\begin{crexbox}[Hazard rate from a single spread]
+Five-year credit spread: 210 basis points (2.1\%). Expected recovery rate: 30\%.
+What is the hazard rate?
+\tcblower
+\[ \bar{\lambda} = \frac{0.021}{1 - 0.30} = \frac{0.021}{0.70} = 0.030 = 3.00\%
+   \text{, or 300 basis points} \]
+\end{crexbox}
+
+\begin{crexbox}[Bootstrapping hazard rates across maturities]
+Credit spreads for 3-year, 5-year, and 10-year CDS are 80 bps, 90 bps, and 110
+bps respectively. The expected recovery rate is 65\%. Calculate the average
+hazard rate for each maturity, and then the forward hazard rate between year 3
+and year 5.
+\tcblower
+With $1-\mathrm{RR} = 0.35$:
+\begin{align*}
+\bar{\lambda}(3) &= 0.0080 / 0.35 = 0.0229 \text{, or } 2.29\% \\
+\bar{\lambda}(5) &= 0.0090 / 0.35 = 0.0257 \text{, or } 2.57\% \\
+\bar{\lambda}(10) &= 0.0110 / 0.35 = 0.0314 \text{, or } 3.14\%
+\end{align*}
+
+To find the average hazard rate \emph{between} Year 3 and Year 5, note that the
+five-year average must be the time-weighted blend of the first three years and
+the next two:
+\[ \bar{\lambda}(5)\times 5 \;=\; \bar{\lambda}(3)\times 3
+   \;+\; \lambda_{3\to5}\times 2 \]
+\[ \lambda_{3\to5} = \frac{(5\times 0.0257) - (3\times 0.0229)}{2} = 0.0299
+   \text{, or } 2.99\% \]
+Carrying the unrounded averages through gives exactly 3.00\%. The same method
+gives the year 5 to year 10 forward rate as
+$[(10\times0.0314)-(5\times0.0257)]/5 = 3.71\%$.
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-9 f}{Describe recovery rates and their dependencies on default rates.}
+
+\begin{crdefbox}[Recovery rate]
+The recovery rate (RR) for a bond is the price at which it trades about one month
+after default, as a percentage of its principal amount.
+\end{crdefbox}
+
+When an issuer files for bankruptcy, most creditors are unlikely to receive full
+repayment of the face value of their claims, which is what makes the recovery
+rate relevant.
+
+Data from 1983 to 2021 shows senior bonds like first lien bonds have higher
+average recovery rates (54.6\%) than junior ones like subordinated bonds
+(32.1\%).
+
+\begin{crkeybox}[The direction, and the mechanism behind it]
+Recovery rates are \term{inversely} related to default rates. Higher defaults lead
+to lower recoveries.
+
+\smallskip
+The mechanism, from the 2007--2008 crisis: increasing mortgage default rates lead
+to more foreclosures, a surplus of houses for sale, and a decline in house
+prices. Consequently recovery rates decrease.
+
+\smallskip
+In a robust economy defaults are rarer and recovery rates are higher; in a weak
+economy defaults increase and recoveries drop. This dynamic poses a significant
+challenge to lenders during downturns, who face high default rates and low
+recovery rates \emph{simultaneously}.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-9 g}{Define a credit default swap (CDS) and explain its mechanics including the obligations of both the default protection buyer and the default protection seller.}
+
+\begin{crdefbox}[Credit default swap]
+A CDS is a type of credit derivative where one party (the \term{protection
+buyer}) pays another party (the \term{protection seller}) regular payments in
+exchange for credit protection on a reference entity, such as a corporation. The
+essence of a CDS is to transfer the credit exposure of fixed income products
+between parties.
+\end{crdefbox}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\node[draw=FRMNavy, fill=PaleNavy, line width=0.8pt, rounded corners=1pt,
+      text width=3.7cm, align=center, minimum height=1.9cm] (b) at (0,0)
+      {\textbf{Protection buyer}\\[2pt]\scriptsize e.g.\ FI Advisors\\[1pt]\scriptsize holds exposure to\\\scriptsize the reference entity};
+\node[draw=FRMGold, fill=PaleGold, line width=0.8pt, rounded corners=1pt,
+      text width=3.7cm, align=center, minimum height=1.9cm] (s) at (10.2,0)
+      {\textbf{Protection seller}\\[2pt]\scriptsize e.g.\ Market Makers, Inc.\\[1pt]\scriptsize takes on the\\\scriptsize credit exposure};
+% premium leg
+\draw[-{Stealth[length=6pt]}, FRMNavy, line width=1.1pt]
+  ($(b.east)+(0,0.55)$) -- ($(s.west)+(0,0.55)$);
+\node[font=\scriptsize\bfseries, text=FRMNavy] at (5.1,1.05) {PREMIUM LEG};
+\node[font=\scriptsize, text=FRMGrey] at (5.1,0.2)
+  {regular payments of the CDS spread};
+% protection leg
+\draw[-{Stealth[length=6pt]}, FRMGold, line width=1.1pt]
+  ($(s.west)-(0,0.85)$) -- ($(b.east)-(0,0.85)$);
+\node[font=\scriptsize\bfseries, text=FRMGold] at (5.1,-0.5) {PROTECTION LEG};
+\node[font=\scriptsize, text=FRMGrey] at (5.1,-1.25)
+  {pays \emph{only if} a credit event occurs};
+% reference entity
+\node[draw=FRMRule, fill=white, line width=0.7pt, rounded corners=1pt,
+      text width=3.3cm, align=center] (r) at (5.1,-2.85)
+      {\scriptsize\textbf{Reference entity}\\\scriptsize e.g.\ ELF};
+\draw[FRMGrey, dashed, line width=0.7pt] (b.south) |- (r.west);
+\draw[FRMGrey, dashed, line width=0.7pt] (s.south) |- (r.east);
+\end{tikzpicture}
+\end{center}
+\figcap{The two legs of a CDS. The premium leg runs continuously from buyer to
+seller; the protection leg is contingent and runs the other way. Neither party
+need own the reference entity's debt, and the reference entity is not a party to
+the contract.}
+
+\subsection*{Settlement}
+
+\begin{enumerate}
+\item \term{Physical delivery.} The buyer delivers the defaulted bonds to the
+seller in exchange for the face value.
+\item \term{Cash settlement.} The seller pays the buyer the fair market value of
+the defaulted bonds, based on the cheapest-to-deliver bond.
+\end{enumerate}
+
+\begin{crexbox}[A CDS in use]
+FI Advisors (FIA) hedges against ELF's potential default by entering a CDS with
+Market Makers (MM), paying \$1.5 million annually. The CDS spread is 75 basis
+points.
+\tcblower
+If ELF does not default, FIA gets no compensation: the premium is simply the cost
+of the hedge. In the case of default, MM pays FIA \$200 million, or a loss-based
+cash settlement.
+\end{crexbox}
+
+\subsection*{Credit indices}
+
+Credit indices are baskets of CDS for multiple companies. They allow investors to
+buy or sell protection against defaults of a \emph{group} of issuers, instead of
+focusing on individual companies. These indices typically offer CDS contracts
+with maturities of 3, 5, 7, and 10 years, with settlement dates likely on June 20
+and December 20.
+
+The two well-known investment-grade credit indices each contain \textbf{125}
+companies (reference entities): \term{CDX NA IG} (North America) and
+\term{iTraxx Europe}.
+
+\begin{crexbox}[Pricing an index position]
+The 5-year iTraxx Europe index is quoted as bid 150 basis points and ask 152 bps.
+An investor seeks \euro500,000 of protection per company in the index. What are the
+annual payments?
+\tcblower
+Using the ask price, since the investor is buying protection:
+\[ 0.0152 \times \text{\euro}500{,}000 \times 125 = \text{\euro}950{,}000 \]
+If one reference entity defaults, the investor receives the appropriate payoff as
+well as a future reduction in the annual payments of
+\[ \text{\euro}950{,}000 \,/\, 125 = \text{\euro}7{,}600 \]
+\end{crexbox}
+
+\subsection*{Fixed coupons}
+
+\begin{itemize}
+\item \term{Fixed coupon.} A standardized fee of 100 basis points (1\%) per year,
+typically paid by the protection buyer for investment-grade issuers. Having a
+fixed coupon simplifies the process of clearing and settling CDS contracts,
+making them more efficient.
+\item \term{CDS spread.} The actual cost of protection, reflecting the perceived
+risk of default for the reference entity. It can be higher or lower than the fixed
+coupon.
+\end{itemize}
+
+The fixed coupon might not match the actual CDS spread, so an up-front premium
+reconciles the two:
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{5.2cm} L{9.3cm}}
+\toprule
+\thead{Relationship} & \thead{Up-front premium} \\
+\midrule
+Spread $=$ fixed coupon & No up-front premium is required \\
+Spread $>$ fixed coupon & The \textbf{buyer} pays an up-front premium reflecting
+the difference \\
+Spread $<$ fixed coupon & The \textbf{seller} pays an up-front premium to the
+buyer for the difference. This is less common but can occur \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Who pays the up-front premium is a role-and-direction fact, and both
+halves are swappable. The party that is getting the better of the standardised
+coupon compensates the other.}
+
+% =====================================================================
+\lo{CR-9 h}{Describe CDS spreads and explain how CDS spreads can be used to estimate hazard rates.}
+
+A \term{CDS spread} is essentially the cost of protection against a default on a
+specific debt. It is expressed in basis points, as a percentage of the notional
+amount of the debt being insured.
+
+The route from a CDS spread to a hazard rate is the approximation given at
+objective e: $\bar{\lambda} = s(T) / (1-\mathrm{RR})$. A CDS spread is a credit
+spread, so it can be substituted for $s(T)$ directly, and bootstrapped across
+maturities as shown there.
+
+% =====================================================================
+\lo{CR-9 i}{Define and explain CDS-bond basis.}
+
+\begin{crdefbox}[Bond yield spread and the CDS-bond basis]
+The \term{bond yield spread} is the difference between the yield of a corporate
+bond and a comparable risk-free bond, effectively measuring the extra yield an
+investor earns for taking on additional risk.
+
+\smallskip
+The \term{CDS-bond basis} should be zero, or near zero, because the CDS spread
+and the bond yield spread should be equal.
+\end{crdefbox}
+
+\begin{crfmlbox}[CDS-bond basis]
+\[ \text{CDS-bond basis} \;=\; \text{CDS spread} \;-\; \text{bond yield spread} \]
+\end{crfmlbox}
+
+\subsection*{Strategy based on spread comparison}
+
+\begin{enumerate}[label=\alph*)]
+\item If \term{CDS spread $<$ bond yield spread}: it is profitable to buy the
+bond and hedge with CDS, earning more than the risk-free rate.
+\item If \term{CDS spread $>$ bond yield spread}: selling the bond and CDS
+protection can be advantageous, effectively borrowing at below the risk-free
+rate.
+\end{enumerate}
+
+\subsection*{Common reasons for a difference in the CDS-bond basis}
+
+\begin{enumerate}
+\item Bonds may sell for much higher than par (negative basis) or lower than par
+(positive basis).
+\item CDSs are subject to counterparty risk (negative basis).
+\item A cheapest-to-deliver possibility exists with a CDS (positive basis).
+\item CDS payoffs exclude accrued interest (negative basis).
+\item CDS contracts may contain a restructuring clause that allows for payoffs
+even without default (positive basis).
+\item The bond yield spread is computed using a risk-free rate that is dissimilar
+to the one used by the market.
+\item \term{Market illiquidity.} Difficulty in exploiting arbitrage opportunities
+due to illiquidity can prevent the basis from reaching zero.
+\end{enumerate}
+
+\begin{crtrapbox}[The signs are the examinable part]
+Five of the seven reasons carry a stated direction, and they alternate. Negative
+basis: bonds above par, counterparty risk on the CDS, accrued interest excluded
+from the CDS payoff. Positive basis: bonds below par, cheapest-to-deliver
+optionality, restructuring clauses. Anything that makes CDS protection
+\emph{worth less} than it looks pushes the basis negative; anything that hands
+the protection buyer an extra option pushes it positive.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-9 j}{Compare default probabilities calculated from historical data with those calculated from credit yield spreads.}
+
+\begin{crkeybox}[Three findings]
+\begin{itemize}
+\item The hazard rates computed from credit spreads are significantly
+\textbf{greater} than those computed from historical data.
+\item As credit quality improves (worsens), the differences are less (greater).
+\item A good (bad) economy decreases (increases) default probabilities.
+\end{itemize}
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-9 k}{Describe the difference between real-world and risk-neutral default probabilities and determine which one to use in the analysis of credit risk.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{7.0cm} L{7.5cm}}
+\toprule
+\thead{Risk-neutral estimates} & \thead{Real-world estimates} \\
+\midrule
+Derived from financial market prices & Obtained from historical data \\
+Estimated from credit spreads & Can rely on credit ratings \\
+Used for \textbf{valuation} & Used for \textbf{scenario analysis} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The decision rule sits in the bottom row. If the question is what
+something is worth, use risk-neutral. If the question is what is likely to
+happen, use real-world.}
+
+% =====================================================================
+\lo{CR-9 l}{Calculate the value of a firm's debt and equity, the volatility of firm value, and the volatility of firm equity using the Merton model.}
+
+The Merton model is a structural approach to predicting default. It assumes
+default occurs when the proprietary structure of the defaulting company is no
+longer worthwhile. It is based on Black-Scholes-Merton option pricing theory and
+evaluates various components of firm value. The terminal payoffs and the
+equity-as-a-call picture are set out at \textbf{CR-5 e}; this objective adds the
+step that makes the model usable.
+
+\begin{crfmlbox}[Value of equity today]
+\[ E_0 \;=\; V_0 N(d_1) - D e^{-rT} N(d_2) \]
+\[ d_1 = \frac{\ln(V_0/D) + (r + \sigma_V^{2}/2)T}{\sigma_V\sqrt{T}}
+   \qquad d_2 = d_1 - \sigma_V\sqrt{T} \]
+\end{crfmlbox}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective asks for the volatility of firm value
+and the volatility of firm equity, and for the value of the firm's debt. The
+source notes carry the objective heading and the equity formula above, but not
+the relationship between the two volatilities, not the simultaneous solve, and not
+a worked example. The following is written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for: the two unknowns and how they are found]
+Under Merton's model the company defaults when the option is not exercised, and
+the probability of this is $N(-d_2)$. To calculate it we require $V_0$ and
+$\sigma_V$. \term{Neither of these is directly observable.}
+
+\smallskip
+However, if the company is publicly traded we can observe $E_0$, so the equity
+equation provides \emph{one} condition that $V_0$ and $\sigma_V$ must satisfy. We
+can also estimate $\sigma_E$. From Ito's lemma,
+\[ \sigma_E E_0 \;=\; \frac{\partial E}{\partial V}\,\sigma_V V_0
+   \;=\; N(d_1)\,\sigma_V V_0 \]
+since $\partial E/\partial V$ is the delta of the equity, which is $N(d_1)$.
+
+\smallskip
+This provides a \emph{second} condition. The two equations form a pair of
+simultaneous equations that can be solved for $V_0$ and $\sigma_V$, in practice
+numerically.
+
+\smallskip
+The market value of the debt then follows as $V_0 - E_0$.
+\end{crgapbox}
+
+\begin{crexbox}[Merton model: solving for firm value and asset volatility]
+The value of a company's equity is \$3 million and the volatility of the equity is
+80\%. The debt that will have to be paid in one year is \$10 million. The
+risk-free rate is 5\% per annum.
+\tcblower
+Here $E_0 = 3$, $\sigma_E = 0.80$, $r = 0.05$, $T = 1$, and $D = 10$.
+
+\smallskip
+Solving the two simultaneous equations yields
+\[ V_0 = 12.40 \qquad\text{and}\qquad \sigma_V = 0.2123 \]
+The parameter $d_2$ is $1.1408$, so the probability of default is
+\[ N(-d_2) = 0.127 \text{, or } 12.7\% \]
+The market value of the debt is $V_0 - E_0 = 12.40 - 3 = 9.40$.
+
+The present value of the promised payment on the debt is
+$10e^{-0.05\times1} = 9.51$.
+
+The expected loss on the debt is therefore
+\[ \frac{9.51 - 9.40}{9.51} \approx 1.2\% \text{ of its no-default value} \]
+
+\smallskip
+Note the scale of the difference between the two volatilities: equity volatility
+of 80\% corresponds to asset volatility of only 21.23\%, because the equity is a
+levered claim on the assets.
+\end{crexbox}
+
+% =====================================================================
+\lo{CR-9 m}{Calculate distance to default and default probability using the Merton model.}
+
+Distance to default measures the distance between a firm's current financial
+position and the point of default. DtD is the number of standard deviations the
+company's assets are away from the face value of the debt.
+
+\begin{crfmlbox}[Distance to default and the two probabilities]
+\[ \mathrm{DtD} \;=\; d_2 \;=\;
+   \frac{\ln(V_0) - \ln(D) + (r - \sigma_V^{2}/2)T}{\sigma_V\sqrt{T}} \]
+\[ \text{Risk-neutral PD} = N(-d_2) = 1 - N(d_2) \]
+\vk{For the real-world probability of default, the expected return on the firm's
+assets $(\mu)$ is substituted for the risk-free rate $(r)$. The risk-neutral
+version assumes the firm's assets grow at the risk-free rate.}
+\end{crfmlbox}
+
+\begin{crkeybox}[Direction]
+The higher (lower) the distance to default, the lower (higher) the probability of
+default. $N(-d_2)$ is effectively the probability that shareholders will
+\emph{not} exercise their option to repay the loan.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-9 n}{Assess the quality of the default probabilities produced by the Merton model, the Moody's KMV model, and the Kamakura model.}
+
+\begin{enumerate}
+\item \term{Merton model.} Uses an option pricing model, and is only applicable
+to liquid, publicly traded companies because of the data requirements. Assumes a
+standardized normal distribution for default frequencies. Considers only
+short-term debt in the default point.
+\item \term{Moody's-KMV Expected Default Frequency (EDF) model.} Differs from
+Merton in three ways: it uses historical data to develop a distribution of default
+frequencies, which is more realistic; it includes short-term debt \emph{and half
+of long-term debt}, which better reflects loan obligations; and it can handle
+portfolios beyond just debt contracts, such as swaps and convertible debt.
+\item \term{CreditMetrics.} Uses credit ratings as an input, which are readily
+available for many companies, and considers historical default data through a
+transition matrix.
+\end{enumerate}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}The objective names Merton, Moody's KMV and
+\emph{Kamakura}. The source notes cover Merton and Moody's KMV, substitute
+CreditMetrics for Kamakura, and do not state the overall assessment the objective
+asks for. The following is written from the GARP curriculum.}
+
+\begin{crgapbox}[What the objective asks for: the assessment, and Kamakura]
+\textbf{How good are the probabilities?} Merton's model and its extensions
+produce a \emph{good ranking} of default probabilities, risk-neutral or
+real-world. That is the claim the evidence supports, and it is weaker than a claim
+of accuracy in levels.
+
+\smallskip
+Because the ranking is good, a \term{monotonic transformation} can be estimated
+to convert the PD output from Merton's model into a good estimate of either the
+real-world or the risk-neutral default probability.
+
+\smallskip
+\textbf{Where Kamakura comes in.} Both \term{Moody's KMV} and \term{Kamakura}
+provide a service that transforms a default probability produced by Merton's
+model into a \emph{real-world} default probability.
+
+\smallskip
+This may seem strange, since $N(-d_2)$ is in theory a \emph{risk-neutral} default
+probability, being calculated from an option pricing model. Given the nature of
+the calibration process, the underlying assumption is that the rankings of
+risk-neutral default probabilities, real-world default probabilities, and the
+default probabilities produced by Merton's model are \textbf{all the same}.
+\end{crgapbox}

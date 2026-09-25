@@ -1,0 +1,366 @@
+\reading{CR-17}{Margin (Collateral) and Settlement}{GRIND}{4}
+
+\begin{crkeybox}[Learning objectives for this reading]
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=2em]
+\item Describe the rationale for collateral management.
+\item Describe the terms of a collateral agreement and features of a credit support annex (CSA) within the ISDA Master Agreement including threshold, initial margin, minimum transfer amount and rounding, haircuts, credit quality, and credit support amount.
+\item Calculate the credit support amount (margin) under various scenarios.
+\item Describe the role of a valuation agent.
+\item Describe the mechanics of collateral and the types of collateral that are typically used.
+\item Explain the process for the reconciliation of collateral disputes.
+\item Explain the features of a collateralization agreement.
+\item Differentiate between a two-way and one-way CSA agreement and describe how collateral parameters can be linked to credit quality.
+\item Explain aspects of collateral including funding, rehypothecation, and segregation.
+\item Explain how market risk, operational risk, and liquidity risk (including funding liquidity risk) can arise through collateralization.
+\item Describe the various regulatory capital requirements.
+\end{enumerate}
+\end{crkeybox}
+
+\begin{crtrapbox}[Single-layer reading]
+CR-17 exists only in the Crash layer.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-17 a}{Describe the rationale for collateral management.}
+
+Collateral management is the process of handling collateral exchanges to manage
+credit risk, often involving bilateral agreements where \emph{both} parties can be
+required to post collateral.
+
+\begin{itemize}
+\item It reduces credit risk exposure, allowing for more trading.
+\item It lowers capital requirements for firms.
+\end{itemize}
+
+\textbf{Evolution.} Collateral management transitioned from informal practices to
+standardized processes with the introduction of ISDA documentation in 1994.
+\term{Credit support annex (CSA)} agreements specify the terms for collateral
+exchange to mitigate credit risk.
+
+% =====================================================================
+\lo{CR-17 b}{Describe the terms of a collateral agreement and features of a credit support annex (CSA) within the ISDA Master Agreement including threshold, initial margin, minimum transfer amount and rounding, haircuts, credit quality, and credit support amount.}
+
+\begin{enumerate}
+\item \term{Initial margin}, also called the \term{independent amount}. Defines an
+amount of extra collateral that must be posted upfront, \emph{irrespective of the
+exposure}.
+\item \term{Threshold}. Defines the level of MtM above which collateral is posted.
+When the exposure is above the threshold, the threshold amount is
+\textbf{under-collateralized}. When the exposure is below the threshold it is
+\textbf{not collateralized at all}.
+\item \term{Minimum transfer amount (MTA)}. The minimum amount of collateral that
+can be transferred. Exposure must exceed the \emph{sum} of threshold and MTA
+before a collateral call can be made.
+\item \term{Rounding}. A collateral call or return amount is always rounded to a
+certain lot size, to avoid unnecessarily small amounts.
+\item \term{Haircut}. A reduction in the value of the asset, to account for the
+fact that its price may fall between the last collateral call and liquidation in
+the event of default.
+\item \term{Credit quality}. Collateral parameters can be linked to the
+counterparty's credit quality; see objective h.
+\item \term{Credit support amount}. The amount of margin that may be requested at
+a given point in time; calculated at objective c.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[font=\sffamily\footnotesize]
+\draw[FRMGrey, line width=1pt, -{Stealth[length=6pt]}] (0,0) -- (13.6,0)
+  node[right, font=\scriptsize\itshape, text=FRMGrey] {};
+\node[below=16pt, font=\scriptsize\itshape, text=FRMGrey] at (6.8,0)
+  {exposure (mark-to-market value), increasing};
+% zones
+\fill[FRMGreen!14] (0,0.12) rectangle (4.6,1.5);
+\fill[FRMGold!16] (4.6,0.12) rectangle (8.4,1.5);
+\fill[FRMRed!13] (8.4,0.12) rectangle (13.2,1.5);
+\draw[FRMRule, line width=0.6pt] (0,0.12) rectangle (13.2,1.5);
+\draw[FRMGrey, line width=0.8pt] (4.6,0.12) -- (4.6,1.5);
+\draw[FRMGrey, line width=0.8pt] (8.4,0.12) -- (8.4,1.5);
+\node[text width=4.2cm, align=center, font=\scriptsize] at (2.3,0.81)
+  {\textbf{below the threshold}\\not collateralized at all};
+\node[text width=3.5cm, align=center, font=\scriptsize] at (6.5,0.81)
+  {\textbf{above threshold, below threshold $+$ MTA}\\no call can yet be made};
+\node[text width=4.4cm, align=center, font=\scriptsize] at (10.8,0.81)
+  {\textbf{above threshold $+$ MTA}\\call made, rounded to the lot size};
+% markers
+\draw[FRMNavy, line width=0.9pt] (4.6,-0.12) -- (4.6,0.12);
+\node[below, font=\scriptsize\bfseries, text=FRMNavy] at (4.6,-0.14) {threshold $K$};
+\draw[FRMNavy, line width=0.9pt] (8.4,-0.12) -- (8.4,0.12);
+\node[below, font=\scriptsize\bfseries, text=FRMNavy] at (8.4,-0.14) {$K\;+\;$MTA};
+\end{tikzpicture}
+\end{center}
+\figcap{The three zones a CSA creates. Two facts are easy to swap. First, the
+threshold amount stays \emph{permanently} under-collateralized even once calls
+begin: collateral is posted on the excess above $K$, not on the whole exposure.
+Second, the trigger for a call is $K + \mathrm{MTA}$, not $K$ alone. Initial
+margin sits outside this picture entirely, since it is posted irrespective of
+exposure.}
+
+% =====================================================================
+\lo{CR-17 c}{Calculate the credit support amount (margin) under various scenarios.}
+
+\begin{crdefbox}[The two quantities]
+\term{Credit support amount.} ISDA CSA documentation defines this as the amount of
+margin that may be requested at a given point in time. Because of parameters such
+as thresholds, minimum transfer amounts and initial margins, \emph{it will not be
+the same as the value of the portfolio}.
+
+\smallskip
+\term{Credit support balance.} The amount of margin held already.
+\end{crdefbox}
+
+\gapbadge
+
+{\footnotesize\color{FRMGrey}This is a \emph{calculate} objective. The source notes
+present two worked tables and then instruct the reader that there is ``no need to
+get into above tables in very depth'', giving no formula. The formula below is
+written from the GARP curriculum, and it reproduces both of the notes' tables
+exactly.}
+
+\begin{crgapbox}[What the objective asks for: the credit support amount formula]
+Considering initially that a party is only \emph{receiving} margin, the relevant
+amount considering only the threshold and initial margin is
+\[ \max(\text{value} - K_c,\, 0) + \mathrm{IM}_c \]
+
+More generally, including both parties, the equation defining the credit support
+amount for \emph{variation} margin is
+\[ \max(\text{value} - K_c,\, 0) \;-\; \max(-\text{value} - K_p,\, 0) \;-\; C \]
+
+where value is the current value of the relevant transactions, $K_c$ and $K_p$ are
+the thresholds for the counterparty and for the party making the calculation
+respectively, $\mathrm{IM}_c$ is the initial margin for the counterparty, and $C$
+is the credit support balance.
+
+\smallskip
+\textbf{Reading the sign.} A \emph{positive} result means margin can be called, or
+requested to be returned. A \emph{negative} result indicates a requirement to post
+or return margin. Either way this holds only as long as the amount is higher than
+the minimum transfer amount, and rounding may then be applied.
+\end{crgapbox}
+
+\begin{crtrapbox}[Threshold and initial margin pull against each other]
+The threshold and the initial margin act in \textbf{opposite directions}, and it
+does not make sense to include both. Indeed, when initial margins are present the
+threshold will usually be \emph{zero} --- which is exactly what the second worked
+table below does.
+
+\smallskip
+Initial margin does not depend on any of the terms in the variation margin
+equation and is computed \emph{separately}. Traditionally, variation margin is
+captured in the CSA by the credit support amount, while initial margin is referred
+to separately as the independent amount. Initial margin is \textbf{not netted}
+against variation margin and may also be segregated. Where both parties post
+initial margin, the initial margins themselves are not netted and are paid
+separately.
+\end{crtrapbox}
+
+\begin{crexbox}[Margin calculation without initial margin]
+\centering\footnotesize
+\begin{tabular}{l r r}
+\toprule
+ & \thead{Time 1} & \thead{Time 2} \\
+\midrule
+Portfolio value & 250 & 225 \\
+Threshold & 100 & 100 \\
+Credit support balance & 0 & 150 \\
+\midrule
+\textbf{Credit support amount} & \textbf{150} & \textbf{--25} \\
+\bottomrule
+\end{tabular}
+\tcblower
+\textbf{Time 1.} $\max(250-100,\,0) - 0 = 150$. The credit support amount is the
+value minus the threshold, which means the portfolio is only \emph{partially}
+collateralized: 100 remains uncovered by construction.
+
+\smallskip
+\textbf{Time 2.} $\max(225-100,\,0) - 150 = 125 - 150 = -25$. Even though the
+portfolio is uncollateralized by $225 - 150 = 75$, the credit support amount is
+$-25$, which corresponds to \textbf{margin being returned}, up to the threshold.
+\end{crexbox}
+
+\begin{crexbox}[Margin calculation with initial margin]
+\centering\footnotesize
+\begin{tabular}{l r r}
+\toprule
+ & \thead{Time 1} & \thead{Time 2} \\
+\midrule
+Portfolio value & 250 & 275 \\
+Threshold (set to zero) & 0 & 0 \\
+Credit support balance & 0 & 250 \\
+\midrule
+\textbf{Credit support amount} & \textbf{250} & \textbf{25} \\
+\midrule
+Initial margin (independent amount) & 40 & 35 \\
+\bottomrule
+\end{tabular}
+\tcblower
+\textbf{Time 1.} $\max(250-0,\,0) - 0 = 250$. With the threshold set to zero the
+whole exposure is collateralized.
+
+\smallskip
+\textbf{Time 2.} $\max(275-0,\,0) - 250 = 25$.
+
+\smallskip
+\textbf{Initial margin.} The 40 and 35 are \emph{not} part of either credit
+support amount. They are computed separately as the independent amount and are not
+netted against variation margin.
+\end{crexbox}
+
+\begin{crtrapbox}[Minimum transfer amounts make margin path-dependent]
+MTAs can cause \term{path dependency} in margin calculations. Two portfolios can
+have identical values at times $t_2$ and $t_3$ but different values at $t_1$, and
+the credit support amount at $t_3$ will then differ, coming out either smaller or
+larger.
+
+\smallskip
+The mechanism: the amount of credit support required at $t_3$ depends on the
+credit support balance at $t_2$, which in turn depends on whether a call was
+triggered at $t_1$. A call that was suppressed by the MTA at $t_1$ leaves a
+different balance standing for every later date.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-17 d}{Describe the role of a valuation agent.}
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Responsibilities.} Calculating credit exposure, market values, credit
+support amounts, and managing collateral delivery and return. More precisely: to
+calculate the current value including the impact of netting; to calculate the
+market value of margin previously posted and adjust it by the relevant haircuts;
+to calculate the total uncollateralised exposure; and to calculate the credit
+support amount.
+\item \term{Who can act.} Larger entities may act as valuation agents, or
+third-party agents may be used to prevent disputes.
+\end{enumerate}
+
+\begin{crkeybox}[For centrally cleared transactions]
+Margin disputes are not relevant, because the CCP is the valuation agent.
+\end{crkeybox}
+
+% =====================================================================
+\lo{CR-17 e}{Describe the mechanics of collateral and the types of collateral that are typically used.}
+
+\begin{itemize}
+\item \term{Mechanics.} Agreements specify currency, collateral types, delivery
+timing, interest rates, and so on. Trades are marked to market and netted
+regularly. \textbf{The party with negative MtM exposure posts collateral}, and
+cash is the most common form.
+\item \term{Types.} Cash, government securities, corporate bonds, letters of
+credit, and equity.
+\end{itemize}
+
+% =====================================================================
+\lo{CR-17 f}{Explain the process for the reconciliation of collateral disputes.}
+
+Collateral disputes may arise due to the valuation and population of trades,
+market data and market closing time, netting rules, and the valuation of
+collateral previously posted. Managing a dispute involves three steps.
+
+\begin{enumerate}
+\item The disputing party notifies the counterparty of its intent to dispute the
+exposure \textbf{by the end of the day following the collateral call}.
+\item All \emph{undisputed} amounts are transferred, and the reason for the
+dispute is identified.
+\item For unresolved disputes, the parties request quotes from several market
+makers, \textbf{usually four}, for the MtM value.
+\end{enumerate}
+
+Reconciling trades on a regular basis can minimize potential disputes.
+
+% =====================================================================
+\lo{CR-17 g}{Explain the features of a collateralization agreement.}
+
+The features are the CSA parameters set out at objective b: initial margin,
+threshold, minimum transfer amount, rounding, and haircuts. The zone diagram there
+shows how the threshold and MTA interact to determine when a call is actually
+made.
+
+% =====================================================================
+\lo{CR-17 h}{Differentiate between a two-way and one-way CSA agreement and describe how collateral parameters can be linked to credit quality.}
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{2.4cm} L{5.9cm} L{6.2cm}}
+\toprule
+ & \thead{One-way CSA} & \thead{Two-way CSA} \\
+\midrule
+Who posts & Only \emph{one} party posts collateral, upon a specific event such as
+  a downgrade &
+  \emph{Both} parties post collateral \\
+Who benefits & Benefits the receiving party; presents risk to the posting party &
+  Benefits both parties \\
+When used & When counterparties have \textbf{significantly different} credit risks &
+  When counterparties have \textbf{similar} credit risk \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Linking CSA terms to credit quality}
+
+\begin{itemize}
+\item \term{Reduced workload} when the counterparty has strong credit.
+\item \term{Increased protection} when the counterparty has weak credit, through
+collateral required upon downgrade.
+\end{itemize}
+
+% =====================================================================
+\lo{CR-17 i}{Explain aspects of collateral including funding, rehypothecation, and segregation.}
+
+\begin{enumerate}[label=\alph*)]
+\item \term{Substitution.} Posting an equivalent value of other eligible
+collateral.
+\item \term{Rehypothecation.} Transferring posted collateral \emph{on} to other
+counterparties as collateral.
+\item \term{Segregation.} Legally protecting posted collateral.
+\end{enumerate}
+
+\begin{crtrapbox}[Rehypothecation and segregation are opposites]
+Rehypothecation lets the receiver reuse the collateral, which improves funding for
+the receiver and increases risk for the poster. Segregation does the reverse: it
+ring-fences the collateral for the poster and removes the funding benefit from the
+receiver. A CSA that permits one is by construction weakening the other.
+\end{crtrapbox}
+
+% =====================================================================
+\lo{CR-17 j}{Explain how market risk, operational risk, and liquidity risk (including funding liquidity risk) can arise through collateralization.}
+
+Collateralization, while helpful in mitigating counterparty default risk,
+introduces its own set of challenges.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{L{3.4cm} L{11.1cm}}
+\toprule
+\thead{Risk} & \thead{How it arises through collateralization} \\
+\midrule
+\term{Market risk} & Collateral value can fluctuate due to market movements.
+  Delays in collateral posting or receiving create a \textbf{margin period of
+  risk}. \\
+\term{Operational risk} & Errors can occur in collateral handling: missed calls,
+  failed deliveries, system failures. Strong controls are crucial --- clear
+  agreements, robust IT systems, accurate valuations. \\
+\term{Liquidity and liquidation risk} & Liquidating collateral incurs costs
+  (bid-ask spread, selling costs). Large-scale liquidation can negatively impact
+  price. \\
+\term{Funding liquidity risk} & CSAs require funding readiness for collateral
+  calls. Risk increases with illiquid markets and higher funding costs. \\
+\term{Default risk} & Default of the collateral security itself reduces its value,
+  and haircuts may not fully cover the loss. \\
+\term{Foreign exchange risk} & Collateral in different currencies introduces FX
+  risk. \\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{Six risks, of which the objective names three. Note the shape of the
+trade: collateralization removes counterparty default risk and replaces it with a
+set of risks that are each individually smaller but none of which is zero.}
+
+% =====================================================================
+\lo{CR-17 k}{Describe the various regulatory capital requirements.}
+
+Non-clearable OTC transactions require banks to hold \emph{higher} capital
+requirements. In 2011 the G20 established bilateral collateral requirements for
+non-clearable OTC derivatives.
+
+These regulatory requirements cover both \term{variation} and \term{initial}
+margins, with the goal of minimizing systemic risk and reducing potential
+\term{regulatory arbitrage} between clearable and non-clearable OTC transactions.

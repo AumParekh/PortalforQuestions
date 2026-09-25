@@ -1,0 +1,322 @@
+\reading{MR-6}{Validating Bank Holding Companies' Value-at-Risk Models for Market Risk}{defer}{0}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Describe some important considerations for a bank in assessing the conceptual soundness of
+      a VaR model during the validation process.
+\item Explain how to conduct sensitivity analysis for a VaR model, and describe the potential
+      benefits and challenges of performing such an analysis.
+\item Describe the challenges a financial institution could face when calculating confidence
+      intervals for VaR.
+\item Discuss the challenges in benchmarking VaR models and various approaches proposed to
+      overcome them.
+\end{enumerate}
+\end{mrkeybox}
+
+\section{Basics}
+
+Banks use Value at Risk (VaR) models to measure the potential loss in a portfolio over a
+specified time period with a given probability. These models play a crucial role in regulatory
+compliance and risk management, especially in setting minimum capital requirements under the
+Basel Accords.
+
+\textbf{The primary purpose of validating VaR models includes:}
+\begin{enumerate}
+\item Verifying if the VaR model provides reliable risk estimates.
+\item Basel regulations mandate VaR validation to ensure sufficient capital is held by banks.
+\end{enumerate}
+
+\subsection{Key components of VaR}
+a) Loss size \quad b) Probability \quad c) Time frame
+
+\begin{mrfmlbox}
+\[ \mathrm{VaR}(\alpha\%) \;=\; -\mu_{P/L} \;+\; \sigma_{P/L}\, z_\alpha \]
+\mrvk{$\mu_{P/L}$, $\sigma_{P/L}$ = mean and standard deviation of the profit/loss
+distribution;\quad $z_\alpha$ = the one-tailed standard normal deviate.}{%
+\par\smallskip\textbf{\sffamily Not dynamic:} $\sigma_{P/L}$ is a single fixed number here, so
+the measure carries no mechanism for volatility changing through time.}
+\end{mrfmlbox}
+
+\subsection{Challenges in traditional VaR models}
+\begin{itemize}
+\item It assumes past return distributions remain valid, ignoring dynamic volatility.
+\item Many banks' historical VaR models have underperformed compared to dynamic models.
+      Traditional models use historical returns but may not reflect changes in the portfolio.
+\end{itemize}
+
+To address this limitation, \term{GARCH VaR} models were developed to allow for more recent
+volatility changes. The GARCH (Generalized Autoregressive Conditional Heteroskedasticity) model
+helps address dynamic volatility by:
+\begin{itemize}
+\item adjusting for recent market conditions;
+\item capturing changing risk levels in response to evolving market data.
+\end{itemize}
+
+Some studies indicate that the historical VaR models used by banks underperformed a basic model
+based on GARCH VaR of the historical profit and loss (P\&L) of banks, which calls into question
+the utility of historical VaR estimates.
+
+\subsection{Pseudo history and pseudo returns in VaR modeling}
+Traditional VaR models use historical portfolio return data, which ignores changes in portfolio
+composition over time. This can misrepresent risk, especially when positions are actively
+managed.
+
+\begin{mrkeybox}[title={Why use pseudo returns?}]
+\begin{itemize}
+\item \term{Adjusts for portfolio changes} --- recalculates past returns based on the
+      \textit{current} portfolio.
+\item \term{More accurate risk estimation} --- captures real-time risk dynamics.
+\item \term{Reflects risk reduction} --- if a trader hedges risk (e.g.\ with a derivatives
+      overlay strategy), pseudo returns show lower VaR, while historical VaR remains unchanged.
+\end{itemize}
+\begin{center}
+Pseudo returns $=$ more accurate VaR $=$ better risk management
+\end{center}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-6 a}{Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.}
+
+\begin{mrexbox}[title={Example 1}]
+A bank uses historical stock return data to estimate VaR, but it does not account for
+derivatives hedging in its portfolio. The model then \term{overestimates} risk, leading to
+excess capital requirements.
+\end{mrexbox}
+
+\begin{mrexbox}[title={Example 2}]
+A trader selling deep out-of-the-money puts initially sees small, consistent profits, and a
+P\&L-based VaR reflects low risk. However, if the underlying asset's price moves significantly
+against the trader, the puts move closer to being in the money, and the potential loss becomes
+substantial. VaR fails here as well.
+\end{mrexbox}
+
+\begin{mrdefbox}[title={Conceptual soundness}]
+In both examples above, VaR has not provided proper guidance about the \term{real risk}
+inherent. This is what we call conceptual soundness. VaR models must reflect changes in risk due
+to position adjustments. If they fail to do so, they are conceptually unsound.
+\end{mrdefbox}
+
+\subsection{General validation criteria}
+\begin{itemize}
+\item \term{Assess methodology soundness} --- ensure the model uses a robust and appropriate
+      approach.
+\item \term{Evaluate input data quality} --- reliable and accurate data is crucial for valid
+      risk estimation.
+\item \term{Check model assumptions} --- assumptions should align with the portfolio's risk
+      characteristics.
+\item \term{Fit for purpose} --- the VaR model should align with the bank's specific risk
+      management objectives (e.g.\ regulatory capital, internal risk assessment).
+\end{itemize}
+
+\subsection{Limitations of historical VaR models}
+\begin{itemize}
+\item Studies suggest that historical VaR models may underperform compared to alternative models
+      like GARCH VaR.
+\item Banks typically use historical portfolio returns in VaR models, but these returns do not
+      adjust for portfolio composition changes over time. This limitation can lead to misleading
+      risk estimates if the portfolio has changed significantly --- hence pseudo returns.
+\end{itemize}
+
+\subsection{Challenges with missing data}
+Banks with large trading desks may face missing return data for certain assets. Some assets may
+lack sufficient historical data or may not have clear value estimates. Missing data complicates
+VaR estimation and can lead to inaccurate results.
+
+\subsection{Quantitative tests for validation}
+\begin{enumerate}
+\item \term{Sensitivity analysis} --- measures the impact of data limitations and model
+      assumptions.
+\item \term{Confidence intervals} --- helps assess the accuracy of VaR estimates and potential
+      errors.
+\end{enumerate}
+
+% ---------------------------------------------------------
+\lo{MR-6 b}{Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis.}
+
+Sensitivity analysis for a VaR model examines how changes in inputs, particularly positions,
+affect the model's output. This is vital for assessing the impact of simplifications or
+omissions, especially in constructing the ``pseudo history'' of portfolio value changes. It
+helps ensure these simplifications do not materially distort the VaR result, and offers a
+structured way to prioritize model enhancements by incorporating more risk factors or
+higher-order terms.
+
+\begin{mrexbox}[title={Example of sensitivity analysis}]
+A bank is concerned about the valuation of complex derivatives in its portfolio. Sensitivity
+analysis can reveal how much the overall VaR would change if the valuation model for these
+derivatives were adjusted --- say, by changing a key input parameter like volatility.
+\end{mrexbox}
+
+\subsection{1) Identify key inputs}
+\begin{itemize}
+\item Determine key inputs and assumptions (e.g.\ portfolio positions).
+\item Validate assumptions and identify simplifications in pseudo-history.
+\item Address omissions in pseudo-history, as they can materially affect VaR.
+\item Track data proxies and monitor risks not included in the model. We use proxy data because
+      sometimes asset data can be limited.
+\end{itemize}
+
+\subsection{2) Adjust key inputs and recalculate VaR}
+\begin{itemize}
+\item Adjust one input at a time (e.g.\ position weight).
+\item Recalculate the VaR threshold.
+\item \term{Marginal VaR:} the change in portfolio value due to a small change in a position's
+      weight. Estimated as the slope coefficient in a regression of the change in the
+      \textit{position's} value against the change in the \textit{portfolio's} value.
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ \Delta V_{it} \;=\; \alpha + \beta_i\, \Delta V_{pt} + \epsilon_t \]
+\mrvk{$\Delta V_{it}$ = change in the value of position $i$ at time $t$ (the dependent
+variable);\quad $\Delta V_{pt}$ = change in the value of the whole portfolio at time $t$ (the
+independent variable);\quad $\beta_i$ = the slope coefficient, which is the marginal VaR
+estimate;\quad $\alpha$ = intercept;\quad $\epsilon_t$ = residual.}{}
+\end{mrfmlbox}
+
+\subsection{3) Analyze results}
+\begin{itemize}
+\item Compare new VaR estimates to the original.
+\item Evaluate VaR's sensitivity to changes in each input.
+\item Sensitivity depends on:
+  \begin{itemize}
+  \item the change in the position's share of the portfolio;
+  \item the sensitivity of the position's value to the overall portfolio value.
+  \end{itemize}
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.4cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Benefits} & \hdr{What it looks like}\\
+a) Risk assessment & Identifies the most influential factors in the portfolio's risk profile.
+  \textit{Example:} identifying a specific trading desk's positions as highly sensitive to
+  interest rate changes.\\
+\rowcolor{FRMSoft}
+b) Model validation & Provides a framework for testing the robustness of the VaR model against
+  changes in assumptions, which enhances the model's credibility. \textit{Example:} testing the
+  impact of different volatility assumptions on VaR.\\
+c) Regulatory compliance & Helps meet regulatory requirements for model validation.\\
+\rowcolor{FRMSoft}
+d) Improved decision-making & Enables informed decisions regarding position adjustments and risk
+  mitigation.\\
+\midrule
+\rowcolor{FRMNavy} \hdr{Challenges} & \hdr{What it looks like}\\
+a) Data limitations & Requires sufficient data, which may be scarce. \textit{Example:} limited
+  historical data for newly issued financial instruments.\\
+\rowcolor{FRMSoft}
+b) Computational complexity & Can be computationally intensive for large portfolios or complex
+  models. \textit{Example:} Monte Carlo simulations with a large number of scenarios and risk
+  factors.\\
+c) Proxy issues & Using proxies can introduce inaccuracies. \textit{Example:} using a broad
+  market index as a proxy for a specific stock with different risk characteristics.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ---------------------------------------------------------
+\lo{MR-6 c}{Describe the challenges a financial institution could face when calculating confidence intervals for VaR.}
+
+When estimating a Value-at-Risk figure for a portfolio, assessing the accuracy of that estimate
+is crucial. Statistically, this is done by placing confidence intervals around the VaR estimate,
+indicating that the true VaR value should fall within this interval a certain percentage of the
+time. This addresses the \term{estimation risk} inherent in VaR calculations.
+
+While assessing estimation risk is standard in many contexts, many financial institutions do not
+routinely calculate confidence intervals for their VaR estimates, despite VaR being a
+statistical framework. This lack of confidence interval calculation is a notable gap in model
+validation.
+
+\subsection{1) Data quality and availability}
+\begin{itemize}
+\item \term{Historical data limitations.} Accurate confidence intervals require high-quality
+      historical data. Incomplete, outdated, or erroneous data leads to unreliable VaR and
+      confidence interval estimates.
+\item \term{Non-normality of returns.} Financial returns often exhibit non-normal distributions
+      (e.g.\ fat tails, skewness). This makes applying standard statistical methods, which
+      assume normality, problematic, resulting in inaccurate confidence intervals.
+\end{itemize}
+
+\subsection{2) Model assumptions}
+\begin{itemize}
+\item \term{Choice of distribution.} Selecting the correct probability distribution is crucial.
+      Using the wrong distribution leads to significant errors in confidence interval estimates.
+\item \term{Alternatives to normality:}
+  \begin{itemize}
+  \item Base the confidence interval on the variance of the distribution of pseudo-historical
+        returns, using more than a single point of the quantile estimate.
+  \item Non-parametric approaches:
+    \begin{enumerate}[label=\alph*)]
+    \item \term{Order statistics} --- relies on the ordered history of pseudo-returns, just like
+          the historical simulation method.
+    \item \term{Bootstrap techniques} --- sampling with replacement from the pseudo-history to
+          generate a bootstrapped pseudo-history, calculating VaR for each sample, and obtaining
+          a distribution of VaR.
+    \end{enumerate}
+  \end{itemize}
+\end{itemize}
+
+\subsection{3) Historical findings}
+\begin{itemize}
+\item \term{Asymmetry.} Confidence intervals are not symmetric.
+\item \term{Data quantity.} More data leads to tighter (more precise) confidence intervals.
+\item \term{VaR methodology.} GARCH VaR of historical P\&L tends to produce \textit{tighter}
+      confidence intervals compared to historical simulation VaR.
+\item \term{Non-parametric methods.} Order statistics and bootstrap techniques do not
+      necessarily produce tighter confidence intervals.
+\item \term{Stress periods.} Historical simulation VaR produces \textit{wider} (less precise)
+      confidence intervals during stress periods.
+\end{itemize}
+
+% ---------------------------------------------------------
+\lo{MR-6 d}{Discuss the challenges in benchmarking VaR models and various approaches proposed to overcome them.}
+
+Benchmarking, the comparison of a bank's VaR model against an alternative model, is often the
+\term{most neglected} aspect of market risk model validation.
+
+While parallel runs of new and old models are common for initial checks, formal comparisons are
+rare due to the resource-intensive nature of building even a single VaR model. Constructing and
+maintaining two models significantly increases the burden.
+
+The most common benchmarking practice involves simply plotting the VaR outputs of two models
+over time. This visual comparison provides limited insight, typically only revealing whether one
+model is more conservative than the other or if they exhibit similar behavior. This lack of
+formal statistical testing weakens the validation process.
+
+\begin{mrtrapbox}[title={Issues with statistical tests that compare two VaR models}]
+\begin{enumerate}
+\item \term{Non-i.i.d.\ errors due to changing trading portfolios.} Trading portfolios change
+      frequently, causing the errors (differences between predicted and realized P\&L) to
+      violate the assumption of independence and identical distribution. This is particularly
+      problematic for regression-based tests, which rely on the i.i.d.\ assumption.
+\item \term{Lack of available alternative models.} A more practical challenge is the scarcity of
+      readily available alternative VaR models for comparison. Banks rarely have two fully
+      operational VaR models running simultaneously.
+\end{enumerate}
+\end{mrtrapbox}
+
+\subsection{Proposed solutions}
+\begin{enumerate}[label=\textbf{\alph*)}]
+\item \term{Backtesting as benchmarking.} Since a second model is often unavailable, backtesting
+      the existing VaR model against actual profit and loss outcomes can serve as a robust
+      benchmarking tool. Specifically, compare the bank's positional VaR to the P\&L GARCH VaR.
+\item \term{Positional VaR vs P\&L GARCH VaR:}
+  \begin{itemize}
+  \item \term{Positional VaR:} VaR based on current portfolio positions.
+  \item \term{P\&L GARCH VaR:} VaR calculated using a GARCH model applied to the bank's
+        historical P\&L.
+  \end{itemize}
+\end{enumerate}
+
+\begin{mrkeybox}[title={Empirical findings of backtesting positional VaR vs P\&L GARCH VaR}]
+\begin{enumerate}
+\item \term{Conservatism.} Positional VaR tends to be \textit{more conservative} than P\&L GARCH
+      VaR due to its link to regulatory capital requirements.
+\item \term{Accuracy.} Positional VaR \textit{rarely outperforms} P\&L GARCH VaR in terms of
+      accuracy, likely because the former is more conservative.
+\end{enumerate}
+\end{mrkeybox}
+
+
+% ==========================================================

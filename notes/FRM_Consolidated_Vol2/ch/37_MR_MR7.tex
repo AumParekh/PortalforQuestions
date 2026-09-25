@@ -1,0 +1,605 @@
+\reading{MR-7}{Beyond Exceedance-Based Backtesting of VaR Models (Probability Integral Transform)}{grind}{4}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Identify the properties of an exceedance-based backtest that indicate a VaR model is
+      accurate, and describe how these properties are reflected in a PIT-based backtest.
+\item Explain how to derive probability integral transforms (PITs) in the context of validating
+      a VaR model.
+\item Describe how the shape of the distribution of PITs can be used as an indicator of the
+      quality of a VaR model.
+\item Describe backtesting using PITs, and compare the various goodness-of-fit tests that can be
+      used to evaluate the distribution of PITs: the Kolmogorov-Smirnov test, the
+      Anderson-Darling test, and the Cram\'er-von Mises test.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-7 a}{Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.}
+
+\subsection{The exceedance-based approach}
+Exceedance-based backtesting is a crucial statistical procedure in validating Value-at-Risk
+models. It involves comparing realized outcomes against the model's forecasted values. The
+primary aims are to:
+\begin{itemize}
+\item ensure the model's accuracy for internal risk management;
+\item satisfy regulatory capital calculation requirements.
+\end{itemize}
+
+\begin{mrkeybox}[title={The three properties of a well-calibrated VaR model}]
+\begin{enumerate}
+\item \term{Unconditional coverage} --- ensures that the model correctly estimates the expected
+      probability of exceedances.
+\item \term{Independence} --- confirms that exceedances occur randomly and are not clustered.
+\item \term{Conditional coverage} --- combines both unconditional coverage and independence to
+      verify overall accuracy.
+\end{enumerate}
+\end{mrkeybox}
+
+\subsection{1. Unconditional coverage}
+Unconditional coverage checks whether the actual number of exceedances (days where losses exceed
+VaR estimates) aligns with the expected number. Unlike other tests, it does not consider the
+timing or independence of exceedances --- only the total count over a period.
+
+\begin{mrtrapbox}[title={Reading the direction}]
+\begin{itemize}
+\item \term{Too few} exceedances $\rightarrow$ the VaR model \term{overestimates} risk
+      (conservative).
+\item \term{Too many} exceedances $\rightarrow$ the VaR model \term{underestimates} risk
+      (aggressive).
+\end{itemize}
+\end{mrtrapbox}
+
+\subsubsection{Exceedance probability in a 95\% VaR model}
+\begin{enumerate}
+\item A properly calibrated 95\% VaR model should have a 5\% probability of exceedance on any
+      given day. This probability is 1 minus the VaR confidence level. For a 95\% VaR,
+      $p = 0.05$.
+\item But if you wish to find \textit{exactly} how many exceedances, then the probability of
+      observing $x$ exceedances in $n$ total observations follows a binomial distribution.
+\end{enumerate}
+
+\begin{mrfmlbox}
+\[ p(x) \;=\; \frac{n!}{(n-x)!\;x!}\,(1-p)^{\,n-x}\, p^{\,x} \]
+\mrvk{$n$ = total number of observations;\quad $x$ = number of exceedances;\quad $p$ = the
+per-day exceedance probability, i.e.\ $1 -$ confidence level.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example --- exactly three exceedances}]
+For 100 observations with a 5\% exceedance probability, the probability of exactly 3
+exceedances is:
+\tcblower
+\small
+\[ p(3) \;=\; \frac{100!}{(100-3)!\;3!}\,(1-0.05)^{97}\,(0.05)^{3} \;=\; \mathbf{13.96\%} \]
+There is a 13.96\% chance of observing exactly 3 exceedances in 100 days.
+\end{mrexbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.4cm, height=5.4cm,
+  xmin=-0.8, xmax=14.8, ymin=0, ymax=0.21,
+  xlabel={\scriptsize Number of exceedances in 100 days},
+  ylabel={\scriptsize Likelihood},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14},
+  ytick={0,0.05,0.10,0.15,0.20},
+  yticklabel style={/pgf/number format/fixed},
+  axis line style={draw=black!55}, grid=none, clip=false]
+\addplot[ybar, bar width=8pt, fill=PaleNavy, draw=FRMNavy!60, line width=0.3pt] coordinates {
+(0,0.0059)(1,0.0312)(2,0.0812)(4,0.1781)(5,0.1800)(6,0.1500)(7,0.1060)(8,0.0649)
+(9,0.0349)(10,0.0167)(11,0.0072)(12,0.0028)(13,0.0010)(14,0.0003)};
+\addplot[ybar, bar width=8pt, fill=FRMGold!45, draw=FRMGold, line width=0.5pt] coordinates {(3,0.1396)};
+\draw[FRMRed, dashed, line width=0.7pt] (axis cs:5,0) -- (axis cs:5,0.192);
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed, fill=white, inner sep=1.5pt] at (axis cs:5.4,0.186)
+  {expected $= np = 5$};
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMGold, fill=white, inner sep=1.5pt] at (axis cs:0.2,0.155)
+  {$p(3) = 13.96\%$};
+\draw[FRMGold, -{Stealth[length=3.5pt]}, line width=0.5pt]
+  (axis cs:2.3,0.152) -- (axis cs:2.85,0.142);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The whole binomial distribution of exceedance counts, not just the one number the
+example asks for. The mode sits at 4 and 5, so counts anywhere in the 2 to 8 range are
+unremarkable; it is the thin shoulders beyond that which signal a model problem.}
+
+\subsubsection{VaR model validation using Kupiec unconditional coverage}
+\begin{itemize}
+\item The goal is to validate whether a VaR model correctly estimates risk by analyzing the
+      number of exceedances (days when losses exceed the VaR estimate).
+\item Hypothesis testing is used to check if the actual exceedances align with expectations.
+\end{itemize}
+
+The test follows a chi-squared distribution with one degree of freedom. At a 95\% confidence
+level, the critical value is \term{3.84}. If the LR test statistic exceeds this value, the VaR
+model is rejected as inaccurate.
+
+\begin{mrfmlbox}
+\[ LR_{uc} \;=\; -2\ln\!\left[ (1-p)^{\,n-x} p^{\,x} \right]
+   \;+\; 2\ln\!\left\{ \left[ 1 - (x/n) \right]^{\,n-x} (x/n)^{\,x} \right\} \]
+\mrvk{$p$ = the exceedance probability the model claims;\quad $x/n$ = the exceedance rate actually
+observed. The first term is the likelihood under the model, the second under the data.}{}
+\end{mrfmlbox}
+
+\subsection{2. Independence}
+We need to check if VaR exceedances are independent or if they show \term{clustering} --- that
+is, if an exceedance today increases the probability of another exceedance tomorrow. If
+clustering occurs, it means the model is underestimating risk because it fails to adjust for
+changing market conditions. An accurate VaR model should ensure that exceedances occur with the
+expected probability (e.g.\ 5\% for a 95\% VaR).
+
+\subsubsection{Using Markov chains to analyze independence}
+Exceedances can be modeled as a \term{Markov chain}, where future states depend on past states.
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily}]
+  \node[circle, draw=FRMNavy, fill=PaleNavy, line width=0.9pt, minimum size=2.1cm,
+        align=center, text=black] (n0) at (0,0) {\textbf{State 0}\\ No\\ exceedance};
+  \node[circle, draw=FRMRed, fill=PaleRed, line width=0.9pt, minimum size=2.1cm,
+        align=center, text=black] (n1) at (6.4,0) {\textbf{State 1}\\ Exceedance};
+
+  \draw[FRMNavy, -{Stealth[length=5pt]}, line width=0.8pt]
+    (n0) to[bend left=22] node[above, text=FRMNavy] {$\pi_{01}$} (n1);
+  \draw[FRMRed, -{Stealth[length=5pt]}, line width=0.8pt]
+    (n1) to[bend left=22] node[below, text=FRMRed] {$\pi_{10}$} (n0);
+  \draw[FRMNavy, -{Stealth[length=5pt]}, line width=0.8pt]
+    (n0) to[out=150, in=210, looseness=5]
+    node[left, text=FRMNavy] {$\pi_{00}$} (n0);
+  \draw[FRMRed, -{Stealth[length=5pt]}, line width=0.8pt]
+    (n1) to[out=30, in=-30, looseness=5]
+    node[right, text=FRMRed] {$\pi_{11}$} (n1);
+\end{tikzpicture}
+\end{center}
+\figcap{$\pi_{01}$ is the chance of an exceedance tomorrow given none today; $\pi_{11}$ is the
+chance of an exceedance tomorrow given one today. If those two differ, yesterday tells you
+something about today, and the exceedances are not independent.}
+
+\begin{mrdefbox}[title={The independence hypothesis}]
+\textbf{$H_0$: $\pi_{01} = \pi_{11}$} --- exceedances are independent. The probability of an
+exceedance today is the same whether or not there was an exceedance yesterday.
+
+\medskip
+Note that the test statistic for independence, $LR_{ind}$, also follows a chi-squared
+distribution with one degree of freedom.
+\end{mrdefbox}
+
+\subsection{3. Conditional coverage}
+Conditional coverage combines unconditional coverage (whether the number of exceedances matches
+expectations) and independence (whether exceedances occur randomly or show clustering). It
+checks two things simultaneously:
+\begin{itemize}
+\item Does the model correctly predict the expected exceedance rate?
+\item Are exceedances independent over time?
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ LR_{cc} \;=\; LR_{uc} \;+\; LR_{ind} \]
+\mrvk{each component is $\chi^2$ with one degree of freedom, so the sum is $\chi^2$ with two.}{}
+\end{mrfmlbox}
+
+\begin{mrtrapbox}[title={Two critical values, two different tests}]
+Using a 95\% confidence level, rejection of the \textbf{model} occurs if
+$LR_{cc} > \mathbf{5.99}$, and rejection of the \textbf{independence term alone} occurs if
+$LR_{ind} > \mathbf{3.84}$.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-7 b}{Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{3.6cm} >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Approach} & \hdr{What it looks at}\\
+\textbf{Exceedance-based} & Only focuses on whether losses exceed a preselected VaR threshold
+  (e.g.\ the 95\% or 99\% confidence level). It does \textit{not} assess how well the entire
+  forecasted distribution aligns with actual returns.\\
+\rowcolor{FRMSoft}
+\textbf{PIT} & Instead of just counting exceedances, the PIT approach evaluates how well the
+  predicted distribution fits the realized outcomes. It transforms actual profit and loss
+  observations onto a standardized uniform scale to assess the model's accuracy.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+VaR estimation predicts potential outcome distributions, focusing on tail risks. In a static
+distribution, straightforward statistical analysis would suffice. However, financial portfolios
+experience \term{dynamic} distributions. The PIT approach standardizes P\&L observations across
+periods, allowing unbiased validation.
+
+\subsection{The four steps, with a worked observation}
+
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\scriptsize\sffamily},
+  stepbox/.style={rectangle, rounded corners=2.5pt, draw=FRMNavy!55, fill=PaleNavy,
+    line width=0.7pt, text width=2.85cm, align=center, inner sep=5pt, minimum height=1.5cm}]
+  \node[stepbox] (s1) at (0,0)
+    {\textbf{Step 1}\\ Forecast the distribution for period $T$};
+  \node[stepbox, right=0.55cm of s1] (s2)
+    {\textbf{Step 2}\\ Collect the actual observation for period $T$};
+  \node[stepbox, right=0.55cm of s2] (s3)
+    {\textbf{Step 3}\\ Read where it falls on the forecast CDF};
+  \node[stepbox, right=0.55cm of s3] (s4)
+    {\textbf{Step 4}\\ Analyse the PITs for uniformity and independence};
+  \foreach \a/\b in {s1/s2, s2/s3, s3/s4}{
+    \draw[FRMGold, -{Stealth[length=4.5pt]}, line width=1pt] (\a) -- (\b);}
+  \node[below=2pt of s1, text width=2.85cm, align=center, text=black!65]
+    {P\&L $\sim N(\$0,\ \$500)$};
+  \node[below=2pt of s2, text width=2.85cm, align=center, text=black!65]
+    {Actual P\&L $= -\$250$};
+  \node[below=2pt of s3, text width=2.85cm, align=center, text=black!65]
+    {$-0.5\sigma \Rightarrow$ \textbf{PIT} $=0.308$};
+  \node[below=2pt of s4, text width=2.85cm, align=center, text=black!65]
+    {Same three properties as before};
+\end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=pdfax, width=6.6cm, height=4.2cm,
+  xmin=-3.2, xmax=3.2, ymin=0, ymax=0.46,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xtick={-2,-0.5,1,2},
+  xticklabels={$-1000$,$-250$,$500$,$1000$},
+  tick label style={font=\tiny}, clip=false,
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Forecast P\&L distribution}]
+\addplot[domain=-3.2:3.2, samples=200, smooth, black!80, line width=0.9pt] {0.39894*exp(-x^2/2)};
+\addplot[domain=-3.2:-0.5, samples=120, smooth, draw=none, fill=FRMGold!40]
+  {0.39894*exp(-x^2/2)} \closedcycle;
+\draw[FRMGold, line width=0.9pt] (axis cs:-0.5,0) -- (axis cs:-0.5,0.352);
+\node[anchor=west, font=\tiny\sffamily, text=FRMGold] at (axis cs:-3.1,0.40)
+  {area $=30.8\%$};
+\end{axis}
+\begin{axis}[name=cdfax, at={($(pdfax.east)+(1.5cm,0)$)}, anchor=west,
+  width=6.6cm, height=4.2cm,
+  xmin=-3.2, xmax=3.2, ymin=0, ymax=1.05,
+  axis y line=left, axis x line=bottom, axis line style={draw=black!55},
+  xtick={-2,-0.5,1,2}, xticklabels={$-1000$,$-250$,$500$,$1000$},
+  ytick={0,0.308,0.5,1}, yticklabels={0,0.308,0.5,1},
+  tick label style={font=\tiny}, clip=false,
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Same forecast, as a CDF}]
+\addplot[domain=-3.2:3.2, samples=200, smooth, black!80, line width=0.9pt]
+  {1/(1+exp(-1.702*x))};
+\draw[FRMGold, dashed, line width=0.8pt] (axis cs:-0.5,0) -- (axis cs:-0.5,0.308);
+\draw[FRMGold, dashed, line width=0.8pt] (axis cs:-3.2,0.308) -- (axis cs:-0.5,0.308);
+\node[circle, fill=FRMGold, inner sep=1.6pt] at (axis cs:-0.5,0.308) {};
+\node[anchor=west, font=\tiny\sffamily, text=FRMGold] at (axis cs:-0.35,0.28)
+  {PIT $=0.308$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The PIT is just the observation read off the vertical axis of the forecast CDF. The
+shaded area on the left is the same 30.8\%, seen as a probability instead of a height. A model
+that is right on average will scatter these readings evenly over $[0,1]$.}
+
+\begin{mrkeybox}[title={PIT-based backtesting and its properties}]
+\begin{itemize}
+\item \term{Uniformity:} PITs should be uniformly distributed over the interval $[0,1]$ if the
+      risk is accurately modeled. This reflects the \textit{unconditional coverage} property,
+      where each P\&L outcome corresponds to a uniformly distributed probability.
+\item \term{Independence:} the PIT series should also be independently and identically
+      distributed (i.i.d.), validating the model's \textit{independence} property.
+\end{itemize}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-7 c}{Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.}
+
+PITs offer valuable insights into the calibration of a VaR model. By plotting PITs for all
+observations, a well-calibrated model should exhibit a uniform distribution over $[0,1]$. This
+uniformity signifies that the model's predicted probabilities align closely with the observed
+outcomes, ensuring consistency across the entire spectrum of risk scenarios.
+
+\begin{itemize}
+\item If the VaR model perfectly forecasts the next period's P\&L distribution, the resulting
+      PITs will be uniformly distributed between 0 and 1.
+\item This means each decile (0--0.1, 0.1--0.2, and so on) will contain 10\% of the PITs.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[name=perf, width=7.0cm, height=4.4cm,
+  xmin=0.3, xmax=10.7, ymin=0, ymax=0.155,
+  xlabel={\scriptsize Decile band}, ylabel={\scriptsize Portion of observations},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={1,2,3,4,5,6,7,8,9,10},
+  xticklabels={0,.1,.2,.3,.4,.5,.6,.7,.8,.9},
+  ytick={0,0.05,0.10,0.15}, yticklabels={0\%,5\%,10\%,15\%},
+  axis line style={draw=black!55},
+  title={\scriptsize\sffamily\bfseries\color{FRMGreen}Perfect forecasting}]
+\addplot[ybar, bar width=11pt, fill=PaleGreen, draw=FRMGreen!70, line width=0.3pt] coordinates {
+(1,0.10)(2,0.10)(3,0.10)(4,0.10)(5,0.10)(6,0.10)(7,0.10)(8,0.10)(9,0.10)(10,0.10)};
+\addplot[FRMGreen, dashed, line width=0.8pt, forget plot, sharp plot]
+  coordinates {(0.3,0.10)(10.7,0.10)};
+\end{axis}
+\begin{axis}[name=imp, at={($(perf.east)+(1.9cm,0)$)}, anchor=west,
+  width=7.0cm, height=4.4cm,
+  xmin=0.3, xmax=10.7, ymin=0, ymax=0.155,
+  xlabel={\scriptsize Decile band},
+  xlabel style={font=\scriptsize},
+  tick label style={font=\tiny},
+  xtick={1,2,3,4,5,6,7,8,9,10},
+  xticklabels={0,.1,.2,.3,.4,.5,.6,.7,.8,.9},
+  ytick={0,0.05,0.10,0.15}, yticklabels={0\%,5\%,10\%,15\%},
+  axis line style={draw=black!55},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}Imperfect forecasting}]
+\addplot[ybar, bar width=11pt, fill=PaleRed, draw=FRMRed!70, line width=0.3pt] coordinates {
+(1,0.13)(2,0.09)(3,0.10)(4,0.09)(5,0.10)(6,0.10)(7,0.11)(8,0.07)(9,0.08)(10,0.13)};
+\addplot[FRMRed, dashed, line width=0.8pt, forget plot, sharp plot]
+  coordinates {(0.3,0.10)(10.7,0.10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Left, every decile holds exactly 10\% of the PITs. Right, the two end bands are
+overfull at 13\% while the 0.7--0.9 region is underfull. This chart illustrates a set of PITs
+that indicate that forecasted distributions underestimate losses or gains in some places and
+overestimate losses or gains in other places.}
+
+\begin{center}
+\begin{tikzpicture}
+% ===== LEFT: the forecast versus what actually happened =====
+\begin{axis}[name=fc, width=6.0cm, height=4.2cm,
+  xmin=-4.2, xmax=4.2, ymin=0, ymax=0.50,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize P\&L}, xlabel style={font=\tiny},
+  xtick={\empty}, clip=false,
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}Forecast is too \textit{narrow}},
+  legend style={font=\tiny\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.14)}, anchor=north, legend columns=-1, column sep=5pt}]
+\addplot[FRMNavy, line width=1.2pt, smooth, domain=-4.2:4.2, samples=150]
+  {0.455*exp(-(x^2)/1.0)};
+\addlegendentry{model forecast}
+\addplot[FRMRed, line width=1.2pt, dashed, smooth, domain=-4.2:4.2, samples=150]
+  {0.30*exp(-(x^2)/3.4)};
+\addlegendentry{what actually happens}
+\node[anchor=south, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1pt]
+  at (axis cs:-3.0,0.055) {real outcomes};
+\node[anchor=south, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1pt]
+  at (axis cs:3.0,0.055) {land out here};
+\end{axis}
+\draw[FRMGold, -{Stealth[length=5.5pt]}, line width=1.2pt]
+  ($(fc.east)+(0.6cm,0)$) -- ($(fc.east)+(1.9cm,0)$);
+\node[anchor=south, font=\tiny\sffamily, text=FRMGold, align=center]
+  at ($(fc.east)+(1.25cm,0.14cm)$) {so the PITs};
+% ===== RIGHT: the PIT histogram that results =====
+\begin{axis}[name=ph, at={($(fc.east)+(3.0cm,0)$)}, anchor=west,
+  width=6.2cm, height=4.2cm,
+  xmin=0.3, xmax=10.7, ymin=0, ymax=0.165,
+  xlabel={\scriptsize Decile band}, ylabel={\scriptsize Portion},
+  xlabel style={font=\tiny}, ylabel style={font=\tiny},
+  tick label style={font=\tiny},
+  xtick={1,3,5,7,9}, xticklabels={0,.2,.4,.6,.8},
+  ytick={0,0.05,0.10,0.15}, yticklabels={0\%,5\%,10\%,15\%},
+  axis line style={draw=black!55}, clip=false,
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}pile up at \textit{both ends}}]
+\addplot[ybar, bar width=9pt, fill=PaleRed, draw=FRMRed!70, line width=0.3pt] coordinates {
+(1,0.13)(2,0.09)(3,0.10)(4,0.09)(5,0.10)(6,0.10)(7,0.11)(8,0.07)(9,0.08)(10,0.13)};
+\addplot[FRMRed, dashed, line width=0.8pt, forget plot, sharp plot]
+  coordinates {(0.3,0.10)(10.7,0.10)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{Why the end bands are overfull. If the model's forecast distribution is narrower than
+reality, then outcomes that the model treats as extreme happen more often than it expects, and
+those outcomes map to PIT values very close to 0 and very close to 1. The histogram on the right
+\textit{is} the mismatch on the left, counted. A forecast that is too \textbf{wide} produces the
+opposite --- PITs bunching in the middle deciles and thin at the ends.}
+
+% ---------------------------------------------------------
+\lo{MR-7 d}{Describe backtesting using PITs, and compare the various goodness-of-fit tests that can be used to evaluate the distribution of PITs: the Kolmogorov-Smirnov test, the Anderson-Darling test, and the Cram\'er-von Mises test.}
+
+\subsection{Evaluating PIT distributions}
+To assess the quality of a VaR model using the shape of the PIT distribution:
+\begin{itemize}
+\item Use visual tools like histograms or QQ plots to detect uniformity deviations.
+\item Apply goodness-of-fit tests such as Kolmogorov-Smirnov (KS), Anderson-Darling (AD), or
+      Cram\'er-von Mises (CvM).
+\end{itemize}
+
+These tests assess how well the empirical distribution of PITs matches the theoretical uniform
+distribution. They often utilize QQ plots, which visually compare the quantiles of the two
+distributions.
+
+\begin{mrtrapbox}[title={Remember}]
+Deviations from the straight diagonal line in a QQ plot suggest a mismatch.
+\end{mrtrapbox}
+
+\subsection{1) Kolmogorov-Smirnov test}
+\begin{itemize}
+\item The KS test is a widely used non-parametric test that evaluates goodness-of-fit by
+      comparing the empirical distribution function (EDF) of a sample with the reference uniform
+      distribution function over $[0,1]$.
+\item It measures the \term{maximum distance} between the EDF and the reference CDF. This
+      maximum difference is the KS statistic, $D$.
+\item The KS test is ideal for checking the overall uniformity of PIT distributions but may miss
+      tail-specific misspecifications. It is commonly used for quick checks of distributional
+      uniformity.
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ D \;=\; \max_j \left| z_j - A_j \right| \]
+\mrvk{$j$ = ranked observation out of $n$ total observations;\quad $z_j$ = theoretical (perfect)
+distribution;\quad $A_j$ = actual CDF distribution.}{%
+\par\smallskip\textbf{\sffamily Remember:} a \textit{smaller} KS statistic $D$ indicates a
+better fit.}
+\end{mrfmlbox}
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=8.2cm, height=5.6cm,
+  xmin=0, xmax=1, ymin=0, ymax=1,
+  xlabel={\scriptsize PIT value}, ylabel={\scriptsize Portion of observations $\le$ PIT},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,0.25,0.5,0.75,1}, ytick={0,0.25,0.5,0.75,1},
+  axis line style={draw=black!55}, clip=false]
+\addplot[FRMNavy, line width=1.2pt, domain=0:1, samples=2] {x};
+\addplot[black!70, line width=0.9pt, smooth, domain=0:1, samples=120]
+  {x + 0.19*sin(deg(3.14159*x))*cos(deg(0.9*3.14159*x))};
+\draw[FRMRed, {Stealth[length=4pt]}-{Stealth[length=4pt]}, line width=0.9pt]
+  (axis cs:0.245,0.245) -- (axis cs:0.245,0.408);
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed] at (axis cs:0.27,0.33) {$D$};
+\node[anchor=north west, font=\scriptsize\sffamily, text=FRMNavy, fill=white, inner sep=1.5pt]
+  at (axis cs:0.62,0.44) {perfect uniform};
+\node[anchor=south east, font=\scriptsize\sffamily, text=black!70, fill=white, inner sep=1.5pt]
+  at (axis cs:0.42,0.62) {actual EDF};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{$D$ is the single widest vertical gap anywhere between the two curves. Because it takes
+only the maximum, a model can be badly wrong in the far tail and still score well if the gap
+there is narrower than the gap in the middle. That is the KS test's blind spot.}
+
+\subsection{2) Anderson-Darling test}
+Similar to the KS test, but places \textit{more weight} on discrepancies in the \textit{tails}
+of the distribution. This makes it more suitable for risk management applications. The AD test
+places higher emphasis on tail observations, making it a more appealing option for risk
+managers.
+
+\begin{mrfmlbox}
+\[ A^{2} \;=\; -n \;-\; \frac{1}{n}\sum_{j=1}^{n} (2j-1)\Bigl[ \ln(z_j) +
+   \ln(1 - z_{\,n+1-j}) \Bigr] \]
+\mrvk{$n$ = number of observations;\quad $j$ = rank of the observation;\quad $z_j$ = the $j$th
+ordered PIT value. The $\ln$ terms blow up as $z_j$ approaches 0 or 1, which is precisely why
+tail discrepancies are weighted so heavily.}{}
+\end{mrfmlbox}
+
+\subsection{3) Cram\'er-von Mises test}
+The CvM test is very similar to the KS test, but instead of evaluating the \textit{maximum}
+difference between distributions, it considers the \textit{mean squared deviation}.
+
+\begin{mrfmlbox}
+\[ W^{2} \;=\; \sum_{j=1}^{n} \left[ z_j - \frac{(2j-1)}{2n} \right]^{2} + \frac{1}{12n} \]
+\mrvk{$z_j$ = the $j$th ordered PIT value;\quad $(2j-1)/2n$ = where that observation would sit
+under a perfect uniform;\quad $n$ = number of observations.}{}
+\end{mrfmlbox}
+
+\subsection{The three tests side by side}
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{2.1cm} p{2.9cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Test} & \hdr{What it measures} & \hdr{Strengths} & \hdr{Limitations}\\
+\midrule
+\textbf{Kolmogorov-\newline Smirnov (KS)}
+  & The \textit{maximum} distance between the EDF and the reference CDF, $D$.
+  & Simple and widely used for general goodness-of-fit evaluation. Detects deviations in the
+    \textit{central} portion of the distribution effectively.
+  & Less sensitive to deviations in the \textit{tails} of the distribution.\\
+\rowcolor{FRMSoft}
+\textbf{Anderson-\newline Darling (AD)}
+  & The same comparison, but weighted so that tail observations count for more.
+  & Corrects the KS test's lack of sensitivity to tail deviations. Focuses on the tails, giving
+    more statistical power for extreme quantiles (e.g.\ 99\% confidence levels).
+  & More computationally intensive compared to the KS test.\\
+\textbf{Cram\'er-von\newline Mises (CvM)}
+  & The \textit{mean squared deviation} across the whole distribution rather than the single
+    largest gap.
+  & Uses every observation rather than only the worst one, so a pattern of small
+    misfits still registers.
+  & Like KS, it does not single out the tails.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+\figcap{All three compare the same two curves. They differ only in how they summarise the gap
+between them: KS takes the largest gap, CvM averages the squared gaps, and AD averages them
+with the tails weighted up.}
+
+\subsection{Independence of PIT values}
+Berkowitz (2001) describes an approach for how to evaluate independence through PIT values. He
+notes that it may be easier to conduct independence tests \textit{outside} of the range of a
+uniform distribution. For this test, evaluating the independence of PIT values requires
+transforming PITs into \term{standard normal variables}.
+
+\begin{center}
+\small
+\begin{tabular}{c r r r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Day} & \hdr{Expected std.\ deviation} & \hdr{Actual P\&L} & \hdr{PIT}
+  & \hdr{Standard normal equivalent}\\
+1 & 2.00\% & 4.24\% & 0.983 & 2.12\\
+\rowcolor{FRMSoft} 2 & 2.25\% & 0.95\% & 0.664 & 0.42\\
+3 & 1.65\% & $-0.70\%$ & 0.335 & $-0.43$\\
+\rowcolor{FRMSoft} 4 & 1.00\% & 0.40\% & 0.656 & 0.40\\
+5 & 3.25\% & $-5.48\%$ & 0.046 & $-1.68$\\
+\rowcolor{FRMSoft} 6 & 2.50\% & $-0.65\%$ & 0.397 & $-0.26$\\
+7 & 1.85\% & $-3.03\%$ & 0.051 & $-1.64$\\
+\bottomrule
+\end{tabular}
+\end{center}
+\figcap{The same P\&L is expressed three ways across the row: as a raw return, as a PIT on
+$[0,1]$, and finally as a $z$-score. Day 5's $-5.48\%$ against an expected 3.25\% standard
+deviation lands at a PIT of 0.046, deep in the left tail.}
+
+The series in the last column can then be analyzed for independence across observations using
+well-known log-likelihood functions.
+
+Lastly, \term{conditional coverage} can be visually checked by viewing scatterplots of PITs
+versus lagged PITs. Ideally, there should be no clustering present, and a scatterplot should
+reveal a uniform distribution across all subportfolios.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=6.6cm, height=6.0cm,
+  xmin=0, xmax=1, ymin=0, ymax=1,
+  xlabel={\scriptsize Lagged PIT}, ylabel={\scriptsize PIT},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  xtick={0,0.25,0.5,0.75,1}, ytick={0,0.25,0.5,0.75,1},
+  axis line style={draw=black!55}]
+\addplot[only marks, mark=*, mark size=0.55pt, color=FRMNavy!65] coordinates {
+(0.238,0.544)(0.37,0.604)(0.626,0.066)(0.013,0.837)(0.259,0.234)(0.996,0.47)(0.836,0.476)
+(0.639,0.151)(0.635,0.868)(0.523,0.741)(0.671,0.064)(0.758,0.591)(0.301,0.031)(0.866,0.473)
+(0.719,0.879)(0.714,0.921)(0.395,0.801)(0.445,0.936)(0.879,0.097)(0.136,0.217)(0.965,0.436)
+(0.627,0.301)(0.507,0.386)(0.351,0.585)(0.584,0.904)(0.682,0.929)(0.856,0.991)(0.671,0.163)
+(0.861,0.965)(0.905,0.569)(0.714,0.211)(0.832,0.574)(0.285,0.063)(0.854,0.99)(0.089,0.801)
+(0.41,0.151)(0.294,0.769)(0.873,0.044)(0.615,0.045)(0.718,0.331)(0.881,0.981)(0.505,0.999)
+(0.31,0.077)(0.6,0.031)(0.197,0.408)(0.61,0.156)(0.042,0.868)(0.314,0.959)(0.897,0.378)
+(0.46,0.52)(0.644,0.596)(0.559,0.62)(0.941,0.507)(0.431,0.72)(0.238,0.301)(0.978,0.521)
+(0.548,0.011)(0.415,0.58)(0.02,0.616)(0.632,0.06)(0.627,0.466)(0.679,0.353)(0.707,0.738)
+(0.022,0.061)(0.676,0.963)(0.251,0.456)(0.593,0.32)(0.364,0.313)(0.369,0.596)(0.3,0.377)
+(0.772,0.027)(0.569,0.735)(0.31,0.223)(0.804,0.239)(0.187,0.435)(0.698,0.102)(0.322,0.334)
+(0.834,0.438)(0.856,0.169)(0.337,0.65)(0.885,0.451)(0.225,0.121)(0.53,0.191)(0.807,0.838)
+(0.184,0.279)(0.807,0.642)(0.806,0.345)(0.13,0.292)(0.794,0.271)(0.346,0.417)(0.42,0.41)
+(0.921,0.156)(0.005,0.943)(0.88,0.987)(0.434,0.95)(0.927,0.222)(0.746,0.837)(0.663,0.519)
+(0.289,0.341)(0.227,0.068)(0.589,0.287)(0.81,0.045)(0.904,0.694)(0.924,0.897)(0.9,0.577)
+(0.013,0.745)(0.172,0.3)(0.663,0.525)(0.414,0.939)(0.612,0.341)(0.252,0.862)(0.477,0.782)
+(0.352,0.197)(0.535,0.817)(0.171,0.792)(0.922,0.806)(0.823,0.008)(0.629,0.863)(0.05,0.271)
+(0.269,0.527)(0.423,0.473)(0.776,0.002)(0.055,0.127)(0.125,0.068)(0.975,0.854)(0.086,0.502)
+(0.316,0.315)(0.351,0.647)(0.587,0.361)(0.191,0.329)(0.124,0.556)(0.716,0.38)(0.08,0.179)
+(0.373,0.604)(0.783,0.38)(0.801,0.623)(0.432,0.372)(0.496,0.703)(0.421,0.694)(0.461,0.245)
+(0.536,0.695)(0.072,0.425)(0.426,0.88)(0.936,0.374)(0.898,0.791)(0.262,0.464)(0.123,0.813)
+(0.662,0.887)(0.792,0.668)(0.734,0.564)(0.103,0.588)(0.005,0.144)(0.774,0.044)(0.092,0.099)
+(0.88,0.179)(0.023,0.842)(0.121,0.844)(0.674,0.836)(0.952,0.579)(0.799,0.036)(0.767,0.511)
+(0.715,0.107)(0.749,0.935)(0.061,0.324)(0.564,0.828)(0.242,0.18)(0.25,0.616)(0.754,0.394)
+(0.367,0.397)(0.35,0.418)(0.083,0.5)(0.973,0.413)(0.747,0.161)(0.691,0.756)(0.674,0.517)
+(0.484,0.643)(0.897,0.149)(0.096,0.748)(0.917,0.517)(0.443,0.719)(0.186,0.267)(0.199,0.586)
+(0.315,0.232)(0.691,0.953)(0.296,0.705)(0.413,0.854)(0.585,0.267)(0.218,0.023)(0.479,0.383)
+(0.172,0.36)(0.322,0.774)(0.144,0.991)(0.48,0.599)(0.468,0.835)(0.822,0.557)(0.481,0.721)
+(0.857,0.4)(0.734,0.96)(0.467,0.23)(0.235,0.718)(0.675,0.959)(0.854,0.242)(0.19,0.259)
+(0.187,0.705)(0.859,0.9)(0.255,0.865)(0.313,0.423)(0.729,0.086)(0.093,0.834)(0.292,0.357)
+(0.58,0.676)(0.007,0.335)(0.436,0.486)(0.21,0.585)(0.955,0.391)(0.544,0.119)(0.275,0.665)
+(0.113,0.887)(0.909,0.097)(0.941,0.374)(0.772,0.757)(0.296,0.676)(0.654,0.806)(0.266,0.754)
+(0.961,0.673)(0.536,0.113)(0.494,0.352)(0.718,0.679)(0.566,0.182)(0.646,0.631)(0.179,0.89)
+(0.655,0.123)(0.932,0.141)(0.332,0.72)(0.597,0.555)(0.647,0.458)(0.312,0.176)(0.069,0.716)
+(0.754,0.543)(0.74,0.359)(0.266,0.383)(0.873,0.042)(0.505,0.247)(0.769,0.354)(0.333,0.403)
+(0.541,0.772)(0.353,0.847)(0.112,0.27)(0.1,0.113)(0.779,0.727)(0.185,0.189)(0.417,0.743)
+(0.816,0.749)(0.592,0.146)(0.398,0.194)(0.528,0.568)(0.202,0.25)(0.782,0.03)(0.803,0.891)
+(0.949,0.383)};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{What a clean result looks like: an even cloud with no diagonal streak and no dense
+corner. A band running along the diagonal would mean a high PIT tends to follow a high PIT,
+which is clustering.}
+
+
+% ==========================================================

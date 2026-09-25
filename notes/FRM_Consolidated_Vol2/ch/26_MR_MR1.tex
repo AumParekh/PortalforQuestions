@@ -1,0 +1,485 @@
+\reading{MR-1}{Estimating Market Risk Measures: An Introduction and Overview}{strike}{6}
+% ==========================================================
+
+\begin{mrkeybox}[title={Learning objectives in this reading}]
+\small
+\begin{enumerate}[label=\textbf{\alph*.},leftmargin=1.7em]
+\item Estimate VaR using a historical simulation approach.
+\item Estimate VaR using a parametric approach for both normal and lognormal return distributions.
+\item Estimate the expected shortfall given profit and loss (P\&L) or return data.
+\item Estimate risk measures by estimating quantiles.
+\item Evaluate estimators of risk measures by estimating their standard errors.
+\item Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.
+\end{enumerate}
+\end{mrkeybox}
+
+\section{Basics}
+
+\subsection{Arithmetic returns}
+This approach is not appropriate for long investment horizons and does not consider
+reinvestment.
+
+\begin{mrfmlbox}
+\[ r_t \;=\; \frac{P_t + D_t}{P_{t-1}} \;-\; 1 \]
+\mrvk{$P_t$ = asset price at the end of period $t$;\quad $D_t$ = interim payment (dividend or
+coupon) received during period $t$;\quad $P_{t-1}$ = asset price at the start of the period.}{}
+\end{mrfmlbox}
+
+\subsection{Geometric returns}
+Here, interim payments are continuously reinvested. Note that this approach ensures that
+asset price can never be negative.
+
+\begin{mrfmlbox}
+\[ R_t \;=\; \ln\!\left( \frac{P_t + D_t}{P_{t-1}} \right) \]
+\mrvk{$R_t$ = geometric (log) return over period $t$; the remaining symbols are as above.}{}
+\end{mrfmlbox}
+
+\subsection{Data}
+Our data can come in various forms. Perhaps the simplest is in terms of profit/loss (or P/L).
+
+% ---------------------------------------------------------
+\lo{MR-1 a}{Estimate VaR using a historical simulation approach.}
+
+Estimating VaR with a historical simulation approach is by far the simplest and most
+straightforward VaR method.
+
+The idea here is to order the historical losses observed in a portfolio, ordered by the actual
+amount of the loss. To make this calculation, you simply \term{order return observations from
+largest to smallest}. The observation that follows the threshold loss level denotes the VaR limit.
+
+So, if we have 1,000 loss observations and we are interested in the 97\% confidence level,
+that implies that 30 observations will be in the tail of the distribution that will define the
+VaR of this portfolio.
+
+\begin{mrfmlbox}
+\[ \text{VaR observation number} \;=\; (\alpha \times n) + 1 \]
+\mrvk{$\alpha$ = tail probability, i.e.\ $1 - \text{confidence level}$;\quad $n$ = number of
+observations in the data set.}{}
+\end{mrfmlbox}
+
+So, in the example the \term{31st} loss observation would be the amount of the expected VaR of
+the portfolio.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.4cm, height=6.2cm,
+  ybar interval, bar width=1,
+  xmin=-4, xmax=4, ymin=0, ymax=92,
+  xlabel={\scriptsize Profit / loss}, ylabel={\scriptsize Frequency},
+  xlabel style={font=\scriptsize}, ylabel style={font=\scriptsize},
+  tick label style={font=\scriptsize},
+  axis background/.style={fill=white},
+  xtick={-4,-3,-2,-1,0,1,2,3,4},
+  ytick={0,10,20,30,40,50,60,70,80,90},
+  grid=none]
+\addplot[fill=PaleNavy, draw=FRMNavy!60, line width=0.25pt] coordinates {
+(-4.000,0) (-3.850,0) (-3.700,0) (-3.550,1) (-3.400,1) (-3.250,0) (-3.100,0)
+(-2.950,1) (-2.800,2) (-2.650,5) (-2.500,6) (-2.350,8) (-2.200,10) (-2.050,11)
+(-1.900,20) (-1.750,14) (-1.600,27) (-1.450,28) (-1.300,31) (-1.150,44)
+(-1.000,50) (-0.850,53) (-0.700,57) (-0.550,73) (-0.400,85) (-0.250,82)
+(-0.100,65) (0.050,71) (0.200,70) (0.350,73) (0.500,75) (0.650,61) (0.800,55)
+(0.950,35) (1.100,43) (1.250,38) (1.400,29) (1.550,26) (1.700,20) (1.850,9)
+(2.000,3) (2.150,8) (2.300,7) (2.450,0) (2.600,2) (2.750,0) (2.900,0)
+(3.050,0) (3.200,1) (3.350,0) (3.500,0) (3.650,0) (3.800,0) (3.950,0)};
+\draw[FRMRed, -{Stealth[length=5pt]}, line width=0.9pt]
+  (axis cs:-1.704,68) -- (axis cs:-1.704,8);
+\node[anchor=west, font=\scriptsize\sffamily, text=FRMRed]
+  at (axis cs:-3.90,72) {95\% VaR $=1.704$};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The full profit/loss distribution built from the historical observations. The marker sits
+at the loss beyond which only the worst 5\% of observations fall, so everything to its left is
+the tail that defines the 95\% VaR.}
+
+\begin{mrtrapbox}[title={Problems with the HS approach}]
+From a practical perspective, the historical simulation approach is sensible \textit{only} if
+you expect future performance to follow the same return generating process as in the past.
+Furthermore, this approach is unable to adjust for changing economic conditions or abrupt
+shifts in parameter values.
+\end{mrtrapbox}
+
+% ---------------------------------------------------------
+\lo{MR-1 b}{Estimate VaR using a parametric approach for both normal and lognormal return distributions.}
+
+\term{Parametric approach:} in this method, we use some parameters (like mean and variance)
+--- for example the delta-normal approach --- and also explicitly assume a distribution for the
+underlying observations.
+
+\subsection{1) Normal VaR}
+\begin{itemize}
+\item We assume that arithmetic returns are normally distributed with mean $\mu$ and standard
+      deviation $\sigma$.
+\item For returns that follow a normal distribution, we use normal VaR.
+\item The VaR cutoff will be in the left tail of the returns distribution. Hence, the calculated
+      value at risk is negative, but is typically reported as a positive value since the negative
+      amount is implied.
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ \mathrm{VaR}(\alpha\%) \;=\; -\mu_{P/L} \;+\; \sigma_{P/L}\, z_\alpha
+   \qquad\qquad
+   \mathrm{VaR}(\alpha\%) \;=\; \bigl(-\mu_r + \sigma_r \times z_\alpha\bigr) \times P_{t-1} \]
+\mrvk{$\mu_{P/L}$, $\sigma_{P/L}$ = mean and standard deviation of the profit/loss distribution
+(used when the data is given in currency units);\quad $\mu_r$, $\sigma_r$ = mean and standard
+deviation of arithmetic returns (used when the data is given in \%, so the result must be scaled
+by the portfolio value);\quad $z_\alpha$ = one-tailed standard normal deviate for the chosen
+confidence level;\quad $P_{t-1}$ = portfolio value at the start of the period.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example 1 --- P/L data}]
+Assume that the profit/loss distribution for XYZ is normally distributed with an annual mean of
+\$15 million and a standard deviation of \$10 million. Calculate the VaR at the 95\% and 99\%
+confidence levels using a parametric approach.
+\tcblower
+\small
+\begin{align*}
+\mathrm{VaR}(95\%) &= -15 + 10 \times 1.645 = \$1.45\text{ million}\\
+\mathrm{VaR}(99\%) &= -15 + 10 \times 2.326 = \$8.26\text{ million}
+\end{align*}
+\end{mrexbox}
+
+\begin{mrexbox}[title={Example 2 --- arithmetic return data}]
+A portfolio has a beginning period value of \$100. The arithmetic returns follow a normal
+distribution with a mean of 10\% and a standard deviation of 20\%. Calculate VaR at both the
+95\% and 99\% confidence levels.
+\tcblower
+\small
+\begin{align*}
+\mathrm{VaR}(95\%) &= \bigl(-0.10 + 0.20 \times 1.645\bigr) \times 100 = \$22.90\\
+\mathrm{VaR}(99\%) &= \bigl(-0.10 + 0.20 \times 2.326\bigr) \times 100 = \$36.52
+\end{align*}
+\end{mrexbox}
+
+\subsection{2) Lognormal VaR}
+\begin{itemize}
+\item Assume that geometric returns are normally distributed with mean $\mu$ and standard
+      deviation $\sigma$. This assumption implies that the natural logarithm of $p$ is normally
+      distributed, or that $p$ itself is lognormally distributed. Normally distributed geometric
+      returns imply that the VaR is lognormally distributed.
+\item The lognormal distribution is right-skewed with positive outliers and bounded below by
+      zero. As a result, the lognormal distribution is commonly used to counter the possibility
+      of negative asset prices ($P_t$).
+\item Used when geometric returns are provided in the question.
+\end{itemize}
+
+\begin{mrfmlbox}
+\[ \mathrm{VaR}(\alpha\%) \;=\; P_{t-1} \times \left( 1 - e^{\,\mu_R - \sigma_R \times z_\alpha} \right) \]
+\mrvk{$\mu_R$, $\sigma_R$ = mean and standard deviation of \textit{geometric} returns;\quad
+$z_\alpha$ = one-tailed standard normal deviate;\quad $P_{t-1}$ = portfolio value at the start
+of the period.}{}
+\end{mrfmlbox}
+
+\begin{mrexbox}[title={Example 3 --- lognormal VaR}]
+A diversified portfolio exhibits a normally distributed geometric return with mean and standard
+deviation of 10\% and 20\%, respectively. Calculate the 5\% and 1\% lognormal VaR assuming the
+beginning period portfolio value is \$100.
+\tcblower
+\small
+\begin{align*}
+\mathrm{VaR}(5\%) &= 100 \times \left(1 - e^{\,0.10 - 0.20 \times 1.645}\right)
+   = 100 \times \left(1 - e^{-0.229}\right) = \$20.47\\
+\mathrm{VaR}(1\%) &= 100 \times \left(1 - e^{\,0.10 - 0.20 \times 2.326}\right)
+   = 100 \times \left(1 - e^{-0.3652}\right) = \$30.59
+\end{align*}
+\end{mrexbox}
+
+\subsection{Interpretations of VaR}
+
+\begin{mrdefbox}[title={1. Standard interpretation --- VaR is a loss}]
+Assume a risk manager calculates Normal 99\% VaR as \$5,000.
+\begin{itemize}
+\item \term{Confidence level:} I am 99 percent confident that the maximum 1-week loss will not
+      exceed \$5,000.
+\item \term{Minimum loss level:} there is a 1 percent chance that the loss will exceed \$5,000
+      or more.
+\end{itemize}
+\end{mrdefbox}
+
+\begin{mrdefbox}[title={2. Alternate interpretation --- VaR is negative, so it is a profit}]
+Assume a risk manager calculates Normal 99\% VaR as \textsc{negative} \$5,000. When we have
+profits, both the minimum loss and the confidence interval statement are reversed.
+\begin{itemize}
+\item \term{Confidence level:} I am 99 percent confident that the minimum profit will be at
+      least \$5,000.
+\item \term{Minimum loss level:} there is a 1 percent chance that the profit will be less than
+      \$5,000.
+\end{itemize}
+\end{mrdefbox}
+
+\begin{mrexbox}[title={Example 4 --- interpreting a negative VaR}]
+Assume the profit/loss distribution for XYZ is normally distributed with an annual mean of
+\$20 million and a standard deviation of \$10 million. The 5\% VaR is calculated and interpreted
+as which of the following statements?
+\begin{enumerate}[label=\Alph*.,leftmargin=1.7em]
+\item 5\% probability of losses of at least \$3.50 million.
+\item 5\% probability of earnings of at least \$3.50 million.
+\item 95\% probability of losses of at least \$3.50 million.
+\item 95\% probability of earnings of at least \$3.50 million.
+\end{enumerate}
+\tcblower
+\small
+$\mathrm{VaR}(5\%) = -20 + 10 \times 1.65 = -\$3.50$ million. The VaR is negative, so it is a
+profit, and the alternate interpretation applies. \term{Answer: B.}
+\end{mrexbox}
+
+% ---------------------------------------------------------
+\lo{MR-1 c}{Estimate the expected shortfall given profit and loss (P\&L) or return data.}
+
+\begin{mrtrapbox}[title={Limitations of VaR}]
+\begin{itemize}
+\item Confidence level dependent.
+\item Does not tell the magnitude of the actual loss.
+\end{itemize}
+\end{mrtrapbox}
+
+\begin{mrdefbox}[title={Expected shortfall}]
+The expected shortfall (ES) provides an estimate of the tail loss by averaging the VaRs for
+increasing confidence levels in the tail.
+\end{mrdefbox}
+
+\subsection{Two methods to calculate ES}
+
+\textbf{1) Slicing the tail.} Specifically, the tail mass is divided into $n$ equal slices and
+the corresponding $n-1$ VaRs are computed.
+
+\medskip
+\begin{center}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.2cm} r r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Confidence level} & \hdr{VaR} & \hdr{Difference}\\
+96\% & 1.7507 & \\
+\rowcolor{FRMSoft} 97\% & 1.8808 & 0.1301\\
+98\% & 2.0537 & 0.1729\\
+\rowcolor{FRMSoft} 99\% & 2.3263 & 0.2726\\
+\midrule
+\textit{Average} & 2.003 & \\
+\textit{Theoretical true value} & 2.063 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Observe that the VaR increases (from the Difference column) in order to maintain the same
+interval mass (of 1\%) because the tails become thinner and thinner.
+
+The average of the four computed VaRs is \term{2.003} and represents the probability-weighted
+expected tail loss (a.k.a.\ expected shortfall). Note that as $n$ increases, the expected
+shortfall will increase and approach the theoretical true loss [2.063 in this case; the average
+of a high number of VaRs (e.g., greater than 10,000)].
+
+\medskip
+\begin{center}
+\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{5.0cm} r}
+\arrayrulecolor{FRMRule}\toprule
+\rowcolor{FRMNavy} \hdr{Number of tail slices ($n$)} & \hdr{ES}\\
+10 & 2.0250\\
+\rowcolor{FRMSoft} 25 & 2.0433\\
+50 & 2.0513\\
+\rowcolor{FRMSoft} 100 & 2.0562\\
+250 & 2.0597\\
+\rowcolor{FRMSoft} 500 & 2.0610\\
+1,000 & 2.0618\\
+\rowcolor{FRMSoft} 2,500 & 2.0623\\
+5,000 & 2.0625\\
+\rowcolor{FRMSoft} 10,000 & 2.0626\\
+\midrule
+\textit{True value} & 2.0630\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{2) Direct formula.} The second method is using this formula to calculate ES.
+
+\begin{mrfmlbox}
+\[ \mathrm{ES} \;=\; \mu \;+\; \sigma\,\frac{e^{-(z^2/2)}}{(1-x)\sqrt{2\pi}} \]
+\mrvk{$\mu$, $\sigma$ = mean and standard deviation of the distribution;\quad
+$z$ = the standard normal quantile at the chosen confidence level;\quad
+$x$ = the confidence level itself, so $(1-x)$ is the tail probability.}{%
+\par\smallskip\textbf{\sffamily Note on notation:} $z$ and $x$ are two different things in the
+same formula --- $z$ sits in the numerator as the quantile, $x$ sits in the denominator as the
+confidence level.}
+\end{mrfmlbox}
+
+% ---------------------------------------------------------
+\lo{MR-1 d}{Estimate risk measures by estimating quantiles.}
+
+Under expected shortfall estimation, the tail region is divided into equal probability slices
+and then multiplied by the corresponding quantiles.
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  width=11.0cm, height=5.0cm,
+  ybar, bar width=3.2pt,
+  xmin=-4.2, xmax=4.2, ymin=0, ymax=0.45,
+  axis y line=none, axis x line=bottom,
+  axis line style={draw=black!55},
+  tick label style={font=\scriptsize}, xtick={-4,-3,-2,-1,0,1,2,3,4},
+  x axis line style={-},
+  title={\small\sffamily\bfseries\color{FRMGold}Expected Shortfall},
+  clip=false]
+\addplot[fill=FRMRed!45, draw=FRMRed!70, line width=0.2pt] coordinates {
+(-3.4,0.0012)(-3.2,0.0024)(-3.0,0.0044)(-2.8,0.0079)(-2.6,0.0136)(-2.4,0.0224)
+(-2.2,0.0355)(-2.0,0.0540)(-1.8,0.0790)};
+\addplot[fill=PaleNavy, draw=FRMNavy!60, line width=0.2pt] coordinates {
+(-1.6,0.1109)(-1.4,0.1497)(-1.2,0.1942)(-1.0,0.2420)(-0.8,0.2897)(-0.6,0.3332)
+(-0.4,0.3683)(-0.2,0.3910)(0.0,0.3989)(0.2,0.3910)(0.4,0.3683)(0.6,0.3332)
+(0.8,0.2897)(1.0,0.2420)(1.2,0.1942)(1.4,0.1497)(1.6,0.1109)(1.8,0.0790)
+(2.0,0.0540)(2.2,0.0355)(2.4,0.0224)(2.6,0.0136)(2.8,0.0079)(3.0,0.0044)
+(3.2,0.0024)(3.4,0.0012)};
+\addplot[domain=-4:4, samples=200, smooth, black!80, line width=0.9pt, forget plot]
+  {0.39894*exp(-x^2/2)};
+\node[anchor=south east, font=\scriptsize\sffamily, align=right, text=black!70]
+  at (axis cs:-2.25,0.20) {Equal weight to\\all these losses};
+\draw[black!70, -{Stealth[length=4pt]}, line width=0.5pt]
+  (axis cs:-2.35,0.195) -- (axis cs:-2.75,0.045);
+\draw[black!70, -{Stealth[length=4pt]}, line width=0.5pt]
+  (axis cs:-2.20,0.195) -- (axis cs:-1.90,0.10);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The shaded tail is cut into equal-probability slices. A VaR is taken at each slice
+boundary and the slices are then averaged with equal weight, which is what makes the result an
+expected shortfall rather than a single quantile.}
+
+Risk measure estimation by quantiles means to divide the entire distribution into different
+quantiles ($n$).
+
+\begin{mrdefbox}[title={Coherent risk measure}]
+\begin{itemize}
+\item A more general risk measure than either VaR or ES is known as a \term{coherent risk
+      measure}. A coherent risk measure is a weighted average of the quantiles of the loss
+      distribution where the weights are user-specific based on individual risk aversion.
+\item A coherent risk measure will assign \textit{each} quantile (not just tail quantiles) a
+      weight. The average of the weighted VaRs is the estimated loss.
+\end{itemize}
+\end{mrdefbox}
+
+% ---------------------------------------------------------
+\lo{MR-1 e}{Evaluate estimators of risk measures by estimating their standard errors.}
+
+\term{Standard error:} used to assess the precision of the risk measure. In Value at Risk (VaR)
+it refers to the uncertainty or the variability of the VaR estimate. The simplest method is to
+create a confidence interval around the quantile in question.
+
+Estimators that are less precise (i.e., have large standard errors and wide confidence
+intervals) will have limited practical value. Therefore, it is best practice to also compute
+the standard error.
+
+\begin{mrfmlbox}[breakable=false]
+\textbf{a. Confidence interval}
+\[ \bigl[\, q + se(q) \times z_\alpha \,\bigr] \;>\; \mathrm{VaR} \;>\;
+   \bigl[\, q - se(q) \times z_\alpha \,\bigr] \]
+\mrvk{$q$ = the estimated quantile;\quad $se(q)$ = standard error of that quantile;\quad
+$z_\alpha$ = the VaR $z$-value, one tail.}{}
+
+\medskip
+\textbf{b.} $f(q)$ is the area of a bin width, $n$ is sample size, $p$ is tail probability.
+
+\medskip
+\textbf{c. Standard error}
+\[ se(q) \;=\; \frac{\sqrt{p\,(1-p)\,/\,n}}{f(q)} \]
+\end{mrfmlbox}
+
+\begin{mrkeybox}[title={How to reduce standard errors}]
+\begin{enumerate}
+\item Increase sample size ($n$) $\Rightarrow$ SE down.
+\item Increase bin size $f(q)$ $\Rightarrow$ SE down.
+\item Reduce tail probability ($p$) $\Rightarrow$ SE down.
+\end{enumerate}
+\end{mrkeybox}
+
+% ---------------------------------------------------------
+\lo{MR-1 f}{Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.}
+
+\term{Quantile-quantile plots.} The quantile-quantile (QQ) plot is a straightforward way to
+visually examine if empirical data fits the reference or hypothesized theoretical distribution.
+It is a plot of the quantiles of the empirical distribution against those of some specified
+distribution. The shape of the QQ plot tells us a lot about how the empirical distribution
+compares to the specified one.
+
+\begin{itemize}
+\item In particular, if the QQ plot is \term{linear}, then the specified distribution fits the
+      data, and we have identified the distribution to which our data belong.
+\end{itemize}
+
+\begin{center}
+\begin{tikzpicture}
+% ===== ROW 1: linear QQ -> the reference density fits =====
+\begin{axis}[name=qq1, width=5.7cm, height=4.1cm,
+  xmin=-4,xmax=4,ymin=-4,ymax=4,
+  xlabel={\scriptsize Normal quantiles}, ylabel={\scriptsize Empirical quantiles},
+  xlabel style={font=\tiny}, ylabel style={font=\tiny},
+  tick label style={font=\tiny}, xtick={-2,0,2}, ytick={-2,0,2}, grid=none,
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}QQ plot is \textit{linear}},
+  axis line style={draw=black!55}]
+\addplot[only marks, mark=+, mark size=1.2pt, color=black!55, domain=-3.2:3.2, samples=70]
+  {x + 0.05*sin(deg(3*x))};
+\addplot[dash dot, black!60, line width=0.6pt, domain=-3.4:3.4, forget plot] {x};
+\end{axis}
+\draw[FRMGold, -{Stealth[length=5.5pt]}, line width=1.2pt]
+  ($(qq1.east)+(0.55cm,0)$) -- ($(qq1.east)+(1.75cm,0)$);
+\node[anchor=south, font=\tiny\sffamily, text=FRMGold, align=center]
+  at ($(qq1.east)+(1.15cm,0.12cm)$) {implies};
+\begin{axis}[name=d1, at={($(qq1.east)+(2.0cm,0)$)}, anchor=west,
+  width=5.7cm, height=4.1cm,
+  xmin=-4.2, xmax=4.2, ymin=0, ymax=0.46,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize Return}, xlabel style={font=\tiny},
+  xtick={-2,0,2}, tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMNavy}the data \textit{is} normal},
+  clip=false]
+\addplot[FRMNavy, line width=1.2pt, smooth, domain=-4.2:4.2, samples=140]
+  {0.39894*exp(-(x^2)/2)};
+\addplot[black!55, line width=0.9pt, dashed, smooth, domain=-4.2:4.2, samples=140]
+  {0.39894*exp(-(x^2)/2)};
+\node[anchor=north, font=\tiny\sffamily, text=black!60] at (axis cs:2.55,0.115)
+  {curves coincide};
+\end{axis}
+% ===== ROW 2: S-shaped QQ -> fatter tails =====
+\begin{axis}[name=qq2, at={($(qq1.south)+(0,-1.85cm)$)}, anchor=north,
+  width=5.7cm, height=4.1cm,
+  xmin=-4,xmax=4,ymin=-8,ymax=8,
+  xlabel={\scriptsize Normal quantiles}, ylabel={\scriptsize Empirical quantiles},
+  xlabel style={font=\tiny}, ylabel style={font=\tiny},
+  tick label style={font=\tiny}, xtick={-2,0,2}, ytick={-5,0,5}, grid=none,
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}QQ plot bends at \textit{both} ends},
+  axis line style={draw=black!55}]
+\addplot[only marks, mark=+, mark size=1.2pt, color=black!55, domain=-3.1:3.1, samples=70]
+  {x + 0.14*x^3};
+\addplot[dash dot, black!60, line width=0.6pt, domain=-3.2:3.2, forget plot] {1.8*x};
+\end{axis}
+\draw[FRMGold, -{Stealth[length=5.5pt]}, line width=1.2pt]
+  ($(qq2.east)+(0.55cm,0)$) -- ($(qq2.east)+(1.75cm,0)$);
+\node[anchor=south, font=\tiny\sffamily, text=FRMGold, align=center]
+  at ($(qq2.east)+(1.15cm,0.12cm)$) {implies};
+\begin{axis}[name=d2, at={($(qq2.east)+(2.0cm,0)$)}, anchor=west,
+  width=5.7cm, height=4.1cm,
+  xmin=-4.2, xmax=4.2, ymin=0, ymax=0.46,
+  axis y line=none, axis x line=bottom, axis line style={draw=black!55},
+  xlabel={\scriptsize Return}, xlabel style={font=\tiny},
+  xtick={-2,0,2}, tick label style={font=\tiny},
+  title={\scriptsize\sffamily\bfseries\color{FRMRed}the data has \textit{fatter tails}},
+  clip=false]
+\addplot[FRMRed, line width=1.2pt, smooth, domain=-4.2:4.2, samples=180]
+  {0.425*exp(-(x^2)/1.15) + 0.048*exp(-(x^2)/16)};
+\addplot[black!55, line width=0.9pt, dashed, smooth, domain=-4.2:4.2, samples=140]
+  {0.39894*exp(-(x^2)/2)};
+\node[anchor=south, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1pt]
+  at (axis cs:-3.1,0.055) {heavier};
+\node[anchor=south, font=\tiny\sffamily, text=FRMRed, fill=white, inner sep=1pt]
+  at (axis cs:3.1,0.055) {heavier};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\figcap{The QQ plot on the left and the density on the right carry the same information. Top row:
+the points sit on the reference line, so the empirical distribution matches the hypothesised one
+and the two densities coincide. Bottom row: the points climb \textit{above} the line at the right
+end and fall \textit{below} it at the left end. That bend means the empirical quantiles are more
+extreme than the reference at both ends, which is exactly what a fatter-tailed density looks
+like. Reading the bend is how you diagnose the tail without ever plotting the density.}
+
+% ==========================================================

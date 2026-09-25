@@ -1,0 +1,361 @@
+\reading{IM-2}{Factors}{STRIKE FIRST}{5}
+
+\srcnote{Andrew Ang, \textit{Asset Management: A Systematic Approach to Factor
+Investing} (New York, NY: Oxford University Press, 2014), Chapter 7.
+Printed as Chapter 2 in the GARP source volume.}
+
+\begin{imkeybox}[title={The five objectives in this reading}]
+\begin{enumerate}[label=\textbf{\alph*.}]
+\item Describe the process of value investing and explain why a value premium may exist.
+\item Explain how different macroeconomic risk factors, including economic growth, inflation, and volatility, affect asset returns and risk premiums.
+\item Assess methods of mitigating volatility risk in a portfolio and describe challenges that arise when managing volatility risk.
+\item Explain how dynamic risk factors can be used in a multifactor model of asset returns, using the Fama-French model as an example.
+\item Compare value and momentum investment strategies, including their return and risk profiles.
+\end{enumerate}
+\end{imkeybox}
+
+\basics{Basics: the two types of factor}
+
+There are two types of factors.
+
+\begin{itemize}
+\item The first type is \term{macro, fundamental-based factors}, which include
+economic growth, inflation, volatility, etc.
+\item The second type is \term{investment-style factors} like the market factor
+of the capital asset pricing model (CAPM). To be more specific, investment-style
+factors can be divided into:
+  \begin{itemize}
+  \item \term{Static factors}, like the market factor in CAPM, which we simply go
+  long to collect a risk premium;
+  \item \term{Dynamic factors}, which can only be exploited through constantly
+  trading different types of securities.
+  \end{itemize}
+\end{itemize}
+
+% ------------------------------------------------------------------
+\lo{IM-2 a}{Describe the process of value investing and explain why a value premium may exist.}
+
+\subsection{Value investing}
+
+\begin{imfmlbox}
+\[ \text{Book-to-market ratio} \;=\; \frac{\text{book value of equity}}{\text{market capitalisation}}
+   \;=\; \frac{\text{total assets} - \text{total liabilities}}{\text{share price} \times \text{shares outstanding}} \]
+\vk{book value of equity is total assets minus total liabilities; market
+capitalisation is share price times shares outstanding. Equivalently, book value
+per share divided by price per share.}
+\end{imfmlbox}
+
+\begin{imtrapbox}[title={A missing denominator in the source notes}]
+The notes give the book-to-market ratio as ``total assets minus total
+liabilities / shares outstanding.'' That expression is \term{book value per
+share}, which is the numerator only, and it returns a currency amount rather than
+a ratio. GARP's definition is explicit: \emph{the book-to-market ratio is book
+value divided by market capitalisation}. Without the price in the denominator
+there is no ratio, and no way to sort stocks into value and growth --- which is
+the entire mechanism of this objective.
+\end{imtrapbox}
+
+\begin{itemize}
+\item High ratio $=$ \term{value stock} (potentially undervalued).
+\item Low ratio $=$ \term{growth stock} (potentially overvalued).
+\end{itemize}
+
+\term{Value investing strategy:} buying value stocks (high book-to-market) and
+shorting growth stocks (low book-to-market).
+
+\term{Growth stocks investing:} buy low book-to-market ratio stocks.
+
+\subsection{The value premium}
+
+Historically, value stocks outperform growth stocks (but with periods of
+underperformance). This outperformance may be due to a value risk. Investors are
+compensated for:
+
+\begin{itemize}
+\item \term{Rational explanation:} value stocks are inherently riskier, demanding
+a higher return.
+\item \term{Behavioral explanation:} investors underestimate value stocks and
+overestimate growth stocks, creating buying opportunities in undervalued
+companies.
+\end{itemize}
+
+% ------------------------------------------------------------------
+\lo{IM-2 b}{Explain how different macroeconomic risk factors, including economic growth, inflation, and volatility, affect asset returns and risk premiums.}
+
+\subsection{Macroeconomic factors}
+
+\renewcommand{\arraystretch}{1.25}
+\noindent\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.0cm}X@{}}
+\toprule
+\textbf{\sffamily\small Factor} & \textbf{\sffamily\small What the notes say happens} \\
+\midrule
+Economic growth & Risky assets generally perform poorly and are much more volatile during periods of \emph{low} economic growth. However, government bonds tend to do well during these times. \\
+Inflation & High inflation tends to be bad for \emph{both} stocks and bonds. During periods of high inflation, all assets tend to do poorly. Part of the long-run risk premiums for both equities and bonds represents compensation for doing badly when inflation is high. \\
+Productivity risk & When productivity slows, stock returns tend to be low. \\
+Demographic risk & Labor income is mostly earned and saved in young and middle age and dis-saved when retired. \\
+Political risk (sovereign risk) & Mainly in emerging countries. In financial crisis, developed countries have political risk as well. \\
+Volatility & The negative relation between volatility and stock returns is called the \term{leverage effect}. \\
+\bottomrule
+\end{tabularx}
+\renewcommand{\arraystretch}{1}
+\figcap{Six macro factors and their direction of effect. Growth is the only row
+where stocks and bonds move in opposite directions; inflation is the row where
+they move together, and together downwards. That contrast is the examinable
+distinction.}
+
+\subsection{Volatility}
+
+There are two channels running from volatility to stock returns:
+
+\begin{enumerate}
+\item \term{The leverage effect.} When stock returns drop, the financial leverage
+of firms increases since debt is approximately constant while the market value of
+equity has fallen. This makes equities riskier and increases their volatilities.
+\item \term{The required-return channel.} An increase in volatility raises the
+required return on equity demanded by investors, also leading to a decline in
+stock prices.
+\end{enumerate}
+
+Bonds offer some but not much respite during periods of high volatility, as the
+correlation between bond returns and VIX changes is only $0.12$. Thus, bonds are
+not always a safe haven when volatility shocks hit.
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.4cm, height=5.2cm,
+  ybar, bar width=26pt,
+  symbolic x coords={VIX vs stocks, VIX vs bonds, stocks vs bonds},
+  xtick=data, x tick label style={font=\scriptsize\sffamily},
+  ymin=-0.58, ymax=0.30,
+  ytick={-0.4,-0.2,0,0.2},
+  ylabel={correlation of monthly changes},
+]
+\addplot[draw=FRMRed,fill=PaleRed,area legend] coordinates
+  {(VIX vs stocks,-0.39) (VIX vs bonds,0.12) (stocks vs bonds,-0.01)};
+\draw[black!45, thin] (axis cs:VIX vs stocks,0) -- (axis cs:stocks vs bonds,0);
+\node[font=\scriptsize\sffamily,color=black!70,anchor=north,fill=white,inner sep=1.5pt]
+  at (axis cs:VIX vs stocks,-0.42) {$-0.39$};
+\node[font=\scriptsize\sffamily,color=black!70,anchor=south,fill=white,inner sep=1.5pt]
+  at (axis cs:VIX vs bonds,0.14) {$0.12$};
+\node[font=\scriptsize\sffamily,color=black!70,anchor=north,fill=white,inner sep=1.5pt]
+  at (axis cs:stocks vs bonds,-0.05) {$-0.01$};
+\end{axis}
+\end{tikzpicture}}%
+{The three correlations behind the safe-haven claim, monthly, March 1986 to
+December 2011 (GARP source, Chapter 2). Stocks fall hard when volatility rises,
+at $-0.39$. Bonds rise, but only at $0.12$ --- a fifth of the magnitude, and the
+point of the sentence above. The near-zero stock--bond figure of $-0.01$ is the
+one most often misremembered as strongly negative.}
+
+% ------------------------------------------------------------------
+\lo{IM-2 c}{Assess methods of mitigating volatility risk in a portfolio and describe challenges that arise when managing volatility risk.}
+
+\subsection{Mitigating volatility risk --- buying protection}
+
+Investors who dislike volatility risk can \term{buy volatility protection}.
+Buying volatility protection can benefit from increasing market volatility. There
+are many ways to buy volatility protection:
+
+\begin{itemize}
+\item In option markets, but traders can also use other derivatives contracts,
+such as volatility swaps.
+\item Assets that pay off during high volatility periods, like out-of-the-money
+puts, provide hedges against volatility risk.
+\item Investors allergic to volatility could increase their holdings of bonds,
+but bonds do not always pay off during highly volatile periods.
+\end{itemize}
+
+\subsection{Investing in volatility risk --- selling protection}
+
+Investors who love volatility risk can \term{sell volatility protection}.
+Although selling volatility produces high and steady payoffs during stable times,
+once every decade or so there is a huge crash where sellers of volatility
+experience large, negative payoffs. Unfortunately, some investors who sold
+volatility prior to the financial crisis failed to anticipate that a crash like
+the one of 2008 would materialize.
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis,
+  width=11.6cm, height=5.4cm,
+  xlabel={time}, ylabel={cumulative payoff},
+  xmin=0, xmax=10.2, ymin=-6.6, ymax=3.6,
+  xtick=\empty,
+  legend style={font=\scriptsize\sffamily, draw=FRMRule, fill=white,
+    at={(0.5,-0.24)}, anchor=north, legend columns=-1, column sep=10pt},
+]
+\addplot[FRMGreen, very thick, sharp plot] coordinates
+  {(0,0) (1,0.35) (2,0.70) (3,1.05) (4,1.40) (5,1.75) (6,2.10) (7,2.45)
+   (7.5,2.60) (7.8,-5.4) (8.2,-5.0) (9,-4.6) (10,-4.2)};
+\addlegendentry{selling volatility protection}
+\addplot[FRMNavy, very thick, dashed, sharp plot] coordinates
+  {(0,0) (1,-0.30) (2,-0.60) (3,-0.90) (4,-1.20) (5,-1.50) (6,-1.80) (7,-2.10)
+   (7.5,-2.25) (7.8,2.6) (8.2,2.4) (9,2.1) (10,1.8)};
+\addlegendentry{buying volatility protection}
+\draw[black!45, thin] (axis cs:0,0) -- (axis cs:10.2,0);
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=west,
+      text=FRMRed] (cr) at (axis cs:3.2,-5.2) {the once-a-decade crash};
+\draw[-{Stealth[length=4pt]}, FRMRed, thin] (cr.east) -- (axis cs:7.55,-4.6);
+\end{axis}
+\end{tikzpicture}}%
+{The shape of the two positions, and why the choice is not symmetric in
+experience even though it is symmetric in construction. Selling protection is a
+long run of small steady gains ending in one very large loss; buying protection
+is a long run of small steady losses ending in one very large gain. Both lines
+are the same trade seen from opposite sides. The seller's record looks better for
+years, which is exactly the difficulty.}
+
+\subsection{The challenge in managing volatility risk}
+
+Constructing valuation models with volatility risk can be tricky because the
+relation between volatility and expected returns is \term{time varying and
+switches signs}, and is thus very hard to pin down.
+
+\begin{imtrapbox}[title={Direction is the whole question here}]
+Buy protection if you \emph{dislike} volatility risk; sell protection if you
+\emph{love} it. The payoff asymmetry runs the other way from the intuition: the
+seller earns steadily and loses catastrophically, not the reverse. And the
+modelling problem is not that the sign is unknown, but that it \emph{changes}
+over time.
+\end{imtrapbox}
+
+% ------------------------------------------------------------------
+\lo{IM-2 d}{Explain how dynamic risk factors can be used in a multifactor model of asset returns, using the Fama-French model as an example.}
+
+The best-known example of a tradeable multifactor model applied to present
+dynamic factors is introduced by Fama and French.
+
+The Fama--French (1993) model explains asset returns with three factors. There is
+the traditional CAPM market factor and there are two additional factors to
+capture a size effect and a value/growth effect:
+
+\begin{imfmlbox}
+\[ E(r_i) = r_f + \beta_{i,\text{MKT}}E(r_m - r_f) + \beta_{i,\text{SMB}}E(\text{SMB})
+   + \beta_{i,\text{HML}}E(\text{HML}) \]
+\vk{$\beta_{i,\text{MKT}}$, $\beta_{i,\text{SMB}}$ and $\beta_{i,\text{HML}}$ are
+the asset's loadings on the three factors, and $E(\cdot)$ denotes each factor's
+risk premium.}
+\end{imfmlbox}
+
+\begin{itemize}
+\item \term{SMB factor}, which refers to (buy) small stocks minus (sell) big
+stocks. Small and big refer to market capitalisation.
+\item \term{HML factor}, which stands for (buy) high book-to-market stocks minus
+a portfolio of (sell) low book-to-market stocks.
+\end{itemize}
+
+\begin{imkeybox}
+Both factors are \term{long-short}. That is what makes them dynamic rather than
+static: the portfolio has to be re-sorted and re-traded as firms change size and
+valuation, whereas the market factor can be held passively.
+\end{imkeybox}
+
+% ------------------------------------------------------------------
+\lo{IM-2 e}{Compare value and momentum investment strategies, including their return and risk profiles.}
+
+\subsection{Momentum}
+
+Momentum is the strategy of buying stocks that have gone up over the past six (or
+so) months (\term{winners}) and shorting stocks with the lowest returns over the
+same period (\term{losers}).
+
+In 1993, Jegadeesh and Titman identified a momentum effect, which is then
+introduced by Carhart in his Four-Factor model. The momentum effect refers to the
+phenomenon that winner stocks continue to win and losers continue to lose, just
+like the ``Matthew effect.''
+
+\begin{imtrapbox}[title={The factor has a name, and the notes omit it}]
+The momentum factor is \term{WML} --- past \emph{winners minus losers} --- also
+written \term{UMD}, for stocks that have gone \emph{up minus down}. It sits
+alongside SMB and HML as a named factor and is examinable as one. The source
+notes give the strategy without ever naming the factor. Also note the spelling:
+GARP writes \term{Jegadeesh}, not ``Jagadeesh.''
+\end{imtrapbox}
+
+\subsection{Comparison of the two strategies}
+
+\begin{imdefbox}[title={The same}]
+The momentum strategy, like size and value, is a \term{cross-sectional} strategy,
+meaning that it compares one group of stocks against another group of stocks in
+the cross section, rather than looking at a single stock over time.
+\end{imdefbox}
+
+\figwrap{%
+\begin{tikzpicture}
+\begin{axis}[frmaxis, name=left, scale only axis,
+  width=5.6cm, height=4.2cm,
+  title={Value: negative feedback},
+  xlabel={time}, ylabel={price},
+  xmin=0, xmax=10, ymin=42, ymax=118, xtick=\empty,
+]
+\addplot[FRMNavy, very thick, smooth] coordinates
+  {(0,100) (1,92) (2,84) (3,74) (4,64) (5,58) (6,66) (7,76) (8,85) (9,92) (10,97)};
+\addplot[only marks, mark=*, mark size=2pt, FRMGreen] coordinates {(5,58)};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=north west,
+      text=FRMGreen] (bv) at (axis cs:0.3,114) {buy \emph{after} the fall};
+\draw[-{Stealth[length=4pt]}, FRMGreen, thin] (bv.south) -- (axis cs:4.7,61);
+\end{axis}
+\begin{axis}[frmaxis, name=right, at={(left.right of south east)}, xshift=1.9cm,
+  scale only axis, width=5.6cm, height=4.2cm,
+  title={Momentum: positive feedback},
+  xlabel={time},
+  xmin=0, xmax=10, ymin=42, ymax=118, xtick=\empty, ytick=\empty,
+]
+\addplot[FRMNavy, very thick, smooth] coordinates
+  {(0,58) (1,64) (2,71) (3,79) (4,86) (5,92) (6,97) (7,101) (8,104) (9,106) (10,107)};
+\addplot[only marks, mark=*, mark size=2pt, FRMRed] coordinates {(5,92)};
+\node[font=\scriptsize\sffamily, fill=white, inner sep=1.5pt, anchor=north west,
+      text=FRMRed] (bm) at (axis cs:0.3,114) {buy \emph{because} of the rise};
+\draw[-{Stealth[length=4pt]}, FRMRed, thin] (bm.south east) -- (axis cs:4.8,90);
+\end{axis}
+\end{tikzpicture}}%
+{The same buy decision, triggered by opposite signals, with opposite consequences
+for the price. The value buyer arrives when the price has already fallen far
+enough to make the stock cheap relative to book, and the buying pushes it back
+towards fundamentals --- a \emph{stabilising} trade. The momentum buyer arrives
+because the price is rising and buys more of what has already risen,
+pushing it further from fundamentals --- a \emph{destabilising} trade.}
+
+\begin{imdefbox}[title={The difference}]
+\begin{itemize}
+\item \term{Value is a negative feedback strategy} (stabilising): stocks with
+declining prices eventually fall far enough that they become value stocks.
+\item \term{Momentum is a positive feedback strategy} (destabilising): stocks
+with high past returns are attractive, momentum investors continue buying them,
+and they continue to go up.
+\end{itemize}
+\end{imdefbox}
+
+\begin{imkeybox}[title={Remember}]
+The cumulated profits of momentum have been significantly larger than those of
+size or value strategies.
+\end{imkeybox}
+
+\begin{imtrapbox}[title={Consolidated trap summary --- IM-2}]
+\begin{itemize}
+\item \term{Formula, IM-2 a.} Book-to-market needs market capitalisation in the
+denominator. Book value per share alone is not the ratio.
+\item \term{Polarity, IM-2 a.} \emph{High} book-to-market is value; \emph{low} is
+growth. The strategy is long high, short low.
+\item \term{Polarity, IM-2 b.} Low growth hurts risky assets and helps government
+bonds. High inflation hurts both. Only one of these two rows is a hedge.
+\item \term{Magnitude, IM-2 b.} Bond returns and VIX changes correlate at $0.12$,
+not at some large positive number. Bonds are only a partial haven.
+\item \term{Sibling, IM-2 b.} The \emph{leverage effect} is the channel running
+from falling equity value to rising leverage to higher volatility. The
+required-return channel is a separate, second mechanism. Do not merge them.
+\item \term{Direction, IM-2 c.} Dislike volatility $\Rightarrow$ buy protection.
+Love volatility $\Rightarrow$ sell protection. The seller's loss is rare and
+large.
+\item \term{Definition, IM-2 d.} SMB is small minus big by market capitalisation;
+HML is high minus low by book-to-market. Swapping the sort variable between them
+is the obvious corruption.
+\item \term{Sibling, IM-2 e.} Value is negative feedback and stabilising;
+momentum is positive feedback and destabilising. Both are cross-sectional, and
+that shared property is where a distractor will claim a difference.
+\end{itemize}
+\end{imtrapbox}
+
+
+% ==================================================================
