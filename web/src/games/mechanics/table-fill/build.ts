@@ -8,7 +8,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, PlayPhase, Reading, TableRow, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { toDisplay } from '../../text';
+import { mathToPlain, toDisplay, toSegments } from '../../text';
 import { seededRng, shuffle } from '../../random';
 import { srsPriority } from '../../srs';
 
@@ -513,17 +513,45 @@ function checkSupport(reading: Reading, corpus: Corpus): boolean {
   return true;
 }
 
+/** Greek letters the shared flattener doesn't know yet (the notes use ξ for the GEV tail index). */
+const EXTRA_GREEK: Record<string, string> = {
+  xi: 'ξ', eta: 'η', zeta: 'ζ', iota: 'ι', upsilon: 'υ', vartheta: 'ϑ', varrho: 'ϱ', Xi: 'Ξ', Psi: 'Ψ', Pi: 'Π', Upsilon: 'Υ',
+};
+const ACCENT: Record<string, string> = { bar: '\u0304', hat: '\u0302', tilde: '\u0303' };
+
+/** One inline formula as Unicode when it is simple enough; else kept as `$…$`. */
+function flattenMath(tex: string): string {
+  let t = tex.replace(/\\([a-zA-Z]+)(?![a-zA-Z])/g, (m, name: string) => EXTRA_GREEK[name] ?? m);
+  t = t.replace(/\\(bar|hat|tilde)\{([^{}]*)\}/g, (m, acc: string, inner: string) => {
+    const p = mathToPlain(inner);
+    return p !== null && [...p].length === 1 ? p + ACCENT[acc] : m;
+  });
+  return mathToPlain(t) ?? `$${tex}$`;
+}
+
+/**
+ * Plain text for the naming screen, which the shell prints as text rather than through NoteText:
+ * simple math becomes Unicode so "$\xi < 0$" reads "ξ < 0".
+ */
+export function plainText(latex: string): string {
+  return toSegments(latex)
+    .map((s) => (s.kind === 'text' ? s.text : flattenMath(s.tex)))
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 /** Just-in-time naming for a table: its heading, and the caption as the one line. */
 export function namingFor(corpus: Corpus, reading: Reading, blockId: string): ConceptNaming {
   const b = corpus.blockById[blockId];
   const heading = b ? headingOf(b) : null;
-  const headers = b ? tableHeaders(b).map((h) => toDisplay(h)).filter(Boolean) : [];
-  const term = heading ? toDisplay(heading).replace(/^summary:\s*/i, '').replace(/[.:;]+$/, '') : headers.join(' · ') || `Table in ${reading.reading_id}`;
+  const headers = b ? tableHeaders(b).map((h) => plainText(h)).filter(Boolean) : [];
+  const term = heading ? stripEnumerator(plainText(heading)).replace(/^summary:\s*/i, '').replace(/[.:;]+$/, '') : headers.join(' · ') || `Table in ${reading.reading_id}`;
   const caption = b ? captionOf(b) : null;
   const los = learningObjectives(reading);
   const objectiveId = corpus.objectiveOfBlock[blockId] ?? los[los.length - 1]?.id ?? reading.reading_id;
   const line = caption
-    ? toDisplay(caption)
+    ? plainText(caption)
     : headers.length
       ? `The table in ${reading.reading_id} that lines up ${headers.join(', ')} row by row.`
       : `A table from ${reading.reading_id}.`;

@@ -443,26 +443,20 @@ export function frontierBranches(s: State, w: Win, samples = 120): { upper: Pt[]
   // Reach a little past the window so the clipped line runs off the edges.
   const top = w.y1 + span * 0.25;
   const bottom = w.y0 - span * 0.25;
-  const branch = (from: number, to: number): Pt[] => {
-    if (!(to > from)) return [];
+  // From the start return toward the far end, denser near the start (the vertex, when inside).
+  const branch = (start: number, end: number): Pt[] => {
+    if (start === end) return [];
     const out: Pt[] = [];
     for (let k = 0; k <= samples; k++) {
-      // Denser near the vertex, where the curve turns.
       const t = k / samples;
-      const e = from + (to - from) * t * t;
-      const sd = frontierSd(s, e);
+      const e = start + (end - start) * t * t;
+      const sd = k === 0 && start === eMv ? s.mv.sigma : frontierSd(s, e);
       if (Number.isFinite(sd)) out.push({ sigma: sd, mu: e });
     }
     return out;
   };
-  const upper = eMv < top ? branch(Math.max(eMv, bottom), top) : [];
-  const lowerRaw = eMv > bottom ? branch(0, eMv - Math.max(bottom, -1e9)).map((p) => ({ sigma: p.sigma, mu: eMv - (p.mu - 0) })) : [];
-  // Recompute sd for the mirrored returns (the parabola is symmetric in E about eMv, so this is exact).
-  const lower = lowerRaw.map((p) => ({ sigma: frontierSd(s, p.mu), mu: p.mu })).filter((p) => Number.isFinite(p.sigma));
-  if (eMv >= bottom && eMv <= top) {
-    if (upper.length) upper[0] = { sigma: s.mv.sigma, mu: eMv };
-    if (lower.length) lower[0] = { sigma: s.mv.sigma, mu: eMv };
-  }
+  const upper = top > eMv ? branch(Math.max(eMv, bottom), top) : [];
+  const lower = bottom < eMv ? branch(Math.min(eMv, top), bottom) : [];
   return { upper, lower };
 }
 

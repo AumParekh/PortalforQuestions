@@ -7,8 +7,11 @@ import { MECHANIC_CATALOGUE } from '../types';
 import { shatter } from './shatter';
 import { plugin as frameworkNavigator } from './framework-navigator';
 import { plugin as attributionGrid } from './attribution-grid';
+import { plugin as clozeChain } from './cloze-chain';
+import { plugin as blurtBoard } from './blurt-board';
+import { plugin as tableFill } from './table-fill';
 
-const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid];
+const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill];
 
 const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
 

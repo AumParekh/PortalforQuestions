@@ -223,7 +223,11 @@ function SheetBoard({
   const refocusTile = useRef<number | null>(null);
   const refocusBlank = useRef(false);
   const mountedAt = useRef(performance.now());
+  const holdTimer = useRef<number | null>(null);
+  /** Set by a placement: bring the next selected blank into view (sideways too, in a wide table). */
+  const revealCursor = useRef(false);
   const [stick, setStick] = useState(true);
+  const [trayH, setTrayH] = useState(0);
 
   const finished = timedOut || order.every((b) => cells[b.key]);
 
@@ -282,13 +286,19 @@ function SheetBoard({
     setTray(usedIdx >= 0 ? tray.filter((_, i) => i !== usedIdx) : tray);
     setCells(state);
     setCursor(nextOpen(state, blank));
+    revealCursor.current = true;
     const header = toDisplay(sheet.headers[blank.col] ?? '');
     const anchor = anchorOf(sheet, blank.row);
     if (right) {
       setAnnounce(`${anchor} · ${header}: placed.`);
     } else {
+      // A second miss inside the hold restarts it, so Next never unlocks before the latest correction shows.
       setSettled(false);
-      window.setTimeout(() => setSettled(true), HOLD_MS);
+      if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+      holdTimer.current = window.setTimeout(() => {
+        holdTimer.current = null;
+        setSettled(true);
+      }, HOLD_MS);
       const line = `${anchor} · ${header}: the notes have “${toDisplay(blank.answer)}”, not “${toDisplay(tile.text)}”.`;
       setLastMiss(line);
       setAnnounce(`${line} Block ${sheet.blockId}.`);
@@ -309,6 +319,23 @@ function SheetBoard({
     if (els.length) els[Math.min(i, els.length - 1)].focus();
   }, [tray]);
 
+  useEffect(
+    () => () => {
+      if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+    },
+    [],
+  );
+
+  // After a placement the selection moves on; keep that blank on screen (it may sit under the
+  // sticky tray, or off to the side in a table that scrolls sideways).
+  useEffect(() => {
+    if (!revealCursor.current) return;
+    revealCursor.current = false;
+    const el = cursor ? blankEls.current.get(cursor) : undefined;
+    if (!el || typeof el.scrollIntoView !== 'function') return;
+    el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+  }, [cursor, cells, reduced]);
+
   // Focus was on the blank just filled: follow the selection to the next open blank.
   useEffect(() => {
     if (!refocusBlank.current) return;
@@ -320,7 +347,10 @@ function SheetBoard({
   useEffect(() => {
     const measure = () => {
       const el = trayRef.current;
-      if (el) setStick(el.scrollHeight <= window.innerHeight * 0.4);
+      if (!el) return;
+      const short = el.scrollHeight <= window.innerHeight * 0.4;
+      setStick(short);
+      setTrayH(short ? el.offsetHeight : 0);
     };
     measure();
     window.addEventListener('resize', measure);
@@ -457,6 +487,9 @@ function SheetBoard({
                 style={{
                   minHeight: 44,
                   minWidth: '5.5rem',
+                  // Scrolling a blank into view stops above the sticky tray, not under it.
+                  scrollMarginBottom: trayH + 12,
+                  scrollMarginTop: 12,
                   padding: '0.4rem 0.6rem',
                   borderRadius: 8,
                   background: hover === key ? 'var(--g-pale-navy)' : selected ? 'var(--g-pale-gold)' : 'transparent',

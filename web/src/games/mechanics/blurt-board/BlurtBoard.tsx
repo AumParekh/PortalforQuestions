@@ -24,6 +24,8 @@ const SLOT_LABEL: Record<TargetKind, string> = {
 
 /** 15px floor for all secondary text (PORTAL_PLAN §5); the shared g-small / g-kicker are 14px. */
 const SMALL: CSSProperties = { fontSize: 15, lineHeight: 1.55 };
+/** Long player lines, block IDs and formulas wrap inside their tile instead of widening the page. */
+const WRAP: CSSProperties = { overflowWrap: 'anywhere', minWidth: 0 };
 const MONO: CSSProperties = { fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, monospace", fontSize: 15 };
 
 function Kicker({ children }: { children: ReactNode }) {
@@ -68,7 +70,7 @@ function Slot({ t, i, result, checked }: { t: BlurtTarget; i: number; result: Ta
     return (
       <li
         className="flex min-h-[64px] items-center rounded-xl px-4 py-3"
-        style={{ border: '1.5px dashed var(--g-rule)', background: 'var(--g-card)' }}
+        style={{ ...WRAP, border: '1.5px dashed var(--g-rule)', background: 'var(--g-card)' }}
       >
         <span className="g-muted" style={{ fontSize: 16 }}>
           {SLOT_LABEL[t.kind]}
@@ -80,11 +82,11 @@ function Slot({ t, i, result, checked }: { t: BlurtTarget; i: number; result: Ta
     return (
       <li
         className="g-assemble space-y-2 rounded-xl px-4 py-3"
-        style={{ ...delay, borderLeft: '4px solid var(--g-green)', background: 'var(--g-pale-green)' }}
+        style={{ ...delay, ...WRAP, borderLeft: '4px solid var(--g-green)', background: 'var(--g-pale-green)' }}
       >
-        <p className="g-serif" style={{ fontSize: 17 }}>
+        <div className="g-serif" style={{ fontSize: 17 }}>
           <ItemText t={t} />
-        </p>
+        </div>
         <p style={SMALL}>
           <span className="g-strong">You wrote</span> <Quote text={result.hit.text} />
         </p>
@@ -104,7 +106,7 @@ function Slot({ t, i, result, checked }: { t: BlurtTarget; i: number; result: Ta
     <span style={SMALL}>Not on your board.</span>
   );
   return (
-    <li>
+    <li style={WRAP}>
       <WrongHold
         holdMs={HOLD_MS + i * STAGGER_MS}
         wrong={wrong}
@@ -179,10 +181,10 @@ function Extras({ check, extras }: { check: BoardCheck; extras: readonly BlurtTa
           <Kicker>Also on your board, from the notes</Kicker>
           <ul className="space-y-3">
             {found.map((t) => (
-              <li key={t.itemId} className="pl-3" style={{ borderLeft: '3px solid var(--g-green)' }}>
-                <p className="g-serif" style={{ fontSize: 17 }}>
+              <li key={t.itemId} className="pl-3" style={{ ...WRAP, borderLeft: '3px solid var(--g-green)' }}>
+                <div className="g-serif" style={{ fontSize: 17 }}>
                   <ItemText t={t} />
-                </p>
+                </div>
                 <Source blockId={t.blockId} />
               </li>
             ))}
@@ -196,10 +198,10 @@ function Extras({ check, extras }: { check: BoardCheck; extras: readonly BlurtTa
           </summary>
           <ul className="space-y-3 px-4 pb-4">
             {rest.map((t) => (
-              <li key={t.itemId} className="pl-3" style={{ borderLeft: '3px solid var(--g-rule)' }}>
-                <p className="g-serif" style={{ fontSize: 17 }}>
+              <li key={t.itemId} className="pl-3" style={{ ...WRAP, borderLeft: '3px solid var(--g-rule)' }}>
+                <div className="g-serif" style={{ fontSize: 17 }}>
                   <ItemText t={t} />
-                </p>
+                </div>
                 <Source blockId={t.blockId} />
               </li>
             ))}
@@ -278,7 +280,8 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
   }, [check, board]);
 
   useEffect(() => {
-    if (settled) nextRef.current?.focus();
+    // Keyboard users land on Continue without the page jumping past the lit tiles.
+    if (settled) nextRef.current?.focus({ preventScroll: true });
   }, [settled]);
 
   if (!board || board.targets.length === 0) return null;
@@ -302,9 +305,9 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
           <span className="g-strong">{board.objectiveId}</span>
         </p>
         {board.objectiveText ? (
-          <p className="g-reading">
+          <div className="g-reading">
             <NoteText latex={board.objectiveText} />
-          </p>
+          </div>
         ) : (
           <p className="g-reading">Everything this objective covers.</p>
         )}
@@ -312,25 +315,8 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
 
       {timed && !check && <TimerBar ms={board.timeLimitMs ?? 0} />}
 
-      <section aria-label="The board" className="space-y-3">
-        <ul className="grid gap-3 sm:grid-cols-2" aria-live="polite">
-          {board.targets.map((t, i) => (
-            <Slot key={t.itemId} t={t} i={i} result={check?.results[t.itemId]} checked={!!check} />
-          ))}
-        </ul>
-        {check && (
-          <p className="g-settle" style={{ fontSize: 16 }}>
-            {timedOut ? 'Time. The board was checked as it stood. ' : ''}
-            {found === board.targets.length
-              ? 'Every item on the board came back from memory.'
-              : found === 0
-                ? 'None of the board’s items came back this time; they are scheduled to return soon.'
-                : 'The dark tiles are the ones to rebuild; they come back sooner in your next drills.'}
-          </p>
-        )}
-      </section>
-
-      {!check ? (
+      {/* Writing comes straight after the objective, so on a phone the prompt stays in view while typing. */}
+      {!check && (
         <GameCard className="space-y-4">
           <label htmlFor={inputId} className="g-strong block" style={{ fontSize: 17 }}>
             Everything you remember
@@ -365,7 +351,28 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
             </GameButton>
           </div>
         </GameCard>
-      ) : (
+      )}
+
+      <section aria-label="The board" className="space-y-3">
+        {!check && <Kicker>What this board holds</Kicker>}
+        <ul className="grid gap-3 sm:grid-cols-2" aria-live="polite">
+          {board.targets.map((t, i) => (
+            <Slot key={t.itemId} t={t} i={i} result={check?.results[t.itemId]} checked={!!check} />
+          ))}
+        </ul>
+        {check && (
+          <p className="g-settle" style={{ fontSize: 16 }}>
+            {timedOut ? 'Time. The board was checked as it stood. ' : ''}
+            {found === board.targets.length
+              ? 'Every item on the board came back from memory.'
+              : found === 0
+                ? 'None of the board’s items came back this time; they are scheduled to return soon.'
+                : 'The dark tiles are the ones to rebuild; they come back sooner in your next drills.'}
+          </p>
+        )}
+      </section>
+
+      {check && (
         <>
           <GameCard className="space-y-3">
             <Kicker>Your board</Kicker>

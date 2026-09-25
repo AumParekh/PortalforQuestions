@@ -47,7 +47,7 @@ const SKIP_BLOCKS = new Set(['exbox', 'table', 'tikzpicture', 'figcap']);
  */
 const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'notebox']);
 /** Worked-example set-ups in prose: their numbers are illustrations, not facts to recall. */
-const EXERCISE_CUE = /\b(?:calculate|compute|price an?|assum(?:e|ed|ing)|suppose|consider|for example|for instance|e\.g\.|example|stem|worked|this month|last month|face value)\b/i;
+const EXERCISE_CUE = /\b(?:calculate|compute|price an?|assum(?:e|ed|ing)|suppose|consider|for example|for instance|e\.g\.|example|stem|worked|this month|last month|face value|giving|if (?:a|an|we|you))\b/i;
 
 /** Significant digits of a number as written ("$521.4375" → 7, "1,750,000" → 3). */
 function significantDigits(text: string): number {
