@@ -125,5 +125,21 @@ const pwa = VitePWA({
 export default defineConfig({
   base: '/',
   plugins: [react(), contentPlugin(), pwa],
-  build: { outDir: 'dist', assetsDir: 'assets' },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    rollupOptions: {
+      output: {
+        // Vendor code in its own long-lived chunks, so a deploy that only touches app code (or the lazy
+        // screens split off in App.tsx) doesn't make returning users re-download React, KaTeX and the
+        // markdown pipeline. Each group also takes its transitive dependencies (remark/rehype/micromark/…).
+        // The service worker's js glob precaches every chunk, so offline still has all of them.
+        manualChunks: {
+          react: ['react', 'react/jsx-runtime', 'react-dom', 'react-dom/client'],
+          katex: ['katex'],
+          markdown: ['react-markdown', 'remark-gfm', 'remark-math', 'rehype-katex'],
+        },
+      },
+    },
+  },
 });

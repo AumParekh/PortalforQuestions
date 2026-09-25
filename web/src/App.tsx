@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect, type ReactNode } from 'react';
 import { useContent } from './store/content';
 import { useSession } from './store/session';
 import { navigate, useRoute } from './lib/router';
@@ -8,26 +8,57 @@ import { HomeScreen } from './screens/HomeScreen';
 import { SessionSetupScreen } from './screens/SessionSetupScreen';
 import { QuestionScreen } from './screens/QuestionScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
-import { DevLongestScreen } from './screens/DevLongestScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
-import { TrueFalseScreen } from './screens/TrueFalseScreen';
-import { FormulaGymScreen } from './formulas/FormulaGymScreen';
-import { SenseCheckScreen } from './sensecheck/SenseCheckScreen';
-import { GamesScreen } from './games/GamesScreen';
 import { useGameProgress } from './games/progress';
-import { AnalyticsScreen } from './screens/AnalyticsScreen';
-import { SettingsScreen } from './screens/SettingsScreen';
 import { useTf } from './store/tf';
 import { useGym } from './formulas/storage';
 import { OutdatedBanner } from './components/OutdatedBanner';
+import { RouteErrorBoundary } from './components/RouteErrorBoundary';
 
-function Skeleton() {
+// The core question loop (Home, Setup, Question, Summary, Review) ships in the main chunk; every other screen is
+// its own chunk, fetched on first visit (the service worker precaches them all for offline use).
+const loadTrueFalse = () => import('./screens/TrueFalseScreen');
+const loadFormulaGym = () => import('./formulas/FormulaGymScreen');
+const loadSenseCheck = () => import('./sensecheck/SenseCheckScreen');
+const loadGames = () => import('./games/GamesScreen');
+const loadAnalytics = () => import('./screens/AnalyticsScreen');
+const loadSettings = () => import('./screens/SettingsScreen');
+const loadDevLongest = () => import('./screens/DevLongestScreen');
+
+const TrueFalseScreen = lazy(() => loadTrueFalse().then((m) => ({ default: m.TrueFalseScreen })));
+const FormulaGymScreen = lazy(() => loadFormulaGym().then((m) => ({ default: m.FormulaGymScreen })));
+const SenseCheckScreen = lazy(() => loadSenseCheck().then((m) => ({ default: m.SenseCheckScreen })));
+const GamesScreen = lazy(() => loadGames().then((m) => ({ default: m.GamesScreen })));
+const AnalyticsScreen = lazy(() => loadAnalytics().then((m) => ({ default: m.AnalyticsScreen })));
+const SettingsScreen = lazy(() => loadSettings().then((m) => ({ default: m.SettingsScreen })));
+const DevLongestScreen = lazy(() => loadDevLongest().then((m) => ({ default: m.DevLongestScreen })));
+
+const LAZY_ROUTES: Record<string, () => Promise<unknown>> = {
+  '/truefalse': loadTrueFalse,
+  '/formulas': loadFormulaGym,
+  '/sense': loadSenseCheck,
+  '/games': loadGames,
+  '/analytics': loadAnalytics,
+  '/settings': loadSettings,
+  '/dev/longest': loadDevLongest,
+};
+
+function Skeleton({ label = 'Loading questions' }: { label?: string }) {
   return (
-    <div className="mx-auto max-w-[720px] space-y-4 px-4 py-8" aria-busy="true" aria-label="Loading questions">
+    <div className="mx-auto max-w-[720px] space-y-4 px-4 py-8" aria-busy="true" aria-label={label}>
       {[0, 1, 2].map((i) => (
         <div key={i} className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
       ))}
     </div>
+  );
+}
+
+/** A lazily loaded screen: skeleton while its chunk downloads, Reload prompt if the download fails. */
+function LazyRoute({ route, children }: { route: string; children: ReactNode }) {
+  return (
+    <RouteErrorBoundary key={route}>
+      <Suspense fallback={<Skeleton label="Loading" />}>{children}</Suspense>
+    </RouteErrorBoundary>
   );
 }
 
@@ -47,6 +78,8 @@ function Routes() {
   const persistenceReady = useUi((s) => s.persistenceReady);
 
   useEffect(() => {
+    // A deep link to a lazy screen starts fetching its chunk now, alongside the question bank, rather than after it.
+    LAZY_ROUTES[route]?.().catch(() => undefined);
     load();
     initPersistence();
     useTf.getState().loadProgress();
@@ -101,19 +134,19 @@ function Routes() {
     case '/review':
       return <ReviewWrongScreen />;
     case '/truefalse':
-      return <TrueFalseScreen />;
+      return <LazyRoute route={route}><TrueFalseScreen /></LazyRoute>;
     case '/formulas':
-      return <FormulaGymScreen />;
+      return <LazyRoute route={route}><FormulaGymScreen /></LazyRoute>;
     case '/sense':
-      return <SenseCheckScreen />;
+      return <LazyRoute route={route}><SenseCheckScreen /></LazyRoute>;
     case '/games':
-      return <GamesScreen />;
+      return <LazyRoute route={route}><GamesScreen /></LazyRoute>;
     case '/analytics':
-      return <AnalyticsScreen />;
+      return <LazyRoute route={route}><AnalyticsScreen /></LazyRoute>;
     case '/settings':
-      return <SettingsScreen />;
+      return <LazyRoute route={route}><SettingsScreen /></LazyRoute>;
     case '/dev/longest':
-      return <DevLongestScreen />;
+      return <LazyRoute route={route}><DevLongestScreen /></LazyRoute>;
     default:
       return <HomeScreen />;
   }
