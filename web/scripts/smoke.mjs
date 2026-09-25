@@ -108,6 +108,7 @@ for (const vp of VIEWPORTS) {
     await tab.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
     await tab.click().catch(() => undefined);
     await page.waitForSelector('li > button:not([disabled]) .g-strong', { timeout: 15000 }).catch(() => undefined);
+    await page.waitForSelector('li > button:not([disabled]) .g-strong', { timeout: 15000 }).catch(() => undefined);
     const names = await page.$$eval('li > button:not([disabled]) .g-strong', (els) => els.map((e) => e.textContent?.trim() ?? ''));
     if (names.length === 0) failures.push(`${vp.name} games: no mechanics listed`);
     for (const mech of names) {
