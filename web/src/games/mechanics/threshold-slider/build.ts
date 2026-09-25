@@ -713,11 +713,21 @@ function otherFigures(c: Candidate): string[] {
   );
 }
 
-/** True when one candidate's sentence writes the other's answer as the notes write it. */
+/**
+ * True when one candidate's sentence writes the other's answer: as the notes write it ("99.9\\%"),
+ * or as a bare figure when that figure is distinctive (≥ 10 or with decimals: "10, 20, 60, 120 and
+ * 250 days" gives away every liquidity horizon; a "1" or "3" elsewhere gives nothing away).
+ */
+function writesAnswerOf(x: Candidate, y: Candidate): boolean {
+  const yt = y.item.text ?? '';
+  if (yt && findOccurrences(x.context, yt).length > 0) return true;
+  const v = Math.abs(y.number.value);
+  if (v < 10 && Number.isInteger(v)) return false;
+  return mentionsValue(fragments(x.context, x.occ, 0, x.context.length).join(' '), v);
+}
+
 function leaks(a: Candidate, b: Candidate): boolean {
-  const at = a.item.text ?? '';
-  const bt = b.item.text ?? '';
-  return (!!bt && findOccurrences(a.context, bt).length > 0) || (!!at && findOccurrences(b.context, at).length > 0);
+  return writesAnswerOf(a, b) || writesAnswerOf(b, a);
 }
 
 /** At most two rounds share an answer ("15 business days" five times over teaches nothing new). */
@@ -879,15 +889,20 @@ export function buildThreshold(reading: Reading, ctx: ThresholdBuildInput): Mech
     answersByCue.set(k, (answersByCue.get(k) ?? new Set<string>()).add(answerKey(c)));
   }
   for (const x of picked) if (x.p && (answersByCue.get(cueKey(x.c))?.size ?? 0) > 1) x.p = { ...x.p, cue: x.p.parts };
-  const ready = picked.filter((x): x is { c: Candidate; p: SliderPayload } => !!x.p);
+  // When a thin reading forces in a sentence that writes another round's answer, play it after
+  // that round (sentences are shown whole on the reveal): the fewer answers a sentence gives away,
+  // the earlier it goes.
+  const gives = new Map(picked.map((x) => [x.c, picked.filter((y) => y !== x && writesAnswerOf(x.c, y.c)).length]));
+  const byGives = (a: { c: Candidate }, b: { c: Candidate }) => (gives.get(a.c) ?? 0) - (gives.get(b.c) ?? 0);
+  const ready = picked.filter((x): x is { c: Candidate; p: SliderPayload } => !!x.p).sort(byGives);
   const nDisc = Math.max(3, Math.min(5, Math.floor(ready.length / 2)));
   const disc = ready.slice(0, nDisc);
   const press = ready.slice(nDisc, nDisc + 5);
   if (press.length < 3) return null;
   // Discovery in reading order (the numbers build on each other); pressure shuffled.
   const readingOrder = new Map(all.map((c, i) => [c, i]));
-  disc.sort((a, b) => (readingOrder.get(a.c) ?? 0) - (readingOrder.get(b.c) ?? 0));
-  const pressure = shuffle(press, ctx.rng);
+  disc.sort((a, b) => byGives(a, b) || (readingOrder.get(a.c) ?? 0) - (readingOrder.get(b.c) ?? 0));
+  const pressure = shuffle(press, ctx.rng).sort(byGives);
 
   const toRound = (x: { c: Candidate; p: SliderPayload }, phase: 'discovery' | 'pressure', step: number): MechanicRound<SliderPayload> => {
     const limit = phase === 'pressure' ? timeFor(x.p, step) : undefined;

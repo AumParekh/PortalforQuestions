@@ -510,6 +510,85 @@ function windowSteps(spec: CurveSpec, p: ParamSpec, maxSteps: number): number {
   return k;
 }
 
+/** Words whose true meaning survives any y -> a·y + b with a > 0 (only the thresholds could break). */
+const AFFINE_INVARIANT = new Set([
+  'increasing', 'upward-sloping', 'rising', 'decreasing', 'downward-sloping', 'inverted', 'declining',
+  'humped', 'hump-shaped', 'peaked', 'frown', 'smile', 'U-shaped', 'convex', 'concave', 'linear',
+  'mean-reverting', 'levels-off', 'capped', 'floored',
+]);
+/** ...and those that also survive a pure rescale y -> a·y, a > 0. */
+const SCALE_INVARIANT = new Set([
+  ...AFFINE_INVARIANT,
+  'through-origin', 'changes-sign-once', 'changes-sign-twice', 'right-skewed', 'left-skewed',
+  'negatively-skewed', 'symmetric', 'fat-tailed', 'heavy-tailed', 'bounded',
+]);
+
+/** Share of a density's weight lying more than two (target) standard deviations from the target mean. */
+function outerShare(xs: readonly number[], ys: readonly number[], mu: number, sd: number): number {
+  let all = 0;
+  let out = 0;
+  for (let i = 0; i < xs.length; i++) {
+    all += ys[i];
+    if (Math.abs(xs[i] - mu) > 2 * sd) out += ys[i];
+  }
+  return all > 0 ? out / all : 0;
+}
+
+/**
+ * A derived start that breaks a shape word only through a threshold, not through the shape itself,
+ * would teach the wrong thing ("shrinking the curve makes it stop rising"). Rejected:
+ *  - a start that is a positive rescale / shift of the notes' curve (or the curve collapsed onto
+ *    zero), when every word it breaks is invariant under that map (the shape is identical; only
+ *    the size moved);
+ *  - a start that "breaks" fat-tailed while putting MORE weight far from the centre than the notes'
+ *    curve (an artefact of computing kurtosis on a truncated canvas).
+ */
+export function thresholdArtefact(spec: CurveSpec, targetYs: readonly number[], startYs: readonly number[]): boolean {
+  const Y = spec.y.max - spec.y.min;
+  const report = shapeReport(spec, startYs);
+  const broken = spec.shapeWords.filter((w) => !report[w]);
+  if (!broken.length) return false;
+  const n = targetYs.length;
+  const mt = targetYs.reduce((a, b) => a + b, 0) / n;
+  const ms = startYs.reduce((a, b) => a + b, 0) / n;
+  let cov = 0;
+  let vt = 0;
+  for (let i = 0; i < n; i++) {
+    cov += (targetYs[i] - mt) * (startYs[i] - ms);
+    vt += (targetYs[i] - mt) ** 2;
+  }
+  if (vt > 1e-18 * Y * Y) {
+    const a = cov / vt;
+    const b = ms - a * mt;
+    let resid = 0;
+    for (let i = 0; i < n; i++) resid = Math.max(resid, Math.abs(startYs[i] - (a * targetYs[i] + b)));
+    const pureScale = Math.abs(b) <= 1e-6 * Y;
+    // a = 0 with no shift is the curve collapsed onto zero: the shape is gone, not changed.
+    if ((a > 0 || (pureScale && a >= -1e-12)) && resid <= 1e-6 * Y) {
+      const invariant = pureScale ? SCALE_INVARIANT : AFFINE_INVARIANT;
+      if (broken.every((w) => invariant.has(w))) return true;
+    }
+  }
+  if (broken.includes('fat-tailed')) {
+    const xs = grid(spec.x, n);
+    const m = moments(xs, targetYs);
+    if (m) {
+      let w = 0;
+      let mu = 0;
+      for (let i = 0; i < n; i++) {
+        w += targetYs[i];
+        mu += xs[i] * targetYs[i];
+      }
+      mu /= w;
+      let v = 0;
+      for (let i = 0; i < n; i++) v += (xs[i] - mu) ** 2 * targetYs[i];
+      const sd = Math.sqrt(v / w);
+      if (outerShare(xs, startYs, mu, sd) >= outerShare(xs, targetYs, mu, sd)) return true;
+    }
+  }
+  return false;
+}
+
 /**
  * The curated puzzle plus derived ones. A derived puzzle moves one parameter (others at target) to
  * the side of the target where the curve stays on the canvas but breaks a shape word; the start is
@@ -540,7 +619,9 @@ export function deriveVariants(spec: CurveSpec, curated: { param: string; start:
         else if (run.length) break;
         if (!ok && run.length === 0 && k > win + 1) break; // left the canvas before breaking
       }
-      const usable = run.filter((r) => r.k >= 2 && r.dist >= MIN_START_GAP * Y);
+      const usable = run.filter(
+        (r) => r.k >= 2 && r.dist >= MIN_START_GAP * Y && !thresholdArtefact(spec, targetYs, sample(spec, withParam(spec.target, p.name, r.v))),
+      );
       if (!usable.length) continue;
       const pick = usable[Math.floor((usable.length - 1) / 2)];
       // Tolerance: the shape-keeping window, strictly under a third of the distance to the start.

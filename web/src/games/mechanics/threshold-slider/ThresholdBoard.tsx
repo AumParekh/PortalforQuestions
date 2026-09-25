@@ -284,8 +284,12 @@ function RoundCard({
   const nextRef = useRef<HTMLButtonElement | null>(null);
   const inputId = `ts-input-${round.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
 
+  // Guards against a second report in the same tick (a double tap on Lock in, or the clock
+  // firing as the player locks in) before the outcome state has re-rendered.
+  const reported = useRef(false);
   const finish = (o: Outcome) => {
-    if (outcome) return;
+    if (outcome || reported.current) return;
+    reported.current = true;
     setOutcome(o);
     if (o.verdict === 'exact') setSettled(true);
     onAnswered({
