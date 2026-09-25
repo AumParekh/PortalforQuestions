@@ -103,10 +103,12 @@ const axis = (name: string, up: string[], down: string[]) => {
   for (const w of up) DIR_AXIS[w] = [name, 1];
   for (const w of down) DIR_AXIS[w] = [name, -1];
 };
+// "strengthens" / "weakens" sit on the size axis: "sensitivity strengthens" reads as "rises", and
+// "weakens the effectiveness" as "decreases it", so neither is ever a wrong third option for a size word.
 axis(
   'size',
-  ['higher', 'larger', 'greater', 'more', 'wider', 'highest', 'largest', 'increases', 'rises', 'widens', 'raises', 'increase', 'rise', 'widen', 'increased', 'increasing', 'rising', 'widening'],
-  ['lower', 'smaller', 'less', 'narrower', 'lowest', 'smallest', 'decreases', 'falls', 'narrows', 'lowers', 'reduces', 'decrease', 'fall', 'narrow', 'reduce', 'decreased', 'reduced', 'decreasing', 'falling', 'narrowing'],
+  ['higher', 'larger', 'greater', 'more', 'wider', 'highest', 'largest', 'increases', 'rises', 'widens', 'raises', 'strengthens', 'increase', 'rise', 'widen', 'increased', 'increasing', 'rising', 'widening'],
+  ['lower', 'smaller', 'less', 'narrower', 'lowest', 'smallest', 'decreases', 'falls', 'narrows', 'lowers', 'reduces', 'weakens', 'decrease', 'fall', 'narrow', 'reduce', 'decreased', 'reduced', 'decreasing', 'falling', 'narrowing'],
 );
 axis('length', ['longer'], ['shorter']);
 axis('speed', ['faster'], ['slower']);
@@ -114,7 +116,6 @@ axis('time', ['later', 'after'], ['earlier', 'before']);
 axis('place', ['above'], ['below']);
 axis('sign', ['positive', 'upward'], ['negative', 'downward']);
 axis('statement', ['overstates', 'overstate', 'overstated'], ['understates', 'understate', 'understated']);
-axis('strength', ['strengthens'], ['weakens']);
 axis('stability', ['stabilising', 'stabilizing'], ['destabilising', 'destabilizing']);
 axis('cycle', ['procyclical'], ['countercyclical']);
 axis('flow', ['inflows'], ['outflows']);
@@ -155,6 +156,12 @@ const DISPLAY_ENV =
 /** Splits a block body into paragraph and list-item units; display math, tables and figures are dropped. */
 export function unitsOf(latex: string): Unit[] {
   let t = stripComments(latex);
+  // Colour and font-size arguments are not text: the shared de-LaTeXer would keep them as words
+  // ("\color{black!55}" → "black!55", "\fontsize{7.6}{9}" → "7.69", "\textcolor{rust}{1)}" → "rust 1)").
+  t = t.replace(/\\fontsize\{[^{}]*\}\{[^{}]*\}/g, ' ').replace(/\\(?:textcolor|color|colorbox)\{[^{}]*\}/g, ' ');
+  // Accents ("Fr\'echet") would otherwise show their backslash.
+  const ACCENT: Record<string, string> = { "'": '́', '`': '̀', '^': '̂', '"': '̈', '~': '̃' };
+  t = t.replace(/\\(['`^"~])\{?([A-Za-z])\}?/g, (_, a: string, ch: string) => (ch + ACCENT[a]).normalize('NFC'));
   t = t.replace(DISPLAY_ENV, '\n\n');
   t = t.replace(/\\(?:begin|end)\{(?:itemize|enumerate|description|compactitem|compactenum)\}(?:\[[^\]]*\])?/g, '\n\n');
   t = t.replace(/\\(?:smallskip|medskip|bigskip|noindent|par|tcblower|small|footnotesize|centering|hfill|newline|linebreak)\b/g, ' ');
@@ -166,7 +173,9 @@ export function unitsOf(latex: string): Unit[] {
     let p = part;
     if (i > 0) {
       const lab = /^\[([^\]]*)\]\s*/.exec(p);
-      if (lab) p = `\\textbf{${lab[1]}} ${p.slice(lab[0].length)}`;
+      // A bare enumerator label ("1)", "(b)", "iii.") is list numbering, not a lead-in phrase.
+      const enumerator = lab && /^\(?([0-9]{1,2}|[a-z]|[ivx]{1,4})[.):]?$/i.test(toDisplay(lab[1]).trim());
+      if (lab) p = enumerator ? p.slice(lab[0].length) : `\\textbf{${lab[1]}} ${p.slice(lab[0].length)}`;
     }
     const paras = p.split(/\n\s*\n/);
     paras.forEach((para, j) => {
@@ -300,6 +309,9 @@ export function alternativesOf(answer: string): string[] {
   return [...out];
 }
 
+const GENERIC_LABEL =
+  /^(examples?|advantages?|disadvantages?|benefits?|drawbacks?|pros|cons|strengths|weaknesses|limitations?|challenges?|purpose|goals?|mechanism|mechanics|requirements?|variations?|types?|features|measures|responsibilities|overview|summary|note|intuition|interpretation|results?|answer|solution|strategy|for guidelines|other [a-z]+)$/i;
+
 function answerOk(answer: string, kind: ClozeKind): boolean {
   if (!answer || answer.length > 40 || /[$\\{}]/.test(answer)) return false;
   if (!/[\p{L}\p{N}]/u.test(answer)) return false;
@@ -314,7 +326,10 @@ function answerOk(answer: string, kind: ClozeKind): boolean {
     if (!content.some((w) => /\p{L}{2}/u.test(w))) return false;
     if (/^(\(?[0-9ivx]{1,4}[.)]|[a-h][.)])\s/i.test(answer)) return false;
     // "Second step", "Step 3": the position in a list, not content.
-    if (/^(first|second|third|fourth|fifth|sixth|final|last|next)\s+(step|stage|phase)s?$|^(step|stage|phase)\s+\d+$/i.test(answer)) return false;
+    if (/^(first|second|third|fourth|fifth|sixth|final|last|next)\s+(step|stage|phase)s?$|^(step|stage|phase|method|approach|case|option)\s+\d+$/i.test(answer)) return false;
+    // A generic lead-in label ("Advantages.", "Purpose:", "Example.", "Other clauses.") names the
+    // shape of the list, not a concept: any synonym fits, and the options give it away.
+    if ((kind === 'term' || kind === 'bold') && GENERIC_LABEL.test(answer.trim())) return false;
   }
   return true;
 }
@@ -433,18 +448,36 @@ function containerId(s: string, pos: number, block: Block, bulletId: string | nu
 function directionTargets(s: string, block: Block, bulletId: string | null): Target[] {
   const out: Target[] = [];
   const maths = mathRanges(s);
+  // A sentence about a distractor ("a distractor pairing call risk with rising rates is the polarity
+  // build") holds the wrong claim: its direction word is not the fact to recall.
+  if (/\b(distractors?|polarity build|wrong answer)\b/i.test(toDisplay(s))) return out;
   DIRECTION_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = DIRECTION_RE.exec(s))) {
     if (inRanges(m.index, maths)) continue;
+    const w = m[0].toLowerCase();
+    const next = s.slice(m.index + m[0].length);
+    const prev = s.slice(0, m.index);
     // "gives rise to" is an idiom, not a direction.
-    if (/^rise$/i.test(m[0]) && /\b(give|gives|gave|given|giving)\s*$/i.test(s.slice(0, m.index))) continue;
-    // "the formula above", "see below", "sits above them": position in the text, not a direction.
-    if (/^(above|below)$/i.test(m[0])) {
-      const next = s.slice(m.index + m[0].length);
-      const prev = s.slice(0, m.index);
+    if (w === 'rise' && /\b(give|gives|gave|given|giving)\s*$/i.test(prev)) continue;
+    // Idioms, not directions: "no longer" (= "no more"), "more precisely", "to be more specific",
+    // "two or more", "and more —", "raises the question / two objections", "reduces to an ordinary swap".
+    if (w === 'longer' && /\bno\s*$/i.test(prev)) continue;
+    if (w === 'more' && /^\s*(precisely|specifically|specific|generally|formally|broadly|simply|concretely)\b/i.test(next)) continue;
+    if (w === 'more' && (/\b(one|two|three|four|five|\d+)\s+or\s*$/i.test(prev) || (/\band\s*$/i.test(prev) && /^\s*([—–,;.)]|$)/.test(next)))) continue;
+    if (/^raise[sd]?$/.test(w) && /^\s+(?:(?:the|a|an|two|three|several|some|obvious|serious|important)\s+)*(questions?|objections?|concerns?|issues?|doubts?)\b/i.test(next)) continue;
+    if (/^reduce[sd]?$/.test(w) && (/^\s+to\s+(a|an|the)\b/i.test(next) || /\b(expression|formula|equation)\s+$/i.test(prev))) continue;
+    // "defaults would fall in the first 5%", "loans fall into this category": belonging, not moving down.
+    if (/^fall(s|ing)?$/.test(w) && /^\s+(into|within|under|here|outside)\b|^\s+in\s+(the|this|that)\s+(first|last|top|bottom|same|range|category|bucket|band|interval)\b/i.test(next)) continue;
+    // Under a negation the antonym is often true as well: "the hedge does not simply reduce the size"
+    // (nor increase it), "a factor of 1.00, not a reduced one" (nor an increased one).
+    if (/\b(not|never|no|nor|neither)\b(?:\s+[^\s.,;:]+){0,3}\s*$/i.test(prev) || /n['’]t\b(?:\s+[^\s.,;:]+){0,3}\s*$/i.test(prev)) continue;
+    // "the formula above", "see below", "sits above them", "the decision tree below gives":
+    // position in the text, not a direction.
+    if (w === 'above' || w === 'below') {
       if (/^\s*([.,;:)]|$|them\b|it\b|this\b|these\b)/.test(next)) continue;
-      if (/\b(formula|equation|table|figure|example|see|shown|noted|discussed|listed|described|given|as)\s*$/i.test(prev)) continue;
+      if (/^\s+(is|are|was|were|has|have|gives|give|shows|show|illustrates|lists|summari[sz]es|provides|describes|sets out)\b/i.test(next)) continue;
+      if (/\b(formula|equation|table|figure|example|see|shown|noted|discussed|listed|described|given|as|written)\s*$/i.test(prev)) continue;
     }
     out.push({ kind: 'direction', start: m.index, end: m.index + m[0].length, answer: m[0], itemId: containerId(s, m.index, block, bulletId) });
   }
@@ -459,9 +492,14 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
   let m: RegExpExecArray | null;
   while ((m = re.exec(s))) {
     if (inRanges(m.index, maths)) continue;
+    // "long-term growth (like infrastructure), not short-term transfers": the nearest words are an
+    // aside, not the side the contrast is drawn against.
+    if (/\)\s*$/.test(s.slice(0, m.index))) continue;
     const clean = (w: string) => w.replace(/^[^A-Za-z]+|[^A-Za-z-]+$/g, '');
     // Right side: words up to the first punctuation.
     const right: string[] = [];
+    // The foil keeps the notes' own case ("TSECCF", not "tseccf"); matching is on lower case.
+    const rightRaw: string[] = [];
     const rs = s.slice(m.index + m[0].length);
     const rws = rs.split(/\s+/).filter(Boolean);
     // The "not Y" side must be plain words running to punctuation or the sentence end; a phrase cut
@@ -472,6 +510,7 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
       const c = clean(w);
       if (!c || !/^[A-Za-z][A-Za-z-]*$/.test(c) || !/^[“"‘'(]?[A-Za-z][A-Za-z-]*[”"’')]*[.,;:!?)}]*$/.test(w)) break;
       right.push(c.toLowerCase());
+      rightRaw.push(c);
       if (/[.,;:)}]/.test(w) || k === rws.length - 1) {
         clean_ = true;
         break;
@@ -499,7 +538,11 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
     while (p < rCore.length - 1 && p < lCore.length - 1 && rCore[p] === lCore[p].w) p++;
     let x = lCore.slice(p);
     let y = rCore.slice(p);
-    while (y.length > 1 && /^(a|an|the)$/.test(y[0])) y = y.slice(1);
+    let yRaw = rightRaw.slice(p, rCore.length);
+    while (y.length > 1 && /^(a|an|the)$/.test(y[0])) {
+      y = y.slice(1);
+      yRaw = yRaw.slice(1);
+    }
     if (!y.length || y.every((w) => STOPWORDS.has(w))) continue;
     while (x.length > 1 && /^(a|an|the)$/.test(x[0].w)) x = x.slice(1);
     if (x.length && STOPWORDS.has(x[0].w)) continue;
@@ -514,7 +557,7 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
       end,
       answer: s.slice(start, end),
       itemId: containerId(s, start, block, bulletId),
-      foil: y.join(' '),
+      foil: yRaw.join(' '),
     });
   }
   return out;
@@ -539,6 +582,7 @@ function toCandidate(s: string, t: Target, block: Block, objectiveId: string, re
   }
   // A marked word that is itself a direction ("\textbf{falls}") is drilled as one: antonym first.
   const kind: ClozeKind = (t.kind === 'term' || t.kind === 'bold') && DIR_INFO.has(t.answer.toLowerCase()) ? 'direction' : t.kind;
+  if (kind === 'direction' && /\b(distractors?|polarity build|wrong answer)\b/i.test(toDisplay(s))) return null;
   const tail = t.kind === 'term' || t.kind === 'bold' ? stripTrailingPunct(toDisplay(s.slice(t.start, t.end))).punct : '';
   const before = s.slice(0, t.start);
   const after = (tail ? tail + ' ' : '') + s.slice(t.end);
@@ -565,8 +609,14 @@ function toCandidate(s: string, t: Target, block: Block, objectiveId: string, re
   };
 }
 
+/** Editorial notes about the notes themselves ("written below from the GARP curriculum"), not content. */
+const EDITORIAL = /\b(source notes|either layer|GARP curriculum|GARP source|gap-fill(?:s|ed)?|not left blank|this objective does not)\b/i;
+
 function sentenceOk(s: string): boolean {
   if (/\\begin|\\end|&|\\\\|\\item/.test(s)) return false;
+  if (EDITORIAL.test(toDisplay(s))) return false;
+  // Cut short by a dropped display equation or list ("… turns negative once fewer than", "… is").
+  if (/\b(is|are|was|were|be|than|through|of|to|the|a|an|by|with|for|as|that|from|into|on|at|gives|equals)$/i.test(toDisplay(s).trim())) return false;
   const n = words(toDisplay(s)).length;
   return n >= 6 && n <= 60;
 }
@@ -605,7 +655,12 @@ function blockSentences(block: Block, objectiveId: string, readingId: string, co
         const deft = subItems(block.terms).find((x) => (x as { term_source?: string }).term_source === 'deftitle') ?? null;
         const title = stripTrailingPunct(toDisplay(block.title)).core;
         // Titles that list several things ("Liquid asset, liquid market", "The four term structures") aren't one term.
-        const listy = /,|^(the )?(two|three|four|five|six|seven|eight|nine|ten)\b|^\d/i.test(title);
+        // Nor are titles that name a comparison or ask a question ("The same", "The difference",
+        // "Internal versus external fraud", "What MDS does instead").
+        const listy =
+          /,|^(the )?(two|three|four|five|six|seven|eight|nine|ten)\b|^\d|\b(versus|vs)\b|^(what|why|how|when|where|which)\b/i.test(title) ||
+          /^(the )?(same|difference|differences|similarities|motivations?)$/i.test(title) ||
+          GENERIC_LABEL.test(title);
         if (deft?.id && title && !listy) {
           const head = `\\textbf{${block.title}}`;
           const c = toCandidate(`${head}: ${s}`, { kind: 'definition', start: 0, end: head.length, answer: title, itemId: deft.id }, block, objectiveId, readingId, order);
@@ -796,10 +851,16 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
   const foilKey = c.foil ? key(c.foil) : null;
   const chosen: string[] = [];
   const taken = new Set(ansKeys);
+  // The same content words in another wording ("no interest charge" / "without interest charges") are
+  // the same answer, not a wrong one.
+  const content = (s: string) =>
+    [...new Set(key(s).split(' ').filter((w) => w && !STOPWORDS.has(w) && !/^(without|non|none)$/.test(w)))].sort().join(' ');
+  const ansContent = c.accept.map(content).filter(Boolean);
   const ok = (x: string) => {
     const k = key(x);
     if (!k || taken.has(k)) return false;
     if (ansKeys.some((a) => a.includes(k) || k.includes(a))) return false;
+    if (c.kind !== 'number' && ansContent.includes(content(x))) return false;
     // Never a synonym of a direction answer ("greater" for "higher").
     if (c.kind === 'direction' && directionSynonyms(c.answer).includes(x.toLowerCase())) return false;
     // Two options that are one phrase and its extension ("coverage" / "unconditional coverage") read as a hint.
@@ -851,13 +912,37 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
   ];
   const wantNumber = c.kind === 'number';
   const wc = words(c.answer).length;
+  // Number options must be different numbers: never two of the same value ("1%" and "1 percent"),
+  // never the answer at another precision ("78%" for "77.51%"), and in a VaR / confidence sentence
+  // never the answer's complement ("1%" for a "99%" VaR is the same VaR named by its tail).
+  const chosenValues: number[] = [];
+  const places = (v: number) => (String(v).split('.')[1] ?? '').length;
+  const sameAtPrecision = (x: number, y: number) => {
+    const p = Math.min(places(x), places(y));
+    return Math.abs(Math.round(x * 10 ** p) - Math.round(y * 10 ** p)) === 0;
+  };
+  const sentence = toDisplay(`${c.before} ${c.after}`);
+  const tailSentence = /\b(VaR|ES)\b/.test(sentence) || /\b(confidence|quantile|tail|significance)\b/i.test(sentence);
+  const numberOk = (t: Candidate) => {
+    const v = t.numeric?.value;
+    const a = c.numeric?.value;
+    if (typeof v !== 'number' || typeof a !== 'number') return v !== a;
+    if (sameAtPrecision(v, a) || chosenValues.some((x) => sameAtPrecision(x, v))) return false;
+    if (tailSentence && /%/.test(c.answer) && Math.abs(v + a - 100) < 1e-9) return false;
+    return true;
+  };
   for (const tier of tiers) {
     if (chosen.length >= 2) break;
-    const pool = tier().filter((t) => (wantNumber ? t.kind === 'number' && sameUnitClass(t, c) && t.numeric?.value !== c.numeric?.value : t.kind !== 'number' && t.kind !== 'direction'));
+    const pool = tier().filter((t) => (wantNumber ? t.kind === 'number' && sameUnitClass(t, c) && numberOk(t) : t.kind !== 'number' && t.kind !== 'direction'));
     const ranked = shuffle(pool, rng)
       .map((t, i) => ({ t, i, d: wantNumber ? 0 : Math.abs(words(t.answer).length - wc) + (/^[A-Z]/.test(t.answer) === /^[A-Z]/.test(c.answer) ? 0 : 0.5) }))
       .sort((a, b) => a.d - b.d || a.i - b.i);
-    for (const { t } of ranked) add(t.answer);
+    for (const { t } of ranked) {
+      if (wantNumber && !numberOk(t)) continue;
+      const before = chosen.length;
+      add(t.answer);
+      if (wantNumber && chosen.length > before && typeof t.numeric?.value === 'number') chosenValues.push(t.numeric.value);
+    }
   }
   return chosen.length === 2 ? shuffle([c.answer, ...chosen], rng) : null;
 }

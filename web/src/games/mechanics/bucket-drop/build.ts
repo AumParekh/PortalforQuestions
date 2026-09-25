@@ -104,18 +104,24 @@ function normKey(s: string): string {
     .join(' ');
 }
 
-/** Leading list enumerators the notes put inside cells and headings: "a.", "1)", "(ii)". */
+/** Leading list enumerators the notes put inside cells and headings: "a.", "1)", "2a)", "(ii)". */
 function stripEnumerator(s: string): string {
-  return s.replace(/^\s*(?:\(?(?:[a-z]|\d{1,2}|[ivx]{1,4})[.)]\s+)/i, '').trim();
+  return s.replace(/^\s*(?:\(?(?:[a-z]|\d{1,2}[a-z]?|[ivx]{1,4})[.)]\s+)/i, '').trim();
 }
 
-/** Rejoins words a table line break split at a hyphen ("Volatility- weighted"); keeps "short- and long-term". */
+/**
+ * Rejoins words a table line break split at a hyphen ("Volatility- weighted", "Kolmogorov- Smirnov");
+ * keeps "short- and long-term".
+ */
 export function tidy(s: string): string {
-  return s.replace(/(\p{L})- (?!(?:and|or|to|vs)\b)(\p{Ll})/gu, '$1-$2');
+  return s.replace(/(\p{L})- (?!(?:and|or|to|vs)\b)(\p{L})/gu, '$1-$2');
 }
 
 function cleanLabel(s: string): string {
   return tidy(stripEnumerator(s))
+    // The notes' star importance grading ("Certificates of deposit ★★") is not part of the name.
+    .replace(/\s*\$(?:\s*\\star)+\s*\$/g, '')
+    .replace(/\s*★+/g, '')
     .replace(/[\s.:;,]+$/, '')
     .replace(/\s+/g, ' ')
     .trim();
@@ -167,9 +173,46 @@ function depthOf(x: SubItem): number {
   return typeof d === 'number' ? d : 1;
 }
 
+/** Content words (three letters or more) and numbers, in order, for comparing cards. */
+function contentWords(s: string): string[] {
+  return plain(s)
+    .split(/\s+/)
+    .map((w) => (/\d/.test(w) ? w.replace(/[^\p{L}\p{N}.]+/gu, '') : normWord(w)))
+    .filter((w) => /\p{L}{3,}|\d/u.test(w));
+}
+
+function isSubsequence(a: readonly string[], b: readonly string[]): boolean {
+  let i = 0;
+  for (const w of b) if (w === a[i] && ++i === a.length) return true;
+  return a.length === 0;
+}
+
+/**
+ * True when another bucket's card says everything this one says and more, in the same column:
+ * "The probability distribution of losses" (Vasicek) is also true of CreditMetrics' "The
+ * probability distribution of losses, using a ratings transition matrix", so it has no single
+ * right answer.
+ */
+function containedElsewhere(it: SchemeItem, items: readonly SchemeItem[]): boolean {
+  // Formulas are compared as written only: π₁ − π₁₂ is not "contained" in 1 − π₁ − π₂ + π₁₂.
+  const a = /[$=]/.test(it.text) ? [] : contentWords(it.text);
+  if (a.length < 2) return false;
+  return items.some((o) => {
+    if (o.bucketId === it.bucketId || (it.context && o.context && it.context !== o.context)) return false;
+    const b = contentWords(o.text);
+    return b.length >= a.length && isSubsequence(a, b);
+  });
+}
+
+/** True when the card opens with another bucket's name ("Conditional coverage — combines …" filed elsewhere). */
+function opensWithOtherBucket(it: SchemeItem, buckets: readonly Bucket[]): boolean {
+  return buckets.some((b) => b.id !== it.bucketId && /^[\s\p{P}]*_{4}/u.test(maskLabel(it.text, b.label)));
+}
+
 /**
  * Drops items whose text appears under more than one bucket (they'd have no single right answer)
- * and duplicates, judged on the text as written; then blanks each bucket's own name out of its
+ * and duplicates, judged on the text as written; drops items another bucket's item contains, and
+ * items that open with another bucket's name; then blanks each bucket's own name out of its
  * items and drops any card the blank leaves too thin to sort ("No ____").
  */
 function finaliseItems(items: SchemeItem[], buckets: readonly Bucket[]): SchemeItem[] {
@@ -185,6 +228,7 @@ function finaliseItems(items: SchemeItem[], buckets: readonly Bucket[]): SchemeI
   for (const it of items) {
     const k = normKey(it.text);
     if (!k || (owners.get(k)?.size ?? 0) > 1) continue;
+    if (containedElsewhere(it, items) || opensWithOtherBucket(it, buckets)) continue;
     const dup = `${it.bucketId}|${k}`;
     if (seen.has(dup)) continue;
     seen.add(dup);
@@ -220,18 +264,88 @@ function listLabels(labels: string[]): string {
   return `${ls.slice(0, -1).join(', ')} and ${ls[ls.length - 1]}`;
 }
 
+const ENUMERATOR = /^\s*\(?([a-z]|\d{1,2})[.)]\s/i;
+
+/** The k-th enumerator of a list: a/b/c or 1/2/3. */
+function enumeratorAt(s: string, k: number): boolean {
+  const m = ENUMERATOR.exec(s);
+  if (!m) return false;
+  const e = m[1].toLowerCase();
+  return /\d/.test(e) ? Number(e) === k + 1 : e.charCodeAt(0) - 97 === k;
+}
+
+/**
+ * A table whose columns are separate lists set side by side rather than one record per row:
+ * every row's cells enumerated in lockstep (a) | a), b) | b)), a column that simply runs out
+ * before the others do, or two headers naming the same kind of thing ("Risk-neutral estimates" |
+ * "Real-world estimates"). Its rows don't group anything, so only its columns can be buckets.
+ */
+function sideBySideLists(headers: readonly string[], rows: readonly TableRow[]): boolean {
+  const cells = rows.map(tableCells);
+  const filled = (c: number) => cells.map((r) => !!plain(r[c] ?? ''));
+  let lockstep = 0;
+  for (let c = 0; c < headers.length; c++) {
+    const col = cells.map((r) => r[c] ?? '');
+    if (col.filter((x) => plain(x)).length >= 2 && col.every((x, k) => !plain(x) || enumeratorAt(x, k))) lockstep++;
+  }
+  if (lockstep >= 2) return true;
+  for (let c = 1; c < headers.length; c++) {
+    const f = filled(c);
+    const last = f.lastIndexOf(true);
+    if (last >= 0 && last < f.length - 1 && f.slice(0, last + 1).every(Boolean) && filled(0).slice(last + 1).some(Boolean)) return true;
+  }
+  if (headers.length === 2) {
+    const w0 = new Set(contentWords(headers[0]));
+    if (contentWords(headers[1]).some((w) => w0.has(w))) return true;
+  }
+  return false;
+}
+
+/**
+ * Rows as extracted, with a row label the notes broke across two lines ("Inter-" / "connected")
+ * joined back onto the row that carries its cells.
+ */
+function joinBrokenRows(rows: readonly TableRow[]): TableRow[] {
+  const out: TableRow[] = [];
+  for (let i = 0; i < rows.length; i++) {
+    const cells = tableCells(rows[i]);
+    const next = rows[i + 1];
+    if (next && /\p{L}-$/u.test(cells[0] ?? '') && cells.slice(1).every((c) => !c)) {
+      const nc = tableCells(next);
+      out.push({ ...next, cells: [tidy(`${cells[0]} ${nc[0] ?? ''}`), ...nc.slice(1)] });
+      i++;
+      continue;
+    }
+    out.push(rows[i]);
+  }
+  return out;
+}
+
 export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
-  const rows = (Array.isArray(b.rows) ? b.rows : []).filter((r) => r && typeof r.id === 'string' && tableCells(r).length > 0);
+  const rows = joinBrokenRows(
+    (Array.isArray(b.rows) ? b.rows : []).filter((r) => r && typeof r.id === 'string' && tableCells(r).length > 0),
+  );
   const headers = (Array.isArray(b.headers) ? b.headers : []).map((h) => (typeof h === 'string' ? h.trim() : ''));
   if (rows.length < 2 || headers.length < 2) return [];
+  // Numbered headers ("1) Risk identification" | "2) Internal controls") head a grid of panels; the
+  // later panels' own headings sit in body rows the extraction does not keep, so no column holds
+  // one kind of thing.
+  if (headers.filter((h) => /^\s*\(?\d{1,2}[.)]\s/.test(h)).length >= 2) return [];
   const ncol = headers.length;
   const objectiveId = objectiveOf(corpus, b.id);
+  const lists = !!headers[0] && sideBySideLists(headers, rows);
   const firstCol = rows.map((r) => cleanLabel(tableCells(r)[0] ?? ''));
   const firstPlain = firstCol.map(plain).filter(Boolean);
   const avgFirst = firstPlain.reduce((n, x) => n + wordCount(x), 0) / Math.max(1, firstPlain.length);
   const firstDistinct = new Set(firstPlain.map((x) => x.toLowerCase())).size === firstPlain.length;
   const firstIsLabel =
-    !headers[0] || (firstPlain.length === rows.length && firstDistinct && avgFirst <= 6 && firstCol.every(okLabel));
+    !headers[0] || (!lists && firstPlain.length === rows.length && firstDistinct && avgFirst <= 6 && firstCol.every(okLabel));
+  // A row with fewer cells than the header has a last cell spanning the remaining columns
+  // (\multicolumn: "Shared | Both are rooted in extreme value theory …"); it is no one column's.
+  const spans = (row: TableRow, c: number) => {
+    const n = tableCells(row).length;
+    return n < ncol && c === n - 1;
+  };
   const where = b.title ? stripEnumerator(plain(b.title)) || null : b.section ? stripEnumerator(plain(b.section)) || null : null;
   const caption = b.caption ? plain(b.caption) : '';
 
@@ -244,10 +358,10 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
     const perCol = new Map<number, { raw: string; row: TableRow }[]>();
     for (let c = firstIsLabel ? 1 : 0; c < ncol; c++) {
       if (!headers[c] || !okLabel(cleanLabel(headers[c]))) continue;
-      const filled = rows.filter((r) => plain(tableCells(r)[c] ?? '')).length;
+      const filled = rows.filter((r) => plain(tableCells(r)[c] ?? '') && !spans(r, c)).length;
       const good = rows
         .map((row) => ({ raw: tidy(stripEnumerator(tableCells(row)[c] ?? '')), row }))
-        .filter((x) => x.raw && okItem(x.raw));
+        .filter((x) => x.raw && okItem(x.raw) && !spans(x.row, c));
       if (good.length === 0 || good.length * 2 < filled) continue;
       cols.push(c);
       perCol.set(c, good);
@@ -302,7 +416,7 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
         blockId: b.id,
         objectiveId,
         text: raw,
-        context: head && okLabel(head) ? head : undefined,
+        context: head && okLabel(head) && !spans(r, c) ? head : undefined,
         bucketId: bucket.id,
       });
     }
@@ -394,6 +508,18 @@ export function labelScheme(corpus: Corpus, b: Block): Scheme | null {
   return viable(s) ? s : null;
 }
 
+/**
+ * A short bullet that only introduces the sub-list under it ("Sensitivity depends on:", "Banks
+ * need policies for"): the content is in its children, so as a card it says nothing sortable.
+ */
+function leadIn(list: readonly SubItem[], i: number): boolean {
+  const x = list[i];
+  const next = list[i + 1];
+  if (!next || depthOf(next) <= depthOf(x)) return false;
+  const t = plain(x.text).replace(/\s+$/, '');
+  return (/:$/.test(t) || !/[.;!?)\]]$/.test(t)) && wordCount(t) <= 8;
+}
+
 /** Top-level bullets that head their own sub-lists. */
 export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
   if (b.type === 'trapbox' || (b.title && GENERIC_TITLE.test(b.title))) return null;
@@ -402,7 +528,7 @@ export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
   const buckets: Bucket[] = [];
   const items: SchemeItem[] = [];
   let parent: Bucket | null = null;
-  for (const x of bullets) {
+  bullets.forEach((x, i) => {
     const d = depthOf(x);
     if (d === 1) {
       const label = cleanLabel(x.text ?? '');
@@ -410,9 +536,9 @@ export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
     } else if (d === 2 && parent) {
       if (!buckets.includes(parent)) buckets.push(parent);
       const text = tidy(stripEnumerator(x.text ?? ''));
-      if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId, text, bucketId: parent.id });
+      if (okItem(text) && !leadIn(bullets, i)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId, text, bucketId: parent.id });
     }
-  }
+  });
   if (buckets.length < 2) return null;
   const s: Scheme = {
     key: `${b.id}#nested`,
@@ -469,11 +595,12 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
       byKey.set(k, bucket);
       buckets.push(bucket);
     }
-    for (const x of bulletObjects(b.bullets)) {
-      if (depthOf(x) !== 1) continue;
+    const list = bulletObjects(b.bullets);
+    list.forEach((x, i) => {
+      if (depthOf(x) !== 1 || leadIn(list, i)) return;
       const text = tidy(stripEnumerator(x.text ?? ''));
       if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId: o.id, text, bucketId: bucket.id });
-    }
+    });
   }
   const firstBlock = blocks.find((b) => headingOf(b)) ?? blocks[0];
   const s: Scheme = {

@@ -96,8 +96,8 @@ export function isBlankable(cell: string, header: string): boolean {
   if (!d || d.length > MAX_TILE_CHARS) return false;
   if (!/[\p{L}\p{N}]/u.test(d)) return false;
   if (normCell(cell) === normCell(header)) return false;
-  // A computed figure to four or more significant digits (2.0618) is working, not something to recall.
-  if (isBareNumber(cell) && d.includes('.') && d.replace(/[^0-9]/g, '').replace(/^0+/, '').length >= 4) return false;
+  // A computed figure (2.0618, 0.0034, 0.38) is working, not something to recall.
+  if (isPreciseFigure(cell)) return false;
   return true;
 }
 
@@ -106,12 +106,36 @@ export function isBareNumber(cell: string): boolean {
   return /^[-+−–]?[$€£]?\(?[\d,]*\.?\d+\)?%?$/.test(toDisplay(cell).replace(/\s+/g, ''));
 }
 
+/**
+ * A bare number read off a worked example or a regression printout: two or more decimal places
+ * (0.38, 27.46%) or four or more significant digits after a decimal point (2.0618). Rules and
+ * summary figures the notes want remembered (0.5%, 97.5%, 35%, 250) stay liftable.
+ */
+export function isPreciseFigure(cell: string): boolean {
+  if (!isBareNumber(cell)) return false;
+  const d = toDisplay(cell).replace(/\s+/g, '');
+  if (!d.includes('.')) return false;
+  return /\.\d{2,}/.test(d) || d.replace(/[^0-9]/g, '').replace(/^0+/, '').length >= 4;
+}
+
+/** A cell with something to read in it: not empty and not only a dash or other punctuation. */
+function substantive(cell: string): boolean {
+  return /[^\s\-–—−.,;:·…()]/u.test(toDisplay(cell));
+}
+
 /** A leading list marker: "a. ", "b) ", "(ii) ", "3. ", "2a) ". */
 const ENUMERATOR = /^\s*(?:\(?[ivx]{1,4}[.)]|\(?\d{1,2}[a-z]?[.)]|\(?[a-z][.)]|\([a-z]{1,2}\))\s+/i;
 
+/** A later marker of the same style inside the cell ("… b) Delays …"): the cell is itself an inline list. */
+const INLINE_MARKER = { ')': /\s\(?(?:[b-h]|ii|iii|iv|[2-9])\)\s/, '.': /\s(?:[b-h]|ii|iii|iv|[2-9])\.\s/ };
+
 export function stripEnumerator(cell: string): string {
   const m = ENUMERATOR.exec(cell);
-  return m && cell.length > m[0].length ? cell.slice(m[0].length) : cell;
+  if (!m || cell.length <= m[0].length) return cell;
+  const rest = cell.slice(m[0].length);
+  // "a) May not fully cover losses. b) Delays …" keeps its "a)", or the list would start at b).
+  const inline = m[0].trim().endsWith(')') ? INLINE_MARKER[')'] : INLINE_MARKER['.'];
+  return inline.test(rest) ? cell : rest;
 }
 
 /** Headers of two side-by-side lists rather than one row per thing (the pairing across a row means nothing). */
@@ -141,6 +165,25 @@ function isExhibit(headers: readonly string[], grid: readonly GridRow[], eligibl
   return headers.length >= 7 || mostly(headers.slice(1)) || mostly(grid.map((g) => g.cells[0] ?? ''));
 }
 
+/**
+ * Side-by-side lists of different lengths (Risk-mitigating features | Default events covered: four
+ * against eight): the rows pair items only because they happen to share a line, so which row a
+ * loose cell belongs to is not in the notes. Told apart from a table with a row-label column by a
+ * first column that runs out before the others, two columns that run out at different rows, or a
+ * column that runs out beside a first column of sentences rather than labels.
+ */
+function unevenLists(headers: readonly string[], grid: readonly GridRow[], used: readonly number[]): boolean {
+  if (headers.some((h) => !h.trim()) || used.length < 2) return false;
+  const last = (c: number) => grid.reduce((n, g, i) => (normCell(g.cells[c]) ? i : n), -1);
+  const end = Math.max(...used.map(last));
+  const short = used.filter((c) => last(c) < end);
+  if (short.length === 0) return false;
+  if (short.includes(0)) return true;
+  if (new Set(short.map(last)).size > 1) return true;
+  const labels = grid.map((g) => toDisplay(g.cells[0])).filter(Boolean);
+  return labels.reduce((n, x) => n + x.length, 0) > 40 * labels.length;
+}
+
 export interface EligibleRow {
   id: string;
   /** Index into the table's grid. */
@@ -157,8 +200,9 @@ export interface EligibleTable {
   eligible: EligibleRow[];
 }
 
+/** Cells that can stand as a row's anchor: a lone dash says nothing about which row it is. */
 function nonEmptyCount(cells: readonly string[]): number {
-  return cells.filter((c) => normCell(c)).length;
+  return cells.filter(substantive).length;
 }
 
 /** Most blanks a row can take while keeping one filled cell on screen as its anchor (two at most). */
@@ -170,8 +214,9 @@ function rowCapacity(e: EligibleRow): number {
  * Tables with at least two headed columns whose rows can each lose a cell and still keep an anchor
  * (another non-empty cell) on screen, and with room for at least three blanks in all. Rows whose
  * cell count doesn't match the headers are shown but never played. Two side-by-side lists
- * (Advantages | Disadvantages, or every column a numbered list) are left to other mechanics: the
- * pairing across a row carries nothing to recall.
+ * (Advantages | Disadvantages, every column a numbered list, or lists of different lengths) are left
+ * to other mechanics: the pairing across a row carries nothing to recall. So are worked calculations
+ * and printouts, whose rows are known only by computed figures.
  */
 export function eligibleTables(reading: Reading): EligibleTable[] {
   const out: EligibleTable[] = [];
@@ -202,11 +247,31 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
       const used = headers.map((_, c) => c).filter((c) => grid.some((g) => normCell(g.cells[c])));
       if (used.every((c) => LIST_HEADER.test(toDisplay(headers[c])))) continue;
       if (used.every((c) => enumerated[c])) continue;
+      if (unevenLists(headers, grid, used)) continue;
+      // "1. Arbitrage-free models | …" over rows grouped "2. Equilibrium models": the header row is
+      // the first group's title, so the table has no column headers to fill against.
+      if (ENUMERATOR.test(headers[0]) && grid.some((g) => g.group && ENUMERATOR.test(g.group))) continue;
       for (const g of grid) g.cells = g.cells.map((x, c) => (enumerated[c] ? stripEnumerator(x) : x));
+      // A column that says the same thing in every row asks nothing.
+      const constant = headers.map((_, c) => {
+        const vals = grid.filter((g) => g.aligned).map((g) => normCell(g.cells[c])).filter(Boolean);
+        return vals.length >= 2 && vals.every((v) => v === vals[0]);
+      });
+      // A row known only by worked figures (0.9777 | 122.911 | 0.172) can't be named from memory; a
+      // table made mostly of such rows is a worked calculation or a printout, not a table to recall.
+      // Percentages (27.46% against 33.06%) still compare across rows, so they leave the row nameable.
+      const unnamed = (g: GridRow) => {
+        const rest = g.cells.slice(1).filter(substantive);
+        return rest.length > 0 && rest.every(isBareNumber) && rest.some((x) => isPreciseFigure(x) && !toDisplay(x).includes('%'));
+      };
+      const played = grid.filter((g) => g.id && g.aligned);
+      if (played.length && played.filter(unnamed).length * 2 >= played.length) continue;
       const eligible: EligibleRow[] = [];
       grid.forEach((g, index) => {
         if (!g.id || !g.aligned || nonEmptyCount(g.cells) < 2) return;
-        const blankable = g.cells.map((x, c) => (isBlankable(x, headers[c]) ? c : -1)).filter((c) => c >= 0);
+        const blankable = g.cells
+          .map((x, c) => (isBlankable(x, headers[c]) && !constant[c] && !(c === 0 && unnamed(g)) ? c : -1))
+          .filter((c) => c >= 0);
         if (blankable.length) eligible.push({ id: g.id, index, cells: g.cells, blankable });
       });
       if (eligible.reduce((n, e) => n + rowCapacity(e), 0) < MIN_SHEET_BLANKS) continue;
@@ -232,9 +297,9 @@ function chooseBlanks(
   rng: () => number,
 ): { byRow: Map<number, number[]>; wholeColumn: number | null } {
   const byRow = new Map<number, number[]>();
-  // Keeps at least one non-empty cell on screen in the row.
+  // Keeps at least one cell with something to read on screen in the row (a lone dash doesn't count).
   const keepsAnchor = (e: EligibleRow, cols: readonly number[]) =>
-    e.cells.some((c, i) => !cols.includes(i) && normCell(c) !== '');
+    e.cells.some((c, i) => !cols.includes(i) && substantive(c));
   const add = (e: EligibleRow, col: number) => {
     const cur = byRow.get(e.index) ?? [];
     if (cur.includes(col) || !e.blankable.includes(col) || !keepsAnchor(e, [...cur, col])) return false;

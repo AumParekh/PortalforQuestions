@@ -16,7 +16,7 @@ const FADE_MS = 520;
 const STAGGER_MS = 140;
 
 const SLOT_LABEL: Record<TargetKind, string> = {
-  term: 'a term',
+  term: 'a marked term or phrase',
   point: 'a point the notes make',
   number: 'a number',
   variable: 'a variable',
@@ -54,6 +54,19 @@ function ItemText({ t }: { t: BlurtTarget }) {
         </span>
         <span className="g-muted"> · </span>
         <NoteText latex={t.display} />
+      </span>
+    );
+  }
+  if (t.kind === 'term' && t.context) {
+    // A marked phrase ("far away from 1") says nothing alone: show the notes' sentence that carries it.
+    return (
+      <span>
+        <span className="g-strong">
+          <NoteText latex={t.display} />
+        </span>
+        <span className="g-muted block" style={SMALL}>
+          {t.context}
+        </span>
       </span>
     );
   }

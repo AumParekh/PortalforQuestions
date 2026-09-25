@@ -47,7 +47,16 @@ const SKIP_BLOCKS = new Set(['exbox', 'table', 'tikzpicture', 'figcap']);
  */
 const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'notebox']);
 /** Worked-example set-ups in prose: their numbers are illustrations, not facts to recall. */
-const EXERCISE_CUE = /\b(?:calculate|compute|price an?|assum(?:e|ed|ing)|suppose|consider|for example|for instance|e\.g\.|example|stem|worked|this month|last month|face value|giving|if (?:a|an|we|you))\b/i;
+const EXERCISE_CUE = /\b(?:calculate|compute|construct|price an?|assum(?:e|ed|ing)|suppose|consider|for example|for instance|e\.g\.|example|stem|worked|this month|last month|face value|giving|if (?:a|an|we|you|on|the)|i am|we should|for every|impl(?:y|ies|ied)|means an?)\b/i;
+/** Boxes that read off a worked example's answer ("Read the result"): their numbers belong to that example. */
+const RESULT_TITLE = /\b(?:result|results|answer|example|worked)\b/i;
+/**
+ * Trap boxes about one worked calculation ("Three ways this calculation is corrupted"): their
+ * bullets carry that example's wrong answers and step numbers, not facts about the objective.
+ */
+const WORKED_TRAP_TITLE = /\b(?:this|the) (?:example|calculation)\b|\bcorrupted\b|\bways to get it wrong\b|\bfailure modes?\b|\bchain\b/i;
+/** Box titles that are headings over the box's terms, not a term ("The three states", "What a copula is"). */
+const HEADING_TITLE = /^(?:(?:what|how|why|when)\b|(?:the )?(?:two|three|four|five|six|same|difference|distinction|link|classification|structure)\b)|,|\bin one line\b/i;
 
 /** Significant digits of a number as written ("$521.4375" → 7, "1,750,000" → 3). */
 function significantDigits(text: string): number {
@@ -56,6 +65,14 @@ function significantDigits(text: string): number {
   const digits = m[0].replace(/[,.]/g, '').replace(/^0+/, '');
   const intPart = m[0].split('.')[0].replace(/,/g, '');
   return m[0].includes('.') ? digits.length : intPart.replace(/0+$/, '').length;
+}
+/**
+ * Worked arithmetic in a statement ("$992.556 - 990 = $2.556", "75/1000 = 7.5%") or a computed
+ * figure ("$521.4375 face"): an example's working, not a point to recall.
+ */
+export function isWorking(plain: string): boolean {
+  if (/\d[\d.,]*%?\s*[-+−×*/÷]\s*\(?\s*\$?\s*\d[\d.,]*\)?\s*=/.test(plain)) return true;
+  return (plain.match(/\d[\d,]*\.\d+/g) ?? []).some((x) => significantDigits(x) >= 5);
 }
 const TRAP_LABEL = /^[A-Z][A-Za-z]*(?:[ -][A-Za-z]+){0,2}(?:,\s*[A-Z]{1,4}-\d+\s*[a-z]?)?\s*[.:]\s+/;
 const LO_VERB = /^(Describe|Explain|Identify|Calculate|Compare|Evaluate|Distinguish|Assess|Define|Apply|Discuss|Summari[sz]e|Differentiate|Estimate|Interpret|Analy[sz]e|Contrast|Outline|Recogni[sz]e|Construct|Derive|List)\b/;
@@ -91,6 +108,7 @@ interface RawTarget {
   kind: TargetKind;
   display: string;
   label?: string;
+  context?: string;
   /** Plain text the keywords come from. */
   keyText: string;
   /** Emphasised phrases inside the item; their words weigh double. */
@@ -104,8 +122,25 @@ interface RawTarget {
   key: string;
 }
 
+const normText = (x: string) => toDisplay(x).toLowerCase().replace(/[“”"]/g, '').replace(/\s+/g, ' ').trim();
+
+/**
+ * The block's title captured as a term when it is only a heading over the block's own terms:
+ * "The three states" over insolvency / default / bankruptcy, "Recombining and non-recombining"
+ * over its two terms. A title the body itself uses ("... is called the failure rate") is a term.
+ */
+function isHeadingTerm(b: Block, text: string, all: readonly string[]): boolean {
+  if (!b.title || normText(text) !== normText(b.title)) return false;
+  if (normText(b.plain_text ?? b.body_latex ?? '').includes(normText(text))) return false;
+  if (HEADING_TITLE.test(toDisplay(text))) return true;
+  const own = contentStems(plainOf(text));
+  const others = new Set(all.filter((x) => normText(x) !== normText(text)).flatMap((x) => contentStems(plainOf(x))));
+  return own.length > 0 && others.size > 0 && own.every((x) => others.has(x));
+}
+
 function termTargets(b: Block): RawTarget[] {
   const out: RawTarget[] = [];
+  const texts = (b.terms ?? []).map((x) => str(obj(x)?.text) || str(obj(x)?.plain_text));
   for (const x of b.terms ?? []) {
     const o = obj(x);
     const id = str(o?.id);
@@ -117,7 +152,15 @@ function termTargets(b: Block): RawTarget[] {
     const acronyms = acronymsOf(text);
     // "more than one", "no": marked, but nothing to recall on their own.
     if (!contentStems(plain).some((x) => x.length >= 3) && acronyms.length === 0) continue;
-    out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, keyText: plain, emph: [], acronyms, values: [], key: `t:${contentStems(plain).join(' ')}` });
+    if (isHeadingTerm(b, text, texts)) continue;
+    // A bold question is a heading ("Why cutting fiscal spending is difficult"), not a term.
+    if (/^(?:what|how|why)\b/i.test(plain)) continue;
+    // Shown as plain text: a sentence that needs KaTeX (a display formula) is left out.
+    const sentence = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, ''));
+    // "buying" / "shorting" inside "replicated by buying $521.4375 face of ...": the example's working.
+    if (sentence && isWorking(sentence)) continue;
+    const context = sentence && !sentence.includes('\\') ? sentence : '';
+    out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, ...(context ? { context } : {}), keyText: plain, emph: [], acronyms, values: [], key: `t:${contentStems(plain).join(' ')}` });
   }
   return out;
 }
@@ -135,6 +178,8 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     if (b.type === 'keybox' && LO_VERB.test(plain)) continue;
     // A trap bullet's lead-in label is its trap category ("Sibling, IM-2 e."), not content.
     if (b.type === 'trapbox') plain = plain.replace(TRAP_LABEL, '');
+    // A bare lead-in to a sub-list ("European Union (EU):") says nothing itself; worked arithmetic is an example.
+    if ((/:\s*$/.test(plain) && !/[.!?]\s/.test(plain) && plain.split(/\s+/).length <= 10) || isWorking(plain)) continue;
     const lead = leadSentence(plain);
     const stems = contentStems(lead);
     if (stems.length < 3 || lead.split(/\s+/).length > 45) continue;
@@ -144,9 +189,24 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
   return out;
 }
 
+/** Numbers of a block that belong to an illustration: a cue in their sentence, or an example box title. */
+function exampleValues(b: Block): Set<number> {
+  const out = new Set<number>();
+  const titled = RESULT_TITLE.test(b.title ?? '');
+  for (const x of b.numeric_items ?? []) {
+    const o = obj(x);
+    const ctx = plainOf(str(o?.context));
+    if (!titled && !EXERCISE_CUE.test(ctx)) continue;
+    for (const n of parseNumbers(ctx)) out.add(n.value);
+  }
+  return out;
+}
+
 function numberTargets(b: Block): RawTarget[] {
   if (!NUMBER_BLOCKS.has(b.type)) return [];
   const out: RawTarget[] = [];
+  // A number used in an illustration is an illustration wherever the block repeats it ("$5,000").
+  const illustrative = exampleValues(b);
   for (const x of b.numeric_items ?? []) {
     const o = obj(x);
     const id = str(o?.id);
@@ -156,12 +216,15 @@ function numberTargets(b: Block): RawTarget[] {
     const ctxPlain = plainOf(context);
     // Arithmetic lines, number lists and display formulas are working, not facts to recall.
     if (/\d%?\s*[-+−×*/=]\s*\$?\s*\d/.test(ctxPlain) || parseNumbers(ctxPlain).length > 5) continue;
-    if (EXERCISE_CUE.test(ctxPlain)) continue;
+    if (EXERCISE_CUE.test(ctxPlain) || RESULT_TITLE.test(b.title ?? '')) continue;
+    // A context cut off mid-sentence ("... turns negative once fewer than") states nothing.
+    if (!/[.!?;:)”"]\s*$/.test(ctxPlain)) continue;
     if (splitMath(context).some((seg) => seg.kind === 'math' && mathToPlain(seg.tex) === null)) continue;
     const numPlain = plainOf(text);
     const parsed = parseNumbers(numPlain);
     const raw = typeof o?.value === 'number' ? (o.value as number) : parsed[0]?.value;
     if (raw === undefined || !Number.isFinite(raw)) continue;
+    if (parsed.some((n) => illustrative.has(n.value)) || illustrative.has(Math.abs(raw))) continue;
     // 0, 1 and 100% turn up everywhere; five-plus significant digits are computed, not remembered.
     if (raw === 0 || raw === 1 || (raw === 100 && /%|percent/.test(numPlain)) || significantDigits(numPlain) > 4) continue;
     const scale = str(o?.scale).toLowerCase();
@@ -177,7 +240,9 @@ function numberTargets(b: Block): RawTarget[] {
     // Keywords: the context without its numbers.
     const keyText = ctxPlain.replace(/\d[\d,.]*/g, ' ');
     if (contentStems(keyText).length < 3) continue;
-    out.push({ itemId: id, blockId: b.id, kind: 'number', display: context, label: text, keyText, emph: [], acronyms: [], values, pct, key: `n:${values[0]}:${contentStems(keyText).join(' ')}` });
+    // A list item's context keeps its bullet ("• This means ..."); the tile does not need it.
+    const display = context.replace(/^\s*(?:\\item\s*|[•·]\s*)/, '');
+    out.push({ itemId: id, blockId: b.id, kind: 'number', display, label: text, keyText, emph: [], acronyms: [], values, pct, key: `n:${values[0]}:${contentStems(keyText).join(' ')}` });
   }
   return out;
 }
@@ -198,6 +263,14 @@ function variableTargets(b: Block): RawTarget[] {
   return out;
 }
 
+/** Two definitions of one symbol where one says no more than the other. */
+function sameVariable(a: string, b: string): boolean {
+  const x = contentStems(a);
+  const y = contentStems(b);
+  const [short, long] = x.length <= y.length ? [x, y] : [y, x];
+  return short.length > 0 && short.every((s) => long.includes(s));
+}
+
 /** Every recall item of an objective, de-duplicated, in reading order. */
 export function rawTargets(o: Objective): RawTarget[] {
   const out: RawTarget[] = [];
@@ -207,9 +280,12 @@ export function rawTargets(o: Objective): RawTarget[] {
     if (!b || typeof b.id !== 'string' || SKIP_BLOCKS.has(b.type)) continue;
     // A consolidated trap summary spans the whole reading; it sits under the last objective only by position.
     if (b.type === 'trapbox' && /consolidated|summary/i.test(b.title ?? '')) continue;
+    if (b.type === 'trapbox' && WORKED_TRAP_TITLE.test(b.title ?? '')) continue;
     const items = [...termTargets(b), ...variableTargets(b), ...numberTargets(b), ...bulletTargets(b, objectiveText)];
     for (const t of items) {
       if (seen.has(t.key) || seen.has(t.itemId)) continue;
+      // One symbol keyed twice in the objective ("T — number of observations" in two formula boxes).
+      if (t.kind === 'variable' && out.some((u) => u.kind === 'variable' && u.label === t.label && sameVariable(u.keyText, t.keyText))) continue;
       seen.add(t.key);
       seen.add(t.itemId);
       out.push(t);
@@ -237,11 +313,13 @@ function finalise(t: RawTarget, df: Map<string, number>, n: number): BlurtTarget
     kind: t.kind,
     display: t.display,
     ...(t.label !== undefined ? { label: t.label } : {}),
+    ...(t.context ? { context: t.context } : {}),
     keys,
     acronyms: [...t.acronyms, ...(t.symbolWords ?? [])].filter((a, i, xs) => xs.indexOf(a) === i),
     values: t.values,
     ...(t.pct ? { pct: true } : {}),
-    directions: t.kind === 'term' ? [] : directionStems(t.keyText),
+    // Short terms carry their direction word as a required keyword; longer ones can be flipped.
+    directions: t.kind === 'term' && keys.length < 3 ? [] : directionStems(t.keyText),
     // A term that is one keyword once stop words go must be written as the term.
     ...(t.kind === 'term' && keys.length <= 1 ? { phrase: words(t.keyText).map(lightForm) } : {}),
   };
@@ -275,12 +353,12 @@ export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
   return out;
 }
 
-/** Learning objectives with enough recall items for a board. */
+/** Learning objectives with enough distinct recall items for a board. */
 export function eligibleObjectives(reading: Reading): { o: Objective; items: BlurtTarget[] }[] {
   const byLo = readingTargets(reading);
   return objectivesOf(reading)
     .map((o) => ({ o, items: byLo.get(o.id) ?? [] }))
-    .filter((x) => x.items.length >= MIN_TARGETS);
+    .filter((x) => distinctItems(x.items).length >= MIN_TARGETS);
 }
 
 export function supportsBlurt(reading: Reading): boolean {
@@ -304,8 +382,14 @@ function quality(t: BlurtTarget): number {
   return KIND_QUALITY[t.kind];
 }
 
+const flatCache = new WeakMap<BlurtTarget, string>();
 function flat(t: BlurtTarget): string {
-  return ` ${words(plainOf(t.display)).join(' ')} `;
+  let f = flatCache.get(t);
+  if (f === undefined) {
+    f = ` ${words(plainOf(t.display)).join(' ')} `;
+    flatCache.set(t, f);
+  }
+  return f;
 }
 
 /** Two items say the same thing on a board: a term that is the lead-in of a bullet, or one text inside the other. */
@@ -313,6 +397,13 @@ export function overlaps(a: BlurtTarget, b: BlurtTarget): boolean {
   const x = flat(a);
   const y = flat(b);
   return x.trim().length > 0 && y.trim().length > 0 && (x.includes(y) || y.includes(x));
+}
+
+/** Items in reading order, leaving out any that repeat one already taken. */
+export function distinctItems(items: readonly BlurtTarget[]): BlurtTarget[] {
+  const out: BlurtTarget[] = [];
+  for (const t of items) if (!out.some((p) => overlaps(p, t))) out.push(t);
+  return out;
 }
 
 /** Picks n targets: due first, then unseen, then the rest; within a tier, richer items first; no kind takes over the board. */
@@ -332,13 +423,16 @@ export function pickTargets(items: readonly BlurtTarget[], n: number, ctx: Blurt
     picked.push(t);
     perKind.set(t.kind, (perKind.get(t.kind) ?? 0) + 1);
   }
-  // Top up past the kind cap; overlapping items only if the board would otherwise be too small.
-  for (const allowClash of [false, true]) {
-    for (const t of ordered) {
-      const room = allowClash ? MIN_TARGETS : n;
-      if (picked.length >= room) break;
-      if (!picked.includes(t) && (allowClash || !clashes(t))) picked.push(t);
-    }
+  // Top up past the kind cap, never with an item that repeats one on the board: one line would
+  // score both ("Rating transitions" and "Rating transitions. Transition matrices show ...").
+  for (const t of ordered) {
+    if (picked.length >= n) break;
+    if (!picked.includes(t) && !clashes(t)) picked.push(t);
+  }
+  // An unlucky order can strand the board below the minimum; the reading-order set never does (see eligibleObjectives).
+  if (picked.length < Math.min(n, MIN_TARGETS)) {
+    const base = distinctItems(items);
+    picked.splice(0, picked.length, ...ordered.filter((t) => base.includes(t)).slice(0, n));
   }
   // Board order follows the reading, so the lit-up board reads like the notes.
   return items.filter((t) => picked.includes(t));
@@ -392,24 +486,31 @@ function termSentence(block: Block | undefined, term: string): string {
   const norm = (x: string) => x.toLowerCase().replace(/[“”"]/g, '').trim();
   const needle = norm(term);
   const longer = (x: string) => norm(x).includes(needle) && norm(x).length > needle.length + 8;
-  for (const x of block.bullets ?? []) {
+  const bullets = (block.bullets ?? []).map((x) => {
     const o = obj(x);
-    const text = toDisplay(o ? str(o.text) : typeof x === 'string' ? x : '');
-    if (text && longer(text)) return text;
-  }
+    return toDisplay(o ? str(o.text) : typeof x === 'string' ? x : '');
+  });
   const src = block.plain_text ?? block.body_latex ?? '';
   const sentences = toDisplay(src)
     .split(/\s*•\s*|(?<=[.!?])\s+(?=[A-Z])/)
     .map((x) => x.trim())
     .filter((x) => x.length > 0);
-  return sentences.find(longer) ?? '';
+  // The sentence that opens with the term defines it ("Bankruptcy is a legal procedure ..."); else its first use.
+  const opens = (x: string) => norm(x).startsWith(needle);
+  const found =
+    bullets.find((x) => longer(x) && opens(x)) ?? sentences.find((x) => longer(x) && opens(x)) ?? bullets.find(longer) ?? sentences.find(longer);
+  if (found) return found;
+  // A definition box titled with the term ("Heterogeneous") defines it in its opening sentence.
+  if (block.type === 'defbox' && block.title && norm(toDisplay(block.title)) === needle) return sentences[0] ?? '';
+  return '';
 }
 
 export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
   const block = corpus.blockById[t.blockId];
   const term = shortName(t);
   const where = block?.title ? ` in “${toDisplay(block.title)}”` : '';
-  const body = t.kind === 'term' ? termSentence(block, term) : toDisplay(t.display);
+  // The line is plain text: a term's sentence that needs KaTeX (a display formula) is left out, as on the tile.
+  const body = t.kind === 'term' ? (t.context ?? '') : toDisplay(t.display);
   const same = body.replace(/[.;:]+$/, '').trim().toLowerCase() === term.toLowerCase();
   return {
     term,

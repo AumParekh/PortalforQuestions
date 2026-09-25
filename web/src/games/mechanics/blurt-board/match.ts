@@ -23,6 +23,12 @@ export interface BlurtTarget {
   display: string;
   /** The number (numeric items) or symbol (variables), as LaTeX. */
   label?: string;
+  /**
+   * Terms: the notes' sentence (or bullet) that carries the term, as plain display text, shown
+   * under the term once the board is checked. Many marked terms are phrases ("far away from 1",
+   * "not suitable") that state nothing on their own.
+   */
+  context?: string;
   keys: KeyWord[];
   /** Acronyms that on their own recall the item (a term's "(EAD)", or its initials). */
   acronyms: string[];
@@ -268,6 +274,8 @@ export function lineUnits(line: string): string[] {
 
 interface SegmentIndex {
   stems: string[];
+  /** Stems written straight after "non" ("non-defaulting"): they do not recall the plain word. */
+  negated: Set<string>;
   /** Light forms of the words, in order, for exact term phrases. */
   lights: string[];
   stemSet: Set<string>;
@@ -279,13 +287,17 @@ function indexSegment(seg: string): SegmentIndex {
   const plain = plainOf(seg);
   const ws = words(plain);
   const stems = ws.map(stem);
-  return { stems, lights: ws.map(lightForm), stemSet: new Set(stems), wordSet: new Set(ws), numbers: parseNumbers(plain) };
+  // A stem only counts as negated when every occurrence of it follows "non".
+  const plainUse = new Set(stems.filter((_, i) => ws[i - 1] !== 'non'));
+  const negated = new Set(stems.filter((x, i) => ws[i - 1] === 'non' && !plainUse.has(x)));
+  return { stems, negated, lights: ws.map(lightForm), stemSet: new Set(stems), wordSet: new Set(ws), numbers: parseNumbers(plain) };
 }
 
-function hasStem(ix: SegmentIndex, s: string): boolean {
+function hasStem(ix: SegmentIndex, s: string, allowNegated = false): boolean {
+  if (!allowNegated && ix.negated.has(s)) return false;
   if (ix.stemSet.has(s)) return true;
   if (s.length < 5) return false;
-  return ix.stems.some((x) => x.length >= 5 && stemsMatch(x, s));
+  return ix.stems.some((x) => x.length >= 5 && stemsMatch(x, s) && (allowNegated || !ix.negated.has(x)));
 }
 
 /** Share of the target's keyword weight present in the segment, and how many keywords. */
@@ -293,9 +305,11 @@ function coverage(t: BlurtTarget, ix: SegmentIndex): { score: number; count: num
   let total = 0;
   let got = 0;
   let count = 0;
+  // "non-defaulting party" does not recall "defaulting party" unless the item itself says "non".
+  const allowNegated = t.keys.some((k) => k.s === 'non');
   for (const k of t.keys) {
     total += k.w;
-    if (hasStem(ix, k.s)) {
+    if (hasStem(ix, k.s, allowNegated)) {
       got += k.w;
       count++;
     }
@@ -331,6 +345,8 @@ function flips(t: BlurtTarget, ix: SegmentIndex): boolean {
 function hasPhrase(ix: SegmentIndex, phrase: readonly string[]): boolean {
   if (phrase.length === 0) return false;
   for (let i = 0; i + phrase.length <= ix.lights.length; i++) {
+    // "non-recombining" is not "recombining".
+    if (phrase[0] !== 'non' && ix.lights[i - 1] === 'non') continue;
     if (phrase.every((w, k) => ix.lights[i + k] === w)) return true;
   }
   return false;
