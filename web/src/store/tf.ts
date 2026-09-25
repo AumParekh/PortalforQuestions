@@ -47,10 +47,11 @@ export const useTf = create<TfStore>((set, get) => ({
         paths.map(async (p) => {
           const r = await fetch(`/content/${p}`);
           if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`);
-          return (await r.json()) as DeckFile;
+          return (await r.json()) as DeckFile | null;
         }),
       );
-      const cards = decks.flatMap((d) => d.cards);
+      // Only real decks: any other JSON dropped into flashcards/ (reports, etc.) is ignored.
+      const cards = decks.flatMap((d) => (d?.type === 'truefalse' && Array.isArray(d.cards) ? d.cards : []));
       const byId: Record<string, TFCard> = {};
       for (const c of cards) byId[c.id] = c;
       set({ deckStatus: 'ready', cards, byId });

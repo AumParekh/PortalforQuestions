@@ -1,13 +1,16 @@
-import type { AttemptRecord, OptionKey, QuestionState, ScopeKind, SessionMode, SessionRecord } from '../../types';
+import type { AttemptRecord, OptionKey, QuestionState, ScopeKind, SessionMode, SessionRecord, TFAttempt, TFState } from '../../types';
 import { getAll, openDb } from '../../lib/db';
 
 /** File format for "Export progress" / "Import progress". */
+/** Version 2 adds the True/False stores; version 1 files still import (with no True/False progress). */
 export interface ProgressExport {
-  version: 1;
+  version: 2;
   exportedAt: string;
   questionState: QuestionState[];
   attempts: AttemptRecord[];
   sessions: SessionRecord[];
+  tfState: TFState[];
+  tfAttempts: TFAttempt[];
 }
 
 export interface ParsedImport {
@@ -17,10 +20,17 @@ export interface ParsedImport {
 }
 
 export async function buildExport(): Promise<ProgressExport> {
-  const [questionState, attempts, sessions] = await Promise.all([getAll('questionState'), getAll('attempts'), getAll('sessions')]);
+  const [questionState, attempts, sessions, tfState, tfAttempts] = await Promise.all([
+    getAll('questionState'),
+    getAll('attempts'),
+    getAll('sessions'),
+    getAll('tfState'),
+    getAll('tfAttempts'),
+  ]);
   attempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   sessions.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
-  return { version: 1, exportedAt: new Date().toISOString(), questionState, attempts, sessions };
+  tfAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  return { version: 2, exportedAt: new Date().toISOString(), questionState, attempts, sessions, tfState, tfAttempts };
 }
 
 export function exportFileName(d = new Date()): string {
@@ -134,6 +144,35 @@ function session(v: unknown): SessionRecord | null {
   };
 }
 
+function tfState(v: unknown): TFState | null {
+  if (!isRec(v) || !nonEmpty(v.cardId) || !str(v.subject)) return null;
+  if (!count(v.totalAttempts) || !count(v.totalCorrect) || !count(v.totalWrong)) return null;
+  return {
+    cardId: v.cardId,
+    subject: v.subject,
+    topic: strOr(v.topic, ''),
+    totalAttempts: v.totalAttempts,
+    totalCorrect: v.totalCorrect,
+    totalWrong: v.totalWrong,
+    lastResult: v.lastResult === 'correct' || v.lastResult === 'wrong' ? v.lastResult : null,
+    lastAttempted: isoDate(v.lastAttempted) ? v.lastAttempted : null,
+  };
+}
+
+function tfAttempt(v: unknown): TFAttempt | null {
+  if (!isRec(v) || !nonEmpty(v.attemptId) || !nonEmpty(v.cardId) || !isoDate(v.timestamp)) return null;
+  if (typeof v.answeredTrue !== 'boolean' || typeof v.isCorrect !== 'boolean') return null;
+  return {
+    attemptId: v.attemptId,
+    cardId: v.cardId,
+    sessionId: strOr(v.sessionId, ''),
+    timestamp: v.timestamp,
+    answeredTrue: v.answeredTrue,
+    isCorrect: v.isCorrect,
+    timeTakenSeconds: count(v.timeTakenSeconds) ? v.timeTakenSeconds : 0,
+  };
+}
+
 function rows<T>(list: unknown[], parse: (v: unknown) => T | null, key: (t: T) => string): { ok: T[]; bad: number } {
   const byKey = new Map<string, T>();
   let bad = 0;
@@ -154,7 +193,7 @@ export function parseImport(text: string): ParsedImport {
     throw new Error('This file is not valid JSON.');
   }
   if (!isRec(data)) throw new Error('This file is not a progress export.');
-  if (data.version !== 1) {
+  if (data.version !== 1 && data.version !== 2) {
     throw new Error(
       data.version === undefined ? 'This file is not a progress export (no version).' : `Unsupported export version: ${String(data.version)}.`,
     );
@@ -162,19 +201,28 @@ export function parseImport(text: string): ParsedImport {
   if (!Array.isArray(data.questionState) || !Array.isArray(data.attempts) || !Array.isArray(data.sessions)) {
     throw new Error('This file is missing questionState, attempts or sessions.');
   }
+  if (data.version === 2 && (!Array.isArray(data.tfState) || !Array.isArray(data.tfAttempts))) {
+    throw new Error('This file is missing its True/False progress (tfState, tfAttempts).');
+  }
+  const tfStateRows: unknown[] = Array.isArray(data.tfState) ? data.tfState : [];
+  const tfAttemptRows: unknown[] = Array.isArray(data.tfAttempts) ? data.tfAttempts : [];
   const qs = rows(data.questionState, questionState, (r) => r.questionId);
   const at = rows(data.attempts, attempt, (r) => r.attemptId);
   const se = rows(data.sessions, session, (r) => r.sessionId);
-  const total = data.questionState.length + data.attempts.length + data.sessions.length;
-  const skipped = qs.bad + at.bad + se.bad;
+  const ts = rows(tfStateRows, tfState, (r) => r.cardId);
+  const ta = rows(tfAttemptRows, tfAttempt, (r) => r.attemptId);
+  const total = data.questionState.length + data.attempts.length + data.sessions.length + tfStateRows.length + tfAttemptRows.length;
+  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad;
   if (total > 0 && skipped === total) throw new Error('None of the records in this file could be read.');
   return {
     data: {
-      version: 1,
+      version: 2,
       exportedAt: isoDate(data.exportedAt) ? data.exportedAt : '',
       questionState: qs.ok,
       attempts: at.ok,
       sessions: se.ok,
+      tfState: ts.ok,
+      tfAttempts: ta.ok,
     },
     skipped,
   };
@@ -186,7 +234,7 @@ export function parseImport(text: string): ParsedImport {
  */
 export async function replaceProgress(data: ProgressExport): Promise<void> {
   const db = await openDb();
-  const tx = db.transaction(['questionState', 'attempts', 'sessions'], 'readwrite');
+  const tx = db.transaction(['questionState', 'attempts', 'sessions', 'tfState', 'tfAttempts'], 'readwrite');
   const done = new Promise<void>((resolve, reject) => {
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
@@ -195,11 +243,17 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   const qs = tx.objectStore('questionState');
   const at = tx.objectStore('attempts');
   const se = tx.objectStore('sessions');
+  const ts = tx.objectStore('tfState');
+  const ta = tx.objectStore('tfAttempts');
   qs.clear();
   at.clear();
   se.clear();
+  ts.clear();
+  ta.clear();
   for (const r of data.questionState) qs.put(r);
   for (const r of data.attempts) at.put(r);
   for (const r of data.sessions) se.put(r);
+  for (const r of data.tfState) ts.put(r);
+  for (const r of data.tfAttempts) ta.put(r);
   await done;
 }

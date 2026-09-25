@@ -16,6 +16,20 @@ interface StoreValue {
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
+/** Set once a newer version of the app has upgraded the database: this tab can no longer save. */
+let outdated = false;
+
+export const DB_OUTDATED_EVENT = 'frm-db-outdated';
+
+export function isDbOutdated(): boolean {
+  return outdated;
+}
+
+function markOutdated() {
+  if (outdated) return;
+  outdated = true;
+  window.dispatchEvent(new Event(DB_OUTDATED_EVENT));
+}
 
 function reqToPromise<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -34,6 +48,7 @@ function txDone(tx: IDBTransaction): Promise<void> {
 
 export function openDb(): Promise<IDBDatabase> {
   if (dbPromise) return dbPromise;
+  if (outdated) return Promise.reject(new Error('A newer version of the app upgraded storage; reload to keep saving.'));
   dbPromise = new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {
       reject(new Error('IndexedDB is not available'));
@@ -71,13 +86,18 @@ export function openDb(): Promise<IDBDatabase> {
     };
     req.onsuccess = () => {
       const db = req.result;
-      db.onversionchange = () => {
+      db.onversionchange = (e) => {
         db.close();
         dbPromise = null;
+        // Deleting the database (newVersion null) is not an upgrade; any other change means a newer app opened it.
+        if (e.newVersion !== null) markOutdated();
       };
       resolve(db);
     };
-    req.onerror = () => reject(req.error);
+    req.onerror = () => {
+      if (req.error?.name === 'VersionError') markOutdated();
+      reject(req.error);
+    };
     // Another tab holding an older version open; the open will proceed once it closes.
     req.onblocked = () => undefined;
   });

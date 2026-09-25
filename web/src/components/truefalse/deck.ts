@@ -160,7 +160,8 @@ export function buildDeck(cards: TFCard[], states: Record<string, TFState>, setu
   const pool = filterPool(cards, states, setup);
   const ordered =
     setup.order === 'weakest'
-      ? [...pool].sort((a, b) => cardAccuracy(states[a.id]) - cardAccuracy(states[b.id]) || a.id.localeCompare(b.id))
+      ? // Shuffle first so ties (e.g. all unseen cards) come out in a different order each deck; sort is stable.
+        shuffle(pool).sort((a, b) => cardAccuracy(states[a.id]) - cardAccuracy(states[b.id]))
       : shuffle(pool);
   const ids = spreadTwins(ordered.map((c) => c.id), cards);
   return setup.size === 'all' ? ids : ids.slice(0, setup.size);
@@ -196,14 +197,6 @@ export function mmss(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds));
   const m = Math.floor(s / 60);
   return `${m}:${String(s % 60).padStart(2, '0')}`;
-}
-
-export function haptic(pattern: number | number[]) {
-  try {
-    if (window.matchMedia?.('(pointer: coarse)').matches) navigator.vibrate?.(pattern);
-  } catch {
-    // vibrate can throw in some embedded browsers; feedback is optional
-  }
 }
 
 export function prefersReducedMotion(): boolean {

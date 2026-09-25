@@ -14,6 +14,8 @@ interface TrapRow {
 function buildRows(attempts: AttemptRecord[], byId: Record<string, Question>): TrapRow[] {
   const map = new Map<string, TrapRow>();
   for (const a of attempts) {
+    // Blank or timed-out answers say nothing about which trap caught you.
+    if (a.timedOut || a.selectedOption === '') continue;
     const ops = byId[a.questionId]?.trap?.operators;
     if (!ops || ops.length === 0) continue;
     for (const op of new Set(ops)) {
@@ -35,16 +37,16 @@ export function TrapPerformance({ attempts, byId }: { attempts: AttemptRecord[];
   const rows = useMemo(() => buildRows(attempts, byId), [attempts, byId]);
   const top = rows[0];
   const caption = !top
-    ? 'None of your answered questions are tagged with a trap yet.'
+    ? 'None of your answered questions are tagged with a trap yet (blank and timed-out answers are left out).'
     : top.wrong === 0
-      ? 'How often you fall for each trap type. So far you have dodged every one.'
-      : `How often you fall for each trap type: you miss ${pct(top.rate)} of ${trapName(top.op).toLowerCase()} questions, your costliest trap.`;
+      ? 'Your miss rate on questions tagged with each trap type. So far you have got every one right.'
+      : `Your miss rate on questions tagged with each trap type: you miss ${pct(top.rate)} of questions tagged ${trapName(top.op).toLowerCase()}, the highest.`;
   return (
     <ChartCard
       title="Trap performance"
       caption={caption}
       table={{
-        caption: 'Wrong-answer rate by trap type',
+        caption: 'Miss rate on questions tagged with each trap type',
         columns: ['Trap type', 'Wrong rate', 'Wrong', 'Attempts'],
         rows: rows.map((r) => [trapName(r.op), pct(r.rate), r.wrong, r.attempts]),
       }}

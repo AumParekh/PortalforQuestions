@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowUpRight, Check, CheckCircle2, ChevronRight, X, XCircle } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, CheckCircle2, ChevronRight, X, XCircle } from 'lucide-react';
 import { Markdown } from '../Markdown';
-import { startLoDrill } from '../dashboard/launch';
+import { QuestionCard } from '../QuestionCard';
 import { useContent } from '../../store/content';
 import { useTf } from '../../store/tf';
-import type { TFCard } from '../../types';
-import { haptic, isCoarsePointer } from './deck';
+import { haptic } from '../../lib/settings';
+import type { AnswerRecord, TFCard } from '../../types';
+import { isCoarsePointer } from './deck';
 import { useTfRun } from './run';
 import { SwipeCard } from './SwipeCard';
 
 const WRONG_HOLD_MS = 800;
 const MAX_SECONDS = 600;
+// Reveals the correct option of a question preview without marking any choice.
+const PREVIEW: AnswerRecord = { selected: '', correct: false, timeTakenSeconds: 0, timedOut: false };
 
 function isTypingTarget(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;
@@ -41,6 +44,7 @@ function Highlighted({ text, phrases, tone }: { text: string; phrases: string[];
 export function TfExplanation({ card }: { card: TFCard }) {
   const source = useContent((s) => s.byId[card.sourceId]);
   const twin = useTf((s) => (card.twinId ? s.byId[card.twinId] : undefined));
+  const [showSource, setShowSource] = useState(false);
   return (
     <div className="space-y-3">
       {!card.isTrue && card.correction && (
@@ -67,14 +71,24 @@ export function TfExplanation({ card }: { card: TFCard }) {
         </div>
       )}
       {source && (
-        <button
-          type="button"
-          onClick={() => startLoDrill(`${source.subject}::${source.loText || source.lo}`, [source.id])}
-          className="-ml-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 text-[15px] font-semibold text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
-        >
-          Open the full question
-          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-        </button>
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowSource((v) => !v)}
+            aria-expanded={showSource}
+            className="-ml-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 text-[15px] font-semibold text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
+          >
+            {showSource ? 'Hide the full question' : 'Show the full question'}
+            <ChevronDown className={`h-4 w-4 transition-transform ${showSource ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+          {showSource && (
+            // A read-only preview: the answer is shown and nothing is recorded.
+            <div className="mt-2 space-y-4">
+              <QuestionCard question={source} record={PREVIEW} animateFeedback={false} onSelect={() => undefined} />
+              {source.solution && <Markdown className="text-base leading-relaxed text-slate-800 dark:text-slate-200">{source.solution}</Markdown>}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -149,8 +163,9 @@ export function TfPlayView() {
         }
         return;
       }
-      if (e.key === 'Enter' || e.key === ' ') {
-        // A focused button (e.g. "Open the full question") handles its own Enter/Space.
+      // Enter only: Space keeps scrolling a long explanation.
+      if (e.key === 'Enter') {
+        // A focused button (e.g. "Show the full question") handles its own Enter.
         if (isActivatable(e.target)) return;
         e.preventDefault();
         goNext();

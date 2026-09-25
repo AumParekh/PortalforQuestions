@@ -184,7 +184,7 @@ export function ProgressDataSection() {
         </div>
       </SettingsRow>
 
-      <SettingsRow label="Reset everything" hint="Erases every question record, attempt and session on this device. Your settings and saved session setup are kept.">
+      <SettingsRow label="Reset everything" hint="Erases every question record, attempt and session, and all True/False progress, on this device. Your settings and saved session setup are kept.">
         <button type="button" disabled={!available || busy} onClick={() => setPending({ kind: 'all' })} className={`${buttonDangerOutline} w-full sm:w-auto`}>
           <Trash2 className="h-5 w-5" aria-hidden="true" />
           Reset everything
@@ -219,8 +219,8 @@ export function ProgressDataSection() {
             <p>
               <span className="font-medium">{pending.fileName}</span>
               {formatDate(pending.parsed.data.exportedAt) && <>, exported {formatDate(pending.parsed.data.exportedAt)}</>}, contains{' '}
-              {plural(pending.parsed.data.questionState.length, 'question record')}, {plural(pending.parsed.data.attempts.length, 'attempt')} and{' '}
-              {plural(pending.parsed.data.sessions.length, 'session')}.
+              {plural(pending.parsed.data.questionState.length, 'question record')}, {plural(pending.parsed.data.attempts.length, 'attempt')},{' '}
+              {plural(pending.parsed.data.sessions.length, 'session')} and {plural(pending.parsed.data.tfAttempts.length, 'True/False answer')}.
             </p>
             {pending.parsed.skipped > 0 && (
               <p className="text-amber-800 dark:text-amber-200">
@@ -228,7 +228,7 @@ export function ProgressDataSection() {
               </p>
             )}
             <p>
-              Everything currently saved on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}) will be
+              Everything currently saved on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}, plus True/False progress) will be
               replaced. Export first if you might want it back. The page reloads afterwards.
             </p>
           </>
@@ -262,7 +262,7 @@ export function ProgressDataSection() {
       >
         <p>
           This permanently deletes {plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')} and{' '}
-          {plural(sessionCount, 'session')} from this device. Your settings and saved session setup are kept.
+          {plural(sessionCount, 'session')} from this device, along with all True/False progress. Your settings and saved session setup are kept.
         </p>
         <p>Export your progress first if you might want it back.</p>
       </ConfirmDialog>

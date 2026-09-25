@@ -14,6 +14,7 @@ import { TrueFalseScreen } from './screens/TrueFalseScreen';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useTf } from './store/tf';
+import { OutdatedBanner } from './components/OutdatedBanner';
 
 function Skeleton() {
   return (
@@ -26,6 +27,15 @@ function Skeleton() {
 }
 
 export default function App() {
+  return (
+    <>
+      <Routes />
+      <OutdatedBanner />
+    </>
+  );
+}
+
+function Routes() {
   const route = useRoute();
   const { status, error, load } = useContent();
   const sessionStatus = useSession((s) => s.status);

@@ -24,7 +24,8 @@ const BASE: Omit<SessionConfig, 'scopeKind' | 'selectedKeys' | 'count' | 'order'
 
 function launch(config: SessionConfig, queue: string[]) {
   if (queue.length === 0) return;
-  useSession.getState().start(config, queue);
+  // start() returns false when the user keeps a session already in progress.
+  if (!useSession.getState().start(config, queue)) return;
   navigate('/session');
 }
 

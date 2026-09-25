@@ -31,7 +31,10 @@ function levelOf(n: number) {
   return lv;
 }
 
-function buildCells(attempts: AttemptRecord[], now: Date): Cell[] {
+/** Question-bank and True/False answers both count; each only needs a timestamp and a result. */
+type StudyEvent = Pick<AttemptRecord, 'timestamp' | 'isCorrect'>;
+
+function buildCells(attempts: StudyEvent[], now: Date): Cell[] {
   const today = addDays(now, 0);
   const firstSunday = addDays(today, -today.getDay() - (WEEKS - 1) * 7);
   const cells: Cell[] = [];
@@ -52,7 +55,7 @@ function buildCells(attempts: AttemptRecord[], now: Date): Cell[] {
   return cells;
 }
 
-export function StudyHeatmap({ attempts, now, currentStreak }: { attempts: AttemptRecord[]; now: Date; currentStreak: number }) {
+export function StudyHeatmap({ attempts, now, currentStreak }: { attempts: StudyEvent[]; now: Date; currentStreak: number }) {
   const cells = useMemo(() => buildCells(attempts, now), [attempts, now]);
   const { ref, width } = useChartWidth<HTMLDivElement>();
   const [hover, setHover] = useState<number | null>(null);

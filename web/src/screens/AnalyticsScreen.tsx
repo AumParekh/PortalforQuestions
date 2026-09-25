@@ -13,6 +13,7 @@ import { navigate } from '../lib/router';
 import { overallStats, streaks } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
+import { useTf } from '../store/tf';
 
 function TopBar() {
   return (
@@ -76,12 +77,15 @@ export function AnalyticsScreen() {
   const sessions = useProgress((s) => s.sessions);
   const subjectQuestions = useContent((s) => s.subjectQuestions);
   const byId = useContent((s) => s.byId);
+  const tfAttempts = useTf((s) => s.attempts);
+  // True/False answers count toward study days, matching the streak on Home.
+  const studyEvents = useMemo(() => [...attempts, ...tfAttempts], [attempts, tfAttempts]);
 
   const day = useToday();
   // Recomputed when the local date rolls over so "today" and the 30-day window stay current on long-lived tabs.
   const now = useMemo(() => new Date(), [day]);
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
-  const streak = useMemo(() => streaks(attempts, now), [attempts, now]);
+  const streak = useMemo(() => streaks(studyEvents, now), [studyEvents, now]);
 
   const loading = status === 'idle' || status === 'loading';
 
@@ -97,13 +101,13 @@ export function AnalyticsScreen() {
         )}
         {loading ? (
           <Skeleton />
-        ) : attempts.length === 0 ? (
+        ) : studyEvents.length === 0 ? (
           <EmptyState />
         ) : (
           <>
             <SummaryTiles stats={stats} attemptCount={attempts.length} streak={streak} />
             <AccuracyTrendChart attempts={attempts} now={now} />
-            <StudyHeatmap attempts={attempts} now={now} currentStreak={streak.current} />
+            <StudyHeatmap attempts={studyEvents} now={now} currentStreak={streak.current} />
             <SubjectAccuracy questions={subjectQuestions} states={states} />
             <TopicAccuracy questions={subjectQuestions} states={states} />
             <WeakestLoList questions={subjectQuestions} states={states} />
