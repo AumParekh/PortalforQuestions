@@ -20,6 +20,35 @@ Decided so far:
 
 ---
 
+## 0b. Exam timeline (exam on 25 Nov 2026; plan set on 25 Sep, 61 days out)
+
+Everything is prioritised by whether it helps on exam day.
+
+| Dates | Phase | What the portal pushes |
+|---|---|---|
+| 25 Sep – 5 Oct | Setup | Finish and deploy in-flight work. Exam countdown and daily plan. Mocks converted as soon as they arrive. |
+| 6 Oct – 1 Nov | Learn | Every reading covered at least once (question bank, True/False, notes games, Formula Gym per reading). Spaced review daily. |
+| 2 – 15 Nov | Consolidate | Timed mocks, weak-LO and trap-category drills, daily Formula Workout and Sense Check. |
+| 16 – 24 Nov | Final review | Due items only: formula sheet, most-missed traps, 1–2 full mocks. No new material. |
+| 25 Nov | Exam | |
+
+Time is split by the FRM Part II weights (Market 20%, Credit 20%, Operational Risk & Resilience
+20%, Liquidity & Treasury 15%, Investment Management 15%, Current Issues 10%), tilted toward the
+weakest areas.
+
+**Build rules that follow from the date**
+- New features stop on **12 Oct**. After that: bug fixes, content quality and mock mode only. Visual
+  games not reviewed by then stay unregistered.
+- **Exam mode** is built next:
+  - an exam date in Settings (default 2026-11-25);
+  - a countdown and a "today's plan" card on Home (due counts per section, suggested order and
+    minutes, the current phase);
+  - coverage by subject against the exam weights;
+  - every scheduler (question bank, Formula Gym/Sense Check, notes games) caps the next due date at
+    exam day minus 2, so each item comes up again before the exam instead of after it.
+- Mocks: needed before 12 Oct so mock mode is proven well ahead of the November mock phase.
+- No deploys after **20 Nov** except fixes for anything that blocks studying.
+
 ## 1. Tech stack
 
 - **Framework:** React + Vite
