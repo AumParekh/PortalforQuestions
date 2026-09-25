@@ -13,8 +13,8 @@ const PLAYABLE = [
   { route: '/formulas', buttons: [/^\s*Start\s*$/], required: true },
   // Optional until content/games/sensecheck.json is generated.
   { route: '/sense', buttons: [/^\s*Start\s*$/], required: false },
-  // Notes games: the auto-pick Play button (after the 9 MB notes file loads), then the arc's Begin.
-  { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Begin\s*$/], required: true },
+  // Notes games: auto-pick Play (after the 9 MB notes file loads), the briefing's Start, then the arc's Begin.
+  { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Start\s*$/, /^\s*Begin\s*$/], required: true },
 ];
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 800 },
@@ -73,14 +73,16 @@ for (const vp of VIEWPORTS) {
         await button.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
         if ((await button.count()) === 0 || !(await button.isEnabled())) {
           started = false;
+          const text = (await page.evaluate(() => document.body.innerText)).replace(/\s+/g, ' ').slice(0, 240);
+          errors.push(`no enabled button matching ${name}; screen says: ${text}`);
           break;
         }
         await button.click();
         await page.waitForTimeout(800);
       }
       if (!started) {
-        if (required) errors.push('could not start a session (button missing or disabled)');
-        else {
+        if (!required) {
+          errors = [];
           console.log(`--  ${label} (nothing to start; content not generated yet)`);
           continue;
         }
