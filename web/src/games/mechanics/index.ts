@@ -10,8 +10,10 @@ import { plugin as attributionGrid } from './attribution-grid';
 import { plugin as clozeChain } from './cloze-chain';
 import { plugin as blurtBoard } from './blurt-board';
 import { plugin as tableFill } from './table-fill';
+import { plugin as bucketDrop } from './bucket-drop';
+import { plugin as orderGame } from './order-game';
 
-const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill];
+const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill, bucketDrop, orderGame];
 
 const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
 
