@@ -224,6 +224,55 @@ resurfaces sooner everywhere. The only numbers shown are stability measurements
 
 ---
 
+## 3d. Formula Gym (added on request: "games for formula remembering")
+
+A dedicated section for getting every formula in the notes into long-term memory,
+at `#/formulas`. It is a standalone section like True/False, not a notes-game arc, so
+it can be drilled in short bursts.
+
+**Deck.** `content/games/formulas.json`, built from the LaTeX notes. It covers every
+`*fmlbox` plus every other display equation that states a general relationship (ORR's
+formulas sit in `orkeybox`es). Each card carries:
+- the formula (`latex`), its name, and a recall `prompt` that doesn't give it away;
+- every variable with its meaning;
+- a slotted `skeleton` with decoy tiles;
+- 2–3 minimally corrupted wrong versions, each with why it is wrong;
+- sensitivities: which way the output moves when an input rises;
+- a one-line `intuition` hook;
+- where it can be evaluated: a `calc` expression with realistic input ranges, plus the
+  notes' own worked example, which must reproduce;
+- confusable `twins` (Sharpe vs Treynor style).
+
+Each card is extracted per chapter slice by one agent and adversarially verified by a
+second agent against the `.tex`. The verifier checks equivalence of corruptions,
+sensitivity signs, and that the example reproduces. A script then re-checks the whole
+deck.
+
+**Games** (every answer is logged against the formula and feeds one spaced-repetition
+schedule per formula):
+- **Recall**: name and cue shown; write or say the formula; reveal; grade yourself
+  Again / Hard / Good / Easy. This is pure retrieval practice.
+- **Forge**: rebuild the formula by dropping tiles into its slots; the decoys are the
+  pieces people mix up.
+- **Real or Rigged**: four versions, one right; after answering, the changed piece is
+  highlighted with why it's wrong. A fast-mode variant shows one version at a time:
+  "Correct or broken?"
+- **Which Way?**: "If σ rises, VaR…" ↑ / ↓ / no change / depends. This trains the
+  comparative statics FRM questions love.
+- **Symbol Match**: pair symbols with their meanings, five at a time.
+- **Quick Calc**: fresh exam-like numbers each time; type the answer (1% tolerance);
+  the worked solution is shown after.
+- **Twin Split**: two look-alike formulas; say which is which and the one difference
+  that tells them apart.
+- **Formula Sheet**: every formula by reading, with the right-hand side covered
+  until tapped (self-test), and a plain reference view.
+- **Workout**: the default "Play". A mixed session of due and weak formulas, rotating
+  the game per formula so each is met in several forms (interleaving plus varied
+  retrieval).
+
+Formula days count toward the dashboard streak, like True/False. Progress is included
+in export/import.
+
 ## 4. Progress data model
 
 Stored in **IndexedDB**, not `localStorage` (localStorage caps at 5–10MB and will fill
