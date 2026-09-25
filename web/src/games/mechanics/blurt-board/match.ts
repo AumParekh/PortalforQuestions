@@ -112,7 +112,7 @@ export function words(plain: string): string[] {
 }
 
 export function isContent(w: string): boolean {
-  return w.length >= 2 && !STOP.has(w) && !/^\d+([.,]\d+)?$/.test(w);
+  return w.length >= 2 && !STOP.has(w) && !/^\d/.test(w);
 }
 
 /** Content stems of a plain text, in order, de-duplicated. */
@@ -222,15 +222,25 @@ export function directionStems(plain: string): string[] {
 // ---------------------------------------------------------------------------------------------
 // Segments
 
-/** Splits the board into ideas: lines, then sentences, then list markers. */
+/** Splits the board into lines (ideas), dropping list markers and blank lines. */
 export function segmentBoard(text: string): string[] {
   const out: string[] = [];
-  for (const line of text.split(/\r?\n/)) {
-    for (const part of line.split(/(?<=[.;!?])\s+(?=\S)|\s+[•·]\s+|\s+-\s+(?=\S)/)) {
-      const s = part.replace(/^\s*(?:[-*•·>]+|\d+[.)])\s*/, '').trim();
-      if (s && /[\p{L}\p{N}]/u.test(s)) out.push(s);
-    }
+  for (const line of text.split(/\r?\n|\s+[•·]\s+/)) {
+    const s = line.replace(/^\s*(?:[-*•·>]+|\(?(?:\d{1,2}|[a-z])[.)])\s+/i, '').trim();
+    if (s && /[\p{L}\p{N}]/u.test(s)) out.push(s);
   }
+  return out;
+}
+
+/** Longest line matched as a whole; longer lines (running prose) match sentence by sentence. */
+export const MAX_UNIT_WORDS = 40;
+
+/** Matching units of one line: the line itself, or its sentences and adjacent sentence pairs. */
+export function lineUnits(line: string): string[] {
+  if (line.split(/\s+/).length <= MAX_UNIT_WORDS) return [line];
+  const sentences = line.split(/(?<=[.!?])\s+(?=\S)/).filter((x) => /[\p{L}\p{N}]/u.test(x));
+  const out = [...sentences];
+  for (let i = 0; i + 1 < sentences.length; i++) out.push(`${sentences[i]} ${sentences[i + 1]}`);
   return out;
 }
 
@@ -311,7 +321,7 @@ export function scoreSegment(t: BlurtTarget, ix: SegmentIndex): { hit: boolean; 
 /** Checks a whole board against targets (logged) and extras (shown as "also recalled"). */
 export function checkBoard(text: string, targets: readonly BlurtTarget[], extras: readonly BlurtTarget[] = []): BoardCheck {
   const segments = segmentBoard(text);
-  const idx = segments.map(indexSegment);
+  const units = segments.flatMap((line, i) => lineUnits(line).map((u) => ({ i, text: u, ix: indexSegment(u) })));
   const results: Record<string, TargetResult> = {};
   const segmentHits: string[][] = segments.map(() => []);
   const all = [...targets, ...extras];
@@ -319,9 +329,9 @@ export function checkBoard(text: string, targets: readonly BlurtTarget[], extras
     let hit: Hit | null = null;
     let near: Hit | null = null;
     let flipped: Hit | null = null;
-    idx.forEach((ix, i) => {
+    units.forEach(({ i, text: unitText, ix }) => {
       const r = scoreSegment(t, ix);
-      const h = { segment: i, text: segments[i], score: r.score };
+      const h = { segment: i, text: unitText, score: r.score };
       if (r.hit && (!hit || r.score > hit.score)) hit = h;
       else if (r.flipped && !flipped) flipped = h;
       else if (!r.hit && r.score >= 0.3 && (!near || r.score > near.score)) near = h;

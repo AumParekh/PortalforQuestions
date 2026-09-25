@@ -2260,7 +2260,7 @@ class ReadingParser(object):
     def add_correction(self, sn, body, plain):
         as_written = None
         qm = re.search(r'``(.+?)\'\'', body, re.S)
-        if qm and re.search(r'print|instruct|as printed|state|recorded', body[:qm.start() + 200], re.I):
+        if qm and re.search(r'print|instruct|as printed|state', body[max(0, qm.start() - 120):qm.start()], re.I):
             as_written = PLAIN(qm.group(1))
         as_corrected = None
         for m in re.finditer(r'\\textbf\{', body):
