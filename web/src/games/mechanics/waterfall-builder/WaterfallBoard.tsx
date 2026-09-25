@@ -459,7 +459,9 @@ function Round({
 
   const instruction =
     p.variant.kind === 'build'
-      ? 'Drop the pieces in, top to bottom: drag one onto the column, or tap it.'
+      ? loop
+        ? 'A loop has no top of its own, so it starts where the notes start it. Drop the rest in, going round: drag one onto the column, or tap it.'
+        : 'Drop the pieces in, top to bottom: drag one onto the column, or tap it.'
       : p.variant.kind === 'rotated'
         ? 'This loop is picked up part-way round. Carry on from the top until it closes.'
         : 'Part of the flow is already in place. Fill the gap, top to bottom.';

@@ -311,7 +311,10 @@ export function buildFrontierRider(reading: Reading, ctx: FrontierBuildInput): M
   const total = Math.min(MAX_DISCOVERY + MAX_PRESSURE, all.length);
   const nDisc = Math.max(MIN_DISCOVERY, Math.min(MAX_DISCOVERY, Math.floor(total / 2)));
   const nPress = Math.max(MIN_PRESSURE, Math.min(MAX_PRESSURE, total - nDisc));
-  const dItemsN = Math.min(nDisc, Math.ceil(orderedItems.length / 2));
+  // At least two headline moves in discovery, so a follow-up never has to come straight after its
+  // own item's move (whose feedback already prints the slope and the weights). Half the items
+  // otherwise, keeping fresh moves for pressure.
+  const dItemsN = Math.min(nDisc, Math.max(Math.min(2, orderedItems.length), Math.ceil(orderedItems.length / 2)));
   const used = new Set<string>();
   const take = (c: Ranked, into: Ranked[]) => {
     used.add(c.itemId);
@@ -328,10 +331,21 @@ export function buildFrontierRider(reading: Reading, ctx: FrontierBuildInput): M
     if (disc.length >= nDisc) break;
     take(byItem(it).find((c) => c.kind === 'move')!, disc);
   }
-  // Group follow-ups right after their item's move.
-  const discOrder = new Map(dItems.map((it, i) => [it, i]));
+  // Every move first, then the follow-ups in item order. The previous round's feedback prints the
+  // slope and weight changes, so a follow-up straight after its own move would be a giveaway: if
+  // the first follow-up belongs to the last move's item, swap the last two moves.
+  const discOrder = new Map(orderedItems.map((it, i) => [it, i]));
   const kindRank: Record<RoundKind, number> = { move: 0, mix: 1, cal: 2 };
-  disc.sort((a, b) => (discOrder.get(a.item) ?? 99) - (discOrder.get(b.item) ?? 99) || kindRank[a.kind] - kindRank[b.kind]);
+  disc.sort(
+    (a, b) =>
+      Number(a.kind !== 'move') - Number(b.kind !== 'move') ||
+      (discOrder.get(a.item) ?? 99) - (discOrder.get(b.item) ?? 99) ||
+      kindRank[a.kind] - kindRank[b.kind],
+  );
+  const firstFollow = disc.findIndex((c) => c.kind !== 'move');
+  if (firstFollow >= 2 && disc[firstFollow - 1].item === disc[firstFollow].item) {
+    [disc[firstFollow - 2], disc[firstFollow - 1]] = [disc[firstFollow - 1], disc[firstFollow - 2]];
+  }
 
   // Pressure: items not yet seen first (novel), then follow-ups, due before unseen before the rest.
   const discItems = new Set(disc.map((c) => c.item));
@@ -348,7 +362,19 @@ export function buildFrontierRider(reading: Reading, ctx: FrontierBuildInput): M
   for (const c of rest) if (press.length < nPress) take(c, press);
   if (disc.length < MIN_DISCOVERY || press.length < MIN_PRESSURE) return null;
   // Moves first so a follow-up never gives its own item's move away; follow-ups shuffled.
-  const pressOrdered = [...press.filter((c) => c.kind === 'move'), ...shuffle(press.filter((c) => c.kind !== 'move'), ctx.rng)];
+  const pressMoves = press.filter((c) => c.kind === 'move');
+  const pressFollow = shuffle(
+    press.filter((c) => c.kind !== 'move'),
+    ctx.rng,
+  );
+  // As in discovery: the first follow-up should not belong to the move just played.
+  const lastMove = pressMoves[pressMoves.length - 1];
+  if (lastMove && pressFollow.length > 0 && pressFollow[0].item === lastMove.item) {
+    const k = pressFollow.findIndex((c) => c.item !== lastMove.item);
+    if (k > 0) pressFollow.unshift(...pressFollow.splice(k, 1));
+    else if (pressMoves.length >= 2) pressMoves.splice(pressMoves.length - 2, 2, lastMove, pressMoves[pressMoves.length - 2]);
+  }
+  const pressOrdered = [...pressMoves, ...pressFollow];
 
   const rounds: MechanicRound<FrontierPayload>[] = [];
   const push = (c: Ranked, phase: 'discovery' | 'pressure', step: number) => {

@@ -12,7 +12,7 @@ export type VariantKind = 'build' | 'window' | 'rotated';
 export interface Variant {
   kind: VariantKind;
   /**
-   * build: 0. window: first open slot (= step index). rotated: the step index locked at the top;
+   * build: 0 (a loop's build locks step 0 at the top). window: first open slot (= step index). rotated: the step index locked at the top;
    * the rest follow round the loop.
    */
   start: number;
@@ -27,13 +27,15 @@ export const DISCOVERY_MIN_OPEN = 3;
 
 /**
  * Every round a flow of n steps yields:
- *  - build: the empty stack, every tile to place;
+ *  - build: the empty stack, every tile to place. A loop has no top of its own, so its build keeps
+ *    the notes' first step locked at the top (size n-1); without it a correct cycle begun at any
+ *    other step would be marked wrong;
  *  - window: a run of 2..n-1 consecutive slots left open, the rest locked in place from the notes;
  *  - rotated (loops only): the loop picked up at another step — that step sits at the top and the
  *    player carries on round the circle until it closes.
  */
 export function deriveVariants(n: number, loop: boolean): Variant[] {
-  const out: Variant[] = [{ kind: 'build', start: 0, size: n }];
+  const out: Variant[] = [{ kind: 'build', start: 0, size: loop ? n - 1 : n }];
   if (loop) for (let s = 1; s < n; s++) out.push({ kind: 'rotated', start: s, size: n - 1 });
   for (let k = n - 1; k >= MIN_WINDOW; k--) for (let s = 0; s + k <= n; s++) out.push({ kind: 'window', start: s, size: k });
   return out;
@@ -58,7 +60,8 @@ export function slotSteps(n: number, v: Variant): number[] {
 
 /** Which slots the player fills (true) and which are locked in from the start (false). */
 export function openSlots(n: number, v: Variant): boolean[] {
-  if (v.kind === 'build') return new Array<boolean>(n).fill(true);
+  // A loop's build (size n-1) keeps the notes' first step at the top.
+  if (v.kind === 'build') return Array.from({ length: n }, (_, i) => i >= n - v.size);
   if (v.kind === 'rotated') return Array.from({ length: n }, (_, i) => i > 0);
   return Array.from({ length: n }, (_, i) => i >= v.start && i < v.start + v.size);
 }
