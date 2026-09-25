@@ -144,7 +144,8 @@ function termTargets(b: Block): RawTarget[] {
   for (const x of b.terms ?? []) {
     const o = obj(x);
     const id = str(o?.id);
-    const text = str(o?.text) || str(o?.plain_text);
+    // "1. Unconditional coverage": the list number is not part of the term.
+    const text = (str(o?.text) || str(o?.plain_text)).replace(/^\s*\d{1,2}[.)]\s+(?=\S)/, '');
     if (!id || !text.trim()) continue;
     const plain = plainOf(text);
     const n = plain.split(/\s+/).length;
@@ -155,37 +156,97 @@ function termTargets(b: Block): RawTarget[] {
     if (isHeadingTerm(b, text, texts)) continue;
     // A bold question is a heading ("Why cutting fiscal spending is difficult"), not a term.
     if (/^(?:what|how|why)\b/i.test(plain)) continue;
-    // Shown as plain text: a sentence that needs KaTeX (a display formula) is left out.
-    const sentence = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, ''));
+    const context = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, ''));
+    const shown = toDisplay(context);
     // "buying" / "shorting" inside "replicated by buying $521.4375 face of ...": the example's working.
-    if (sentence && isWorking(sentence)) continue;
-    const context = sentence && !sentence.includes('\\') ? sentence : '';
+    if (context && isWorking(shown)) continue;
+    // "$82.55 million" in "for every $100 million sold in T-bonds, we should buy $82.55 million": an example's answer.
+    if (/^\$?\s*\d/.test(toDisplay(text)) && EXERCISE_CUE.test(shown)) continue;
     out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, ...(context ? { context } : {}), keyText: plain, emph: [], acronyms, values: [], key: `t:${contentStems(plain).join(' ')}` });
   }
   return out;
 }
 
+/** Nesting depth of a bullet (1 = top level). */
+function depthOf(x: SubItemLike): number {
+  const d = obj(x)?.depth;
+  return typeof d === 'number' ? d : 1;
+}
+
+/** Formatting macros a lead-in may carry and still render as text; anything else (a heading box, a formula) is left out. */
+const FOREIGN_MACRO = /\\(?!(?:term|emph|textbf|textit)\{)[a-zA-Z]/;
+
+/**
+ * The sentence a top-level list hangs from ("A manager can lower a portfolio's VaR by:"), for a
+ * bullet that is a fragment of it ("lowering the position with the highest marginal VaR;").
+ */
+function listIntro(b: Block, bulletText: string): string {
+  const src = (b.body_latex ?? '').replace(/\s+/g, ' ');
+  const probe = bulletText.replace(/\s+/g, ' ').trim().slice(0, 24);
+  const at = probe.length >= 8 ? src.indexOf(probe) : -1;
+  if (at < 0) return '';
+  // The list that holds the bullet: walk back over nested lists to its own \begin.
+  const marks = [...src.slice(0, at).matchAll(/\\(begin|end)\{(?:itemize|enumerate)\}/g)];
+  let nested = 0;
+  let openAt = -1;
+  for (let k = marks.length - 1; k >= 0; k--) {
+    if (marks[k][1] === 'end') nested++;
+    else if (nested > 0) nested--;
+    else {
+      openAt = marks[k].index ?? -1;
+      break;
+    }
+  }
+  if (openAt < 0) return '';
+  const before = src.slice(0, openAt);
+  // Only the prose right before the list: after any earlier list or item.
+  const cut = [...before.matchAll(/\\end\{(?:itemize|enumerate)\}|\\item\b/g)].pop();
+  const prose = before.slice(cut ? (cut.index ?? 0) + cut[0].length : 0).trim();
+  const last = prose.split(/(?<=[.!?])\s+(?=[A-Z])/).pop()?.trim() ?? '';
+  if (!/:\s*$/.test(toDisplay(last))) return '';
+  return splitMath(last).every((seg) => seg.kind === 'math' || !FOREIGN_MACRO.test(seg.text)) ? last : '';
+}
+
 function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
   const out: RawTarget[] = [];
   const loKey = contentStems(plainOf(objectiveText)).join(' ');
-  for (const x of b.bullets ?? []) {
+  const list = b.bullets ?? [];
+  list.forEach((x, i) => {
     const o = obj(x);
     const id = str(o?.id);
     const text = str(o?.text) || str(o?.plain_text);
-    if (!id || !text.trim()) continue;
+    if (!id || !text.trim()) return;
     let plain = plainOf(text);
     // Learning-objective restatements are the prompt, not recall material.
-    if (b.type === 'keybox' && LO_VERB.test(plain)) continue;
+    if (b.type === 'keybox' && LO_VERB.test(plain)) return;
     // A trap bullet's lead-in label is its trap category ("Sibling, IM-2 e."), not content.
     if (b.type === 'trapbox') plain = plain.replace(TRAP_LABEL, '');
     // A bare lead-in to a sub-list ("European Union (EU):") says nothing itself; worked arithmetic is an example.
-    if ((/:\s*$/.test(plain) && !/[.!?]\s/.test(plain) && plain.split(/\s+/).length <= 10) || isWorking(plain)) continue;
+    if ((/:\s*$/.test(plain) && !/[.!?]\s/.test(plain) && plain.split(/\s+/).length <= 10) || isWorking(plain)) return;
+    // A heading over its own sub-list ("Asset servicing and redemption.", "Banks need policies for"): the sub-bullets carry it.
+    const depth = depthOf(x);
+    const next = list[i + 1];
+    if (next !== undefined && depthOf(next) > depth && (plain.split(/\s+/).length <= 6 || !/[.!?:]\s*$/.test(plain))) return;
     const lead = leadSentence(plain);
     const stems = contentStems(lead);
-    if (stems.length < 3 || lead.split(/\s+/).length > 45) continue;
-    if (stems.join(' ') === loKey) continue;
-    out.push({ itemId: id, blockId: b.id, kind: 'point', display: text, keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
-  }
+    if (stems.length < 3 || lead.split(/\s+/).length > 45) return;
+    if (stems.join(' ') === loKey) return;
+    // What the bullet hangs from: its parent bullet ("Sensitivity depends on:"), or for a fragment
+    // of a top-level list ("defining the copula function;"), the sentence that opens the list.
+    let context = '';
+    if (depth > 1) {
+      for (let j = i - 1; j >= 0; j--) {
+        if (depthOf(list[j]) < depth) {
+          const parent = obj(list[j]);
+          context = leadSentence(parent ? str(parent.text) || str(parent.plain_text) : typeof list[j] === 'string' ? (list[j] as string) : '');
+          break;
+        }
+      }
+    } else if (/^[a-z]/.test(toDisplay(text))) context = listIntro(b, text);
+    // The list's joining punctuation ("...; and") is not part of the point.
+    const display = text.replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '').trimEnd();
+    out.push({ itemId: id, blockId: b.id, kind: 'point', display, ...(context ? { context } : {}), keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
+  });
   return out;
 }
 

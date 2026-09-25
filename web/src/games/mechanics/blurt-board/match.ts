@@ -24,9 +24,11 @@ export interface BlurtTarget {
   /** The number (numeric items) or symbol (variables), as LaTeX. */
   label?: string;
   /**
-   * Terms: the notes' sentence (or bullet) that carries the term, as plain display text, shown
-   * under the term once the board is checked. Many marked terms are phrases ("far away from 1",
-   * "not suitable") that state nothing on their own.
+   * Terms: the notes' sentence (or bullet) that carries the term, as LaTeX, shown under the term
+   * once the board is checked. Many marked terms are phrases ("far away from 1", "not suitable")
+   * that state nothing on their own. Points: the lead-in their list hangs from ("A manager can
+   * lower a portfolio's VaR by:"), shown above a fragment bullet ("lowering the position with the
+   * highest marginal VaR").
    */
   context?: string;
   keys: KeyWord[];

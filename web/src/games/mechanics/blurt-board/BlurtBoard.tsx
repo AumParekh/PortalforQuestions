@@ -65,8 +65,19 @@ function ItemText({ t }: { t: BlurtTarget }) {
           <NoteText latex={t.display} />
         </span>
         <span className="g-muted block" style={SMALL}>
-          {t.context}
+          <NoteText latex={t.context} />
         </span>
+      </span>
+    );
+  }
+  if (t.kind === 'point' && t.context) {
+    // A list fragment ("lowering the position with the highest marginal VaR") hangs from its lead-in.
+    return (
+      <span>
+        <span className="g-muted block" style={SMALL}>
+          <NoteText latex={t.context} />
+        </span>
+        <NoteText latex={t.display} />
       </span>
     );
   }

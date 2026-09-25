@@ -370,6 +370,8 @@ function macroTargets(s: string, block: Block): Target[] {
     const open = m.index + m[0].length - 1;
     const end = braceEnd(s, open);
     if (end < 0) continue;
+    // A bolded fragment of a word ("\textbf{dis}economies") is not a word to recall.
+    if (/[A-Za-z]$/.test(s.slice(0, m.index)) || /^[A-Za-z]/.test(s.slice(end))) continue;
     const inner = s.slice(open + 1, end - 1);
     const disp = toDisplay(inner);
     const { core } = stripTrailingPunct(disp);
@@ -464,7 +466,17 @@ function directionTargets(s: string, block: Block, bulletId: string | null): Tar
     // "two or more", "and more —", "raises the question / two objections", "reduces to an ordinary swap".
     if (w === 'longer' && /\bno\s*$/i.test(prev)) continue;
     if (w === 'more' && /^\s*(precisely|specifically|specific|generally|formally|broadly|simply|concretely)\b/i.test(next)) continue;
-    if (w === 'more' && (/\b(one|two|three|four|five|\d+)\s+or\s*$/i.test(prev) || (/\band\s*$/i.test(prev) && /^\s*([—–,;.)]|$)/.test(next)))) continue;
+    if (w === 'more' && (/\b(one|two|three|four|five|\d+)\s+or\s*$/i.test(prev) || (/\band\s*$/i.test(prev) && /^\s*([—–,;.)]|-{2,3}|$)/.test(next)))) continue;
+    // Both ways at once ("rise and fall", "higher or lower", "increase and decrease", "both before and
+    // after"): the pair means "either way", so neither side is a direction to recall.
+    const opposite = (x: string | undefined) => {
+      const a = x ? DIR_AXIS[x.toLowerCase()] : undefined;
+      const b = DIR_AXIS[w];
+      return !!a && !!b && a[0] === b[0] && a[1] !== b[1];
+    };
+    const pairNext = /^\s+(?:and|or|nor|to)\s+([A-Za-z]+)/i.exec(next);
+    const pairPrev = /([A-Za-z]+)\s+(?:and|or|nor|to)\s+$/i.exec(prev);
+    if (opposite(pairNext?.[1]) || opposite(pairPrev?.[1])) continue;
     if (/^raise[sd]?$/.test(w) && /^\s+(?:(?:the|a|an|two|three|several|some|obvious|serious|important)\s+)*(questions?|objections?|concerns?|issues?|doubts?)\b/i.test(next)) continue;
     if (/^reduce[sd]?$/.test(w) && (/^\s+to\s+(a|an|the)\b/i.test(next) || /\b(expression|formula|equation)\s+$/i.test(prev))) continue;
     // "defaults would fall in the first 5%", "loans fall into this category": belonging, not moving down.
@@ -495,6 +507,8 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
     // "long-term growth (like infrastructure), not short-term transfers": the nearest words are an
     // aside, not the side the contrast is drawn against.
     if (/\)\s*$/.test(s.slice(0, m.index))) continue;
+    // "X, not just Y" adds X to Y rather than replacing it: Y is true as well, so it is no foil.
+    if (/^(just|only|merely|simply|solely|purely|necessarily)\b/i.test(s.slice(m.index + m[0].length))) continue;
     const clean = (w: string) => w.replace(/^[^A-Za-z]+|[^A-Za-z-]+$/g, '');
     // Right side: words up to the first punctuation.
     const right: string[] = [];
@@ -544,6 +558,9 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
       yRaw = yRaw.slice(1);
     }
     if (!y.length || y.every((w) => STOPWORDS.has(w))) continue;
+    // A number word or pronoun on the "not" side ("two years, not one"; "after the risk inventory, not
+    // before it") contrasts something other than the nearest words, so the blank would miss it.
+    if (y.some((w) => /^(one|two|three|four|five|six|seven|eight|nine|ten|it|them|this|that|these|those)$/.test(w))) continue;
     while (x.length > 1 && /^(a|an|the)$/.test(x[0].w)) x = x.slice(1);
     if (x.length && STOPWORDS.has(x[0].w)) continue;
     if (!x.length || x.length > 3 || x.some((t) => !/^[a-z][a-z-]*$/.test(t.w) || inRanges(t.start, maths))) continue;
@@ -658,7 +675,8 @@ function blockSentences(block: Block, objectiveId: string, readingId: string, co
         // Nor are titles that name a comparison or ask a question ("The same", "The difference",
         // "Internal versus external fraud", "What MDS does instead").
         const listy =
-          /,|^(the )?(two|three|four|five|six|seven|eight|nine|ten)\b|^\d|\b(versus|vs)\b|^(what|why|how|when|where|which)\b/i.test(title) ||
+          // "DVA and BCVA", "Clearing and settlement": two terms, and the sentence defines at most one.
+          /,|\band\b|&|^(the )?(two|three|four|five|six|seven|eight|nine|ten)\b|^\d|\b(versus|vs)\b|^(what|why|how|when|where|which)\b/i.test(title) ||
           /^(the )?(same|difference|differences|similarities|motivations?)$/i.test(title) ||
           GENERIC_LABEL.test(title);
         if (deft?.id && title && !listy) {
@@ -883,7 +901,9 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
     const info = DIR_INFO.get(c.answer.toLowerCase());
     if (!info) return null;
     const cap = (w: string) => (/^[A-Z]/.test(c.answer) ? w[0].toUpperCase() + w.slice(1) : w);
-    add(cap(info.antonym));
+    // The antonym is always wrong, even when one contains the other ("stabilising" / "destabilising").
+    chosen.push(cap(info.antonym));
+    taken.add(key(info.antonym));
     // A third word of the same grammatical form, preferring one the reading itself uses.
     const used = shuffle(
       allTargets(reading)
@@ -971,9 +991,12 @@ export function toPayload(c: Candidate, reading: Reading, corpus: Corpus, rng: (
   if (dir && !reject.includes(dir.antonym)) reject.push(dir.antonym);
   if (c.foil && !reject.includes(c.foil)) reject.push(c.foil);
   // A spelling trap ("GARP writes Jegadeesh, not Jagadeesh"): the sentence's own near-miss is wrong.
+  // Only a word the sentence itself rules out ("…, not Jagadeesh") counts: other near-misses in the
+  // sentence are usually the answer's own variants ("tradable" for "Tradeable", "independent").
   if (c.kind !== 'number' && c.kind !== 'direction' && words(c.answer).length === 1) {
     const a = key(c.answer).replace(/\s+/g, '');
-    for (const w of words(key(toDisplay(`${c.before} ${c.after}`)))) {
+    const ruledOut = [...toDisplay(`${c.before} ${c.after}`).matchAll(/\bnot\s+[“"‘'`]*([\p{L}-]+)/giu)].map((x) => key(x[1]));
+    for (const w of ruledOut) {
       if (w !== a && Math.abs(w.length - a.length) <= 2 && w[0] === a[0] && levenshtein(w, a) <= 2 && !reject.includes(w)) reject.push(w);
     }
   }
@@ -1060,8 +1083,11 @@ function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
   const o = reading.objectives.find((x) => x.id === c.objectiveId);
   const text = objectiveText(o);
   const term = conceptTerm(c) ?? text ?? c.answer;
+  // A direction word or number with no titled block names no concept ("“increase” is the word it
+  // hangs on"): the thread's objective is named on its own.
+  const hangs = conceptTerm(c) ? ` “${c.answer}” is the word it hangs on here.` : '';
   const line = text
-    ? `The thread you were rebuilding is ${c.objectiveId}: ${text}. “${c.answer}” is the word it hangs on here.`
+    ? `The thread you were rebuilding is ${c.objectiveId}: ${text}.${hangs}`
     : `The thread you were rebuilding runs through ${c.blockTitle ?? `block ${c.blockId}`}; “${c.answer}” is the word it hangs on.`;
   return { term, blockId: c.blockId, objectiveId: c.objectiveId, line };
 }
