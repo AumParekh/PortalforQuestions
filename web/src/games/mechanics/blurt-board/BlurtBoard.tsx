@@ -226,6 +226,7 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
   const [settled, setSettled] = useState(false);
   const started = useRef(performance.now());
   const done = useRef(false);
+  const checkedOnce = useRef(false);
   const textRef = useRef<HTMLTextAreaElement | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
   const textNow = useRef('');
@@ -245,7 +246,8 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
   }, []);
 
   const runCheck = (byTimeout: boolean) => {
-    if (!board || check) return;
+    if (!board || checkedOnce.current) return;
+    checkedOnce.current = true;
     const written = textNow.current;
     const res = checkBoard(written, board.targets, board.extras);
     const blank = byTimeout && written.trim() === '';

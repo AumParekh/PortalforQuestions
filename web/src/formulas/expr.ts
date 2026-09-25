@@ -150,7 +150,6 @@ export function compileExpr(expr: string, names: string[]): ((values: Record<str
   const body = tokens.map((t) => t.text).join(' ');
   let fn: (...args: number[]) => unknown;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     fn = new Function(...names, `"use strict"; return (${body});`) as (...args: number[]) => unknown;
   } catch {
     return null;

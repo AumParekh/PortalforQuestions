@@ -11,7 +11,7 @@ import { emphasised, mathToPlain, splitMath, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { BlurtTarget, KeyWord, TargetKind } from './match';
-import { contentStems, directionStems, parseNumbers, plainOf, stem, words } from './match';
+import { contentStems, directionStems, parseNumbers, plainOf, words } from './match';
 
 /** One board: an objective, the targets that are scored on it, and the rest of its items. */
 export interface BlurtBoardSpec {
@@ -272,6 +272,17 @@ function quality(t: BlurtTarget): number {
   return KIND_QUALITY[t.kind];
 }
 
+function flat(t: BlurtTarget): string {
+  return ` ${words(plainOf(t.display)).join(' ')} `;
+}
+
+/** Two items say the same thing on a board: a term that is the lead-in of a bullet, or one text inside the other. */
+export function overlaps(a: BlurtTarget, b: BlurtTarget): boolean {
+  const x = flat(a);
+  const y = flat(b);
+  return x.trim().length > 0 && y.trim().length > 0 && (x.includes(y) || y.includes(x));
+}
+
 /** Picks n targets: due first, then unseen, then the rest; within a tier, richer items first; no kind takes over the board. */
 export function pickTargets(items: readonly BlurtTarget[], n: number, ctx: BlurtBuildInput): BlurtTarget[] {
   const tier = (t: BlurtTarget) => srsPriority(ctx.srs[t.itemId], ctx.today);
@@ -282,15 +293,20 @@ export function pickTargets(items: readonly BlurtTarget[], n: number, ctx: Blurt
   const cap = Math.ceil(n / 2);
   const picked: BlurtTarget[] = [];
   const perKind = new Map<TargetKind, number>();
+  const clashes = (t: BlurtTarget) => picked.some((p) => overlaps(p, t));
   for (const t of ordered) {
     if (picked.length >= n) break;
-    if ((perKind.get(t.kind) ?? 0) >= cap) continue;
+    if ((perKind.get(t.kind) ?? 0) >= cap || clashes(t)) continue;
     picked.push(t);
     perKind.set(t.kind, (perKind.get(t.kind) ?? 0) + 1);
   }
-  for (const t of ordered) {
-    if (picked.length >= n) break;
-    if (!picked.includes(t)) picked.push(t);
+  // Top up past the kind cap; overlapping items only if the board would otherwise be too small.
+  for (const allowClash of [false, true]) {
+    for (const t of ordered) {
+      const room = allowClash ? MIN_TARGETS : n;
+      if (picked.length >= room) break;
+      if (!picked.includes(t) && (allowClash || !clashes(t))) picked.push(t);
+    }
   }
   // Board order follows the reading, so the lit-up board reads like the notes.
   return items.filter((t) => picked.includes(t));
@@ -319,37 +335,55 @@ function makeBoard(o: Objective, items: readonly BlurtTarget[], n: number, phase
   };
 }
 
-/** A short name for an item, for the naming step and the plan's target. */
+/** A short name for an item, for the naming step. Never cut mid-text: a label, a bold phrase, or the whole lead. */
 export function shortName(t: BlurtTarget): string {
   const plain = toDisplay(t.display).replace(/\s+/g, ' ').trim();
   if (t.kind === 'term') return plain.replace(/[.:;,]+$/, '');
   if (t.kind === 'variable') return plain;
-  if (t.kind === 'number') return `${toDisplay(t.label ?? '')} in “${clip(plain, 14)}”`;
+  if (t.kind === 'number') return toDisplay(t.label ?? '') || plain;
+  const label = /^([^.:;]{2,60})[.:]\s/.exec(plain);
+  if (label && label[1].split(/\s+/).length <= 6) return label[1];
   const emph = emphasised(t.display).filter((x) => x.split(/\s+/).length >= 2);
-  return emph[0] ?? clip(leadSentence(plain), 16);
-}
-
-/** Cuts at a word boundary (for a heading line only; full text is always shown on the board). */
-function clip(s: string, maxWords: number): string {
-  const ws = s.split(/\s+/);
-  return ws.length <= maxWords ? s.replace(/[.;:]+$/, '') : `${ws.slice(0, maxWords).join(' ')} …`;
+  return emph[0] ?? leadSentence(plain).replace(/[.;:]+$/, '');
 }
 
 const KIND_ROLE: Record<TargetKind, string> = {
-  term: 'a marked term of this objective',
-  point: 'a point the notes make under this objective',
-  number: 'a number the notes pin to this objective',
-  variable: 'a variable from this objective’s notation key',
+  term: 'A marked term',
+  point: 'A point the notes make',
+  number: 'A number the notes pin down',
+  variable: 'A variable from the notation key',
 };
+
+/** What the notes say around a term: the bullet of its block that carries it, else the sentence that uses it. */
+function termSentence(block: Block | undefined, term: string): string {
+  if (!block) return '';
+  const norm = (x: string) => x.toLowerCase().replace(/[“”"]/g, '').trim();
+  const needle = norm(term);
+  const longer = (x: string) => norm(x).includes(needle) && norm(x).length > needle.length + 8;
+  for (const x of block.bullets ?? []) {
+    const o = obj(x);
+    const text = toDisplay(o ? str(o.text) : typeof x === 'string' ? x : '');
+    if (text && longer(text)) return text;
+  }
+  const src = block.plain_text ?? block.body_latex ?? '';
+  const sentences = toDisplay(src)
+    .split(/\s*•\s*|(?<=[.!?])\s+(?=[A-Z])/)
+    .map((x) => x.trim())
+    .filter((x) => x.length > 0);
+  return sentences.find(longer) ?? '';
+}
 
 export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
   const block = corpus.blockById[t.blockId];
-  const where = block?.title ? `“${toDisplay(block.title)}”` : `the ${block?.type ?? 'block'}`;
+  const term = shortName(t);
+  const where = block?.title ? ` in “${toDisplay(block.title)}”` : '';
+  const body = t.kind === 'term' ? termSentence(block, term) : toDisplay(t.display);
+  const same = body.replace(/[.;:]+$/, '').trim().toLowerCase() === term.toLowerCase();
   return {
-    term: shortName(t),
+    term,
     blockId: t.blockId,
     objectiveId,
-    line: `Free recall leaves gaps where retrieval is weakest. This is ${KIND_ROLE[t.kind]}, from ${where}: ${toDisplay(t.display)}`,
+    line: body && !same ? `${KIND_ROLE[t.kind]} under ${objectiveId}${where}: ${body}` : `${KIND_ROLE[t.kind]} under ${objectiveId}${where}.`,
   };
 }
 
@@ -404,5 +438,3 @@ export function nameAfterDiscovery(corpus: Corpus, plan: MechanicPlan<BlurtPaylo
   return t ? namingFor(corpus, t, pick.r.payload.board.objectiveId) : plan.concept;
 }
 
-/** Stem helper re-exported for tests. */
-export { stem };
