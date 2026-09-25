@@ -7,7 +7,7 @@ import type { Corpus } from '../../corpus';
 import type { Block, ItemSrs, Objective, Reading, SubItemLike } from '../../types';
 import { isLearningObjective } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { emphasised, mathToPlain, splitMath, toDisplay } from '../../text';
+import { emphasised, mathToPlain, splitMath, toDisplay, toSegments } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { BlurtTarget, KeyWord, TargetKind } from './match';
@@ -156,7 +156,8 @@ function termTargets(b: Block): RawTarget[] {
     if (isHeadingTerm(b, text, texts)) continue;
     // A bold question is a heading ("Why cutting fiscal spending is difficult"), not a term.
     if (/^(?:what|how|why)\b/i.test(plain)) continue;
-    const context = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, ''));
+    // The list's joining punctuation ("Managing accounts, including pricing ...; and") is not part of the sentence.
+    const context = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, '')).replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '');
     const shown = toDisplay(context);
     // "buying" / "shorting" inside "replicated by buying $521.4375 face of ...": the example's working.
     if (context && isWorking(shown)) continue;
@@ -180,10 +181,12 @@ const FOREIGN_MACRO = /\\(?!(?:term|emph|textbf|textit)\{)[a-zA-Z]/;
  * The sentence a top-level list hangs from ("A manager can lower a portfolio's VaR by:"), for a
  * bullet that is a fragment of it ("lowering the position with the highest marginal VaR;").
  */
-function listIntro(b: Block, bulletText: string): string {
+function listIntro(b: Block, index: number): string {
   const src = (b.body_latex ?? '').replace(/\s+/g, ' ');
-  const probe = bulletText.replace(/\s+/g, ' ').trim().slice(0, 24);
-  const at = probe.length >= 8 ? src.indexOf(probe) : -1;
+  // Bullets are the block's \items in order; if the counts disagree, the position is unknown.
+  const items = [...src.matchAll(/\\item\b/g)];
+  if (items.length !== (b.bullets ?? []).length) return '';
+  const at = items[index]?.index ?? -1;
   if (at < 0) return '';
   // The list that holds the bullet: walk back over nested lists to its own \begin.
   const marks = [...src.slice(0, at).matchAll(/\\(begin|end)\{(?:itemize|enumerate)\}/g)];
@@ -207,6 +210,21 @@ function listIntro(b: Block, bulletText: string): string {
   return splitMath(last).every((seg) => seg.kind === 'math' || !FOREIGN_MACRO.test(seg.text)) ? last : '';
 }
 
+/**
+ * What a sub-list hangs from in its parent bullet: the sentence that opens the sub-list when it
+ * ends in a colon ("Enhanced due diligence for high-risk customers:", after a label such as
+ * "Profit scoring."), else the parent's lead ("Political risk. How the government operates ...").
+ */
+function parentLead(raw: string): string {
+  const parts = raw.split(/(?<=[.!?])\s+(?=[A-Z$(\\])/).map((x) => x.trim()).filter(Boolean);
+  const last = parts[parts.length - 1] ?? '';
+  if (parts.length > 1 && /:\s*$/.test(toDisplay(last))) {
+    const label = parts[0].split(/\s+/).length <= 6 ? parts[0] : '';
+    return label ? `${label} ${last}` : last;
+  }
+  return leadSentence(raw);
+}
+
 function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
   const out: RawTarget[] = [];
   const loKey = contentStems(plainOf(objectiveText)).join(' ');
@@ -223,6 +241,8 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     if (b.type === 'trapbox') plain = plain.replace(TRAP_LABEL, '');
     // A bare lead-in to a sub-list ("European Union (EU):") says nothing itself; worked arithmetic is an example.
     if ((/:\s*$/.test(plain) && !/[.!?]\s/.test(plain) && plain.split(/\s+/).length <= 10) || isWorking(plain)) return;
+    // An argument's set-up ("suppose for the sake of argument that ...") is not a point to recall.
+    if (/\b(?:suppose|for the sake of argument)\b/i.test(plain)) return;
     // A heading over its own sub-list ("Asset servicing and redemption.", "Banks need policies for"): the sub-bullets carry it.
     const depth = depthOf(x);
     const next = list[i + 1];
@@ -238,11 +258,11 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
       for (let j = i - 1; j >= 0; j--) {
         if (depthOf(list[j]) < depth) {
           const parent = obj(list[j]);
-          context = leadSentence(parent ? str(parent.text) || str(parent.plain_text) : typeof list[j] === 'string' ? (list[j] as string) : '');
+          context = parentLead(parent ? str(parent.text) || str(parent.plain_text) : typeof list[j] === 'string' ? (list[j] as string) : '');
           break;
         }
       }
-    } else if (/^[a-z]/.test(toDisplay(text))) context = listIntro(b, text);
+    } else if (/^[a-z]/.test(toDisplay(text))) context = listIntro(b, i);
     // The list's joining punctuation ("...; and") is not part of the point.
     const display = text.replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '').trimEnd();
     out.push({ itemId: id, blockId: b.id, kind: 'point', display, ...(context ? { context } : {}), keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
@@ -310,16 +330,24 @@ function numberTargets(b: Block): RawTarget[] {
 
 function variableTargets(b: Block): RawTarget[] {
   const out: RawTarget[] = [];
-  for (const v of b.variables ?? []) {
-    if (!v || typeof v !== 'object') continue;
+  const vars = (b.variables ?? []).filter((v) => !!v && typeof v === 'object');
+  const shared = (v: (typeof vars)[number]) => (v as unknown as Record<string, unknown>).shared_definition === true;
+  const taken = new Set<string>();
+  for (const v of vars) {
     const id = str(v.id);
     const symbol = str(v.symbol);
-    const def = str(v.definition);
-    if (!id || !symbol.trim() || !def.trim()) continue;
+    // A trailing dash left from a parenthetical ("... investor — the wealth-weighted average ... —").
+    const def = str(v.definition).replace(/\s*[—–]\s*$/, '');
+    if (!id || !symbol.trim() || !def.trim() || taken.has(id)) continue;
     const plain = plainOf(def);
     if (contentStems(plain).length < 2) continue;
-    const symbolWords = words(plainOf(symbol)).filter((w) => w.length >= 3);
-    out.push({ itemId: id, blockId: b.id, kind: 'variable', display: `${symbol} — ${def}`, label: symbol, keyText: plain, emph: [], acronyms: [], values: [], symbolWords, key: `v:${contentStems(plain).join(' ')}` });
+    // "$\mu$, $\sigma$ = mean and standard deviation of ...": one definition for several symbols.
+    // Alone, "$\mu$ — mean and standard deviation" or "$c$ — call and put prices" is wrong; the tile names them all.
+    const group = shared(v) ? vars.filter((u) => shared(u) && str(u.definition) === str(v.definition) && str(u.symbol).trim()) : [v];
+    for (const u of group) taken.add(str(u.id));
+    const symbols = group.map((u) => str(u.symbol)).join(', ');
+    const symbolWords = group.flatMap((u) => words(plainOf(str(u.symbol)))).filter((w) => w.length >= 3);
+    out.push({ itemId: id, blockId: b.id, kind: 'variable', display: `${symbols} — ${def}`, label: symbols, keyText: plain, emph: [], acronyms: [], values: [], symbolWords, key: `v:${contentStems(plain).join(' ')}` });
   }
   return out;
 }
@@ -541,37 +569,79 @@ const KIND_ROLE: Record<TargetKind, string> = {
   variable: 'A variable from the notation key',
 };
 
-/** What the notes say around a term: the bullet of its block that carries it, else the sentence that uses it. */
+/** A sentence that renders on a tile: no display formula, no layout macros. */
+function renderable(latex: string): boolean {
+  return !/\$\$|\\\[/.test(latex) && splitMath(latex).every((seg) => seg.kind === 'math' || !FOREIGN_MACRO.test(seg.text));
+}
+
+/**
+ * What the notes say around a term, as LaTeX: the bullet of its block that carries it, else the
+ * sentence that uses it. A term that is its own sentence ("Credit support amount.", "The second
+ * effect dominates the first.") comes with the sentence that explains it.
+ */
 function termSentence(block: Block | undefined, term: string): string {
   if (!block) return '';
-  const norm = (x: string) => x.toLowerCase().replace(/[“”"]/g, '').trim();
-  const needle = norm(term);
-  const longer = (x: string) => norm(x).includes(needle) && norm(x).length > needle.length + 8;
-  const bullets = (block.bullets ?? []).map((x) => {
-    const o = obj(x);
-    return toDisplay(o ? str(o.text) : typeof x === 'string' ? x : '');
-  });
-  const src = block.plain_text ?? block.body_latex ?? '';
-  const sentences = toDisplay(src)
-    .split(/\s*•\s*|(?<=[.!?])\s+(?=[A-Z])/)
-    .map((x) => x.trim())
+  const norm = (x: string) => toDisplay(x).toLowerCase().replace(/[“”"]/g, '').trim();
+  const needle = term.toLowerCase().replace(/[“”"]/g, '').trim();
+  const esc = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // As a whole phrase: "Sharpe ratio" is not the "Sharpe ratios" of a quoted misstatement.
+  const word = new RegExp(`(?:^|[^\\p{L}\\p{N}])${esc}(?:$|[^\\p{L}\\p{N}])`, 'u');
+  const has = (x: string) => word.test(norm(x));
+  const longer = (x: string) => has(x) && norm(x).length > needle.length + 3;
+  const bullets = (block.bullets ?? [])
+    .map((x) => {
+      const o = obj(x);
+      return o ? str(o.text) : typeof x === 'string' ? x : '';
+    })
+    .filter(renderable);
+  // A display formula ends the sentence that introduces it ("... add volatility for up moves and subtract volatility for down moves:").
+  const src = (block.plain_text ?? block.body_latex ?? '').replace(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]/g, ' • ');
+  const sentences = src
+    .split(/\s*•\s*|(?<=[.!?]|[.!?][”"])\s+(?=[A-Z$\\(“"])/)
+    .map((x) => x.replace(/\s+/g, ' ').trim())
     .filter((x) => x.length > 0);
-  // The sentence that opens with the term defines it ("Bankruptcy is a legal procedure ..."); else its first use.
-  const opens = (x: string) => norm(x).startsWith(needle);
-  const found =
-    bullets.find((x) => longer(x) && opens(x)) ?? sentences.find((x) => longer(x) && opens(x)) ?? bullets.find(longer) ?? sentences.find(longer);
+  const usable = sentences.filter(renderable);
+  // The sentence that opens with the term defines it ("Bankruptcy is a legal procedure ...", "A derivative
+  // represents ...", "Synthetic CDOs use ..."); else the term's first use; else, in a definition box
+  // titled with the term ("Heterogeneous"), its opening sentence.
+  const opens = (x: string) => [norm(x), norm(x).replace(/^an? /, '')].some((y) => y.startsWith(needle) && y.length > needle.length + 3);
+  const titled = block.type === 'defbox' && !!block.title && norm(block.title) === needle ? usable[0] : undefined;
+  const found = bullets.find(opens) ?? usable.find(opens) ?? bullets.find(longer) ?? usable.find(longer) ?? titled;
   if (found) return found;
-  // A definition box titled with the term ("Heterogeneous") defines it in its opening sentence.
-  if (block.type === 'defbox' && block.title && norm(toDisplay(block.title)) === needle) return sentences[0] ?? '';
+  const i = sentences.findIndex((x) => norm(x).replace(/[.:;!?]+$/, '').replace(/^(?:a|an|the) /, '') === needle.replace(/^(?:a|an|the) /, ''));
+  if (i >= 0) {
+    const [prev, next] = [sentences[i - 1], sentences[i + 1]];
+    if (next && renderable(next)) return `${sentences[i]} ${next}`;
+    if (prev && renderable(prev)) return `${prev} ${sentences[i]}`;
+  }
+  // A label whose text sits in the block it heads ("Risk governance" over "Sets roles and
+  // responsibilities for managing risk."), or a definition box titled with the term ("Heterogeneous"):
+  // the block's opening sentence defines it.
+  if (!has(src) && usable[0] && (block.type === 'defbox' || sentences.length <= 2)) return usable[0];
   return '';
+}
+
+/** Plain text of a context for the one-line naming; empty when it needs KaTeX. */
+function plainContext(latex: string | undefined): string {
+  if (!latex || toSegments(latex).some((seg) => seg.kind === 'math')) return '';
+  return toDisplay(latex);
+}
+
+/** The item's name as plain text, or '' when it needs KaTeX; a symbol ("$\hat{r}(2)$") is named by its definition. */
+function plainName(t: BlurtTarget): string {
+  const name = plainContext(shortName(t));
+  if (name || t.kind !== 'variable') return name;
+  return plainContext(t.display.split(' — ').slice(1).join(' — '));
 }
 
 export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
   const block = corpus.blockById[t.blockId];
-  const term = shortName(t);
+  const term = plainName(t) || shortName(t);
   const where = block?.title ? ` in “${toDisplay(block.title)}”` : '';
-  // The line is plain text: a term's sentence that needs KaTeX (a display formula) is left out, as on the tile.
-  const body = t.kind === 'term' ? (t.context ?? '') : toDisplay(t.display);
+  // A context or statement that needs KaTeX is left out of the line.
+  const ctx = plainContext(t.context);
+  const shown = plainContext(t.display);
+  const body = t.kind === 'term' ? ctx : t.kind === 'point' && ctx && shown ? `${ctx} ${shown}` : shown;
   const same = body.replace(/[.;:]+$/, '').trim().toLowerCase() === term.toLowerCase();
   return {
     term,
@@ -612,7 +682,8 @@ export function buildBlurt(reading: Reading, ctx: BlurtBuildInput): MechanicPlan
     payload: { board, itemId: t.itemId },
   });
   const rounds = [...disc.targets.map((t) => toRound(disc, t, 'discovery')), ...pres.targets.map((t) => toRound(pres, t, 'pressure'))];
-  const concept = namingFor(ctx.corpus, disc.targets[0], disc.objectiveId);
+  // The naming step is plain text: lead with an item that reads without KaTeX.
+  const concept = namingFor(ctx.corpus, disc.targets.find((t) => plainName(t)) ?? disc.targets[0], disc.objectiveId);
   return {
     rounds,
     target: `free recall of ${disc.objectiveId} and ${pres.objectiveId}`,
@@ -626,7 +697,12 @@ export function nameAfterDiscovery(corpus: Corpus, plan: MechanicPlan<BlurtPaylo
   const byId = new Map(plan.rounds.map((r) => [r.id, r]));
   const played = discovery.map((d) => ({ d, r: byId.get(d.roundId) })).filter((x): x is { d: RoundResult; r: MechanicRound<BlurtPayload> } => !!x.r);
   const missed = played.filter((x) => !x.d.correct);
-  const pick = missed.find((x) => x.r.payload.board.targets.find((t) => t.itemId === x.r.itemId)?.kind === 'term') ?? missed[0] ?? played[0];
+  const target = (x: { r: MechanicRound<BlurtPayload> }) => x.r.payload.board.targets.find((t) => t.itemId === x.r.itemId);
+  const plain = (x: { r: MechanicRound<BlurtPayload> }) => {
+    const t = target(x);
+    return !!t && plainName(t) !== '';
+  };
+  const pick = missed.find((x) => target(x)?.kind === 'term' && plain(x)) ?? missed.find(plain) ?? missed[0] ?? played.find(plain) ?? played[0];
   if (!pick) return plan.concept;
   const t = pick.r.payload.board.targets.find((x) => x.itemId === pick.r.itemId);
   return t ? namingFor(corpus, t, pick.r.payload.board.objectiveId) : plan.concept;

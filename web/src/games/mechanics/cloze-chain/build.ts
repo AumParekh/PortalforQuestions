@@ -1083,9 +1083,10 @@ function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
   const o = reading.objectives.find((x) => x.id === c.objectiveId);
   const text = objectiveText(o);
   const term = conceptTerm(c) ?? text ?? c.answer;
-  // A direction word or number with no titled block names no concept ("“increase” is the word it
-  // hangs on"): the thread's objective is named on its own.
-  const hangs = conceptTerm(c) ? ` “${c.answer}” is the word it hangs on here.` : '';
+  // A direction word or a number names no concept ("“less” is the word it hangs on"): the line names
+  // its block's title instead, or the thread's objective on its own.
+  const bare = c.kind === 'number' || c.kind === 'direction';
+  const hangs = !bare ? ` “${c.answer}” is the word it hangs on here.` : c.blockTitle ? ` It runs through “${c.blockTitle}” here.` : '';
   const line = text
     ? `The thread you were rebuilding is ${c.objectiveId}: ${text}.${hangs}`
     : `The thread you were rebuilding runs through ${c.blockTitle ?? `block ${c.blockId}`}; “${c.answer}” is the word it hangs on.`;
