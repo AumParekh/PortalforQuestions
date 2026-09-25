@@ -7,6 +7,7 @@ on:
       - 'web/**'
       - 'content/**'
       - '.github/workflows/ci.yml'
+      - 'web/scripts/**'
   pull_request:
   workflow_dispatch:
 
@@ -28,3 +29,13 @@ jobs:
       - name: Build
         working-directory: web
         run: npm run build
+      # Opens every screen in Chromium (phone + desktop) and fails on crashes, console errors,
+      # failed content requests, empty screens or horizontal overflow at 375px.
+      - name: Browser smoke test
+        working-directory: web
+        run: |
+          npm install --no-save playwright@1.47.2
+          npx playwright install --with-deps chromium
+          npx vite preview --port 4173 --strictPort > /tmp/preview.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://localhost:4173/ > /dev/null && break; sleep 1; done
+          BASE=http://localhost:4173 node scripts/smoke.mjs
