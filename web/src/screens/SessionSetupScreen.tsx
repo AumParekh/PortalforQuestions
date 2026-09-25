@@ -395,12 +395,12 @@ export function SessionSetupScreen() {
     return catalog.filter((it) => {
       if (matchCounts && (matchCounts.get(it.key) ?? 0) === 0) return false;
       if (trap && !trapItemKeys.has(it.key)) return false;
-      if (dueItemKeys && !dueItemKeys.has(it.key)) return false;
-      if (notStarted || weak) {
+      // Progress chips (not started / weak / due) match any of the selected: "not started" and "due" can't both hold.
+      if (notStarted || weak || dueItemKeys) {
         const g = progressByKey.get(it.key);
         const isNew = !g || g.attempted === 0;
         const isWeak = !!g && g.attempts > 0 && g.accuracy !== null && g.accuracy < WEAK_THRESHOLD;
-        if (!((notStarted && isNew) || (weak && isWeak))) return false;
+        if (!((notStarted && isNew) || (weak && isWeak) || (dueItemKeys && dueItemKeys.has(it.key)))) return false;
       }
       return true;
     });
@@ -513,7 +513,8 @@ export function SessionSetupScreen() {
     if (!canStart) return;
     const queue = buildQueue(config, questions, states);
     if (queue.length === 0) return;
-    useSession.getState().start(config, queue);
+    // start() returns false when the user keeps a session already in progress.
+    if (!useSession.getState().start(config, queue)) return;
     navigate('/session');
   };
 

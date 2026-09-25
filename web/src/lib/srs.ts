@@ -11,6 +11,8 @@ import type { AnswerRecord, QuestionState } from '../types';
 export const PAR_SECONDS = 90;
 /** Most questions in one "Due for review" session. */
 export const DUE_SESSION_CAP = 20;
+/** Longest interval kept, so a corrupt or imported row (huge interval or ease) can't produce an invalid date. */
+export const MAX_INTERVAL_DAYS = 3650;
 
 export type QuestionSchedule = Pick<QuestionState, 'interval' | 'repetition' | 'efactor' | 'dueDate'>;
 
@@ -36,7 +38,7 @@ export function dueDay(dueDate: unknown): string | null {
 /** A row's schedule, read defensively: rows saved before scheduling existed (or imported without it) count as never scheduled. */
 export function scheduleOf(s: Partial<QuestionSchedule> | undefined): QuestionSchedule {
   return {
-    interval: num(s?.interval) && s.interval >= 0 ? s.interval : 0,
+    interval: num(s?.interval) && s.interval >= 0 ? Math.min(MAX_INTERVAL_DAYS, s.interval) : 0,
     repetition: num(s?.repetition) && s.repetition >= 0 ? Math.round(s.repetition) : 0,
     efactor: num(s?.efactor) ? Math.max(1.3, s.efactor) : 2.5,
     dueDate: dueDay(s?.dueDate),
@@ -59,7 +61,8 @@ export function nextSchedule(
   if (grade < 3) return { ...sm2(cur, grade), dueDate: today };
   if (cur.dueDate && cur.dueDate > today) return cur;
   const next = sm2(cur, grade);
-  return { ...next, dueDate: addDays(today, next.interval) };
+  const interval = Math.min(MAX_INTERVAL_DAYS, next.interval);
+  return { ...next, interval, dueDate: addDays(today, interval) };
 }
 
 /** Attempted, scheduled, and due on or before `today`. */

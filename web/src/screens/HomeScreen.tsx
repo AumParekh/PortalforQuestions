@@ -133,6 +133,12 @@ function QuickAction({
   );
 }
 
+/** A local YYYY-MM-DD at midday, so a DST change at midnight can't move it to another day. */
+function dayAtNoon(day: string): Date {
+  const [y, m, d] = day.split('-').map(Number);
+  return new Date(y, m - 1, d, 12);
+}
+
 function dueDetail(count: number, today: string, next: { day: string; count: number } | null): string {
   if (count > 0) {
     return count > DUE_SESSION_CAP
@@ -143,7 +149,7 @@ function dueDetail(count: number, today: string, next: { day: string; count: num
   const when =
     next.day === addDays(today, 1)
       ? 'tomorrow'
-      : new Date(`${next.day}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      : dayAtNoon(next.day).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
   return `Nothing due today. Next: ${next.count} ${next.count === 1 ? 'question' : 'questions'} ${when}`;
 }
 
@@ -386,7 +392,7 @@ export function HomeScreen() {
             icon={<CalendarDays className="h-5 w-5" aria-hidden="true" />}
             title={questionDue.count > 0 ? `Due for review (${questionDue.count})` : 'Due for review'}
             detail={dueDetail(questionDue.count, questionDue.today, questionDue.next)}
-            onClick={() => startDueReview(states, questionDue.today, (id) => !!byId[id])}
+            onClick={() => startDueReview(states, byId, localDay())}
             disabled={questionDue.count === 0}
           />
           <QuickAction

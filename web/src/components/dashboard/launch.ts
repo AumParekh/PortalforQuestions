@@ -50,10 +50,14 @@ export function startQuest(subjectQuestions: Question[], states: Record<string, 
   );
 }
 
-/** Spaced-repetition review: questions due today or earlier, most overdue first, at most 20. */
-export function startDueReview(states: Record<string, QuestionState>, today: string, include: (id: string) => boolean) {
-  const queue = dueQuestionIds(states, today, include, DUE_SESSION_CAP);
-  const subjects = [...new Set(queue.map((id) => states[id].subject))];
+/**
+ * Spaced-repetition review: questions in the loaded content (`byId`) due today or earlier, most overdue first, at
+ * most 20. Uses the same rule as Home's count (`dueQuestionIds` with the same content check).
+ */
+export function startDueReview(states: Record<string, QuestionState>, byId: Record<string, Question>, today: string) {
+  const queue = dueQuestionIds(states, today, (id) => !!byId[id], DUE_SESSION_CAP);
+  // Current content's subject names, so a renamed subject isn't recorded under its old name.
+  const subjects = [...new Set(queue.map((id) => byId[id].subject))];
   launch(
     { ...BASE, scopeKind: 'subject', selectedKeys: subjects, count: DUE_SESSION_CAP, order: 'sequential', mode: 'review-due' },
     queue,

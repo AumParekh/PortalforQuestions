@@ -1,6 +1,7 @@
 import type { Question, QuestionState, SessionConfig, SessionFilters } from '../types';
 import { resolveSelection } from './catalog';
 import { getSearchIndex, search } from './search';
+import { isQuestionDue } from './srs';
 
 const TABLE_ROW = /^\s*\|.*\|\s*$/m;
 
@@ -63,7 +64,7 @@ export function matchesFilters(q: Question, s: QuestionState | undefined, f: Ses
         case 'marked':
           return !!s?.markedForReview;
         case 'due':
-          return attempted && !!s?.dueDate && s.dueDate.slice(0, 10) <= today;
+          return isQuestionDue(s, today);
       }
     });
     if (!hit) return false;
