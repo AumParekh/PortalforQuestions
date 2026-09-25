@@ -26,7 +26,7 @@ const MAX_WORDS = 90;
 const APPROX = /(?:\b(?:about|around|approximately|approx\.?|roughly|nearly|almost|circa|some|close to)\s*|~\s*|≈\s*|\\approx\s*|\\sim\s*)$/i;
 const FACT_CUE =
   /\b(threshold|minimum|maximum|at least|at most|no more than|no less than|more than|less than|limit|cap|capped|floor|ratio|requir|must|set at|buffer|horizon|confidence|basel|regulat|percentile|trigger|benchmark|rule|standard|typically|between|range|ranging|weight|haircut|charge|multiplier|factor|coverage|leverage|surcharge|period|window|survival|stress|backtest|holding|remargin|look-?back|exception|zone|notch|downgrade|phased|deadline|introduced|adopted|crisis|collapse)/i;
-const EXAMPLE_START = /^\s*(?:•\s*)?(?:suppose|assume|consider|given|say|imagine|for example|e\.g\.|if (?:a|an|the|we)\b)/i;
+const EXAMPLE_START = /^\s*(?:•\s*)?(?:suppose|assume|consider|given|say|imagine|for example|for instance|an example (?:is|would be)|e\.g\.|if (?:a|an|the|we)\b)/i;
 const EXAMPLE_CUE = /\b(worked example|worked illustration|illustration|we get|gives|yields|therefore|hence|thus|so the|plugging|substitut|would give|this example|in the example|here\))/i;
 const GENERIC_TITLE = /^(?:trap|summary|remember|key (?:facts|points)|note|outcome|source|consolidated)/i;
 /** Blocks whose numbers are a worked example's inputs and intermediate results, not facts to hold. */
@@ -234,11 +234,17 @@ export function parseTyped(input: string): number | null {
 
 export type Verdict = 'exact' | 'close' | 'off';
 
-/** Exact within the tolerance; "close" is a near miss (graded above a plain miss, still a miss). */
+/**
+ * Exact within the tolerance; "close" is a near miss (graded above a plain miss, still a miss).
+ * The near-miss band is 5% of the answer, but never more than 5% of the scale: a year's 5% is a
+ * century (every mark on its 40-year rule would read "Close"), and 5% of 99.9% would call 95% close.
+ */
 export function judge(guess: number, p: Pick<SliderPayload, 'answer' | 'tolerance' | 'scale'>): Verdict {
   const d = Math.abs(guess - p.answer);
   if (d <= p.tolerance + p.scale.fine * 1e-6) return 'exact';
-  if (d <= Math.max(3 * p.tolerance, 0.05 * Math.abs(p.answer), p.scale.fine)) return 'close';
+  const width = Math.abs(p.scale.hi - p.scale.lo);
+  const rel = 0.05 * (width > 0 ? Math.min(Math.abs(p.answer), width) : Math.abs(p.answer));
+  if (d <= Math.max(3 * p.tolerance, rel, p.scale.fine) + p.scale.fine * 1e-6) return 'close';
   return 'off';
 }
 
@@ -599,10 +605,42 @@ function minedFrom(b: Block): RawNumber[] {
   return out;
 }
 
+const MAGNITUDE: Record<string, number> = { k: 1e3, thousand: 1e3, m: 1e6, mn: 1e6, million: 1e6, b: 1e9, bn: 1e9, billion: 1e9, tn: 1e12, trillion: 1e12 };
+
+/** A currency figure as an absolute amount ("\$11m" and "\$11 million" are both 11,000,000); null if the unit is not a magnitude. */
+export function currencyAmount(value: number, suffix: string): number | null {
+  const unit = suffix.trim().toLowerCase();
+  if (!unit) return Math.abs(value);
+  const mult = MAGNITUDE[unit];
+  return mult ? Math.abs(value) * mult : null;
+}
+
+/**
+ * Currency figures written in the reading's worked examples (exbox). A trap box or table cell that
+ * repeats one ("The contract price is \$11m market value, not \$10m face"; "a firm buying a \$10
+ * million bond") is restating an example's input, which no slider can recover from the notes' facts.
+ */
+export function exampleAmounts(reading: Reading): Set<number> {
+  const out = new Set<number>();
+  for (const o of Array.isArray(reading.objectives) ? reading.objectives : []) {
+    for (const b of Array.isArray(o.blocks) ? o.blocks : []) {
+      if (!b || b.type !== 'exbox' || typeof b.plain_text !== 'string') continue;
+      const plain = latexTextToPlain(b.plain_text).replace(/\{,\}/g, ',');
+      for (const m of plain.matchAll(/[$€£¥]\s?(\d[\d,]*(?:\.\d+)?)(?:\s*(thousand|million|billion|trillion|mn|bn|tn|[kmb])\b)?/gi)) {
+        const v = Number(m[1].replace(/,/g, ''));
+        const a = Number.isFinite(v) ? currencyAmount(v, m[2] ?? '') : null;
+        if (a !== null) out.add(a);
+      }
+    }
+  }
+  return out;
+}
+
 /** Every number in the reading that can be played faithfully: one candidate per number per context. */
 export function candidates(reading: Reading): Candidate[] {
   const out: Candidate[] = [];
   const seen = new Set<string>();
+  const examples = exampleAmounts(reading);
   for (const o of Array.isArray(reading.objectives) ? reading.objectives : []) {
     for (const b of Array.isArray(o.blocks) ? o.blocks : []) {
       if (!b || typeof b.id !== 'string' || SKIP_BLOCKS.has(b.type)) continue;
@@ -612,10 +650,16 @@ export function candidates(reading: Reading): Candidate[] {
         const number = parseNumberText(r.text);
         if (!number) continue;
         if (r.kind === 'year' ? !Number.isInteger(number.value) : number.sig > MAX_SIG_DIGITS) continue;
+        // A currency figure a worked example uses is that example's input, not a fact to hold.
+        if (number.prefix && r.kind !== 'year') {
+          const amount = currencyAmount(number.value, number.suffix);
+          if (amount !== null && examples.has(amount)) continue;
+        }
         if (/^\s*(\$\$|\\\[|\\begin)/.test(r.context)) continue;
         const plain = toDisplay(r.context);
         if (/=/.test(plain.replace(/\$[^$]*\$/g, ''))) continue;
-        const n = plain.split(/\s+/).length;
+        // Words, not arrows or dashes: "Zero rates → the full 3%" is a trap line's shorthand, too thin to answer alone.
+        const n = plain.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
         if (n < MIN_WORDS || n > MAX_WORDS) continue;
         const occ = findOccurrences(r.context, r.text);
         if (occ.length === 0 || occ.some((x) => isRangeEnd(r.context, x))) continue;

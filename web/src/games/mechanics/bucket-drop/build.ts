@@ -210,10 +210,28 @@ function opensWithOtherBucket(it: SchemeItem, buckets: readonly Bucket[]): boole
 }
 
 /**
+ * True when every content word of the card is in another bucket's name: a cross-reference cell
+ * ("As FSA047." under FSA048) or a card that is just another bucket's name. It can't be sorted on
+ * what it says.
+ */
+function namesOtherBucket(it: SchemeItem, buckets: readonly Bucket[]): boolean {
+  // Sentence-final full stops off ("As FSA047." names "FSA047 Daily Flows").
+  const words = (s: string) => contentWords(s).map((w) => w.replace(/\.$/, ''));
+  const a = words(it.text);
+  if (!a.length) return false;
+  return buckets.some((b) => {
+    if (b.id === it.bucketId) return false;
+    const l = new Set(words(b.label));
+    return a.every((w) => l.has(w));
+  });
+}
+
+/**
  * Drops items whose text appears under more than one bucket (they'd have no single right answer)
- * and duplicates, judged on the text as written; drops items another bucket's item contains, and
- * items that open with another bucket's name; then blanks each bucket's own name out of its
- * items and drops any card the blank leaves too thin to sort ("No ____").
+ * and duplicates, judged on the text as written; drops items another bucket's item contains,
+ * items that open with another bucket's name, and items that only name another bucket; then
+ * blanks each bucket's own name out of its items and drops any card the blank leaves too thin to
+ * sort ("No ____").
  */
 function finaliseItems(items: SchemeItem[], buckets: readonly Bucket[]): SchemeItem[] {
   const labelOf = new Map(buckets.map((x) => [x.id, x.label]));
@@ -228,7 +246,7 @@ function finaliseItems(items: SchemeItem[], buckets: readonly Bucket[]): SchemeI
   for (const it of items) {
     const k = normKey(it.text);
     if (!k || (owners.get(k)?.size ?? 0) > 1) continue;
-    if (containedElsewhere(it, items) || opensWithOtherBucket(it, buckets)) continue;
+    if (containedElsewhere(it, items) || opensWithOtherBucket(it, buckets) || namesOtherBucket(it, buckets)) continue;
     const dup = `${it.bucketId}|${k}`;
     if (seen.has(dup)) continue;
     seen.add(dup);
@@ -265,6 +283,7 @@ function listLabels(labels: string[]): string {
 }
 
 const ENUMERATOR = /^\s*\(?([a-z]|\d{1,2})[.)]\s/i;
+const BARE_NUMERAL = /^\(?(?:[ivx]{1,4}|\d{1,2}|[a-z])[.)]?$/i;
 
 /** The k-th enumerator of a list: a/b/c or 1/2/3. */
 function enumeratorAt(s: string, k: number): boolean {
@@ -351,6 +370,13 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
 
   const asColumns = !headers[0] || !firstIsLabel || GENERIC_FIRST_HEADER.test(plain(headers[0]));
   if (asColumns) {
+    // A column that reads the same on every row ("And if interest rates: Rise / Fall" in LTR-17 c)
+    // makes the table a grid read across as statements; its columns are clauses, not categories.
+    for (let c = 0; c < ncol; c++) {
+      // Compared as displayed: "Spread = fixed coupon" and "Spread > fixed coupon" differ.
+      const vals = rows.map((r) => plain(tableCells(r)[c] ?? '').toLowerCase()).filter(Boolean);
+      if (vals.length >= 3 && vals.length === rows.length && new Set(vals).size === 1 && /\p{L}{2,}/u.test(vals[0])) return [];
+    }
     // A column is a bucket only if most of its cells are readable phrases: a column of numbers,
     // symbols or yes/no marks would sit on the board as a bucket no card can go in, and a spare
     // like "EUR Spot" beside a card reading "EUR spot" invites the wrong drop.
@@ -378,7 +404,8 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
           blockId: b.id,
           objectiveId,
           text: raw,
-          context: rowLabel && okLabel(rowLabel) ? rowLabel : undefined,
+          // A bare row number ("II", "IV") tells the player nothing, so it is not shown.
+          context: rowLabel && okLabel(rowLabel) && !BARE_NUMERAL.test(plain(rowLabel)) ? rowLabel : undefined,
           bucketId: buckets[k].id,
         });
       }
@@ -565,6 +592,18 @@ function headingsName(buckets: readonly Bucket[], objectiveText: string | null |
 
 const HEADING_BLOCKS = new Set(['keybox', 'defbox', 'prose_para', 'notebox', 'gapbox']);
 
+/** Box titles that are about whatever section they sit in ("Strengths", "Limitations"). */
+const SECTION_ASPECT_TITLE = /^(strengths?|weakness(es)?|advantages?|disadvantages?|limitations?|challenges?|benefits?|drawbacks?|pros( and cons)?|cons|examples?)$/i;
+const TOPIC_STOP = new Set(['the', 'and', 'for', 'with', 'its', 'from', 'into', 'how', 'why', 'what', 'this', 'that', 'are', 'not', 'our', 'your']);
+
+/** Words naming a heading's topic, for matching a box title to it: hyphens split, plurals folded. */
+function topicWords(s: string): string[] {
+  return plain(s)
+    .split(/[\s\-–—/]+/)
+    .map((w) => normWord(w).replace(/(\p{L}{3})s$/u, '$1'))
+    .filter((w) => /\p{L}{3,}|\d/u.test(w) && !TOPIC_STOP.has(w));
+}
+
 /** Bullets under different headings (sections, else box titles / list lead-ins) within one objective. */
 export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | null {
   const o = reading.objectives[objectiveIdx];
@@ -582,12 +621,36 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
   const distinct = (f: (b: Block) => string) => new Set(blocks.map(f).filter((l) => l && okLabel(l)).map(normKey)).size;
   const headingOf = distinct(section) >= 2 ? section : distinct(own) >= 2 ? own : null;
   if (!headingOf) return null;
+  // A titled box inherits the section above it, but its title can name another topic: "The essence
+  // of liquidity management" closes the "Supplies of liquidity" section of LTR-5 a and is about
+  // demands and supplies alike. Its points count as listed under the section only when the title
+  // names that section's own topic (a word the other headings don't share) or an aspect of it
+  // ("Strengths", "Limitations"), or when the box opens the section and so is its content.
+  const sectionWords = new Map<string, Set<string>>();
+  if (headingOf === section) {
+    const labels = [...new Set(blocks.map(section).filter((l) => l && okLabel(l)))];
+    const sets = labels.map((l) => new Set(topicWords(l)));
+    const common = sets.length ? sets.reduce((a, s) => new Set([...a].filter((w) => s.has(w)))) : new Set<string>();
+    for (const l of labels) {
+      const distinctive = topicWords(l).filter((w) => !common.has(w));
+      sectionWords.set(l, new Set(distinctive.length ? distinctive : topicWords(l)));
+    }
+  }
+  const underSection = (b: Block, label: string) => {
+    if (headingOf !== section || !b.title) return true;
+    const at = o.blocks.indexOf(b);
+    if (at >= 0 && !o.blocks.slice(0, at).some((x) => x && section(x) === label)) return true;
+    const t = cleanLabel(b.title);
+    if (SECTION_ASPECT_TITLE.test(plain(t))) return true;
+    const words = sectionWords.get(label);
+    return !words || topicWords(t).some((w) => words.has(w));
+  };
   const buckets: Bucket[] = [];
   const byKey = new Map<string, Bucket>();
   const items: SchemeItem[] = [];
   for (const b of blocks) {
     const label = headingOf(b);
-    if (!label || !okLabel(label)) continue;
+    if (!label || !okLabel(label) || !underSection(b, label)) continue;
     const k = normKey(label);
     let bucket = byKey.get(k);
     if (!bucket) {
@@ -610,7 +673,8 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
     objectiveId: o.id,
     prompt: 'Each card is a point from the notes. Which heading was it listed under?',
     name: headingsName(buckets, o.text),
-    line: `Under ${o.id}, the notes list their points under ${buckets.length} headings: ${listLabels(buckets.map((x) => x.label))}.`,
+    // No count: the board uses only the headings that carry bullets, and the notes may have more.
+    line: `Under ${o.id}, the notes list these points under the headings ${listLabels(buckets.map((x) => x.label))}.`,
     buckets,
     items: finaliseItems(items, buckets),
   };

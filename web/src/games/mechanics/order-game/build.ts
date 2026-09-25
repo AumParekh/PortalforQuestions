@@ -337,32 +337,84 @@ export function listSequences(b: Block): Omit<OrderSequence, 'id' | 'objectiveId
 interface ExStep {
   n?: unknown;
   label?: unknown;
+  text?: unknown;
 }
 
-/** Step labels from an exbox: its `steps` field when present, else "Step N — label." in the solution. */
-export function exboxStepLabels(b: Block): { n: number; label: string }[] {
-  const fromField: { n: number; label: string }[] = [];
+/**
+ * Step labels from an exbox: its `steps` field when present, else "Step N — label." in the solution.
+ * `work` is the step's own working (the notes' text under the label), used to check the order is forced.
+ */
+export function exboxStepLabels(b: Block): { n: number; label: string; work: string }[] {
+  const fromField: { n: number; label: string; work: string }[] = [];
   if (Array.isArray(b.steps)) {
     b.steps.forEach((s, k) => {
       const st = (s ?? {}) as ExStep;
       const label = typeof st.label === 'string' ? st.label : '';
       const n = typeof st.n === 'number' ? st.n : k + 1;
-      fromField.push({ n, label });
+      fromField.push({ n, label, work: typeof st.text === 'string' ? st.text : '' });
     });
     if (fromField.length) return fromField;
   }
   const src = typeof b.solution_latex === 'string' && b.solution_latex ? b.solution_latex : typeof b.body_latex === 'string' ? b.body_latex : '';
   const re = /(?:\\textbf\{\s*)?Step\s+(\d+)\s*(?:\}\s*)?(?:---|--|[—–:.])?\s*(?:\}\s*)?([^\n]*)/g;
-  const out: { n: number; label: string }[] = [];
+  const out: { n: number; label: string; work: string }[] = [];
+  const starts: number[] = [];
   let m: RegExpExecArray | null;
   while ((m = re.exec(src))) {
     // The label runs to the first display math or the end of the sentence.
     let label = m[2].split(/\$\$|\\\[|\\begin\{/)[0];
     const stop = /\.(?:\s|$)/.exec(label);
     if (stop) label = label.slice(0, stop.index + 1);
-    out.push({ n: Number(m[1]), label: `Step ${m[1]} ${label}` });
+    starts.push(m.index);
+    out.push({ n: Number(m[1]), label: `Step ${m[1]} ${label}`, work: '' });
+  }
+  // Each step's working runs to the next Step label.
+  out.forEach((o, k) => (o.work = src.slice(starts[k], starts[k + 1] ?? src.length)));
+  return out;
+}
+
+/** Numbers in LaTeX working, thousands separators removed. */
+function numbersIn(s: string): number[] {
+  const t = s.replace(/\{,\}/g, '').replace(/(\d),(?=\d{3}\b)/g, '$1');
+  return (t.match(/\d+(?:\.\d+)?/g) ?? []).map(Number);
+}
+
+/**
+ * The values a step's working arrives at: every right-hand side of an "=" that is plain numbers, no
+ * arithmetic ("= 0.0565", "= \mathbf{\$360 million}", "= 23.77\%"), a percentage also read as a decimal.
+ * Single-digit integers are too common to trace and are left out.
+ */
+export function stepResults(work: string): number[] {
+  const out: number[] = [];
+  const parts = work.split('=');
+  for (let k = 1; k < parts.length; k++) {
+    const rhs = parts[k].split(/\\\\|&|\\qquad|\\quad|\n|\\text\{,/)[0];
+    if (/\\times|×|\\cdot|\+|\\frac|\\tfrac|\\dfrac|\\sqrt|\/|\^/.test(rhs)) continue;
+    const t = rhs.replace(/\{,\}/g, '').replace(/(\d),(?=\d{3}\b)/g, '$1');
+    // A plain value, or a row of them ("= (0.0047 \;\; 0.0019)").
+    for (const n of t.match(/\d+(?:\.\d+)?\s*(?:\\?%)?/g) ?? []) {
+      const v = parseFloat(n);
+      if (!(Number.isInteger(v) && v < 10)) out.push(v);
+      if (/%/.test(n)) out.push(v / 100);
+    }
   }
   return out;
+}
+
+/**
+ * A worked example's order is forced only when every step works on the value the step before it
+ * arrived at. Steps that each start from the question's own data (total the uses; total the sources;
+ * the asset leg; the liability leg) can be done in either order, so the notes' order is one of several
+ * right answers and the set is not playable.
+ */
+export function exboxOrderForced(works: readonly string[]): boolean {
+  if (works.some((w) => !w.trim())) return false;
+  for (let k = 1; k < works.length; k++) {
+    const prev = stepResults(works[k - 1]);
+    const here = numbersIn(works[k]);
+    if (!prev.some((v) => here.some((x) => Math.abs(x - v) <= 1e-9 * Math.max(1, Math.abs(v))))) return false;
+  }
+  return true;
 }
 
 const INTERPRETIVE_STEP = /^(?:what (?:this|it) means|interpretation|interpret|check|answer|conclusion|so what|the point)\b/i;
@@ -393,8 +445,18 @@ export function exboxSequence(b: Block): Omit<OrderSequence, 'id' | 'objectiveId
   // Labels must be words, not an equation lifted out of an aligned block.
   if (steps.some((st) => /&|\\quad|\\frac/.test(st.text) || proseWords(st.text) < 1)) return null;
   if (!playableSteps(steps)) return null;
+  // Only a calculation whose order is forced is a sequence (see exboxOrderForced).
+  if (!exboxOrderForced(labels.slice(0, steps.length).map((l) => l.work))) return null;
   const title = titleOf(b);
-  const question = typeof b.question_latex === 'string' ? cleanSpaces(b.question_latex) : '';
+  // A data table inside the question does not read as a sentence on the card: the question stays, the table goes.
+  const question =
+    typeof b.question_latex === 'string'
+      ? cleanSpaces(
+          b.question_latex
+            .replace(/\\begin\{(tabularx?)\}[\s\S]*?\\end\{\1\}/g, ' ')
+            .replace(/\\(?:smallskip|medskip|bigskip|centering|footnotesize|small|par|noindent)\b/g, ' '),
+        )
+      : '';
   return {
     blockId: b.id,
     source: 'exbox',
@@ -464,7 +526,8 @@ export function tableSequence(b: Block): Omit<OrderSequence, 'id' | 'objectiveId
     });
     if (!playableSteps(steps)) return null;
     const prompt = caption ? firstSentence(caption) : title || sectionName(b) || `The ${h0.toLowerCase() || 'step'}s, in order`;
-    return { blockId: b.id, source: 'table', kind: 'process', prompt, concept: conceptFor(b, prompt), steps };
+    // A caption that calls the rows a ladder or tiers makes them rungs, not steps that feed one another.
+    return { blockId: b.id, source: 'table', kind: kindFromContext(prompt), prompt, concept: conceptFor(b, prompt), steps };
   }
 
   // Rows the caption itself calls ordered (a progression, a ladder, "in increasing order of …").
@@ -520,6 +583,19 @@ const TIKZ_MARKED = /^\s*(step|stage|phase|tier|level)\s+(\d+)\s*[:.—–-]?\s*
 const TIKZ_NUMBERED = /^\s*(\d{1,2})[.)]\s+(.+)$/;
 const TIKZ_PROCESS_CAPTION = /\b(?:process|steps?|stages?|phases?|cycle|loop|pipeline|sequence|procedure|workflow)\b/i;
 
+/**
+ * A caption sentence about the page rather than the content ("that is the whole content of this
+ * objective", "redrawn from the notes' hand-written working", "the loop on the left") does not say what
+ * is being ordered, and on a card with no figure it points at nothing.
+ */
+const META_CAPTION = /\bthis (?:objective|reading|figure|diagram|chart|extract)\b|\bon the (?:left|right)\b|\bredrawn\b|\bhand-?written\b/i;
+
+/** The caption's first sentence as a prompt, or the figure's title / section when that sentence is about the page. */
+function captionPrompt(b: Block, caption: string): string {
+  const first = caption ? firstSentence(caption) : '';
+  return first && !META_CAPTION.test(first) ? first : titleOf(b) || sectionName(b);
+}
+
 export function tikzSequence(b: Block): Omit<OrderSequence, 'id' | 'objectiveId'> | null {
   if (b.type !== 'tikzpicture') return null;
   const rawNodes = (b as BlockExtras).node_text;
@@ -554,8 +630,8 @@ export function tikzSequence(b: Block): Omit<OrderSequence, 'id' | 'objectiveId'
     marker: word ? `${capitalise(word)} ${h.n}` : `${h.n}`,
   }));
   if (!playableSteps(steps)) return null;
-  const prompt = caption ? firstSentence(caption) : title;
-  if (!prompt) return null;
+  const prompt = caption ? captionPrompt(b, caption) : title;
+  if (!prompt && !caption) return null;
   const kind: SequenceKind = word === 'tier' || word === 'level' ? 'hierarchy' : 'process';
   return { blockId: b.id, source: 'tikz', kind, prompt, concept: conceptFor(b, prompt), steps };
 }
@@ -657,7 +733,8 @@ export function parseTikzGraph(src: string): TikzGraph {
     }
   }
   // \draw[opts] (a) -- (b);  Only straight two-point arrows: routed ones (|-, -|, ++) are feedback or annotation.
-  const drawRe = /\\draw\s*(\[(?:[^[\]]|\[[^\]]*\])*\])?\s*\((\w+)(?:\.[\w ]+)?\)\s*--\s*\((\w+)(?:\.[\w ]+)?\)\s*;/g;
+  // An end written as a calc coordinate on a bare anchor, "($(a.south)$)", is the same node.
+  const drawRe = /\\draw\s*(\[(?:[^[\]]|\[[^\]]*\])*\])?\s*\((?:\$\()?(\w+)(?:\.[\w ]+)?(?:\)\$)?\)\s*--\s*\((?:\$\()?(\w+)(?:\.[\w ]+)?(?:\)\$)?\)\s*;/g;
   while ((m = drawRe.exec(src))) {
     const [, opts, a, b] = m;
     if (!nodes.has(a) || !nodes.has(b)) continue;
@@ -731,7 +808,10 @@ export function tikzChainSequences(b: Block): Omit<OrderSequence, 'id' | 'object
   if (!CHAIN_CAPTION.test(caption) || NO_ORDER.test(caption)) return [];
   const g = parseTikzGraph(b.body_latex);
   const out: Omit<OrderSequence, 'id' | 'objectiveId'>[] = [];
-  const prompt = firstSentence(caption);
+  // Empty when the caption is about the page and the figure has no title or section: the objective fills it in.
+  const prompt = captionPrompt(b, caption);
+  // The section counts for the kind too ("How the framework evolved" is a chronology, not a process).
+  const kindText = `${caption} ${titleOf(b)} ${sectionName(b)}`;
   for (const ch of graphChains(g)) {
     let names = ch.names;
     let header = '';
@@ -751,7 +831,7 @@ export function tikzChainSequences(b: Block): Omit<OrderSequence, 'id' | 'object
     out.push({
       blockId: b.id,
       source: 'tikz',
-      kind: ch.cycle ? 'cycle' : /phase|episode|timeline|evolution/i.test(caption) ? 'timeline' : 'process',
+      kind: ch.cycle ? 'cycle' : /phase|episode|timeline|evol(?:ution|ved)/i.test(kindText) ? 'timeline' : 'process',
       prompt,
       context: header || undefined,
       concept: conceptFor(b, prompt),
@@ -777,8 +857,12 @@ export function arrowChainSequences(b: Block): Omit<OrderSequence, 'id' | 'objec
   else if (typeof b.plain_text === 'string') sources.push({ text: b.plain_text });
   const out: Omit<OrderSequence, 'id' | 'objectiveId'>[] = [];
   for (const src of sources) {
-    for (const sentence of src.text.split(/(?<=[.!?;])\s+|\n+/)) {
-      const body = cleanSpaces(sentence.replace(/^[•\-\s]+/, '').replace(CATEGORY_LEAD, ''));
+    const sentences = src.text.split(/(?<=[.!?;])\s+|\n+/);
+    for (const [j, sentence] of sentences.entries()) {
+      const bare = sentence.replace(/^[•\-\s]+/, '');
+      // The trap-summary label ("Sibling.") may head the sentence or stand as its own.
+      const label = (CATEGORY_LEAD.exec(bare) ?? CATEGORY_LEAD.exec(`${(sentences[j - 1] ?? '').replace(/^[•\-\s]+/, '').trim()} `))?.[0] ?? '';
+      const body = cleanSpaces(bare.replace(CATEGORY_LEAD, ''));
       const parts = body.split(ARROW_SPLIT).map((p) => p.replace(/[.;:,]+$/, '').trim());
       if (parts.length < MIN_STEPS || parts.length > MAX_STEPS || parts.some((p) => !p)) continue;
       const words = parts.map((p) => p.split(/\s+/).length);
@@ -789,11 +873,20 @@ export function arrowChainSequences(b: Block): Omit<OrderSequence, 'id' | 'objec
       if (keys.size !== steps.length) continue;
       const title = titleOf(b);
       // Empty when the block has no usable title or section: the objective's text fills it in later.
-      const prompt = title && !NOT_A_SEQUENCE_TITLE.test(title) ? title : sectionName(b);
+      let prompt = title && !NOT_A_SEQUENCE_TITLE.test(title) ? title : sectionName(b);
+      if (!prompt && b.type === 'trapbox') {
+        // A reading's consolidated trap summary sits under its last objective, so that objective does
+        // not name the chain. The notes' own gloss right after the chain does ("One axis, increasing
+        // granularity"); without one the chain has nothing honest to be called and is skipped.
+        const gloss = cleanSpaces((sentences[j + 1] ?? '').replace(/[;:,.]+$/, ''));
+        if (!gloss || CATEGORY_LEAD.test(`${gloss}.`) || wordCount(gloss) > 12 || promptRevealsOrder(gloss, steps) || stepKey(gloss).split(' ').some((w) => w.length >= 5 && steps.some((s) => stepKey(s.text).includes(w)))) continue;
+        prompt = gloss;
+      }
       out.push({
         blockId: b.id,
         source: 'chain',
-        kind: 'process',
+        // Siblings on one axis ("Sibling. A → B → C") are a ranking, not steps that feed each other.
+        kind: /^(?:sibling|ordering)\b/i.test(label) ? 'ranking' : 'process',
         prompt,
         concept: conceptFor(b, prompt),
         steps: steps.map((s) => ({ ...s, original: s.text })),
@@ -810,6 +903,26 @@ export function arrowChainSequences(b: Block): Omit<OrderSequence, 'id' | 'objec
 
 /** A lead-in that names no concept ("The process involves three steps", "Steps involved"). */
 const GENERIC_CONCEPT = /^(?:the\s+|it\s+)?(?:key\s+|core\s+)?(?:process|procedure|steps?|stages?|phases?)\b[\s,\w]{0,30}[:.]?$/i;
+
+/**
+ * A lead-in that says there are steps but not of what ("The key steps are:", "Steps involved:",
+ * "It involves four control steps:"): on a card without the notes around it, the subject is missing.
+ */
+const PROMPT_FILLER = new Set(
+  'the a an key core main process procedure step steps stage stages phase phases involves involved include includes consists consist of comprises are is as follows following in order two three four five six seven'.split(' '),
+);
+export function genericPrompt(prompt: string): boolean {
+  const t = toDisplay(prompt).trim();
+  if (/^(?:it|this|they|these)\s+(?:involves|includes|consists|comprises|has|have|runs|run)\b/i.test(t)) return true;
+  const words = t.toLowerCase().split(/[^\p{L}]+/u).filter(Boolean);
+  return words.length > 0 && words.every((w) => PROMPT_FILLER.has(w));
+}
+
+/** Two sentences run together: a full stop between them unless the first already ends in one. */
+function joinSentences(a: string, b: string): string {
+  const x = a.trim();
+  return /[.!?:;]$/.test(x) ? `${x} ${b}` : `${x}. ${b}`;
+}
 
 /** Objective verbs ("Describe", "Define … and describe …"): an LO is an instruction, not a concept name. */
 const LO_VERB =
@@ -894,8 +1007,11 @@ export function readingSequences(reading: Reading, corpus?: Corpus): OrderSequen
         // A prompt that walks through the steps gives the answer away: name the concept instead and
         // keep the notes' sentence for feedback.
         if (promptRevealsOrder(prompt, steps)) {
-          note = note ? (note.includes(prompt) ? note : `${prompt} ${note}`) : prompt;
+          note = note ? (note.includes(prompt) ? note : joinSentences(prompt, note)) : prompt;
           prompt = promptRevealsOrder(concept, steps) ? 'A sequence from the notes' : concept;
+        } else if (genericPrompt(prompt) && concept && !genericPrompt(concept) && !promptRevealsOrder(concept, steps)) {
+          // Name what the steps are of, ahead of the notes' own lead-in.
+          prompt = joinSentences(concept, prompt);
         }
         out.push({ ...s, id, objectiveId, prompt, concept, steps, note });
       });
@@ -1193,7 +1309,10 @@ export function buildOrderGame(reading: Reading, ctx: OrderBuildInput): Mechanic
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Order Game. ${sets} ${sets === 1 ? 'set' : 'sets'} of steps from this reading. Some arrive shuffled; later ones arrive nearly right, with one piece out of place. Put each back the way the notes run it.`,
+    // Only promise the one-piece-out rounds when the session has them.
+    opening: `${reading.reading_id} · Order Game. ${sets} ${sets === 1 ? 'set' : 'sets'} of steps from this reading. ${
+      rounds.some((r) => r.payload.mode === 'restore') ? 'Some arrive shuffled; later ones arrive nearly right, with one piece out of place.' : 'Each arrives shuffled.'
+    } Put each back the way the notes run it.`,
     concept,
   };
 }

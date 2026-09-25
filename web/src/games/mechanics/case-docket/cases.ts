@@ -54,7 +54,10 @@ export const CASE_REGISTRY: readonly CaseDef[] = [
   { id: 'deutsche-bank', name: 'Deutsche Bank', aliases: ['Deutsche Bank'] },
   { id: 'ubs', name: 'UBS', aliases: ['UBS'] },
   { id: 'barclays', name: 'Barclays', aliases: ['Barclays'], section: /Barclays/ },
-  { id: 'mars-orbiter', name: 'NASA Mars Orbiter', aliases: ['Mars Orbiter', 'Lockheed Martin', 'NASA'], section: /Mars Orbiter/ },
+  // Not 'Lockheed Martin': the contractor is a different party from NASA in the case's one line
+  // naming both ("the engineering team at Lockheed Martin used English units …, while NASA's
+  // convention was to use the metric system"), and one redaction for both reads as a contradiction.
+  { id: 'mars-orbiter', name: 'NASA Mars Orbiter', aliases: ['Mars Orbiter', 'NASA'], section: /Mars Orbiter/ },
   { id: 'berkshire', name: 'Berkshire Hathaway', aliases: ['Berkshire Hathaway', 'Buffett'] },
   {
     id: 'russia-ukraine',
@@ -393,6 +396,8 @@ interface Segment {
 /** A bullet, cell or trap no longer than this is kept whole rather than split into sentences. */
 const WHOLE_MAX = 220;
 const READING_REF = /\b(?:MR|CR|ORR|LTR|IM|CI)-\d+\b/;
+/** A section holding a worked example (IM-3 "The worked case: Berkshire Hathaway"). */
+const WORKED = /worked (?:case|example)/i;
 
 function cleanLead(s: string): string {
   return s
@@ -508,7 +513,7 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
   const contextOwner = (b: Block | undefined, readingOwner: string | null): string | null => {
     if (b) {
       // A worked example set on a real firm is arithmetic, not the firm's story.
-      if (b.section && !/worked (?:case|example)/i.test(b.section)) {
+      if (b.section && !WORKED.test(b.section)) {
         const bySection = defs.find((d) => d.section?.test(b.section ?? ''));
         if (bySection) return bySection.id;
         const s = single(det.find(b.section));
@@ -577,6 +582,10 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
         if (inBox.length >= 2 && body.length <= 700) discriminators.push({ kind: 'box', id: b.id, blockId: b.id, readingId: rid, cases: inBox, text: body });
       }
       if (b.type === 'trapbox' && trapBlocks.has(b.id)) continue;
+      // A worked example set on a real firm is arithmetic, not the firm's story: its lines lean on
+      // the example's own figures (IM-3 "In addition to this benchmark, Buffett is generating +0.65%
+      // alpha per month"), so none is filed, not even one that names the firm.
+      if (b.section && WORKED.test(b.section)) continue;
       // A "Lessons" box is general advice drawn from the case, not a fact about it (the USAA box's
       // "Financial institutions need strong AML controls", the Barclays box's "careful data
       // management", which fits Mars Orbiter as well): only its lines that name one case are filed.

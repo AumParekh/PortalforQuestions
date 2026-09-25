@@ -10,7 +10,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
 import type { Blank, Sheet, TableFillPayload, Tile } from './build';
-import { rowGrade } from './build';
+import { normCell, rowGrade } from './build';
 import { toDisplay } from '../../text';
 import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 
@@ -62,11 +62,15 @@ function columnMinRem(sheet: Sheet, col: number): number {
   return 14;
 }
 
-/** The first cell in a row that stays on screen: how the row is named to screen readers and in feedback. */
+/** A cell in the row that stays on screen, and tells it apart if one can: how the row is named to screen readers and in feedback. */
 function anchorOf(sheet: Sheet, rowIndex: number): string {
   const row = sheet.rows[rowIndex];
   const blanked = new Set(sheet.blanks.filter((b) => b.row === rowIndex).map((b) => b.col));
-  const cell = row.cells.find((c, i) => !blanked.has(i) && toDisplay(c).trim());
+  const shown = row.cells.map((_, i) => i).filter((i) => !blanked.has(i) && toDisplay(row.cells[i]).trim());
+  // Prefer a cell that tells this row apart ("Negative (…)" rather than the "Rise Fall" every row has).
+  const own = shown.find((i) => sheet.rows.some((r, j) => j !== rowIndex && normCell(r.cells[i] ?? '') !== normCell(row.cells[i])));
+  const at = own ?? shown[0];
+  const cell = at === undefined ? undefined : row.cells[at];
   return cell ? toDisplay(cell) : `row ${rowIndex + 1}`;
 }
 

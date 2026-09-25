@@ -53106,7 +53106,7 @@
   {
    "a": "CR-5-F12",
    "b": "ORR-18-F01",
-   "why": "Credit RAROC is loan revenues over capital at risk, with no EL deduction in the numerator. Operational-risk RAROC is after-tax income net of expected losses over economic capital."
+   "why": "Both RAROCs net expected losses and tax out of the numerator. The difference is the denominator: credit RAROC divides loan revenues, loan value x (s + f - l - c)(1 - x), by capital at risk (the duration-based change in loan value, -L x D x di/(1+i)). Operational-risk RAROC divides after-tax risk-adjusted net income by economic capital."
   },
   {
    "a": "CR-5-F14",
@@ -53137,11 +53137,6 @@
    "a": "CR-12-F05",
    "b": "CR-12-F06",
    "why": "The conditional PD has -sqrt(rho)*F. WCDR has +sqrt(rho)*N^{-1}(X) because the worst-case factor is F = -N^{-1}(X)."
-  },
-  {
-   "a": "CR-12-F05",
-   "b": "CR-11-F06",
-   "why": "Same one-factor conditional PD: CR-12 writes the loading as sqrt(rho) with denominator sqrt(1-rho); CR-11 writes it as beta with sqrt(1-beta^2), and rho = beta^2."
   },
   {
    "a": "CR-12-F07",
@@ -53221,7 +53216,7 @@
   {
    "a": "CR-20-F02",
    "b": "CR-20-F10",
-   "why": "The first converts CVA to a running spread through the CDS spread times average EPE as a fraction of notional; the second divides CVA by risky duration times notional."
+   "why": "The first is the constant-EPE shortcut: CVA divided by the CDS premium term equals minus the counterparty's CDS spread times average EPE; the second divides an already computed CVA by risky duration times notional."
   },
   {
    "a": "CR-21-F01",
@@ -53336,7 +53331,7 @@
   {
    "a": "MR-6-F02",
    "b": "IM-5-F08",
-   "why": "The regression beta of the position's value change on the portfolio's value change is the beta used for marginal VaR = (VaR_p / portfolio value) x beta_i."
+   "why": "MR-6 estimates marginal VaR directly as the slope of a regression of the position's value change on the portfolio's value change; IM-5 computes it analytically as (VaR_p / portfolio value) x beta_i, with beta_i = cov(R_i,R_p)/sigma_p^2."
   },
   {
    "a": "MR-8-F04",
@@ -53371,7 +53366,7 @@
   {
    "a": "MR-9-F04",
    "b": "MR-9-F05",
-   "why": "In the regression form the slope on S_{t-1} is -a and the intercept is a mu, so the reversion rate is minus the regression beta."
+   "why": "The regression form writes the one-step change as a mu - a S_{t-1} (intercept a mu, slope -a on S_{t-1}); the other solves directly for the reversion rate a as the observed change divided by the gap mu - S_{t-1}."
   },
   {
    "a": "MR-9-F06",
@@ -53396,7 +53391,7 @@
   {
    "a": "MR-11-F03",
    "b": "MR-11-F12",
-   "why": "The regression hedge multiplies by beta; a reverse regression (real on nominal) implies a risk weight of 1/beta, which is not the same thing."
+   "why": "The regression hedge scales the DV01-ratio face amount by the yield beta; a reverse regression swaps the axes, so its implied risk weight is the reciprocal of its own slope, 1/beta, not beta itself."
   },
   {
    "a": "MR-11-F05",
@@ -53416,7 +53411,7 @@
   {
    "a": "MR-11-F10",
    "b": "MR-11-F11",
-   "why": "The AR(1) error epsilon_t = rho epsilon_{t-1} + v_t is the persistence problem in level regressions; rho here is error autocorrelation, not a hedge beta."
+   "why": "The level regression explains y_t as alpha + beta x_t plus an error; the AR(1) equation models that error itself, epsilon_t = rho epsilon_{t-1} + v_t, where rho is error autocorrelation, not the hedge beta."
   },
   {
    "a": "MR-12-F01",
@@ -53431,7 +53426,7 @@
   {
    "a": "MR-13-F02",
    "b": "MR-13-F03",
-   "why": "The pure-expectations spot rate is the geometric mean of the forward rates; Jensen's inequality says E[1/(1+r)] > 1/E(1+r), so volatility (convexity) pushes yields below that."
+   "why": "The pure-expectations 2-year spot rate chains today's one-year rate r_1 with the expected one-year rate next year r_2: sqrt((1+r_1)(1+r_2)) - 1; Jensen's inequality E[1/(1+r)] > 1/E(1+r) is the convexity effect that pushes actual yields below that."
   },
   {
    "a": "MR-13-F04",
@@ -53621,7 +53616,7 @@
   {
    "a": "IM-3-F01",
    "b": "IM-3-F03",
-   "why": "IR = alpha / TE is the ex-post definition; the fundamental law gives it ex ante as IC x sqrt(BR), where breadth enters under a square root."
+   "why": "IR = alpha / tracking error is the definition (risk-adjusted alpha); Grinold's fundamental law gives the MAXIMUM attainable IR from skill and breadth, IC x sqrt(BR), with breadth under a square root."
   },
   {
    "a": "IM-3-F05",
@@ -53631,7 +53626,7 @@
   {
    "a": "IM-3-F05",
    "b": "IM-2-F02",
-   "why": "The regression version is ex post, with an alpha intercept and an error term, on realised returns; the FF expected-return model is ex ante, E(r_i) = r_f + betas x expected factor premia, with no alpha."
+   "why": "The regression version is ex post: realised excess return R_i - R_F with an alpha intercept. The FF expected-return model is ex ante: E(r_i) = r_f + betas x expected factor premia, with no alpha."
   },
   {
    "a": "IM-3-F04",
@@ -53669,14 +53664,9 @@
    "why": "The SDF premium is beta on m (cov with m / var m) times a negative price of risk, so assets that pay off in bad times earn less; CAPM beta is measured against the market return."
   },
   {
-   "a": "IM-6-F02",
-   "b": "IM-6-F03",
-   "why": "Manager IR_i = mu_i/omega_i uses that manager's own alpha and tracking error; portfolio IR_p uses the aggregate portfolio alpha and tracking error."
-  },
-  {
    "a": "IM-6-F04",
    "b": "IM-6-F03",
-   "why": "Manager weight = (IR_i x portfolio TE) / (IR_p x manager TE): the manager's IR and the portfolio TE go in the numerator. Don't invert the TE ratio."
+   "why": "IR_p is just the portfolio's alpha over its active risk, mu_p/omega_p. The manager weight uses IR_p as an input: (IR_i x portfolio TE) / (IR_p x manager TE), which gives more risk to more skilled managers. Don't invert the TE ratio."
   },
   {
    "a": "IM-7-F03",
@@ -53741,7 +53731,7 @@
   {
    "a": "LTR-1-F05",
    "b": "LTR-2-F04",
-   "why": "Exogenous-spread LVaR ADDS the half-spread cost to VaR; orderly-liquidation LVaR MULTIPLIES VaR by sqrt[(1+T)(1+2T)/(6T)], which is below 1 for T > 1."
+   "why": "Exogenous-spread LVaR ADDS the half-spread cost to VaR; orderly-liquidation LVaR MULTIPLIES one-day VaR by sqrt[(1+T)(1+2T)/(6T)], which equals 1 at T = 1 and grows more slowly than sqrt(T)."
   },
   {
    "a": "LTR-2-F02",
@@ -53751,7 +53741,7 @@
   {
    "a": "LTR-2-F03",
    "b": "LTR-1-F04",
-   "why": "Both stretch the spread by a multiple of its volatility. Dowd's version fixes 2.33 at 99% and uses the current spread s; Hull's uses mean spread mu_i + lambda*sigma_i, summed over positions."
+   "why": "Both widen the spread by a multiple of its volatility. Malz's 99% interval fixes the multiple at 2.33 on the expected (mean) spread s for a single position P, written as a +/- range. Hull's stressed liquidation cost uses mu_i + lambda*sigma_i for a chosen lambda and sums over positions."
   },
   {
    "a": "LTR-2-F04",
@@ -53896,7 +53886,7 @@
   {
    "a": "LTR-14-F01",
    "b": "LTR-14-F02",
-   "why": "FTP = base rate + TERM liquidity premium + liquidity premium on drawn funding; contingent liquidity cost prices the UNDRAWN share x likelihood of drawdown x cost."
+   "why": "FTP = base rate + term liquidity premium + liquidity premium (the cushion's carry cost averaged over total assets); contingent liquidity cost prices the UNDRAWN share x likelihood of drawdown x cost of funding the cushion."
   },
   {
    "a": "ORR-18-F01",
@@ -53911,7 +53901,7 @@
   {
    "a": "ORR-18-F03",
    "b": "ORR-18-F05",
-   "why": "The hurdle rate is the benchmark for unadjusted RAROC. ARAROC is compared with R_F, not the hurdle, because the market risk premium has already been taken out."
+   "why": "The after-tax hurdle is the weighted average cost of common and preferred equity; Adjusted RAROC subtracts beta_E x (R_M - R_F) from RAROC and is then compared with R_F rather than the hurdle."
   },
   {
    "a": "ORR-18-F04",
@@ -53927,11 +53917,6 @@
    "a": "ORR-22-F01",
    "b": "ORR-22-F02",
    "why": "Tier 1 (CET1 + AT1) is at least 6%. Total capital (Tier 1 + Tier 2) is at least 8%, or 10.5% with the conservation buffer."
-  },
-  {
-   "a": "ORR-22-F02",
-   "b": "ORR-21-F02",
-   "why": "The headline 8% total-capital ratio is the same in both. Basel III adds the 2.5% conservation buffer (10.5%) and tighter Tier 1/CET1 sub-minimums."
   },
   {
    "a": "ORR-22-F03",
@@ -54001,7 +53986,7 @@
   {
    "a": "ORR-24-F05",
    "b": "ORR-24-F02",
-   "why": "Operational risk capital = BIC x ILM (BIC, not BI). Bucket 1 banks use BIC alone with no ILM."
+   "why": "Capital for bucket 2 and 3 banks is BIC x ILM (bucket 1 uses BIC alone); the BIC itself is built from BI in marginal slices: 12% of the first EUR 1bn, 15% of the next 29bn, 18% above 30bn."
   }
  ]
 }

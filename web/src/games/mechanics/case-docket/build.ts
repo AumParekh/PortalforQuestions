@@ -102,10 +102,16 @@ function distractors(
   const named = new Set(casesWithFacts(idx, reading));
   const others = Object.keys(idx.facts).filter((id) => id !== a && id !== b);
   const area = (f: CaseFact) => corpus.readingById[f.readingId]?.area;
+  // A case this reading never names is never set against the case on trial by the notes, so only
+  // its lines that name it are lifted: a table cell or case-study bullet that names no case is tied
+  // to its case only by where it sits, and read alone it may fit the case on trial as well (Northern
+  // Rock's "When lenders became wary …, it could not access cash and faced a bank run" filed against
+  // Bear Stearns; Equifax's "The breach remained undetected for three months" against Capital One).
+  const selfNamed = (f: CaseFact) => f.masked.includes(MASK);
   const tiers: ((f: CaseFact) => boolean)[] = [
     (f) => named.has(f.owner),
-    (f) => area(f) === reading.area,
-    () => true,
+    (f) => area(f) === reading.area && selfNamed(f),
+    (f) => selfNamed(f),
   ];
   for (const inTier of tiers) {
     if (out.length >= n) break;

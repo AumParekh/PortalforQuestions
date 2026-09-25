@@ -190,6 +190,8 @@ export interface EligibleRow {
   index: number;
   cells: string[];
   blankable: number[];
+  /** Columns whose cell can name the row: something to read, in a column that differs across rows. */
+  anchors: number[];
 }
 
 export interface EligibleTable {
@@ -200,19 +202,32 @@ export interface EligibleTable {
   eligible: EligibleRow[];
 }
 
-/** Cells that can stand as a row's anchor: a lone dash says nothing about which row it is. */
-function nonEmptyCount(cells: readonly string[]): number {
-  return cells.filter(substantive).length;
-}
-
 /** Most blanks a row can take while keeping one filled cell on screen as its anchor (two at most). */
 function rowCapacity(e: EligibleRow): number {
-  return Math.min(2, e.blankable.length, nonEmptyCount(e.cells) - 1);
+  return Math.min(2, e.blankable.length, e.anchors.length - 1);
+}
+
+/**
+ * "Inter-" alone on a row, then "connected | …": a `\\` inside a cell ended the notes' row early,
+ * so the label's hyphenated start sits on a row of its own. The two halves are joined back
+ * (the notes' own characters, in order) so the label never travels as the fragment "connected".
+ */
+function joinBrokenLabels(grid: GridRow[]): void {
+  for (let i = grid.length - 2; i >= 0; i--) {
+    const g = grid[i];
+    const next = grid[i + 1];
+    const head = g.cells[0].trim();
+    const tail = next.cells[0].trim();
+    if (g.aligned || !next.aligned || !/\p{L}-$/u.test(head) || !/^\p{Ll}/u.test(tail)) continue;
+    if (g.cells.slice(1).some((c) => normCell(c))) continue;
+    next.cells[0] = head + tail;
+    grid.splice(i, 1);
+  }
 }
 
 /**
  * Tables with at least two headed columns whose rows can each lose a cell and still keep an anchor
- * (another non-empty cell) on screen, and with room for at least three blanks in all. Rows whose
+ * (another cell that names it) on screen, and with room for at least three blanks in all. Rows whose
  * cell count doesn't match the headers are shown but never played. Two side-by-side lists
  * (Advantages | Disadvantages, every column a numbered list, or lists of different lengths) are left
  * to other mechanics: the pairing across a row carries nothing to recall. So are worked calculations
@@ -238,6 +253,7 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
           aligned: cells.length === rawHeaders.length,
         };
       });
+      joinBrokenLabels(grid);
       // Columns that are numbered lists lose their markers, or the numbers would give the rows away.
       const enumerated = headers.map((_, c) => {
         const col = grid.filter((g) => g.aligned && normCell(g.cells[c])).map((g) => g.cells[c]);
@@ -268,11 +284,13 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
       if (played.length && played.filter(unnamed).length * 2 >= played.length) continue;
       const eligible: EligibleRow[] = [];
       grid.forEach((g, index) => {
-        if (!g.id || !g.aligned || nonEmptyCount(g.cells) < 2) return;
+        // A lone dash, or a value every row shares ("↓" down a whole column), says nothing about which row it is.
+        const anchors = g.cells.map((x, c) => (substantive(x) && !constant[c] ? c : -1)).filter((c) => c >= 0);
+        if (!g.id || !g.aligned || anchors.length < 2) return;
         const blankable = g.cells
           .map((x, c) => (isBlankable(x, headers[c]) && !constant[c] && !(c === 0 && unnamed(g)) ? c : -1))
           .filter((c) => c >= 0);
-        if (blankable.length) eligible.push({ id: g.id, index, cells: g.cells, blankable });
+        if (blankable.length) eligible.push({ id: g.id, index, cells: g.cells, blankable, anchors });
       });
       if (eligible.reduce((n, e) => n + rowCapacity(e), 0) < MIN_SHEET_BLANKS) continue;
       if (isExhibit(headers, grid, eligible)) continue;
@@ -290,6 +308,18 @@ export interface BuildCtx {
   priorityCategory?: TrapCategory | null;
 }
 
+const words = (s: string) => ` ${normCell(s).replace(/[^\p{L}\p{N}%]+/gu, ' ').trim()} `;
+
+/**
+ * The cell's words are printed elsewhere in its own row ("Singapore" beside "…the Monetary
+ * Authority of Singapore…"): lifting it asks the player to match words, not recall the notes.
+ * Such cells are lifted only when the row has nothing else to offer.
+ */
+function echoed(e: EligibleRow, col: number): boolean {
+  const w = words(e.cells[col]);
+  return w.trim().length >= 4 && e.cells.some((x, c) => c !== col && words(x).includes(w));
+}
+
 /** Choice of blanks for a sheet's target rows. Returns row index → columns. */
 function chooseBlanks(
   targets: readonly EligibleRow[],
@@ -297,9 +327,8 @@ function chooseBlanks(
   rng: () => number,
 ): { byRow: Map<number, number[]>; wholeColumn: number | null } {
   const byRow = new Map<number, number[]>();
-  // Keeps at least one cell with something to read on screen in the row (a lone dash doesn't count).
-  const keepsAnchor = (e: EligibleRow, cols: readonly number[]) =>
-    e.cells.some((c, i) => !cols.includes(i) && substantive(c));
+  // Keeps at least one cell on screen that names the row (not a lone dash, not a value every row shares).
+  const keepsAnchor = (e: EligibleRow, cols: readonly number[]) => e.anchors.some((i) => !cols.includes(i));
   const add = (e: EligibleRow, col: number) => {
     const cur = byRow.get(e.index) ?? [];
     if (cur.includes(col) || !e.blankable.includes(col) || !keepsAnchor(e, [...cur, col])) return false;
@@ -323,7 +352,7 @@ function chooseBlanks(
   // One blank in every target row, preferring columns other than the row label.
   for (const e of targets) {
     if (byRow.get(e.index)?.length) continue;
-    const rank = (c: number) => Number(c === 0) + Number(isBareNumber(e.cells[c]));
+    const rank = (c: number) => Number(c === 0) + Number(isBareNumber(e.cells[c])) + 2 * Number(echoed(e, c));
     const pref = shuffle(e.blankable, rng).sort((a, b) => rank(a) - rank(b));
     for (const c of pref) if (add(e, c)) break;
   }
@@ -332,7 +361,7 @@ function chooseBlanks(
   for (const e of shuffle(targets, rng)) {
     if (phase === 'discovery' && total() >= MIN_SHEET_BLANKS) break;
     if ((byRow.get(e.index)?.length ?? 0) >= 2) continue;
-    for (const c of shuffle(e.blankable, rng)) if (add(e, c)) break;
+    for (const c of shuffle(e.blankable, rng).sort((a, b) => Number(echoed(e, a)) - Number(echoed(e, b)))) if (add(e, c)) break;
   }
   return { byRow, wholeColumn };
 }

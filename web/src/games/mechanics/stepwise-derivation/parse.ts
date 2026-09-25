@@ -373,6 +373,8 @@ export function numbersIn(tex: string): NumberHit[] {
     .replace(/\{,\}/g, ",")
     .replace(/_\{[^{}]*\}|_\d/g, ' ')
     .replace(/\\(?:q?quad|[,;:! ])/g, ' ')
+    // A number glued to a macro ("1.5\times0.247") is still a number.
+    .replace(/(\\[A-Za-z]+)(?=\d)/g, '$1 ')
     .replace(/Step\s*\d+/gi, ' ');
   const out: NumberHit[] = [];
   const re = /(?<![A-Za-z\d.])(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?|(?<![\d.])\.(\d+)/g;
@@ -380,7 +382,8 @@ export function numbersIn(tex: string): NumberHit[] {
   while ((m = re.exec(t))) {
     const raw = m[0];
     const value = Number(raw.replace(/,/g, ''));
-    const pct = /^\s*(?:\\?%|\\text\{\s*\\?%)/.test(t.slice(m.index + raw.length, m.index + raw.length + 10));
+    // "5\%", "5 \text{\%}", and the notes' prose "60 per cent" / "60 percent".
+    const pct = /^\s*(?:\\?%|\\text\{\s*\\?%|per\s?cent\b)/i.test(t.slice(m.index + raw.length, m.index + raw.length + 12));
     if (Number.isFinite(value)) out.push({ raw, value, pct });
   }
   return out;

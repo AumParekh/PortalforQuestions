@@ -16,6 +16,7 @@ import { srsPriority } from '../../srs';
 import { seededRng, shuffle } from '../../random';
 import type { Move, NumberHit, Part } from './parse';
 import {
+  computes,
   isCommonNumber,
   mathRows,
   hasNumber,
@@ -404,6 +405,14 @@ export function distractorPool(ex: Example, b: number, others: readonly (readonl
   const other: Choice[][] = [];
   const seen = new Set<string>([...ownOps]);
   const trueNums = new Set(numbersIn(opOf(m)).map((h) => numKey(h.value)));
+  // Numbers this line and the lines after it work from that the player has not been given yet.
+  // A step elsewhere that produces one of them is part of this derivation (a "previous example"
+  // box, the normal-market twin of a stressed case), so it is not a wrong move here.
+  const wanted = new Set<string>();
+  for (let j = b; j < ex.moves.length; j++) {
+    for (const h of ioOf(ex.moves[j]).inputs) if (!isCommonNumber(h.value) && !hasNumber(avail, h)) for (const k of numberKeys(h)) wanted.add(k);
+  }
+  const feedsThis = (om: Move) => [...ioOf(om).outputs].some((k) => !k.startsWith('%') && wanted.has(k));
   const ownKeys = new Set<string>();
   const ownWords: Set<string>[] = [];
   for (const x of ex.moves) {
@@ -419,6 +428,7 @@ export function distractorPool(ex: Example, b: number, others: readonly (readonl
         const op = opOf(om);
         const k = normOp(op);
         if (!k || seen.has(k)) continue;
+        if (feedsThis(om)) continue;
         if (shape === 'equation') {
           const foreign = unseenNumbers(op, avail).filter((raw) => !trueNums.has(numKey(Number(raw.replace(/,/g, '')))));
           if (!foreign.length) continue;
@@ -680,7 +690,7 @@ function sectionTerm(ex: Example): string | null {
 /** The value a result lands on (after its last '='), as plain text. */
 function landing(result: string): string {
   const { parts } = relationSplit(result);
-  return flatMath(parts[parts.length - 1] ?? result);
+  return flatMath(parts[parts.length - 1] ?? result).replace(/ ([,;])/g, '$1');
 }
 
 /** Just-in-time naming (§8.3): the concept the example works, its block, its LO, and the notes' chain. */
@@ -688,12 +698,28 @@ export function namingFor(ex: Example, reading: Reading, corpus: Corpus): Concep
   const heading = ex.heading ? plain(ex.heading) : '';
   const term = sectionTerm(ex) ?? (heading && !/^\s*step\s*\d/i.test(heading) ? heading : null) ?? plain(reading.title ?? reading.reading_id);
   const labels = ex.moves.filter((m) => m.kind === 'label' && m.label).map((m) => plain(m.label as string));
-  const results = ex.moves.filter((m) => m.kind === 'equation' && m.result).map((m) => landing(m.result as string)).filter(Boolean);
+  const eqs = ex.moves.filter((m) => m.kind === 'equation' && m.result);
+  const results = eqs.map((m) => landing(m.result as string)).filter(Boolean);
+  // "Each line feeds the next" only when it is true: every line works from a result of the one
+  // before it that the givens do not already hold (VaR at 95% and at 99% side by side do not).
+  const givens = partNumbers([...ex.context, ...ex.prompt, ...(ex.heading ? [{ kind: 'text' as const, latex: ex.heading }] : [])]);
+  const chained =
+    eqs.length >= 2 &&
+    eqs.slice(1).every((m, i) => {
+      const prev = ioOf(eqs[i]).outputs;
+      return ioOf(m).inputs.some((h) => !isCommonNumber(h.value) && hasNumber(prev, h) && !hasNumber(givens, h));
+    });
+  // "One line" only when no other line of the working computes anything.
+  const otherWork = ex.moves.some((m) => m.kind !== 'equation' && computes(m.body));
   const h = headingText(ex);
   let line: string;
   if (labels.length >= 2) line = `${h}, in the notes' order: ${labels.join(' → ')}.`;
-  else if (results.length >= 2) line = `${h}: each line feeds the next, and the notes' results run ${results.slice(0, 6).join(' → ')}.`;
-  else if (results.length === 1) line = `${h}: one line takes the givens to ${results[0]}.`;
+  else if (results.length >= 2)
+    line = chained
+      ? `${h}: each line feeds the next, and the notes' results run ${results.slice(0, 6).join(' → ')}.`
+      : `${h}: the notes' results, in order, run ${results.slice(0, 6).join(' → ')}.`;
+  else if (results.length === 1)
+    line = otherWork ? `${h}: the notes' working reaches ${results[0]}.` : `${h}: one line takes the givens to ${results[0]}.`;
   else line = `${h}, worked in ${reading.reading_id}.`;
   const los = learningObjectives(reading);
   const objectiveId = ex.objectiveId ?? corpus.objectiveOfBlock[ex.blockId] ?? los[los.length - 1]?.id ?? reading.reading_id;

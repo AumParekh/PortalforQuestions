@@ -67,11 +67,14 @@ function significantDigits(text: string): number {
   return m[0].includes('.') ? digits.length : intPart.replace(/0+$/, '').length;
 }
 /**
- * Worked arithmetic in a statement ("$992.556 - 990 = $2.556", "75/1000 = 7.5%") or a computed
- * figure ("$521.4375 face"): an example's working, not a point to recall.
+ * Worked arithmetic in a statement ("$992.556 - 990 = $2.556", "75/1000 = 7.5%",
+ * "(6.258% + 6.260%) / 2 = 6.259%") or a computed figure ("$521.4375 face"): an example's working,
+ * not a point to recall.
  */
 export function isWorking(plain: string): boolean {
-  if (/\d[\d.,]*%?\s*[-+−×*/÷]\s*\(?\s*\$?\s*\d[\d.,]*\)?\s*=/.test(plain)) return true;
+  // Escaped signs survive plain-text conversion ("6.258\% + 6.260\%").
+  plain = plain.replace(/\\(?=[%$])/g, '');
+  if (/\d[\d.,]*%?\)?\s*[-+−×*/÷]\s*\(?\s*\$?\s*\d[\d.,]*%?\)?\s*=/.test(plain)) return true;
   return (plain.match(/\d[\d,]*\.\d+/g) ?? []).some((x) => significantDigits(x) >= 5);
 }
 const TRAP_LABEL = /^[A-Z][A-Za-z]*(?:[ -][A-Za-z]+){0,2}(?:,\s*[A-Z]{1,4}-\d+\s*[a-z]?)?\s*[.:]\s+/;
@@ -160,7 +163,7 @@ function termTargets(b: Block): RawTarget[] {
     const context = termSentence(b, toDisplay(text).replace(/[.:;,]+$/, '')).replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '');
     const shown = toDisplay(context);
     // "buying" / "shorting" inside "replicated by buying $521.4375 face of ...": the example's working.
-    if (context && isWorking(shown)) continue;
+    if (context && (isWorking(shown) || isWorking(plainOf(context)))) continue;
     // "$82.55 million" in "for every $100 million sold in T-bonds, we should buy $82.55 million": an example's answer.
     if (/^\$?\s*\d/.test(toDisplay(text)) && EXERCISE_CUE.test(shown)) continue;
     out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, ...(context ? { context } : {}), keyText: plain, emph: [], acronyms, values: [], key: `t:${contentStems(plain).join(' ')}` });
@@ -178,8 +181,8 @@ function depthOf(x: SubItemLike): number {
 const FOREIGN_MACRO = /\\(?!(?:term|emph|textbf|textit)\{)[a-zA-Z]/;
 
 /**
- * The sentence a top-level list hangs from ("A manager can lower a portfolio's VaR by:"), for a
- * bullet that is a fragment of it ("lowering the position with the highest marginal VaR;").
+ * The sentence a top-level list hangs from ("A manager can lower a portfolio's VaR by:"), for its
+ * bullets, which are often fragments of it ("lowering the position with the highest marginal VaR;").
  */
 function listIntro(b: Block, index: number): string {
   const src = (b.body_latex ?? '').replace(/\s+/g, ' ');
@@ -206,8 +209,7 @@ function listIntro(b: Block, index: number): string {
   const cut = [...before.matchAll(/\\end\{(?:itemize|enumerate)\}|\\item\b/g)].pop();
   const prose = before.slice(cut ? (cut.index ?? 0) + cut[0].length : 0).trim();
   const last = prose.split(/(?<=[.!?])\s+(?=[A-Z])/).pop()?.trim() ?? '';
-  if (!/:\s*$/.test(toDisplay(last))) return '';
-  return splitMath(last).every((seg) => seg.kind === 'math' || !FOREIGN_MACRO.test(seg.text)) ? last : '';
+  return /:\s*$/.test(toDisplay(last)) ? last : '';
 }
 
 /**
@@ -251,8 +253,10 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     const stems = contentStems(lead);
     if (stems.length < 3 || lead.split(/\s+/).length > 45) return;
     if (stems.join(' ') === loKey) return;
-    // What the bullet hangs from: its parent bullet ("Sensitivity depends on:"), or for a fragment
-    // of a top-level list ("defining the copula function;"), the sentence that opens the list.
+    // What the bullet hangs from: its parent bullet ("Sensitivity depends on:"), or for a top-level
+    // list, the sentence that opens it ("A credit VaR under the copula methodology is computed by:"
+    // over "defining the copula function;"; "There are many ways to buy volatility protection:" over
+    // "In option markets, but traders can also use other derivatives contracts ...").
     let context = '';
     if (depth > 1) {
       for (let j = i - 1; j >= 0; j--) {
@@ -262,7 +266,8 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
           break;
         }
       }
-    } else if (/^[a-z]/.test(toDisplay(text))) context = listIntro(b, i);
+    } else context = listIntro(b, i);
+    if (!renderable(context)) context = '';
     // The list's joining punctuation ("...; and") is not part of the point.
     const display = text.replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '').trimEnd();
     out.push({ itemId: id, blockId: b.id, kind: 'point', display, ...(context ? { context } : {}), keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
@@ -587,37 +592,75 @@ function termSentence(block: Block | undefined, term: string): string {
   // As a whole phrase: "Sharpe ratio" is not the "Sharpe ratios" of a quoted misstatement.
   const word = new RegExp(`(?:^|[^\\p{L}\\p{N}])${esc}(?:$|[^\\p{L}\\p{N}])`, 'u');
   const has = (x: string) => word.test(norm(x));
-  const longer = (x: string) => has(x) && norm(x).length > needle.length + 3;
-  const bullets = (block.bullets ?? [])
-    .map((x) => {
-      const o = obj(x);
-      return o ? str(o.text) : typeof x === 'string' ? x : '';
-    })
-    .filter(renderable);
+  // Longer by at least a word ("... → IRR."), not only a list number or an article ("2) Internal
+  // model-based approach.", "A payer interest rate swap collateralized by government bonds.").
+  const longer = (x: string) =>
+    has(x) &&
+    norm(x)
+      .replace(word, ' ')
+      .split(/[^\p{L}\p{N}]+/u)
+      .some((w) => /\p{L}/u.test(w) && w.length >= 2 && !/^(?:an|the|and|or)$/.test(w));
+  const allBullets = (block.bullets ?? []).map((x) => {
+    const o = obj(x);
+    return o ? str(o.text) : typeof x === 'string' ? x : '';
+  });
+  const bullets = allBullets.filter(renderable);
+  const src = block.plain_text ?? block.body_latex ?? '';
   // A display formula ends the sentence that introduces it ("... add volatility for up moves and subtract volatility for down moves:").
-  const src = (block.plain_text ?? block.body_latex ?? '').replace(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]/g, ' • ');
-  const sentences = src
-    .split(/\s*•\s*|(?<=[.!?]|[.!?][”"])\s+(?=[A-Z$\\(“"])/)
-    .map((x) => x.replace(/\s+/g, ' ').trim())
-    .filter((x) => x.length > 0);
+  const chunks = src.split(/\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]/);
+  // Sentences, grouped by list item or paragraph: a neighbour from another item explains nothing.
+  const groups = chunks.flatMap((chunk, k) => {
+    const items = chunk
+      .split(/\s*(?:•|\n)\s*/)
+      .map((item) =>
+        item
+          .split(/(?<=[.!?]|[.!?][”"])\s+(?=[A-Z$\\(“"])/)
+          .map((x) => x.replace(/\s+/g, ' ').trim())
+          .filter((x) => x.length > 0),
+      )
+      .filter((item) => item.length > 0);
+    // A sentence that runs into a display formula ("The credit-adjusted value ... is") is cut off.
+    const last = items[items.length - 1];
+    if (k < chunks.length - 1 && last && !/[.!?:;]$/.test(last[last.length - 1])) last.pop();
+    return items.filter((item) => item.length > 0);
+  });
+  const sentences = groups.flat();
   const usable = sentences.filter(renderable);
   // The sentence that opens with the term defines it ("Bankruptcy is a legal procedure ...", "A derivative
   // represents ...", "Synthetic CDOs use ..."); else the term's first use; else, in a definition box
   // titled with the term ("Heterogeneous"), its opening sentence.
   const opens = (x: string) => [norm(x), norm(x).replace(/^an? /, '')].some((y) => y.startsWith(needle) && y.length > needle.length + 3);
-  const titled = block.type === 'defbox' && !!block.title && norm(block.title) === needle ? usable[0] : undefined;
+  // An opening sentence that sets up an example ("Assume a risk manager calculates ...") defines nothing.
+  const opening = usable[0] && !/\b(?:assume|suppose|imagine|for example|for instance|calculates?|computes?)\b/i.test(toDisplay(usable[0])) ? usable[0] : undefined;
+  const titled = block.type === 'defbox' && !!block.title && norm(block.title) === needle ? opening : undefined;
   const found = bullets.find(opens) ?? usable.find(opens) ?? bullets.find(longer) ?? usable.find(longer) ?? titled;
   if (found) return found;
-  const i = sentences.findIndex((x) => norm(x).replace(/[.:;!?]+$/, '').replace(/^(?:a|an|the) /, '') === needle.replace(/^(?:a|an|the) /, ''));
-  if (i >= 0) {
-    const [prev, next] = [sentences[i - 1], sentences[i + 1]];
-    if (next && renderable(next)) return `${sentences[i]} ${next}`;
-    if (prev && renderable(prev)) return `${prev} ${sentences[i]}`;
+  const same = (x: string) => norm(x).replace(/[.:;!?]+$/, '').replace(/^(?:a|an|the) /, '') === needle.replace(/^(?:a|an|the) /, '');
+  const says = (x: string | undefined): x is string => !!x && renderable(x) && toDisplay(x).split(/\s+/).length >= 5;
+  // A list item that is only the term: its first sub-item explains it ("Liquidity horizons." over
+  // "Banks estimate the time to sell each instrument ..."); else the sentence that opens the list
+  // ("The three methods are:" over "Scale the alphas.").
+  const item = allBullets.findIndex(same);
+  if (item >= 0) {
+    const list = block.bullets ?? [];
+    const sub = list[item + 1];
+    if (sub !== undefined && depthOf(sub) > depthOf(list[item]) && says(allBullets[item + 1])) return `${allBullets[item]} ${allBullets[item + 1]}`;
+    const intro = listIntro(block, item);
+    if (intro && renderable(intro)) return intro;
+  }
+  // A term that is its own sentence: the sentence that explains it, after it or else before it,
+  // within its own item ("Collateral pledging." takes nothing from the item before it).
+  for (const group of groups) {
+    const i = group.findIndex(same);
+    if (i < 0) continue;
+    const [prev, next] = [group[i - 1], group[i + 1]];
+    if (says(next)) return `${group[i]} ${next}`;
+    if (says(prev)) return `${prev} ${group[i]}`;
   }
   // A label whose text sits in the block it heads ("Risk governance" over "Sets roles and
   // responsibilities for managing risk."), or a definition box titled with the term ("Heterogeneous"):
   // the block's opening sentence defines it.
-  if (!has(src) && usable[0] && (block.type === 'defbox' || sentences.length <= 2)) return usable[0];
+  if (!has(src) && opening && (block.type === 'defbox' || sentences.length <= 2)) return opening;
   return '';
 }
 
