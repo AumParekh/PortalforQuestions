@@ -92,6 +92,14 @@ export interface CaseFact {
   /** Other cases the fact names. */
   mentions: string[];
   category: TrapCategory | null;
+  /**
+   * The case is named only by a trailing attribution ("… (Morgan Stanley)"), as in a lessons box
+   * drawn from two cases. The notes tie the line to that case, but the advice may fit the rival as
+   * well (ORR-13: "Strong vendor risk management" is attributed to Morgan Stanley, yet Capital One
+   * was fined for inadequate vendor risk management), so it is only dealt as a true docket chip,
+   * never as a distractor or a compare chip.
+   */
+  attributed?: boolean;
 }
 
 export interface Discriminator {
@@ -421,9 +429,12 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
     let text = cleanLead(raw);
     const lead = leadCache.get(owner) ?? ownerAliasLead(owner);
     leadCache.set(owner, lead);
+    let attributed = false;
     if (lead) {
-      text = text.replace(lead.lead, '').replace(lead.paren, '');
-      text = capitalise(text.trim());
+      text = text.replace(lead.lead, '');
+      const unattributed = text.replace(lead.paren, '');
+      attributed = unattributed !== text && !det.find(unattributed).includes(owner) && seg.owner !== owner;
+      text = capitalise(unattributed.trim());
     }
     if (!text || /[:;,]$/.test(text)) return 'rejected';
     if (!/[.!?)”"]$/.test(text)) text += '.';
@@ -439,6 +450,8 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
     const { masked, names } = det.mask(full, owner);
     // The case only as one example in a list ("(Deutsche Bank, HSBC)") says nothing about the case.
     if (/\([^)]*\uE000[^)]*,[^)]*\)|\([^)]*,[^)]*\uE000[^)]*\)/.test(masked)) return 'rejected';
+    // An elliptical ;-clause ("…; Metallgesellschaft by a falling oil price") is not a sentence.
+    if (/^\uE000(?:['’]s)?\s+(?:by|in|with|for|on|at|from|to|of|as|than)\b/.test(masked)) return 'rejected';
     const bare = masked.split(MASK).join(' ').trim();
     if (words(bare) < (seg.prefix ? 2 : 3) || bare.split(/\s+/).length < 3) return 'rejected';
     const dedupe = `${owner}|${flat(full)}`;
@@ -457,6 +470,7 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
       names,
       mentions: named.filter((c) => c !== owner),
       category: seg.category,
+      ...(attributed ? { attributed: true } : {}),
     });
     return 'added';
   };

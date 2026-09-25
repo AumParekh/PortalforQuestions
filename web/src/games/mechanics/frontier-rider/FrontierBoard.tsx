@@ -107,6 +107,7 @@ function Round({
   const answeredRef = useRef(false);
   const revealedRef = useRef(false);
   const raf = useRef<number | null>(null);
+  const autoPlay = useRef<number | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
   const lastGood = useRef<State>(item.path.states[0]);
 
@@ -135,6 +136,7 @@ function Round({
   useEffect(
     () => () => {
       if (raf.current !== null) cancelAnimationFrame(raf.current);
+      if (autoPlay.current !== null) window.clearTimeout(autoPlay.current);
     },
     [],
   );
@@ -181,7 +183,7 @@ function Round({
     setStage('watch');
     onAnswered({ roundId: round.id, correct: !!opt?.correct, timeMs: performance.now() - started.current, timedOut: byTimer });
     // Under pressure the move plays itself; in discovery the player drags (or taps "Play the move").
-    if (timed) window.setTimeout(() => play(sl.from, sl.to, reveal), prefersReducedMotion() ? 0 : 260);
+    if (timed) autoPlay.current = window.setTimeout(() => play(sl.from, sl.to, reveal), prefersReducedMotion() ? 0 : 260);
   };
 
   const onSlide = (e: ChangeEvent<HTMLInputElement>) => {

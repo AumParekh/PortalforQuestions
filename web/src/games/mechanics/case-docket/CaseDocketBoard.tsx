@@ -348,7 +348,10 @@ export function CaseDocketBoard({ phase, rounds, onResult, onPhaseDone }: Mechan
   // Keyboard: T / N or 1 / 2 or the arrows file the focused chip, else the next one.
   useEffect(() => {
     const onKey = (e: globalThis.KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || locked) return;
+      // A held key auto-repeats; without the repeat guard one press would file several chips.
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat || locked) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(?:INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
       const k = e.key.toLowerCase();
       const lane = lanes.find((l) => l.keys.includes(k));
       if (!lane) return;

@@ -29,6 +29,12 @@ const FACT_CUE =
 const EXAMPLE_START = /^\s*(?:•\s*)?(?:suppose|assume|consider|given|say|imagine|for example|e\.g\.|if (?:a|an|the|we)\b)/i;
 const EXAMPLE_CUE = /\b(worked example|worked illustration|illustration|we get|gives|yields|therefore|hence|thus|so the|plugging|substitut|would give|this example|in the example|here\))/i;
 const GENERIC_TITLE = /^(?:trap|summary|remember|key (?:facts|points)|note|outcome|source|consolidated)/i;
+/** Blocks whose numbers are a worked example's inputs and intermediate results, not facts to hold. */
+const EXAMPLE_TITLE = /\b(?:examples?|worked|illustrat\w*|assumptions|miniature|arithmetic|chain)\b/i;
+/** Sentences that talk about a calculation chain rather than state a fact. */
+const CHAIN_CUE = /\b(?:correct answers?|chain|slips?|arithmetic|fractions?|intermediate)\b/i;
+/** A sentence cut short by the extractor, or a lead-in to a list: the fact is not in it. */
+const DANGLING = /(?::|\b(?:than|be|of|the|a|an|to|and|or|is|are|was|were|at|in|on|with|by|for|from|that|which|as))$/i;
 /** Latest year a dated slider may reach. */
 const YEAR_CEILING = 2030;
 const YEAR_WIDTH = 40;
@@ -70,7 +76,7 @@ export interface SliderPayload {
   parts: string[];
   /** Short cue for pressure: fragments around the blank from the same sentence, with elisions. */
   cue: string[];
-  /** Label shown above the cue under pressure (block title, table row label or section). */
+  /** Label shown above the cue under pressure (LaTeX: table row label, block title or section); never writes the answer. */
   lead: string | null;
   /** The number as written in the notes (LaTeX), shown in the revealed sentence. */
   answerText: string;
@@ -417,7 +423,7 @@ function rowContext(b: Block, row: TableRow, text: string): { context: string; l
   if (!label) return null;
   const numeric = row.cells.filter((c) => typeof c === 'string' && /^[\s$\\%.,\-−\d()]+$/.test(c) && /\d/.test(c)).length;
   if (numeric > Math.ceil(row.cells.length / 2) + 1) return null;
-  return { context: rowText(row, headers), label: toDisplay(label) };
+  return { context: rowText(row, headers), label: label.trim() };
 }
 
 /** The table row a numeric item's pipe-joined context came from. */
@@ -524,7 +530,8 @@ function factScore(block: Block, context: string, number: ParsedNumber): number 
   if (block.type === 'trapbox' && !/consolidated/i.test(block.title ?? '')) s += 1;
   if (number.sig <= 2) s += 1;
   if (EXAMPLE_START.test(plain)) s -= 3;
-  if (EXAMPLE_CUE.test(plain)) s -= 3;
+  if (EXAMPLE_CUE.test(plain) || CHAIN_CUE.test(plain)) s -= 3;
+  if (typeof block.title === 'string' && EXAMPLE_TITLE.test(toDisplay(block.title))) s -= 3;
   // Currency with decimals (or zero) is a computed result, not a figure the notes ask you to hold.
   if (number.prefix && (number.decimals > 0 || number.value === 0)) s -= 2;
   return s;
@@ -613,7 +620,12 @@ export function candidates(reading: Reading): Candidate[] {
         const occ = findOccurrences(r.context, r.text);
         if (occ.length === 0 || occ.some((x) => isRangeEnd(r.context, x))) continue;
         // The sentence must not write the answer again elsewhere ("99 percent" beside "99%", "1-month" beside "1-week").
-        if (mentionsValue(fragments(r.context, occ, 0, r.context.length).join(' '), number.value)) continue;
+        const rest = fragments(r.context, occ, 0, r.context.length).join(' ');
+        if (mentionsValue(rest, number.value)) continue;
+        // Other numbers written to the cent or to two decimals ("$19.47", "12.46%") mark a computation
+        // chain: its numbers are results to work out, not facts to hold.
+        if (/\d\.\d{2}/.test(toDisplay(rest).replace(/\$[^$]*\$/g, ''))) continue;
+        if (!r.rowLabel && (DANGLING.test(plain.replace(/[\s…]+$/, '')) || (plain.match(/“/g) ?? []).length !== (plain.match(/”/g) ?? []).length)) continue;
         const key = `${plain.toLowerCase()}|${number.value}`;
         if (seen.has(key)) continue;
         const score = factScore(b, r.context, number);
@@ -645,35 +657,104 @@ export function candidates(reading: Reading): Candidate[] {
   return out;
 }
 
-/** Candidates usable together in one session: distinct item IDs and distinct contexts, in order. */
-export function distinctCandidates(cs: readonly Candidate[]): Candidate[] {
-  const ids = new Set<string>();
-  const ctxs = new Set<string>();
-  const out: Candidate[] = [];
-  for (const c of cs) {
-    const k = toDisplay(c.context).toLowerCase();
-    if (ids.has(c.id) || ctxs.has(k)) continue;
-    ids.add(c.id);
-    ctxs.add(k);
-    out.push(c);
+function wordSet(latex: string): Set<string> {
+  return new Set(
+    toDisplay(latex)
+      .toLowerCase()
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter((w) => w.length >= 3),
+  );
+}
+
+function answerKey(c: Candidate): string {
+  return `${c.number.value}|${c.number.suffix.trim().toLowerCase()}`;
+}
+
+/**
+ * Two candidates that should not share a session: the same item, the same sentence (one context
+ * inside the other: a table row and the sentence in one of its cells, a bullet with and without its
+ * label), or the same fact restated with the same answer.
+ */
+export function clash(a: Candidate, b: Candidate, words: (c: Candidate) => Set<string>): boolean {
+  if (a.id === b.id) return true;
+  const A = words(a);
+  const B = words(b);
+  if (!A.size || !B.size) return toDisplay(a.context).toLowerCase() === toDisplay(b.context).toLowerCase();
+  let inter = 0;
+  for (const w of A) if (B.has(w)) inter++;
+  if (inter / Math.min(A.size, B.size) >= 0.8) return true;
+  return answerKey(a) === answerKey(b) && inter / (A.size + B.size - inter) >= 0.4;
+}
+
+/** True when one candidate's sentence writes the other's answer as the notes write it. */
+function leaks(a: Candidate, b: Candidate): boolean {
+  const at = a.item.text ?? '';
+  const bt = b.item.text ?? '';
+  return (!!bt && findOccurrences(a.context, bt).length > 0) || (!!at && findOccurrences(b.context, at).length > 0);
+}
+
+/** At most two rounds share an answer ("15 business days" five times over teaches nothing new). */
+const MAX_SAME_ANSWER = 2;
+
+/**
+ * Picks up to `limit` candidates, in the given order, that can share a session: no clashes, at most
+ * two per answer, and (while it can) no round whose sentence writes another round's answer.
+ * With an rng it also builds each payload and skips any whose scale can't be built.
+ */
+export function selectCandidates(
+  ordered: readonly Candidate[],
+  limit: number,
+  rng: (() => number) | null,
+): { c: Candidate; p: SliderPayload | null }[] {
+  const cache = new Map<Candidate, Set<string>>();
+  const words = (c: Candidate) => {
+    let w = cache.get(c);
+    if (!w) cache.set(c, (w = wordSet(c.context)));
+    return w;
+  };
+  const picked: { c: Candidate; p: SliderPayload | null }[] = [];
+  const answers = new Map<string, number>();
+  for (const strict of [true, false]) {
+    for (const c of ordered) {
+      if (picked.length >= limit) break;
+      if (picked.some((x) => x.c === c || clash(x.c, c, words))) continue;
+      if ((answers.get(answerKey(c)) ?? 0) >= MAX_SAME_ANSWER) continue;
+      if (strict && picked.some((x) => leaks(x.c, c))) continue;
+      const p = rng ? toPayload(c, rng) : null;
+      if (rng && !p) continue;
+      if (!rng && !buildScale(c.number, c.isPercent, () => 0.5, c.numberKind)) continue;
+      picked.push({ c, p });
+      answers.set(answerKey(c), (answers.get(answerKey(c)) ?? 0) + 1);
+    }
   }
-  return out;
+  return picked;
+}
+
+/** Candidates usable together in one session, in the given order (see selectCandidates). */
+export function distinctCandidates(cs: readonly Candidate[]): Candidate[] {
+  return selectCandidates(cs, Infinity, null).map((x) => x.c);
 }
 
 export function supportsThreshold(reading: Reading): boolean {
   try {
-    return distinctCandidates(candidates(reading)).length >= MIN_ITEMS;
+    return selectCandidates(candidates(reading), MIN_ITEMS, null).length >= MIN_ITEMS;
   } catch {
     return false;
   }
 }
 
+/**
+ * The label over the pressure cue (LaTeX): the row label, else the block title, else the section.
+ * Never one that writes the answer ("The 1996 amendment" over "The ___ amendment required…").
+ */
 function leadFor(c: Candidate): string | null {
-  if (c.rowLabel) return c.rowLabel;
-  const title = c.block.title && !GENERIC_TITLE.test(c.block.title.trim()) ? toDisplay(c.block.title) : null;
-  if (title && title.length <= 90) return title;
-  const section = c.block.section ? toDisplay(c.block.section) : null;
-  return section && section.length <= 90 ? section : null;
+  const fits = (x: string | null | undefined): x is string =>
+    typeof x === 'string' && !!x.trim() && toDisplay(x).length <= 90 && !mentionsValue(x, c.number.value);
+  if (c.rowLabel) return fits(c.rowLabel) ? c.rowLabel : null;
+  const title = c.block.title;
+  if (fits(title) && !GENERIC_TITLE.test(toDisplay(title))) return title.trim();
+  const section = c.block.section;
+  return fits(section) ? section.trim() : null;
 }
 
 export function toPayload(c: Candidate, rng: () => number): SliderPayload | null {
@@ -681,7 +762,7 @@ export function toPayload(c: Candidate, rng: () => number): SliderPayload | null
   if (!scale) return null;
   const tolerance = c.approx ? Math.max(scale.fine / 2, roundTo(0.1 * Math.abs(c.number.value), scale.fine)) : scale.fine / 2;
   const parts = fragments(c.context, c.occ, 0, c.context.length);
-  const cue = c.kind === 'row' ? rowCue(c) : shortCue(c.context, c.occ);
+  const cue = cueFor(c);
   return {
     itemId: c.id,
     blockId: c.block.id,
@@ -700,6 +781,10 @@ export function toPayload(c: Candidate, rng: () => number): SliderPayload | null
     numberKind: c.numberKind,
     score: c.score,
   };
+}
+
+function cueFor(c: Candidate): string[] {
+  return c.kind === 'row' ? rowCue(c) : shortCue(c.context, c.occ);
 }
 
 /** For a table row: just "Header: ___" (cut to its clause when the cell is long), with the row label as the lead. */
@@ -751,29 +836,24 @@ function prioritise(cs: readonly Candidate[], ctx: ThresholdBuildInput): Candida
 
 export function buildThreshold(reading: Reading, ctx: ThresholdBuildInput): MechanicPlan<SliderPayload> | null {
   const all = candidates(reading);
-  // Prioritise first, then keep one number per item ID and per sentence, so no round shows
-  // another round's answer and every round reviews its own SRS item.
-  const pool = distinctCandidates(prioritise(all, ctx));
-  if (pool.length < MIN_ITEMS) return null;
-  const picked: { c: Candidate; p: SliderPayload }[] = [];
-  // At most two rounds share an answer ("15 business days" five times over teaches nothing new).
-  const sameAnswer = new Map<string, number>();
-  for (const pass of [0, 1]) {
-    for (const c of pool) {
-      if (picked.length >= Math.min(MAX_ROUNDS, TARGET_ROUNDS)) break;
-      if (picked.some((x) => x.c === c)) continue;
-      const key = `${c.number.value}|${c.number.suffix.trim().toLowerCase()}`;
-      if (pass === 0 && (sameAnswer.get(key) ?? 0) >= 2) continue;
-      const p = toPayload(c, ctx.rng);
-      if (!p) continue;
-      picked.push({ c, p });
-      sameAnswer.set(key, (sameAnswer.get(key) ?? 0) + 1);
-    }
-  }
+  // Due, then unseen, then the rest; one number per item and per sentence, at most two per answer.
+  // If that order can't fill an arc, reading order can whenever supports() said yes.
+  let picked = selectCandidates(prioritise(all, ctx), TARGET_ROUNDS, ctx.rng);
+  if (picked.length < MIN_ITEMS) picked = selectCandidates(all, TARGET_ROUNDS, ctx.rng);
   if (picked.length < MIN_ITEMS) return null;
+  // A pressure cue that another number in the reading shares word for word ("[Confidence] Detail: ___"
+  // for both 99% and 97.5%) can't be answered from the cue: show the whole context instead.
+  const cueKey = (c: Candidate) => `${toDisplay(leadFor(c) ?? '')}|${toDisplay(cueFor(c).join(' ___ ')).toLowerCase()}`;
+  const answersByCue = new Map<string, Set<string>>();
+  for (const c of all) {
+    const k = cueKey(c);
+    answersByCue.set(k, (answersByCue.get(k) ?? new Set<string>()).add(answerKey(c)));
+  }
+  for (const x of picked) if (x.p && (answersByCue.get(cueKey(x.c))?.size ?? 0) > 1) x.p = { ...x.p, cue: x.p.parts };
   const nDisc = Math.max(3, Math.min(5, Math.floor(picked.length / 2)));
-  const disc = picked.slice(0, nDisc);
-  const press = picked.slice(nDisc, nDisc + 5);
+  const ready = picked.filter((x): x is { c: Candidate; p: SliderPayload } => !!x.p);
+  const disc = ready.slice(0, nDisc);
+  const press = ready.slice(nDisc, nDisc + 5);
   if (press.length < 3) return null;
   // Discovery in reading order (the numbers build on each other); pressure shuffled.
   const readingOrder = new Map(all.map((c, i) => [c, i]));
@@ -808,7 +888,7 @@ export function namingFor(corpus: Corpus, reading: Reading, p: SliderPayload): C
   const block = corpus.blockById[p.blockId];
   const sentence = toDisplay(p.parts.join(p.answerText));
   const emph = emphasised(p.parts.join(p.answerText)).filter((x) => x.split(/\s+/).length >= 2 && x.length <= 60)[0];
-  const label = p.lead ?? emph ?? (block?.section ? toDisplay(block.section) : null) ?? reading.title;
+  const label = (p.lead ? toDisplay(p.lead) : null) ?? emph ?? (block?.section ? toDisplay(block.section) : null) ?? reading.title;
   const value = formatValue(p.answer, p);
   const los = learningObjectives(reading);
   return {

@@ -110,7 +110,7 @@ function distractors(
   for (const inTier of tiers) {
     if (out.length >= n) break;
     const groups = shuffle(others, ctx.rng)
-      .map((id) => ordered((idx.facts[id] ?? []).filter(inTier), ctx, reading.reading_id, new Set()))
+      .map((id) => ordered((idx.facts[id] ?? []).filter((f) => !f.attributed && inTier(f)), ctx, reading.reading_id, new Set()))
       .filter((g) => g.length > 0);
     let progress = true;
     while (out.length < n && progress) {
@@ -130,16 +130,18 @@ function distractors(
 
 /** Splits facts between the docket (case a on trial) and the compare bench (a against b). */
 export function allocate(idx: CaseIndex, corpus: Corpus, reading: Reading, a: string, b: string, ctx: BuildInput): Allocation | null {
+  // Attributed lines (see CaseFact.attributed) may fit the rival too: true docket chips only.
   const aAll = (idx.facts[a] ?? []).filter((f) => !f.mentions.includes(b));
-  const bAll = (idx.facts[b] ?? []).filter((f) => !f.mentions.includes(a));
+  const bAll = (idx.facts[b] ?? []).filter((f) => !f.mentions.includes(a) && !f.attributed);
   const aItems = new Set(aAll.map((f) => f.itemId));
   const bItems = new Set(bAll.map((f) => f.itemId));
-  const aList = ordered(aAll, ctx, reading.reading_id, bItems);
+  const aDocket = ordered(aAll, ctx, reading.reading_id, bItems);
+  const aList = aDocket.filter((f) => !f.attributed);
   const bList = ordered(bAll, ctx, reading.reading_id, aItems);
   const used = new Set<string>();
   const pB = take(bList, 2, used);
   const pA = take(aList, 1, used);
-  const docketTrue = take(aList, 3, used);
+  const docketTrue = take(aDocket, 3, used);
   if (!pB.length || !pA.length || !docketTrue.length) return null;
   while (pA.length + pB.length < 4) {
     const moreB = pB.length < 3 ? take(bList, 1, used) : [];
