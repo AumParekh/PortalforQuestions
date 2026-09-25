@@ -204,6 +204,19 @@ the notes.** Every mechanic is judged against retention, not novelty. Added mech
 - **Explain It Back** — shuffled cause → channel → effect fragments to assemble.
 - **Pin the Note** — ORR note boxes pinned back onto their concept, table or case.
 
+**Decisions on the game layer's integration:**
+- **Streak.** Game sessions count as study days for the dashboard streak and daily
+  goal, but no streak, goal or points appear inside any game.
+- **Game log.** Stored in the browser (IndexedDB) exactly like quiz progress, one
+  record per session in the brief's Phase 9.7 format, viewable in the app; it joins
+  the question-bank data in the planned GitHub sync (§7).
+- **Linked banks.** Note readings are mapped to question-bank readings and topics
+  (IM ↔ IR, LTR ↔ LR, ORR ↔ OR; MR, CR, CI share codes). A missed question offers the
+  matching notes game, a notes session links to matching questions, and misses in
+  either feed the same weak-spot tracking.
+- **Entry.** A "Play" button that auto-picks by the brief's rotation rules and weak
+  spots, plus a browser to pick any reading or any mechanic directly.
+
 **Shared memory.** Every extracted item has a stable ID; every answer in any game is
 logged against it and feeds one spaced-repetition schedule, so a miss anywhere
 resurfaces sooner everywhere. The only numbers shown are stability measurements
