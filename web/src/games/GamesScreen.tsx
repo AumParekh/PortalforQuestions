@@ -449,7 +449,8 @@ function Home({
         {tab === 'mechanics' && (
           <GameCard className="space-y-2">
             <ul>
-              {MECHANIC_CATALOGUE.map((m) => {
+              {/* Only mechanics that are built; the catalogue is the roadmap, not the menu. */}
+              {MECHANIC_CATALOGUE.filter((m) => getMechanic(m.id)).map((m) => {
                 const plugin = getMechanic(m.id);
                 return (
                   <li key={m.id} className="border-t first:border-t-0" style={{ borderColor: 'var(--g-rule)' }}>

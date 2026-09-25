@@ -101,6 +101,43 @@ for (const vp of VIEWPORTS) {
     if (errors.length) failures.push(`${label}\n  ${errors.join('\n  ')}`);
     else console.log(`ok  ${label}`);
   }
+  // Every registered notes game, one session each, at phone width (where layouts break first).
+  if (vp.width <= 375) {
+    await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
+    const tab = page.getByRole('button', { name: /^\s*Mechanics\s*$/ }).first();
+    await tab.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
+    await tab.click().catch(() => undefined);
+    const names = await page.$$eval('li > button:not([disabled]) .g-strong', (els) => els.map((e) => e.textContent?.trim() ?? ''));
+    if (names.length === 0) failures.push(`${vp.name} games: no mechanics listed`);
+    for (const mech of names) {
+      errors = [];
+      const label = `${vp.name} play game "${mech}"`;
+      try {
+        await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
+        await page.getByRole('button', { name: /^\s*Mechanics\s*$/ }).first().click({ timeout: 20000 });
+        await page.locator('li > button:not([disabled])', { hasText: mech }).first().click();
+        for (const name of [/Pick a reading for me/, /^\s*Start\s*$/, /^\s*Begin\s*$/]) {
+          const b = page.getByRole('button', { name }).first();
+          await b.waitFor({ state: 'visible', timeout: 15000 });
+          await b.click();
+          await page.waitForTimeout(600);
+        }
+        for (let i = 0; i < 12; i++) {
+          for (const key of [' ', '1', 'Enter']) {
+            await page.keyboard.press(key);
+            await page.waitForTimeout(200);
+          }
+        }
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        if (overflow > 1) errors.push(`page scrolls horizontally by ${overflow}px during play`);
+      } catch (e) {
+        const text = (await page.evaluate(() => document.body.innerText).catch(() => '')).replace(/\s+/g, ' ').slice(0, 200);
+        errors.push(`${e instanceof Error ? e.message.split('\n')[0] : String(e)}; screen says: ${text}`);
+      }
+      if (errors.length) failures.push(`${label}\n  ${errors.join('\n  ')}`);
+      else console.log(`ok  ${label}`);
+    }
+  }
   await context.close();
 }
 
