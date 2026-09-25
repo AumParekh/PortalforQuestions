@@ -366,6 +366,23 @@ function asSubItem(x: SubItemLike): SubItem | null {
   return x && typeof x === 'object' ? x : null;
 }
 
+/** Numeric values written in a piece of notes text (display form), unsigned. */
+export function numberValues(latex: string): number[] {
+  const out: number[] = [];
+  const plain = toDisplay(latex).replace(/\{,\}/g, ',');
+  for (const m of plain.matchAll(/(?<![\d.])\d[\d,]*(?:\.\d+)?/g)) {
+    const v = Number(m[0].replace(/,(?=\d{3}(?!\d))/g, '').replace(/,.*$/, ''));
+    if (Number.isFinite(v)) out.push(v);
+  }
+  return out;
+}
+
+/** True when the text writes the value anywhere (so it would give the answer away). */
+export function mentionsValue(latex: string, value: number): boolean {
+  const a = Math.abs(value);
+  return numberValues(latex).some((v) => Math.abs(v - a) < 1e-9);
+}
+
 function rowText(row: TableRow, headers: readonly string[]): string {
   const hs = Array.isArray(row.headers) ? row.headers : headers;
   return row.cells
@@ -386,8 +403,16 @@ function rowContext(b: Block, row: TableRow, text: string): { context: string; l
   const hs = Array.isArray(row.headers) ? row.headers : headers;
   const col = row.cells.findIndex((c) => typeof c === 'string' && findOccurrences(c, text).length > 0);
   if (col === -1 || typeof hs[col] !== 'string' || !hs[col].trim()) return null;
+  const value = parseNumberText(text)?.value;
+  // The label names the row; it must never be a cell that writes the answer itself.
   const label = row.cells.find(
-    (c, i) => i !== col && typeof c === 'string' && /[A-Za-z]{3,}/.test(latexTextToPlain(c)) && latexTextToPlain(c).length <= 80,
+    (c, i) =>
+      i !== col &&
+      typeof c === 'string' &&
+      /[A-Za-z]{2,}/.test(latexTextToPlain(c)) &&
+      latexTextToPlain(c).length <= 80 &&
+      findOccurrences(c, text).length === 0 &&
+      (value === undefined || !mentionsValue(c, value)),
   );
   if (!label) return null;
   const numeric = row.cells.filter((c) => typeof c === 'string' && /^[\s$\\%.,\-−\d()]+$/.test(c) && /\d/.test(c)).length;
@@ -587,6 +612,8 @@ export function candidates(reading: Reading): Candidate[] {
         if (n < MIN_WORDS || n > MAX_WORDS) continue;
         const occ = findOccurrences(r.context, r.text);
         if (occ.length === 0 || occ.some((x) => isRangeEnd(r.context, x))) continue;
+        // The sentence must not write the answer again elsewhere ("99 percent" beside "99%", "1-month" beside "1-week").
+        if (mentionsValue(fragments(r.context, occ, 0, r.context.length).join(' '), number.value)) continue;
         const key = `${plain.toLowerCase()}|${number.value}`;
         if (seen.has(key)) continue;
         const score = factScore(b, r.context, number);

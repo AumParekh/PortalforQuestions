@@ -811,9 +811,53 @@ export function arrowChainSequences(b: Block): Omit<OrderSequence, 'id' | 'objec
 /** A lead-in that names no concept ("The process involves three steps", "Steps involved"). */
 const GENERIC_CONCEPT = /^(?:the\s+|it\s+)?(?:key\s+|core\s+)?(?:process|procedure|steps?|stages?|phases?)\b[\s,\w]{0,30}[:.]?$/i;
 
+/** Objective verbs ("Describe", "Define … and describe …"): an LO is an instruction, not a concept name. */
+const LO_VERB =
+  '(?:describe|define|explain|identify|calculate|compute|compare|contrast|distinguish|differentiate|discuss|evaluate|assess|apply|estimate|interpret|analy[sz]e|summari[sz]e|outline|understand|recogni[sz]e|list|examine|illustrate|determine|derive|demonstrate|construct|critique)';
+const LO_LEAD = new RegExp(`^${LO_VERB}\\s+(?:(?:and|or)\\s+${LO_VERB}\\s+)?(?:how\\s+|what\\s+|why\\s+|the\\s+(?:concept|process|idea)\\s+of\\s+)?`, 'i');
+const LO_TAIL = new RegExp(`(?:,\\s*|\\s+)(?:and|or)\\s+${LO_VERB}\\b.*$`, 'i');
+
+/** "Define implied correlation and describe how it can be measured." → "Implied correlation". */
+export function conceptFromObjective(text: string): string {
+  const t = cleanSpaces(text).replace(/[.;:]+$/, '');
+  const stripped = t.replace(LO_LEAD, '').replace(LO_TAIL, '').trim();
+  return stripped.length >= 3 && stripped !== t ? capitalise(stripped) : t;
+}
+
+const STOP = new Set(
+  'about above after again against among another because before being below between cannot could does doing during each either every first from further have having however into itself later might more most much must never other their there these they those through under until upon very were what when where which while whose will with within without would your'.split(
+    ' ',
+  ),
+);
+
+function contentWords(s: string): string[] {
+  return toDisplay(s)
+    .toLowerCase()
+    .split(/[^\p{L}]+/u)
+    .filter((w) => w.length >= 5 && !STOP.has(w));
+}
+
+/**
+ * Whether a prompt names two or more of the steps by their distinctive words — a caption that walks
+ * through the diagram ("the equity tranche receives the residual once the senior and mezzanine
+ * claims are satisfied") gives the order away.
+ */
+export function promptRevealsOrder(prompt: string, steps: readonly OrderStep[]): boolean {
+  const words = new Set(contentWords(prompt));
+  const perStep = steps.map((s) => new Set(contentWords(s.text)));
+  let named = 0;
+  perStep.forEach((ws, i) => {
+    const own = [...ws].filter((w) => perStep.every((o, j) => j === i || !o.has(w)));
+    if (own.some((w) => words.has(w))) named++;
+  });
+  return named >= 2;
+}
+
 /** Every playable sequence in a reading, in reading order, with stable IDs. */
 export function readingSequences(reading: Reading, corpus?: Corpus): OrderSequence[] {
   const out: OrderSequence[] = [];
+  // Step keys are SRS item IDs for restore rounds: unique across the whole reading.
+  const stepKeys = new Set<string>();
   for (const o of Array.isArray(reading.objectives) ? reading.objectives : []) {
     for (const b of Array.isArray(o.blocks) ? o.blocks : []) {
       if (!b || typeof b.id !== 'string' || typeof b.type !== 'string') continue;
@@ -830,15 +874,30 @@ export function readingSequences(reading: Reading, corpus?: Corpus): OrderSequen
       const objectiveId = corpus?.objectiveOfBlock[b.id] ?? o.id;
       const seen = new Set(out.map((s) => s.id));
       found.forEach((s) => {
+        const steps = s.steps.map((st) => {
+          let key = st.key;
+          while (stepKeys.has(key)) key = `${key}#2`;
+          stepKeys.add(key);
+          return key === st.key ? st : { ...st, key };
+        });
         // One sequence per block keys on the block; several key on their own sub-item (first bullet,
         // the bullet a chain is written in, or the diagram node the chain starts from).
-        let id = found.length === 1 ? b.id : (s.chainHead ?? s.steps[0].key);
+        let id = found.length === 1 ? b.id : (s.chainHead ?? steps[0].key);
         while (seen.has(id)) id = `${id}#2`;
         seen.add(id);
-        const loText = o.text ? cleanSpaces(toDisplay(o.text)) : '';
-        const prompt = s.prompt || loText || 'A chain from the notes';
-        const concept = s.concept && !GENERIC_CONCEPT.test(s.concept) ? s.concept : loText || s.concept || prompt;
-        out.push({ ...s, id, objectiveId, prompt, concept });
+        const loText = o.text ? conceptFromObjective(toDisplay(o.text)) : '';
+        let concept = s.concept && !GENERIC_CONCEPT.test(s.concept) ? s.concept : loText || s.concept || s.prompt;
+        // A name lifted from a caption that walks through the steps is itself a give-away.
+        if (loText && promptRevealsOrder(concept, steps) && !promptRevealsOrder(loText, steps)) concept = loText;
+        let prompt = s.prompt || loText || 'A chain from the notes';
+        let note = s.note;
+        // A prompt that walks through the steps gives the answer away: name the concept instead and
+        // keep the notes' sentence for feedback.
+        if (promptRevealsOrder(prompt, steps)) {
+          note = note ? (note.includes(prompt) ? note : `${prompt} ${note}`) : prompt;
+          prompt = promptRevealsOrder(concept, steps) ? 'A sequence from the notes' : concept;
+        }
+        out.push({ ...s, id, objectiveId, prompt, concept, steps, note });
       });
     }
   }
@@ -872,10 +931,14 @@ export function restoreQuota(s: OrderSequence): number {
 }
 
 export function capacity(seqs: readonly OrderSequence[]): ArcCapacity {
+  const ids = new Set(seqs.map((s) => s.id));
   return {
     sequences: seqs.length,
     steps: seqs.reduce((n, s) => n + s.steps.length, 0),
-    movable: seqs.reduce((n, s) => n + restoreQuota(s), 0),
+    movable: seqs.reduce((n, s) => {
+      const free = s.steps.filter((st, i) => !(s.anchored && i === 0) && !ids.has(st.key)).length;
+      return n + Math.min(restoreQuota(s), free);
+    }, 0),
   };
 }
 
@@ -887,8 +950,27 @@ export function hasFullArc(seqs: readonly OrderSequence[]): boolean {
   return Math.min(c.sequences, MAX_ROUNDS) + c.movable >= MIN_ROUNDS;
 }
 
+const supportCache = new WeakMap<Reading, boolean>();
+
+/**
+ * Honest support: the capacity check, then a dry build (fixed seed, no SRS history) so a reading
+ * that passes here really yields a 3–5 + 3–5 arc.
+ */
 export function supportsOrderGame(reading: Reading, corpus?: Corpus): boolean {
-  return hasFullArc(cachedSequences(reading, corpus));
+  if (!hasFullArc(cachedSequences(reading, corpus))) return false;
+  if (!corpus) return true;
+  let ok = supportCache.get(reading);
+  if (ok === undefined) {
+    let seed = 0x2f6b;
+    const rng = () => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return seed / 0x80000000;
+    };
+    const plan = buildOrderGame(reading, { corpus, srs: {}, today: '1970-01-01', rng, priorityCategory: null });
+    ok = !!plan && plan.rounds.filter((r) => r.phase === 'discovery').length >= 3 && plan.rounds.filter((r) => r.phase === 'pressure').length >= 3;
+    supportCache.set(reading, ok);
+  }
+  return ok;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1018,12 +1100,18 @@ interface Planned {
 }
 
 /** Restore candidates, one step per sequence per pass so no set is hit twice while another waits. */
-function restorePicks(seqs: readonly OrderSequence[], count: number, taken: Set<string>, ctx: OrderBuildInput, prefer: readonly OrderSequence[]): Planned[] {
+function restorePicks(
+  seqs: readonly OrderSequence[],
+  count: number,
+  taken: Set<string>,
+  used: Map<string, number>,
+  ctx: OrderBuildInput,
+  prefer: readonly OrderSequence[],
+): Planned[] {
   const queues = new Map<OrderSequence, number[]>();
   for (const s of seqs) {
     const idx = s.steps.map((_, i) => i).filter((i) => !(s.anchored && i === 0) && !taken.has(s.steps[i].key));
-    const already = [...taken].filter((k) => s.steps.some((st) => st.key === k)).length;
-    queues.set(s, bySrs(idx, (i) => s.steps[i].key, ctx).slice(0, Math.max(0, restoreQuota(s) - already)));
+    queues.set(s, bySrs(idx, (i) => s.steps[i].key, ctx));
   }
   const order = [...prefer, ...seqs.filter((s) => !prefer.includes(s))];
   const out: Planned[] = [];
@@ -1032,10 +1120,14 @@ function restorePicks(seqs: readonly OrderSequence[], count: number, taken: Set<
     progress = false;
     for (const s of order) {
       if (out.length >= count) break;
+      if ((used.get(s.id) ?? 0) >= restoreQuota(s)) continue;
       const q = queues.get(s)!;
-      const d = q.shift();
+      let d = q.shift();
+      // Checked at pick time too: every round in a session reviews its own item.
+      while (d !== undefined && taken.has(s.steps[d].key)) d = q.shift();
       if (d === undefined) continue;
       taken.add(s.steps[d].key);
+      used.set(s.id, (used.get(s.id) ?? 0) + 1);
       out.push({ seq: s, mode: 'restore', displaced: d });
       progress = true;
     }
@@ -1059,14 +1151,15 @@ export function buildOrderGame(reading: Reading, ctx: OrderBuildInput): Mechanic
     .sort((a, b) => a.s.steps.length - b.s.steps.length || a.i - b.i)
     .map((x) => x.s);
   const discovery: Planned[] = discSeqs.map((seq) => ({ seq, mode: 'arrange' }));
-  if (discovery.length < 3) discovery.push(...restorePicks(discSeqs, 3 - discovery.length, taken, ctx, []));
+  const used = new Map<string, number>();
+  if (discovery.length < 3) discovery.push(...restorePicks(discSeqs, 3 - discovery.length, taken, used, ctx, []));
 
   // Pressure: unseen sets first (novel items), then restore rounds across the sets, 3–5 in all.
   const fresh = seqs.slice(discArrange, discArrange + 5);
   const pressure: Planned[] = fresh.map((seq) => ({ seq, mode: 'arrange' }));
   const wantPressure = Math.max(3, Math.min(5, pressure.length || 4));
   if (pressure.length < wantPressure) {
-    pressure.push(...restorePicks(seqs, wantPressure - pressure.length, taken, ctx, bySrs(seqs.filter((s) => !discSeqs.includes(s)), (s) => s.id, ctx)));
+    pressure.push(...restorePicks(seqs, wantPressure - pressure.length, taken, used, ctx, bySrs(seqs.filter((s) => !discSeqs.includes(s)), (s) => s.id, ctx)));
   }
   if (discovery.length < 3 || pressure.length < 3) return null;
   // Pressure climbs: restore rounds (quick detection) interleave, longer boards later.

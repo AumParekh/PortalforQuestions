@@ -123,8 +123,8 @@ export function Plane({ item, win, variant, cur, rider, ghost, trail, fullPath, 
       if (v) arrow = { x1: x0, y1: y0, x2: x0 + v.dx * len, y2: y0 - v.dy * len };
       else ring = true;
     } else {
-      const last = item.path.states[item.path.states.length - 1];
-      const dest = jumpTarget(last, call.move as Jump);
+      // Aim at the named point as the plane shows it now (never at where it will end up).
+      const dest = jumpTarget(cur, call.move as Jump);
       if (dest) {
         const dx = sx(dest.sigma) - x0;
         const dy = sy(dest.mu) - y0;
@@ -163,7 +163,7 @@ export function Plane({ item, win, variant, cur, rider, ghost, trail, fullPath, 
         {yTicks.map((t, i) => (
           <g key={`y${i}`}>
             <line className="fr-gridline" x1={left} x2={W - right} y1={sy(t)} y2={sy(t)} />
-            <text className="fr-tick" x={left - 8} y={sy(t)} textAnchor="end" dominantBaseline="middle">
+            <text className="fr-tick-label" x={left - 8} y={sy(t)} textAnchor="end" dominantBaseline="middle">
               {yLabels[i]}
             </text>
           </g>
@@ -171,7 +171,7 @@ export function Plane({ item, win, variant, cur, rider, ghost, trail, fullPath, 
         {xTicks.map((t, i) => (
           <g key={`x${i}`}>
             <line className="fr-gridline" x1={sx(t)} x2={sx(t)} y1={top} y2={H - bottom} />
-            <text className="fr-tick" x={sx(t)} y={H - bottom + 22} textAnchor="middle">
+            <text className="fr-tick-label" x={sx(t)} y={H - bottom + 22} textAnchor="middle">
               {xLabels[i]}
             </text>
           </g>

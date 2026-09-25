@@ -179,28 +179,61 @@ export function marginals(counts: readonly (readonly number[])[]): { cols: numbe
 }
 
 /**
- * Marginal bars for the reveal: one bar per column (along the top edge of the grid, growing up)
- * and one per row (along the left edge, growing left), each scaled to `depth` px by its share of
- * the largest total. Rects are in board pixels, from the column and row bands' measured extents.
+ * Marginal bars for the reveal: one bar per column, hanging below the grid's bottom edge, and one
+ * per row, standing out from its right edge, each `depth` px at the largest total and scaled by
+ * its share. Rects are in board pixels, from the columns' and rows' measured extents.
  */
 export function marginalBars(
   cols: readonly { x: number; w: number }[],
   rows: readonly { y: number; h: number }[],
   totals: { cols: readonly number[]; rows: readonly number[] },
-  frame: { top: number; left: number },
+  frame: { bottom: number; right: number },
   depth: number,
-  inset = 6,
+  opts: { inset?: number; gap?: number } = {},
 ): { cols: Rect[]; rows: Rect[] } {
+  const inset = opts.inset ?? 6;
+  const gap = opts.gap ?? 4;
   const max = Math.max(1, ...totals.cols, ...totals.rows);
   const colBars = cols.map((c, i) => {
     const h = ((totals.cols[i] ?? 0) / max) * depth;
-    return { x: c.x + inset, y: frame.top - h, w: Math.max(0, c.w - 2 * inset), h };
+    return { x: c.x + inset, y: frame.bottom + gap, w: Math.max(0, c.w - 2 * inset), h };
   });
   const rowBars = rows.map((r, i) => {
     const w = ((totals.rows[i] ?? 0) / max) * depth;
-    return { x: frame.left - w, y: r.y + inset, w, h: Math.max(0, r.h - 2 * inset) };
+    return { x: frame.right + gap, y: r.y + inset, w, h: Math.max(0, r.h - 2 * inset) };
   });
   return { cols: colBars, rows: rowBars };
+}
+
+/** Horizontal extent of each column and vertical extent of each row, from the cells' rects. */
+export function bands(cells: Readonly<Record<string, Rect>>, nx: number, ny: number): { cols: { x: number; w: number }[]; rows: { y: number; h: number }[] } | null {
+  const cols: { x: number; w: number }[] = [];
+  const rows: { y: number; h: number }[] = [];
+  for (let x = 0; x < nx; x++) {
+    const rs = Array.from({ length: ny }, (_, y) => cells[cellKey(x, y)]).filter((r): r is Rect => !!r);
+    if (!rs.length) return null;
+    const l = Math.min(...rs.map((r) => r.x));
+    cols.push({ x: l, w: Math.max(...rs.map((r) => r.x + r.w)) - l });
+  }
+  for (let y = 0; y < ny; y++) {
+    const rs = Array.from({ length: nx }, (_, x) => cells[cellKey(x, y)]).filter((r): r is Rect => !!r);
+    if (!rs.length) return null;
+    const t = Math.min(...rs.map((r) => r.y));
+    rows.push({ y: t, h: Math.max(...rs.map((r) => r.y + r.h)) - t });
+  }
+  return { cols, rows };
+}
+
+/** The bounding frame of all cells. */
+export function frameOf(cells: Readonly<Record<string, Rect>>): { left: number; top: number; right: number; bottom: number } | null {
+  const rs = Object.values(cells);
+  if (!rs.length) return null;
+  return {
+    left: Math.min(...rs.map((r) => r.x)),
+    top: Math.min(...rs.map((r) => r.y)),
+    right: Math.max(...rs.map((r) => r.x + r.w)),
+    bottom: Math.max(...rs.map((r) => r.y + r.h)),
+  };
 }
 
 // ---- Round planning and timing ---------------------------------------------------------------

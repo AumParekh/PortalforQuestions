@@ -43,7 +43,7 @@ function CardBody({ p }: { p: BucketPayload }) {
   return (
     <>
       {p.context && (
-        <span className="bd-label mb-1 block normal-case tracking-normal">
+        <span className="bd-context mb-1 block">
           <NoteText latex={p.context} />
         </span>
       )}
@@ -289,6 +289,16 @@ function Board({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.length]);
 
+  // Pressure: a newly dealt card takes focus if the last drop left focus nowhere (the bucket
+  // button it was on is disabled during the pause), so Tab and screen readers pick up the card.
+  const chuteRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!timed || !currentId) return;
+    const ae = document.activeElement as HTMLElement | null;
+    const lost = !ae || ae === document.body || !ae.isConnected || (ae as HTMLButtonElement).disabled === true;
+    if (lost) chuteRef.current?.focus();
+  }, [currentId, timed]);
+
   useEffect(() => {
     if (complete) doneRef.current?.focus();
     else if (gate === 'await') nextRef.current?.focus();
@@ -366,7 +376,19 @@ function Board({
           {current && (
             <>
               <TimerBar key={current.id} ms={current.timeLimitMs ?? 10000} />
-              <Card key={current.id} round={current} selected disabled={false} fall onPick={() => undefined} onDragMove={onDragMove} onDragEnd={onDragEnd} />
+              <Card
+                key={current.id}
+                round={current}
+                selected
+                disabled={false}
+                fall
+                onPick={() => undefined}
+                onDragMove={onDragMove}
+                onDragEnd={onDragEnd}
+                cardRef={(el) => {
+                  chuteRef.current = el;
+                }}
+              />
               <p className="bd-small g-muted">Choose its bucket.</p>
             </>
           )}

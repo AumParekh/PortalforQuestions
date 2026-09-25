@@ -249,9 +249,17 @@ export function riderOf(s: State, kind: PointKind): RiderPoint | null {
   return s.complete ? { ...s.complete } : null;
 }
 
+/**
+ * All means equal (A0 C0 - B0^2 ~ 0, relative to A0 C0): the hyperbola has collapsed into the
+ * horizontal ray from the minimum-variance point, and every portfolio earns the same mean.
+ */
+export function isDegenerate(s: State): boolean {
+  return !(s.d > 1e-9 * Math.abs(s.a0 * s.c0));
+}
+
 /** Frontier volatility (percent) at expected return E (percent); NaN when degenerate. */
 export function frontierSd(s: State, ePct: number): number {
-  if (!(s.d > 1e-14)) return NaN;
+  if (isDegenerate(s)) return NaN;
   const E = ePct / 100;
   const v = (s.a0 * E * E - 2 * s.b0 * E + s.c0) / s.d;
   return v > 0 ? Math.sqrt(v) * 100 : NaN;
@@ -435,28 +443,39 @@ export function loupeWindow(path: Path, main: Win): Win {
   return { x0: cx - sx / 2, x1: cx + sx / 2, y0: cy - sy / 2, y1: cy + sy / 2 };
 }
 
-/** Efficient (upper) and inefficient (lower) frontier branches sampled over the window's returns. */
+/**
+ * Efficient (upper) and inefficient (lower) frontier branches over the window, sampled by
+ * volatility: E(sd) = (B0 +/- sqrt(D (A0 sd^2 - 1))) / A0 on decimal returns. One formula covers a
+ * sharply bent frontier, an almost flat one and the equal-means case (D = 0: a flat ray). Samples
+ * are denser near the vertex, where the curve turns.
+ */
 export function frontierBranches(s: State, w: Win, samples = 120): { upper: Pt[]; lower: Pt[] } {
-  if (!(s.d > 1e-14)) return { upper: [], lower: [] };
-  const eMv = s.mv.mu;
-  const span = w.y1 - w.y0;
+  const sdMv = s.mv.sigma;
+  const xSpan = w.x1 - w.x0;
+  const ySpan = w.y1 - w.y0;
   // Reach a little past the window so the clipped line runs off the edges.
-  const top = w.y1 + span * 0.25;
-  const bottom = w.y0 - span * 0.25;
-  // From the start return toward the far end, denser near the start (the vertex, when inside).
-  const branch = (start: number, end: number): Pt[] => {
-    if (start === end) return [];
-    const out: Pt[] = [];
-    for (let k = 0; k <= samples; k++) {
-      const t = k / samples;
-      const e = start + (end - start) * t * t;
-      const sd = k === 0 && start === eMv ? s.mv.sigma : frontierSd(s, e);
-      if (Number.isFinite(sd)) out.push({ sigma: sd, mu: e });
-    }
-    return out;
-  };
-  const upper = top > eMv ? branch(Math.max(eMv, bottom), top) : [];
-  const lower = bottom < eMv ? branch(Math.min(eMv, top), bottom) : [];
+  let sdMax = Math.max(w.x1, sdMv) + xSpan * 0.25;
+  const top = w.y1 + ySpan * 0.25;
+  const bottom = w.y0 - ySpan * 0.25;
+  const reach = Math.max(frontierSd(s, top), frontierSd(s, bottom));
+  if (Number.isFinite(reach) && reach > sdMv) sdMax = Math.min(sdMax, reach);
+  const d = isDegenerate(s) ? 0 : s.d;
+  // Window entirely to the right of the vertex: sample only what shows.
+  const sdStart = Math.max(sdMv, w.x0 - xSpan * 0.05);
+  const upper: Pt[] = [];
+  const lower: Pt[] = [];
+  if (!(sdMax > sdStart)) return { upper, lower };
+  for (let k = 0; k <= samples; k++) {
+    const t = k / samples;
+    const sd = sdStart === sdMv ? sdMv + (sdMax - sdMv) * t * t : sdStart + (sdMax - sdStart) * t;
+    const sdd = sd / 100;
+    // At the vertex A0 sd^2 = 1 exactly; pin it so rounding cannot open a gap there.
+    const root = k === 0 && sdStart === sdMv ? 0 : Math.sqrt(Math.max(0, d * (s.a0 * sdd * sdd - 1)));
+    const up = ((s.b0 + root) / s.a0) * 100;
+    const lo = ((s.b0 - root) / s.a0) * 100;
+    if (Number.isFinite(up)) upper.push({ sigma: sd, mu: up });
+    if (d > 0 && Number.isFinite(lo)) lower.push({ sigma: sd, mu: lo });
+  }
   return { upper, lower };
 }
 

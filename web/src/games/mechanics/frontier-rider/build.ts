@@ -187,7 +187,7 @@ function mixRound(item: FrItem, named: boolean, rng: () => number): Omit<Frontie
   if (maxAbs >= MIX_ZERO && maxAbs < MIX_MIN_CHANGE) return null;
   const unchanged = maxAbs < MIX_ZERO;
   const gainer = unchanged ? -1 : dw.indexOf(Math.max(...dw));
-  let assetOpts: FrOption[] = item.assets.map((x, i) => ({ key: `a${i}`, label: `More ${x.name}`, why: '', correct: i === gainer, move: null }));
+  let assetOpts: FrOption[] = item.assets.map((x, i) => ({ key: `a${i}`, label: `More ${x.short}`, why: '', correct: i === gainer, move: null }));
   if (assetOpts.length > 3) {
     // Keep at most four options: the right asset plus two others.
     const keep = new Set([...shuffle(assetOpts.filter((o) => !o.correct), rng).slice(0, unchanged ? 3 : 2), ...assetOpts.filter((o) => o.correct)]);

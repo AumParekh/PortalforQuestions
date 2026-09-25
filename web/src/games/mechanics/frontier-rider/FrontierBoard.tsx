@@ -278,10 +278,11 @@ function Round({
         <div className="fr-axis-title text-right">{item.plane.xLabel} →</div>
       </figure>
 
-      {item.loupe && (
+      {/* Only after the call: showing a close-up earlier would hint that the move is small. */}
+      {item.loupe && stage !== 'predict' && (
         <figure className="fr-loupe space-y-2">
           <figcaption className="fr-chart-title">Close-up around the marked portfolio</figcaption>
-          <p className="fr-note">The move is small, so this view zooms in. Both axes are stretched; the directions are true.</p>
+          <p className="fr-note">Both axes are stretched so a small move shows; the directions are true.</p>
           <Plane {...planeProps} win={item.loupe} variant="loupe" clipId={`${clipBase}-loupe`} label={chartLabel('Close-up')} />
           <div className="fr-axis-title text-right">{xName} →</div>
         </figure>

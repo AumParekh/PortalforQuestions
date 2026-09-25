@@ -173,11 +173,14 @@ function Round({
   const rects = useRef<Map<number, number> | null>(null);
   const focusAfter = useRef<number | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
+  const reported = useRef(false);
   const timed = phase === 'pressure';
   const done = outcome !== null;
 
   const finish = (timedOut: boolean) => {
-    if (outcome) return;
+    // Exactly one report per round, whatever fires first (the clock or Check).
+    if (reported.current) return;
+    reported.current = true;
     const final = [...arrRef.current];
     const perfect = final.every((v, i) => v === i);
     // Time running out on a finished board still counts: the order was right.
@@ -242,10 +245,13 @@ function Round({
     });
   }, [arr]);
 
+  const finishRef = useRef(finish);
+  finishRef.current = finish;
+
   // Pressure clock: when it runs out, the board is checked as it stands.
   useEffect(() => {
     if (!timed || done) return;
-    const t = window.setTimeout(() => finish(true), round.timeLimitMs ?? 30000);
+    const t = window.setTimeout(() => finishRef.current(true), round.timeLimitMs ?? 30000);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timed, done]);
@@ -332,8 +338,8 @@ function Round({
             <p className="og-small">
               <span className="g-strong">
                 <NoteText latex={seq.concept} />
-              </span>{' '}
-              <span className="g-muted">runs in exactly this order.</span>
+              </span>
+              <span className="g-muted">: in the notes’ order.</span>
             </p>
             {seq.note && (
               <p className="og-context">

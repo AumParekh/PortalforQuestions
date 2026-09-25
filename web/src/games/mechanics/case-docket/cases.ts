@@ -19,6 +19,11 @@ export interface CaseDef {
   aliases: readonly string[];
   /** A section heading matching this is dedicated to the case even if it names others too. */
   section?: RegExp;
+  /**
+   * Words redacted in the case's own facts but never used to detect the case (too broad to file a
+   * sentence under it: "Russia", "China"). They would otherwise give the answer away on the chip.
+   */
+  maskAlso?: readonly string[];
 }
 
 /** Named cases the notes discuss. Names and spellings only: no facts live here. */
@@ -51,12 +56,22 @@ export const CASE_REGISTRY: readonly CaseDef[] = [
   { id: 'barclays', name: 'Barclays', aliases: ['Barclays'], section: /Barclays/ },
   { id: 'mars-orbiter', name: 'NASA Mars Orbiter', aliases: ['Mars Orbiter', 'Lockheed Martin', 'NASA'], section: /Mars Orbiter/ },
   { id: 'berkshire', name: 'Berkshire Hathaway', aliases: ['Berkshire Hathaway', 'Buffett'] },
-  { id: 'russia-ukraine', name: 'Russia–Ukraine war (2022)', aliases: ['Russia–Ukraine war', 'Russia-Ukraine war', 'Russia–Ukraine', 'Russia-Ukraine'] },
-  { id: 'us-china', name: 'US–China trade tensions', aliases: ['US–China trade tensions', 'US-China trade tensions'] },
+  {
+    id: 'russia-ukraine',
+    name: 'Russia–Ukraine war (2022)',
+    aliases: ['Russia–Ukraine war', 'Russia-Ukraine war', 'Russia–Ukraine', 'Russia-Ukraine'],
+    maskAlso: ['Russia', 'Ukraine'],
+  },
+  {
+    id: 'us-china',
+    name: 'US–China trade tensions',
+    aliases: ['US–China trade tensions', 'US-China trade tensions'],
+    maskAlso: ['US–China', 'US-China', 'China'],
+  },
 ];
 
 /** Stands in for the owning case's name inside a masked fact. */
-export const MASK = '';
+export const MASK = '\uE000';
 
 export interface CaseFact {
   /** Unique per fact. */
@@ -185,7 +200,7 @@ function makeDetector(defs: readonly CaseDef[]): Detector {
   const all = new RegExp(`${BOUNDARY_L}(${alts.join('|')})${BOUNDARY_R}`, 'gu');
   const perCase = new Map<string, RegExp>();
   for (const d of defs) {
-    const own = [...d.aliases].sort((a, b) => b.length - a.length).map(escapeRe);
+    const own = [...d.aliases, ...(d.maskAlso ?? [])].sort((a, b) => b.length - a.length).map(escapeRe);
     perCase.set(d.id, new RegExp(`${BOUNDARY_L}(${own.join('|')})${BOUNDARY_R}`, 'gu'));
   }
   return {
@@ -548,7 +563,10 @@ export function buildCaseIndex(corpus: Corpus): CaseIndex {
         if (inBox.length >= 2 && body.length <= 700) discriminators.push({ kind: 'box', id: b.id, blockId: b.id, readingId: rid, cases: inBox, text: body });
       }
       if (b.type === 'trapbox' && trapBlocks.has(b.id)) continue;
-      const owner = contextOwner(b, readingOwner);
+      // A "Lessons" box is general advice drawn from the case, not a fact about it (the USAA box's
+      // "Financial institutions need strong AML controls", the Barclays box's "careful data
+      // management", which fits Mars Orbiter as well): only its lines that name one case are filed.
+      const owner = /\blessons?\b/i.test(b.title ?? '') ? null : contextOwner(b, readingOwner);
       const base = { blockId: b.id, readingId: rid, objectiveId, category: null, block: b };
       if (b.type === 'table' && b.rows?.length) {
         fileTable(b, owner, base, det, fileSegment);

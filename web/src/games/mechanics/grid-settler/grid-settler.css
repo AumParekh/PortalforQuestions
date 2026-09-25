@@ -1,0 +1,499 @@
+/* Grid Settler board. Scoped to .game-root and the gs- prefix. Colours come from the shared palette
+   tokens, whose dark variants follow html.dark (games.css). Nothing is under 15px (PORTAL_PLAN §5),
+   every tap target is at least 44px, and no text is clipped: long tile texts and axis values wrap,
+   breaking inside a word when a narrow column needs it. Grids and axes have straight edges; cards
+   have rounded corners (brief §10.1). */
+
+.game-root .gs-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.game-root .gs-muted {
+  color: var(--g-ink-muted);
+}
+.game-root .gs-strong {
+  font-weight: 600;
+}
+.game-root .gs-kicker {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .gs-title {
+  font-family: var(--g-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+}
+.game-root .gs-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.game-root .gs-source {
+  margin-top: 0.5rem;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .gs-ok,
+.game-root .gs-fixed {
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .gs-fixed {
+  border-left-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+
+/* ---- The board: axis key, grid, tray; the overlay SVG sits on top. ---- */
+.game-root .gs-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.game-root .gs-axis {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--g-ink);
+}
+.game-root .gs-axis-key {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .gs-axis-sep {
+  color: var(--g-ink-muted);
+}
+
+/* Wide: row headings in a first column. Room is kept right and below for the reveal's bars. */
+.game-root .gs-grid {
+  display: grid;
+  grid-template-columns: minmax(6rem, 0.8fr) repeat(var(--gs-nx, 2), minmax(0, 1fr));
+  gap: 6px;
+  padding-right: var(--gs-bar, 26px);
+  padding-bottom: var(--gs-bar, 26px);
+}
+.game-root .gs-row {
+  display: contents;
+}
+.game-root .gs-corner {
+  min-height: 1px;
+}
+.game-root .gs-colhead,
+.game-root .gs-rowhead {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+.game-root .gs-colhead {
+  display: flex;
+  align-items: flex-end;
+  padding: 0.25rem 0.4rem 0.4rem;
+  border-bottom: 2px solid var(--g-navy);
+}
+.game-root .gs-rowhead {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.5rem 0.4rem 0;
+  border-right: 2px solid var(--g-navy);
+}
+
+.game-root .gs-cell {
+    padding: 4px;
+    min-height: 64px;
+  }
+  .game-root .gs-chip {
+    padding: 0.25rem 0.3rem;
+  }
+}
+
+.game-root .gs-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  min-width: 0;
+  min-height: 76px;
+  padding: 6px;
+  border: 1px solid var(--g-rule);
+  border-radius: 0;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font: inherit;
+  text-align: left;
+  cursor: default;
+  transition:
+    background-color 240ms ease,
+    border-color 150ms ease,
+    transform 160ms ease;
+}
+.game-root .gs-cell:focus-visible,
+.game-root .gs-card:focus-visible {
+  outline: 3px solid var(--g-gold);
+  outline-offset: 2px;
+}
+.game-root .gs-cell.is-armed {
+  cursor: pointer;
+  border-style: dashed;
+  border-color: var(--g-navy);
+}
+.game-root .gs-cell.is-armed:hover {
+  background: var(--g-pale-navy);
+}
+/* Under a drag: the cell the tile will snap into. */
+.game-root .gs-cell.is-over {
+  border-style: solid;
+  border-color: var(--g-navy);
+  background: var(--g-pale-navy);
+  box-shadow: inset 0 0 0 2px var(--g-navy);
+}
+/* Right cell: locks green with a short snap. */
+.game-root .gs-cell.is-lock {
+  border-style: solid;
+  border-color: var(--g-green);
+  box-shadow: inset 0 0 0 2px var(--g-green);
+  animation: gs-lock 320ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+@keyframes gs-lock {
+  0% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+/* Wrong cell: shrugs the tile off. */
+.game-root .gs-cell.is-bounce {
+  border-style: solid;
+  border-color: var(--g-red);
+  background: var(--g-pale-red);
+  animation: gs-bounce 620ms ease;
+}
+@keyframes gs-bounce {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  18% {
+    transform: translateX(-6px);
+  }
+  36% {
+    transform: translateX(5px);
+  }
+  54% {
+    transform: translateX(-3px);
+  }
+  72% {
+    transform: translateX(2px);
+  }
+}
+/* Where the tile belongs: a slow green pulse until it arrives. */
+.game-root .gs-cell.is-pulse {
+  border-style: solid;
+  border-color: var(--g-green);
+  background: var(--g-pale-green);
+  animation: gs-pulse 900ms ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes gs-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 2px var(--g-green),
+      0 0 0 0 var(--g-pale-green);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 2px var(--g-green),
+      0 0 0 8px var(--g-pale-green);
+  }
+}
+
+/* The full-grid reveal: cells shade by how many tiles they hold; empty cells hatch. */
+.game-root .gs-board.is-reveal .gs-cell {
+  background: var(--g-card);
+  background: color-mix(in srgb, var(--g-navy) calc(var(--gs-heat, 0) * 24%), var(--g-card));
+  transition: background-color 500ms ease calc(var(--gs-i, 0) * 45ms);
+}
+.game-root .gs-board.is-reveal .gs-cell.is-empty {
+  background-color: var(--g-soft);
+  background-image: repeating-linear-gradient(135deg, transparent 0 7px, var(--g-rule) 7px 8px);
+}
+
+/* ---- Tiles settled in cells ---- */
+.game-root .gs-chip {
+  display: block;
+  padding: 0.3rem 0.45rem;
+  border-left: 3px solid var(--g-rule);
+  background: var(--g-soft);
+  color: var(--g-ink);
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  will-change: transform;
+}
+.game-root .gs-chip.is-ok {
+  border-left-color: var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .gs-chip.is-fixed {
+  border-left-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .gs-chip.is-given {
+  border-left-color: var(--g-grey);
+  background: var(--g-soft);
+}
+.game-root .gs-chip.is-earlier {
+  border-left-color: var(--g-navy);
+  background: var(--g-pale-navy);
+}
+.game-root .gs-chip.is-wrong {
+  border-left-color: var(--g-red);
+  background: var(--g-pale-red);
+}
+/* The tile that landed in the wrong cell hops as the cell bounces. */
+.game-root .gs-wrong-wrap {
+  display: block;
+  animation: gs-hop 620ms ease;
+}
+@keyframes gs-hop {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  70% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ---- The tray ---- */
+.game-root .gs-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.game-root .gs-hint {
+  margin: 0;
+}
+.game-root .gs-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.game-root .gs-card {
+  position: relative;
+  z-index: 3;
+  flex: 1 1 14rem;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+.game-root .gs-card.is-armed {
+  cursor: grab;
+  border-color: var(--g-navy);
+  box-shadow: 0 2px 0 var(--g-rule);
+}
+.game-root .gs-card.is-idle {
+  opacity: 0.6;
+}
+.game-root .gs-card.is-selected {
+  border-color: var(--g-gold);
+  box-shadow:
+    0 0 0 2px var(--g-gold),
+    0 6px 16px rgba(var(--g-shadow), 0.12);
+}
+/* Held under a finger or pointer: a slight lift and a soft trailing shadow (§10.3). */
+.game-root .gs-card.is-lifted {
+  z-index: 50;
+  cursor: grabbing;
+  transition: box-shadow 180ms ease;
+  box-shadow:
+    0 2px 0 var(--g-rule),
+    0 14px 28px rgba(var(--g-shadow), 0.22),
+    -6px 22px 36px rgba(var(--g-shadow), 0.1);
+}
+
+/* ---- Overlay: the phantom arc and the reveal's marginal bars ---- */
+.game-root .gs-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+.game-root .gs-arc path {
+  fill: none;
+  stroke: var(--g-gold);
+  stroke-width: 2.5;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  animation: gs-march 900ms linear infinite;
+}
+.game-root .gs-arc polygon {
+  fill: var(--g-gold);
+}
+@keyframes gs-march {
+  to {
+    stroke-dashoffset: -26;
+  }
+}
+.game-root .gs-bar {
+  fill: var(--g-navy);
+  opacity: 0.8;
+  transform-box: fill-box;
+  animation: gs-grow 520ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  animation-delay: calc(var(--gs-i, 0) * 70ms + 200ms);
+}
+.game-root .gs-bar.is-col {
+  transform-origin: top;
+}
+.game-root .gs-bar.is-row {
+  fill: var(--g-gold);
+  transform-origin: left;
+}
+@keyframes gs-grow {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* ---- Legend ---- */
+.game-root .gs-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  font-size: 15px;
+  color: var(--g-ink-muted);
+}
+.game-root .gs-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.game-root .gs-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-left: 3px solid var(--g-rule);
+  background: var(--g-soft);
+}
+.game-root .gs-swatch.is-ok {
+  border-left-color: var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .gs-swatch.is-fixed {
+  border-left-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .gs-swatch.is-given {
+  border-left-color: var(--g-grey);
+}
+.game-root .gs-swatch.is-earlier {
+  border-left-color: var(--g-navy);
+  background: var(--g-pale-navy);
+}
+
+/* Narrow (phones): each row heading becomes a band across the full width above its cells, so the
+   cells get the whole width. Three columns at 375px leave each cell about 100px. */
+@media (max-width: 639px) {
+  .game-root .gs-grid {
+    grid-template-columns: repeat(var(--gs-nx, 2), minmax(0, 1fr));
+    gap: 5px;
+  }
+  .game-root .gs-corner {
+    display: none;
+  }
+  .game-root .gs-rowhead {
+    grid-column: 1 / -1;
+    margin-top: 0.4rem;
+    padding: 0.2rem 0 0.1rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--g-rule);
+  }
+  .game-root .gs-colhead {
+    padding: 0.2rem 0.25rem 0.35rem;
+  }
+  /* Every pixel of a narrow cell goes to the tile text. */
+  /* Reduced motion (the OS preference or the app's setting): colour changes stay, movement goes.
+   Flights are skipped in the board's code; here the CSS animations stop. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .gs-card,
+  .game-root .gs-cell,
+  .game-root .gs-board.is-reveal .gs-cell {
+    transition: none;
+  }
+  .game-root .gs-cell.is-lock,
+  .game-root .gs-cell.is-bounce,
+  .game-root .gs-cell.is-pulse,
+  .game-root .gs-wrong-wrap,
+  .game-root .gs-arc path,
+  .game-root .gs-bar {
+    animation: none;
+    transform: none;
+  }
+  .game-root .gs-cell.is-pulse {
+    box-shadow:
+      inset 0 0 0 2px var(--g-green),
+      0 0 0 5px var(--g-pale-green);
+  }
+}
+html.reduce-motion .game-root .gs-card,
+html.reduce-motion .game-root .gs-cell,
+html.reduce-motion .game-root .gs-board.is-reveal .gs-cell {
+  transition: none;
+}
+html.reduce-motion .game-root .gs-cell.is-lock,
+html.reduce-motion .game-root .gs-cell.is-bounce,
+html.reduce-motion .game-root .gs-cell.is-pulse,
+html.reduce-motion .game-root .gs-wrong-wrap,
+html.reduce-motion .game-root .gs-arc path,
+html.reduce-motion .game-root .gs-bar {
+  animation: none;
+  transform: none;
+}
+html.reduce-motion .game-root .gs-cell.is-pulse {
+  box-shadow:
+    inset 0 0 0 2px var(--g-green),
+    0 0 0 5px var(--g-pale-green);
+}

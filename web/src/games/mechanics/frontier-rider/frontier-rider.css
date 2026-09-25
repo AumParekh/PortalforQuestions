@@ -1,0 +1,575 @@
+/* Frontier Rider board. Scoped to .game-root and the fr- prefix; colours come from the shared
+   palette tokens in games.css, so dark mode (html.dark .game-root) follows automatically.
+   Nothing under 15px (PORTAL_PLAN §5); SVG text is 15px in a 1:1 viewBox. */
+
+/* ---- Text ---- */
+.game-root .fr-title {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--g-gold);
+  overflow-wrap: anywhere;
+}
+.game-root .fr-question {
+  font-family: var(--g-serif);
+  font-size: 20px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.game-root .fr-text {
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.game-root .fr-muted {
+  color: var(--g-ink-muted);
+}
+.game-root .fr-note {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .fr-reading {
+  font-family: var(--g-serif);
+  font-size: 17px;
+  line-height: 1.65;
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+}
+.game-root .fr-source {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .fr-facts {
+  font-size: 15px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.game-root .fr-facts > li {
+  padding-left: 0.9rem;
+  position: relative;
+}
+.game-root .fr-facts > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--g-gold);
+}
+.game-root .fr-num {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+  white-space: nowrap;
+}
+.game-root .fr-phase-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .fr-chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--g-navy);
+}
+.game-root .fr-axis-title {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .fr-legend {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--g-ink-muted);
+}
+.game-root .fr-legend svg {
+  overflow: visible;
+}
+.game-root .fr-loupe {
+  border-top: 1px solid var(--g-rule);
+  padding-top: 0.75rem;
+}
+
+/* ---- Chart ---- */
+.game-root .fr-chart svg {
+  display: block;
+  overflow: visible;
+}
+.game-root .fr-tick-label {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.game-root .fr-gridline {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.game-root .fr-zero {
+  stroke: var(--g-grey);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+.game-root .fr-axis {
+  stroke: var(--g-ink-muted);
+  stroke-width: 1.5;
+  shape-rendering: crispEdges;
+}
+.game-root .fr-frontier,
+.game-root .fr-cal,
+.game-root .fr-path,
+.game-root .fr-trail,
+.game-root .fr-ghost path,
+.game-root .fr-ghost line,
+.game-root .fr-ghost-swatch,
+.game-root .fr-call line,
+.game-root .fr-call circle,
+.game-root .fr-call-swatch {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-root .fr-frontier {
+  stroke: var(--g-navy);
+  stroke-width: 3.5;
+}
+.game-root .fr-frontier.is-lower {
+  stroke-width: 2;
+  opacity: 0.35;
+}
+.game-root .fr-cal {
+  stroke: var(--g-gold);
+  stroke-width: 2.5;
+}
+/* The plane before the slider moved: it breaks into dots and the live one re-forms over it. */
+.game-root .fr-ghost path,
+.game-root .fr-ghost line,
+.game-root .fr-ghost-swatch {
+  stroke: var(--g-grey);
+  stroke-width: 2.5;
+  stroke-dasharray: 1 7;
+  opacity: 0.85;
+}
+.game-root .fr-ghost {
+  animation: fr-fade 260ms ease both;
+}
+.game-root .fr-trail {
+  stroke: var(--g-gold);
+  stroke-width: 4;
+  opacity: 0.55;
+}
+.game-root .fr-path {
+  stroke: var(--g-navy);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  opacity: 0.8;
+}
+.game-root .fr-path.is-truth {
+  stroke: var(--g-green);
+  stroke-width: 4;
+  stroke-dasharray: none;
+  opacity: 0;
+  animation: fr-fade 520ms ease var(--fr-delay, 800ms) forwards;
+}
+.game-root .fr-asset {
+  fill: var(--g-ink-muted);
+  stroke: var(--g-card);
+  stroke-width: 1.5;
+}
+.game-root .fr-rf {
+  fill: var(--g-ink);
+  stroke: var(--g-card);
+  stroke-width: 1.5;
+}
+.game-root .fr-mv {
+  fill: var(--g-card);
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+}
+.game-root .fr-tan {
+  fill: var(--g-card);
+  stroke: var(--g-gold);
+  stroke-width: 3;
+}
+.game-root .fr-label {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--g-ink);
+  paint-order: stroke;
+  stroke: var(--g-card);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.game-root .fr-label.is-muted {
+  fill: var(--g-ink-muted);
+  font-weight: 400;
+}
+
+/* The rider: the marked portfolio. */
+.game-root .fr-rider {
+  fill: var(--g-gold);
+  stroke: var(--g-card);
+  stroke-width: 2.5;
+  transition: fill 200ms ease;
+}
+.game-root .fr-rider.is-moving {
+  fill: var(--g-gold);
+}
+.game-root .fr-rider.is-locked {
+  fill: var(--g-green);
+}
+.game-root .fr-rider.is-missed {
+  fill: var(--g-navy);
+}
+/* A right call locks: a green ring pulses out from the rider once. */
+.game-root .fr-lock-ring {
+  fill: none;
+  stroke: var(--g-green);
+  stroke-width: 3;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fr-lock 640ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes fr-lock {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+/* The player's call, drawn from where the rider started. */
+.game-root .fr-call line,
+.game-root .fr-call circle,
+.game-root .fr-call-swatch {
+  stroke: var(--g-navy);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+}
+.game-root .fr-head {
+  stroke: none;
+  fill: var(--g-navy);
+}
+.game-root .fr-call.is-right line,
+.game-root .fr-call.is-right circle {
+  stroke: var(--g-green);
+  stroke-dasharray: none;
+}
+.game-root .fr-head.is-right {
+  fill: var(--g-green);
+}
+.game-root .fr-call.is-wrong line,
+.game-root .fr-call.is-wrong circle {
+  stroke: var(--g-red);
+  stroke-dasharray: none;
+}
+.game-root .fr-head.is-wrong {
+  fill: var(--g-red);
+}
+/* A wrong call bounces for a beat, then stays faint under the true path. */
+.game-root .fr-call.is-wrong {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    fr-bounce 420ms ease-in-out 2,
+    fr-dim 520ms ease var(--fr-delay, 800ms) forwards;
+}
+@keyframes fr-bounce {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-5px, 0);
+  }
+  75% {
+    transform: translate(5px, 0);
+  }
+}
+@keyframes fr-dim {
+  to {
+    opacity: 0.45;
+  }
+}
+@keyframes fr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- Calls ---- */
+.game-root .fr-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font-size: 16px;
+  line-height: 1.45;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease,
+    transform 120ms ease;
+}
+.game-root .fr-option:hover:not(:disabled) {
+  border-color: var(--g-navy);
+}
+.game-root .fr-option:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.game-root .fr-option:disabled {
+  cursor: default;
+}
+.game-root .fr-option.is-picked {
+  border-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .fr-option.is-right {
+  border-color: var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .fr-option.is-wrong {
+  border-color: var(--g-red);
+  background: var(--g-pale-red);
+}
+.game-root .fr-option-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--g-rule);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--g-ink-muted);
+}
+
+/* ---- Feedback ---- */
+.game-root .fr-right,
+.game-root .fr-hold-right {
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+.game-root .fr-hold-right {
+  opacity: 0;
+  animation: fr-fade 520ms ease var(--fr-delay, 800ms) forwards;
+}
+.game-root .fr-held {
+  border-left: 3px solid var(--g-red);
+  background: var(--g-pale-red);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+.game-root .fr-readout {
+  font-size: 16px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+/* ---- The slider: locked until the call, pulses when it is the player's move. ---- */
+.game-root .fr-slider {
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem 0.5rem;
+  background: var(--g-card);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.game-root .fr-slider.is-locked {
+  background: var(--g-soft);
+}
+.game-root .fr-slider.is-live {
+  border-color: var(--g-gold);
+  animation: fr-pulse 1100ms ease-in-out 3;
+}
+.game-root .fr-slider.is-done {
+  border-color: var(--g-green);
+}
+@keyframes fr-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(154, 107, 16, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+  }
+}
+.game-root .fr-param-label {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.game-root .fr-value {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 17px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+}
+.game-root .fr-track {
+  height: 44px;
+}
+.game-root .fr-range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.game-root .fr-range:disabled {
+  cursor: not-allowed;
+}
+.game-root .fr-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .fr-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .fr-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  margin-top: -11px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+  transition:
+    transform 120ms ease,
+    background-color 200ms ease;
+}
+.game-root .fr-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+}
+.game-root .fr-range:active:not(:disabled)::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.game-root .fr-slider.is-locked .fr-range::-webkit-slider-thumb {
+  background: var(--g-grey);
+}
+.game-root .fr-slider.is-locked .fr-range::-moz-range-thumb {
+  background: var(--g-grey);
+}
+.game-root .fr-slider.is-live .fr-range::-webkit-slider-thumb {
+  background: var(--g-gold);
+}
+.game-root .fr-slider.is-live .fr-range::-moz-range-thumb {
+  background: var(--g-gold);
+}
+.game-root .fr-slider.is-done .fr-range::-webkit-slider-thumb {
+  background: var(--g-green);
+}
+.game-root .fr-slider.is-done .fr-range::-moz-range-thumb {
+  background: var(--g-green);
+}
+.game-root .fr-range:focus-visible {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+/* Marks on the track: where the slider starts (grey) and where the move ends (gold). */
+.game-root .fr-tick {
+  position: absolute;
+  top: calc(50% + 7px);
+  width: 2px;
+  height: 9px;
+  margin-left: -1px;
+  background: var(--g-grey);
+  pointer-events: none;
+}
+.game-root .fr-tick.is-to {
+  top: calc(50% - 16px);
+  width: 4px;
+  height: 32px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--g-gold);
+  opacity: 0.8;
+}
+
+/* Reduced motion: the app's setting or the OS preference. Fades stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .fr-lock-ring,
+  .game-root .fr-slider.is-live,
+  .game-root .fr-ghost {
+    animation: none;
+  }
+  .game-root .fr-lock-ring {
+    opacity: 0;
+  }
+  .game-root .fr-slider.is-live {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+  }
+  .game-root .fr-call.is-wrong {
+    animation: fr-dim 520ms ease var(--fr-delay, 800ms) forwards;
+  }
+  .game-root .fr-option,
+  .game-root .fr-range::-webkit-slider-thumb {
+    transition: none;
+  }
+}
+html.reduce-motion .game-root .fr-lock-ring {
+  animation: none !important;
+  opacity: 0;
+}
+html.reduce-motion .game-root .fr-ghost {
+  animation: none !important;
+}
+html.reduce-motion .game-root .fr-slider.is-live {
+  animation: none !important;
+  box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+}
+html.reduce-motion .game-root .fr-call.is-wrong {
+  animation: fr-dim 1ms linear var(--fr-delay, 800ms) forwards !important;
+}
+html.reduce-motion .game-root .fr-hold-right,
+html.reduce-motion .game-root .fr-path.is-truth {
+  animation: fr-fade 1ms linear var(--fr-delay, 800ms) forwards !important;
+}

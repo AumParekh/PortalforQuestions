@@ -167,25 +167,41 @@ function depthOf(x: SubItem): number {
   return typeof d === 'number' ? d : 1;
 }
 
-/** Drops items whose text appears under more than one bucket (they'd have no single right answer) and duplicates. */
-function finaliseItems(items: SchemeItem[]): SchemeItem[] {
-  const buckets = new Map<string, Set<string>>();
+/**
+ * Drops items whose text appears under more than one bucket (they'd have no single right answer)
+ * and duplicates, judged on the text as written; then blanks each bucket's own name out of its
+ * items and drops any card the blank leaves too thin to sort ("No ____").
+ */
+function finaliseItems(items: SchemeItem[], buckets: readonly Bucket[]): SchemeItem[] {
+  const labelOf = new Map(buckets.map((x) => [x.id, x.label]));
+  const owners = new Map<string, Set<string>>();
   for (const it of items) {
     const k = normKey(it.text);
-    if (!buckets.has(k)) buckets.set(k, new Set());
-    buckets.get(k)!.add(it.bucketId);
+    if (!owners.has(k)) owners.set(k, new Set());
+    owners.get(k)!.add(it.bucketId);
   }
   const seen = new Set<string>();
   const out: SchemeItem[] = [];
   for (const it of items) {
     const k = normKey(it.text);
-    if (!k || (buckets.get(k)?.size ?? 0) > 1) continue;
+    if (!k || (owners.get(k)?.size ?? 0) > 1) continue;
     const dup = `${it.bucketId}|${k}`;
     if (seen.has(dup)) continue;
     seen.add(dup);
-    out.push(it);
+    const label = labelOf.get(it.bucketId);
+    const text = label ? maskLabel(it.text, label) : it.text;
+    if (text !== it.text && !okItem(text.replace(/_{4}/g, ' '))) continue;
+    out.push(text === it.text ? it : { ...it, text });
   }
   return out;
+}
+
+/** Lower-cases a heading for use mid-sentence, leaving acronyms ("ALM", "LGC") as written. */
+function lowerNoun(s: string): string {
+  return s
+    .split(/\s+/)
+    .map((w) => (/\p{Lu}.*\p{Lu}/u.test(w) ? w : w.toLowerCase()))
+    .join(' ');
 }
 
 /** A scheme needs at least two buckets holding items and enough distinct items for one board. */
@@ -216,43 +232,54 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
   const firstDistinct = new Set(firstPlain.map((x) => x.toLowerCase())).size === firstPlain.length;
   const firstIsLabel =
     !headers[0] || (firstPlain.length === rows.length && firstDistinct && avgFirst <= 6 && firstCol.every(okLabel));
-  const where = b.title ? plain(b.title) : b.section ? plain(b.section) : null;
+  const where = b.title ? stripEnumerator(plain(b.title)) || null : b.section ? stripEnumerator(plain(b.section)) || null : null;
   const caption = b.caption ? plain(b.caption) : '';
 
   const asColumns = !headers[0] || !firstIsLabel || GENERIC_FIRST_HEADER.test(plain(headers[0]));
   if (asColumns) {
+    // A column is a bucket only if most of its cells are readable phrases: a column of numbers,
+    // symbols or yes/no marks would sit on the board as a bucket no card can go in, and a spare
+    // like "EUR Spot" beside a card reading "EUR spot" invites the wrong drop.
     const cols: number[] = [];
-    for (let c = firstIsLabel ? 1 : 0; c < ncol; c++) if (headers[c] && okLabel(cleanLabel(headers[c]))) cols.push(c);
+    const perCol = new Map<number, { raw: string; row: TableRow }[]>();
+    for (let c = firstIsLabel ? 1 : 0; c < ncol; c++) {
+      if (!headers[c] || !okLabel(cleanLabel(headers[c]))) continue;
+      const filled = rows.filter((r) => plain(tableCells(r)[c] ?? '')).length;
+      const good = rows
+        .map((row) => ({ raw: tidy(stripEnumerator(tableCells(row)[c] ?? '')), row }))
+        .filter((x) => x.raw && okItem(x.raw));
+      if (good.length === 0 || good.length * 2 < filled) continue;
+      cols.push(c);
+      perCol.set(c, good);
+    }
     const labels = cols.map((c) => cleanLabel(headers[c]));
     if (cols.length < 2 || new Set(labels.map((l) => normKey(l))).size !== labels.length) return [];
     const buckets: Bucket[] = cols.map((c) => ({ id: `${b.id}#col${c}`, label: cleanLabel(headers[c]) }));
     const items: SchemeItem[] = [];
-    for (const r of rows) {
-      const cells = tableCells(r);
-      const rowLabel = firstIsLabel ? cleanLabel(cells[0] ?? '') : '';
-      cols.forEach((c, k) => {
-        const raw = tidy(stripEnumerator(cells[c] ?? ''));
-        if (!raw || !okItem(raw)) return;
+    cols.forEach((c, k) => {
+      for (const { raw, row } of perCol.get(c) ?? []) {
+        const rowLabel = firstIsLabel ? cleanLabel(tableCells(row)[0] ?? '') : '';
         items.push({
-          itemId: r.id as string,
+          itemId: row.id as string,
           blockId: b.id,
           objectiveId,
-          text: maskLabel(raw, buckets[k].label),
+          text: raw,
           context: rowLabel && okLabel(rowLabel) ? rowLabel : undefined,
           bucketId: buckets[k].id,
         });
-      });
-    }
+      }
+    });
+    const firstHead = headers[0] ? lowerNoun(plain(headers[0])) : '';
     const s: Scheme = {
       key: `${b.id}#columns`,
       kind: 'table-columns',
       blockId: b.id,
       objectiveId,
-      prompt: firstIsLabel && headers[0] ? `Each card is one cell of a table, tagged with its ${plain(headers[0]).toLowerCase()}. Which column is it from?` : 'Each card is one cell of a table. Which column is it from?',
-      name: where ?? listLabels(labels.map((l) => l)),
+      prompt: firstIsLabel && firstHead ? `Each card is one cell of a table, tagged with its ${firstHead}. Which column is it from?` : 'Each card is one cell of a table. Which column is it from?',
+      name: where ?? listLabels(labels),
       line: caption && wordCount(caption) <= 45 ? caption : `The table sets ${listLabels(labels)} side by side${where ? `, under ${where}` : ''}.`,
       buckets,
-      items: finaliseItems(items),
+      items: finaliseItems(items, buckets),
     };
     return viable(s) ? [s] : [];
   }
@@ -274,7 +301,7 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
         itemId: r.id as string,
         blockId: b.id,
         objectiveId,
-        text: maskLabel(raw, label),
+        text: raw,
         context: head && okLabel(head) ? head : undefined,
         bucketId: bucket.id,
       });
@@ -286,11 +313,11 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
     kind: 'table-rows',
     blockId: b.id,
     objectiveId,
-    prompt: `Each card describes one ${kind.toLowerCase()}. Which one?`,
+    prompt: `Each card is one cell of a table, tagged with its column. Which row is it from? The rows are named in the “${kind}” column.`,
     name: where ?? kind,
-    line: caption && wordCount(caption) <= 45 ? caption : `The table walks through each ${kind.toLowerCase()} in turn: ${listLabels(buckets.map((x) => x.label))}.`,
+    line: caption && wordCount(caption) <= 45 ? caption : `The table takes each ${lowerNoun(kind)} in turn: ${listLabels(buckets.map((x) => x.label))}.`,
     buckets,
-    items: finaliseItems(items),
+    items: finaliseItems(items, buckets),
   };
   return viable(s) ? [s] : [];
 }
@@ -348,7 +375,7 @@ export function labelScheme(corpus: Corpus, b: Block): Scheme | null {
     if (desc) desc = desc[0].toUpperCase() + desc.slice(1);
     const bucket = { id: `${bullet.id}#label`, label };
     buckets.push(bucket);
-    if (desc && okItem(desc)) items.push({ itemId: bullet.id as string, blockId: b.id, objectiveId, text: maskLabel(desc, label), bucketId: bucket.id });
+    if (desc && okItem(desc)) items.push({ itemId: bullet.id as string, blockId: b.id, objectiveId, text: desc, bucketId: bucket.id });
   }
   if (new Set(buckets.map((x) => normKey(x.label))).size !== buckets.length) return null;
   const lead = typeof (b as { lead_in?: unknown }).lead_in === 'string' ? plain((b as { lead_in?: string }).lead_in) : '';
@@ -362,7 +389,7 @@ export function labelScheme(corpus: Corpus, b: Block): Scheme | null {
     name: heading ?? listLabels(buckets.map((x) => x.label)),
     line: `The notes list ${buckets.length} by name: ${listLabels(buckets.map((x) => x.label))}.`,
     buckets,
-    items: finaliseItems(items),
+    items: finaliseItems(items, buckets),
   };
   return viable(s) ? s : null;
 }
@@ -383,7 +410,7 @@ export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
     } else if (d === 2 && parent) {
       if (!buckets.includes(parent)) buckets.push(parent);
       const text = tidy(stripEnumerator(x.text ?? ''));
-      if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId, text: maskLabel(text, parent.label), bucketId: parent.id });
+      if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId, text, bucketId: parent.id });
     }
   }
   if (buckets.length < 2) return null;
@@ -396,7 +423,7 @@ export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
     name: b.title ? plain(b.title) : listLabels(buckets.map((x) => x.label)),
     line: `The notes break ${listLabels(buckets.map((x) => x.label))} into their own sub-points.`,
     buckets,
-    items: finaliseItems(items),
+    items: finaliseItems(items, buckets),
   };
   return viable(s) ? s : null;
 }
@@ -445,7 +472,7 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
     for (const x of bulletObjects(b.bullets)) {
       if (depthOf(x) !== 1) continue;
       const text = tidy(stripEnumerator(x.text ?? ''));
-      if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId: o.id, text: maskLabel(text, label), bucketId: bucket.id });
+      if (okItem(text)) items.push({ itemId: x.id as string, blockId: b.id, objectiveId: o.id, text, bucketId: bucket.id });
     }
   }
   const firstBlock = blocks.find((b) => headingOf(b)) ?? blocks[0];
@@ -458,7 +485,7 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
     name: headingsName(buckets, o.text),
     line: `Under ${o.id}, the notes list their points under ${buckets.length} headings: ${listLabels(buckets.map((x) => x.label))}.`,
     buckets,
-    items: finaliseItems(items),
+    items: finaliseItems(items, buckets),
   };
   return viable(s) ? s : null;
 }
