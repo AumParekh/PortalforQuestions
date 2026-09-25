@@ -494,11 +494,13 @@ function Round({
 
   const setParam = (name: ParamName, v: number) => {
     if (answeredRef.current) return;
+    const next = { ...params, [name]: v };
     if (raf.current !== null) {
+      // Interrupting a "start over" glide: the other sliders sit mid-tween, so put them back on the grid.
       cancelAnimationFrame(raf.current);
       raf.current = null;
+      for (const n of PARAM_NAMES) if (n !== name) next[n] = onGrid(specs[n], next[n]);
     }
-    const next = { ...params, [name]: v };
     setParams(next);
     if (matches(next, item.target, item.tolerance)) {
       answeredRef.current = true;
