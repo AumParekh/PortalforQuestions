@@ -151,8 +151,10 @@ export function chipHeight(lines: number): number {
   return lines * LINE + 12;
 }
 
-export function latticeGeometry(opts: { width: number; T: number; chipW: number; chipH: number }): LatticeGeom {
+/** @param tagH  height of a phantom tag that must fit in the gap above each chip (0 for none) */
+export function latticeGeometry(opts: { width: number; T: number; chipW: number; chipH: number; tagH?: number }): LatticeGeom {
   const { T, chipW, chipH } = opts;
+  const tagH = opts.tagH ?? 0;
   const firstX0 = chipW / 2 + 2;
   const lastX0 = opts.width - chipW / 2 - 2;
   const minGap = chipW + 6;
@@ -167,8 +169,9 @@ export function latticeGeometry(opts: { width: number; T: number; chipW: number;
     gap = minGap;
     width = Math.ceil(firstX0 + gap * T + chipW / 2 + 2);
   }
-  const half = Math.ceil(chipH / 2 + 8);
-  const top = LAT_TOP;
+  // Same-date chips sit 2 * half apart: room for the chip plus a tag (and 5px either side of it).
+  const half = Math.ceil(chipH / 2 + (tagH ? tagH / 2 + 5 : 8));
+  const top = LAT_TOP + (tagH ? tagH + 6 : 0);
   return {
     width,
     height: top + chipH + 2 * T * half + LAT_BOTTOM,

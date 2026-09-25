@@ -11,15 +11,17 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Reading, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { toDisplay } from '../../text';
+import { mathToPlain, toDisplay, toSegments } from '../../text';
 import { srsPriority } from '../../srs';
 import { seededRng, shuffle } from '../../random';
 import type { Move, NumberHit, Part } from './parse';
 import {
   isCommonNumber,
   mathRows,
+  hasNumber,
   numberKeys,
   numbersIn,
+  numKey,
   parseMoves,
   partNumbers,
   relationSplit,
@@ -36,10 +38,19 @@ export interface Example {
   objectiveId?: string;
   /** Example title as the notes give it, "Example —" lifted (LaTeX); null when untitled. */
   title: string | null;
+  /** What the example is shown under: its title, else the box it continues, else its section (LaTeX). */
+  heading: string | null;
   /** The section the example sits in (the concept, for naming). */
   section: string | null;
   /** What the player is given. */
   prompt: Part[];
+  /**
+   * For a box that continues the one before it with no givens of its own ("Step 2 — …"): that box's
+   * givens, or its working when it has none, as the notes print them.
+   */
+  context: Part[];
+  /** Block the context comes from. */
+  contextFrom: string | null;
   moves: Move[];
 }
 
@@ -59,6 +70,8 @@ export interface Choice {
   needs?: string;
   /** other: a number in it that this example never gives, as written. */
   foreign?: string;
+  /** other (equation): how much it looks like this example's line — shared numbers, same quantity. */
+  rank?: number;
 }
 
 export interface StepPayload {
@@ -97,29 +110,55 @@ export function cleanTitle(title: unknown): string | null {
     .replace(/^\s*(?:worked\s+)?(?:example|examples|question)\s*\d*\s*(?:continued)?\s*(?:—|–|---|--|:|\.)?\s*/i, '')
     .trim();
   if (!t || /^(?:example|examples|none)$/i.test(t)) return null;
-  return t;
+  // "Example: risk-weighted assets" is shown as a heading, so it starts with a capital.
+  return /^[a-z]/.test(t) ? t[0].toUpperCase() + t.slice(1) : t;
 }
 
 function strOrNull(x: unknown): string | null {
   return typeof x === 'string' && x.trim() ? x : null;
 }
 
+interface Problem {
+  prompt: Part[];
+  working: Part[];
+}
+
+const problemCache = new WeakMap<Block, Problem>();
+
+/** A box's givens and working (empty when the block is malformed). */
+export function problemOf(block: Block): Problem {
+  const hit = problemCache.get(block);
+  if (hit) return hit;
+  let out: Problem = { prompt: [], working: [] };
+  try {
+    const b = block as ExboxFields;
+    let q = strOrNull(b.question_latex);
+    let s = strOrNull(b.solution_latex);
+    if (!q && !s) {
+      const body = strOrNull(b.body_latex);
+      if (body) [q, s] = body.includes('\\tcblower') ? (body.split('\\tcblower', 2) as [string, string]) : [body, null];
+    }
+    out = splitProblem(q, s);
+  } catch {
+    out = { prompt: [], working: [] };
+  }
+  problemCache.set(block, out);
+  return out;
+}
+
 const exampleCache = new WeakMap<Block, Example | null>();
 
-/** A worked example's prompt and moves; null when the block has nothing to blank or is malformed. */
-export function exampleOf(block: Block, readingId: string, objectiveId?: string): Example | null {
+/**
+ * A worked example's prompt and moves; null when the block has nothing to blank or is malformed.
+ * `prev` is the exbox just before it in the same objective (for continuation boxes).
+ */
+export function exampleOf(block: Block, readingId: string, objectiveId?: string, prev?: Block | null): Example | null {
   if (exampleCache.has(block)) return exampleCache.get(block) ?? null;
   let ex: Example | null = null;
   try {
     const b = block as ExboxFields;
     if (b && b.type === 'exbox' && typeof b.id === 'string') {
-      let q = strOrNull(b.question_latex);
-      let s = strOrNull(b.solution_latex);
-      if (!q && !s) {
-        const body = strOrNull(b.body_latex);
-        if (body) [q, s] = body.includes('\\tcblower') ? (body.split('\\tcblower', 2) as [string, string]) : [body, null];
-      }
-      const { prompt, working } = splitProblem(q, s);
+      const { prompt, working } = problemOf(b);
       const moves = parseMoves(working);
       for (const m of moves) {
         // Options must fit a phone: very long setups stay in the working but are never blanked.
@@ -127,13 +166,26 @@ export function exampleOf(block: Block, readingId: string, objectiveId?: string)
         if (m.kind === 'equation' && m.op && m.op.length > MAX_OP_TEX) m.blankable = false;
       }
       if (moves.some((m) => m.blankable)) {
+        const title = cleanTitle(b.title);
+        let context: Part[] = [];
+        let contextFrom: string | null = null;
+        const prevTitle = !title && prev ? cleanTitle(prev.title) : null;
+        if (prompt.length === 0 && prev && typeof prev.id === 'string') {
+          const pp = problemOf(prev);
+          context = pp.prompt.length ? pp.prompt : pp.working;
+          contextFrom = context.length ? prev.id : null;
+        }
+        const section = strOrNull(b.section);
         ex = {
           blockId: b.id,
           readingId,
           objectiveId,
-          title: cleanTitle(b.title),
-          section: strOrNull(b.section),
+          title,
+          heading: title ?? prevTitle ?? section,
+          section,
           prompt,
+          context,
+          contextFrom,
           moves,
         };
       }
@@ -152,10 +204,12 @@ export function readingExamples(reading: Reading): Example[] {
   if (hit) return hit;
   const out: Example[] = [];
   for (const o of reading.objectives ?? []) {
+    let prev: Block | null = null;
     for (const b of o.blocks ?? []) {
       if (!b || b.type !== 'exbox') continue;
-      const ex = exampleOf(b, reading.reading_id, o.id);
+      const ex = exampleOf(b, reading.reading_id, o.id, prev);
       if (ex) out.push(ex);
+      prev = b;
     }
   }
   readingCache.set(reading, out);
@@ -168,10 +222,6 @@ export function itemIdOf(ex: Example, m: Move): string {
 
 // ---------------------------------------------------------------------------------------------
 // What a move needs and produces
-
-function key(v: number): string {
-  return String(Number(v.toPrecision(10)));
-}
 
 /** Inline math snippets in text LaTeX. */
 function inlineMath(latex: string): string[] {
@@ -192,7 +242,10 @@ export function ioOf(m: Move): IO {
   const inputs: NumberHit[] = [];
   const outputs = new Set<string>();
   const addOut = (s: string) => {
-    for (const n of numbersIn(s)) for (const k of numberKeys(n.value)) outputs.add(k);
+    for (const n of numbersIn(s)) {
+      for (const k of numberKeys(n)) outputs.add(k);
+      if (n.pct) outputs.add(`%${numKey(n.value)}`);
+    }
   };
   const eq = (row: string) => {
     const { parts } = relationSplit(row);
@@ -223,8 +276,8 @@ export function ioOf(m: Move): IO {
 
 /** Number keys the player has seen by the time the gap at `b` opens. */
 export function availableAt(ex: Example, b: number): Set<string> {
-  const seen: Part[] = [...ex.prompt];
-  if (ex.title) seen.push({ kind: 'text', latex: ex.title });
+  const seen: Part[] = [...ex.context, ...ex.prompt];
+  if (ex.heading) seen.push({ kind: 'text', latex: ex.heading });
   for (let i = 0; i < b; i++) {
     const m = ex.moves[i];
     seen.push(...m.lead, ...m.body);
@@ -345,19 +398,17 @@ export function distractorPool(ex: Example, b: number, others: readonly (readonl
     if (shapeOf(later) !== shape || normOp(opOf(later)) === trueOp) continue;
     const produced = new Set<string>();
     for (let k = b; k < j; k++) for (const x of ioOf(ex.moves[k]).outputs) produced.add(x);
-    const dep = ioOf(later).inputs.find((h) => !isCommonNumber(h.value) && produced.has(key(h.value)) && !avail.has(key(h.value)));
+    const dep = ioOf(later).inputs.find((h) => !isCommonNumber(h.value) && hasNumber(produced, h) && !hasNumber(avail, h));
     if (dep) ahead.push(choiceOf(ex, later, 'ahead', { needs: dep.raw }));
   }
   const other: Choice[][] = [];
   const seen = new Set<string>([...ownOps]);
-  const trueNums = new Set(numbersIn(opOf(m)).map((h) => key(h.value)));
+  const trueNums = new Set(numbersIn(opOf(m)).map((h) => numKey(h.value)));
   const ownKeys = new Set<string>();
   const ownWords: Set<string>[] = [];
-  if (shape === 'label') {
-    for (const x of ex.moves) {
-      for (const k of quantityKeys(x)) ownKeys.add(k);
-      if (x.label) ownWords.push(labelWords(x.label));
-    }
+  for (const x of ex.moves) {
+    for (const k of quantityKeys(x)) ownKeys.add(k);
+    if (x.label) ownWords.push(labelWords(x.label));
   }
   for (const tier of others) {
     const found: Choice[] = [];
@@ -369,10 +420,12 @@ export function distractorPool(ex: Example, b: number, others: readonly (readonl
         const k = normOp(op);
         if (!k || seen.has(k)) continue;
         if (shape === 'equation') {
-          const foreign = unseenNumbers(op, avail).filter((raw) => !trueNums.has(key(Number(raw.replace(/,/g, '')))));
+          const foreign = unseenNumbers(op, avail).filter((raw) => !trueNums.has(numKey(Number(raw.replace(/,/g, '')))));
           if (!foreign.length) continue;
           seen.add(k);
-          found.push(choiceOf(o, om, 'other', { foreign: foreign[0] }));
+          const shared = numbersIn(op).filter((h) => !isCommonNumber(h.value) && hasNumber(avail, h)).length;
+          const sameQuantity = [...quantityKeys(om)].some((q) => ownKeys.has(q)) ? 2 : 0;
+          found.push(choiceOf(o, om, 'other', { foreign: foreign[0], rank: shared + sameQuantity }));
         } else {
           // A label only names an operation, so it must be one this example never does.
           if ([...quantityKeys(om)].some((q) => ownKeys.has(q))) continue;
@@ -403,7 +456,8 @@ export function pickDistractors(p: Pool, trueOp: string, rng: () => number): Cho
   // A second "ahead" only when no other example can supply a wrong move.
   for (const tier of [...p.other, ahead.slice(1)]) {
     if (out.length >= 2) break;
-    const ranked = shuffle(tier, rng).sort((a, b) => closeness(a) - closeness(b));
+    // Most look-alike first (shares numbers or the quantity with this example), then nearest in length.
+    const ranked = shuffle(tier, rng).sort((a, b) => (b.rank ?? 0) - (a.rank ?? 0) || closeness(a) - closeness(b));
     // Prefer a source block not already used.
     ranked.sort((a, b) => Number(out.some((x) => x.blockId === a.blockId)) - Number(out.some((x) => x.blockId === b.blockId)));
     for (const c of ranked) {
@@ -449,7 +503,8 @@ export function readingCandidates(reading: Reading, corpus: Corpus): Candidate[]
     ex.moves.forEach((m, b) => {
       if (!m.blankable) return;
       let pool = distractorPool(ex, b, [own]);
-      if (poolSize(pool) < 2) {
+      // Reach into the area when the reading alone cannot give a wrong move from another example.
+      if (poolSize(pool) < 2 || pool.other.every((t) => t.length === 0)) {
         area ??= areaExamples(reading, corpus);
         pool = distractorPool(ex, b, [own, area]);
       }
@@ -468,9 +523,9 @@ export function categoryOf(shape: Shape, hasAhead: boolean): TrapCategory {
 /** Comfortable time to read three moves and choose (ms). */
 export function timeFor(options: readonly Choice[], pressureStep: number | null): number {
   const chars = options.reduce((n, c) => n + (c.shape === 'label' ? toDisplay(c.op).length : Math.round(c.op.length * 0.6)), 0);
-  const base = Math.min(40000, Math.max(15000, 12000 + chars * 70));
+  const base = Math.min(40000, Math.max(18000, 14000 + chars * 80));
   if (pressureStep === null) return Math.round(base * 1.5);
-  return Math.max(15000, Math.round(base * Math.pow(0.94, pressureStep)));
+  return Math.max(16000, Math.round(base * Math.pow(0.94, pressureStep)));
 }
 
 /** Chosen gaps, in play order, split into discovery and pressure. */
@@ -573,21 +628,61 @@ function toRounds(groups: Candidate[][], phase: 'discovery' | 'pressure', contin
 
 const GENERIC_SECTION = /^(?:worked examples?|examples?|practice|exercises?|questions?|summary|remember|key (?:facts|points))$/i;
 
-/** Plain text of an example's title, for lines of feedback and naming. */
-export function titleText(ex: Example): string {
-  return ex.title ? toDisplay(ex.title) : `Worked example ${ex.blockId}`;
+/** Plain text of a math snippet: simple math as Unicode, wrappers unwrapped, other macros dropped. */
+function flatMath(tex: string): string {
+  const simple = mathToPlain(tex);
+  if (simple !== null) return simple;
+  let t = tex.replace(/\\(?:begin|end)\{[^{}]*\}/g, ' ').replace(/\s*\\\\\s*/g, ', ');
+  for (let k = 0; k < 3; k++) t = t.replace(/\\(?:mathrm|text|textrm|operatorname|mathit|mathbf|boldsymbol)\{([^{}]*)\}/g, '$1');
+  t = t.replace(/\\([a-zA-Z]+)/g, (_m, name: string) => mathToPlain(`\\${name}`) ?? ' ');
+  return t
+    .replace(/\\([$%&#])/g, '$1')
+    .replace(/\\[,;:!]/g, ' ')
+    .replace(/[{}]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-/** Just-in-time naming (§8.3): the concept the example works, its block, its LO, and the notes' order of moves. */
+/** Plain text of a LaTeX snippet (the naming card renders text, not math). */
+export function plain(latex: string): string {
+  return toSegments(latex)
+    .map((seg) => (seg.kind === 'text' ? seg.text : flatMath(seg.tex)))
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Plain text of an example's heading, for lines of feedback and naming. */
+export function headingText(ex: Example): string {
+  return ex.heading ? plain(ex.heading) : `Worked example ${ex.blockId}`;
+}
+
+/** The section as a concept name, unless it is a list label or a step heading. */
+function sectionTerm(ex: Example): string | null {
+  if (!ex.section) return null;
+  const t = plain(ex.section);
+  if (!t || GENERIC_SECTION.test(t) || /^\s*(?:step\s*\d|\(?\d+[.)]|[a-z]\))/i.test(t)) return null;
+  return t;
+}
+
+/** The value a result lands on (after its last '='), as plain text. */
+function landing(result: string): string {
+  const { parts } = relationSplit(result);
+  return flatMath(parts[parts.length - 1] ?? result);
+}
+
+/** Just-in-time naming (§8.3): the concept the example works, its block, its LO, and the notes' chain. */
 export function namingFor(ex: Example, reading: Reading, corpus: Corpus): ConceptNaming {
-  const section = ex.section ? toDisplay(ex.section) : '';
-  const term = section && !GENERIC_SECTION.test(section) ? section : titleText(ex);
-  const labels = ex.moves.filter((m) => m.kind === 'label' && m.label).map((m) => toDisplay(m.label as string));
-  const lines = ex.moves.filter((m) => m.kind === 'equation').length;
-  const line =
-    labels.length >= 2
-      ? `${titleText(ex)}, in the notes' order: ${labels.join(' → ')}.`
-      : `${titleText(ex)}: ${lines} calculated lines, each one built from the numbers the line before it produced.`;
+  const heading = ex.heading ? plain(ex.heading) : '';
+  const term = sectionTerm(ex) ?? (heading && !/^\s*step\s*\d/i.test(heading) ? heading : null) ?? plain(reading.title ?? reading.reading_id);
+  const labels = ex.moves.filter((m) => m.kind === 'label' && m.label).map((m) => plain(m.label as string));
+  const results = ex.moves.filter((m) => m.kind === 'equation' && m.result).map((m) => landing(m.result as string)).filter(Boolean);
+  const h = headingText(ex);
+  let line: string;
+  if (labels.length >= 2) line = `${h}, in the notes' order: ${labels.join(' → ')}.`;
+  else if (results.length >= 2) line = `${h}: each line feeds the next, and the notes' results run ${results.slice(0, 6).join(' → ')}.`;
+  else if (results.length === 1) line = `${h}: one line takes the givens to ${results[0]}.`;
+  else line = `${h}, worked in ${reading.reading_id}.`;
   const los = learningObjectives(reading);
   const objectiveId = ex.objectiveId ?? corpus.objectiveOfBlock[ex.blockId] ?? los[los.length - 1]?.id ?? reading.reading_id;
   return { term, blockId: ex.blockId, objectiveId, line };
@@ -604,8 +699,11 @@ export function buildStepwise(reading: Reading, ctx: BuildInput): MechanicPlan<S
   const rounds = [...discovery, ...pressure];
   if (rounds.some((r) => r.payload.options.length !== 3 || r.payload.answer < 0)) return null;
   const examples = new Set(rounds.map((r) => r.payload.example));
-  const first = rounds[0].payload.example;
-  const concept = namingFor(first, reading, ctx.corpus);
+  // Name the discovery example the player spent longest in.
+  const count = new Map<Example, number>();
+  for (const r of discovery) count.set(r.payload.example, (count.get(r.payload.example) ?? 0) + 1);
+  const focus = [...count.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? rounds[0].payload.example;
+  const concept = namingFor(focus, reading, ctx.corpus);
   const n = examples.size;
   return {
     rounds,

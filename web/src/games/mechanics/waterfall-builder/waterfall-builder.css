@@ -1,0 +1,506 @@
+/* Waterfall Builder board. Colours come from the games palette (games.css), whose html.dark
+   overrides give every rule here its dark-mode variant. Nothing under 15px. */
+.game-root .wb-board {
+  --wb-pipe: var(--g-rule);
+  --wb-lit: var(--g-gold);
+  --wb-clean: var(--g-green);
+  --wb-leak: var(--g-red);
+  --wb-pour: 140ms;
+}
+
+/* ---- The column ---- */
+.game-root .wb-stack {
+  position: relative;
+}
+.game-root .wb-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.game-root .wb-slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* A literal stack: layers sit on each other, no gaps. */
+.game-root .wb-stack.is-stack .wb-slots {
+  gap: 0;
+}
+.game-root .wb-stack.is-stack .wb-slot {
+  border-radius: 0;
+}
+.game-root .wb-stack.is-stack .wb-slot + .wb-slot {
+  margin-top: -1px;
+}
+.game-root .wb-stack.is-stack .wb-slot:first-child {
+  border-top-left-radius: var(--g-radius);
+  border-top-right-radius: var(--g-radius);
+}
+.game-root .wb-stack.is-stack .wb-slot:last-child {
+  border-bottom-left-radius: var(--g-radius);
+  border-bottom-right-radius: var(--g-radius);
+}
+
+.game-root .wb-slot {
+  position: relative;
+  min-height: 52px;
+  padding: 0.7rem 0.95rem 0.7rem 1.1rem;
+  border: 1.5px dashed var(--g-rule);
+  border-radius: 12px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease;
+}
+/* The left edge lights when the flow reaches the slot. */
+.game-root .wb-slot::before {
+  content: '';
+  position: absolute;
+  left: -1.5px;
+  top: -1.5px;
+  bottom: -1.5px;
+  width: 4px;
+  border-radius: 4px 0 0 4px;
+  background: var(--wb-lit);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 260ms ease var(--wb-delay, 0ms);
+}
+.game-root .wb-slot.is-lit::before {
+  transform: scaleY(1);
+}
+.game-root .wb-stack.is-clean .wb-slot::before {
+  background: var(--wb-clean);
+}
+.game-root .wb-slot.is-filled {
+  border-style: solid;
+  background: var(--g-card);
+}
+.game-root .wb-slot.is-locked {
+  background: var(--g-soft);
+}
+.game-root .wb-slot.is-revealed {
+  border-style: dashed;
+  border-color: var(--g-gold);
+  background: var(--g-pale-gold);
+  animation: wb-fade 520ms ease both;
+}
+.game-root .wb-slot.is-active {
+  border-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .wb-slot.is-active.is-over {
+  border-style: solid;
+  border-color: var(--g-navy);
+  background: var(--g-pale-navy);
+}
+.game-root .wb-slot.is-reject {
+  border-style: solid;
+  border-color: var(--g-red);
+  background: var(--g-pale-red);
+}
+.game-root .wb-slot-text {
+  font-family: var(--g-serif);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: var(--g-ink);
+}
+.game-root .wb-slot-detail {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--g-ink-muted);
+  animation: wb-fade 360ms ease both;
+}
+.game-root .wb-slot-hint {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+}
+.game-root .wb-ghost {
+  font-family: var(--g-serif);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  animation: wb-shake 420ms ease both;
+}
+
+/* ---- Rail: nodes, pipes, the return channel, a leak ---- */
+.game-root .wb-pipe {
+  fill: none;
+  stroke: var(--wb-pipe);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.game-root .wb-pipe-lit {
+  fill: none;
+  stroke: var(--wb-lit);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 220ms ease var(--wb-delay, 0ms);
+}
+.game-root .wb-pipe-lit.is-lit {
+  stroke-dashoffset: 0;
+}
+.game-root .wb-stack.is-clean .wb-pipe-lit,
+.game-root .wb-stack.is-clean .wb-loop {
+  stroke: var(--wb-clean);
+}
+.game-root .wb-head {
+  fill: var(--wb-pipe);
+  transition: fill 200ms ease var(--wb-delay, 0ms);
+}
+.game-root .wb-head.is-lit {
+  fill: var(--wb-lit);
+}
+.game-root .wb-stack.is-clean .wb-head.is-lit {
+  fill: var(--wb-clean);
+}
+.game-root .wb-node {
+  stroke-width: 2.5;
+  stroke: var(--wb-pipe);
+  fill: var(--g-card);
+  transition:
+    fill 220ms ease var(--wb-delay, 0ms),
+    stroke 220ms ease var(--wb-delay, 0ms);
+}
+.game-root .wb-node.is-dim {
+  fill: var(--g-soft);
+}
+.game-root .wb-node.is-lit {
+  stroke: var(--wb-lit);
+  fill: var(--wb-lit);
+}
+.game-root .wb-stack.is-clean .wb-node.is-lit {
+  stroke: var(--wb-clean);
+  fill: var(--wb-clean);
+}
+.game-root .wb-node.is-active {
+  stroke: var(--g-gold);
+}
+.game-root .wb-node-ring {
+  fill: none;
+  stroke: var(--g-gold);
+  stroke-width: 2;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: wb-ping 1400ms ease-out infinite;
+}
+.game-root .wb-node-num {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--g-card);
+  text-anchor: middle;
+  dominant-baseline: central;
+  animation: wb-fade 300ms ease both;
+}
+.game-root .wb-node-num.is-dark {
+  fill: var(--g-ink);
+}
+.game-root .wb-loop {
+  fill: none;
+  stroke: var(--wb-lit);
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.game-root .wb-loop-head {
+  fill: var(--wb-lit);
+  opacity: 0;
+  transition: opacity 200ms ease 650ms;
+}
+.game-root .wb-stack.is-clean .wb-loop-head {
+  fill: var(--wb-clean);
+}
+.game-root .wb-loop-head.is-on {
+  opacity: 1;
+}
+/* A working flow keeps moving: a light dash runs down the rail (and round the loop). */
+.game-root .wb-current {
+  fill: none;
+  stroke: var(--g-card);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 3 13;
+  opacity: 0.85;
+  animation: wb-current 1100ms linear infinite;
+}
+.game-root .wb-phantom {
+  fill: none;
+  stroke: var(--wb-leak);
+  stroke-width: 3;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  animation: wb-leak 650ms ease-out both;
+}
+.game-root .wb-drip {
+  fill: var(--wb-leak);
+  animation: wb-drip 650ms ease-in both;
+}
+
+/* ---- Tray ---- */
+.game-root .wb-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.game-root .wb-tile {
+  position: relative;
+  min-height: 48px;
+  max-width: 100%;
+  padding: 0.6rem 0.95rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font-family: var(--g-serif);
+  font-size: 1.0625rem;
+  line-height: 1.4;
+  text-align: left;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  box-shadow: 0 2px 6px -4px rgba(var(--g-shadow), 0.35);
+  transition:
+    transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 180ms ease,
+    border-color 150ms ease;
+}
+.game-root .wb-tile:hover:not(:disabled) {
+  border-color: var(--g-navy);
+}
+.game-root .wb-tile:disabled {
+  cursor: default;
+}
+.game-root .wb-tile.is-lifted {
+  cursor: grabbing;
+  z-index: 50;
+  transition: box-shadow 150ms ease;
+  box-shadow:
+    0 14px 28px -10px rgba(var(--g-shadow), 0.45),
+    0 4px 10px -4px rgba(var(--g-shadow), 0.3);
+}
+.game-root .wb-tile.is-away {
+  /* Shown in the slot for a beat; stays focusable here so keyboard focus isn't lost. */
+  opacity: 0.3;
+}
+.game-root .wb-tile.is-bounce {
+  animation: wb-bounce 480ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+}
+.game-root .wb-tile.is-pulse {
+  border-color: var(--g-gold);
+  animation: wb-pulse 1300ms ease-in-out infinite;
+}
+.game-root .wb-key {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  margin-right: 0.45rem;
+}
+
+/* ---- The ring a closed loop settles into ---- */
+.game-root .wb-ring-arc {
+  fill: none;
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: wb-fade 360ms ease forwards;
+}
+.game-root .wb-ring-arc.is-closure {
+  stroke: var(--g-gold);
+  stroke-width: 3.5;
+}
+.game-root .wb-ring-arrow {
+  fill: var(--g-navy);
+}
+.game-root .wb-ring-arrow.is-closure {
+  fill: var(--g-gold);
+}
+.game-root .wb-ring-chain {
+  stroke: var(--g-rule);
+  stroke-width: 2;
+}
+.game-root .wb-ring-node {
+  fill: var(--g-card);
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+}
+.game-root .wb-ring-node.is-first {
+  stroke: var(--g-gold);
+}
+.game-root .wb-ring-num {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--g-ink);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.game-root .wb-ring-centre {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.game-root .wb-slip {
+  border-left: 3px solid var(--g-red);
+  background: var(--g-pale-red);
+  padding: 0.5rem 0.85rem;
+}
+
+@keyframes wb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes wb-shake {
+  0% {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+  30% {
+    transform: none;
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(-5px);
+  }
+  60% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-3px);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes wb-bounce {
+  0% {
+    transform: translateY(-26px) scale(0.97);
+  }
+  60% {
+    transform: translateY(3px);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes wb-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(154, 107, 16, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 5px var(--g-pale-gold);
+  }
+}
+@keyframes wb-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+@keyframes wb-current {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+@keyframes wb-leak {
+  0% {
+    stroke-dashoffset: 40;
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.2;
+  }
+}
+@keyframes wb-drip {
+  0% {
+    transform: translateY(-14px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+/* Reduced motion: the OS preference or the app's setting. Colour changes stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .wb-board {
+    --wb-pour: 0ms;
+  }
+  .game-root .wb-slot,
+  .game-root .wb-slot::before,
+  .game-root .wb-pipe-lit,
+  .game-root .wb-loop,
+  .game-root .wb-tile {
+    transition: none;
+  }
+  .game-root .wb-ghost,
+  .game-root .wb-tile.is-bounce,
+  .game-root .wb-tile.is-pulse,
+  .game-root .wb-drip {
+    animation: none;
+  }
+  .game-root .wb-node-ring,
+  .game-root .wb-current {
+    display: none;
+  }
+  .game-root .wb-phantom {
+    animation: wb-fade 1ms linear both;
+  }
+  .game-root .wb-tile.is-pulse {
+    box-shadow: 0 0 0 4px var(--g-pale-gold);
+  }
+}
+html.reduce-motion .game-root .wb-board {
+  --wb-pour: 0ms;
+}
+html.reduce-motion .game-root .wb-slot,
+html.reduce-motion .game-root .wb-slot::before,
+html.reduce-motion .game-root .wb-pipe-lit,
+html.reduce-motion .game-root .wb-loop,
+html.reduce-motion .game-root .wb-tile {
+  transition: none;
+}
+html.reduce-motion .game-root .wb-ghost,
+html.reduce-motion .game-root .wb-tile.is-bounce,
+html.reduce-motion .game-root .wb-tile.is-pulse,
+html.reduce-motion .game-root .wb-drip {
+  animation: none;
+}
+html.reduce-motion .game-root .wb-node-ring,
+html.reduce-motion .game-root .wb-current {
+  display: none;
+}
+html.reduce-motion .game-root .wb-tile.is-pulse {
+  box-shadow: 0 0 0 4px var(--g-pale-gold);
+}

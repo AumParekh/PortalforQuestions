@@ -10,7 +10,7 @@
 //   it would produce, as misregistered ghost chips. The wrong branch holds for a beat, then the
 //   tree's value fades in; the phantom stays faintly overlaid for the rest of the race.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import type { MechanicRenderProps, MechanicRound } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
 import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
@@ -131,6 +131,8 @@ interface Label {
   dotY: number;
   text: string;
   cls: string;
+  /** Sit below the dot (a phantom lower than the real node it misses), so labels never cover the rings. */
+  below?: boolean;
 }
 
 function ForwardTree({ view, width }: { view: TreeView; width: number }) {
@@ -235,10 +237,12 @@ function ForwardTree({ view, width }: { view: TreeView; width: number }) {
         <circle className="tr-ph-dot" cx={pos[0]} cy={pos[1]} r={7} />
       </g>,
     );
-    labels.push({ key: `w${tag}`, col: t, x: pos[0], dotY: pos[1], text: shortDisplay(w.display), cls: `tr-label is-phantom${isPast ? ' is-past' : ''}` });
+    // Past branches stay as faint lines only; labelling them would crowd the narrow columns.
+    if (isPast) return;
+    labels.push({ key: `w${tag}`, col: t, x: pos[0], dotY: pos[1], text: shortDisplay(w.display), cls: 'tr-label is-phantom', below: w.value < val(t, i) });
     if (showKids && ph?.kind === 'children') {
       ph.values.forEach((v, j) =>
-        labels.push({ key: `c${tag}.${j}`, col: t + 1, x: X(t + 1), dotY: Y(v), text: shortDisplay(ph.displays[j]), cls: `tr-label is-phantom${isPast ? ' is-past' : ''}` }),
+        labels.push({ key: `c${tag}.${j}`, col: t + 1, x: X(t + 1), dotY: Y(v), text: shortDisplay(ph.displays[j]), cls: 'tr-label is-phantom', below: v < ph.real[j] }),
       );
     }
     if (showRings && ph?.kind === 'children') {
@@ -246,7 +250,15 @@ function ForwardTree({ view, width }: { view: TreeView; width: number }) {
         ghosts.push(<circle key={`r${tag}.${j}`} className="tr-ring tr-appear" cx={X(t + 1)} cy={Y(v)} r={7} />);
         // Past the last date the rings are never raced, so they can carry their values.
         if (ph.beyondTree) {
-          labels.push({ key: `rl${tag}.${j}`, col: t + 1, x: X(t + 1), dotY: Y(v), text: shortDisplay(formatValue(item.unit, item.decimals, v)), cls: 'tr-label is-ghost' });
+          labels.push({
+            key: `rl${tag}.${j}`,
+            col: t + 1,
+            x: X(t + 1),
+            dotY: Y(v),
+            text: shortDisplay(formatValue(item.unit, item.decimals, v)),
+            cls: 'tr-label is-ghost',
+            below: v < ph.values[j],
+          });
         }
       });
     }
@@ -290,20 +302,21 @@ function ForwardTree({ view, width }: { view: TreeView; width: number }) {
     });
   }
 
-  // Labels: centred above their dot, nudged apart per column; a leader line if moved.
+  // Labels: centred above (or below) their dot, nudged apart per column; a leader line if moved.
   const placed: ReactNode[] = [];
   const cols = new Map<number, Label[]>();
   for (const l of labels) cols.set(l.col, [...(cols.get(l.col) ?? []), l]);
+  const want = (l: Label) => (l.below ? l.dotY + 19 : l.dotY - 17);
   for (const list of cols.values()) {
     const pos = relaxLabels(
-      list.map((l) => ({ key: l.key, y: l.dotY - 17 })),
+      list.map((l) => ({ key: l.key, y: want(l) })),
       LINE,
       g.top - 18,
-      g.top + g.plotH + 4,
+      g.top + g.plotH + 22,
     );
     for (const l of list) {
-      const ly = pos.get(l.key) ?? l.dotY - 17;
-      const moved = Math.abs(ly - (l.dotY - 17)) > 6;
+      const ly = pos.get(l.key) ?? want(l);
+      const moved = Math.abs(ly - want(l)) > 6;
       placed.push(
         <g key={`L${l.key}`} className={l.cls}>
           {moved && <line className="tr-leader" x1={l.x} y1={l.dotY} x2={l.x} y2={ly + (ly < l.dotY ? 6 : -12)} />}
@@ -353,9 +366,6 @@ function ForwardTree({ view, width }: { view: TreeView; width: number }) {
 // ---------------------------------------------------------------------------------------------
 // Backward trees: a lattice of value chips
 
-const GHOST_DX = -12;
-const GHOST_DY = -15;
-
 function BackwardTree({ view, width }: { view: TreeView; width: number }) {
   const { item, known, past, current } = view;
   const T = item.nodes.length - 1;
@@ -367,7 +377,7 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
     return Math.max(56, ...texts.map(textWidth)) + CHIP_PAD_X;
   }, [item]);
   const chipH = chipHeight(2);
-  const g: LatticeGeom = useMemo(() => latticeGeometry({ width, T, chipW, chipH }), [width, T, chipW, chipH]);
+  const g: LatticeGeom = useMemo(() => latticeGeometry({ width, T, chipW, chipH, tagH: chipHeight(1) }), [width, T, chipW, chipH]);
   const P = (t: number, i: number) => latticeXY(g, t, i);
   const isKnown = (t: number, i: number) => known.has(nodeKey(t, i));
   const { t: ct, i: ci, stage } = current;
@@ -397,19 +407,18 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
     loops.push(<polygon key="l-now" className={`tr-loop${current.correct ? ' is-new' : ' is-fade'}`} points={diamond(ct, ci)} />);
   }
 
-  const chip = (key: string, t: number, i: number, main: string, sub: string | null, cls: string, dx = 0, dy = 0, single = false) => {
+  const chip = (key: string, t: number, i: number, main: string, sub: string | null, cls: string) => {
     const [cx, cy] = P(t, i);
-    const h = single ? chipHeight(1) : chipH;
-    const x = cx + dx - chipW / 2;
-    const y = cy + dy - h / 2;
+    const x = cx - chipW / 2;
+    const y = cy - chipH / 2;
     return (
       <g key={key} className={cls}>
-        <rect className="tr-chip-box" x={x} y={y} width={chipW} height={h} rx={9} />
-        <text className="tr-chip-main" x={cx + dx} y={sub ? y + 6 + LINE / 2 : cy + dy} textAnchor="middle" dominantBaseline="middle">
+        <rect className="tr-chip-box" x={x} y={y} width={chipW} height={chipH} rx={9} />
+        <text className="tr-chip-main" x={cx} y={sub ? y + 6 + LINE / 2 : cy} textAnchor="middle" dominantBaseline="middle">
           {main}
         </text>
         {sub && (
-          <text className="tr-chip-sub" x={cx + dx} y={y + 6 + LINE * 1.5} textAnchor="middle" dominantBaseline="middle">
+          <text className="tr-chip-sub" x={cx} y={y + 6 + LINE * 1.5} textAnchor="middle" dominantBaseline="middle">
             {sub}
           </text>
         )}
@@ -429,26 +438,38 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
     }
   }
 
-  // Phantom layer: the wrong value, misregistered off its node, and the parent values it would make.
-  // Past phantoms sit behind the real chips; the current one is drawn on top.
-  const ghosts: ReactNode[] = [];
-  const pastGhosts: ReactNode[] = [];
+  // Phantom layer: tags in the gap above a chip. The wrong value's tag sits on its node; the
+  // parent value(s) it would produce sit on the parents, joined by a dashed wrong branch. A later
+  // phantom on the same slot replaces an earlier one; past phantoms stay faint.
+  const tagH = chipHeight(1);
+  const tagXY = (t: number, i: number): [number, number] => {
+    const [cx, cy] = P(t, i);
+    return [cx, cy - chipH / 2 - 5 - tagH / 2];
+  };
+  const tags = new Map<string, ReactNode>();
+  const phEdges: ReactNode[] = [];
+  const tagEl = (key: string, t: number, i: number, text: string, isPast: boolean) => {
+    const [x, y] = tagXY(t, i);
+    return (
+      <g key={key} className={`tr-tag${isPast ? ' is-past' : ' tr-appear'}`}>
+        <rect x={x - chipW / 2} y={y - tagH / 2} width={chipW} height={tagH} rx={8} />
+        <text x={x} y={y} textAnchor="middle" dominantBaseline="middle">
+          {text}
+        </text>
+      </g>
+    );
+  };
   const drawPhantom = (tag: string, step: number, w: Candidate, ph: Phantom | null, isPast: boolean, onNode: boolean) => {
     const [t, i] = item.order[step];
-    const [wx, wy] = P(t, i);
-    const from: [number, number] = onNode ? [wx, wy] : [wx + GHOST_DX, wy + GHOST_DY];
-    const cls = `tr-phantom${isPast ? ' is-past' : ' tr-appear'}`;
-    (isPast ? pastGhosts : ghosts).push(
-      <g key={`g${tag}`} className={cls}>
-        {ph?.kind === 'parents' &&
-          ph.at.map(([pt, pi], j) => {
-            const [px, py] = P(pt, pi);
-            return <line key={`pe${j}`} className="tr-ph-edge" x1={from[0]} y1={from[1]} x2={px + GHOST_DX} y2={py + GHOST_DY} />;
-          })}
-        {ph?.kind === 'parents' && ph.at.map(([pt, pi], j) => chip(`pc${j}`, pt, pi, ph.displays[j], null, 'tr-ghost-chip', GHOST_DX, GHOST_DY, true))}
-        {!onNode && chip('w', t, i, w.display, null, 'tr-ghost-chip', GHOST_DX, GHOST_DY, true)}
-      </g>,
-    );
+    const [nx, ny] = P(t, i);
+    const from: [number, number] = onNode ? [nx, ny - chipH / 2] : tagXY(t, i);
+    if (!onNode) tags.set(nodeKey(t, i), tagEl(`w${tag}`, t, i, w.display, isPast));
+    if (ph?.kind !== 'parents') return;
+    ph.at.forEach(([pt, pi], j) => {
+      const [px, py] = tagXY(pt, pi);
+      phEdges.push(<line key={`pe${tag}.${j}`} className={`tr-ph-edge${isPast ? ' is-past' : ' tr-appear'}`} x1={from[0]} y1={from[1]} x2={px} y2={py} />);
+      tags.set(nodeKey(pt, pi), tagEl(`p${tag}.${j}`, pt, pi, ph.displays[j], isPast));
+    });
   };
   past.forEach((p) => drawPhantom(`p${p.step}`, p.step, p.wrong, p.phantom, true, false));
 
@@ -481,10 +502,10 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
       ))}
       {loops}
       {lattice}
-      {pastGhosts}
       {chips}
-      {ghosts}
       {racer}
+      {phEdges}
+      {[...tags.values()]}
     </svg>
   );
 }
@@ -521,7 +542,7 @@ function TreeHeader({ item, phase }: { item: TreeItem; phase: PlayPhase }) {
   );
 }
 
-function Legend({ item, wrongShown, ringsShown }: { item: TreeItem; wrongShown: boolean; ringsShown: boolean }) {
+function Legend({ item, loopsShown, wrongShown, ringsShown }: { item: TreeItem; loopsShown: boolean; wrongShown: boolean; ringsShown: boolean }) {
   const fwd = item.direction === 'forward';
   return (
     <ul className="tr-legend" aria-label="Legend">
@@ -531,12 +552,14 @@ function Legend({ item, wrongShown, ringsShown }: { item: TreeItem; wrongShown: 
         </svg>
         <span>The tree</span>
       </li>
-      <li>
-        <svg width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">
-          <polygon className="tr-loop" points="2,8 13,2 24,8 13,14" />
-        </svg>
-        <span>Two routes meet</span>
-      </li>
+      {loopsShown && (
+        <li>
+          <svg width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">
+            <polygon className="tr-loop" points="2,8 13,2 24,8 13,14" />
+          </svg>
+          <span>Two routes meet</span>
+        </li>
+      )}
       {wrongShown && (
         <li>
           <svg width="30" height="16" viewBox="0 0 30 16" aria-hidden="true">
@@ -791,6 +814,13 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const source = `block ${round.blockId}`;
   const svgWidth = Math.max(280, width || 320);
   const note = routesNote(item, t, i);
+  // Each candidate stays on one line: columns are at least as wide as the longest value needs.
+  const candMin = Math.max(120, Math.round(Math.max(...p.candidates.map((c) => c.display.length)) * 10.8 + 70));
+  const revealedNow = answered && (outcome?.correct || stage === 'reveal' || settled);
+  const loopsShown = [...view.known.keys(), ...(revealedNow ? [nodeKey(t, i)] : [])].some((key) => {
+    const [a, c] = key.split(',').map(Number);
+    return item.direction === 'forward' ? a >= 2 && c >= 1 && c <= a - 1 : a <= item.nodes.length - 3;
+  });
   const qword = quantityWord(item);
 
   return (
@@ -818,12 +848,19 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
           <div ref={boxRef} className="tr-chart w-full">
             {item.direction === 'forward' ? <ForwardTree view={view} width={svgWidth} /> : <BackwardTree view={view} width={svgWidth} />}
           </div>
-          <Legend item={item} wrongShown={view.past.length > 0 || !!(picked && !picked.correct)} ringsShown={item.direction === 'forward' && !!(picked && !picked.correct) && !settled} />
+          <Legend
+            item={item}
+            loopsShown={loopsShown}
+            wrongShown={view.past.length > 0 || !!(picked && !picked.correct)}
+            ringsShown={item.direction === 'forward' && !!(picked && !picked.correct)}
+          />
         </figure>
 
-        <div className="tr-cands" role="group" aria-label={`Candidate ${qword}s`}>
+        <div className="tr-cands" role="group" aria-label={`Candidate ${qword}s`} style={{ '--tr-cand-min': `${candMin}px` } as CSSProperties}>
           {p.candidates.map((c, j) => {
-            const state = !answered ? '' : c.correct ? ' is-correct' : outcome?.picked === j ? ' is-wrong' : ' is-dim';
+            // After a miss the tree's value lights only once the wrong branch has held for its beat.
+            const lit = outcome?.correct || stage === 'reveal' || settled;
+            const state = !answered ? '' : c.correct ? (lit ? ' is-correct' : ' is-dim') : outcome?.picked === j ? ' is-wrong' : ' is-dim';
             return (
               <button
                 key={c.display}

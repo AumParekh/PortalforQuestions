@@ -363,6 +363,8 @@ export function isCommonNumber(v: number): boolean {
 export interface NumberHit {
   raw: string;
   value: number;
+  /** Written as a percentage ("5\\%"). */
+  pct: boolean;
 }
 
 /** Numbers written in a LaTeX snippet, in order. Subscripts and step tags are ignored. */
@@ -378,22 +380,36 @@ export function numbersIn(tex: string): NumberHit[] {
   while ((m = re.exec(t))) {
     const raw = m[0];
     const value = Number(raw.replace(/,/g, ''));
-    if (Number.isFinite(value)) out.push({ raw, value });
+    const pct = /^\s*(?:\\?%|\\text\{\s*\\?%)/.test(t.slice(m.index + raw.length, m.index + raw.length + 10));
+    if (Number.isFinite(value)) out.push({ raw, value, pct });
   }
   return out;
 }
 
-/** Canonical keys for a number, with its percent / decimal twins (5% ↔ 0.05). */
-export function numberKeys(v: number): string[] {
-  const k = (x: number) => String(Number(x.toPrecision(10)));
-  return [k(v), k(v / 100), k(v * 100)];
+/** Canonical key of a value. */
+export function numKey(v: number): string {
+  return String(Number(v.toPrecision(10)));
+}
+
+/** Keys a written number matches: itself, and its decimal twin when written as a percentage (5% ↔ 0.05). */
+export function numberKeys(n: NumberHit): string[] {
+  return n.pct ? [numKey(n.value), numKey(n.value / 100)] : [numKey(n.value)];
+}
+
+/** Whether a written number is among `keys`, directly or as the percentage of a decimal there. */
+export function hasNumber(keys: ReadonlySet<string>, n: NumberHit): boolean {
+  return keys.has(numKey(n.value)) || (n.pct && keys.has(numKey(n.value / 100))) || (!n.pct && n.value < 1 && keys.has(`%${numKey(n.value * 100)}`));
 }
 
 /** Every number key in a list of parts. */
 export function partNumbers(parts: readonly Part[]): Set<string> {
   const out = new Set<string>();
   const add = (s: string) => {
-    for (const n of numbersIn(s)) for (const key of numberKeys(n.value)) out.add(key);
+    for (const n of numbersIn(s)) {
+      for (const key of numberKeys(n)) out.add(key);
+      // Remember percentages so a later decimal (0.2377 after 23.77%) matches them.
+      if (n.pct) out.add(`%${numKey(n.value)}`);
+    }
   };
   for (const p of parts) {
     if (p.kind === 'text') add(p.latex);
@@ -409,7 +425,7 @@ export function unseenNumbers(tex: string, avail: ReadonlySet<string>): string[]
   const out: string[] = [];
   for (const n of numbersIn(tex)) {
     if (isCommonNumber(n.value)) continue;
-    if (!avail.has(String(Number(n.value.toPrecision(10))))) out.push(n.raw);
+    if (!hasNumber(avail, n)) out.push(n.raw);
   }
   return [...new Set(out)];
 }
@@ -438,9 +454,12 @@ export function splitEquation(row: string): { op: string; result: string } | nul
       .map((p, i) => (i === 0 ? p : `${seps[from + i - 1]}${p}`))
       .join('')
       .trim();
-  const op = join(0, cut);
-  const result = join(cut, parts.length);
+  const trimSpace = (x: string) => x.replace(/^(?:\s|\\[,;:!]|\\q?quad)+|(?:\s|\\[,;:!]|\\q?quad)+$/g, '');
+  const op = trimSpace(join(0, cut));
+  const result = trimSpace(join(cut, parts.length));
   if (!op || !result || !hasDigit(op) || !hasDigit(result)) return null;
+  // An identity ("λ(5)×5 = λ(3)×3 + λ×2") states a relation; a calculation lands on a value.
+  if (!numbersIn(result).some((n) => !isCommonNumber(n.value))) return null;
   // A setup that is just a bare number (the "result = formula" order) has no operation to name.
   if (!OPERATOR.test(op.replace(/^\s*-/, ''))) return null;
   return { op, result };

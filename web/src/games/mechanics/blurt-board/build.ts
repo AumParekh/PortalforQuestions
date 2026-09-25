@@ -4,14 +4,14 @@
 // objective, untimed; pressure is a timed blurt on another objective. Each round is one target
 // item on the board, keyed by its sub-item ID so the shared SRS schedules it.
 import type { Corpus } from '../../corpus';
-import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Objective, Reading, SubItemLike } from '../../types';
+import { isLearningObjective } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
 import { emphasised, mathToPlain, splitMath, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { BlurtTarget, KeyWord, TargetKind } from './match';
-import { contentStems, directionStems, parseNumbers, plainOf, words } from './match';
+import { contentStems, directionStems, lightForm, parseNumbers, plainOf, words } from './match';
 
 /** One board: an objective, the targets that are scored on it, and the rest of its items. */
 export interface BlurtBoardSpec {
@@ -35,12 +35,28 @@ export interface BlurtPayload {
 export const MIN_TARGETS = 3;
 export const DISCOVERY_TARGETS = 4;
 export const PRESSURE_TARGETS = 5;
-export const MAX_EXTRAS = 40;
+/** Enough for the largest objective (58 items), so "the rest of this objective" is the whole rest. */
+export const MAX_EXTRAS = 120;
 
 /** Block types whose items are recall material. Worked examples, tables and diagrams are not. */
 const SKIP_BLOCKS = new Set(['exbox', 'table', 'tikzpicture', 'figcap']);
-/** Numbers are recall material only in statements of fact, not in examples or tables. */
-const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'trapbox', 'gapbox', 'notebox']);
+/**
+ * Numbers are recall material only in statements of fact, not in examples or tables. Trap boxes
+ * (numbers from exam stems: "the stem supplies the $50 billion") and gap boxes (worked set-ups:
+ * "the swap curve is flat at 5%") are left out too.
+ */
+const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'notebox']);
+/** Worked-example set-ups in prose: their numbers are illustrations, not facts to recall. */
+const EXERCISE_CUE = /\b(?:calculate|compute|price an?|assum(?:e|ed|ing)|suppose|consider|for example|for instance|e\.g\.|example|stem|worked|this month|last month|face value)\b/i;
+
+/** Significant digits of a number as written ("$521.4375" → 7, "1,750,000" → 3). */
+function significantDigits(text: string): number {
+  const m = /\d[\d,]*(?:\.\d+)?/.exec(text);
+  if (!m) return 0;
+  const digits = m[0].replace(/[,.]/g, '').replace(/^0+/, '');
+  const intPart = m[0].split('.')[0].replace(/,/g, '');
+  return m[0].includes('.') ? digits.length : intPart.replace(/0+$/, '').length;
+}
 const TRAP_LABEL = /^[A-Z][A-Za-z]*(?:[ -][A-Za-z]+){0,2}(?:,\s*[A-Z]{1,4}-\d+\s*[a-z]?)?\s*[.:]\s+/;
 const LO_VERB = /^(Describe|Explain|Identify|Calculate|Compare|Evaluate|Distinguish|Assess|Define|Apply|Discuss|Summari[sz]e|Differentiate|Estimate|Interpret|Analy[sz]e|Contrast|Outline|Recogni[sz]e|Construct|Derive|List)\b/;
 
@@ -140,19 +156,27 @@ function numberTargets(b: Block): RawTarget[] {
     const ctxPlain = plainOf(context);
     // Arithmetic lines, number lists and display formulas are working, not facts to recall.
     if (/\d%?\s*[-+−×*/=]\s*\$?\s*\d/.test(ctxPlain) || parseNumbers(ctxPlain).length > 5) continue;
+    if (EXERCISE_CUE.test(ctxPlain)) continue;
     if (splitMath(context).some((seg) => seg.kind === 'math' && mathToPlain(seg.tex) === null)) continue;
     const numPlain = plainOf(text);
     const parsed = parseNumbers(numPlain);
     const raw = typeof o?.value === 'number' ? (o.value as number) : parsed[0]?.value;
     if (raw === undefined || !Number.isFinite(raw)) continue;
+    // 0, 1 and 100% turn up everywhere; five-plus significant digits are computed, not remembered.
+    if (raw === 0 || raw === 1 || (raw === 100 && /%|percent/.test(numPlain)) || significantDigits(numPlain) > 4) continue;
     const scale = str(o?.scale).toLowerCase();
     const mult = scale === 'thousand' ? 1e3 : scale === 'million' ? 1e6 : scale === 'billion' ? 1e9 : scale === 'trillion' ? 1e12 : 1;
     const values = [Math.abs(raw)];
     if (mult !== 1) values.push(Math.abs(raw) * mult);
-    const pct = str(o?.unit) === '%' || /%|percent/.test(numPlain);
+    let pct = str(o?.unit) === '%' || /%|percent/.test(numPlain);
+    // Basis points: "50 bp" is also "0.5%" (and "0.005").
+    if (str(o?.unit) === 'bp' || /\bbps?\b|basis point/i.test(numPlain)) {
+      values.push(Math.abs(raw) / 100);
+      pct = true;
+    }
     // Keywords: the context without its numbers.
     const keyText = ctxPlain.replace(/\d[\d,.]*/g, ' ');
-    if (contentStems(keyText).length < 2) continue;
+    if (contentStems(keyText).length < 3) continue;
     out.push({ itemId: id, blockId: b.id, kind: 'number', display: context, label: text, keyText, emph: [], acronyms: [], values, pct, key: `n:${values[0]}:${contentStems(keyText).join(' ')}` });
   }
   return out;
@@ -218,17 +242,25 @@ function finalise(t: RawTarget, df: Map<string, number>, n: number): BlurtTarget
     values: t.values,
     ...(t.pct ? { pct: true } : {}),
     directions: t.kind === 'term' ? [] : directionStems(t.keyText),
+    // A term that is one keyword once stop words go must be written as the term.
+    ...(t.kind === 'term' && keys.length <= 1 ? { phrase: words(t.keyText).map(lightForm) } : {}),
   };
 }
 
 const targetCache = new WeakMap<Reading, Map<string, BlurtTarget[]>>();
+
+/** Lettered objectives, skipping malformed ones (content is still being refined). */
+function objectivesOf(reading: Reading): Objective[] {
+  const os = Array.isArray(reading?.objectives) ? reading.objectives : [];
+  return os.filter((o) => !!o && typeof o.id === 'string' && typeof o.letter === 'string' && isLearningObjective(o));
+}
 
 /** Finalised recall items of every learning objective in a reading (cached per reading object). */
 export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
   const cached = targetCache.get(reading);
   if (cached) return cached;
   const raw = new Map<string, RawTarget[]>();
-  for (const o of learningObjectives(reading)) {
+  for (const o of objectivesOf(reading)) {
     try {
       raw.set(o.id, rawTargets(o));
     } catch {
@@ -246,7 +278,7 @@ export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
 /** Learning objectives with enough recall items for a board. */
 export function eligibleObjectives(reading: Reading): { o: Objective; items: BlurtTarget[] }[] {
   const byLo = readingTargets(reading);
-  return learningObjectives(reading)
+  return objectivesOf(reading)
     .map((o) => ({ o, items: byLo.get(o.id) ?? [] }))
     .filter((x) => x.items.length >= MIN_TARGETS);
 }

@@ -62,7 +62,7 @@ function Blank({ typed, hint }: { typed: string; hint: string | null }) {
   const shown = typed || (hint ? `${hint}…` : '');
   return (
     <span
-      className="mx-0.5 inline-block min-w-[6ch] rounded-sm px-1 text-center"
+      className="mx-0.5 inline-block min-w-[6ch] max-w-full break-all rounded-sm px-1 text-center"
       style={{ borderBottom: '2px solid var(--g-gold)', background: 'var(--g-pale-gold)', color: typed ? 'var(--g-ink)' : 'var(--g-ink-muted)' }}
     >
       <span className="sr-only">blank</span>
@@ -101,8 +101,11 @@ function Round({
   const cueRef = useRef<CueLevel>(0);
   cueRef.current = cue;
 
+  // One result per round, even if a submit and the pressure timeout land in the same tick.
+  const answeredRef = useRef(false);
   const finish = (o: Omit<Outcome, 'correct'>) => {
-    if (outcome) return;
+    if (outcome || answeredRef.current) return;
+    answeredRef.current = true;
     const correct = o.verdict !== 'wrong' && !o.timedOut;
     const full: Outcome = { ...o, correct };
     setOutcome(full);
@@ -203,7 +206,7 @@ function Round({
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setTyped(e.target.value)}
                 onKeyDown={onKey}
                 placeholder="Type the missing word"
-                className="min-h-[48px] w-full min-w-0 flex-1 rounded-xl border px-4 py-2 text-[18px] outline-none"
+                className="min-h-[48px] w-full min-w-0 flex-1 rounded-xl border px-4 py-2 text-[18px]"
                 style={{ background: 'var(--g-card)', color: 'var(--g-ink)', borderColor: 'var(--g-rule)' }}
               />
               <GameButton type="submit" variant="primary" disabled={!typed.trim()}>
@@ -247,14 +250,14 @@ function Round({
         {outcome && outcome.correct && (
           <div className="space-y-2">
             <Sentence p={p} slot={<Filled text={p.answer} state={outcome.cue > 0 ? 'cued' : 'clean'} />} />
-            <p className={`g-settle ${SMALL}`}>
+            <p className={`g-settle ${SMALL}`} aria-live="polite">
               <span className="g-strong">
                 {outcome.cue === 2
                   ? 'Picked from three; it comes back sooner.'
                   : outcome.cue === 1
                     ? 'Recalled with the first letter.'
                     : outcome.verdict === 'close'
-                      ? `Held. The notes spell it “${p.answer}”.`
+                      ? `Held. The notes have “${p.answer}”.`
                       : 'Held.'}
               </span>{' '}
               <span className="g-muted">{source}</span>
@@ -277,7 +280,7 @@ function Round({
                   p={p}
                   className="g-serif"
                   slot={
-                    <span className="mx-0.5 px-1 line-through" style={{ textDecorationColor: 'var(--g-red)' }}>
+                    <span className="mx-0.5 break-all px-1 line-through" style={{ textDecorationColor: 'var(--g-red)' }}>
                       {outcome.typed || '  '}
                     </span>
                   }

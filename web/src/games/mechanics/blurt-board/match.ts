@@ -32,6 +32,11 @@ export interface BlurtTarget {
   pct?: boolean;
   /** Direction words the item states; writing only their opposites is a flip, not a hit. */
   directions: string[];
+  /**
+   * Terms whose content collapses to one keyword ("at-the-money" → "money", "Marketing" →
+   * "market"): the whole term, word by word in light form, must appear as written.
+   */
+  phrase?: string[];
 }
 
 export interface Hit {
@@ -99,6 +104,18 @@ export function stem(word: string): string {
   else if (w.length > 5 && w.endsWith('ed')) w = w.slice(0, -2);
   else if (w.length > 5 && w.endsWith('ly')) w = w.slice(0, -2);
   if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1);
+  return w;
+}
+
+/**
+ * Lighter normalisation than stem(), for exact phrases: plural, possessive and UK/US spelling
+ * only ("markets" = "market", but "marketing" ≠ "market").
+ */
+export function lightForm(word: string): string {
+  let w = word.toLowerCase().replace(/[’']s$/, '').replace(/[’']/g, '');
+  w = w.replace(/is(e|ed|es|ing|ation|ations|er|ers)$/, 'iz$1').replace(/our$/, 'or');
+  if (w.length > 5 && w.endsWith('ies')) w = w.slice(0, -3) + 'y';
+  else if (w.length > 3 && w.endsWith('s') && !/(ss|us|is)$/.test(w)) w = w.slice(0, -1);
   return w;
 }
 
@@ -199,22 +216,27 @@ function numberMatches(t: BlurtTarget, seen: readonly NumberToken[]): boolean {
 // Directions: a line that says "lower" where the notes say "higher" is a flip, not a hit.
 
 const DIRECTION_PAIRS: [string, string][] = [
-  ['higher', 'lower'], ['increase', 'decrease'], ['rise', 'fall'], ['more', 'less'], ['above', 'below'], ['before', 'after'],
+  // Not buy/sell or before/after: "the trader sells to you" and "you buy from the trader" say the same thing.
+  ['higher', 'lower'], ['increase', 'decrease'], ['rise', 'fall'], ['more', 'less'], ['above', 'below'],
   ['positive', 'negative'], ['wider', 'narrower'], ['widen', 'narrow'], ['greater', 'smaller'], ['larger', 'smaller'],
-  ['overstate', 'understate'], ['maximum', 'minimum'], ['buy', 'sell'], ['inflow', 'outflow'], ['long', 'short'],
+  ['overstate', 'understate'], ['maximum', 'minimum'], ['inflow', 'outflow'], ['long', 'short'],
   ['stabiliz', 'destabiliz'], ['upper', 'lower'], ['earlier', 'later'], ['faster', 'slower'], ['strengthen', 'weaken'],
 ];
-const OPPOSITE = new Map<string, string>();
+/** A word can have several opposites ("lower" ↔ "higher" and "upper"), so this is a multimap. */
+const OPPOSITES = new Map<string, Set<string>>();
 for (const [a, b] of DIRECTION_PAIRS) {
-  OPPOSITE.set(stem(a), stem(b));
-  OPPOSITE.set(stem(b), stem(a));
+  for (const [x, y] of [[stem(a), stem(b)], [stem(b), stem(a)]]) {
+    const set = OPPOSITES.get(x) ?? new Set<string>();
+    set.add(y);
+    OPPOSITES.set(x, set);
+  }
 }
 
 export function directionStems(plain: string): string[] {
   const out: string[] = [];
   for (const w of words(plain)) {
     const s = stem(w);
-    if (OPPOSITE.has(s) && !out.includes(s)) out.push(s);
+    if (OPPOSITES.has(s) && !out.includes(s)) out.push(s);
   }
   return out;
 }
@@ -246,6 +268,8 @@ export function lineUnits(line: string): string[] {
 
 interface SegmentIndex {
   stems: string[];
+  /** Light forms of the words, in order, for exact term phrases. */
+  lights: string[];
   stemSet: Set<string>;
   wordSet: Set<string>;
   numbers: NumberToken[];
@@ -255,7 +279,7 @@ function indexSegment(seg: string): SegmentIndex {
   const plain = plainOf(seg);
   const ws = words(plain);
   const stems = ws.map(stem);
-  return { stems, stemSet: new Set(stems), wordSet: new Set(ws), numbers: parseNumbers(plain) };
+  return { stems, lights: ws.map(lightForm), stemSet: new Set(stems), wordSet: new Set(ws), numbers: parseNumbers(plain) };
 }
 
 function hasStem(ix: SegmentIndex, s: string): boolean {
@@ -294,9 +318,22 @@ export function hitRule(t: BlurtTarget): { share: number; min: number } {
   }
 }
 
+/**
+ * The segment drops one of the item's direction words and says an opposite instead. An opposite
+ * the item itself uses ("lower correlation … higher prices") is not a flip.
+ */
 function flips(t: BlurtTarget, ix: SegmentIndex): boolean {
   if (!t.directions.length) return false;
-  return t.directions.some((d) => !ix.stemSet.has(d) && ix.stemSet.has(OPPOSITE.get(d) ?? ''));
+  const own = new Set(t.directions);
+  return t.directions.some((d) => !ix.stemSet.has(d) && [...(OPPOSITES.get(d) ?? [])].some((o) => !own.has(o) && ix.stemSet.has(o)));
+}
+
+function hasPhrase(ix: SegmentIndex, phrase: readonly string[]): boolean {
+  if (phrase.length === 0) return false;
+  for (let i = 0; i + phrase.length <= ix.lights.length; i++) {
+    if (phrase.every((w, k) => ix.lights[i + k] === w)) return true;
+  }
+  return false;
 }
 
 /** Scores one target against one segment: 0 when not a hit; the keyword share otherwise. */
@@ -311,7 +348,7 @@ export function scoreSegment(t: BlurtTarget, ix: SegmentIndex): { hit: boolean; 
   }
   const { score, count } = coverage(t, ix);
   const rule = hitRule(t);
-  const byWords = count >= rule.min && score >= rule.share && count > 0;
+  const byWords = count >= rule.min && score >= rule.share && count > 0 && (!t.phrase || hasPhrase(ix, t.phrase));
   // A variable's spelled-out symbol ("lambda") needs one keyword of its definition alongside it.
   const hit = byWords || (acronymHit && (t.kind !== 'variable' || count >= 1));
   const flipped = hit && flips(t, ix);

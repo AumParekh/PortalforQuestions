@@ -150,13 +150,13 @@ export function dateWords(item: TreeItem, t: number): string {
   return short.replace(' yr', ' years');
 }
 
-/** Where a node sits by its moves: "up node", "top node", "1 up, 1 down", … */
+/** Where a node sits by its moves: "up node", "top node", "middle node (1 up, 1 down)", … */
 export function nodeWords(t: number, i: number): string {
   if (t === 0) return 'root';
   if (t === 1) return i === 1 ? 'up node' : 'down node';
   if (i === t) return 'top node';
   if (i === 0) return 'bottom node';
-  return `${i} up, ${t - i} down`;
+  return `middle node (${i} up, ${t - i} down)`;
 }
 
 export function quantityWord(item: TreeItem): string {

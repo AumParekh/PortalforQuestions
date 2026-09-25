@@ -11,7 +11,7 @@ import { toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { AnswerKey } from './match';
-import { firstNumber, normAnswer } from './match';
+import { firstNumber, levenshtein, normAnswer } from './match';
 
 export type ClozeKind = 'term' | 'bold' | 'definition' | 'contrast' | 'number' | 'direction';
 
@@ -90,6 +90,43 @@ const DIR_INFO = new Map<string, { antonym: string; form: DirForm }>();
 for (const [a, b, form] of DIRECTION_PAIRS) {
   if (!DIR_INFO.has(a)) DIR_INFO.set(a, { antonym: b, form });
   if (!DIR_INFO.has(b)) DIR_INFO.set(b, { antonym: a, form });
+}
+
+/**
+ * What each direction word moves along, and which way (+1 / -1). Words on the same axis with the
+ * same sign are near-synonyms ("higher" / "greater", "reduces" / "lowers"): one can never be offered
+ * as a wrong option for the other, and a typed synonym counts as held. The third option (after the
+ * antonym) always comes from a different axis, so it is wrong without being the antonym again.
+ */
+const DIR_AXIS: Record<string, [string, 1 | -1]> = {};
+const axis = (name: string, up: string[], down: string[]) => {
+  for (const w of up) DIR_AXIS[w] = [name, 1];
+  for (const w of down) DIR_AXIS[w] = [name, -1];
+};
+axis(
+  'size',
+  ['higher', 'larger', 'greater', 'more', 'wider', 'highest', 'largest', 'increases', 'rises', 'widens', 'raises', 'increase', 'rise', 'widen', 'increased', 'increasing', 'rising', 'widening'],
+  ['lower', 'smaller', 'less', 'narrower', 'lowest', 'smallest', 'decreases', 'falls', 'narrows', 'lowers', 'reduces', 'decrease', 'fall', 'narrow', 'reduce', 'decreased', 'reduced', 'decreasing', 'falling', 'narrowing'],
+);
+axis('length', ['longer'], ['shorter']);
+axis('speed', ['faster'], ['slower']);
+axis('time', ['later', 'after'], ['earlier', 'before']);
+axis('place', ['above'], ['below']);
+axis('sign', ['positive', 'upward'], ['negative', 'downward']);
+axis('statement', ['overstates', 'overstate', 'overstated'], ['understates', 'understate', 'understated']);
+axis('strength', ['strengthens'], ['weakens']);
+axis('stability', ['stabilising', 'stabilizing'], ['destabilising', 'destabilizing']);
+axis('cycle', ['procyclical'], ['countercyclical']);
+axis('flow', ['inflows'], ['outflows']);
+
+/** Same-form words that mean the same direction as `w` ("higher" → "larger", "greater"). */
+export function directionSynonyms(w: string): string[] {
+  const a = DIR_AXIS[w.toLowerCase()];
+  const info = DIR_INFO.get(w.toLowerCase());
+  if (!a || !info) return [];
+  return [...DIR_INFO.entries()]
+    .filter(([x, i]) => x !== w.toLowerCase() && i.form === info.form && DIR_AXIS[x]?.[0] === a[0] && DIR_AXIS[x]?.[1] === a[1])
+    .map(([x]) => x);
 }
 const DIRECTION_RE = new RegExp(`(?<![\\\\\\w-])(${[...DIR_INFO.keys()].sort((a, b) => b.length - a.length).join('|')})(?![\\w-])`, 'gi');
 
@@ -271,8 +308,13 @@ function answerOk(answer: string, kind: ClozeKind): boolean {
   // Cross-references ("CR-14 e") are pointers, not content.
   if (/\b[A-Z]{2,3}-\d+\b/.test(answer)) return false;
   if (kind !== 'number' && kind !== 'direction') {
-    if (ws.every((w) => STOPWORDS.has(w.toLowerCase().replace(/[^a-z]/g, '')))) return false;
-    if (!/\p{L}{2}/u.test(answer)) return false;
+    const content = ws.filter((w) => !STOPWORDS.has(w.toLowerCase().replace(/[^a-z]/g, '')));
+    if (!content.length) return false;
+    // A marked number ("0.8 to 0.0") or an enumerated label ("1. Unconditional coverage") is not a word to recall.
+    if (!content.some((w) => /\p{L}{2}/u.test(w))) return false;
+    if (/^(\(?[0-9ivx]{1,4}[.)]|[a-h][.)])\s/i.test(answer)) return false;
+    // "Second step", "Step 3": the position in a list, not content.
+    if (/^(first|second|third|fourth|fifth|sixth|final|last|next)\s+(step|stage|phase)s?$|^(step|stage|phase)\s+\d+$/i.test(answer)) return false;
   }
   return true;
 }
@@ -395,6 +437,8 @@ function directionTargets(s: string, block: Block, bulletId: string | null): Tar
   let m: RegExpExecArray | null;
   while ((m = DIRECTION_RE.exec(s))) {
     if (inRanges(m.index, maths)) continue;
+    // "gives rise to" is an idiom, not a direction.
+    if (/^rise$/i.test(m[0]) && /\b(give|gives|gave|given|giving)\s*$/i.test(s.slice(0, m.index))) continue;
     // "the formula above", "see below", "sits above them": position in the text, not a direction.
     if (/^(above|below)$/i.test(m[0])) {
       const next = s.slice(m.index + m[0].length);
@@ -419,13 +463,22 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
     // Right side: words up to the first punctuation.
     const right: string[] = [];
     const rs = s.slice(m.index + m[0].length);
-    for (const w of rs.split(/\s+/)) {
+    const rws = rs.split(/\s+/).filter(Boolean);
+    // The "not Y" side must be plain words running to punctuation or the sentence end; a phrase cut
+    // short by a possessive, math or a macro ("not the portfolio's volatility") gives no clean foil.
+    let clean_ = false;
+    for (let k = 0; k < rws.length; k++) {
+      const w = rws[k];
       const c = clean(w);
-      if (!c || !/^[A-Za-z][A-Za-z-]*$/.test(c)) break;
+      if (!c || !/^[A-Za-z][A-Za-z-]*$/.test(c) || !/^[“"‘'(]?[A-Za-z][A-Za-z-]*[”"’')]*[.,;:!?)}]*$/.test(w)) break;
       right.push(c.toLowerCase());
-      if (/[.,;:)}]/.test(w) || right.length >= 6) break;
+      if (/[.,;:)}]/.test(w) || k === rws.length - 1) {
+        clean_ = true;
+        break;
+      }
+      if (right.length >= 6) break;
     }
-    if (!right.length) continue;
+    if (!right.length || !clean_) continue;
     // Left side: word tokens with positions, nearest last.
     const left: { w: string; start: number; end: number }[] = [];
     const lre = /\S+/g;
@@ -445,7 +498,9 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
     let p = 0;
     while (p < rCore.length - 1 && p < lCore.length - 1 && rCore[p] === lCore[p].w) p++;
     let x = lCore.slice(p);
-    const y = rCore.slice(p);
+    let y = rCore.slice(p);
+    while (y.length > 1 && /^(a|an|the)$/.test(y[0])) y = y.slice(1);
+    if (!y.length || y.every((w) => STOPWORDS.has(w))) continue;
     while (x.length > 1 && /^(a|an|the)$/.test(x[0].w)) x = x.slice(1);
     if (x.length && STOPWORDS.has(x[0].w)) continue;
     if (!x.length || x.length > 3 || x.some((t) => !/^[a-z][a-z-]*$/.test(t.w) || inRanges(t.start, maths))) continue;
@@ -745,6 +800,14 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
     const k = key(x);
     if (!k || taken.has(k)) return false;
     if (ansKeys.some((a) => a.includes(k) || k.includes(a))) return false;
+    // Never a synonym of a direction answer ("greater" for "higher").
+    if (c.kind === 'direction' && directionSynonyms(c.answer).includes(x.toLowerCase())) return false;
+    // Two options that are one phrase and its extension ("coverage" / "unconditional coverage") read as a hint.
+    const sq = k.replace(/\s+/g, '');
+    if (chosen.some((o) => {
+      const q = key(o).replace(/\s+/g, '');
+      return q.includes(sq) || sq.includes(q);
+    })) return false;
     if (c.kind !== 'direction' && k !== foilKey && sentenceKey.includes(` ${k} `)) return false;
     return true;
   };
@@ -767,9 +830,13 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
         .map((t) => t.answer.toLowerCase()),
       rng,
     );
-    const sameForm = (w: string) => DIR_INFO.get(w)?.form === info.form && w !== info.antonym && w !== c.answer.toLowerCase();
+    const ax = DIR_AXIS[c.answer.toLowerCase()]?.[0];
+    // Same grammatical form, different axis: never a synonym of the answer, never a second antonym.
+    // An -ing slot also takes the -ing adjectives ("rising" / "falling" / "stabilising").
+    const formOk = (w: string) => DIR_INFO.get(w)?.form === info.form || (info.form === 'verb-ing' && /ing$/.test(w));
+    const sameForm = (w: string) => formOk(w) && w !== info.antonym && w !== c.answer.toLowerCase() && !!ax && DIR_AXIS[w]?.[0] !== ax;
     for (const w of used) if (sameForm(w)) add(cap(w));
-    for (const [a, b, form] of shuffle(DIRECTION_PAIRS, rng)) if (form === info.form) for (const w of [a, b]) if (sameForm(w)) add(cap(w));
+    for (const [a, b] of shuffle(DIRECTION_PAIRS, rng)) for (const w of [a, b]) if (sameForm(w)) add(cap(w));
     return chosen.length === 2 ? shuffle([c.answer, ...chosen], rng) : null;
   }
 
@@ -818,6 +885,13 @@ export function toPayload(c: Candidate, reading: Reading, corpus: Corpus, rng: (
   const dir = c.kind === 'direction' ? DIR_INFO.get(c.answer.toLowerCase()) : undefined;
   if (dir && !reject.includes(dir.antonym)) reject.push(dir.antonym);
   if (c.foil && !reject.includes(c.foil)) reject.push(c.foil);
+  // A spelling trap ("GARP writes Jegadeesh, not Jagadeesh"): the sentence's own near-miss is wrong.
+  if (c.kind !== 'number' && c.kind !== 'direction' && words(c.answer).length === 1) {
+    const a = key(c.answer).replace(/\s+/g, '');
+    for (const w of words(key(toDisplay(`${c.before} ${c.after}`)))) {
+      if (w !== a && Math.abs(w.length - a.length) <= 2 && w[0] === a[0] && levenshtein(w, a) <= 2 && !reject.includes(w)) reject.push(w);
+    }
+  }
   return {
     kind: c.kind,
     before: c.before,
@@ -829,6 +903,7 @@ export function toPayload(c: Candidate, reading: Reading, corpus: Corpus, rng: (
       reject,
       value: c.numeric?.value ?? null,
       scale: c.numeric?.scale ?? null,
+      near: c.kind === 'direction' ? directionSynonyms(c.answer) : [],
     },
     options,
     firstLetter: firstLetterOf(c.answer),
@@ -871,10 +946,35 @@ function objectiveText(o: Objective | undefined): string | null {
   return toDisplay(o.text).replace(/[.;:]+$/, '');
 }
 
+type Nameable = Pick<Candidate, 'kind' | 'answer' | 'blockTitle'>;
+
+/** The concept a blank can name: its own word when that is a term, else its block's title. */
+function conceptTerm(c: Nameable): string | null {
+  if (c.kind === 'number' || c.kind === 'direction') return c.blockTitle;
+  return c.answer;
+}
+
+/**
+ * How well a blank names a concept (§8.3 wants the official term): a defined or marked multi-word
+ * term or an abbreviation scores high; a lone lowercase word ("granular", "past") or a direction
+ * word scores low.
+ */
+export function conceptScore(c: Nameable): number {
+  const term = conceptTerm(c);
+  if (!term) return -10;
+  if (c.kind === 'number' || c.kind === 'direction') return 1;
+  let n = { definition: 6, term: 4, bold: 3, contrast: 1, number: 0, direction: 0 }[c.kind];
+  const ws = words(term);
+  if (ws.length >= 2 || /\([^)]+\)/.test(term) || /^[A-Z][A-Z0-9-]{1,}$/.test(term)) n += 2;
+  else if (/^[a-z]/.test(term)) n -= 4;
+  else n -= 2;
+  return n;
+}
+
 function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
   const o = reading.objectives.find((x) => x.id === c.objectiveId);
   const text = objectiveText(o);
-  const term = c.kind === 'number' || c.kind === 'direction' ? (c.blockTitle ?? c.answer) : c.answer;
+  const term = conceptTerm(c) ?? text ?? c.answer;
   const line = text
     ? `The thread you were rebuilding is ${c.objectiveId}: ${text}. “${c.answer}” is the word it hangs on here.`
     : `The thread you were rebuilding runs through ${c.blockTitle ?? `block ${c.blockId}`}; “${c.answer}” is the word it hangs on.`;
@@ -908,14 +1008,19 @@ export function buildCloze(reading: Reading, input: BuildInput): MechanicPlan<Cl
   const pressure = toRounds(chain.pressure, 'pressure');
   if (discovery.length < MIN_LINK || pressure.length < MIN_LINK) return null;
   const rounds = [...discovery, ...pressure];
-  const first = chain.discovery.find((c) => c.kind === 'definition' || c.kind === 'term') ?? chain.discovery[0];
+  // Name a concept, not a direction word or a bare number: the best term in discovery (earliest on a
+  // tie), else in the pressure chain, else the discovery thread's objective.
+  const best = (cs: readonly Candidate[]) => cs.reduce<Candidate | null>((b, c) => (!b || conceptScore(c) > conceptScore(b) ? c : b), null);
+  const bd = best(chain.discovery);
+  const bp = best(chain.pressure);
+  const first = bd && conceptScore(bd) >= 2 ? bd : bp && conceptScore(bp) > (bd ? conceptScore(bd) : -Infinity) ? bp : (bd ?? chain.discovery[0]);
   const concept = namingFrom(reading, first);
   const o = reading.objectives.find((x) => x.id === first.objectiveId);
   const text = objectiveText(o);
   return {
     rounds,
     target: text ? `the thread of ${first.objectiveId}: ${text}` : `the thread of ${first.objectiveId}`,
-    opening: `${reading.reading_id} · Cloze Chain. A run of linked sentences from one thread of this reading, in the order the notes give them, each missing the word that carries it. Type what belongs. A cue is there if you ask — first a letter, then three choices — but a cue counts against how well you hold it.`,
+    opening: `A run of linked sentences from one thread of this reading, in the order the notes give them, each missing the word that carries it. Type what belongs. A cue is there if you ask — first a letter, then three choices — but a cue counts against how well you hold it.`,
     concept,
   };
 }
@@ -925,8 +1030,14 @@ export function nameAfterDiscovery(reading: Reading, plan: MechanicPlan<ClozePay
   const byId = new Map(plan.rounds.map((r) => [r.id, r]));
   const played = discovery.map((d) => ({ d, r: byId.get(d.roundId) })).filter((x): x is { d: RoundResult; r: MechanicRound<ClozePayload> } => !!x.r);
   const weak = (x: { d: RoundResult }) => !x.d.correct || (x.d.grade !== undefined && x.d.grade < 4);
-  const termy = (x: { r: MechanicRound<ClozePayload> }) => ['definition', 'term', 'bold', 'contrast'].includes(x.r.payload.kind);
-  const pick = played.find((x) => weak(x) && termy(x)) ?? played.find(weak) ?? played.find(termy);
+  // Name what was missed or cued, if it names a concept at least as well as the default; a direction
+  // word goes through its block's title ("higher" is not a concept).
+  const score = (x: { r: MechanicRound<ClozePayload> }) => conceptScore(x.r.payload);
+  const floor = Math.min(2, Math.max(...plan.rounds.filter((r) => r.phase === 'discovery').map((r) => conceptScore(r.payload)), -10));
+  const pick = played
+    .filter(weak)
+    .filter((x) => score(x) >= floor && score(x) > -10)
+    .reduce<(typeof played)[number] | null>((b, x) => (!b || score(x) > score(b) ? x : b), null);
   if (!pick) return plan.concept;
   const r = pick.r;
   return namingFrom(reading, {
@@ -942,6 +1053,11 @@ export function nameAfterDiscovery(reading: Reading, plan: MechanicPlan<ClozePay
     blockTitle: r.payload.blockTitle,
     order: 0,
   });
+}
+
+/** Test hook: the blanks that can actually be played (they have a three-choice cue), no SRS state. */
+export function playableCandidates(reading: Reading, corpus: Corpus): Candidate[] {
+  return threads(reading, corpus, null).flatMap((t) => t.links);
 }
 
 /** Test hook: a reading's full candidate list with no SRS state (document order). */

@@ -84,9 +84,30 @@ export interface AnswerKey {
   /** For numbers: the value and its scale word, if any. */
   value?: number | null;
   scale?: string | null;
+  /** Direction words only: same-direction synonyms ("greater" for "higher"), held as a close answer. */
+  near?: readonly string[];
 }
 
 export type MatchVerdict = 'exact' | 'close' | 'wrong';
+
+/** Numbers and roman numerals inside a term ("Tier 1", "Type II", "Basel III") must match exactly. */
+function markers(s: string): string {
+  return s
+    .split(' ')
+    .filter((w) => /^\d+(\.\d+)?%?$|^(i|ii|iii|iv|v|vi|vii|viii|ix|x)$/.test(w))
+    .join(' ');
+}
+
+/** Real, distinct words one or two letters apart: a slip between them is a different answer. */
+const CONFUSABLE: readonly (readonly string[])[] = [
+  ['systemic', 'systematic'],
+  ['monotonic', 'monotone'],
+  ['deviation', 'derivation'],
+  ['discrete', 'discreet'],
+];
+function confusable(a: string, b: string): boolean {
+  return CONFUSABLE.some((set) => set.some((x) => a.includes(x)) && set.some((y) => b.includes(y) && !a.includes(y)));
+}
 
 export function checkAnswer(typed: string, key: AnswerKey): MatchVerdict {
   const raw = typed.trim();
@@ -108,11 +129,12 @@ export function checkAnswer(typed: string, key: AnswerKey): MatchVerdict {
   const squash = (x: string) => x.replace(/\s+/g, '');
   if (accepts.some((a) => squash(a) === squash(t))) return 'exact';
   if (rejects.has(t) || [...rejects].some((r) => squash(r) === squash(t))) return 'wrong';
-  if (key.kind === 'direction') return 'wrong';
+  if (key.kind === 'direction') return (key.near ?? []).map(normAnswer).includes(t) ? 'close' : 'wrong';
   for (const a of accepts) {
     const A = squash(a);
     const T = squash(t);
     if (A[0] !== T[0]) continue;
+    if (markers(a) !== markers(t) || confusable(a, t)) continue;
     const d = levenshtein(A, T);
     if (d > 0 && d <= tolerance(A.length)) {
       // A slip that lands exactly on (or nearer to) a distractor is not a slip.
