@@ -311,6 +311,8 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const alive = useRef(true);
   const timers = useRef<number[]>([]);
   const done = useRef(false);
+  /** Rounds already reported: read synchronously, so two events in one frame can't both report. */
+  const reportedRef = useRef(new Set<string>());
   const dragStart = useRef<{ roundId: string; x: number; y: number; pointerId: number; dragging: boolean } | null>(null);
 
   const roundById = useMemo(() => new Map(rounds.map((r) => [r.id, r])), [rounds]);
@@ -421,7 +423,8 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   };
 
   const answer = (r: Round, cell: string | null, from: Pt | null, timedOut = false) => {
-    if (answered[r.id]) return;
+    if (answered[r.id] || reportedRef.current.has(r.id)) return;
+    reportedRef.current.add(r.id);
     const { tile } = r.payload;
     const right = cellKey(tile.x, tile.y);
     const correct = cell === right;
@@ -483,7 +486,7 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const place = (roundId: string, cell: string, from: Pt | null = null) => {
     const r = roundById.get(roundId);
     if (!r) return;
-    if (stage === 'ask' && !answered[r.id]) {
+    if (stage === 'ask' && !answered[r.id] && !reportedRef.current.has(r.id)) {
       answer(r, cell, from);
       return;
     }

@@ -15,8 +15,14 @@ import { plugin as orderGame } from './order-game';
 import { plugin as caseDocket } from './case-docket';
 import { plugin as stepwiseDerivation } from './stepwise-derivation';
 import { plugin as thresholdSlider } from './threshold-slider';
+import { plugin as curveSculptor } from './curve-sculptor';
+import { plugin as treeRacer } from './tree-racer';
+import { plugin as tailShaper } from './tail-shaper';
+import { plugin as waterfallBuilder } from './waterfall-builder';
+import { plugin as frontierRider } from './frontier-rider';
+import { plugin as gridSettler } from './grid-settler';
 
-const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill, bucketDrop, orderGame, caseDocket, stepwiseDerivation, thresholdSlider];
+const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill, bucketDrop, orderGame, caseDocket, stepwiseDerivation, thresholdSlider, curveSculptor, treeRacer, tailShaper, waterfallBuilder, frontierRider, gridSettler];
 
 const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
 
