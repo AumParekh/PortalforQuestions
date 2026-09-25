@@ -103,7 +103,13 @@ for (const vp of VIEWPORTS) {
   }
   // Every registered notes game, one session each, at phone width (where layouts break first).
   if (vp.width <= 375) {
-    await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
+    // A hash-only goto to the route we're already on doesn't remount the screen (it would stay
+    // mid-game), so pass through Home first.
+    const openGamesHome = async () => {
+      await page.goto(`${BASE}/#/`, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
+    };
+    await openGamesHome();
     const tab = page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first();
     await tab.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
     await tab.click().catch(() => undefined);
@@ -115,7 +121,7 @@ for (const vp of VIEWPORTS) {
       errors = [];
       const label = `${vp.name} play game "${mech}"`;
       try {
-        await page.goto(`${BASE}/#/games`, { waitUntil: 'networkidle', timeout: 30000 });
+        await openGamesHome();
         await page.getByRole('button', { name: /^\s*By mechanic\s*$/ }).first().click({ timeout: 20000 });
         await page.locator('li > button:not([disabled])', { hasText: mech }).first().click({ timeout: 15000 });
         for (const name of [/Pick a reading for me/, /^\s*Start\s*$/, /^\s*Begin\s*$/]) {
