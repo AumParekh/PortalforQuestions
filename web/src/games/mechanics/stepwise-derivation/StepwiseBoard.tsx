@@ -106,15 +106,18 @@ function Round({
   const gapRef = useRef<HTMLLIElement | null>(null);
   const nextRef = useRef<HTMLButtonElement | null>(null);
   const reduced = useRef(prefersReducedMotion());
+  // A tap, a key and the timeout can land in the same tick, before `outcome` re-renders: report once.
+  const answered = useRef(false);
 
   const finish = (o: Outcome) => {
-    if (outcome) return;
+    if (outcome || answered.current) return;
+    answered.current = true;
     setOutcome(o);
     if (o.correct) setSettled(true);
     onAnswered({ roundId: round.id, correct: o.correct, timeMs: performance.now() - started.current, timedOut: o.timedOut });
   };
   const choose = (i: number) => {
-    if (outcome || i < 0 || i >= p.options.length) return;
+    if (outcome || answered.current || i < 0 || i >= p.options.length) return;
     finish({ picked: i, correct: i === p.answer, timedOut: false });
   };
 

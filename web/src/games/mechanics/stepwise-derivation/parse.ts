@@ -481,7 +481,7 @@ export function liftOrdinal(label: string): { text: string; n: number | null } {
 
 /** Labels that head commentary, answers or cases rather than an operation. */
 const NON_OP =
-  /^(?:what this means|interpretation|answer|note|notes|why|check|cross-check|the contrast|intuition|takeaway|result|so\b|therefore|reading|[a-d]\s+is\s+(?:in)?correct|option\b|(?:time|year|month|day|period|case|question|part|scenario)\s*\d|at\s+\d|the trade|anticipated result|total gain)/i;
+  /^(?:what\b|interpretation|answer|note|notes|why|check|cross-check|the contrast|intuition|takeaway|result|so\b|therefore|reading|[a-d]\s+is\s+(?:in)?correct|option\b|(?:time|year|month|day|period|case|question|part|scenario)\s*\d|at\s+\d|the trade|anticipated result|total gain)/i;
 
 export function isOpLabel(label: string): boolean {
   const { text } = liftOrdinal(label);

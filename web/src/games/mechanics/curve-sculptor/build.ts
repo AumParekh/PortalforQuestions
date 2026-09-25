@@ -102,6 +102,15 @@ export function meaningOf(word: string): string {
   return SHAPE_MEANING[word] ?? '';
 }
 
+/**
+ * Lower-cases only the leading capital of a label for use mid-sentence, leaving symbols and
+ * acronyms alone: "Face value of the debt, F" -> "face value of the debt, F", "BSM vol" unchanged.
+ */
+export function lowerFirst(s: string): string {
+  if (s.length < 2 || !/^[A-Z][a-z]/.test(s)) return s;
+  return s[0].toLowerCase() + s.slice(1);
+}
+
 export function capitalise(s: string): string {
   return s ? s[0].toUpperCase() + s.slice(1) : s;
 }
@@ -114,7 +123,7 @@ export function wordList(words: readonly string[]): string {
 
 /** Why the start was wrong, for a derived puzzle (the curated one carries the notes-based explanation). */
 export function derivedExplanation(p: CurvePayload): string {
-  const label = paramLabel(p.item, p.variant.param).toLowerCase();
+  const label = lowerFirst(paramLabel(p.item, p.variant.param));
   const broken = p.broken.length ? p.broken : p.item.shapeWords;
   const lines = broken.map((w) => `${w} (${meaningOf(w)})`);
   return `With the ${label} where it started, the curve was no longer ${wordList(lines)}. Put back where the notes have it, the shape returns; the other two settings were never the problem.`;
@@ -135,7 +144,7 @@ export function blockOf(item: CurveItem): string {
 export function namingFor(corpus: Corpus, reading: Reading, pz: Puzzle): ConceptNaming {
   const words = wordList(pz.item.shapeWords.map((w) => `“${w}”`));
   return {
-    term: `${capitalise(words)} is the ${paramLabel(pz.item, pz.variant.param).toLowerCase()}`,
+    term: `${capitalise(words)} is the ${lowerFirst(paramLabel(pz.item, pz.variant.param))}`,
     blockId: blockOf(pz.item),
     objectiveId: objectiveOf(corpus, reading, pz.item),
     line: pz.item.description,

@@ -492,6 +492,17 @@ function areaExamples(reading: Reading, corpus: Corpus): Example[] {
   return out;
 }
 
+/**
+ * Whether the player has anything to reason from at the gap at `b`: the box's givens, context
+ * carried over from the box before, earlier lines of the working, or a lead-in to this line. A box
+ * whose givens live only in a figure (a rate tree) would otherwise open on a blind guess.
+ */
+export function hasBasis(ex: Example, b: number): boolean {
+  if (ex.prompt.length > 0 || ex.context.length > 0) return true;
+  if (ex.moves[b]?.lead.length) return true;
+  return ex.moves.slice(0, b).some((x) => x.body.length > 0 || x.lead.length > 0);
+}
+
 /** Every gap in the reading that has two honest wrong moves, grouped by example in move order. */
 export function readingCandidates(reading: Reading, corpus: Corpus): Candidate[][] {
   const own = readingExamples(reading);
@@ -501,7 +512,8 @@ export function readingCandidates(reading: Reading, corpus: Corpus): Candidate[]
   for (const ex of own) {
     const group: Candidate[] = [];
     ex.moves.forEach((m, b) => {
-      if (!m.blankable) return;
+      // A gap needs something to work from; a box whose givens sit in a figure is played from its second line.
+      if (!m.blankable || !hasBasis(ex, b)) return;
       let pool = distractorPool(ex, b, [own]);
       // Reach into the area when the reading alone cannot give a wrong move from another example.
       if (poolSize(pool) < 2 || pool.other.every((t) => t.length === 0)) {

@@ -12,7 +12,7 @@ import { GameButton, GameCard, TimerBar } from '../../theme/primitives';
 import type { Axis, ParamSpec } from './maths';
 import { chartLayout, closeness, decimalsOf, fmt, onGrid, sample, shapeReport, snaps } from './maths';
 import type { CurvePayload } from './build';
-import { capitalise, derivedExplanation, meaningOf, paramLabel } from './build';
+import { capitalise, derivedExplanation, lowerFirst, meaningOf, paramLabel } from './build';
 import type { CurveItem } from './schema';
 import './curve-sculptor.css';
 
@@ -427,7 +427,7 @@ function Round({
 
       <figure className="space-y-2">
         <figcaption className="cs-chart-title">
-          {capitalise(axisTitle(item.y))} against {axisTitle(item.x).toLowerCase()}
+          {capitalise(axisTitle(item.y))} against {lowerFirst(axisTitle(item.x))}
         </figcaption>
         <div className="cs-axis-title">↑ {axisTitle(item.y)}</div>
         <CurveChart item={item} params={params} startParams={p.startParams} status={status} warmth={warmth} clipId={`cs-clip-${round.id.replace(/[^A-Za-z0-9_-]/g, '_')}`} />
@@ -473,7 +473,7 @@ function Round({
       {status === 'snapped' && (
         <div className="g-assemble space-y-3 border-l-[3px] pl-4" style={{ borderColor: 'var(--g-green)' }}>
           <p className="cs-text">
-            <span className="g-strong">Snapped.</span> The {culpritLabel.toLowerCase()} was the setting out of place.
+            <span className="g-strong">Snapped.</span> The {lowerFirst(culpritLabel)} was the setting out of place.
           </p>
           <ul className="cs-text space-y-1">
             {brokenLines.map(({ w, m }) => (
@@ -492,7 +492,7 @@ function Round({
           <p className="cs-note">{timedOut ? 'Time ran out.' : 'Here is the notes’ curve.'}</p>
           <div className="cs-hold-right space-y-3" style={{ '--cs-delay': `${HOLD_MS}ms` } as CSSProperties} aria-live="polite">
             <p className="cs-text">
-              <span className="g-strong">The {culpritLabel.toLowerCase()}</span> was the setting out of place.
+              <span className="g-strong">The {lowerFirst(culpritLabel)}</span> was the setting out of place.
             </p>
             <ul className="cs-text space-y-1">
               {brokenLines.map(({ w, m }) => (
