@@ -29,6 +29,8 @@ export interface ClozePayload {
   firstLetter: string;
   /** Title of the source block, if it has a non-generic one. */
   blockTitle: string | null;
+  /** Position of the sentence in the reading (document order). */
+  order: number;
 }
 
 export const MIN_LINK = 3;
@@ -78,6 +80,11 @@ const DIRECTION_PAIRS: [string, string, DirForm][] = [
   ['above', 'below', 'prep'],
   ['before', 'after', 'prep'],
   ['inflows', 'outflows', 'noun'],
+  // Second antonyms: "reduce" pairs with "increase", which keeps "decrease" as its own first antonym.
+  ['reduces', 'increases', 'verb'],
+  ['reduce', 'increase', 'verb-base'],
+  ['reduced', 'increased', 'verb-ed'],
+  ['raises', 'lowers', 'verb'],
 ];
 const DIR_INFO = new Map<string, { antonym: string; form: DirForm }>();
 for (const [a, b, form] of DIRECTION_PAIRS) {
@@ -467,9 +474,16 @@ function titleOf(b: Block): string | null {
 function toCandidate(s: string, t: Target, block: Block, objectiveId: string, readingId: string, order: number): Candidate | null {
   if (!answerOk(t.answer, t.kind)) return null;
   // A trap box's leading label ("\term{Sibling.}", "\textbf{Polarity:}") names the trap shape, not content.
-  if (block.type === 'trapbox' && (t.kind === 'term' || t.kind === 'bold') && !s.slice(0, t.start).trim() && /^[.:]/.test(s.slice(t.end).trim() || toDisplay(s.slice(t.start, t.end)).slice(-1))) {
+  if (
+    block.type === 'trapbox' &&
+    (t.kind === 'term' || t.kind === 'bold') &&
+    !s.slice(0, t.start).trim() &&
+    (/[.:]$/.test(toDisplay(s.slice(t.start, t.end))) || /^[.:]/.test(s.slice(t.end).trim()))
+  ) {
     return null;
   }
+  // A marked word that is itself a direction ("\textbf{falls}") is drilled as one: antonym first.
+  const kind: ClozeKind = (t.kind === 'term' || t.kind === 'bold') && DIR_INFO.has(t.answer.toLowerCase()) ? 'direction' : t.kind;
   const tail = t.kind === 'term' || t.kind === 'bold' ? stripTrailingPunct(toDisplay(s.slice(t.start, t.end))).punct : '';
   const before = s.slice(0, t.start);
   const after = (tail ? tail + ' ' : '') + s.slice(t.end);
@@ -481,7 +495,7 @@ function toCandidate(s: string, t: Target, block: Block, objectiveId: string, re
   if (accept.some((a) => key(a).length >= 2 && restKey.includes(` ${key(a)} `))) return null;
   return {
     itemId: t.itemId,
-    kind: t.kind,
+    kind,
     blockId: block.id,
     objectiveId,
     readingId,
@@ -615,8 +629,16 @@ function chooseTargets(sentences: readonly Sentence[], input: Pick<BuildInput, '
 }
 
 /** Candidates grouped by objective, in reading order; objectives with fewer than MIN_LINK dropped. */
-function threads(reading: Reading, input: Pick<BuildInput, 'srs' | 'today' | 'rng'> | null): { objective: Objective; links: Candidate[] }[] {
-  const chosen = chooseTargets(readingSentences(reading), input);
+function threads(
+  reading: Reading,
+  corpus: Corpus,
+  input: Pick<BuildInput, 'srs' | 'today' | 'rng'> | null,
+): { objective: Objective; links: Candidate[] }[] {
+  // Only blanks that can offer the three-choice cue are playable.
+  const playable = readingSentences(reading)
+    .map((s) => ({ ...s, targets: s.targets.filter((t) => hasOptions(t, reading, corpus)) }))
+    .filter((s) => s.targets.length > 0);
+  const chosen = chooseTargets(playable, input);
   const out: { objective: Objective; links: Candidate[] }[] = [];
   for (const o of reading.objectives) {
     const links = chosen.filter((c) => c.objectiveId === o.id);
@@ -642,8 +664,8 @@ function linkScore(c: Candidate, input: Pick<BuildInput, 'srs' | 'today'> | null
  * thread continues under pressure); else two objectives, the second following the first. Windows
  * are scored by due items (3) and unseen items (1); lettered LOs are preferred over intro sections.
  */
-function planChain(reading: Reading, input: BuildInput | null): ChainPlan | null {
-  const ts = threads(reading, input);
+function planChain(reading: Reading, corpus: Corpus, input: BuildInput | null): ChainPlan | null {
+  const ts = threads(reading, corpus, input);
   const rng = input?.rng ?? (() => 0);
   const plans: ChainPlan[] = [];
   const loBonus = (o: Objective) => (isLearningObjective(o) ? 2 : 0);
@@ -686,12 +708,12 @@ function planChain(reading: Reading, input: BuildInput | null): ChainPlan | null
 const supportCache = new WeakMap<Reading, boolean>();
 
 /** True when some objective (or two) carries a full chain of at least six linked sentences. */
-export function supportsCloze(reading: Reading): boolean {
+export function supportsCloze(reading: Reading, corpus: Corpus): boolean {
   const hit = supportCache.get(reading);
   if (hit !== undefined) return hit;
   let ok = false;
   try {
-    const plan = planChain(reading, null);
+    const plan = planChain(reading, corpus, null);
     ok = !!plan && plan.discovery.length >= MIN_LINK && plan.pressure.length >= MIN_LINK;
   } catch {
     ok = false;
@@ -758,7 +780,7 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
   const tiers: (() => Candidate[])[] = [
     () => sameReading.filter((t) => t.objectiveId === c.objectiveId),
     () => sameReading.filter((t) => t.objectiveId !== c.objectiveId),
-    () => shuffle(areaReadings, rng).slice(0, 6).flatMap(allTargets),
+    () => areaReadings.flatMap(allTargets),
   ];
   const wantNumber = c.kind === 'number';
   const wc = words(c.answer).length;
@@ -773,6 +795,17 @@ function distractorsFor(c: Candidate, reading: Reading, corpus: Corpus, rng: () 
   return chosen.length === 2 ? shuffle([c.answer, ...chosen], rng) : null;
 }
 
+const optionsCache = new WeakMap<Candidate, boolean>();
+
+/** Whether a blank can offer its three-choice cue (independent of the shuffle). */
+function hasOptions(c: Candidate, reading: Reading, corpus: Corpus): boolean {
+  const hit = optionsCache.get(c);
+  if (hit !== undefined) return hit;
+  const ok = distractorsFor(c, reading, corpus, () => 0) !== null;
+  optionsCache.set(c, ok);
+  return ok;
+}
+
 function firstLetterOf(answer: string): string {
   const m = /[\p{L}\p{N}]/u.exec(answer);
   return m ? m[0] : answer.slice(0, 1);
@@ -784,7 +817,7 @@ export function toPayload(c: Candidate, reading: Reading, corpus: Corpus, rng: (
   const reject = options.filter((o) => o !== c.answer);
   const dir = c.kind === 'direction' ? DIR_INFO.get(c.answer.toLowerCase()) : undefined;
   if (dir && !reject.includes(dir.antonym)) reject.push(dir.antonym);
-  if (c.foil) reject.push(c.foil);
+  if (c.foil && !reject.includes(c.foil)) reject.push(c.foil);
   return {
     kind: c.kind,
     before: c.before,
@@ -800,6 +833,7 @@ export function toPayload(c: Candidate, reading: Reading, corpus: Corpus, rng: (
     options,
     firstLetter: firstLetterOf(c.answer),
     blockTitle: c.blockTitle,
+    order: c.order,
   };
 }
 
@@ -848,7 +882,7 @@ function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
 }
 
 export function buildCloze(reading: Reading, input: BuildInput): MechanicPlan<ClozePayload> | null {
-  const chain = planChain(reading, input);
+  const chain = planChain(reading, input.corpus, input);
   if (!chain) return null;
   const toRounds = (cs: readonly Candidate[], phase: 'discovery' | 'pressure'): MechanicRound<ClozePayload>[] => {
     const out: MechanicRound<ClozePayload>[] = [];

@@ -1,12 +1,12 @@
 // Round builders: everything random about a round (option order, numbers, which variable) is decided
 // here once, so a round renders the same after a re-render or a detour away from the screen.
-import { formatNumber, substituteReadable } from './expr';
 import { MEMORY_PAIRS, canPlay } from './games';
 import type { DeckIndex } from './games';
 import { highlightSymbol, normTex, skeletonSlots, symbolBase } from './latex';
 import { pickOne, randInt, shuffle } from './random';
 import { texValid } from './tex';
 import type { Formula, FormulaGame, RepairCategory } from './types';
+import { MAX_WORKED_CHARS, exampleLine } from './worked';
 import { newId } from '../store/session';
 
 interface Base {
@@ -71,21 +71,6 @@ export function parseAnswer(raw: string): number | null {
   if (!/^-?(\d+\.?\d*|\.\d+)(e-?\d+)?$/i.test(s)) return null;
   const v = Number(s);
   return Number.isFinite(v) ? v : null;
-}
-
-export function unitSuffix(unit: string): string {
-  const u = unit.trim();
-  if (!u || u.toLowerCase() === 'decimal') return '';
-  return u === '%' ? '%' : ` ${u}`;
-}
-
-/** "100 × 0.068 ÷ 0.084 = 80.95 $M" for a formula's own example; null when it has none. */
-export function exampleLine(f: Formula): string | null {
-  const c = f.calc;
-  if (!c?.example) return null;
-  const sub = substituteReadable(c.expr, c.example.inputs);
-  if (!sub) return null;
-  return `${sub} = ${formatNumber(c.example.output, c.output.decimals)}${unitSuffix(c.output.unit)}`;
 }
 
 // ---- Builders ----
@@ -196,14 +181,17 @@ function words(s: string): Set<string> {
   );
 }
 
-/** Word-overlap similarity, used to keep near-synonyms out of one option set. */
+/**
+ * Word-overlap similarity (shared content words over the shorter definition), used to keep near-synonyms
+ * out of one option set: "number of observations" vs "number of samples (observations in the window)" = 1.
+ */
 export function similarity(a: string, b: string): number {
   const wa = words(a);
   const wb = words(b);
   if (wa.size === 0 || wb.size === 0) return a.trim().toLowerCase() === b.trim().toLowerCase() ? 1 : 0;
   let common = 0;
   for (const w of wa) if (wb.has(w)) common++;
-  return common / (wa.size + wb.size - common);
+  return common / Math.min(wa.size, wb.size);
 }
 
 function buildAuction(f: Formula, index: DeckIndex): Round | null {
@@ -240,8 +228,8 @@ function buildAuction(f: Formula, index: DeckIndex): Round | null {
     candidates.sort((a, b) => b.score - a.score);
     for (const c of candidates) {
       if (picked.length >= 3) break;
-      if (similarity(c.meaning, target.meaning) >= 0.6) continue;
-      if (picked.some((p) => similarity(p, c.meaning) >= 0.6)) continue;
+      if (similarity(c.meaning, target.meaning) >= 0.5) continue;
+      if (picked.some((p) => similarity(p, c.meaning) >= 0.5)) continue;
       picked.push(c.meaning);
     }
     if (picked.length >= 3) break;
@@ -302,7 +290,7 @@ export function buildMemory(candidates: Formula[], index: DeckIndex, numbers: bo
     if (chosen.length >= MEMORY_PAIRS) break;
     if (!canPlay('memory', f, index, { numbers })) continue;
     if (numbers) {
-      const line = pickOne(f.worked)?.display ?? exampleLine(f);
+      const line = pickOne(f.worked.filter((w) => w.display.length <= MAX_WORKED_CHARS))?.display ?? exampleLine(f);
       if (!line || texts.has(line)) continue;
       texts.add(line);
       chosen.push({ f, text: line });

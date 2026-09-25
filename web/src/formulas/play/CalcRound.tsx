@@ -2,7 +2,8 @@ import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Check } from 'lucide-react';
 import { formatNumber, substituteReadable } from '../expr';
-import { parseAnswer, unitSuffix, withinTolerance } from '../rounds';
+import { parseAnswer, withinTolerance } from '../rounds';
+import { MAX_WORKED_CHARS, unitSuffix } from '../worked';
 import type { Round } from '../rounds';
 import type { RoundResult } from '../run';
 import { elapsedSeconds, submitRound } from '../submit';
@@ -22,7 +23,9 @@ export function CalcRound({ round, formula, result }: { round: Extract<Round, { 
   const { decimals, unit, symbol } = calc.output;
   const suffix = unitSuffix(unit);
   const answerText = `${formatNumber(round.answer, decimals)}${suffix}`;
-  const worked = substituteReadable(calc.expr, round.values);
+  // Series approximations (e.g. a normal CDF) make an unreadable line; those show only the answer.
+  const sub = substituteReadable(calc.expr, round.values);
+  const worked = sub && sub.length <= MAX_WORKED_CHARS * 2 ? sub : null;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();

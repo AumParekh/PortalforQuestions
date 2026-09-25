@@ -15,19 +15,20 @@ export type SessionSize = 10 | 20 | 'all';
 const WORKOUT_GAMES = GAMES.filter((g) => g.inWorkout).map((g) => g.id) as Exclude<FormulaGame, 'memory'>[];
 
 /**
- * Priority for a session: due (most overdue first), then never seen, then the weakest of the rest.
- * Ties shuffle, so repeated sessions over the same scope don't replay one order.
+ * Priority for a session: due (most overdue first), then weak (last answer wrong, or under 60% right),
+ * then never seen, then the rest by accuracy. Ties shuffle, so repeated sessions don't replay one order.
  */
 export function prioritise(formulas: Formula[], states: Record<string, GymState>, today = localDay()): Formula[] {
   const rank = (f: Formula): [number, string, number] => {
     const s = states[f.id];
-    if (!s || s.totalAttempts === 0) return [1, '', 0];
-    if (isDue(s, today)) return [0, s.dueDate ?? '', 0];
+    if (!s || s.totalAttempts === 0) return [2, '', 0];
     const accuracy = s.totalCorrect / Math.max(1, s.totalAttempts);
-    return [2, s.dueDate ?? '', accuracy];
+    if (isDue(s, today)) return [0, s.dueDate ?? '', accuracy];
+    if (s.lastResult === 'wrong' || accuracy < 0.6) return [1, s.dueDate ?? '', accuracy];
+    return [3, s.dueDate ?? '', accuracy];
   };
   const keyed = shuffle(formulas).map((f) => ({ f, r: rank(f) }));
-  keyed.sort((a, b) => a.r[0] - b.r[0] || (a.r[0] === 2 ? a.r[2] - b.r[2] : 0) || a.r[1].localeCompare(b.r[1]));
+  keyed.sort((a, b) => a.r[0] - b.r[0] || a.r[1].localeCompare(b.r[1]) || a.r[2] - b.r[2]);
   return keyed.map((k) => k.f);
 }
 
@@ -35,16 +36,20 @@ function take<T>(items: T[], size: SessionSize | number): T[] {
   return size === 'all' ? items : items.slice(0, size);
 }
 
-/** Workout's pick for one formula: first meetings are Recall; otherwise the least recent, least played game. */
+// Games that show or rebuild the whole formula: a slight preference when a formula is met for the first time.
+const FIRST_MEETING = new Set<FormulaGame>(['recall', 'forge', 'symbols', 'rigged']);
+
+/** Workout's games for one formula, best first: ones it has data for and hasn't met lately, varied across the session. */
 function workoutGame(f: Formula, state: GymState | undefined, index: DeckIndex, planned: Map<string, number>): Exclude<FormulaGame, 'memory'>[] {
-  if (!state || state.totalAttempts === 0) return ['recall'];
   const options = WORKOUT_GAMES.filter((g) => canPlay(g, f, index));
+  const fresh = !state || state.totalAttempts === 0;
   const scored = options.map((g) => {
-    const recent = state.recentGames.indexOf(g);
+    const recent = state ? state.recentGames.indexOf(g) : -1;
     const score =
       (recent >= 0 ? 10 - 2 * recent : 0) + // recently drilled in this game: avoid
-      (state.gameCounts[g] ?? 0) * 0.5 + // lifetime balance across games
+      (state?.gameCounts[g] ?? 0) * 0.5 + // lifetime balance across games
       (planned.get(g) ?? 0) * 0.8 + // variety within this session
+      (fresh && FIRST_MEETING.has(g) ? -0.5 : 0) +
       Math.random() * 0.6;
     return { g, score };
   });

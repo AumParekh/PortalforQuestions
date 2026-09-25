@@ -1,4 +1,5 @@
 import type { Formula, FormulaGame, FormulaTwin } from './types';
+import { MAX_WORKED_CHARS, exampleLine } from './worked';
 
 export interface GameInfo {
   id: FormulaGame;
@@ -94,7 +95,7 @@ export function canPlay(game: FormulaGame, f: Formula, index: DeckIndex, opts: {
     case 'twins':
       return (index.twinsOf[f.id] ?? []).some((t) => index.byId[t.a] && index.byId[t.b]);
     case 'memory':
-      return opts.numbers ? f.worked.length > 0 || !!f.calc?.example : f.variables.length > 0;
+      return opts.numbers ? f.worked.some((w) => w.display.length <= MAX_WORKED_CHARS) || exampleLine(f) !== null : f.variables.length > 0;
     case 'repair':
       return f.corruptions.some((c) => c.repair) || (f.skeleton !== '' && f.decoys.length > 0);
     case 'auction':

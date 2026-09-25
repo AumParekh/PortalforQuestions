@@ -11,9 +11,11 @@ import { SummaryScreen } from './screens/SummaryScreen';
 import { DevLongestScreen } from './screens/DevLongestScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
 import { TrueFalseScreen } from './screens/TrueFalseScreen';
+import { FormulaGymScreen } from './formulas/FormulaGymScreen';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useTf } from './store/tf';
+import { useGym } from './formulas/storage';
 import { OutdatedBanner } from './components/OutdatedBanner';
 
 function Skeleton() {
@@ -45,6 +47,8 @@ function Routes() {
     load();
     initPersistence();
     useTf.getState().loadProgress();
+    // Formula Gym answers count toward the streak on Home, so load them up front too.
+    useGym.getState().load();
   }, [load]);
 
   // A restored session may reference questions a content update removed; drop them rather than strand the user.
@@ -93,6 +97,8 @@ function Routes() {
       return <ReviewWrongScreen />;
     case '/truefalse':
       return <TrueFalseScreen />;
+    case '/formulas':
+      return <FormulaGymScreen />;
     case '/analytics':
       return <AnalyticsScreen />;
     case '/settings':

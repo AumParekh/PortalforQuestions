@@ -12,7 +12,7 @@ export const plugin: MechanicPlugin<ClozePayload> = {
   id: 'cloze-chain',
   title: 'Cloze Chain',
   frames: ['signal-room', 'heist-debrief', 'museum-tour', 'swearing-in', 'field-guide'],
-  supports: (reading) => supportsCloze(reading),
+  supports: (reading, corpus) => supportsCloze(reading, corpus),
   build: (reading, ctx) => buildCloze(reading, ctx),
   name: (plan, discovery, { reading }) => nameAfterDiscovery(reading, plan, discovery),
   Render: ClozeBoard,

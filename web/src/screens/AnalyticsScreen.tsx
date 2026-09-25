@@ -14,6 +14,7 @@ import { overallStats, streaks } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
+import { useGym } from '../formulas/storage';
 
 function TopBar() {
   return (
@@ -78,8 +79,12 @@ export function AnalyticsScreen() {
   const subjectQuestions = useContent((s) => s.subjectQuestions);
   const byId = useContent((s) => s.byId);
   const tfAttempts = useTf((s) => s.attempts);
-  // True/False answers count toward study days, matching the streak on Home.
-  const studyEvents = useMemo(() => [...attempts, ...tfAttempts], [attempts, tfAttempts]);
+  const gymAttempts = useGym((s) => s.attempts);
+  // True/False and Formula Gym answers count toward study days, matching the streak on Home.
+  const studyEvents = useMemo(
+    () => [...attempts, ...tfAttempts, ...gymAttempts.map((a) => ({ timestamp: a.timestamp, isCorrect: a.correct }))],
+    [attempts, tfAttempts, gymAttempts],
+  );
 
   const day = useToday();
   // Recomputed when the local date rolls over so "today" and the 30-day window stay current on long-lived tabs.

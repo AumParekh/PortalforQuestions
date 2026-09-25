@@ -187,7 +187,7 @@ export function substituteReadable(expr: string, values: Record<string, number>)
     const unary = t.kind === 'op' && t.text === '-' && (!prev || prev.kind === 'op' || prev.text === '(' || prev.kind === 'comma');
     if (t.kind === 'name') {
       const v = values[t.text];
-      parts.push(v < 0 ? `(${formatNumber(v, 6)})` : formatNumber(v, 6));
+      parts.push(v < 0 ? `(−${formatNumber(-v, 6)})` : formatNumber(v, 6));
     } else if (t.kind === 'math') parts.push(MATH_LABELS[t.member] ?? t.member);
     else if (t.kind === 'op') {
       if (unary) parts.push('−');

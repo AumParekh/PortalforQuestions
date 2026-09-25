@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, History, Info, Play, PlayCircle, Settings, Trophy, Zap } from 'lucide-react';
+import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
@@ -15,6 +15,7 @@ import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQues
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
+import { useGym } from '../formulas/storage';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
 
@@ -138,8 +139,9 @@ export function HomeScreen() {
   const attempts = useProgress((s) => s.attempts);
   const tfAttempts = useTf((s) => s.attempts);
   const tfCount = useTf((s) => s.cards.length);
-  // True/False answers count as study activity for the streak and today's goal.
-  const studyEvents = useMemo(() => [...attempts, ...tfAttempts], [attempts, tfAttempts]);
+  const gymAttempts = useGym((s) => s.attempts);
+  // True/False and Formula Gym answers count as study activity for the streak and today's goal.
+  const studyEvents = useMemo(() => [...attempts, ...tfAttempts, ...gymAttempts], [attempts, tfAttempts, gymAttempts]);
   const progressStatus = useProgress((s) => s.status);
   const sessionStatus = useSession((s) => s.status);
   const answeredCount = useSession((s) => Object.keys(s.answers).length);
@@ -355,6 +357,12 @@ export function HomeScreen() {
             title="True / False"
             detail={tfCount > 0 ? `${tfCount.toLocaleString()} statements to judge` : 'Judge statements from your question bank'}
             onClick={() => navigate('/truefalse')}
+          />
+          <QuickAction
+            icon={<Sigma className="h-5 w-5" aria-hidden="true" />}
+            title="Formula Gym"
+            detail="Recall, rebuild and apply every formula in the notes"
+            onClick={() => navigate('/formulas')}
           />
           <QuickAction
             icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />}
