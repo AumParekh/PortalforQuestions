@@ -140,11 +140,15 @@ export function blockOf(item: CurveItem): string {
   return item.sourceBlock ?? item.id;
 }
 
-/** Just-in-time naming (§8.3): the shape word and the one setting that makes it. */
+/**
+ * Just-in-time naming (§8.3): the shape word and the setting the notes tie it to. Always the
+ * curated puzzle's setting: a derived puzzle's culprit (say the tilt of a smile) only has to be
+ * right for the word to show, it is not what the word means.
+ */
 export function namingFor(corpus: Corpus, reading: Reading, pz: Puzzle): ConceptNaming {
-  const words = wordList(pz.item.shapeWords.map((w) => `“${w}”`));
+  const words = wordList(pz.item.shapeWords.map((w, i) => `“${i === 0 ? capitalise(w) : w}”`));
   return {
-    term: `${capitalise(words)} is the ${lowerFirst(paramLabel(pz.item, pz.variant.param))}`,
+    term: `${words}: set by the ${lowerFirst(paramLabel(pz.item, pz.item.wrongParam))}`,
     blockId: blockOf(pz.item),
     objectiveId: objectiveOf(corpus, reading, pz.item),
     line: pz.item.description,

@@ -260,18 +260,44 @@ const segSlope = (ys: readonly number[], a: number, b: number) => {
   const j = pyRound(b * n);
   return (ys[j] - ys[i]) / Math.max(j - i, 1);
 };
-const pMeanReverting: Pred = (xs, ys, Y) => {
-  if (!monotoneMove(xs, ys, Y)) return false;
-  const d = diffs(ys).map(Math.abs);
-  for (let i = 1; i < d.length; i++) if (d[i] > d[i - 1] + 1e-9 * Y) return false;
-  const first = Math.abs(segSlope(ys, 0, 0.1));
-  const last = Math.abs(segSlope(ys, 0.9, 1));
-  return first > 0 && last <= 0.35 * first;
+type Mono = (xs: readonly number[], ys: readonly number[], Y: number) => boolean;
+const meanRevertingWith =
+  (mono: Mono): Pred =>
+  (xs, ys, Y) => {
+    if (!mono(xs, ys, Y)) return false;
+    const d = diffs(ys).map(Math.abs);
+    for (let i = 1; i < d.length; i++) if (d[i] > d[i - 1] + 1e-9 * Y) return false;
+    const first = Math.abs(segSlope(ys, 0, 0.1));
+    const last = Math.abs(segSlope(ys, 0.9, 1));
+    return first > 0 && last <= 0.35 * first;
+  };
+const levelsOffWith =
+  (mono: Mono): Pred =>
+  (xs, ys, Y) => {
+    if (!mono(xs, ys, Y)) return false;
+    return Math.abs(segSlope(ys, 0.9, 1)) <= 0.35 * Math.abs(segSlope(ys, 0, 1));
+  };
+const pMeanReverting: Pred = meanRevertingWith(monotoneMove);
+const pLevelsOff: Pred = levelsOffWith(monotoneMove);
+/** Monotone with any visible move (0.1% of the canvas): the size-free reading of the move clause. */
+const monotoneAnyMove: Mono = (_xs, ys, Y) => {
+  const d = diffs(ys);
+  const up = Math.min(...d) >= -1e-6 * Y;
+  const down = Math.max(...d) <= 1e-6 * Y;
+  return (up || down) && Math.abs(ys[ys.length - 1] - ys[0]) >= 1e-3 * Y;
 };
-const pLevelsOff: Pred = (xs, ys, Y) => {
-  if (!monotoneMove(xs, ys, Y)) return false;
-  return Math.abs(segSlope(ys, 0.9, 1)) <= 0.35 * Math.abs(segSlope(ys, 0, 1));
+/**
+ * Words about HOW a curve moves, not how far: the same predicates with the 8%-of-canvas move
+ * requirement dropped. A derived start that still passes these only "breaks" the word because its
+ * gap is small (e.g. a Vasicek path starting just above theta is still mean-reverting).
+ */
+const SIZE_FREE: Readonly<Record<string, Pred>> = {
+  'mean-reverting': meanRevertingWith(monotoneAnyMove),
+  'levels-off': levelsOffWith(monotoneAnyMove),
 };
+/** Words read from the moments of a density, which a canvas that cuts off a tail can distort. */
+const MOMENT_WORDS = new Set(['right-skewed', 'left-skewed', 'negatively-skewed', 'symmetric', 'fat-tailed']);
+
 const pCapped: Pred = (_xs, ys, Y) => {
   const m = Math.max(...ys);
   return ys.filter((v) => v >= m - 0.01 * Y).length >= 0.1 * ys.length;
@@ -541,9 +567,18 @@ function outerShare(xs: readonly number[], ys: readonly number[], mu: number, sd
  *    zero), when every word it breaks is invariant under that map (the shape is identical; only
  *    the size moved);
  *  - a start that "breaks" fat-tailed while putting MORE weight far from the centre than the notes'
- *    curve (an artefact of computing kurtosis on a truncated canvas).
+ *    curve (an artefact of computing kurtosis on a truncated canvas);
+ *  - a start that breaks only mean-reverting / levels-off while still moving that way across a
+ *    smaller gap (the move-size clause, not the dynamics);
+ *  - a start that breaks only moment words (skew, symmetric, fat-tailed) but shows them once the
+ *    x-range is widened, i.e. the canvas edge was cutting off its tail (needs `startParams`).
  */
-export function thresholdArtefact(spec: CurveSpec, targetYs: readonly number[], startYs: readonly number[]): boolean {
+export function thresholdArtefact(
+  spec: CurveSpec,
+  targetYs: readonly number[],
+  startYs: readonly number[],
+  startParams?: Readonly<Record<string, number>>,
+): boolean {
   const Y = spec.y.max - spec.y.min;
   const report = shapeReport(spec, startYs);
   const broken = spec.shapeWords.filter((w) => !report[w]);
@@ -586,6 +621,18 @@ export function thresholdArtefact(spec: CurveSpec, targetYs: readonly number[], 
       if (outerShare(xs, startYs, mu, sd) >= outerShare(xs, targetYs, mu, sd)) return true;
     }
   }
+  // Mean-reverting / levels-off: the start still moves that way, just across a smaller gap.
+  const xsGrid = grid(spec.x, n);
+  if (broken.every((w) => SIZE_FREE[w]?.(xsGrid, startYs, Y) === true)) return true;
+  // Moment words: judge the start on an x-range five times as wide. If it shows the word there,
+  // the canvas edge was cutting off its tail (e.g. sliding a skewed density toward one edge).
+  if (startParams && broken.every((w) => MOMENT_WORDS.has(w))) {
+    const span = spec.x.max - spec.x.min;
+    const m = 5 * (N_GRID - 1) + 1;
+    const wideXs = Array.from({ length: m }, (_, i) => spec.x.min - 2 * span + (5 * span * i) / (m - 1));
+    const wideYs = wideXs.map((x) => spec.fn(x, startParams));
+    if (wideYs.every((v) => Number.isFinite(v) && v >= 0) && broken.every((w) => SHAPES[w](wideXs, wideYs, Y))) return true;
+  }
   return false;
 }
 
@@ -620,7 +667,7 @@ export function deriveVariants(spec: CurveSpec, curated: { param: string; start:
         if (!ok && run.length === 0 && k > win + 1) break; // left the canvas before breaking
       }
       const usable = run.filter(
-        (r) => r.k >= 2 && r.dist >= MIN_START_GAP * Y && !thresholdArtefact(spec, targetYs, sample(spec, withParam(spec.target, p.name, r.v))),
+        (r) => r.k >= 2 && r.dist >= MIN_START_GAP * Y && !thresholdArtefact(spec, targetYs, sample(spec, withParam(spec.target, p.name, r.v)), withParam(spec.target, p.name, r.v)),
       );
       if (!usable.length) continue;
       const pick = usable[Math.floor((usable.length - 1) / 2)];
