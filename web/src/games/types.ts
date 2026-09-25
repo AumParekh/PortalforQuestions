@@ -249,7 +249,14 @@ export type MechanicId =
   | 'formula-from-memory'
   | 'interleaved-gauntlet'
   | 'explain-it-back'
-  | 'pin-the-note';
+  | 'pin-the-note'
+  // visual additions (user request)
+  | 'curve-sculptor'
+  | 'tree-racer'
+  | 'tail-shaper'
+  | 'waterfall-builder'
+  | 'frontier-rider'
+  | 'grid-settler';
 
 export type MechanicFamily = 'detection' | 'structural' | 'relational' | 'application' | 'explorable' | 'assessment' | 'retention';
 
@@ -292,6 +299,12 @@ export const MECHANIC_CATALOGUE: readonly { id: MechanicId; name: string; family
   { id: 'interleaved-gauntlet', name: 'Interleaved Gauntlet', family: 'retention' },
   { id: 'explain-it-back', name: 'Explain It Back', family: 'retention' },
   { id: 'pin-the-note', name: 'Pin the Note', family: 'retention' },
+  { id: 'curve-sculptor', name: 'Curve Sculptor', family: 'explorable' },
+  { id: 'tree-racer', name: 'Tree Racer', family: 'explorable' },
+  { id: 'tail-shaper', name: 'Tail Shaper', family: 'explorable' },
+  { id: 'waterfall-builder', name: 'Waterfall Builder', family: 'structural' },
+  { id: 'frontier-rider', name: 'Frontier Rider', family: 'explorable' },
+  { id: 'grid-settler', name: 'Grid Settler', family: 'structural' },
 ];
 
 const NAME_BY_ID = Object.fromEntries(MECHANIC_CATALOGUE.map((m) => [m.id, m.name])) as Record<MechanicId, string>;

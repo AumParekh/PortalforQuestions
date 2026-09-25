@@ -22,6 +22,11 @@ export interface Corpus {
   /** Category → trap IDs; taken from the file when present, else rebuilt. */
   trapIndex: Record<TrapCategory, string[]>;
   objectiveCount: number;
+  /**
+   * Curated per-mechanic data from content/games/mechanics/<mechanic-id>.json, keyed by the
+   * mechanic id. Each mechanic validates its own shape; absent when the file doesn't exist.
+   */
+  extras: Record<string, unknown>;
 }
 
 const CATEGORY_ALIASES: Record<string, TrapCategory> = {
@@ -111,7 +116,7 @@ export function normaliseReading(r: Reading, key: string): Reading {
   };
 }
 
-export function buildCorpus(raw: GameBlocks): Corpus {
+export function buildCorpus(raw: GameBlocks, extras: Record<string, unknown> = {}): Corpus {
   if (!raw || typeof raw !== 'object' || !raw.readings || typeof raw.readings !== 'object') {
     throw new Error('game-blocks.json has no readings');
   }
@@ -167,6 +172,7 @@ export function buildCorpus(raw: GameBlocks): Corpus {
     subItemById,
     trapIndex,
     objectiveCount,
+    extras,
   };
 }
 
