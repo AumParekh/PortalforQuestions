@@ -7,6 +7,8 @@ import { navigate } from '../lib/router';
 import type { MechanicId, Reading, SessionLog, SessionTrigger } from './types';
 import { AREA_NAMES, MECHANIC_CATALOGUE, TRAP_CATEGORIES, mechanicIdFromName } from './types';
 import type { Corpus } from './corpus';
+import { learningObjectives } from './corpus';
+import { toDisplay } from './text';
 import { useGameData } from './data';
 import { useGameProgress } from './progress';
 import { MECHANICS, getMechanic } from './mechanics';
@@ -119,7 +121,8 @@ function CoverageBar({ closed, total }: { closed: number; total: number }) {
 function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => void; onBack: () => void }) {
   const { reading, plan, frame } = setup;
   const closing = new Set(plan.rounds.map((r) => r.objectiveId).filter(Boolean));
-  const carry = reading.objectives.filter((o) => !closing.has(o.id));
+  const los = learningObjectives(reading);
+  const carry = los.filter((o) => !closing.has(o.id));
   return (
     <div className="g-enter space-y-6">
       <Header title="Next session" onBack={onBack} />
@@ -130,7 +133,7 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
       <GameCard className="space-y-4">
         <div className="g-kicker">Tick-check · {reading.reading_id}</div>
         <ul className="space-y-2">
-          {reading.objectives.map((o) => {
+          {los.map((o) => {
             const on = closing.has(o.id);
             return (
               <li key={o.id} className="flex gap-3">
@@ -140,7 +143,7 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
                   style={{ borderColor: 'var(--g-navy)', background: on ? 'var(--g-navy)' : 'transparent' }}
                 />
                 <span className={on ? '' : 'g-muted'}>
-                  <span className="g-strong">{o.id}</span> <span className="g-serif">{o.text}</span>
+                  <span className="g-strong">{o.id}</span> <span className="g-serif">{toDisplay(o.text ?? '')}</span>
                   <span className="sr-only">{on ? ' (this session closes it)' : ' (carries over)'}</span>
                 </span>
               </li>
@@ -155,7 +158,7 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
       </GameCard>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="g-small g-muted">
-          Frame: {frame.title} · {plan.rounds.length} statements · about 5 minutes
+          Frame: {frame.title} · {plan.rounds.length} rounds · about 5 minutes
         </span>
         <GameButton variant="primary" onClick={onStart}>
           <Play className="h-4 w-4" aria-hidden="true" /> Start
@@ -190,9 +193,9 @@ function ReadingView({
           </span>
         </div>
         <ul className="space-y-2">
-          {reading.objectives.map((o) => (
+          {learningObjectives(reading).map((o) => (
             <li key={o.id} className={coverage[o.id] ? '' : 'g-muted'}>
-              <span className="g-strong">{o.id}</span> <span className="g-serif">{o.text}</span>
+              <span className="g-strong">{o.id}</span> <span className="g-serif">{toDisplay(o.text ?? '')}</span>
               {coverage[o.id] && <span className="g-chip is-green ml-2">closed</span>}
             </li>
           ))}

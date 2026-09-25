@@ -79,9 +79,21 @@ export interface TableRow {
   headers?: string[];
 }
 
+export interface CrossRef {
+  id?: string;
+  parent?: string;
+  /** Reading ID referred to, e.g. "MR-1". */
+  target: string;
+  lo?: string | null;
+  context?: string;
+}
+
 export interface Block {
   id: string;
   type: BlockType;
+  /** The source environment name (mrkeybox, lrtrapbox, …). */
+  env?: string;
+  section?: string | null;
   title?: string | null;
   subtype?: string | null;
   body_latex?: string;
@@ -98,14 +110,20 @@ export interface Block {
   section_headings?: SubItemLike[];
   variables?: VariableDef[];
   rows?: TableRow[];
-  cross_refs?: string[];
+  headers?: string[];
+  caption_latex?: string | null;
+  question_latex?: string | null;
+  solution_latex?: string | null;
+  steps?: unknown[];
+  cross_refs?: (string | CrossRef)[];
   cases?: string[];
   provenance?: unknown;
 }
 
 export interface Objective {
+  /** "a", "b", … for learning objectives; pseudo-objectives use words ("intro", "basics", "summary"). */
   letter: string;
-  text: string;
+  text: string | null;
   /** e.g. "LTR-1 a" */
   id: string;
   blocks: Block[];
@@ -115,7 +133,8 @@ export type TrapOrigin = 'trapbox' | 'summary' | 'mined';
 
 export interface Trap {
   id: string;
-  category: TrapCategory;
+  /** Null when the extractor could not categorise the trap ("Uncategorized" in trap_index). */
+  category: TrapCategory | null;
   raw_category?: string | null;
   text: string;
   plain_text?: string;
@@ -124,7 +143,14 @@ export interface Trap {
   source_block?: string | null;
   origin?: TrapOrigin | string;
   category_inferred?: boolean;
+  category_source?: string | null;
+  /** How correct/corrupted were split from the text, e.g. "X, not Y". */
+  split_rule?: string | null;
+  form?: string | null;
+  /** Objective reference, as "b" or "LTR-13 b". */
+  lo_ref?: string | null;
   objective?: string | null;
+  source_line?: number;
   hash?: string;
 }
 
@@ -147,8 +173,12 @@ export interface Reading {
   traps: Trap[];
   source_notes?: (SourceNote | string)[];
   mechanics_supported?: string[];
-  cross_refs?: string[];
+  mechanics_basis?: Record<string, unknown>;
+  cross_ref_targets?: string[];
   cases?: string[];
+  source_line?: number;
+  book?: string;
+  roi_rank?: number;
 }
 
 export interface CorrectionRow {
@@ -160,6 +190,9 @@ export interface CorrectionRow {
 export interface GameBlocks {
   version: string;
   generated?: string;
+  generator?: unknown;
+  block_types?: unknown;
+  trap_categories?: unknown;
   sources?: Record<string, { readings: number; lines: number }>;
   readings: Record<string, Reading>;
   trap_index?: Partial<Record<TrapCategory, string[]>> & Record<string, string[] | undefined>;
@@ -262,6 +295,11 @@ export const MECHANIC_CATALOGUE: readonly { id: MechanicId; name: string; family
 ];
 
 const NAME_BY_ID = Object.fromEntries(MECHANIC_CATALOGUE.map((m) => [m.id, m.name])) as Record<MechanicId, string>;
+
+/** Real learning objectives have a letter; "intro", "basics", "summary" sections do not count for coverage. */
+export function isLearningObjective(o: Pick<Objective, 'letter'>): boolean {
+  return /^[a-z]$/i.test(o.letter.trim());
+}
 
 export function mechanicName(id: MechanicId): string {
   return NAME_BY_ID[id] ?? id;

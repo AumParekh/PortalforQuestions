@@ -117,14 +117,16 @@ export function scheduledMechanic(sessionNumber: number): { id: MechanicId; reas
 }
 
 /**
- * Best reading for a mechanic: readings with due SRS items first, then highest SRC, then most
- * due items, then widest mechanics_supported, then display order. With a focus category, the
+ * Best reading for a mechanic: readings with due SRS items first; then readings not yet played
+ * with this mechanic (so rotation sweeps the corpus instead of cycling the top few); then highest
+ * SRC, most due items, widest mechanics_supported, display order. With a focus category, the
  * reading richest in that category's traps leads.
  */
 export function rankReadings(
   readings: readonly RotationReading[],
   dueByReading: Readonly<Record<string, number>> = {},
   focus: { category: TrapCategory; trapsByReading: Readonly<Record<string, Partial<Record<TrapCategory, number>>>> } | null = null,
+  playedWithMechanic: ReadonlySet<string> = new Set(),
 ): RotationReading[] {
   const order = new Map(readings.map((r, i) => [r.reading_id, i]));
   const focusCount = (r: RotationReading) => (focus ? (focus.trapsByReading[r.reading_id]?.[focus.category] ?? 0) : 0);
@@ -134,6 +136,7 @@ export function rankReadings(
     return (
       focusCount(b) - focusCount(a) ||
       Number(db > 0) - Number(da > 0) ||
+      Number(playedWithMechanic.has(a.reading_id)) - Number(playedWithMechanic.has(b.reading_id)) ||
       (b.src ?? 0) - (a.src ?? 0) ||
       db - da ||
       (b.mechanics_supported?.length ?? 0) - (a.mechanics_supported?.length ?? 0) ||
@@ -195,7 +198,13 @@ export function chooseSession(input: RotationInput): RotationChoice | null {
 
   const pickReading = (m: RotationMechanic, relaxR: boolean, focus: TrapCategory | null): string | null => {
     const pool = readings.filter((r) => m.supports(r.reading_id) && (relaxR || !recentR.has(r.reading_id)));
-    const ranked = rankReadings(pool, due, focus && input.trapsByReading ? { category: focus, trapsByReading: input.trapsByReading } : null);
+    const played = new Set(sessions.filter((s) => s.mechanic === m.id).map((s) => s.readingId));
+    const ranked = rankReadings(
+      pool,
+      due,
+      focus && input.trapsByReading ? { category: focus, trapsByReading: input.trapsByReading } : null,
+      played,
+    );
     return ranked[0]?.reading_id ?? null;
   };
 

@@ -3,7 +3,7 @@
 // correct_text + corrupted_text pairs make FLIPPED / SWAPPED items; a trap without a corrupted
 // version is used only as a TRUE item. Nothing is generated: every statement is a trap's own text.
 import type { Corpus } from '../../corpus';
-import { trapObjective } from '../../corpus';
+import { learningObjectives, subItemText, trapObjective } from '../../corpus';
 import type { ItemSrs, Reading, Trap, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
 import { diffTokens, emphasised, normWord, phrase, stripCategoryLead, toDisplay, tokenize } from '../../text';
@@ -16,7 +16,7 @@ export type Verdict = 'TRUE' | 'FLIPPED' | 'SWAPPED';
 export interface ShatterPayload {
   trapId: string;
   verdict: Verdict;
-  category: TrapCategory;
+  category: TrapCategory | null;
   /** The statement shown (LaTeX from the notes). */
   statement: string;
   tokens: Token[];
@@ -80,7 +80,7 @@ export function classifyCorruption(t: Trap): Corruption | null {
   const negation = (a.length === 0 && b.every((w) => NEGATIONS.has(w))) || (b.length === 0 && a.every((w) => NEGATIONS.has(w)));
   const antonym = a.length > 0 && a.length === b.length && a.every((w, i) => ANTONYM_OF.get(w) === b[i] || ANTONYM_OF.get(w) === b[b.length - 1 - i]);
   const signFlip = a.length > 0 && a.length === b.length && a.every((w, i) => /^[-+<>≤≥]$/.test(w) && /^[-+<>≤≥]$/.test(b[i]));
-  const flipped = negation || antonym || signFlip || FLIP_CATEGORIES.includes(t.category);
+  const flipped = negation || antonym || signFlip || (t.category !== null && FLIP_CATEGORIES.includes(t.category));
   return { verdict: flipped ? 'FLIPPED' : 'SWAPPED', correctTokens, corruptTokens, onlyCorrect: d.onlyA, onlyCorrupt: d.onlyB };
 }
 
@@ -94,31 +94,67 @@ function firstRun(idx: readonly number[]): number[] {
   return out;
 }
 
-function candidatePhrases(traps: readonly Trap[]): string[] {
+/** The phrase a corruption changed on each side (first contiguous run), if any. */
+function changedPhrases(t: Trap): string[] {
+  const c = classifyCorruption(t);
+  if (!c) return [];
+  return [phrase(c.correctTokens, firstRun(c.onlyCorrect)), phrase(c.corruptTokens, firstRun(c.onlyCorrupt))].filter(Boolean);
+}
+
+/** Exam vocabulary (\term spans) from the reading's blocks, the trap's own objective first. */
+export function readingTerms(corpus: Corpus, reading: Reading, t: Trap): string[] {
+  const own = t.source_block ? corpus.objectiveOfBlock[t.source_block] : undefined;
+  const objectives = [...reading.objectives].sort((a, b) => Number(b.id === own) - Number(a.id === own));
   const out: string[] = [];
-  for (const t of traps) for (const p of emphasised(trapBody(t, 'text'))) out.push(p);
+  for (const o of objectives) for (const b of o.blocks) for (const x of b.terms ?? []) out.push(toDisplay(subItemText(x)));
   return out;
 }
 
-/** Sibling candidates for a SWAPPED item: bold phrases from the trap itself, then its siblings. */
-export function swapOptions(t: Trap, answer: string, swappedIn: string, siblings: readonly Trap[], rng: () => number): string[] | null {
-  const key = (s: string) => s.split(/\s+/).map(normWord).join(' ');
+/**
+ * Sibling candidates for a SWAPPED item, drawn from the trap itself and its sibling traps: what
+ * other corruptions in the reading changed (same category first), then bold / term spans, then
+ * the reading's marked terms. Candidates of a similar length to the answer are preferred.
+ */
+export function swapOptions(
+  t: Trap,
+  answer: string,
+  swappedIn: string,
+  siblings: readonly Trap[],
+  rng: () => number,
+  terms: readonly string[] = [],
+): string[] | null {
+  const key = (x: string) => x.split(/\s+/).map(normWord).filter(Boolean).join(' ');
+  const words = (x: string) => x.split(/\s+/).length;
+  const maxWords = Math.max(4, words(answer) + 3);
   const seen = new Set([key(answer), key(swappedIn)]);
+  const others = siblings.filter((x) => x.id !== t.id);
+  const sameCat = others.filter((x) => t.category !== null && x.category === t.category);
+  const rest = others.filter((x) => !sameCat.includes(x));
+  const tiers = [
+    shuffle(sameCat.flatMap(changedPhrases), rng),
+    shuffle(rest.flatMap(changedPhrases), rng),
+    emphasised(trapBody(t, 'text')),
+    shuffle(others.flatMap((x) => emphasised(trapBody(x, 'text'))), rng),
+    terms.slice(0, 40),
+  ];
   const pool: string[] = [];
-  const sameCat = siblings.filter((s) => s.id !== t.id && s.category === t.category);
-  const others = siblings.filter((s) => s.id !== t.id && s.category !== t.category);
-  for (const p of [...candidatePhrases([t]), ...shuffle(candidatePhrases(sameCat), rng), ...shuffle(candidatePhrases(others), rng)]) {
-    const k = key(p);
-    if (!k || seen.has(k) || p.length > 70) continue;
-    seen.add(k);
-    pool.push(p);
-    if (pool.length === 3) break;
+  for (const tier of tiers) {
+    const fresh: string[] = [];
+    for (const p of tier) {
+      const k = key(p);
+      if (!k || seen.has(k) || p.length > 70 || words(p) > maxWords) continue;
+      seen.add(k);
+      fresh.push(p);
+    }
+    fresh.sort((a, b) => Math.abs(words(a) - words(answer)) - Math.abs(words(b) - words(answer)));
+    pool.push(...fresh.slice(0, 3 - pool.length));
+    if (pool.length >= 3) break;
   }
   if (pool.length === 0) return null;
   return shuffle([answer, ...pool], rng);
 }
 
-export function buildPayload(t: Trap, siblings: readonly Trap[], rng: () => number, asTrue: boolean): ShatterPayload {
+export function buildPayload(t: Trap, siblings: readonly Trap[], rng: () => number, asTrue: boolean, terms: readonly string[] = []): ShatterPayload {
   const c = asTrue ? null : classifyCorruption(t);
   if (!c) {
     const statement = trapBody(t, t.correct_text ? 'correct' : 'text');
@@ -140,7 +176,7 @@ export function buildPayload(t: Trap, siblings: readonly Trap[], rng: () => numb
   if (c.verdict === 'SWAPPED' && c.onlyCorrect.length) {
     const answer = phrase(c.correctTokens, firstRun(c.onlyCorrect));
     const swappedIn = phrase(c.corruptTokens, firstRun(c.onlyCorrupt));
-    const options = answer ? swapOptions(t, answer, swappedIn, siblings, rng) : null;
+    const options = answer ? swapOptions(t, answer, swappedIn, siblings, rng, terms) : null;
     if (answer && options) swap = { answer, options, swappedIn };
   }
   return {
@@ -198,13 +234,18 @@ export function namingFor(corpus: Corpus, reading: Reading, t: Trap): ConceptNam
   const title = block?.title && !GENERIC_TITLE.test(block.title) ? toDisplay(block.title) : null;
   const longest = phrases.sort((a, b) => b.length - a.length)[0];
   const term =
-    longest ?? (sentence.split(/\s+/).length <= 16 ? sentence.replace(/[.;:]+$/, '') : null) ?? title ?? `${t.category} trap`;
-  const objectiveId = trapObjective(corpus, t) ?? reading.objectives[reading.objectives.length - 1]?.id ?? reading.reading_id;
+    longest ?? (sentence.split(/\s+/).length <= 16 ? sentence.replace(/[.;:]+$/, '') : null) ?? title ?? `${t.category ?? 'Trap'} in ${reading.reading_id}`;
+  const los = learningObjectives(reading);
+  const objectiveId = trapObjective(corpus, t) ?? los[los.length - 1]?.id ?? reading.reading_id;
   return {
     term,
     blockId: t.source_block ?? t.id,
     objectiveId,
-    line: `${t.category} trap: ${TRAP_SHAPE[t.category]}`,
+    line: t.category
+      ? `${t.category} trap: ${TRAP_SHAPE[t.category]}`
+      : term === sentence.replace(/[.;:]+$/, '')
+        ? `From the trap box in ${reading.reading_id}.`
+        : `From the trap box in ${reading.reading_id}: ${sentence}`,
   };
 }
 
@@ -241,7 +282,9 @@ export function buildShatter(reading: Reading, ctx: ShatterBuildInput): Mechanic
   nTrue += extraTrue.length;
 
   const siblings = reading.traps;
-  const corruptItems = corruptible.slice(0, nCorrupt).map((t) => buildPayload(t, siblings, ctx.rng, false));
+  const corruptItems = corruptible
+    .slice(0, nCorrupt)
+    .map((t) => buildPayload(t, siblings, ctx.rng, false, readingTerms(ctx.corpus, reading, t)));
   const trueItems = [...truths.slice(0, nTrue - extraTrue.length), ...extraTrue].map((t) => buildPayload(t, siblings, ctx.rng, true));
 
   // Discovery: roughly half, with at least one of each kind; pressure gets the rest (all novel).
@@ -261,7 +304,7 @@ export function buildShatter(reading: Reading, ctx: ShatterBuildInput): Mechanic
       itemId: p.trapId,
       blockId: t?.source_block ?? p.trapId,
       objectiveId: t ? trapObjective(ctx.corpus, t) : undefined,
-      category: p.category,
+      category: p.category ?? undefined,
       timeLimitMs: limit,
       targetMs: limit ?? timeFor(p.tokens, 0),
       payload: p,

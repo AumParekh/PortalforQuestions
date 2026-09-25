@@ -213,3 +213,40 @@ export interface TFAttempt {
   isCorrect: boolean;
   timeTakenSeconds: number;
 }
+
+/** The Formula Gym's game modes (src/formulas). 'spot' is Real or Rigged's fast "Correct or broken?" variant. */
+export type FormulaGame = 'recall' | 'forge' | 'rigged' | 'spot' | 'whichway' | 'symbols' | 'calc' | 'twins';
+
+/** Per-formula progress and SM-2 schedule (IndexedDB store "formulaState"). */
+export interface FormulaState {
+  formulaId: string;
+  readingId: string;
+  // SM-2 fields: one schedule per formula, fed by every game.
+  repetition: number;
+  interval: number;
+  efactor: number;
+  /** Local YYYY-MM-DD; null until first answered. */
+  dueDate: string | null;
+  totalAttempts: number;
+  totalCorrect: number;
+  totalWrong: number;
+  lastResult: 'correct' | 'wrong' | null;
+  lastAttempted: string | null;
+  /** Answers per game. */
+  gameCounts: Partial<Record<FormulaGame, number>>;
+  /** Most recent game first, at most four; Workout rotates away from these. */
+  recentGames: FormulaGame[];
+}
+
+/** Append-only log of every Formula Gym answer (IndexedDB store "formulaAttempts"). */
+export interface FormulaAttempt {
+  attemptId: string;
+  formulaId: string;
+  game: FormulaGame;
+  correct: boolean;
+  /** SM-2 quality, 0–5. */
+  grade: number;
+  timeTakenSeconds: number;
+  sessionId: string;
+  timestamp: string;
+}

@@ -141,7 +141,7 @@ function Round({
   }, [stage, settled]);
 
   // No trap-category names before the naming step (§11): discovery cites the block only.
-  const source = phase === 'discovery' ? `block ${round.blockId}` : `${p.category} · block ${round.blockId}`;
+  const source = phase === 'discovery' || !p.category ? `block ${round.blockId}` : `${p.category} · block ${round.blockId}`;
   const verdictLine =
     p.verdict === 'TRUE' ? 'Stands as written.' : p.verdict === 'FLIPPED' ? 'Flipped. The notes say:' : 'Swapped. The notes say:';
 
@@ -214,7 +214,7 @@ function Round({
             right={
               <>
                 <span className="g-strong">{verdictLine}</span>{' '}
-                {p.verdict === 'TRUE' ? null : <NoteText latex={p.correct} />}
+                <NoteText latex={p.correct} />
                 {p.swap && (
                   <span className="block g-small mt-1">
                     {p.swap.answer}, not {p.swap.swappedIn}.

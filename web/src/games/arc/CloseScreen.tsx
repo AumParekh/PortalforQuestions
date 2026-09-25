@@ -9,6 +9,7 @@ import type { ConceptNaming } from './plugin';
 import type { NarrativeFrame } from './frames';
 import { GameButton, GameCard } from '../theme/primitives';
 import { useGameProgress } from '../progress';
+import { learningObjectives } from '../corpus';
 
 export async function copyText(text: string): Promise<boolean> {
   try {
@@ -94,7 +95,7 @@ export function CloseScreen({
   onPlayNext?: () => void;
 }) {
   const saved = useGameProgress((s) => s.status);
-  const objectives = reading.objectives;
+  const objectives = learningObjectives(reading);
   const closed = new Set(log.objectivesClosed);
   const text = log.lines.join('\n');
   return (

@@ -6,6 +6,7 @@ import type { Corpus } from './corpus';
 import type { RotationInput } from './rotation';
 import type { AnyMechanicPlugin } from './arc/plugin';
 import { dueCountByReading } from './srs';
+import { learningObjectives } from './corpus';
 
 export function categoryTotals(sessions: readonly SessionLog[]): Record<TrapCategory, CategoryTally> {
   const out = Object.fromEntries(TRAP_CATEGORIES.map((c) => [c, { caught: 0, missed: 0 }])) as Record<TrapCategory, CategoryTally>;
@@ -25,7 +26,8 @@ export interface ReadingCoverage {
 }
 
 export function readingCoverage(r: Reading, coverage: Readonly<Record<string, CoverageRow>>): ReadingCoverage {
-  return { closed: r.objectives.filter((o) => coverage[o.id]).length, total: r.objectives.length };
+  const los = learningObjectives(r);
+  return { closed: los.filter((o) => coverage[o.id]).length, total: los.length };
 }
 
 export function areaCoverage(readings: readonly Reading[], coverage: Readonly<Record<string, CoverageRow>>): ReadingCoverage {
@@ -43,7 +45,7 @@ export function trapsByReading(corpus: Corpus): Record<string, Partial<Record<Tr
   const out: Record<string, Partial<Record<TrapCategory, number>>> = {};
   for (const r of corpus.readings) {
     const m: Partial<Record<TrapCategory, number>> = {};
-    for (const t of r.traps) m[t.category] = (m[t.category] ?? 0) + 1;
+    for (const t of r.traps) if (t.category) m[t.category] = (m[t.category] ?? 0) + 1;
     out[r.reading_id] = m;
   }
   return out;

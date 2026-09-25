@@ -355,6 +355,20 @@ def parse_envs(s, anomalies=None):
     return top
 
 
+ENV_OPT_RE = re.compile(r'\\begin\{([A-Za-z*]+)\}[ \t]*\[')
+
+
+def mask_env_options(latex):
+    """Blank the [..] option list after \\begin{env} (list labels like \\textbf{\\alph*.} are not content)."""
+    spans = []
+    for m in ENV_OPT_RE.finditer(latex):
+        if m.group(1) in BOX_ENVS:
+            continue
+        _, e = bracketed(latex, m.end() - 1)
+        spans.append((m.end() - 1, e))
+    return mask(latex, spans)
+
+
 def walk_envs(envs):
     for e in envs:
         yield e
@@ -612,6 +626,15 @@ class Plain(object):
             if c in '{}':
                 i += 1
                 continue
+            if c == '\n':
+                m = re.match(r'\n[ \t]*\n\s*', s[i:])
+                if m:
+                    out.append('\n')
+                    i += m.end()
+                else:
+                    out.append(' ')
+                    i += 1
+                continue
             if c == '~':
                 out.append(' ')
                 i += 1
@@ -837,13 +860,19 @@ def parse_table(body):
             header_rows.append(raw_rows[idx])
             idx += 1
     group = None
+    headers = [PLAIN(c, cell=True) for c in header_rows[-1]['cells_raw']] if header_rows else []
+    current = headers
     for r in raw_rows[idx:]:
         if single_multicol(r) and ncols > 1:
             group = PLAIN(r['raw'], cell=True)
             continue
         cells = [PLAIN(c, cell=True) for c in r['cells_raw']]
-        data_rows.append({'cells': cells, 'cells_raw': r['cells_raw'], 'group': group})
-    headers = [PLAIN(c, cell=True) for c in header_rows[-1]['cells_raw']] if header_rows else []
+        if data_rows and re.search(r'\\(thd|thead|hdr)\b', r['raw']) and len(cells) > 1:
+            # a sub-header mid-table: new headers for the rows below, first cell names the group
+            current = cells
+            group = cells[0] or group
+            continue
+        data_rows.append({'cells': cells, 'cells_raw': r['cells_raw'], 'group': group, 'headers': current})
     return {'title': title, 'headers': headers,
             'header_rows': [[PLAIN(c, cell=True) for c in h['cells_raw']] for h in header_rows],
             'rows': data_rows, 'ncols': ncols}
@@ -1073,6 +1102,7 @@ class ReadingParser(object):
         self.last_visual = None       # block or ('image', path, line)
         self.last_block = None
         self.pending_orsubb = None
+        self.pending_leadin = None
         self.pending_list_absorb = None
         self.source_notes = []
         self.corrections = []
@@ -1233,6 +1263,7 @@ class ReadingParser(object):
             return
         if name in ('subsection', 'subsubsection', 'orsub', 'orsubb'):
             self.flush_para()
+            self.release_leadin()
             arg = args[-1]
             if arg is None:
                 return
@@ -1364,6 +1395,7 @@ class ReadingParser(object):
     def finish_objective(self):
         if self.obj is None:
             return
+        self.release_leadin()
         if self.gap_pending_note:
             self.obj.setdefault('gap_notes', []).append(self.gap_pending_note)
             self.gap_pending_note = None
@@ -1383,6 +1415,8 @@ class ReadingParser(object):
         return b
 
     def emit(self, b, pos):
+        if b['type'] != 'prose_para':
+            self.release_leadin()
         self.counters[(self.obj['letter'], b['type'])] += 1
         b['id'] = '%s.%s.%s.%d' % (self.rid_low(), self.obj['letter'], b['type'],
                                    self.counters[(self.obj['letter'], b['type'])])
@@ -1425,7 +1459,9 @@ class ReadingParser(object):
         if kind == 'nodes':
             plain = latex
         else:
+            latex = mask_env_options(latex)
             plain = PLAIN(latex)
+        math_spans = [(a, b_) for a, b_, _ in find_math_spans(latex)] if kind != 'nodes' else []
         if kind in ('text', 'caption', 'table'):
             for m in re.finditer(r'\\term\{', latex):
                 t, _ = braced(latex, m.end() - 1)
@@ -1435,6 +1471,8 @@ class ReadingParser(object):
                                                    ('text', tp), ('term_source', 'term'), ('hash', sha12(tp))]))
         if kind in ('text', 'caption'):
             for m in re.finditer(r'\\textbf\{', latex):
+                if any(a <= m.start() < b_ for a, b_ in math_spans):
+                    continue
                 t, _ = braced(latex, m.end() - 1)
                 tp = PLAIN(t).strip()
                 key = clean_term(tp).lower()
@@ -1452,6 +1490,13 @@ class ReadingParser(object):
                 tp = PLAIN(item_latex)
                 if not tp:
                     continue
+                if self.area == 'ORR' and kind == 'text':
+                    lm = re.match(r'\s*\\textbf\{', item_latex)
+                    if lm:
+                        lt, _ = braced(item_latex, lm.end() - 1)
+                        ltp = PLAIN(lt)
+                        if re.search(r'[.:]\s*$', ltp) or len(words(ltp)) <= 6:
+                            self.add_term(b, ltp, 'bold_leadin')
                 it = OrderedDict([('id', self.sub_id(b, 'bullets')), ('parent', b['id']), ('text', tp),
                                   ('depth', depth), ('list_env', env)])
                 if label is not None:
@@ -1481,7 +1526,7 @@ class ReadingParser(object):
                 b['cases'].append(name)
 
     def add_term(self, b, text, source):
-        tp = clean_term(text)
+        tp = clean_term(re.sub(r'^\s*\d+[.)]\s+', '', text))
         if not tp:
             return
         b['terms'].append(OrderedDict([('id', self.sub_id(b, 'terms')), ('parent', b['id']), ('text', tp),
@@ -1506,6 +1551,12 @@ class ReadingParser(object):
             self.gap_pending_note = plain
             self.expect_gap_note = False
             return
+        if plain.endswith(':') and nwords >= 1 and not re.search(r'\\\[|\\begin\{align', raw):
+            # a lead-in ("Steps involved:"); merged into the list that follows, else emitted as prose
+            self.release_leadin()
+            self.pending_leadin = (raw, plain, pos, nwords)
+            return
+        self.release_leadin()
         if nwords < 3 and not has_math:
             if plain and re.search(r'[A-Za-z0-9]', plain):
                 self.dropped.append((self.line(pos), plain))
@@ -1518,24 +1569,39 @@ class ReadingParser(object):
             if len(words(PLAIN(outside))) <= 12 and fml is not None:
                 fml.setdefault('substitutions', []).append(OrderedDict([
                     ('latex', raw), ('plain_text', plain), ('source_line', self.line(pos))]))
-                for mm in NUM_RE.finditer(plain):
-                    pass
+                self.mine(fml, raw, 'text', 'fmlbox')
                 self.infer('substitution', 'loose display math attached to %s as a substitution' % fml['id'], pos)
                 return
-        b_ = self.new_block('prose_para', None, pos)
-        b_['form'] = 'para' if nwords >= 3 else 'math'
+        self.emit_prose(raw, plain, pos, 'para' if nwords >= 3 else 'math')
+
+    def emit_prose(self, raw, plain, pos, form, env_name=None, lead_in=None):
+        b_ = self.new_block('prose_para', env_name, pos)
+        b_['form'] = form
+        if lead_in is not None:
+            b_['lead_in'] = lead_in
         b_['body_latex'] = raw
         b_['plain_text'] = plain
         self.emit(b_, pos)
-        self.finalize(b_, [(raw, 'text')], 'prose')
+        self.finalize(b_, [(raw, 'text')], 'prose' if form != 'list' else 'list')
         if self.pending_orsubb:
             head, hpos = self.pending_orsubb
-            if len(sentences(plain)) == 1:
+            if form == 'para' and len(sentences(plain)) == 1:
                 self.add_term(b_, head, 'orsubb')
                 self.infer('term', '\\orsubb{%s} followed by a one-sentence definition -> term on %s'
                            % (head, b_['id']), hpos)
         self.pending_orsubb = None
         self.last_visual = None
+        return b_
+
+    def release_leadin(self):
+        if self.pending_leadin is None:
+            return
+        raw, plain, pos, nwords = self.pending_leadin
+        self.pending_leadin = None
+        if nwords < 3:
+            self.dropped.append((self.line(pos), plain))
+            return
+        self.emit_prose(raw, plain, pos, 'para')
 
     # ------------------------------------------------------------------ flow lists
     def flow_list(self, e):
@@ -1563,20 +1629,13 @@ class ReadingParser(object):
                 self.infer('variables', 'itemize right after ORR formula box absorbed as its notation key (%s)'
                            % lb['id'], e.b0)
                 return
-        # merge with a preceding lead-in paragraph ending in ':'
-        prev = self.obj['blocks'][-1] if self.obj['blocks'] else None
-        if prev is not None and prev is self.last_block and prev['type'] == 'prose_para' and \
-                prev.get('form') == 'para' and prev['body_latex'].rstrip().endswith(':') and \
-                prev.get('_end') is None:
-            pass
-        b = self.new_block('prose_para', e.name, e.b0)
-        b['form'] = 'list'
-        b['body_latex'] = raw
-        b['plain_text'] = PLAIN(raw)
-        self.emit(b, e.b0)
-        self.finalize(b, [(raw, 'text')], 'list')
-        self.last_visual = None
-        self.pending_orsubb = None
+        # merge with a pending lead-in paragraph ending in ':'
+        if self.pending_leadin is not None:
+            lraw, lplain, lpos, _ = self.pending_leadin
+            self.pending_leadin = None
+            self.emit_prose(lraw + '\n\n' + raw, lplain + '\n' + PLAIN(raw), lpos, 'list', e.name, lplain)
+            return
+        self.emit_prose(raw, PLAIN(raw), e.b0, 'list', e.name)
 
     # ------------------------------------------------------------------ tables
     def table_object(self, e, owner):
@@ -1593,14 +1652,14 @@ class ReadingParser(object):
         rows = []
         for r in t['rows']:
             rid = self.sub_id(owner, 'table_rows')
-            hdr = t['headers'] if len(t['headers']) == len(r['cells']) else t['headers']
+            hdr = r['headers']
             pairs = []
             for k, c in enumerate(r['cells']):
                 h = hdr[k] if k < len(hdr) else ''
                 if c:
                     pairs.append(('%s: %s' % (h, c)) if h else c)
             text = '; '.join(pairs)
-            row = OrderedDict([('id', rid), ('parent', owner['id']), ('cells', r['cells'])])
+            row = OrderedDict([('id', rid), ('parent', owner['id']), ('cells', r['cells']), ('headers', hdr)])
             if r['group']:
                 row['group'] = r['group']
             row['text'] = text
@@ -1711,6 +1770,7 @@ class ReadingParser(object):
 
     # ------------------------------------------------------------------ captions
     def caption(self, cap_latex, pos, macro):
+        self.release_leadin()
         cap_plain = PLAIN(cap_latex)
         label = None
         m = CAPTION_LABEL_RE.match(cap_plain)
@@ -1835,9 +1895,17 @@ class ReadingParser(object):
                 hand_title = PLAIN(re.sub(r'^\s*\\sffamily\s*\\bfseries\s*(?:\\fontsize\{[^}]*\}\{[^}]*\}\s*)?'
                                           r'(?:\\selectfont\s*)?\\color\{navy\}', '', t))
                 title = hand_title
+                mined = mask(mined, [(body.index('{'), endp)])
             has_math = bool(re.search(r'\\\[|\\begin\{align', body))
             has_list = bool(re.search(r'\\item\b', body))
-            eg = re.search(r'\{[^{}]*\\color\{rust\}\s*\\itshape\s*(E\.g\..*?)\}\s*$', body, re.S)
+            egm = re.search(r'\\color\{rust\}\s*\\itshape\s*(E\.g\.)', body)
+            eg = None
+            if egm:
+                eg_latex = re.sub(r'\}\s*$', '', body[egm.start(1):].rstrip())
+                eg = eg_latex
+                # the aside's opening brace: last '{' before the colour command
+                ob = body.rfind('{', 0, egm.start())
+                eg_span = (ob, len(body))
             if has_math:
                 btype = 'fmlbox'
                 self.infer('retype', 'orkeybox with display math -> fmlbox', pos)
@@ -1845,7 +1913,8 @@ class ReadingParser(object):
                                                   in ORKEY_DEFBOX_EXTRA):
                 btype = 'defbox'
                 if eg:
-                    example_note = PLAIN(eg.group(1))
+                    example_note = PLAIN(eg)
+                    mined = mask(mined, [eg_span])
                 self.infer('retype', 'orkeybox with hand-made title %r + short definition -> defbox'
                            % hand_title, pos)
         elif name == 'orexambox':
@@ -1864,6 +1933,7 @@ class ReadingParser(object):
             else:
                 self.infer('notebox', 'notebox title %r has no mapped subtype; defaulted to "note"' % title, pos)
 
+        plain = PLAIN(mined)
         b = self.new_block(btype, name, pos, title)
         if title_default:
             b['title_default'] = True
@@ -1962,15 +2032,6 @@ class ReadingParser(object):
         self.finalize(b, fragments, where)
         for bc in b.pop('_bold_cells', []):
             self.add_term(b, bc, 'bold_cell')
-        # ORR bold item lead-ins -> terms
-        if self.area == 'ORR':
-            for label, it, depth, env in list_items(mined):
-                m = re.match(r'\s*\\textbf\{', it)
-                if m:
-                    t, _ = braced(it, m.end() - 1)
-                    tp = PLAIN(t)
-                    if re.search(r'[.:]\s*$', tp) or len(words(tp)) <= 6:
-                        self.add_term(b, tp, 'bold_leadin')
         if btype == 'defbox' and title and not title_default and not re.match(
                 r'^(definition|notation|key terms?)\b', title, re.I):
             self.add_term(b, title, 'deftitle')
@@ -2008,8 +2069,10 @@ class ReadingParser(object):
         b['question_latex'] = parts[0].strip()
         b['solution_latex'] = parts[1].strip() if len(parts) > 1 else None
         steps = []
+        bspans = [(a, b_) for a, b_, _ in find_math_spans(body)]
         marks = list(re.finditer(r'\\(?:textbf|term)\{\s*((?:Step\s*\d+|What this means)[^{}]*(?:\{[^{}]*\}[^{}]*)*)\}',
                                  body))
+        marks = [m for m in marks if not any(a <= m.start() < b_ for a, b_ in bspans)]
         for k, m in enumerate(marks):
             end = marks[k + 1].start() if k + 1 < len(marks) else len(body)
             label = PLAIN(m.group(1)).strip()
@@ -2466,7 +2529,7 @@ midrule bottomrule hline cmidrule addlinespace endhead endfirsthead endfoot endl
 chip chiplow chipmod chiphigh chipvhigh quad qquad tcblower textbullet euro texteuro checkmark S ldots dots
 textonehalf linewidth textwidth arraybackslash label needspace clearpage relax pgnum pgdash rule phantom
 raisebox parbox makebox textsuperscript tagword tagpill srcpill boxed displaystyle textstyle hfill
-blacktriangleright bullet
+blacktriangleright bullet alph Alph arabic roman Roman baselineskip dimexpr kill
 '''.split())
 
 

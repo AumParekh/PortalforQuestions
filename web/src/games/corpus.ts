@@ -1,7 +1,7 @@
 // Pure normalisation and indexing of game-blocks.json. No React, no zustand, so it can be
 // unit-tested in node.
 import type { Area, Block, GameBlocks, Reading, SubItem, SubItemLike, Trap, TrapCategory } from './types';
-import { AREAS, TRAP_CATEGORIES } from './types';
+import { AREAS, TRAP_CATEGORIES, isLearningObjective } from './types';
 
 export interface Corpus {
   data: GameBlocks;
@@ -91,9 +91,11 @@ export function normaliseReading(r: Reading, key: string): Reading {
   const traps: Trap[] = [];
   for (const t of Array.isArray(r.traps) ? r.traps : []) {
     if (!t || typeof t.id !== 'string') continue;
+    // Uncategorised traps stay playable; they just don't feed a category's stability measurement.
     const category = normaliseCategory(t.category) ?? normaliseCategory(t.raw_category);
-    if (!category) continue; // Source notes and unknown categories are not playable traps.
-    traps.push({ ...t, category, text: typeof t.text === 'string' ? t.text : (t.correct_text ?? '') });
+    const text = typeof t.text === 'string' ? t.text : (t.correct_text ?? '');
+    if (!text.trim()) continue;
+    traps.push({ ...t, category, text });
   }
   return {
     ...r,
@@ -129,7 +131,7 @@ export function buildCorpus(raw: GameBlocks): Corpus {
     readingById[r.reading_id] = r;
     (readingsByArea[r.area] ??= []).push(r);
     for (const o of r.objectives) {
-      objectiveCount++;
+      if (isLearningObjective(o)) objectiveCount++;
       for (const b of o.blocks) {
         blockById[b.id] = b;
         objectiveOfBlock[b.id] = o.id;
@@ -151,7 +153,7 @@ export function buildCorpus(raw: GameBlocks): Corpus {
     for (const id of ids) if (trapById[id]) trapIndex[c].push(id);
     fromFile = true;
   }
-  if (!fromFile) for (const t of Object.values(trapById)) trapIndex[t.category].push(t.id);
+  if (!fromFile) for (const t of Object.values(trapById)) if (t.category) trapIndex[t.category].push(t.id);
   return {
     data: raw,
     readings,
@@ -171,6 +173,17 @@ export function buildCorpus(raw: GameBlocks): Corpus {
 /** Objective a trap belongs to: its own field, else the objective holding its source block. */
 export function trapObjective(corpus: Corpus, t: Trap): string | undefined {
   if (t.objective) return t.objective;
+  const rid = corpus.readingOfTrap[t.id];
+  if (t.lo_ref && rid) {
+    const ref = t.lo_ref.trim();
+    const id = /^[a-z]$/i.test(ref) ? `${rid} ${ref.toLowerCase()}` : ref;
+    if (corpus.readingById[rid]?.objectives.some((o) => o.id === id)) return id;
+  }
   if (t.source_block) return corpus.objectiveOfBlock[t.source_block];
   return undefined;
+}
+
+/** The reading's real learning objectives (lettered), excluding intro / basics / summary sections. */
+export function learningObjectives(r: Reading) {
+  return r.objectives.filter(isLearningObjective);
 }

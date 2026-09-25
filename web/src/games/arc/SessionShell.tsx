@@ -11,6 +11,7 @@ import { gradeFromAnswer } from '../srs';
 import { useGameProgress } from '../progress';
 import { formatLogLines, orderedCategories, tallyByCategory, unique } from '../log';
 import { newSessionId } from '../random';
+import { learningObjectives } from '../corpus';
 import { GameButton, GameCard, PhaseDots } from '../theme/primitives';
 import { CloseScreen } from './CloseScreen';
 
@@ -73,6 +74,8 @@ export function SessionShell({ plugin, reading, corpus, plan, frame, trigger, on
       grade,
     }));
     const progress = useGameProgress.getState();
+    // Only lettered LOs close; intro / basics / summary sections don't count as coverage.
+    const loIds = new Set(learningObjectives(reading).map((o) => o.id));
     const number = progress.sessions.reduce((n, s) => Math.max(n, s.number), 0) + 1;
     const base = {
       sessionId: sessionId.current,
@@ -91,7 +94,7 @@ export function SessionShell({ plugin, reading, corpus, plan, frame, trigger, on
       taught: named.term,
       taughtObjective: named.objectiveId,
       conceptBlockId: named.blockId,
-      objectivesClosed: completed ? unique(plan.rounds.map((r) => r.objectiveId).filter((x): x is string => !!x)) : [],
+      objectivesClosed: completed ? unique(plan.rounds.map((r) => r.objectiveId).filter((x): x is string => !!x && loIds.has(x))) : [],
       categoriesDrawn: orderedCategories(rounds.map((r) => r.category).filter((c): c is NonNullable<typeof c> => !!c)),
       missCategories: orderedCategories(
         rounds.filter((r) => !r.correct && r.category).map((r) => r.category as NonNullable<RoundLog['category']>),

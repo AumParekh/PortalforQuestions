@@ -1,10 +1,18 @@
-import type { AttemptRecord, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
+import type { AttemptRecord, FormulaAttempt, FormulaState, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
 
 const DB_NAME = 'frm-portal';
-// v2 adds the True/False stores; upgrades create only what's missing, so v1 data is kept.
-const DB_VERSION = 2;
+// v2 adds the True/False stores, v3 the Formula Gym stores; upgrades create only what's missing, so older data is kept.
+const DB_VERSION = 3;
 
-export type StoreName = 'questionState' | 'attempts' | 'sessions' | 'meta' | 'tfState' | 'tfAttempts';
+export type StoreName =
+  | 'questionState'
+  | 'attempts'
+  | 'sessions'
+  | 'meta'
+  | 'tfState'
+  | 'tfAttempts'
+  | 'formulaState'
+  | 'formulaAttempts';
 
 interface StoreValue {
   questionState: QuestionState;
@@ -13,6 +21,8 @@ interface StoreValue {
   meta: { key: string; value: unknown };
   tfState: TFState;
   tfAttempts: TFAttempt;
+  formulaState: FormulaState;
+  formulaAttempts: FormulaAttempt;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -81,6 +91,14 @@ export function openDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains('tfAttempts')) {
         const s = db.createObjectStore('tfAttempts', { keyPath: 'attemptId' });
         s.createIndex('cardId', 'cardId');
+        s.createIndex('timestamp', 'timestamp');
+      }
+      if (!db.objectStoreNames.contains('formulaState')) {
+        db.createObjectStore('formulaState', { keyPath: 'formulaId' });
+      }
+      if (!db.objectStoreNames.contains('formulaAttempts')) {
+        const s = db.createObjectStore('formulaAttempts', { keyPath: 'attemptId' });
+        s.createIndex('formulaId', 'formulaId');
         s.createIndex('timestamp', 'timestamp');
       }
     };
@@ -172,5 +190,14 @@ export async function putTfAttempt(attempt: TFAttempt, state: TFState): Promise<
   const tx = db.transaction(['tfAttempts', 'tfState'], 'readwrite');
   tx.objectStore('tfAttempts').put(attempt);
   tx.objectStore('tfState').put(state);
+  await txDone(tx);
+}
+
+/** Writes Formula Gym answers and their updated formula states atomically (a Twin Split answer covers two formulas). */
+export async function putFormulaAttempts(attempts: FormulaAttempt[], states: FormulaState[]): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction(['formulaAttempts', 'formulaState'], 'readwrite');
+  for (const a of attempts) tx.objectStore('formulaAttempts').put(a);
+  for (const s of states) tx.objectStore('formulaState').put(s);
   await txDone(tx);
 }
