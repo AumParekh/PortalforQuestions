@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 
 // Hash routing so deep links work on GitHub Pages without a 404 fallback.
-export type Route = '/' | '/setup' | '/session' | '/summary' | '/review' | '/dev/longest';
+export type Route = '/' | '/setup' | '/session' | '/summary' | '/review' | '/truefalse' | '/analytics' | '/settings' | '/games' | '/dev/longest';
 
 function current(): string {
   const h = window.location.hash.replace(/^#/, '');

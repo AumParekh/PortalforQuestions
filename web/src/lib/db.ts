@@ -1,15 +1,18 @@
-import type { AttemptRecord, QuestionState, SessionRecord } from '../types';
+import type { AttemptRecord, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
 
 const DB_NAME = 'frm-portal';
-const DB_VERSION = 1;
+// v2 adds the True/False stores; upgrades create only what's missing, so v1 data is kept.
+const DB_VERSION = 2;
 
-export type StoreName = 'questionState' | 'attempts' | 'sessions' | 'meta';
+export type StoreName = 'questionState' | 'attempts' | 'sessions' | 'meta' | 'tfState' | 'tfAttempts';
 
 interface StoreValue {
   questionState: QuestionState;
   attempts: AttemptRecord;
   sessions: SessionRecord;
   meta: { key: string; value: unknown };
+  tfState: TFState;
+  tfAttempts: TFAttempt;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -56,6 +59,14 @@ export function openDb(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains('meta')) {
         db.createObjectStore('meta', { keyPath: 'key' });
+      }
+      if (!db.objectStoreNames.contains('tfState')) {
+        db.createObjectStore('tfState', { keyPath: 'cardId' });
+      }
+      if (!db.objectStoreNames.contains('tfAttempts')) {
+        const s = db.createObjectStore('tfAttempts', { keyPath: 'attemptId' });
+        s.createIndex('cardId', 'cardId');
+        s.createIndex('timestamp', 'timestamp');
       }
     };
     req.onsuccess = () => {
@@ -132,5 +143,14 @@ export async function deleteQuestionStates(ids: string[]): Promise<void> {
   const tx = db.transaction('questionState', 'readwrite');
   const os = tx.objectStore('questionState');
   for (const id of ids) os.delete(id);
+  await txDone(tx);
+}
+
+/** Writes a True/False answer and its updated card state atomically. */
+export async function putTfAttempt(attempt: TFAttempt, state: TFState): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction(['tfAttempts', 'tfState'], 'readwrite');
+  tx.objectStore('tfAttempts').put(attempt);
+  tx.objectStore('tfState').put(state);
   await txDone(tx);
 }

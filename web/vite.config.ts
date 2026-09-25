@@ -1,5 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -56,8 +57,73 @@ function contentPlugin(): Plugin {
   };
 }
 
+const YEAR = 60 * 60 * 24 * 365;
+
+// Installable PWA with full offline use. Must come AFTER contentPlugin: in build mode
+// vite-plugin-pwa generates the service worker once the bundle (including the emitted
+// content/*.json assets) has been written to dist, then globs dist for the precache.
+const pwa = VitePWA({
+  registerType: 'autoUpdate',
+  injectRegister: 'auto', // injects registerSW.js into index.html; no src import needed
+  includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+  manifest: {
+    id: '/',
+    name: 'FRM Part II Study',
+    short_name: 'FRM Study',
+    description: 'FRM Part II question bank, flashcards and mocks — works offline.',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    orientation: 'any',
+    theme_color: '#0F172A',
+    background_color: '#0F172A',
+    icons: [
+      { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: 'maskable-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    ],
+  },
+  workbox: {
+    // App shell + every content bank (subjects, content/manifest.json, and nested
+    // content/flashcards|games|mocks/*.json) are precached for full offline use.
+    globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest,woff,woff2}', 'content/**/*.json'],
+    maximumFileSizeToCacheInBytes: 15 * 1024 * 1024,
+    navigateFallback: '/index.html',
+    navigateFallbackDenylist: [/^\/content\//],
+    cleanupOutdatedCaches: true,
+    clientsClaim: true,
+    skipWaiting: true,
+    runtimeCaching: [
+      {
+        // Safety net for any content file not in the precache manifest.
+        urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/content/'),
+        handler: 'StaleWhileRevalidate',
+        options: { cacheName: 'frm-content', cacheableResponse: { statuses: [0, 200] } },
+      },
+      {
+        urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'google-fonts-stylesheets',
+          expiration: { maxEntries: 10, maxAgeSeconds: YEAR },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+      {
+        urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+        handler: 'CacheFirst',
+        options: {
+          cacheName: 'google-fonts-webfonts',
+          expiration: { maxEntries: 40, maxAgeSeconds: YEAR },
+          cacheableResponse: { statuses: [0, 200] },
+        },
+      },
+    ],
+  },
+});
+
 export default defineConfig({
   base: '/',
-  plugins: [react(), contentPlugin()],
+  plugins: [react(), contentPlugin(), pwa],
   build: { outDir: 'dist', assetsDir: 'assets' },
 });

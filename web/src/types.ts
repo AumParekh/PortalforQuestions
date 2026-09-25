@@ -165,3 +165,44 @@ export interface SessionRecord {
   accuracy: number;
   avgTimeSeconds: number;
 }
+
+/** One True/False statement derived from a question option (content/flashcards/<CODE>.json). */
+export interface TFCard {
+  id: string;
+  sourceId: string;
+  optionKey: OptionKey;
+  subject: string;
+  tier: string;
+  topic: string;
+  lo: string;
+  loText: string;
+  reading: string;
+  statement: string;
+  isTrue: boolean;
+  explanation: string;
+  edited: boolean;
+  originalText?: string;
+}
+
+/** Per-card progress (IndexedDB store "tfState"). */
+export interface TFState {
+  cardId: string;
+  subject: string;
+  topic: string;
+  totalAttempts: number;
+  totalCorrect: number;
+  totalWrong: number;
+  lastResult: 'correct' | 'wrong' | null;
+  lastAttempted: string | null;
+}
+
+/** Append-only log of every True/False answer (IndexedDB store "tfAttempts"). */
+export interface TFAttempt {
+  attemptId: string;
+  cardId: string;
+  sessionId: string;
+  timestamp: string;
+  answeredTrue: boolean;
+  isCorrect: boolean;
+  timeTakenSeconds: number;
+}

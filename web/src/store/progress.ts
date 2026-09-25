@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { AnswerRecord, AttemptRecord, Question, QuestionState, SessionMode, SessionRecord } from '../types';
 import { clearStores, deleteQuestionStates, getAll, putAttempt, putMany } from '../lib/db';
 import { newId } from './session';
+import { useTf } from './tf';
 
 interface ProgressState {
   /** 'unavailable' when IndexedDB can't be opened (e.g. some private modes); the app still works, just without history. */
@@ -135,6 +136,7 @@ export const useProgress = create<ProgressState>((set, get) => ({
 
   resetAll: async () => {
     set({ states: {}, attempts: [], sessions: [] });
-    if (get().status === 'ready') await clearStores(['questionState', 'attempts', 'sessions', 'meta']);
+    useTf.getState().clearAll();
+    if (get().status === 'ready') await clearStores(['questionState', 'attempts', 'sessions', 'meta', 'tfState', 'tfAttempts']);
   },
 }));

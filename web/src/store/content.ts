@@ -48,7 +48,8 @@ export const useContent = create<ContentState>((set, get) => ({
         return r.json();
       });
       const raws = await Promise.all(
-        sortPaths(manifest).map(async (path) => {
+        // Only question banks live at the top level and in mocks/; flashcards/ and games/ have their own loaders.
+        sortPaths(manifest.filter((p) => !p.includes('/') || p.startsWith('mocks/'))).map(async (path) => {
           const r = await fetch(`/content/${path}`);
           if (!r.ok) throw new Error(`${path}: HTTP ${r.status}`);
           return { path, raw: (await r.json()) as RawContentFile };
