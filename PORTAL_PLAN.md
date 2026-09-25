@@ -187,6 +187,28 @@ Decisions taken during Phase 1:
 - **Publishing.** `notes/` holds the `.tex` sources (Vol 1 duplicate dropped);
   `game-blocks.json` and the coverage report are committed alongside.
 
+**Goal, in the user's words: learn, recall, revise, and get better at everything in
+the notes.** Every mechanic is judged against retention, not novelty. Added mechanics
+(beyond the brief's catalogue), chosen for the strongest retention evidence:
+- **Blurt Board** — pick an LO, free-recall everything onto a blank board; the game
+  lights up which extracted items (terms, bullets, numbers, variables) were hit and
+  which were missed; misses seed the next drill.
+- **Cloze Chain** — load-bearing sentences with the key term / number / direction
+  blanked; graded cues (first letter → options) only on request.
+- **Memory Palace** — each reading is a room with fixed loci; its key items live at
+  fixed spots; the player walks the room and places them.
+- **Formula from Memory** — rebuild a formula from blank tiles, then name each
+  variable (from notation keys).
+- **Interleaved Gauntlet** — mixed items across readings and areas to train
+  discrimination between look-alike concepts.
+- **Explain It Back** — shuffled cause → channel → effect fragments to assemble.
+- **Pin the Note** — ORR note boxes pinned back onto their concept, table or case.
+
+**Shared memory.** Every extracted item has a stable ID; every answer in any game is
+logged against it and feeds one spaced-repetition schedule, so a miss anywhere
+resurfaces sooner everywhere. The only numbers shown are stability measurements
+(caught/missed by trap category, items due, objectives covered), per the brief.
+
 ---
 
 ## 4. Progress data model
