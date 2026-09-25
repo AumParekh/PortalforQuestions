@@ -110,7 +110,7 @@ export interface AnswerRecord {
 
 export type CellStatus = 'unseen' | 'current' | 'correct' | 'wrong' | 'skipped' | 'marked';
 
-export type SessionMode = 'drill' | 'review-wrong' | 'quest' | 'mock';
+export type SessionMode = 'drill' | 'review-wrong' | 'review-due' | 'quest' | 'mock';
 
 /** One persisted row per question ever attempted (IndexedDB store "questionState"). */
 export interface QuestionState {
@@ -128,7 +128,7 @@ export interface QuestionState {
   lastAttempted: string | null;
   lastSelected: OptionKey | '' | null;
   avgTimeSeconds: number;
-  // SM-2 fields; scheduling arrives in Phase 4, until then they keep their defaults.
+  // SM-2 fields, updated on every answer (lib/srs.ts). dueDate is a local YYYY-MM-DD; null = never scheduled.
   interval: number;
   repetition: number;
   efactor: number;

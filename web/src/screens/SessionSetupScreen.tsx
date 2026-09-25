@@ -8,11 +8,12 @@ import { useSession } from '../store/session';
 import { useUi } from '../store/ui';
 import { buildCatalog } from '../lib/catalog';
 import { buildQueue, countAvailable, hasActiveFilters, localToday, matchesFilters, searchHits } from '../lib/queue';
+import { isQuestionDue } from '../lib/srs';
 import { groupProgress } from '../lib/stats';
 import type { GroupProgress } from '../lib/stats';
 import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
-import { DUE_HINT, FilterChip, FilterSheet } from '../components/setup/FilterSheet';
+import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
 import { EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
 
 const STORAGE_KEY = 'frm.sessionSetup.v1';
@@ -20,7 +21,7 @@ const SEARCH_DEBOUNCE_MS = 150;
 const WEAK_THRESHOLD = 0.7;
 
 type Count = number | 'all';
-type RowChip = 'not-started' | 'weak' | 'trap';
+type RowChip = 'not-started' | 'weak' | 'due' | 'trap';
 
 interface Options {
   count: Count;
@@ -67,6 +68,7 @@ const MINUTES: { value: number; label: string }[] = [
 const ROW_CHIPS: { value: RowChip; label: string }[] = [
   { value: 'not-started', label: 'Not started' },
   { value: 'weak', label: 'Weak (<70%)' },
+  { value: 'due', label: 'Due for review' },
   { value: 'trap', label: 'Has trap cards' },
 ];
 const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'readings', topic: 'topics', lo: 'LOs' };
@@ -380,6 +382,12 @@ export function SessionSetupScreen() {
     return new Set(catalog.filter((it) => it.questionIds.some((id) => trapIds.has(id))).map((it) => it.key));
   }, [questions, catalog]);
 
+  const dueItemKeys = useMemo(() => {
+    if (!rowChips.includes('due')) return null;
+    const today = localToday();
+    return new Set(catalog.filter((it) => it.questionIds.some((id) => isQuestionDue(states[id], today))).map((it) => it.key));
+  }, [catalog, states, rowChips]);
+
   const visible = useMemo(() => {
     const notStarted = rowChips.includes('not-started');
     const weak = rowChips.includes('weak');
@@ -387,6 +395,7 @@ export function SessionSetupScreen() {
     return catalog.filter((it) => {
       if (matchCounts && (matchCounts.get(it.key) ?? 0) === 0) return false;
       if (trap && !trapItemKeys.has(it.key)) return false;
+      if (dueItemKeys && !dueItemKeys.has(it.key)) return false;
       if (notStarted || weak) {
         const g = progressByKey.get(it.key);
         const isNew = !g || g.attempted === 0;
@@ -395,7 +404,7 @@ export function SessionSetupScreen() {
       }
       return true;
     });
-  }, [catalog, rowChips, matchCounts, trapItemKeys, progressByKey]);
+  }, [catalog, rowChips, matchCounts, trapItemKeys, dueItemKeys, progressByKey]);
 
   const groups = useMemo(() => {
     if (scopeKind === 'subject') return [{ subject: '', items: visible }];
@@ -570,17 +579,11 @@ export function SessionSetupScreen() {
 
           <div className="space-y-2">
             <div role="group" aria-label={`Show ${SCOPE_NOUN[scopeKind]}`} className="flex flex-wrap gap-2">
-              {ROW_CHIPS.slice(0, 2).map((c) => (
+              {ROW_CHIPS.map((c) => (
                 <FilterChip key={c.value} active={rowChips.includes(c.value)} onClick={() => toggleChip(c.value)}>
                   {c.label}
                 </FilterChip>
               ))}
-              <FilterChip active={false} disabled title={DUE_HINT} onClick={() => {}}>
-                Due for review
-              </FilterChip>
-              <FilterChip active={rowChips.includes('trap')} onClick={() => toggleChip('trap')}>
-                Has trap cards
-              </FilterChip>
             </div>
             <p className="text-[15px] text-slate-600 dark:text-slate-400">
               Chips narrow the list of {SCOPE_NOUN[scopeKind]} below. Search and Filters narrow the questions that go into the

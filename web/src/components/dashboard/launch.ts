@@ -1,4 +1,5 @@
 import { navigate } from '../../lib/router';
+import { DUE_SESSION_CAP, dueQuestionIds } from '../../lib/srs';
 import { questionProgress } from '../../lib/stats';
 import { useSession } from '../../store/session';
 import type { ContentFile, Question, QuestionState, SessionConfig } from '../../types';
@@ -45,6 +46,16 @@ export function startQuest(subjectQuestions: Question[], states: Record<string, 
   const queue = [...shuffle(wrong), ...shuffle(fresh), ...shuffle(rest)].slice(0, QUEST_GOAL);
   launch(
     { ...BASE, scopeKind: 'subject', selectedKeys: subjectKeys(subjectQuestions), count: QUEST_GOAL, order: 'sequential', mode: 'quest' },
+    queue,
+  );
+}
+
+/** Spaced-repetition review: questions due today or earlier, most overdue first, at most 20. */
+export function startDueReview(states: Record<string, QuestionState>, today: string, include: (id: string) => boolean) {
+  const queue = dueQuestionIds(states, today, include, DUE_SESSION_CAP);
+  const subjects = [...new Set(queue.map((id) => states[id].subject))];
+  launch(
+    { ...BASE, scopeKind: 'subject', selectedKeys: subjects, count: DUE_SESSION_CAP, order: 'sequential', mode: 'review-due' },
     queue,
   );
 }

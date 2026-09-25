@@ -97,6 +97,7 @@ export function trapName(op: string): string {
 const MODE_NAMES: Record<SessionMode, string> = {
   drill: 'Drill',
   'review-wrong': 'Review wrong',
+  'review-due': 'Due for review',
   quest: "Today's quest",
   mock: 'Mock exam',
 };

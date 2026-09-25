@@ -5,7 +5,6 @@ import type { SessionFilters } from '../../types';
 import { EMPTY_FILTERS, MAX_THRESHOLD, STATUS_OPTIONS, TIME_OPTIONS, TRAP_OPTIONS, activeFilterCount } from './filterModel';
 
 const FOCUSABLE = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
-export const DUE_HINT = 'Spaced repetition arrives in Phase 4';
 
 function toggleIn<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -234,23 +233,19 @@ export function FilterSheet({
         <div className="min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4">
           <Section title="Status" hint="Matches any of the selected.">
             <div className="flex flex-wrap gap-2">
-              {STATUS_OPTIONS.map((o) =>
-                o.value === 'due' ? (
-                  <FilterChip key={o.value} active={false} disabled title={DUE_HINT} onClick={() => {}}>
-                    {o.label}
-                  </FilterChip>
-                ) : (
-                  <FilterChip
-                    key={o.value}
-                    active={draft.status.includes(o.value)}
-                    onClick={() => set('status', toggleIn(draft.status, o.value))}
-                  >
-                    {o.label}
-                  </FilterChip>
-                ),
-              )}
+              {STATUS_OPTIONS.map((o) => (
+                <FilterChip
+                  key={o.value}
+                  active={draft.status.includes(o.value)}
+                  onClick={() => set('status', toggleIn(draft.status, o.value))}
+                >
+                  {o.label}
+                </FilterChip>
+              ))}
             </div>
-            <p className="text-[15px] text-slate-600 dark:text-slate-400">Due for review unlocks when spaced repetition arrives in Phase 4.</p>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400">
+              Due for review: questions whose spaced-repetition review date is today or earlier.
+            </p>
           </Section>
 
           <Section title="Trap type" hint="Questions with any of the selected traps.">

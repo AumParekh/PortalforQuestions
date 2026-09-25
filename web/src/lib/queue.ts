@@ -63,7 +63,7 @@ export function matchesFilters(q: Question, s: QuestionState | undefined, f: Ses
         case 'marked':
           return !!s?.markedForReview;
         case 'due':
-          return !!s?.dueDate && s.dueDate.slice(0, 10) <= today;
+          return attempted && !!s?.dueDate && s.dueDate.slice(0, 10) <= today;
       }
     });
     if (!hit) return false;

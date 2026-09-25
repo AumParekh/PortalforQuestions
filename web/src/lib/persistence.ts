@@ -4,6 +4,7 @@ import { useSession } from '../store/session';
 import { useUi } from '../store/ui';
 import type { SessionMode, SessionRecord } from '../types';
 import { deleteMeta, getMeta, setMeta } from './db';
+import { parSeconds } from './srs';
 
 const SNAPSHOT_KEY = 'currentSession';
 
@@ -96,7 +97,7 @@ export async function initPersistence(): Promise<void> {
       for (const id of Object.keys(s.answers)) {
         if (prev.answers[id] || prev.sessionId !== s.sessionId) continue;
         const q = byId[id];
-        if (q) progress.recordAnswer(q, s.answers[id], s.sessionId, modeOf(s));
+        if (q) progress.recordAnswer(q, s.answers[id], s.sessionId, modeOf(s), parSeconds(s.config?.timerEnabled, s.config?.timerSeconds));
       }
     }
 

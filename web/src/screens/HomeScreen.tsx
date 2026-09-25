@@ -1,21 +1,22 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
+import { BarChart3, BookOpen, CalendarDays, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
-import { QUEST_GOAL, startMock, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
+import { QUEST_GOAL, startDueReview, startMock, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
 import { AccuracyChip, ProgressBar } from '../components/dashboard/ProgressBar';
 import { SearchBox } from '../components/dashboard/SearchBox';
 import { StatTile } from '../components/dashboard/StatTile';
 import { TopicMap } from '../components/dashboard/TopicMap';
 import { WeakLos } from '../components/dashboard/WeakLos';
 import { navigate } from '../lib/router';
+import { DUE_SESSION_CAP, dueQuestionIds, nextDue } from '../lib/srs';
 import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
-import { isDue, localDay, useGym } from '../formulas/storage';
+import { addDays, isDue, localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
@@ -132,6 +133,20 @@ function QuickAction({
   );
 }
 
+function dueDetail(count: number, today: string, next: { day: string; count: number } | null): string {
+  if (count > 0) {
+    return count > DUE_SESSION_CAP
+      ? `Spaced review: the ${DUE_SESSION_CAP} most overdue of ${count} due questions`
+      : `Spaced review of ${count} ${count === 1 ? 'question' : 'questions'} due today`;
+  }
+  if (!next) return 'Nothing due yet: answered questions come back here on a spaced schedule';
+  const when =
+    next.day === addDays(today, 1)
+      ? 'tomorrow'
+      : new Date(`${next.day}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return `Nothing due today. Next: ${next.count} ${next.count === 1 ? 'question' : 'questions'} ${when}`;
+}
+
 export function HomeScreen() {
   const files = useContent((s) => s.files);
   const questions = useContent((s) => s.questions);
@@ -169,6 +184,12 @@ export function HomeScreen() {
     const d = localDay();
     return Object.values(gymStates).filter((s) => s.kind === 'formula' && isDue(s, d)).length;
   }, [gymStates, day]);
+  // Spaced-repetition reviews: attempted questions whose due date is today or earlier.
+  const questionDue = useMemo(() => {
+    const d = localDay();
+    const known = (id: string) => !!byId[id];
+    return { today: d, count: dueQuestionIds(states, d, known).length, next: nextDue(states, d, known) };
+  }, [states, byId, day]);
   const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
   // Matches Review Wrong's default "Still wrong only" view.
   const wrongCount = useMemo(
@@ -360,6 +381,13 @@ export function HomeScreen() {
             detail={wrongCount > 0 ? 'Every question you have missed' : 'Nothing to review yet: questions you miss land here'}
             onClick={() => navigate('/review')}
             disabled={wrongCount === 0}
+          />
+          <QuickAction
+            icon={<CalendarDays className="h-5 w-5" aria-hidden="true" />}
+            title={questionDue.count > 0 ? `Due for review (${questionDue.count})` : 'Due for review'}
+            detail={dueDetail(questionDue.count, questionDue.today, questionDue.next)}
+            onClick={() => startDueReview(states, questionDue.today, (id) => !!byId[id])}
+            disabled={questionDue.count === 0}
           />
           <QuickAction
             icon={<CheckSquare className="h-5 w-5" aria-hidden="true" />}

@@ -68,12 +68,12 @@ function threshold(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.min(MAX_THRESHOLD, Math.max(0, Math.round(value))) : 0;
 }
 
-/** Rebuilds filters from untrusted storage, dropping anything unknown. 'due' is dropped until scheduling exists. */
+/** Rebuilds filters from untrusted storage, dropping anything unknown. */
 export function sanitizeFilters(value: unknown): SessionFilters {
   if (!value || typeof value !== 'object') return EMPTY_FILTERS;
   const v = value as Record<string, unknown>;
   return {
-    status: members(v.status, STATUS_OPTIONS).filter((s) => s !== 'due'),
+    status: members(v.status, STATUS_OPTIONS),
     trapOperators: members(v.trapOperators, TRAP_OPTIONS),
     hasTrap: triState(v.hasTrap),
     hasTable: triState(v.hasTable),

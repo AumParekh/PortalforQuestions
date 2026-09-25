@@ -3,8 +3,9 @@ import type { AnswerRecord, AttemptRecord, Question, QuestionState, SessionMode,
 import { clearStores, deleteQuestionStates, getAll, putAttempt, putMany } from '../lib/db';
 import { newId } from './session';
 import { useTf } from './tf';
-import { useGym } from '../formulas/storage';
+import { localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
+import { nextSchedule, PAR_SECONDS } from '../lib/srs';
 
 interface ProgressState {
   /** 'unavailable' when IndexedDB can't be opened (e.g. some private modes); the app still works, just without history. */
@@ -14,7 +15,8 @@ interface ProgressState {
   sessions: SessionRecord[];
 
   load: () => Promise<void>;
-  recordAnswer: (q: Question, rec: AnswerRecord, sessionId: string, mode: SessionMode) => void;
+  /** `parSeconds`: a correct answer at or under it grades 5 for spaced repetition, slower grades 4. */
+  recordAnswer: (q: Question, rec: AnswerRecord, sessionId: string, mode: SessionMode, parSeconds?: number) => void;
   setMarked: (q: Question, marked: boolean) => void;
   recordSession: (r: SessionRecord) => void;
   resetSubject: (subject: string) => Promise<void>;
@@ -76,8 +78,9 @@ export const useProgress = create<ProgressState>((set, get) => ({
     }
   },
 
-  recordAnswer: (q, rec, sessionId, mode) => {
-    const now = new Date().toISOString();
+  recordAnswer: (q, rec, sessionId, mode, parSeconds = PAR_SECONDS) => {
+    const date = new Date();
+    const now = date.toISOString();
     const prev = get().states[q.id] ?? blankState(q);
     const n = prev.totalAttempts + 1;
     const state: QuestionState = {
@@ -95,6 +98,7 @@ export const useProgress = create<ProgressState>((set, get) => ({
       lastAttempted: now,
       lastSelected: rec.selected,
       avgTimeSeconds: (prev.avgTimeSeconds * prev.totalAttempts + rec.timeTakenSeconds) / n,
+      ...nextSchedule(prev, rec, localDay(date), parSeconds),
     };
     const attempt: AttemptRecord = {
       attemptId: newId('att'),

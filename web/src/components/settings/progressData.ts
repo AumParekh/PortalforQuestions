@@ -93,7 +93,7 @@ export function downloadJson(data: unknown, fileName: string) {
 type Rec = Record<string, unknown>;
 
 const OPTION_KEYS: readonly string[] = ['a', 'b', 'c', 'd', 'e'];
-const MODES: readonly string[] = ['drill', 'review-wrong', 'quest', 'mock'];
+const MODES: readonly string[] = ['drill', 'review-wrong', 'review-due', 'quest', 'mock'];
 const SCOPES: readonly string[] = ['subject', 'reading', 'topic', 'lo'];
 const GYM_KINDS: readonly string[] = ['formula', 'scenario'];
 
