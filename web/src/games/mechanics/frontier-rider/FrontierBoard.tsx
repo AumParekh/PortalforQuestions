@@ -307,7 +307,8 @@ function Round({
             className="fr-range"
             min={lo}
             max={hi}
-            step={sl.step}
+            // While the move plays by itself the thumb glides with the rider instead of jumping step to step.
+            step={playing ? 'any' : sl.step}
             value={value}
             disabled={stage === 'predict' || playing}
             aria-valuetext={sliderValue(item, value)}

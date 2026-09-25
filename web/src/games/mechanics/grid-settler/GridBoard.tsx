@@ -256,8 +256,7 @@ function FeedbackPanel({ fb, round, children }: { fb: Feedback; round: Round; ch
       <div className="space-y-2" style={{ '--g-hold': wrong ? `${HOLD_MS}ms` : '0ms' } as CSSProperties}>
         {wrong ? (
           <p className="g-hold-wrong gs-text">
-            <span className="gs-strong">Not {wrong}.</span> “{tile.text}” is not a {grid.x.label.toLowerCase()} of {grid.x.values[cx]} with {grid.y.label.toLowerCase()}{' '}
-            {grid.y.values[cy]}.
+            <span className="gs-strong">Not {wrong}.</span> “{tile.text}” does not sit under {grid.x.label}: {grid.x.values[cx]}, {grid.y.label}: {grid.y.values[cy]}.
           </p>
         ) : (
           <p className="gs-text gs-muted">Time ran out.</p>
