@@ -214,14 +214,18 @@ export interface TFAttempt {
   timeTakenSeconds: number;
 }
 
-/** The Formula Gym's game modes (src/formulas). 'spot' is Real or Rigged's fast "Correct or broken?" variant. */
-export type FormulaGame = 'recall' | 'forge' | 'rigged' | 'spot' | 'whichway' | 'symbols' | 'calc' | 'twins';
+/** What a gym item is: a formula card (Formula Gym) or a scenario item (Sense Check). */
+export type GymKind = 'formula' | 'scenario';
 
-/** Per-formula progress and SM-2 schedule (IndexedDB store "formulaState"). */
-export interface FormulaState {
-  formulaId: string;
+/**
+ * Per-item progress and SM-2 schedule for the Formula Gym and its sibling games (IndexedDB store "gymState").
+ * Formula items use the card id as `itemId`.
+ */
+export interface GymState {
+  itemId: string;
+  kind: GymKind;
   readingId: string;
-  // SM-2 fields: one schedule per formula, fed by every game.
+  // SM-2 fields: one schedule per item, fed by every game.
   repetition: number;
   interval: number;
   efactor: number;
@@ -232,21 +236,24 @@ export interface FormulaState {
   totalWrong: number;
   lastResult: 'correct' | 'wrong' | null;
   lastAttempted: string | null;
-  /** Answers per game. */
-  gameCounts: Partial<Record<FormulaGame, number>>;
+  /** Answers per game id. */
+  gameCounts: Record<string, number>;
   /** Most recent game first, at most four; Workout rotates away from these. */
-  recentGames: FormulaGame[];
+  recentGames: string[];
 }
 
-/** Append-only log of every Formula Gym answer (IndexedDB store "formulaAttempts"). */
-export interface FormulaAttempt {
+/** Append-only log of every gym answer (IndexedDB store "gymAttempts"). */
+export interface GymAttempt {
   attemptId: string;
-  formulaId: string;
-  game: FormulaGame;
+  itemId: string;
+  kind: GymKind;
+  game: string;
   correct: boolean;
   /** SM-2 quality, 0–5. */
   grade: number;
   timeTakenSeconds: number;
   sessionId: string;
   timestamp: string;
+  /** Optional skill tag, for per-skill counts (e.g. Sense Check's measure). */
+  measure?: string;
 }

@@ -224,7 +224,7 @@ export function ProgressDataSection() {
               {formatDate(pending.parsed.data.exportedAt) && <>, exported {formatDate(pending.parsed.data.exportedAt)}</>}, contains{' '}
               {plural(pending.parsed.data.questionState.length, 'question record')}, {plural(pending.parsed.data.attempts.length, 'attempt')},{' '}
               {plural(pending.parsed.data.sessions.length, 'session')}, {plural(pending.parsed.data.tfAttempts.length, 'True/False answer')} and{' '}
-              {plural(pending.parsed.data.formulaAttempts.length, 'Formula Gym answer')}.
+              {plural(pending.parsed.data.gymAttempts.length, 'Formula Gym answer')}.
             </p>
             {pending.parsed.skipped > 0 && (
               <p className="text-amber-800 dark:text-amber-200">

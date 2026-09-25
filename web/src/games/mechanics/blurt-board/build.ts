@@ -1,0 +1,399 @@
+// Blurt Board (PORTAL_PLAN §3c): pure round building. Pick an objective, hand over a blank
+// board, let the player free-recall everything; on Check, the objective's extracted items
+// (terms, bullets, numeric items, variables) light up as hit or missed. Discovery is a shorter
+// objective, untimed; pressure is a timed blurt on another objective. Each round is one target
+// item on the board, keyed by its sub-item ID so the shared SRS schedules it.
+import type { Corpus } from '../../corpus';
+import { learningObjectives } from '../../corpus';
+import type { Block, ItemSrs, Objective, Reading, SubItemLike } from '../../types';
+import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
+import { emphasised, toDisplay } from '../../text';
+import { srsPriority } from '../../srs';
+import { shuffle } from '../../random';
+import type { BlurtTarget, KeyWord, TargetKind } from './match';
+import { contentStems, directionStems, parseNumbers, plainOf, stem, words } from './match';
+
+/** One board: an objective, the targets that are scored on it, and the rest of its items. */
+export interface BlurtBoardSpec {
+  boardId: string;
+  objectiveId: string;
+  /** The objective statement (LaTeX), the only prompt on the blank board. */
+  objectiveText: string;
+  targets: BlurtTarget[];
+  /** Other items of the objective: shown as "also recalled" when the player writes them; not scored. */
+  extras: BlurtTarget[];
+  /** Pressure only: the board's time limit. */
+  timeLimitMs?: number;
+}
+
+export interface BlurtPayload {
+  board: BlurtBoardSpec;
+  /** Which target of the board this round scores. */
+  itemId: string;
+}
+
+export const MIN_TARGETS = 3;
+export const DISCOVERY_TARGETS = 4;
+export const PRESSURE_TARGETS = 5;
+export const MAX_EXTRAS = 40;
+
+/** Block types whose items are recall material. Worked examples, tables and diagrams are not. */
+const SKIP_BLOCKS = new Set(['exbox', 'table', 'tikzpicture', 'figcap']);
+/** Numbers are recall material only in statements of fact, not in examples or tables. */
+const NUMBER_BLOCKS = new Set(['prose_para', 'keybox', 'defbox', 'fmlbox', 'trapbox', 'gapbox', 'notebox']);
+const LO_VERB = /^(Describe|Explain|Identify|Calculate|Compare|Evaluate|Distinguish|Assess|Define|Apply|Discuss|Summari[sz]e|Differentiate|Estimate|Interpret|Analy[sz]e|Contrast|Outline|Recogni[sz]e|Construct|Derive|List)\b/;
+
+function obj(x: SubItemLike): Record<string, unknown> | null {
+  return x && typeof x === 'object' ? (x as unknown as Record<string, unknown>) : null;
+}
+function str(x: unknown): string {
+  return typeof x === 'string' ? x : '';
+}
+
+/** First sentence of a statement (two when the first is very short), for keywording a bullet. */
+export function leadSentence(plain: string): string {
+  const parts = plain.split(/(?<=[.!?])\s+(?=[A-Z$(])/);
+  let lead = parts[0] ?? plain;
+  if (lead.split(/\s+/).length < 5 && parts[1]) lead = `${lead} ${parts[1]}`;
+  return lead;
+}
+
+/** Acronyms that stand for a term: an explicit "(EAD)" / all-caps token, or the term's initials. */
+export function acronymsOf(latex: string): string[] {
+  const plain = plainOf(latex);
+  const out = new Set<string>();
+  for (const m of plain.matchAll(/\(([A-Za-z][A-Za-z0-9&-]{1,7})\)/g)) out.add(m[1].toLowerCase());
+  const ws = plain.replace(/\([^)]*\)/g, ' ').split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  if (ws.length === 1 && /^[A-Z][A-Za-z0-9]*[A-Z][A-Za-z0-9]*$/.test(ws[0]) && ws[0].length <= 7) out.add(ws[0].toLowerCase());
+  if (ws.length >= 2 && ws.length <= 6) {
+    const all = ws.map((w) => w[0].toLowerCase()).join('');
+    const minor = new Set(['of', 'the', 'a', 'an', 'and', 'to', 'for', 'in', 'on']);
+    const major = ws.filter((w) => !minor.has(w.toLowerCase())).map((w) => w[0].toLowerCase()).join('');
+    // Initials only count when they are long enough not to collide with ordinary words.
+    for (const a of [all, major]) if (a.length >= 3 && /^[a-z]+$/.test(a)) out.add(a);
+  }
+  return [...out].filter((a) => a.length >= 2);
+}
+
+interface RawTarget {
+  itemId: string;
+  blockId: string;
+  kind: TargetKind;
+  display: string;
+  label?: string;
+  /** Plain text the keywords come from. */
+  keyText: string;
+  /** Emphasised phrases inside the item; their words weigh double. */
+  emph: string[];
+  acronyms: string[];
+  values: number[];
+  pct?: boolean;
+  /** Variables: the symbol spelled out ("lambda"), which with one keyword recalls the variable. */
+  symbolWords?: string[];
+  /** Dedupe key. */
+  key: string;
+}
+
+function termTargets(b: Block): RawTarget[] {
+  const out: RawTarget[] = [];
+  for (const x of b.terms ?? []) {
+    const o = obj(x);
+    const id = str(o?.id);
+    const text = str(o?.text) || str(o?.plain_text);
+    if (!id || !text.trim()) continue;
+    const plain = plainOf(text);
+    const n = plain.split(/\s+/).length;
+    if (plain.length < 2 || plain.length > 90 || n > 10) continue;
+    out.push({ itemId: id, blockId: b.id, kind: 'term', display: text, keyText: plain, emph: [], acronyms: acronymsOf(text), values: [], key: `t:${contentStems(plain).join(' ')}` });
+  }
+  return out;
+}
+
+function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
+  const out: RawTarget[] = [];
+  const loKey = contentStems(plainOf(objectiveText)).join(' ');
+  for (const x of b.bullets ?? []) {
+    const o = obj(x);
+    const id = str(o?.id);
+    const text = str(o?.text) || str(o?.plain_text);
+    if (!id || !text.trim()) continue;
+    const plain = plainOf(text);
+    // Learning-objective restatements are the prompt, not recall material.
+    if (b.type === 'keybox' && LO_VERB.test(plain)) continue;
+    const lead = leadSentence(plain);
+    const stems = contentStems(lead);
+    if (stems.length < 3 || lead.split(/\s+/).length > 45) continue;
+    if (stems.join(' ') === loKey) continue;
+    out.push({ itemId: id, blockId: b.id, kind: 'point', display: text, keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
+  }
+  return out;
+}
+
+function numberTargets(b: Block): RawTarget[] {
+  if (!NUMBER_BLOCKS.has(b.type)) return [];
+  const out: RawTarget[] = [];
+  for (const x of b.numeric_items ?? []) {
+    const o = obj(x);
+    const id = str(o?.id);
+    const text = str(o?.text);
+    const context = str(o?.context);
+    if (!id || !text.trim() || !context.trim()) continue;
+    const ctxPlain = plainOf(context);
+    // Arithmetic lines and number lists are working, not facts to recall.
+    if (/\d\s*[-+−×*/=]\s*\$?\s*\d/.test(ctxPlain) || parseNumbers(ctxPlain).length > 5) continue;
+    const numPlain = plainOf(text);
+    const parsed = parseNumbers(numPlain);
+    const raw = typeof o?.value === 'number' ? (o.value as number) : parsed[0]?.value;
+    if (raw === undefined || !Number.isFinite(raw)) continue;
+    const scale = str(o?.scale).toLowerCase();
+    const mult = scale === 'thousand' ? 1e3 : scale === 'million' ? 1e6 : scale === 'billion' ? 1e9 : scale === 'trillion' ? 1e12 : 1;
+    const values = [Math.abs(raw)];
+    if (mult !== 1) values.push(Math.abs(raw) * mult);
+    const pct = str(o?.unit) === '%' || /%|percent/.test(numPlain);
+    // Keywords: the context without its numbers.
+    const keyText = ctxPlain.replace(/\d[\d,.]*/g, ' ');
+    if (contentStems(keyText).length < 2) continue;
+    out.push({ itemId: id, blockId: b.id, kind: 'number', display: context, label: text, keyText, emph: [], acronyms: [], values, pct, key: `n:${values[0]}:${contentStems(keyText).join(' ')}` });
+  }
+  return out;
+}
+
+function variableTargets(b: Block): RawTarget[] {
+  const out: RawTarget[] = [];
+  for (const v of b.variables ?? []) {
+    if (!v || typeof v !== 'object') continue;
+    const id = str(v.id);
+    const symbol = str(v.symbol);
+    const def = str(v.definition);
+    if (!id || !symbol.trim() || !def.trim()) continue;
+    const plain = plainOf(def);
+    if (contentStems(plain).length < 2) continue;
+    const symbolWords = words(plainOf(symbol)).filter((w) => w.length >= 3);
+    out.push({ itemId: id, blockId: b.id, kind: 'variable', display: `${symbol} — ${def}`, label: symbol, keyText: plain, emph: [], acronyms: [], values: [], symbolWords, key: `v:${contentStems(plain).join(' ')}` });
+  }
+  return out;
+}
+
+/** Every recall item of an objective, de-duplicated, in reading order. */
+export function rawTargets(o: Objective): RawTarget[] {
+  const out: RawTarget[] = [];
+  const seen = new Set<string>();
+  const objectiveText = o.text ?? '';
+  for (const b of o.blocks ?? []) {
+    if (!b || typeof b.id !== 'string' || SKIP_BLOCKS.has(b.type)) continue;
+    const items = [...termTargets(b), ...variableTargets(b), ...numberTargets(b), ...bulletTargets(b, objectiveText)];
+    for (const t of items) {
+      if (seen.has(t.key) || seen.has(t.itemId)) continue;
+      seen.add(t.key);
+      seen.add(t.itemId);
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+/** Document frequency of stems across a reading's recall items, for keyword weights. */
+function documentFrequency(items: readonly RawTarget[]): Map<string, number> {
+  const df = new Map<string, number>();
+  for (const t of items) for (const s of new Set(contentStems(t.keyText))) df.set(s, (df.get(s) ?? 0) + 1);
+  return df;
+}
+
+function finalise(t: RawTarget, df: Map<string, number>, n: number): BlurtTarget {
+  const emph = new Set(t.emph.flatMap((e) => contentStems(e)));
+  const keys: KeyWord[] = contentStems(t.keyText).map((s) => {
+    const w = 1 + Math.log(Math.max(1, n) / Math.max(1, df.get(s) ?? 1));
+    return { s, w: Math.round((emph.has(s) ? 2 : 1) * w * 1000) / 1000 };
+  });
+  return {
+    itemId: t.itemId,
+    blockId: t.blockId,
+    kind: t.kind,
+    display: t.display,
+    ...(t.label !== undefined ? { label: t.label } : {}),
+    keys,
+    acronyms: [...t.acronyms, ...(t.symbolWords ?? [])].filter((a, i, xs) => xs.indexOf(a) === i),
+    values: t.values,
+    ...(t.pct ? { pct: true } : {}),
+    directions: t.kind === 'term' ? [] : directionStems(t.keyText),
+  };
+}
+
+/** Finalised recall items of every learning objective in a reading. */
+export function readingTargets(reading: Reading): Map<string, BlurtTarget[]> {
+  const raw = new Map<string, RawTarget[]>();
+  for (const o of learningObjectives(reading)) {
+    try {
+      raw.set(o.id, rawTargets(o));
+    } catch {
+      // Malformed objective (content is still being refined): skip it rather than fail the reading.
+    }
+  }
+  const all = [...raw.values()].flat();
+  const df = documentFrequency(all);
+  const out = new Map<string, BlurtTarget[]>();
+  for (const [id, items] of raw) out.set(id, items.map((t) => finalise(t, df, all.length)));
+  return out;
+}
+
+/** Learning objectives with enough recall items for a board. */
+export function eligibleObjectives(reading: Reading): { o: Objective; items: BlurtTarget[] }[] {
+  const byLo = readingTargets(reading);
+  return learningObjectives(reading)
+    .map((o) => ({ o, items: byLo.get(o.id) ?? [] }))
+    .filter((x) => x.items.length >= MIN_TARGETS);
+}
+
+export function supportsBlurt(reading: Reading): boolean {
+  return eligibleObjectives(reading).length >= 2;
+}
+
+export interface BlurtBuildInput {
+  corpus: Corpus;
+  srs: Readonly<Record<string, ItemSrs>>;
+  today: string;
+  rng: () => number;
+}
+
+const KIND_QUALITY: Record<TargetKind, number> = { term: 3, variable: 2, number: 2, point: 2 };
+
+function quality(t: BlurtTarget): number {
+  // Single-word terms without an acronym are thin recall targets; multi-word terms and acronyms are the vocabulary.
+  if (t.kind === 'term' && t.keys.length <= 1 && t.acronyms.length === 0) return 1;
+  return KIND_QUALITY[t.kind];
+}
+
+/** Picks n targets: due first, then unseen, then the rest; within a tier, richer items first; no kind takes over the board. */
+export function pickTargets(items: readonly BlurtTarget[], n: number, ctx: BlurtBuildInput): BlurtTarget[] {
+  const tier = (t: BlurtTarget) => srsPriority(ctx.srs[t.itemId], ctx.today);
+  const ordered = shuffle(items, ctx.rng)
+    .map((t, i) => ({ t, i }))
+    .sort((a, b) => tier(a.t) - tier(b.t) || quality(b.t) - quality(a.t) || a.i - b.i)
+    .map((x) => x.t);
+  const cap = Math.ceil(n / 2);
+  const picked: BlurtTarget[] = [];
+  const perKind = new Map<TargetKind, number>();
+  for (const t of ordered) {
+    if (picked.length >= n) break;
+    if ((perKind.get(t.kind) ?? 0) >= cap) continue;
+    picked.push(t);
+    perKind.set(t.kind, (perKind.get(t.kind) ?? 0) + 1);
+  }
+  for (const t of ordered) {
+    if (picked.length >= n) break;
+    if (!picked.includes(t)) picked.push(t);
+  }
+  // Board order follows the reading, so the lit-up board reads like the notes.
+  return items.filter((t) => picked.includes(t));
+}
+
+/** Time for a timed blurt: a settling allowance plus time per target. */
+export function boardTimeMs(targets: number): number {
+  return 45000 + 20000 * targets;
+}
+
+/** How long, untimed, a considered blurt of this size takes (grading speed is not used here). */
+export function boardTargetMs(targets: number): number {
+  return 60000 + 20000 * targets;
+}
+
+function makeBoard(o: Objective, items: readonly BlurtTarget[], n: number, phase: 'discovery' | 'pressure', ctx: BlurtBuildInput): BlurtBoardSpec {
+  const targets = pickTargets(items, n, ctx);
+  const extras = items.filter((t) => !targets.includes(t)).slice(0, MAX_EXTRAS);
+  return {
+    boardId: `${o.id}#${phase}`,
+    objectiveId: o.id,
+    objectiveText: o.text ?? '',
+    targets,
+    extras,
+    ...(phase === 'pressure' ? { timeLimitMs: boardTimeMs(targets.length) } : {}),
+  };
+}
+
+/** A short name for an item, for the naming step and the plan's target. */
+export function shortName(t: BlurtTarget): string {
+  const plain = toDisplay(t.display).replace(/\s+/g, ' ').trim();
+  if (t.kind === 'term') return plain.replace(/[.:;,]+$/, '');
+  if (t.kind === 'variable') return plain;
+  if (t.kind === 'number') return `${toDisplay(t.label ?? '')} in “${clip(plain, 14)}”`;
+  const emph = emphasised(t.display).filter((x) => x.split(/\s+/).length >= 2);
+  return emph[0] ?? clip(leadSentence(plain), 16);
+}
+
+/** Cuts at a word boundary (for a heading line only; full text is always shown on the board). */
+function clip(s: string, maxWords: number): string {
+  const ws = s.split(/\s+/);
+  return ws.length <= maxWords ? s.replace(/[.;:]+$/, '') : `${ws.slice(0, maxWords).join(' ')} …`;
+}
+
+const KIND_ROLE: Record<TargetKind, string> = {
+  term: 'a marked term of this objective',
+  point: 'a point the notes make under this objective',
+  number: 'a number the notes pin to this objective',
+  variable: 'a variable from this objective’s notation key',
+};
+
+export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
+  const block = corpus.blockById[t.blockId];
+  const where = block?.title ? `“${toDisplay(block.title)}”` : `the ${block?.type ?? 'block'}`;
+  return {
+    term: shortName(t),
+    blockId: t.blockId,
+    objectiveId,
+    line: `Free recall leaves gaps where retrieval is weakest. This is ${KIND_ROLE[t.kind]}, from ${where}: ${toDisplay(t.display)}`,
+  };
+}
+
+export function buildBlurt(reading: Reading, ctx: BlurtBuildInput): MechanicPlan<BlurtPayload> | null {
+  const eligible = eligibleObjectives(reading);
+  if (eligible.length < 2) return null;
+  // Objectives with the most due, then unseen, items come first.
+  const urgency = (items: readonly BlurtTarget[]) =>
+    items.reduce((s, t) => s + (srsPriority(ctx.srs[t.itemId], ctx.today) === 0 ? 3 : srsPriority(ctx.srs[t.itemId], ctx.today) === 1 ? 1 : 0), 0) /
+    Math.max(1, items.length);
+  const ranked = shuffle(eligible, ctx.rng)
+    .map((x, i) => ({ ...x, u: urgency(x.items), i }))
+    .sort((a, b) => b.u - a.u || a.i - b.i);
+  // Pressure takes the most urgent objective; discovery the shortest of the next few (a shorter LO).
+  const pressureLo = ranked[0];
+  const rest = ranked.slice(1, 4);
+  const discoveryLo = [...rest].sort((a, b) => a.items.length - b.items.length || a.i - b.i)[0];
+  if (!pressureLo || !discoveryLo) return null;
+
+  const disc = makeBoard(discoveryLo.o, discoveryLo.items, Math.min(DISCOVERY_TARGETS, discoveryLo.items.length), 'discovery', ctx);
+  const pres = makeBoard(pressureLo.o, pressureLo.items, Math.min(PRESSURE_TARGETS, pressureLo.items.length), 'pressure', ctx);
+  if (disc.targets.length < MIN_TARGETS || pres.targets.length < MIN_TARGETS) return null;
+
+  const toRound = (board: BlurtBoardSpec, t: BlurtTarget, phase: 'discovery' | 'pressure'): MechanicRound<BlurtPayload> => ({
+    id: `${t.itemId}#${phase}`,
+    phase,
+    itemId: t.itemId,
+    blockId: t.blockId,
+    objectiveId: board.objectiveId,
+    ...(board.timeLimitMs ? { timeLimitMs: board.timeLimitMs } : {}),
+    targetMs: board.timeLimitMs ?? boardTargetMs(board.targets.length),
+    payload: { board, itemId: t.itemId },
+  });
+  const rounds = [...disc.targets.map((t) => toRound(disc, t, 'discovery')), ...pres.targets.map((t) => toRound(pres, t, 'pressure'))];
+  const concept = namingFor(ctx.corpus, disc.targets[0], disc.objectiveId);
+  return {
+    rounds,
+    target: `free recall of ${disc.objectiveId} and ${pres.objectiveId}`,
+    opening: `${reading.reading_id} · Blurt Board. Two objectives, two blank boards. For each, write down everything you can remember — one idea per line, in your own words, in any order. Then the board shows what the notes hold that you found, and what stayed dark. The second board runs against the clock.`,
+    concept,
+  };
+}
+
+/** Names the first item the player left dark on the discovery board; else the first one they found. */
+export function nameAfterDiscovery(corpus: Corpus, plan: MechanicPlan<BlurtPayload>, discovery: readonly RoundResult[]): ConceptNaming {
+  const byId = new Map(plan.rounds.map((r) => [r.id, r]));
+  const played = discovery.map((d) => ({ d, r: byId.get(d.roundId) })).filter((x): x is { d: RoundResult; r: MechanicRound<BlurtPayload> } => !!x.r);
+  const missed = played.filter((x) => !x.d.correct);
+  const pick = missed.find((x) => x.r.payload.board.targets.find((t) => t.itemId === x.r.itemId)?.kind === 'term') ?? missed[0] ?? played[0];
+  if (!pick) return plan.concept;
+  const t = pick.r.payload.board.targets.find((x) => x.itemId === pick.r.itemId);
+  return t ? namingFor(corpus, t, pick.r.payload.board.objectiveId) : plan.concept;
+}
+
+/** Stem helper re-exported for tests. */
+export { stem };

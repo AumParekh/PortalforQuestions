@@ -101,7 +101,7 @@ META_TITLE_RE = re.compile(
     r'notation warning|objectives, not|off-syllabus|what the source notes carry|'
     r"source notes'? own guidance|labelling note|where this page came from|two layers|three copies|"
     r'^source note$|^about this chapter$|title carries no|thinnest reading in the source|'
-    r'missing from the source notes|source notes lost|the source notes lost|in the source notes',
+    r'missing from the source notes|source notes lost|the source notes lost|in the source notes|text layer',
     re.I)
 META_BODY_RE = re.compile(r'crash layer|lecture layer|reconciliation record', re.I)
 CORRECTION_TITLE_RE = re.compile(r'^(a )?correction|^the correction', re.I)
@@ -201,6 +201,8 @@ MATH_SYMBOL_SUB = {r'\blacktriangleright': '▸', r'\checkmark': '✓', r'\bulle
                    r'\longrightarrow': '→', r'\Longrightarrow': '⇒', r'\leftrightarrow': '↔'}
 
 LINE_BLANK = re.compile(r'\n[ \t]*\n')
+GENERIC_HEADING_RE = re.compile(r'^(limitations?|advantages?|disadvantages?|strengths?|weaknesses?|challenges?|'
+                                r'examples?|notes?|overview|summary|benefits?|drawbacks?|key points?)$', re.I)
 
 
 # ============================================================================= low-level helpers
@@ -916,54 +918,84 @@ def cut_first_sentence(latex):
     return latex, ''
 
 
+VERB_OK = {'defined', 'measured', 'expressed', 'estimated', 'computed', 'calculated', 'annualised',
+           'annualized', 'quoted', 'stated', 'denominated'}
+
+
+def parse_clauses(sent, strict, state):
+    clauses = top_level_split(sent, r',\s+(?:and\s+)?(?=\$|\\term\{|[A-Z]{2,}\s+(?:is|the|=)\s)|'
+                                    r'\s+and\s+(?=\$[^$]+\$\s+(?:is|are|the|=))')
+    merged, buf = [], ''
+    for cl in clauses:
+        cand = (buf + ', ' + cl) if buf else cl
+        m = SYM_GROUP_RE.match(cand)
+        rest = cand[m.end():] if m else cand
+        if m and not words(PLAIN(rest)) and not re.search(r'=', rest):
+            buf = cand
+            continue
+        merged.append(cand)
+        buf = ''
+    if buf:
+        merged.append(buf)
+    out = []
+    had_connector = state.get('had', False)
+    for cl in merged:
+        m = SYM_GROUP_RE.match(cl)
+        if not m:
+            wm = re.match(r'^\s*([A-Za-z][A-Za-z\- ]{0,40}?)\s*=\s*(.+)$', cl, re.S)
+            if wm and len(wm.group(1).split()) <= 5 and not strict:
+                d = PLAIN(cut_first_sentence(wm.group(2))[0]).rstrip('. ')
+                if words(d):
+                    out.append({'symbol': wm.group(1).strip(), 'definition': d, 'shared': False})
+                    had_connector = True
+            continue
+        syms_latex = m.group(1)
+        rest = cl[m.end():]
+        cm = CONNECT_RE.match(rest)
+        connector = None
+        if cm:
+            had_connector = True
+            connector = cm.group(0).strip().lower()
+            rest = rest[cm.end():]
+        elif not had_connector or not re.match(r'\s*(the|its|a|an)\b', rest, re.I):
+            continue
+        definition, _ = cut_first_sentence(rest)
+        dplain = PLAIN(definition).rstrip('. ')
+        dw = words(dplain)
+        if len(dw) < 1:
+            continue
+        if connector == ':' and syms_latex.lstrip().startswith('\\term'):
+            continue
+        if connector in ('is', 'are'):
+            if len(dplain.split()) < 2 or (dw[0].lower().endswith('ed') and dw[0].lower() not in VERB_OK):
+                continue
+        syms = SYM_RE.findall(syms_latex)
+        syms = [x for x in syms if x.lower() not in ('and', 'or')]
+        for sym in syms:
+            sp = PLAIN(sym)
+            if not sp or sp.lower() in ('where', 'here', 'the'):
+                continue
+            out.append({'symbol': sp, 'definition': dplain, 'shared': len(syms) > 1})
+    state['had'] = had_connector
+    return out
+
+
 def parse_vk(vk_latex):
-    """Variables from a notation key. Handles '$X$ = meaning' and '$X$ is meaning, $Y$ the ...'."""
+    """Variables from a notation key. Handles '$X$ = meaning' and '$X$ is meaning, $Y$ the ...'.
+    Only the first sentence of each ';' segment is read, plus later sentences that open with a symbol."""
     text = re.sub(r'\\q?quad\b', ' ', vk_latex)
     text = re.sub(r'\\par\b|\\smallskip\b', ' ', text)
+    text = text.replace('$=$', ' = ')
     out = []
+    state = {}
     for seg in top_level_split(text, r';'):
-        seg = seg.strip()
-        if not seg:
+        if not seg.strip():
             continue
-        seg_first, _rest = cut_first_sentence(seg) if not re.search(r'=', seg.split('.')[0] if False else '') else (seg, '')
-        clauses = top_level_split(seg, r',\s+(?:and\s+)?(?=\$|\\term\{)|\s+and\s+(?=\$[^$]+\$\s+(?:is|are|the|=))|'
-                                       r'\.\s+(?=\$[^$]+\$\s+(?:is|are|=))')
-        merged, buf = [], ''
-        for cl in clauses:
-            cand = (buf + ', ' + cl) if buf else cl
-            m = SYM_GROUP_RE.match(cand)
-            rest = cand[m.end():] if m else cand
-            if m and not words(PLAIN(rest)) and not re.search(r'=', rest):
-                buf = cand
+        sents = top_level_split(seg, r'\.\s+(?=[A-Z\\$])')
+        for si, sent in enumerate(sents):
+            if si > 0 and not re.match(r'\s*(?:(?:Here|Where|And)\s+)?\$', sent):
                 continue
-            merged.append(cand)
-            buf = ''
-        if buf:
-            merged.append(buf)
-        had_connector = False
-        for k, cl in enumerate(merged):
-            m = SYM_GROUP_RE.match(cl)
-            if not m:
-                continue
-            syms_latex = m.group(1)
-            rest = cl[m.end():]
-            cm = CONNECT_RE.match(rest)
-            if cm:
-                had_connector = True
-                rest = rest[cm.end():]
-            elif not had_connector or not re.match(r'\s*(the|its|a|an)\b', rest, re.I):
-                continue
-            definition, _ = cut_first_sentence(rest)
-            dplain = PLAIN(definition).rstrip('. ')
-            if len(words(dplain)) < 1:
-                continue
-            syms = SYM_RE.findall(syms_latex)
-            syms = [x for x in syms if x.lower() not in ('and', 'or')]
-            for sym in syms:
-                sp = PLAIN(sym)
-                if not sp or sp.lower() in ('where', 'here', 'the'):
-                    continue
-                out.append({'symbol': sp, 'definition': dplain, 'shared': len(syms) > 1})
+            out.extend(parse_clauses(sent, si > 0, state))
     return out
 
 
@@ -995,6 +1027,10 @@ def parse_where_math(latex):
 
 
 # ============================================================================= trap text splitting
+DETERMINERS = {'a', 'an', 'the', 'its', 'their', 'his', 'her', 'this', 'that', 'these', 'those'}
+LINKING = {'is', 'are', 'was', 'were', 'be', 'becomes', 'remains'}
+
+
 def split_correct_corrupt(text):
     """Heuristic split of a trap statement into (correct, corrupted, rule). Returns (None, None, None)."""
     for sent in [text[a:b] for a, b in sentences(text)]:
@@ -1018,10 +1054,24 @@ def split_correct_corrupt(text):
         if len(xw) < 2:
             continue
         k = None
-        for idx in range(len(xw) - 1, -1, -1):
-            if xw[idx].lower().strip('$*') == yw[0].lower().strip('$*') and idx > 0:
-                k = idx
-                break
+        low = [w_.lower().strip('$*,') for w_ in xw]
+        linking = [i_ for i_, w_ in enumerate(low) if w_ in LINKING and i_ > 0]
+        if yw[0].lower() in DETERMINERS:
+            # "X is the A, not the B": substitute after the last linking verb, else from the last determiner
+            if linking and linking[-1] < len(xw) - 1:
+                k = linking[-1] + 1
+            else:
+                dets = [i_ for i_, w_ in enumerate(low) if w_ in DETERMINERS and i_ > 0]
+                if dets:
+                    k = dets[-1]
+        if k is None:
+            for idx in range(len(xw) - 1, -1, -1):
+                if low[idx] == yw[0].lower().strip('$*,') and idx > 0:
+                    k = idx
+                    break
+        if k is None and linking and len(yw) <= 2 and len(xw) - linking[-1] - 1 > len(yw) + 1:
+            # bare noun Y against a longer complement: "... is inapplicability of a static measure, not manipulation"
+            k = linking[-1] + 1
         if k is None:
             if len(xw) <= len(yw):
                 continue
@@ -1032,9 +1082,10 @@ def split_correct_corrupt(text):
         if rule == 'X (not Y)':
             correct = (x + ' ' + tail).strip()
             corrupted = (corrupted + ' ' + tail).strip()
-        correct = correct.rstrip(' .,;') + '.'
-        corrupted = corrupted.rstrip(' .,;') + '.'
-        if correct == corrupted:
+        correct = correct.rstrip(' .,;:') + '.'
+        corrupted = corrupted.rstrip(' .,;:') + '.'
+        if correct == corrupted or re.search(r'\b(the|a|an)\s+(the|a|an|any|before|after|its|their)\b',
+                                             corrupted, re.I):
             continue
         return correct, corrupted, rule
     return None, None, None
@@ -1566,7 +1617,11 @@ class ReadingParser(object):
         if display:
             outside = re.sub(r'\\\[.*?\\\]|\\begin\{(align\*?)\}.*?\\end\{\1\}', ' ', raw, flags=re.S)
             fml = next((x for x in reversed(self.obj['blocks']) if x['type'] == 'fmlbox'), None)
-            if len(words(PLAIN(outside))) <= 12 and fml is not None:
+            lead_txt = PLAIN(re.split(r'\\\[|\\begin\{align', raw)[0]).strip()
+            after_txt = PLAIN(re.split(r'\\\]|\\end\{align\*?\}', raw)[-1]).strip()
+            nout = len(words(PLAIN(outside)))
+            if fml is not None and (nout <= 12 or (lead_txt.endswith(':') and not words(after_txt)
+                                                   and nout <= 25)):
                 fml.setdefault('substitutions', []).append(OrderedDict([
                     ('latex', raw), ('plain_text', plain), ('source_line', self.line(pos))]))
                 self.mine(fml, raw, 'text', 'fmlbox')
@@ -1585,7 +1640,8 @@ class ReadingParser(object):
         self.finalize(b_, [(raw, 'text')], 'prose' if form != 'list' else 'list')
         if self.pending_orsubb:
             head, hpos = self.pending_orsubb
-            if form == 'para' and len(sentences(plain)) == 1:
+            if form == 'para' and len(sentences(plain)) == 1 and not GENERIC_HEADING_RE.match(
+                    re.sub(r'^\s*\d+[.)]\s+', '', head)):
                 self.add_term(b_, head, 'orsubb')
                 self.infer('term', '\\orsubb{%s} followed by a one-sentence definition -> term on %s'
                            % (head, b_['id']), hpos)
@@ -1867,7 +1923,8 @@ class ReadingParser(object):
         elif ctype in ('trapbox', 'keybox', 'notebox') and not is_summary:
             if title and META_TITLE_RE.search(title):
                 meta_reason = 'title'
-            elif ctype == 'trapbox' and before_first_lo and self.area in ('IM', 'CR', 'LTR', 'MR'):
+            elif ctype == 'trapbox' and self.obj['letter'] == 'intro' and self.area in ('IM', 'CR', 'LTR') \
+                    and not (title and CONTENT_LIST_RE.search(title)):
                 meta_reason = 'pre-LO %s' % name
             elif META_BODY_RE.search(plain) and ctype in ('trapbox', 'keybox'):
                 meta_reason = 'body mentions crash/lecture layer or the reconciliation record'
@@ -2106,7 +2163,10 @@ class ReadingParser(object):
                            for k, (_, it, _, _) in enumerate(items[:7])]
         if options:
             am = re.search(r'Answer:?\s*(?:\\(?:textbf|term)\{)?\s*(?:Answer:?\s*)?\(?([A-D])\b', body)
-            b['mcq'] = OrderedDict([('options', options), ('answer', am.group(1) if am else None)])
+            if am is None:
+                am = re.search(r'\\text\{\s*\(([A-D])\)\s*\}', body)
+            b['mcq'] = OrderedDict([('options', options), ('answer', am.group(1) if am else None),
+                                    ('source', 'table' if mcq_tables else 'list')])
             b['_mcq_tables'] = mcq_tables
         # grouping of continued examples
         title = b.get('title') or ''
@@ -2145,16 +2205,22 @@ class ReadingParser(object):
             if m:
                 lead, endp = braced(raw, m.end() - 1)
                 lp = PLAIN(lead).strip()
-                core = lp
-                lr = re.match(r'^(.*?),\s*((?:MR|LTR|IM|ORR|CR|CI)-\d+(?:\s*[a-q])?)\.?$', lp)
-                if lr:
-                    core, lo_ref = lr.group(1), lr.group(2)
+                core = re.split(r'[,(]', lp)[0].strip()
+                rest = lp[len(core):].strip(' ,.:()')
+                qualifier = None
+                if rest:
+                    if XREF_RE.match(rest):
+                        lo_ref = rest
+                    else:
+                        qualifier = rest
                 key = clean_term(core).lower()
                 if key in CATMAP:
                     raw_cat = clean_term(core)
                     category = CATMAP[key]
                     cat_source = 'label'
                     text_latex = raw[endp:]
+                    if qualifier:
+                        text_latex = '(' + qualifier + ') ' + text_latex
             if category is None and form == 'box' and title:
                 tm = TITLE_CAT_RE.match(title)
                 if tm:
@@ -2236,9 +2302,15 @@ class ReadingParser(object):
             item.update(t)
             item['hash'] = sha12(t['text'])
             traps.append(item)
-        for o in self.objectives:
+        for k, o in enumerate(self.objectives):
             for blk in o['blocks']:
                 blk.pop('_end', None)
+            if o['letter'] not in ('intro', 'basics', 'summary') and not o['blocks'] and \
+                    k + 1 < len(self.objectives):
+                nxt = self.objectives[k + 1]
+                o['merged_with'] = nxt['letter']
+                self.infer('objective', '%s has no content of its own; the notes cover it together with %s'
+                           % (o['id'], nxt['id']), self.line_starts[o['source_line'] - 1])
         r['objectives'] = self.objectives
         r['traps'] = traps
         r['source_notes'] = self.source_notes
@@ -2441,9 +2513,7 @@ def main(argv=None):
         if rel is None:
             for f in list_files():
                 m = re.match(r'\d+_[A-Z]+_([A-Z]+)(\d+)\.tex', os.path.basename(f))
-                code = m.group(1)
-                code = {'LTR': 'LTR'}.get(code, code)
-                if want.upper().replace('-', '') == (m.group(1) + m.group(2)):
+                if want.upper().replace('-', '').replace(' ', '') == (m.group(1) + m.group(2)):
                     rel = f
         if rel is None:
             raise SystemExit('no such reading: %s' % want)
@@ -2629,6 +2699,19 @@ def coverage_report(doc, parsed, log, size, det):
     else:
         w('No unresolved text-mode macros.')
     w('')
+    euro = []
+    for rel, r, p in parsed:
+        for m in re.finditer(r'\\(euro|texteuro|blacktriangleright|checkmark)(?![A-Za-z])', p.s):
+            euro.append((m.group(1), '%s:%d' % (p.source_file.replace('notes/', ''), p.line(m.start()))))
+    if euro:
+        byn = OrderedDict()
+        for n, loc in euro:
+            byn.setdefault(n, []).append(loc)
+        w('Symbol macros used only inside math or TikZ nodes and defined by neither preamble (the audit flags '
+          '`\\euro` as a likely XeLaTeX compile error; `\\blacktriangleright`/`\\checkmark` come from unicode-math): '
+          + '; '.join('`\\%s` ×%d (%s%s)' % (n, len(v), ', '.join(v[:3]), ' …' if len(v) > 3 else '')
+                      for n, v in byn.items()) + '. The extractor maps them to €, ▸ and ✓.')
+        w('')
     w('Inside math, macros are left for KaTeX (`\\euro`/`\\texteuro` rewritten to `\\text{€}`). Inside TikZ, pgf '
       '`\\foreach` loop variables (`\\x \\i \\p \\c \\t \\b …`) are not macros and are skipped; only node text is '
       'converted.')
@@ -2643,26 +2726,31 @@ def coverage_report(doc, parsed, log, size, det):
     devs = OrderedDict()
     for rid, d in log['deviations']:
         devs.setdefault(rid, []).append(d)
+    nocite = [rid for rid, r in readings.items() if r['source_citation'] is None]
     for rid, r in readings.items():
         extra = []
-        if r['source_citation'] is None:
-            extra.append('no source citation in the notes (no intro "Source:" line, no top \\srcnote)')
         los = [o for o in r['objectives'] if o['letter'] not in ('intro', 'basics', 'summary')]
-        empty = [o['letter'] for o in los if not o['blocks']]
-        if empty:
-            extra.append('objective(s) %s carry no blocks (heading only; content sits under the next LO)'
-                         % ', '.join(empty))
-        intro_items = sum(len(b.get('bullets', [])) for b in r['objectives'][0]['blocks']
-                          if b['type'] == 'keybox' and 'objective' in (b.get('title') or '').lower())
+        merged = ['%s with %s' % (o['letter'], o['merged_with']) for o in los if o.get('merged_with')]
+        if merged:
+            extra.append('LO pair(s) share one body: %s (the first LO of each pair has no blocks; '
+                         '`merged_with` records it)' % ', '.join(merged))
         if r['area'] in ('LTR', 'IM') and not any(t['origin'] == 'summary' for t in r['traps']):
             extra.append('no Consolidated trap summary')
+        if any(o['letter'] == 'summary' for o in r['objectives']):
+            extra.append('post-LO summary section extracted as objective `summary`')
         if extra:
             devs.setdefault(rid, []).extend(extra)
     clean = [rid for rid in readings if rid not in devs]
-    w('%d readings parsed with no deviation; %d carry a note below. None blocked extraction.' % (len(clean), len(devs)))
+    w('%d readings parsed with no structural deviation; %d carry a note below. None blocked extraction.'
+      % (len(clean), len(devs)))
     w('')
     for rid in sorted(devs, key=area_key):
         w('- **%s**: %s' % (rid, '; '.join(devs[rid])))
+    w('')
+    by_area = Counter(readings[rid]['area'] for rid in nocite)
+    w('Source citation: %d readings print none (%s), so `source_citation` is null for them; LTR and CI carry an '
+      'intro "Source:" line and IM a top-of-reading `\\srcnote`.' % (
+          len(nocite), ', '.join('%s %d of %d' % (a, by_area[a], EXPECTED[a]) for a in EXPECTED if by_area[a])))
     w('')
     # 6.4
     w('## 6.4 Block census by canonical type')
@@ -2678,29 +2766,43 @@ def coverage_report(doc, parsed, log, size, det):
             ccnt[c['area']][k] += v
         for k, v in c['unmapped'].items():
             ccnt[c['area']][k] += v
-    w('| Type | ' + ' | '.join(EXPECTED) + ' | Total | Census |')
-    w('|---|' + '---|' * (len(EXPECTED) + 2))
-    for t in types:
-        tot = sum(cnt[a][t] for a in EXPECTED)
-        ctot = sum(ccnt[a][t] for a in EXPECTED) if t != 'notebox' else sum(ccnt[a]['ornotebox'] for a in EXPECTED)
-        w('| %s | %s | %d | %d |' % (t, ' | '.join(str(cnt[a][t]) for a in EXPECTED), tot, ctot))
     nested_t = sum(len(b.get('tables', [])) for r in readings.values() for o, b in iter_blocks(r))
     nested_f = sum(len(b.get('figures', [])) for r in readings.values() for o, b in iter_blocks(r))
-    mcq = sum(1 for r in readings.values() for o, b in iter_blocks(r) if 'mcq' in b)
-    retyped = Counter('%s→%s' % (b['retyped_from'], b['type']) for r in readings.values()
-                      for o, b in iter_blocks(r) if 'retyped_from' in b)
+    mcq = sum(1 for r in readings.values() for o, b in iter_blocks(r) if b.get('mcq', {}).get('source') == 'table')
+    prose_forms = Counter(b.get('form') for r in readings.values() for o, b in iter_blocks(r)
+                          if b['type'] == 'prose_para')
+    retyped_pairs = Counter((b['retyped_from'], b['type']) for r in readings.values()
+                            for o, b in iter_blocks(r) if 'retyped_from' in b)
+    retyped = Counter('%s→%s' % kv for kv in retyped_pairs.elements())
     sn_by_env = Counter()
     for r in readings.values():
         for sn in r['source_notes']:
-            if sn.get('env'):
-                t = BOX_ENVS.get(sn['env'], sn['env'])
-                sn_by_env[t] += 1
+            if sn.get('env') and sn.get('reason'):
+                sn_by_env[BOX_ENVS.get(sn['env'], sn['env'])] += 1
     capt = Counter()
     for r in readings.values():
         for o, b in iter_blocks(r):
             if b['type'] in ('table', 'tikzpicture') and b.get('caption') is not None:
                 capt[b['type']] += 1
-    prose_forms = Counter(b.get('form') for r in readings.values() for o, b in iter_blocks(r) if b['type'] == 'prose_para')
+    nested_caps = sum(1 for r in readings.values() for o, b in iter_blocks(r)
+                      for x in b.get('tables', []) + b.get('figures', []) if x.get('caption') is not None)
+    nested_caps += sum(len(b.get('figcaps', [])) for r in readings.values() for o, b in iter_blocks(r))
+    w('| Type | ' + ' | '.join(EXPECTED) + ' | Total | Census | Reconciled |')
+    w('|---|' + '---|' * (len(EXPECTED) + 3))
+    for t in types:
+        tot = sum(cnt[a][t] for a in EXPECTED)
+        ctot = sum(ccnt[a][t] for a in EXPECTED) if t != 'notebox' else sum(ccnt[a]['ornotebox'] for a in EXPECTED)
+        exp = ctot - sn_by_env[t] - sum(v for (f, _), v in retyped_pairs.items() if f == t) \
+            + sum(v for (_, to), v in retyped_pairs.items() if to == t)
+        if t == 'table':
+            exp -= nested_t + mcq
+        if t == 'tikzpicture':
+            exp -= nested_f
+        if t == 'figcap':
+            exp -= capt['table'] + capt['tikzpicture'] + nested_caps
+        rec = 'yes' if exp == tot else ('n/a (census counts paragraphs differently)' if t == 'prose_para'
+                                         else 'expected %d' % exp)
+        w('| %s | %s | %d | %d | %s |' % (t, ' | '.join(str(cnt[a][t]) for a in EXPECTED), tot, ctot, rec))
     w('')
     w('How the extracted counts reconcile with `tools/notes/census.py` (the census counts environments; the '
       'extractor counts playable blocks):')
@@ -2786,6 +2888,11 @@ def coverage_report(doc, parsed, log, size, det):
         for inf in items:
             w('- %s:%s %s' % (inf['file'].replace('notes/', ''), inf['line'], inf['detail']))
         w('')
+    w('**Known limitations** (read, not guessed, but worth a human look):')
+    w('')
+    for lim in KNOWN_LIMITATIONS:
+        w('- ' + lim)
+    w('')
     drops = [(r['reading_id'], d) for r in readings.values() for d in r['dropped_fragments']]
     w('**Dropped fragments** (%d): text outside any block with fewer than three words and no math, e.g. stray '
       'labels. Listed so nothing disappears silently:' % len(drops))
@@ -2923,6 +3030,23 @@ DECIDED_RULES = [
     '"High LO count, no dominant structure" = at least five LOs and no other rule met.',
     'plain_text keeps inline math as `$…$`, display math as `$$…$$`, and escapes currency as `\\$` so a KaTeX '
     'auto-render pass will not confuse it with a math delimiter.',
+]
+
+KNOWN_LIMITATIONS = [
+    'Two audit-listed loose display-math spots stay prose_para: MR-5 L185 (no formula box precedes it in its '
+    'objective) and MR-9 L215 (the equation sits inside a paragraph that continues after it).',
+    '`corrupted_text` is constructed by substitution (see the rule above), so it can read awkwardly; every split '
+    'trap carries `split_rule`, and splits that produce doubled determiners are discarded.',
+    'Trap bullets without a category word (all MR, CR, CI and most in-body LTR/IM trap boxes) keep '
+    '`category: null` for the later mining pass; no category is guessed in code.',
+    'Variable parsing reads the first sentence of each ";" segment of a notation key, plus later sentences that open '
+    'with a symbol. Definitions phrased as passive statements ("$c$ is subtracted") or one-word predicates ("$n$ is '
+    'large") are rejected as non-definitions; the full key is always kept in `notation_key`.',
+    'Barings and London Whale, named in the brief\'s case list, do not occur in these notes. No reading reaches the '
+    'Party Line threshold (5 Role-category traps); the most any reading has is listed in `mechanics_basis`.',
+    'The `\\gapbadge` span follows the audit rule (to the next LO), so blocks after a gap-fill but inside the same LO '
+    'are flagged even when the notes return to source material (e.g. LTR-1 a after the two worked examples).',
+    'Coordinates, tick labels and pgf options inside TikZ are not parsed; only node/legend/label text is kept.',
 ]
 
 if __name__ == '__main__':

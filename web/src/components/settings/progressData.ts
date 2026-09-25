@@ -1,8 +1,8 @@
 import type {
   AttemptRecord,
-  FormulaAttempt,
-  FormulaGame,
-  FormulaState,
+  GymAttempt,
+  GymKind,
+  GymState,
   OptionKey,
   QuestionState,
   ScopeKind,
@@ -15,7 +15,7 @@ import { getAll, openDb } from '../../lib/db';
 
 /** File format for "Export progress" / "Import progress". */
 /**
- * Version 2 adds the True/False stores, version 3 the Formula Gym stores. Older files still import,
+ * Version 2 adds the True/False stores, version 3 the gym stores (Formula Gym and siblings). Older files still import,
  * with the stores they predate left empty.
  */
 export interface ProgressExport {
@@ -26,8 +26,8 @@ export interface ProgressExport {
   sessions: SessionRecord[];
   tfState: TFState[];
   tfAttempts: TFAttempt[];
-  formulaState: FormulaState[];
-  formulaAttempts: FormulaAttempt[];
+  gymState: GymState[];
+  gymAttempts: GymAttempt[];
 }
 
 export interface ParsedImport {
@@ -37,19 +37,19 @@ export interface ParsedImport {
 }
 
 export async function buildExport(): Promise<ProgressExport> {
-  const [questionState, attempts, sessions, tfState, tfAttempts, formulaState, formulaAttempts] = await Promise.all([
+  const [questionState, attempts, sessions, tfState, tfAttempts, gymState, gymAttempts] = await Promise.all([
     getAll('questionState'),
     getAll('attempts'),
     getAll('sessions'),
     getAll('tfState'),
     getAll('tfAttempts'),
-    getAll('formulaState'),
-    getAll('formulaAttempts'),
+    getAll('gymState'),
+    getAll('gymAttempts'),
   ]);
   attempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   sessions.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
   tfAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
-  formulaAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  gymAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   return {
     version: 3,
     exportedAt: new Date().toISOString(),
@@ -58,8 +58,8 @@ export async function buildExport(): Promise<ProgressExport> {
     sessions,
     tfState,
     tfAttempts,
-    formulaState,
-    formulaAttempts,
+    gymState,
+    gymAttempts,
   };
 }
 
@@ -89,7 +89,7 @@ type Rec = Record<string, unknown>;
 const OPTION_KEYS: readonly string[] = ['a', 'b', 'c', 'd', 'e'];
 const MODES: readonly string[] = ['drill', 'review-wrong', 'quest', 'mock'];
 const SCOPES: readonly string[] = ['subject', 'reading', 'topic', 'lo'];
-const FORMULA_GAMES: readonly string[] = ['recall', 'forge', 'rigged', 'spot', 'whichway', 'symbols', 'calc', 'twins'];
+const GYM_KINDS: readonly string[] = ['formula', 'scenario'];
 
 const isRec = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.isArray(v);
 const str = (v: unknown): v is string => typeof v === 'string';
@@ -204,16 +204,17 @@ function tfAttempt(v: unknown): TFAttempt | null {
   };
 }
 
-const isGame = (v: unknown): v is FormulaGame => str(v) && FORMULA_GAMES.includes(v);
 const localDate = (v: unknown): v is string => str(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+const gymKind = (v: unknown): GymKind => (str(v) && GYM_KINDS.includes(v) ? (v as GymKind) : 'formula');
 
-function formulaState(v: unknown): FormulaState | null {
-  if (!isRec(v) || !nonEmpty(v.formulaId)) return null;
+function gymState(v: unknown): GymState | null {
+  if (!isRec(v) || !nonEmpty(v.itemId)) return null;
   if (!count(v.totalAttempts) || !count(v.totalCorrect) || !count(v.totalWrong)) return null;
-  const gameCounts: Partial<Record<FormulaGame, number>> = {};
-  if (isRec(v.gameCounts)) for (const [k, n] of Object.entries(v.gameCounts)) if (isGame(k) && count(n)) gameCounts[k] = n;
+  const gameCounts: Record<string, number> = {};
+  if (isRec(v.gameCounts)) for (const [k, n] of Object.entries(v.gameCounts)) if (k && count(n)) gameCounts[k] = n;
   return {
-    formulaId: v.formulaId,
+    itemId: v.itemId,
+    kind: gymKind(v.kind),
     readingId: strOr(v.readingId, ''),
     repetition: count(v.repetition) ? v.repetition : 0,
     interval: count(v.interval) ? v.interval : 0,
@@ -225,16 +226,17 @@ function formulaState(v: unknown): FormulaState | null {
     lastResult: v.lastResult === 'correct' || v.lastResult === 'wrong' ? v.lastResult : null,
     lastAttempted: isoDate(v.lastAttempted) ? v.lastAttempted : null,
     gameCounts,
-    recentGames: Array.isArray(v.recentGames) ? v.recentGames.filter(isGame).slice(0, 4) : [],
+    recentGames: Array.isArray(v.recentGames) ? v.recentGames.filter(nonEmpty).slice(0, 4) : [],
   };
 }
 
-function formulaAttempt(v: unknown): FormulaAttempt | null {
-  if (!isRec(v) || !nonEmpty(v.attemptId) || !nonEmpty(v.formulaId) || !isoDate(v.timestamp)) return null;
-  if (!isGame(v.game) || typeof v.correct !== 'boolean') return null;
-  return {
+function gymAttempt(v: unknown): GymAttempt | null {
+  if (!isRec(v) || !nonEmpty(v.attemptId) || !nonEmpty(v.itemId) || !isoDate(v.timestamp)) return null;
+  if (!nonEmpty(v.game) || typeof v.correct !== 'boolean') return null;
+  const row: GymAttempt = {
     attemptId: v.attemptId,
-    formulaId: v.formulaId,
+    itemId: v.itemId,
+    kind: gymKind(v.kind),
     game: v.game,
     correct: v.correct,
     grade: num(v.grade) ? Math.min(5, Math.max(0, Math.round(v.grade))) : v.correct ? 4 : 1,
@@ -242,6 +244,8 @@ function formulaAttempt(v: unknown): FormulaAttempt | null {
     sessionId: strOr(v.sessionId, ''),
     timestamp: v.timestamp,
   };
+  if (nonEmpty(v.measure)) row.measure = v.measure;
+  return row;
 }
 
 function rows<T>(list: unknown[], parse: (v: unknown) => T | null, key: (t: T) => string): { ok: T[]; bad: number } {
@@ -276,24 +280,24 @@ export function parseImport(text: string): ParsedImport {
   const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
   const tfStateRows = list(data.tfState);
   const tfAttemptRows = list(data.tfAttempts);
-  const formulaStateRows = list(data.formulaState);
-  const formulaAttemptRows = list(data.formulaAttempts);
+  const gymStateRows = list(data.gymState);
+  const gymAttemptRows = list(data.gymAttempts);
   const qs = rows(data.questionState, questionState, (r) => r.questionId);
   const at = rows(data.attempts, attempt, (r) => r.attemptId);
   const se = rows(data.sessions, session, (r) => r.sessionId);
   const ts = rows(tfStateRows, tfState, (r) => r.cardId);
   const ta = rows(tfAttemptRows, tfAttempt, (r) => r.attemptId);
-  const fs = rows(formulaStateRows, formulaState, (r) => r.formulaId);
-  const fa = rows(formulaAttemptRows, formulaAttempt, (r) => r.attemptId);
+  const gs = rows(gymStateRows, gymState, (r) => r.itemId);
+  const ga = rows(gymAttemptRows, gymAttempt, (r) => r.attemptId);
   const total =
     data.questionState.length +
     data.attempts.length +
     data.sessions.length +
     tfStateRows.length +
     tfAttemptRows.length +
-    formulaStateRows.length +
-    formulaAttemptRows.length;
-  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + fs.bad + fa.bad;
+    gymStateRows.length +
+    gymAttemptRows.length;
+  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + gs.bad + ga.bad;
   if (total > 0 && skipped === total) throw new Error('None of the records in this file could be read.');
   return {
     data: {
@@ -304,8 +308,8 @@ export function parseImport(text: string): ParsedImport {
       sessions: se.ok,
       tfState: ts.ok,
       tfAttempts: ta.ok,
-      formulaState: fs.ok,
-      formulaAttempts: fa.ok,
+      gymState: gs.ok,
+      gymAttempts: ga.ok,
     },
     skipped,
   };
@@ -318,7 +322,7 @@ export function parseImport(text: string): ParsedImport {
 export async function replaceProgress(data: ProgressExport): Promise<void> {
   const db = await openDb();
   const tx = db.transaction(
-    ['questionState', 'attempts', 'sessions', 'tfState', 'tfAttempts', 'formulaState', 'formulaAttempts'],
+    ['questionState', 'attempts', 'sessions', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts'],
     'readwrite',
   );
   const done = new Promise<void>((resolve, reject) => {
@@ -331,21 +335,21 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   const se = tx.objectStore('sessions');
   const ts = tx.objectStore('tfState');
   const ta = tx.objectStore('tfAttempts');
-  const fs = tx.objectStore('formulaState');
-  const fa = tx.objectStore('formulaAttempts');
+  const gs = tx.objectStore('gymState');
+  const ga = tx.objectStore('gymAttempts');
   qs.clear();
   at.clear();
   se.clear();
   ts.clear();
   ta.clear();
-  fs.clear();
-  fa.clear();
+  gs.clear();
+  ga.clear();
   for (const r of data.questionState) qs.put(r);
   for (const r of data.attempts) at.put(r);
   for (const r of data.sessions) se.put(r);
   for (const r of data.tfState) ts.put(r);
   for (const r of data.tfAttempts) ta.put(r);
-  for (const r of data.formulaState) fs.put(r);
-  for (const r of data.formulaAttempts) fa.put(r);
+  for (const r of data.gymState) gs.put(r);
+  for (const r of data.gymAttempts) ga.put(r);
   await done;
 }

@@ -224,6 +224,28 @@ resurfaces sooner everywhere. The only numbers shown are stability measurements
 
 ---
 
+**Visual mechanics (added at the user's request).** These are engine plug-ins with
+curated, script-validated data in `content/games/mechanics/<id>.json`, which the engine
+loads into `corpus.extras`. Validators live in `tools/games/validate_<id>.py`.
+- **Curve Sculptor.** Three sliders; one parameter is wrong, so the curve doesn't match
+  its shape word (inverted, humped, steep…). The player drags until it snaps. The
+  validator checks that the target satisfies the shape predicate and the start doesn't.
+- **Tree Racer.** Recombining rate or price trees (MR-12…16). One node is highlighted
+  with three candidate values. Wrong candidates are named mistakes (drift omitted, σ not
+  scaled by √dt, …). A wrong pick grows a phantom branch that visibly fails to
+  recombine. Every node is recomputed from the model by the validator.
+- **Tail Shaper.** A split Student-t density with four sliders (left tail, right tail,
+  mean shift, variance). The player matches the notes' target distribution; on success
+  the matching skew or smile is overlaid (MR-17).
+- **Waterfall Builder.** Stacks, processes and loops, placed top to bottom. The stack
+  lights up as a flow; loops close into a circle.
+- **Frontier Rider.** Live Markowitz frontier, tangency and complete portfolio. The
+  player predicts where the optimal point moves as a slider (rf, risk aversion,
+  correlation, μ, σ) changes. The validator recomputes the movement.
+- **Grid Settler.** Two-axis classification grids. Correct tiles lock; wrong ones
+  bounce back while the right cell pulses. The pattern is revealed when the grid is
+  full.
+
 ## 3d. Formula Gym (added on request: "games for formula remembering")
 
 A dedicated section for getting every formula in the notes into long-term memory,

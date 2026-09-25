@@ -1,7 +1,7 @@
-import type { AttemptRecord, FormulaAttempt, FormulaState, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
+import type { AttemptRecord, GymAttempt, GymState, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
 
 const DB_NAME = 'frm-portal';
-// v2 adds the True/False stores, v3 the Formula Gym stores; upgrades create only what's missing, so older data is kept.
+// v2 adds the True/False stores, v3 the gym stores (Formula Gym and siblings); upgrades create only what's missing, so older data is kept.
 const DB_VERSION = 3;
 
 export type StoreName =
@@ -11,8 +11,8 @@ export type StoreName =
   | 'meta'
   | 'tfState'
   | 'tfAttempts'
-  | 'formulaState'
-  | 'formulaAttempts';
+  | 'gymState'
+  | 'gymAttempts';
 
 interface StoreValue {
   questionState: QuestionState;
@@ -21,8 +21,8 @@ interface StoreValue {
   meta: { key: string; value: unknown };
   tfState: TFState;
   tfAttempts: TFAttempt;
-  formulaState: FormulaState;
-  formulaAttempts: FormulaAttempt;
+  gymState: GymState;
+  gymAttempts: GymAttempt;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -93,12 +93,13 @@ export function openDb(): Promise<IDBDatabase> {
         s.createIndex('cardId', 'cardId');
         s.createIndex('timestamp', 'timestamp');
       }
-      if (!db.objectStoreNames.contains('formulaState')) {
-        db.createObjectStore('formulaState', { keyPath: 'formulaId' });
+      if (!db.objectStoreNames.contains('gymState')) {
+        const s = db.createObjectStore('gymState', { keyPath: 'itemId' });
+        s.createIndex('kind', 'kind');
       }
-      if (!db.objectStoreNames.contains('formulaAttempts')) {
-        const s = db.createObjectStore('formulaAttempts', { keyPath: 'attemptId' });
-        s.createIndex('formulaId', 'formulaId');
+      if (!db.objectStoreNames.contains('gymAttempts')) {
+        const s = db.createObjectStore('gymAttempts', { keyPath: 'attemptId' });
+        s.createIndex('itemId', 'itemId');
         s.createIndex('timestamp', 'timestamp');
       }
     };
@@ -193,11 +194,11 @@ export async function putTfAttempt(attempt: TFAttempt, state: TFState): Promise<
   await txDone(tx);
 }
 
-/** Writes Formula Gym answers and their updated formula states atomically (a Twin Split answer covers two formulas). */
-export async function putFormulaAttempts(attempts: FormulaAttempt[], states: FormulaState[]): Promise<void> {
+/** Writes gym answers and their updated item states atomically (one answer can cover several items, e.g. Twin Split). */
+export async function putGymAttempts(attempts: GymAttempt[], states: GymState[]): Promise<void> {
   const db = await openDb();
-  const tx = db.transaction(['formulaAttempts', 'formulaState'], 'readwrite');
-  for (const a of attempts) tx.objectStore('formulaAttempts').put(a);
-  for (const s of states) tx.objectStore('formulaState').put(s);
+  const tx = db.transaction(['gymAttempts', 'gymState'], 'readwrite');
+  for (const a of attempts) tx.objectStore('gymAttempts').put(a);
+  for (const s of states) tx.objectStore('gymState').put(s);
   await txDone(tx);
 }
