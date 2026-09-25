@@ -85,7 +85,9 @@ function useWidth<T extends HTMLElement>(): [(el: T | null) => void, number] {
     });
     obs.current.observe(el);
   }, []);
-  useEffect(() => () => obs.current?.disconnect(), []);
+  // No unmount effect: React calls the ref with null on unmount, which disconnects above. (An
+  // effect cleanup here would also run in StrictMode's simulated unmount, where React 18 does not
+  // re-attach refs, and leave the chart deaf to resizes.)
   return [setRef, width];
 }
 
@@ -103,12 +105,12 @@ function phantomOf(item: TreeItem, step: number, c: Candidate | null): Phantom |
   return item.phantom[step].find((p) => p.mistakeCode === c.mistakeCode) ?? null;
 }
 
+/** The rate tree as the notes print it. A risk premium is left for the player to add (MR-13 l.352-353), so the chip never gives that step away. */
 function rateText(item: TreeItem, t: number, i: number): string | null {
   if (item.spec.direction !== 'backward') return null;
   const r = item.spec.params.rates[t]?.[i];
   if (r === undefined) return null;
-  const withPremium = t >= 1 && item.spec.params.premium ? r + item.spec.params.premium : r;
-  return `r ${Number(withPremium.toFixed(4))}%`;
+  return `r ${Number(r.toFixed(4))}%`;
 }
 
 /** Second line of a lattice chip: the node's rate, or at an option's expiry the bond price the payoff reads. */
