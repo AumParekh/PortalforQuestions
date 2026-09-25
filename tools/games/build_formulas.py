@@ -49,6 +49,20 @@ def evaluate(expr, values):
     return eval(code, {'__builtins__': {}, 'MATH': MATH}, dict(values))  # noqa: S307 — whitelisted above
 
 
+def escape_currency(text):
+    """The app renders these fields as Markdown with math; a bare $ (always currency here) would open a math span."""
+    return re.sub(r'(?<!\\)\$', r'\\$', text) if isinstance(text, str) else text
+
+
+def escape_prose(c):
+    """Only the fields the Formula Gym renders through Markdown; plain-text fields (name, meanings) stay as-is."""
+    for k in ('prompt', 'intuition'):
+        c[k] = escape_currency(c.get(k))
+    for x in (c.get('corruptions') or []) + (c.get('sensitivities') or []):
+        if isinstance(x, dict) and 'why' in x:
+            x['why'] = escape_currency(x['why'])
+
+
 def check_card(c):
     for k in ('id', 'reading_id', 'name', 'prompt', 'latex', 'variables'):
         if not c.get(k):
@@ -99,13 +113,14 @@ def main():
                 dropped.append((c.get('id'), problem))
                 continue
             seen.add(c['id'])
+            escape_prose(c)
             cards.append(c)
     twins = []
     for t in json.load(open(twins_path)):
         if t['a'] in seen and t['b'] in seen and t['a'] != t['b']:
             key = tuple(sorted((t['a'], t['b'])))
             if key not in {tuple(sorted((x['a'], x['b']))) for x in twins}:
-                twins.append({'a': t['a'], 'b': t['b'], 'why': t['why']})
+                twins.append({'a': t['a'], 'b': t['b'], 'why': escape_currency(t['why'])})
     area_order = {'MR': 0, 'CR': 1, 'ORR': 2, 'LTR': 3, 'IM': 4, 'CI': 5}
 
     def sort_key(c):
