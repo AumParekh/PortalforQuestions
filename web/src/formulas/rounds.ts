@@ -182,16 +182,18 @@ function words(s: string): Set<string> {
 }
 
 /**
- * Word-overlap similarity (shared content words over the shorter definition), used to keep near-synonyms
- * out of one option set: "number of observations" vs "number of samples (observations in the window)" = 1.
+ * Whether two definitions say the same thing: one's content words all appear in the other ("number of
+ * observations" vs "number of samples (observations in the window)"), or they are near-identical. Siblings
+ * that differ by a word each ("…of asset returns" vs "…of portfolio returns") are kept: telling those apart
+ * is the point of the game.
  */
-export function similarity(a: string, b: string): number {
+export function tooSimilar(a: string, b: string): boolean {
   const wa = words(a);
   const wb = words(b);
-  if (wa.size === 0 || wb.size === 0) return a.trim().toLowerCase() === b.trim().toLowerCase() ? 1 : 0;
+  if (wa.size === 0 || wb.size === 0) return a.trim().toLowerCase() === b.trim().toLowerCase();
   let common = 0;
   for (const w of wa) if (wb.has(w)) common++;
-  return common / Math.min(wa.size, wb.size);
+  return common === Math.min(wa.size, wb.size) || common / (wa.size + wb.size - common) >= 0.75;
 }
 
 function buildAuction(f: Formula, index: DeckIndex): Round | null {
@@ -228,8 +230,7 @@ function buildAuction(f: Formula, index: DeckIndex): Round | null {
     candidates.sort((a, b) => b.score - a.score);
     for (const c of candidates) {
       if (picked.length >= 3) break;
-      if (similarity(c.meaning, target.meaning) >= 0.5) continue;
-      if (picked.some((p) => similarity(p, c.meaning) >= 0.5)) continue;
+      if (tooSimilar(c.meaning, target.meaning) || picked.some((p) => tooSimilar(p, c.meaning))) continue;
       picked.push(c.meaning);
     }
     if (picked.length >= 3) break;

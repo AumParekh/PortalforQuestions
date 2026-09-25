@@ -46,8 +46,8 @@ slopes are measured in canvas units):
                     last 10% of x is <= 35% of the slope over the first 10%
   levels-off        monotone, moves >= 8% Y, and the slope over the last 10% of x is <= 35% of
                     the average slope over the whole range
-  capped            the maximum is attained (within 1e-9 Y) on >= 10% of the grid
-  floored           the minimum is attained (within 1e-9 Y) on >= 10% of the grid
+  capped            y is within 1% Y of its maximum on >= 10% of the grid (a flat top)
+  floored           y is within 1% Y of its minimum on >= 10% of the grid (a flat bottom)
   right-skewed      y >= 0 read as a density: standardised third moment >= +0.5
   left-skewed / negatively-skewed   standardised third moment <= -0.5
   symmetric         |standardised third moment| <= 0.1
@@ -403,12 +403,12 @@ def p_levels_off(xs, ys, Y):
 
 def p_capped(xs, ys, Y):
     m = max(ys)
-    return sum(1 for v in ys if v >= m - 1e-9 * Y) >= 0.10 * len(ys)
+    return sum(1 for v in ys if v >= m - 0.01 * Y) >= 0.10 * len(ys)
 
 
 def p_floored(xs, ys, Y):
     m = min(ys)
-    return sum(1 for v in ys if v <= m + 1e-9 * Y) >= 0.10 * len(ys)
+    return sum(1 for v in ys if v <= m + 0.01 * Y) >= 0.10 * len(ys)
 
 
 def _moments(xs, ys):

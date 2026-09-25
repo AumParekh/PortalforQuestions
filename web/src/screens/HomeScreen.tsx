@@ -15,7 +15,7 @@ import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQues
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
-import { useGym } from '../formulas/storage';
+import { isDue, localDay, useGym } from '../formulas/storage';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
 
@@ -140,6 +140,7 @@ export function HomeScreen() {
   const tfAttempts = useTf((s) => s.attempts);
   const tfCount = useTf((s) => s.cards.length);
   const gymAttempts = useGym((s) => s.attempts);
+  const gymStates = useGym((s) => s.states);
   // True/False and Formula Gym answers count as study activity for the streak and today's goal.
   const studyEvents = useMemo(() => [...attempts, ...tfAttempts, ...gymAttempts], [attempts, tfAttempts, gymAttempts]);
   const progressStatus = useProgress((s) => s.status);
@@ -160,6 +161,10 @@ export function HomeScreen() {
   const day = useToday();
   const streak = useMemo(() => streaks(studyEvents), [studyEvents, day]);
   const today = useMemo(() => answeredToday(studyEvents), [studyEvents, day]);
+  const formulasDue = useMemo(() => {
+    const d = localDay();
+    return Object.values(gymStates).filter((s) => s.kind === 'formula' && isDue(s, d)).length;
+  }, [gymStates, day]);
   const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
   // Matches Review Wrong's default "Still wrong only" view.
   const wrongCount = useMemo(
@@ -361,7 +366,7 @@ export function HomeScreen() {
           <QuickAction
             icon={<Sigma className="h-5 w-5" aria-hidden="true" />}
             title="Formula Gym"
-            detail="Recall, rebuild and apply every formula in the notes"
+            detail={formulasDue > 0 ? `${formulasDue} ${formulasDue === 1 ? 'formula' : 'formulas'} due for review` : 'Recall, rebuild and apply every formula in the notes'}
             onClick={() => navigate('/formulas')}
           />
           <QuickAction

@@ -1,0 +1,1605 @@
+{
+ "version": 1,
+ "mechanic": "tail-shaper",
+ "family_spec": "Split (two-piece) Student-t with a common scale. z = (x - mu)/s; k_nu(z) = (1 + z^2/nu)^(-(nu+1)/2); C_nu = Gamma((nu+1)/2) / (sqrt(nu*pi) * Gamma(nu/2)) [so t_nu(z) = C_nu * k_nu(z)]; A = 2*C_L*C_R / (s*(C_L + C_R)) with C_L = C_{nuL}, C_R = C_{nuR}; f(x) = A * k_{nuL}(z) for x < mu, f(x) = A * k_{nuR}(z) for x >= mu. Equivalently f = [2*C_R/(C_L+C_R)] * t_{nuL}(z)/s on the left and [2*C_L/(C_L+C_R)] * t_{nuR}(z)/s on the right: each half-t integrates to 1/2, the weights make the density continuous at mu (both sides equal A there) and the total mass 1. Mass left of mu = C_R/(C_L+C_R).",
+ "family": {
+  "name": "split Student-t (two-piece, common scale)",
+  "x_axis": "log return over the option life, percent; nu -> 60 on both sides is ~normal, i.e. a lognormal price (the BSM benchmark)",
+  "spec": {
+   "z": "(x - mu) / s",
+   "kernel": "k_nu(z) = (1 + z^2/nu)^(-(nu+1)/2)",
+   "C_nu": "Gamma((nu+1)/2) / (sqrt(nu*pi) * Gamma(nu/2))",
+   "peak_A": "2*C_L*C_R / (s*(C_L + C_R))",
+   "density": "f(x) = A*k_{nuL}(z) if x < mu else A*k_{nuR}(z)",
+   "left_mass": "C_R / (C_L + C_R)",
+   "mean": "mu + s * 2*C_L*C_R/(C_L+C_R) * (nuR/(nuR-1) - nuL/(nuL-1))",
+   "variance": "s^2 * (w_L*nuL/(nuL-2) + w_R*nuR/(nuR-2) - m^2), w_L = C_R/(C_L+C_R), w_R = C_L/(C_L+C_R), m = 2*C_L*C_R/(C_L+C_R)*(nuR/(nuR-1) - nuL/(nuL-1))",
+   "notes": "mu is the location (mode and junction), equal to the mean only when nuL = nuR; s is a scale, not the standard deviation (sd = s*sqrt(nu/(nu-2)) when nuL = nuR). nu >= 2.5 keeps the mean and variance finite. JavaScript has no lgamma: use a Lanczos log-gamma and check it against reference_values."
+  },
+  "params": [
+   {
+    "name": "nuL",
+    "label": "Left-tail heaviness (nu_L)",
+    "min": 2.5,
+    "max": 60.0,
+    "step": 0.5,
+    "low_label": "fat left tail (big falls likely)",
+    "high_label": "~normal left tail (lognormal)"
+   },
+   {
+    "name": "nuR",
+    "label": "Right-tail heaviness (nu_R)",
+    "min": 2.5,
+    "max": 60.0,
+    "step": 0.5,
+    "low_label": "fat right tail (big rises likely)",
+    "high_label": "~normal right tail (lognormal)"
+   },
+   {
+    "name": "mu",
+    "label": "Mean shift (location mu, % return)",
+    "min": -2.0,
+    "max": 2.0,
+    "step": 0.05,
+    "low_label": "shift left",
+    "high_label": "shift right"
+   },
+   {
+    "name": "s",
+    "label": "Variance (scale s, % return)",
+    "min": 0.5,
+    "max": 3.0,
+    "step": 0.05,
+    "low_label": "narrow (low volatility)",
+    "high_label": "wide (high volatility)"
+   }
+  ],
+  "reference_values": {
+   "C_nu": [
+    {
+     "nu": 2.5,
+     "C_nu": 0.36180872403
+    },
+    {
+     "nu": 3.0,
+     "C_nu": 0.367552596948
+    },
+    {
+     "nu": 4.0,
+     "C_nu": 0.375
+    },
+    {
+     "nu": 5.5,
+     "C_nu": 0.381306515431
+    },
+    {
+     "nu": 12.0,
+     "C_nu": 0.390726305223
+    },
+    {
+     "nu": 30.0,
+     "C_nu": 0.395632184894
+    },
+    {
+     "nu": 60.0,
+     "C_nu": 0.397283555747
+    }
+   ]
+  },
+  "tail_heaviness_basis": [
+   {
+    "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+    "line": 110,
+    "quote": "t$-distribution and Pareto distributions",
+    "note": "t-distribution tails are \"heavy\" (Frechet)"
+   },
+   {
+    "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+    "line": 112,
+    "quote": "Normal and lognormal distributions",
+    "note": "normal / lognormal tails are \"light\" (Gumbel)"
+   }
+  ]
+ },
+ "match_rule": "Success when |slider - target| <= tolerance for all four params. A param not in \"matters\" has a tolerance that admits its whole range.",
+ "classification": {
+  "rule": "R_side = P(side beyond 2.5 s) / P(normal beyond 2.5 sd). skew: R_L >= heavy_ratio, R_R <= light_ratio, R_L/R_R >= skew_ratio_min and nuR - nuL >= skew_nu_margin. smile: R_L, R_R >= fatter_ratio and max/min <= smile_symmetry_max. flat: R_L, R_R <= light_ratio. The validator enforces the item label at the target and at every corner of the tolerance box, so any accepted slider state produces the overlaid curve shape.",
+  "tail_z": 2.5,
+  "heavy_ratio": 3.0,
+  "fatter_ratio": 1.8,
+  "light_ratio": 1.6,
+  "smile_symmetry_max": 2.5,
+  "skew_ratio_min": 2.0,
+  "skew_nu_margin": 20.0
+ },
+ "omitted": [
+  "MR-17 i volatility frown (bimodal distribution from an anticipated jump): a split-t is unimodal and cannot produce it.",
+  "MR-15 right-skewed CIR/lognormal short-rate distributions: the notes give no implied-vol curve for them and the game has no upward-sloping label.",
+  "IM-3 negative skewness of nonlinear strategies and MR-18 fat-tailed loss distributions: the notes do not tie them to an option smile."
+ ],
+ "items": [
+  {
+   "id": "tsh-MR-17-01",
+   "reading_id": "MR-17",
+   "source_block": "mr17.c.table.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 236,
+   "title": "Foreign currency: both tails heavier than lognormal",
+   "description": "Foreign currency. The implied distribution has a heavier left tail and a heavier right tail than the lognormal distribution BSM assumes. Shape the density to match.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 1.5,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 60.0,
+    "nuR": 60.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility smile",
+    "formula": "16 + 62*(x-1)^2",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 58
+    },
+    "points": [
+     [
+      0.75,
+      19.88
+     ],
+     [
+      0.8,
+      18.48
+     ],
+     [
+      0.85,
+      17.39
+     ],
+     [
+      0.9,
+      16.62
+     ],
+     [
+      0.95,
+      16.16
+     ],
+     [
+      1.0,
+      16.0
+     ],
+     [
+      1.05,
+      16.16
+     ],
+     [
+      1.1,
+      16.62
+     ],
+     [
+      1.15,
+      17.39
+     ],
+     [
+      1.2,
+      18.48
+     ],
+     [
+      1.25,
+      19.88
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:58 (pgfplots expression 16 + 62*(x-1)^2), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "Both tails are fat (low nu on both sides), so options struck well below and well above the money are dearer than BSM says. Implied volatility rises at both ends: a smile, roughly symmetric about the money. Location and spread are not what the notes pin down -- only the two tails are.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 236,
+     "quote": "heavier right tail",
+     "note": "FX: heavier left and right tail"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 237,
+     "quote": "Rises at both ends",
+     "note": "-> smile"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 79,
+     "quote": "The currency smile is roughly symmetric about the money.",
+     "note": "symmetric"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.375,
+    "mean": 0.0,
+    "sd": 1.4142135624,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-17-02",
+   "reading_id": "MR-17",
+   "source_block": "mr17.c.table.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 239,
+   "title": "Equity: heavier left tail, thinner right tail",
+   "description": "Equity. The implied distribution has a heavier left tail and a thinner right tail than lognormal. You start from the currency shape (both tails fat); fix it.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility skew",
+    "formula": "14.5 + 9.5*exp(-4.2*(x-0.72))",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 72
+    },
+    "points": [
+     [
+      0.75,
+      22.88
+     ],
+     [
+      0.8,
+      21.29
+     ],
+     [
+      0.85,
+      20.0
+     ],
+     [
+      0.9,
+      18.96
+     ],
+     [
+      0.95,
+      18.12
+     ],
+     [
+      1.0,
+      17.43
+     ],
+     [
+      1.05,
+      16.88
+     ],
+     [
+      1.1,
+      16.43
+     ],
+     [
+      1.15,
+      16.06
+     ],
+     [
+      1.2,
+      15.77
+     ],
+     [
+      1.25,
+      15.53
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:72 (pgfplots expression 14.5 + 9.5*exp(-4.2*(x-0.72))), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "Only the left tail carries extra mass, so only low-strike options are dear and implied volatility falls monotonically as the strike rises: a skew (smirk). The family cannot make a tail thinner than the normal, so the right tail is set at the lognormal end of its slider (nu_R high); the left tail must be clearly fat.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 239,
+     "quote": "Heavier left tail, thinner right tail",
+     "note": "equity row"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 240,
+     "quote": "Falls across the range",
+     "note": "-> skew"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 80,
+     "quote": "monotonically: low-strike options carry the highest implied volatility",
+     "note": "skew falls monotonically"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3856641963,
+    "mean": -0.1206840342,
+    "sd": 1.2328402858,
+    "left_mass": 0.5142189284
+   }
+  },
+  {
+   "id": "tsh-MR-17-03",
+   "reading_id": "MR-17",
+   "source_block": "mr17.e.table.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 290,
+   "title": "Crashophobia: a premium on precipitous falls",
+   "description": "Crashophobia. Market participants are afraid of another market crash and place a premium on the probability of stock prices falling precipitously; equity traders believe large down movements are more likely than large up movements, compared with lognormal. The start has the fat tail on the wrong side.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 60.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility skew",
+    "formula": "14.5 + 9.5*exp(-4.2*(x-0.72))",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 72
+    },
+    "points": [
+     [
+      0.75,
+      22.88
+     ],
+     [
+      0.8,
+      21.29
+     ],
+     [
+      0.85,
+      20.0
+     ],
+     [
+      0.9,
+      18.96
+     ],
+     [
+      0.95,
+      18.12
+     ],
+     [
+      1.0,
+      17.43
+     ],
+     [
+      1.05,
+      16.88
+     ],
+     [
+      1.1,
+      16.43
+     ],
+     [
+      1.15,
+      16.06
+     ],
+     [
+      1.2,
+      15.77
+     ],
+     [
+      1.25,
+      15.53
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:72 (pgfplots expression 14.5 + 9.5*exp(-4.2*(x-0.72))), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "Fear of a crash is extra probability of a large fall: a fat LEFT tail with no matching right tail. Deep out-of-the-money puts (low strikes) carry high premiums, so implied volatility is highest at low strikes and falls as X/S0 rises -- the equity skew. A fat right tail instead would make high strikes dear, the opposite of what the notes describe.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 290,
+     "quote": "Market participants are simply afraid of another market crash, so",
+     "note": "crashophobia"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 291,
+     "quote": "they place a premium on the probability of stock prices falling precipitously.",
+     "note": "premium on falls"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 292,
+     "quote": "exhibit high premiums since they provide protection against a",
+     "note": "deep OTM puts expensive"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 278,
+     "quote": "Equity traders believe the probability of",
+     "note": "large down moves more likely"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 279,
+     "quote": "large up movements, as compared with a lognormal distribution.",
+     "note": "vs lognormal"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 274,
+     "quote": "or skew, showing a higher implied volatility for",
+     "note": "higher IV at low strikes"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3856641963,
+    "mean": -0.1206840342,
+    "sd": 1.2328402858,
+    "left_mass": 0.5142189284
+   }
+  },
+  {
+   "id": "tsh-MR-17-04",
+   "reading_id": "MR-17",
+   "source_block": "mr17.e.trapbox.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 255,
+   "title": "The BSM benchmark: a lognormal price",
+   "description": "The benchmark BSM assumes: the asset price is lognormal -- its volatility is constant and it changes smoothly, with no jumps. Remove the fat tails you start with.",
+   "target": {
+    "nuL": 45.0,
+    "nuR": 45.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 15.0,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "flat",
+    "formula": "18",
+    "formula_source": null,
+    "points": [
+     [
+      0.75,
+      18
+     ],
+     [
+      0.8,
+      18
+     ],
+     [
+      0.85,
+      18
+     ],
+     [
+      0.9,
+      18
+     ],
+     [
+      0.95,
+      18
+     ],
+     [
+      1.0,
+      18
+     ],
+     [
+      1.05,
+      18
+     ],
+     [
+      1.1,
+      18
+     ],
+     [
+      1.15,
+      18
+     ],
+     [
+      1.2,
+      18
+     ],
+     [
+      1.25,
+      18
+     ]
+    ],
+    "smile_note": "Illustrative: a flat line at an arbitrary 18% level. The notes give no flat curve; the level is a placeholder and only the flatness is the point (one BSM volatility prices every strike when the implied distribution is lognormal)."
+   },
+   "explanation": "On a return axis a lognormal price is a normal log-return, which this family reaches as nu -> 60 on both sides. If the implied distribution equals the lognormal there is no region with extra mass, so no strike is dearer than BSM says: one volatility prices every strike and the curve is flat. Every smile or skew is a measured departure from this.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 255,
+     "quote": "Two of the conditions for an asset price to have a",
+     "note": "lognormal conditions"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 257,
+     "quote": "The volatility of the asset is",
+     "note": "constant volatility"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 258,
+     "quote": "The price of the asset changes",
+     "note": "smooth, no jumps"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+     "line": 159,
+     "quote": "itself is lognormally distributed",
+     "note": "normal log-return <-> lognormal price"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3967322608,
+    "mean": 0.0,
+    "sd": 1.0229915092,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-17-05",
+   "reading_id": "MR-17",
+   "source_block": "mr17.e.trapbox.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 261,
+   "title": "Why currencies smile: jumps and non-constant volatility",
+   "description": "Exchange-rate volatility is far from constant and exchange rates frequently jump, sometimes on central-bank actions, so currency traders see a greater chance of extreme price movement than a lognormal distribution predicts.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 1.5,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 50.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 2.0
+   },
+   "smile": {
+    "label": "volatility smile",
+    "formula": "16 + 62*(x-1)^2",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 58
+    },
+    "points": [
+     [
+      0.75,
+      19.88
+     ],
+     [
+      0.8,
+      18.48
+     ],
+     [
+      0.85,
+      17.39
+     ],
+     [
+      0.9,
+      16.62
+     ],
+     [
+      0.95,
+      16.16
+     ],
+     [
+      1.0,
+      16.0
+     ],
+     [
+      1.05,
+      16.16
+     ],
+     [
+      1.1,
+      16.62
+     ],
+     [
+      1.15,
+      17.39
+     ],
+     [
+      1.2,
+      18.48
+     ],
+     [
+      1.25,
+      19.88
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:58 (pgfplots expression 16 + 62*(x-1)^2), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "Both lognormal conditions fail, and a jump can go either way, so extreme moves in BOTH directions are more likely than lognormal: both tails fat. Deep in-the-money and deep out-of-the-money options become dearer than at-the-money ones -- the currency smile. Making the distribution wider (s) does not do it: that raises every strike alike; only the tail shape bends the curve.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 261,
+     "quote": "The volatility of an exchange rate is far from constant, and exchange rates frequently exhibit",
+     "note": "non-constant volatility, jumps"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 263,
+     "quote": "therefore think there is a greater chance of extreme price movement than a lognormal",
+     "note": "extreme moves more likely"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 527,
+     "quote": "Caused by fat tails in both directions.",
+     "note": "smile <- fat tails both ways"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 526,
+     "quote": "at-the-money implied volatility is the",
+     "note": "ATM lowest"
+    }
+   ],
+   "check": {
+    "peak_density": 0.375,
+    "mean": 0.0,
+    "sd": 1.4142135624,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-17-06",
+   "reading_id": "MR-17",
+   "source_block": "mr17.g.tikzpicture.2",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 382,
+   "title": "Short-dated currency options: the deepest smile",
+   "description": "Short-dated (1-month) options: the most curved smile on the volatility surface. Long-dated options show less of a smile than shorter-dated ones -- so give this one the most extreme tails. You start from a mildly fat-tailed shape.",
+   "target": {
+    "nuL": 3.5,
+    "nuR": 3.5,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.0,
+    "nuR": 1.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 12.0,
+    "nuR": 12.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility smile",
+    "formula": "17 + 150*(x-1)^2",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 382
+    },
+    "points": [
+     [
+      0.75,
+      26.38
+     ],
+     [
+      0.8,
+      23.0
+     ],
+     [
+      0.85,
+      20.38
+     ],
+     [
+      0.9,
+      18.5
+     ],
+     [
+      0.95,
+      17.38
+     ],
+     [
+      1.0,
+      17.0
+     ],
+     [
+      1.05,
+      17.38
+     ],
+     [
+      1.1,
+      18.5
+     ],
+     [
+      1.15,
+      20.37
+     ],
+     [
+      1.2,
+      23.0
+     ],
+     [
+      1.25,
+      26.38
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:382 (pgfplots expression 17 + 150*(x-1)^2), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "The deepest smile needs the most extra mass in both tails relative to lognormal, so both nu values go to the bottom of the slider. Compare the 2-year item: the same mechanism with milder tails gives a flatter curve.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 268,
+     "quote": "options tend to exhibit",
+     "note": "long-dated: less smile"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 269,
+     "quote": "shorter-dated options.",
+     "note": "than short-dated"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 398,
+     "quote": "Note how the curvature flattens as maturity lengthens",
+     "note": "surface figure"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 527,
+     "quote": "Caused by fat tails in both directions.",
+     "note": "smile <- fat tails"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3717723437,
+    "mean": 0.0,
+    "sd": 1.5275252317,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-17-07",
+   "reading_id": "MR-17",
+   "source_block": "mr17.e.keybox.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 268,
+   "title": "Long-dated currency options: less of a smile",
+   "description": "Long-dated (2-year) options exhibit less of a volatility smile than shorter-dated ones: the tails are still fatter than lognormal, but only mildly. You start from the extreme 1-month shape.",
+   "target": {
+    "nuL": 12.0,
+    "nuR": 12.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 3.5,
+    "nuR": 3.5,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility smile",
+    "formula": "19.6 + 16*(x-1)^2",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 391
+    },
+    "points": [
+     [
+      0.75,
+      20.6
+     ],
+     [
+      0.8,
+      20.24
+     ],
+     [
+      0.85,
+      19.96
+     ],
+     [
+      0.9,
+      19.76
+     ],
+     [
+      0.95,
+      19.64
+     ],
+     [
+      1.0,
+      19.6
+     ],
+     [
+      1.05,
+      19.64
+     ],
+     [
+      1.1,
+      19.76
+     ],
+     [
+      1.15,
+      19.96
+     ],
+     [
+      1.2,
+      20.24
+     ],
+     [
+      1.25,
+      20.6
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:391 (pgfplots expression 19.6 + 16*(x-1)^2), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "A shallower smile means less extra mass in the tails relative to lognormal: move both nu up into the middle of the range, not all the way to 60 (that would be flat). The curvature of the smile tracks how far the tails are from lognormal.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 268,
+     "quote": "options tend to exhibit",
+     "note": "long-dated: less smile"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 399,
+     "quote": "the same fact as",
+     "note": "long-dated less smile, surface"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 398,
+     "quote": "Note how the curvature flattens as maturity lengthens",
+     "note": "curvature flattens"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3907263052,
+    "mean": 0.0,
+    "sd": 1.095445115,
+    "left_mass": 0.5
+   },
+   "contrasts": [
+    {
+     "relation": "thinner_tails_than",
+     "item": "tsh-MR-17-06"
+    }
+   ]
+  },
+  {
+   "id": "tsh-MR-17-08",
+   "reading_id": "MR-17",
+   "source_block": "mr17.h.keybox.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+   "source_line": 419,
+   "title": "Equity price rises: the whole skew shifts down",
+   "description": "The equity price rises. Because equity prices and their volatilities are negatively correlated, the entire skew curve moves down -- and this dominates the slide along the curve. Keep the equity shape; reduce the volatility.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 0.8
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 0.3
+   },
+   "matters": [
+    "nuL",
+    "nuR",
+    "s"
+   ],
+   "start": {
+    "nuL": 4.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 2.0
+   },
+   "smile": {
+    "label": "volatility skew",
+    "formula": "13.2 + 11*exp(-4.2*(x-0.74))",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 444
+    },
+    "points": [
+     [
+      0.75,
+      23.75
+     ],
+     [
+      0.8,
+      21.75
+     ],
+     [
+      0.85,
+      20.13
+     ],
+     [
+      0.9,
+      18.82
+     ],
+     [
+      0.95,
+      17.75
+     ],
+     [
+      1.0,
+      16.89
+     ],
+     [
+      1.05,
+      16.19
+     ],
+     [
+      1.1,
+      15.63
+     ],
+     [
+      1.15,
+      15.17
+     ],
+     [
+      1.2,
+      14.79
+     ],
+     [
+      1.25,
+      14.49
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:444 (pgfplots expression 13.2 + 11*exp(-4.2*(x-0.74))), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels.",
+    "before_formula": "16 + 11*exp(-4.2*(x-0.74))",
+    "before_formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 441
+    },
+    "before_points": [
+     [
+      0.75,
+      26.55
+     ],
+     [
+      0.8,
+      24.55
+     ],
+     [
+      0.85,
+      22.93
+     ],
+     [
+      0.9,
+      21.62
+     ],
+     [
+      0.95,
+      20.55
+     ],
+     [
+      1.0,
+      19.69
+     ],
+     [
+      1.05,
+      18.99
+     ],
+     [
+      1.1,
+      18.43
+     ],
+     [
+      1.15,
+      17.97
+     ],
+     [
+      1.2,
+      17.59
+     ],
+     [
+      1.25,
+      17.29
+     ]
+    ]
+   },
+   "explanation": "The shape (fat left tail, lognormal-like right tail) is unchanged, so the curve is still a skew; what changes is the level. Lower implied volatility means a narrower implied distribution, so the spread s must come down. Effect 1 (moving left along the skew as K/S0 falls) would raise volatility, but effect 2 dominates.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 419,
+     "quote": "between equity prices and their volatilities. As",
+     "note": "negative correlation"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 420,
+     "quote": "moves \\textbf{down} when equity prices increase",
+     "note": "whole curve down"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 424,
+     "quote": "The second effect dominates the first.",
+     "note": "effect 2 dominates"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 425,
+     "quote": "when the equity price moves",
+     "note": "IV down when price up"
+    }
+   ],
+   "check": {
+    "peak_density": 0.4820802454,
+    "mean": -0.0965472274,
+    "sd": 0.9862722286,
+    "left_mass": 0.5142189284
+   },
+   "contrasts": [
+    {
+     "relation": "curve_shifts_down_narrower"
+    }
+   ]
+  },
+  {
+   "id": "tsh-MR-1-01",
+   "reading_id": "MR-1",
+   "source_block": "mr1.f.tikzpicture.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+   "source_line": 481,
+   "title": "QQ plot bends at both ends: fatter tails",
+   "description": "A QQ plot of the data against the normal bends at both ends: the empirical quantiles are more extreme than the reference at both ends. Build the density that plot describes; the overlay shows the curve an option market pricing it would draw.",
+   "target": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 1.5,
+    "nuR": 1.5,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 60.0,
+    "nuR": 60.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "volatility smile",
+    "formula": "16 + 62*(x-1)^2",
+    "formula_source": {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 58
+    },
+    "points": [
+     [
+      0.75,
+      19.88
+     ],
+     [
+      0.8,
+      18.48
+     ],
+     [
+      0.85,
+      17.39
+     ],
+     [
+      0.9,
+      16.62
+     ],
+     [
+      0.95,
+      16.16
+     ],
+     [
+      1.0,
+      16.0
+     ],
+     [
+      1.05,
+      16.16
+     ],
+     [
+      1.1,
+      16.62
+     ],
+     [
+      1.15,
+      17.39
+     ],
+     [
+      1.2,
+      18.48
+     ],
+     [
+      1.25,
+      19.88
+     ]
+    ],
+    "smile_note": "Illustrative: the curve plotted in the notes at notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex:58 (pgfplots expression 16 + 62*(x-1)^2), sampled at X/S0 = 0.75..1.25. Only its shape is examinable; the notes give no market levels."
+   },
+   "explanation": "Quantiles more extreme at both ends is a fatter-tailed density on both sides (MR-1). Read as an implied distribution, extra mass in both tails makes both deep strikes dear, which MR-17 calls a smile (fat tails in both directions). The smile curve is borrowed from MR-17; MR-1 itself says nothing about options.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+     "line": 481,
+     "quote": "That bend means the empirical quantiles are more",
+     "note": "QQ bend"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+     "line": 482,
+     "quote": "extreme than the reference at both ends, which is exactly what a fatter-tailed density looks",
+     "note": "fatter tails both ends"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 527,
+     "quote": "Caused by fat tails in both directions.",
+     "note": "smile <- fat tails both ways"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.375,
+    "mean": 0.0,
+    "sd": 1.4142135624,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-1-02",
+   "reading_id": "MR-1",
+   "source_block": "mr1.b.prose_para.3",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+   "source_line": 157,
+   "title": "Normal geometric returns, lognormal price",
+   "description": "Geometric returns are normally distributed, so the price itself is lognormally distributed. You start from an equity-style shape; make it the lognormal benchmark.",
+   "target": {
+    "nuL": 45.0,
+    "nuR": 45.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 15.0,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 4.0,
+    "nuR": 50.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "flat",
+    "formula": "18",
+    "formula_source": null,
+    "points": [
+     [
+      0.75,
+      18
+     ],
+     [
+      0.8,
+      18
+     ],
+     [
+      0.85,
+      18
+     ],
+     [
+      0.9,
+      18
+     ],
+     [
+      0.95,
+      18
+     ],
+     [
+      1.0,
+      18
+     ],
+     [
+      1.05,
+      18
+     ],
+     [
+      1.1,
+      18
+     ],
+     [
+      1.15,
+      18
+     ],
+     [
+      1.2,
+      18
+     ],
+     [
+      1.25,
+      18
+     ]
+    ],
+    "smile_note": "Illustrative: a flat line at an arbitrary 18% level. The notes give no flat curve; the level is a placeholder and only the flatness is the point (one BSM volatility prices every strike when the implied distribution is lognormal)."
+   },
+   "explanation": "This family lives on a return axis, so a normal geometric (log) return is nu -> 60 on both sides -- the lognormal price BSM assumes. With no tail carrying more mass than lognormal, no strike is dearer than BSM says and the curve is flat (MR-17 mechanism). The \"right-skewed\" lognormal of MR-1 is skew in PRICE; on the log-return axis it is symmetric.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+     "line": 157,
+     "quote": "Assume that geometric returns are normally distributed with mean",
+     "note": "normal geometric returns"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+     "line": 159,
+     "quote": "itself is lognormally distributed",
+     "note": "price lognormal"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3967322608,
+    "mean": 0.0,
+    "sd": 1.0229915092,
+    "left_mass": 0.5
+   }
+  },
+  {
+   "id": "tsh-MR-3-01",
+   "reading_id": "MR-3",
+   "source_block": "mr3.b.table.1",
+   "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+   "source_line": 112,
+   "title": "Gumbel, not Frechet: light tails",
+   "description": "The parent is normal / lognormal: tail index xi = 0, the Gumbel case, \"light\" tails that decay exponentially. You start from a t-distribution parent (xi > 0, Frechet, \"heavy\" power-law tails).",
+   "target": {
+    "nuL": 45.0,
+    "nuR": 45.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "tolerance": {
+    "nuL": 15.0,
+    "nuR": 15.0,
+    "mu": 4.0,
+    "s": 2.0
+   },
+   "matters": [
+    "nuL",
+    "nuR"
+   ],
+   "start": {
+    "nuL": 4.0,
+    "nuR": 4.0,
+    "mu": 0.0,
+    "s": 1.0
+   },
+   "smile": {
+    "label": "flat",
+    "formula": "18",
+    "formula_source": null,
+    "points": [
+     [
+      0.75,
+      18
+     ],
+     [
+      0.8,
+      18
+     ],
+     [
+      0.85,
+      18
+     ],
+     [
+      0.9,
+      18
+     ],
+     [
+      0.95,
+      18
+     ],
+     [
+      1.0,
+      18
+     ],
+     [
+      1.05,
+      18
+     ],
+     [
+      1.1,
+      18
+     ],
+     [
+      1.15,
+      18
+     ],
+     [
+      1.2,
+      18
+     ],
+     [
+      1.25,
+      18
+     ]
+    ],
+    "smile_note": "Illustrative: a flat line at an arbitrary 18% level. The notes give no flat curve; the level is a placeholder and only the flatness is the point (one BSM volatility prices every strike when the implied distribution is lognormal)."
+   },
+   "explanation": "The slider nu IS the t-distribution's degrees of freedom: low nu gives power-law (Frechet, heavy) tails, high nu approaches the normal (Gumbel, light). Pushing both tails to the normal end gives the lognormal price BSM assumes, so the overlay is flat.",
+   "citations": [
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+     "line": 112,
+     "quote": "Normal and lognormal distributions",
+     "note": "Gumbel: light"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+     "line": 110,
+     "quote": "t$-distribution and Pareto distributions",
+     "note": "Frechet: heavy"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+     "line": 153,
+     "quote": "the tail decays exponentially",
+     "note": "xi = 0 exponential"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+     "line": 154,
+     "quote": "power, so extreme values remain possible far out.",
+     "note": "xi > 0 power"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 136,
+     "quote": "The shape of the smile is a direct consequence of how the",
+     "note": "smile shape comes from implied vs lognormal distribution"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 138,
+     "quote": "more probability mass than lognormal, options struck in that region are worth more than BSM",
+     "note": "extra mass in a region -> options there dearer"
+    },
+    {
+     "file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+     "line": 139,
+     "quote": "says, and implied volatility there is higher.",
+     "note": "-> implied volatility higher there"
+    }
+   ],
+   "check": {
+    "peak_density": 0.3967322608,
+    "mean": 0.0,
+    "sd": 1.0229915092,
+    "left_mass": 0.5
+   }
+  }
+ ]
+}

@@ -24,8 +24,10 @@ import { navigate } from '../lib/router';
 import type { GymState } from '../types';
 import { AREAS, compareReadings, readingTitle } from './deck';
 import { GAMES, GAME_BY_ID } from './games';
+import type { DeckIndex } from './games';
 import { useDeckIndex } from './hooks';
 import { planSession, playableCount } from './plan';
+import type { PlannedSession } from './plan';
 import { DEFAULT_SETUP, SIZE_OPTIONS, loadSetup, saveSetup, scopeOf } from './setup';
 import type { GymSetup, SetupChoice } from './setup';
 import { isDue, isMastered, localDay } from './storage';
@@ -498,8 +500,8 @@ export function startFromSetup(
   setup: GymSetup,
   formulas: Formula[],
   states: Record<string, GymState>,
-  index: ReturnType<typeof useDeckIndex>,
-  start: (s: NonNullable<ReturnType<typeof planSession>>) => void,
+  index: DeckIndex,
+  start: (s: PlannedSession) => void,
 ): boolean {
   if (setup.mode === 'sheet') return false;
   const session = planSession(setup.mode, scopeOf(formulas, setup), states, index, { size: setup.size, numbers: setup.numbers });

@@ -109,7 +109,8 @@ export function PlayView() {
   }, !!result);
 
   const leave = () => {
-    const mid = answered > 0 && answered < total && !timeUp;
+    // A Memory board has no round result until it ends, but its matches are already logged.
+    const mid = ((answered > 0 && answered < total) || (round?.game === 'memory' && !result)) && !timeUp;
     if (mid && !window.confirm('Leave this session? Your answers so far are already saved.')) return;
     if (answered > 0) useGymRun.getState().finish(false);
     else useGymRun.getState().toSetup();
