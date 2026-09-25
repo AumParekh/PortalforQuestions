@@ -109,7 +109,7 @@ export function SessionShell({ plugin, reading, corpus, plan, frame, trigger, on
 
   const afterDiscovery = () => {
     const disc = results.current.filter((x) => x.round.phase === 'discovery').map((x) => x.result);
-    setNaming(plugin.name ? plugin.name(plan, disc) : plan.concept);
+    setNaming(plugin.name ? plugin.name(plan, disc, { reading, corpus }) : plan.concept);
     setPhase('naming');
   };
 

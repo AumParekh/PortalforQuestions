@@ -1,0 +1,24 @@
+// Mechanic registry. Each mechanic is a MechanicPlugin (see ../arc/plugin.ts); add new ones to
+// MECHANICS in catalogue order. Rotation, the reading browser and the Play button only offer
+// mechanics registered here.
+import type { AnyMechanicPlugin } from '../arc/plugin';
+import type { MechanicId } from '../types';
+import { MECHANIC_CATALOGUE } from '../types';
+import { shatter } from './shatter';
+
+const REGISTERED: AnyMechanicPlugin[] = [shatter];
+
+const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
+
+/** Registered mechanics in catalogue order. */
+export const MECHANICS: readonly AnyMechanicPlugin[] = [...REGISTERED].sort((a, b) => (order.get(a.id) ?? 99) - (order.get(b.id) ?? 99));
+
+const BY_ID = new Map<MechanicId, AnyMechanicPlugin>(MECHANICS.map((m) => [m.id, m]));
+
+export function getMechanic(id: MechanicId): AnyMechanicPlugin | undefined {
+  return BY_ID.get(id);
+}
+
+export function isPlayable(id: MechanicId): boolean {
+  return BY_ID.has(id);
+}

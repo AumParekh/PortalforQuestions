@@ -92,7 +92,7 @@ export interface MechanicPlugin<P = unknown> {
   /** Builds the session: 6–10 rounds split into discovery and pressure. Null if it can't. */
   build: (reading: Reading, ctx: MechanicContext) => MechanicPlan<P> | null;
   /** Optionally adapt the naming to discovery (e.g. name what the player just missed). */
-  name?: (plan: MechanicPlan<P>, discovery: readonly RoundResult[]) => ConceptNaming;
+  name?: (plan: MechanicPlan<P>, discovery: readonly RoundResult[], env: { reading: Reading; corpus: Corpus }) => ConceptNaming;
   Render: (props: MechanicRenderProps<P>) => JSX.Element | null;
 }
 
