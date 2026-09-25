@@ -162,6 +162,33 @@ with accuracy and cards seen; a "missed statements" filter re-drills wrong cards
 
 ---
 
+## 3c. Notes → Games (from the LaTeX notes in `notes/`)
+
+Two parts: extraction of the six-area notes (MR, CR, ORR, LTR, IM, CI; 107 readings)
+into `content/games/game-blocks.json`, then a runtime game layer that reads it (no
+runtime LLM calls). The user asked for the phases to run without pausing for
+confirmation, stopping only on genuine ambiguity.
+
+Decisions taken during Phase 1:
+- **Trap sourcing.** Every trap box contributes trap items, not just the
+  "Consolidated trap summary" (only LTR and IM have one). Beyond explicit trap boxes,
+  content is also mined for implicit traps (contrasts, sibling pairs, polarity claims
+  that read like a trap), including ORR, which has no trap boxes. Mined traps carry
+  `origin: "mined"`; explicit ones `origin: "trapbox"` or `"summary"`.
+- **Categories.** The eight canonical categories (Polarity, Sibling, Role, Sign, Scope,
+  Definition, Formula, Intermediate result) plus a ninth, **Sequence**, for ordering
+  errors. Calculation → Formula; Input twin and Confidence twin → Sibling; Ordering →
+  Sequence; Numbering → source note. Every trap keeps `raw_category`.
+- **ORR note boxes (`ornotebox`).** A tenth block type, `notebox`, with its title kept as
+  a subtype (note / remember / outcome / source). Source notes also go to
+  `source_notes`; outcomes also feed the Case Docket. New mechanic **Pin the Note**:
+  margin notes drift in and the player pins each to the concept, table or case it
+  belongs to.
+- **Publishing.** `notes/` holds the `.tex` sources (Vol 1 duplicate dropped);
+  `game-blocks.json` and the coverage report are committed alongside.
+
+---
+
 ## 4. Progress data model
 
 Stored in **IndexedDB**, not `localStorage` (localStorage caps at 5–10MB and will fill
