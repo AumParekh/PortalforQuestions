@@ -4,6 +4,7 @@ import { clearStores, deleteQuestionStates, getAll, putAttempt, putMany } from '
 import { newId } from './session';
 import { useTf } from './tf';
 import { useGym } from '../formulas/storage';
+import { useGameProgress } from '../games/progress';
 
 interface ProgressState {
   /** 'unavailable' when IndexedDB can't be opened (e.g. some private modes); the app still works, just without history. */
@@ -139,6 +140,7 @@ export const useProgress = create<ProgressState>((set, get) => ({
     set({ states: {}, attempts: [], sessions: [] });
     useTf.getState().clearAll();
     useGym.getState().clearAll();
+    await useGameProgress.getState().resetAll();
     if (get().status === 'ready') {
       await clearStores(['questionState', 'attempts', 'sessions', 'meta', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts']);
     }

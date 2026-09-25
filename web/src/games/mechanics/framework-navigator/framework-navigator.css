@@ -1,0 +1,578 @@
+/* Framework Navigator. Scoped to .game-root and the fn- prefix; every colour is a games.css palette
+   token, so dark mode follows html.dark. Nothing under 15px (PORTAL_PLAN §5). Movement respects
+   prefers-reduced-motion and the app's reduce-motion setting; fades stay. */
+
+.game-root .fn-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.game-root .fn-small {
+  font-size: 15px;
+  line-height: 1.55;
+}
+.game-root .fn-kicker {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .fn-source {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .fn-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 15px;
+}
+
+/* ---- The tree ---- */
+.game-root .fn-figure {
+  margin: 0;
+}
+.game-root .fn-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--g-rule);
+  border-radius: var(--g-radius);
+  background: var(--g-paper);
+}
+.game-root .fn-canvas {
+  position: relative;
+}
+.game-root .fn-svg {
+  display: block;
+  font-family: var(--g-sans);
+}
+.game-root .fn-axis-text {
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+}
+.game-root .fn-guide {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.game-root .fn-undated {
+  stroke: var(--g-rule);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 5;
+}
+.game-root .fn-lane-title {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--g-ink-muted);
+}
+.game-root .fn-rail {
+  stroke: var(--g-rule);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.game-root .fn-rail.is-collapsed {
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+.game-root .fn-edge {
+  fill: none;
+  stroke: var(--g-rule);
+  stroke-width: 1.75;
+}
+.game-root .fn-edge.is-strong {
+  stroke: var(--g-navy);
+  stroke-width: 2;
+  opacity: 0.75;
+}
+.game-root .fn-edge.is-loop {
+  stroke: var(--g-gold);
+  stroke-width: 3;
+  opacity: 1;
+}
+.game-root .fn-arc {
+  fill: none;
+  stroke: var(--g-gold);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 6;
+}
+.game-root .fn-arc.is-closed {
+  stroke-dasharray: none;
+  animation: fn-draw 700ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+@keyframes fn-draw {
+  from {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 0;
+  }
+}
+.game-root .fn-phantom {
+  fill: none;
+  stroke: var(--g-red);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: fn-phantom 1500ms ease-out forwards;
+}
+.game-root .fn-phantom-end {
+  fill: var(--g-card);
+  stroke: var(--g-red);
+  stroke-width: 2;
+  opacity: 0;
+  animation: fn-phantom-end 1500ms ease-out forwards;
+}
+@keyframes fn-phantom {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0.9;
+  }
+  35% {
+    stroke-dashoffset: 0;
+    opacity: 0.9;
+  }
+  70% {
+    stroke-dashoffset: 0;
+    opacity: 0.7;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+@keyframes fn-phantom-end {
+  0%,
+  30% {
+    opacity: 0;
+  }
+  40%,
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Nodes */
+.game-root .fn-node circle.fn-core {
+  fill: var(--g-card);
+  stroke: var(--g-grey);
+  stroke-width: 1.75;
+  transition:
+    fill 200ms ease,
+    stroke 200ms ease;
+}
+.game-root .fn-node.is-lit circle.fn-core {
+  fill: var(--g-pale-navy);
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+}
+.game-root .fn-node.is-open circle.fn-core {
+  fill: var(--g-navy);
+  stroke: var(--g-navy);
+}
+.game-root .fn-node.is-locked circle.fn-core {
+  fill: var(--g-green);
+  stroke: var(--g-green);
+}
+.game-root .fn-node.is-side circle.fn-core {
+  fill: var(--g-pale-gold);
+  stroke: var(--g-gold);
+  stroke-width: 2.5;
+}
+.game-root .fn-node .fn-letter {
+  font-size: 15px;
+  font-weight: 600;
+  fill: var(--g-gold);
+}
+.game-root .fn-node .fn-check {
+  fill: none;
+  stroke: var(--g-card);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-root .fn-node .fn-label {
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+}
+.game-root .fn-node.is-lit .fn-label,
+.game-root .fn-node.is-candidate .fn-label,
+.game-root .fn-node.is-side .fn-label {
+  fill: var(--g-ink);
+  font-weight: 600;
+}
+.game-root .fn-node .fn-ring {
+  fill: none;
+  stroke: var(--g-gold);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+.game-root .fn-node.is-candidate .fn-ring {
+  opacity: 0.9;
+}
+.game-root .fn-node.is-over .fn-ring {
+  opacity: 1;
+  stroke-width: 3;
+  transform: scale(1.18);
+}
+.game-root .fn-node.is-pulse .fn-ring {
+  opacity: 1;
+  stroke: var(--g-green);
+  stroke-width: 3;
+  animation: fn-pulse 1100ms ease-in-out infinite;
+}
+@keyframes fn-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.35;
+  }
+}
+.game-root .fn-node.is-locked .fn-ring {
+  opacity: 1;
+  stroke: var(--g-green);
+  stroke-width: 2.5;
+  stroke-dasharray: 100;
+  animation: fn-close 520ms cubic-bezier(0.3, 0.7, 0.2, 1) both;
+}
+@keyframes fn-close {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.game-root .fn-node.is-wrong circle.fn-core {
+  stroke: var(--g-red);
+  fill: var(--g-pale-red);
+}
+.game-root .fn-node.is-wrong .fn-body {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fn-bounce 520ms cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+@keyframes fn-bounce {
+  0% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+  100% {
+    transform: none;
+  }
+}
+.game-root .fn-dot {
+  fill: var(--g-grey);
+  opacity: 0.7;
+}
+.game-root .fn-dot.is-lit {
+  fill: var(--g-navy);
+  opacity: 1;
+}
+
+/* Tap targets laid over the SVG: 44px, invisible until focused. */
+.game-root .fn-hit {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.game-root .fn-hit:hover {
+  background: rgba(var(--g-shadow), 0.06);
+}
+
+/* ---- Cards: the change being placed, and fact chips ---- */
+.game-root .fn-chip {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.55;
+  text-align: left;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  transition:
+    border-color 150ms ease,
+    box-shadow 180ms ease,
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.game-root .fn-chip:hover:not(:disabled) {
+  border-color: var(--g-navy);
+}
+.game-root .fn-chip:disabled {
+  cursor: default;
+}
+.game-root .fn-chip.is-held {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 2px;
+  box-shadow: 0 8px 18px -10px rgba(var(--g-shadow), 0.45);
+}
+.game-root .fn-chip.is-lifted {
+  cursor: grabbing;
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    0 14px 28px -10px rgba(var(--g-shadow), 0.45),
+    0 4px 10px -4px rgba(var(--g-shadow), 0.3);
+}
+.game-root .fn-chip.is-bounce {
+  animation: fn-bounce 520ms cubic-bezier(0.3, 0.7, 0.3, 1);
+  border-color: var(--g-red);
+}
+.game-root .fn-chip.is-locked {
+  cursor: default;
+  border-color: transparent;
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+  animation: g-snap 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.game-root .fn-chip.is-locked.is-missed {
+  border-left-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .fn-change {
+  font-family: var(--g-serif);
+  font-size: 1.125rem;
+  line-height: 1.6;
+  padding: 0.9rem 1.1rem;
+}
+.game-root .fn-facet-tag {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-family: var(--g-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--g-gold);
+}
+
+/* The puck that travels with the pointer and snaps onto a target. */
+.game-root .fn-puck {
+  position: fixed;
+  z-index: 60;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 999px;
+  background: var(--g-gold);
+  border: 3px solid var(--g-card);
+  box-shadow:
+    0 10px 20px -8px rgba(var(--g-shadow), 0.55),
+    0 0 0 1px var(--g-gold);
+  pointer-events: none;
+}
+.game-root .fn-puck.is-snapped {
+  transition:
+    left 110ms cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    top 110ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  background: var(--g-green);
+  box-shadow:
+    0 0 0 6px var(--g-pale-green),
+    0 0 0 1px var(--g-green);
+}
+
+/* ---- Choice buttons under the tree (same candidates as the ringed nodes) ---- */
+.game-root .fn-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.game-root .fn-choice {
+  font-size: 16px;
+  font-weight: 600;
+  height: auto;
+  padding: 0.55rem 1rem;
+  line-height: 1.4;
+  text-align: left;
+}
+.game-root .fn-choice.is-over {
+  border-color: var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .fn-choice.is-pulse {
+  border-color: var(--g-green);
+  box-shadow: 0 0 0 3px var(--g-pale-green);
+  animation: fn-bin-pulse 1100ms ease-in-out infinite;
+}
+
+/* ---- Bins (sorting a node's items; comparing two nodes) ---- */
+.game-root .fn-bin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-height: 6rem;
+  padding: 0.75rem;
+  border: 1.5px dashed var(--g-rule);
+  border-radius: var(--g-radius);
+  background: transparent;
+  color: var(--g-ink);
+  font: inherit;
+  text-align: left;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+.game-root .fn-bin.is-armed {
+  border-color: var(--g-navy);
+  cursor: pointer;
+}
+.game-root .fn-bin.is-over {
+  border-style: solid;
+  border-color: var(--g-navy);
+  background: var(--g-pale-navy);
+}
+.game-root .fn-bin.is-pulse {
+  border-style: solid;
+  border-color: var(--g-green);
+  animation: fn-bin-pulse 1100ms ease-in-out infinite;
+}
+@keyframes fn-bin-pulse {
+  0%,
+  100% {
+    background: transparent;
+  }
+  50% {
+    background: var(--g-pale-green);
+  }
+}
+.game-root .fn-bin-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--g-ink-muted);
+}
+
+/* ---- Node card (the reveal) ---- */
+.game-root .fn-nodecard {
+  border: 1px solid var(--g-rule);
+  border-radius: var(--g-radius);
+  background: var(--g-card);
+  padding: 1.1rem 1.2rem;
+}
+.game-root .fn-nodecard h3 {
+  font-family: var(--g-serif);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--g-navy);
+}
+.game-root .fn-facet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game-root .fn-facet-list li {
+  position: relative;
+  padding: 0.2rem 0 0.2rem 1rem;
+  font-size: 16px;
+  line-height: 1.55;
+}
+.game-root .fn-facet-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.85em;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--g-rule);
+}
+.game-root .fn-facet-list li.is-hit {
+  background: var(--g-pale-gold);
+  border-radius: 6px;
+  padding-right: 0.5rem;
+}
+.game-root .fn-facet-list li.is-hit::before {
+  background: var(--g-gold);
+}
+.game-root .fn-diff {
+  border-left: 3px solid var(--g-gold);
+  padding: 0.35rem 0 0.35rem 0.9rem;
+  font-family: var(--g-serif);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+/* Reduced motion: the OS preference or the app's setting. Fades stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .fn-node.is-wrong .fn-body,
+  .game-root .fn-chip.is-bounce,
+  .game-root .fn-chip.is-locked,
+  .game-root .fn-node.is-pulse .fn-ring,
+  .game-root .fn-bin.is-pulse,
+  .game-root .fn-choice.is-pulse,
+  .game-root .fn-arc.is-closed,
+  .game-root .fn-node.is-locked .fn-ring {
+    animation: none;
+  }
+  .game-root .fn-chip,
+  .game-root .fn-node .fn-ring,
+  .game-root .fn-puck.is-snapped {
+    transition: none;
+  }
+  .game-root .fn-chip.is-lifted,
+  .game-root .fn-node.is-over .fn-ring {
+    transform: none;
+  }
+  .game-root .fn-phantom {
+    animation: fn-fade-out 1500ms linear forwards;
+    stroke-dashoffset: 0;
+  }
+  .game-root .fn-phantom-end {
+    animation: fn-fade-out 1500ms linear forwards;
+  }
+}
+html.reduce-motion .game-root .fn-phantom {
+  stroke-dashoffset: 0;
+}
+html.reduce-motion .game-root .fn-phantom,
+html.reduce-motion .game-root .fn-phantom-end {
+  opacity: 0.8;
+}
+@keyframes fn-fade-out {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}

@@ -13,6 +13,8 @@ import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
 import { TrueFalseScreen } from './screens/TrueFalseScreen';
 import { FormulaGymScreen } from './formulas/FormulaGymScreen';
 import { SenseCheckScreen } from './sensecheck/SenseCheckScreen';
+import { GamesScreen } from './games/GamesScreen';
+import { useGameProgress } from './games/progress';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useTf } from './store/tf';
@@ -48,6 +50,8 @@ function Routes() {
     load();
     initPersistence();
     useTf.getState().loadProgress();
+    // Game sessions count as study days for the streak (PORTAL_PLAN §3c).
+    useGameProgress.getState().load();
     // Formula Gym answers count toward the streak on Home, so load them up front too.
     useGym.getState().load();
   }, [load]);
@@ -102,6 +106,8 @@ function Routes() {
       return <FormulaGymScreen />;
     case '/sense':
       return <SenseCheckScreen />;
+    case '/games':
+      return <GamesScreen />;
     case '/analytics':
       return <AnalyticsScreen />;
     case '/settings':

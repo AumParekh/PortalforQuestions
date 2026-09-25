@@ -14,6 +14,7 @@ import { overallStats, streaks } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
+import { useGameProgress } from '../games/progress';
 import { useGym } from '../formulas/storage';
 
 function TopBar() {
@@ -80,6 +81,7 @@ export function AnalyticsScreen() {
   const byId = useContent((s) => s.byId);
   const tfAttempts = useTf((s) => s.attempts);
   const gymAttempts = useGym((s) => s.attempts);
+  const gameSessions = useGameProgress((s) => s.sessions);
   // True/False and Formula Gym answers count toward study days, matching the streak on Home.
   const studyEvents = useMemo(
     () => [...attempts, ...tfAttempts, ...gymAttempts.map((a) => ({ timestamp: a.timestamp, isCorrect: a.correct }))],
@@ -90,7 +92,9 @@ export function AnalyticsScreen() {
   // Recomputed when the local date rolls over so "today" and the 30-day window stay current on long-lived tabs.
   const now = useMemo(() => new Date(), [day]);
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
-  const streak = useMemo(() => streaks(studyEvents, now), [studyEvents, now]);
+  // Notes-game sessions count as study days for the streak, as on Home.
+  const streakEvents = useMemo(() => [...studyEvents, ...gameSessions.map((g) => ({ timestamp: g.timestamp }))], [studyEvents, gameSessions]);
+  const streak = useMemo(() => streaks(streakEvents, now), [streakEvents, now]);
 
   const loading = status === 'idle' || status === 'loading';
 

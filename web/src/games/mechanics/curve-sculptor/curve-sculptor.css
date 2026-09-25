@@ -1,0 +1,350 @@
+/* Curve Sculptor board. Scoped to .game-root and the cs- prefix; colours come from the shared
+   palette tokens in games.css, so dark mode (html.dark .game-root) follows automatically.
+   Nothing under 15px (PORTAL_PLAN §5); SVG text is 15px in a 1:1 viewBox. */
+
+.game-root .cs-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.game-root .cs-note {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--g-ink-muted);
+}
+.game-root .cs-desc,
+.game-root .cs-reading {
+  font-family: var(--g-serif);
+  line-height: 1.65;
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+}
+.game-root .cs-desc {
+  font-size: 1.1875rem;
+}
+.game-root .cs-reading {
+  font-size: 17px;
+}
+.game-root .cs-source {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .cs-phase-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .cs-chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--g-navy);
+}
+.game-root .cs-axis-title {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .cs-legend {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+}
+
+/* ---- Shape-word chips: live in discovery (green when the curve shows the word). ---- */
+.game-root .cs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.15rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--g-rule);
+  background: var(--g-soft);
+  color: var(--g-ink);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+.game-root .cs-chip.is-on {
+  background: var(--g-pale-green);
+  border-color: var(--g-green);
+  color: var(--g-green);
+}
+.game-root .cs-chip.is-off {
+  background: var(--g-card);
+  border-style: dashed;
+}
+.game-root .cs-chip-mark {
+  font-size: 15px;
+  width: 1ch;
+  text-align: center;
+}
+
+/* ---- Chart ---- */
+.game-root .cs-chart svg {
+  display: block;
+  overflow: visible;
+}
+.game-root .cs-tick-label {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.game-root .cs-gridline {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.game-root .cs-zero {
+  stroke: var(--g-grey);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+.game-root .cs-axis {
+  stroke: var(--g-ink-muted);
+  stroke-width: 1.5;
+  shape-rendering: crispEdges;
+}
+.game-root .cs-curve,
+.game-root .cs-start,
+.game-root .cs-target,
+.game-root .cs-glow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-root .cs-curve {
+  stroke: var(--g-navy);
+  stroke-width: 3.5;
+  transition: stroke 240ms ease;
+}
+.game-root .cs-curve.is-snapped {
+  stroke: var(--g-green);
+  animation: cs-snap 640ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.game-root .cs-curve.is-missed {
+  stroke: var(--g-red);
+  stroke-dasharray: 8 6;
+}
+.game-root .cs-start {
+  stroke: var(--g-grey);
+  stroke-width: 2.5;
+  stroke-dasharray: 1 7;
+  opacity: 0.75;
+}
+.game-root .cs-start.is-overlay {
+  stroke-dasharray: 6 6;
+  opacity: 0.9;
+}
+.game-root .cs-glow {
+  stroke: var(--g-gold);
+  stroke-width: 12;
+  transition: opacity 160ms linear;
+}
+.game-root .cs-target {
+  stroke: var(--g-green);
+  stroke-width: 3.5;
+  opacity: 0;
+  animation: cs-fade 520ms ease var(--cs-delay, 800ms) forwards;
+}
+.game-root .cs-target.is-static {
+  opacity: 1;
+  animation: none;
+}
+@keyframes cs-snap {
+  0% {
+    stroke-width: 3.5;
+  }
+  30% {
+    stroke-width: 8;
+  }
+  100% {
+    stroke-width: 3.5;
+  }
+}
+@keyframes cs-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.game-root .cs-hold-right {
+  opacity: 0;
+  animation: cs-fade 520ms ease var(--cs-delay, 800ms) forwards;
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+
+/* ---- Slider rows ---- */
+.game-root .cs-row {
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem 0.5rem;
+  background: var(--g-card);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.game-root .cs-row.is-locked {
+  background: var(--g-soft);
+}
+.game-root .cs-row.is-culprit {
+  border-color: var(--g-gold);
+  background: var(--g-pale-gold);
+}
+.game-root .cs-row.is-pulse {
+  animation: cs-pulse 900ms ease-in-out 3;
+}
+@keyframes cs-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(154, 107, 16, 0);
+    border-color: var(--g-rule);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+    border-color: var(--g-gold);
+  }
+}
+.game-root .cs-param-label {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.game-root .cs-value {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+}
+.game-root .cs-step {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+.game-root .cs-track {
+  height: 44px;
+}
+.game-root .cs-range {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.game-root .cs-range:disabled {
+  cursor: default;
+}
+.game-root .cs-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .cs-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .cs-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  margin-top: -11px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+  transition:
+    transform 120ms ease,
+    background-color 200ms ease;
+}
+.game-root .cs-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+}
+.game-root .cs-range:active:not(:disabled)::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.game-root .cs-row.is-locked .cs-range::-webkit-slider-thumb {
+  background: var(--g-green);
+}
+.game-root .cs-row.is-locked .cs-range::-moz-range-thumb {
+  background: var(--g-green);
+}
+.game-root .cs-row.is-culprit .cs-range::-webkit-slider-thumb {
+  background: var(--g-red);
+}
+.game-root .cs-row.is-culprit .cs-range::-moz-range-thumb {
+  background: var(--g-red);
+}
+.game-root .cs-range:focus-visible {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+/* Marks under the track: where the slider started (grey) and, after a miss, the notes' value (green). */
+.game-root .cs-tick {
+  position: absolute;
+  top: calc(50% + 7px);
+  width: 2px;
+  height: 9px;
+  margin-left: -1px;
+  background: var(--g-grey);
+  pointer-events: none;
+}
+.game-root .cs-tick.is-target {
+  top: calc(50% - 16px);
+  width: 4px;
+  height: 32px;
+  margin-left: -2px;
+  border-radius: 2px;
+  background: var(--g-green);
+  opacity: 0.85;
+}
+
+/* Reduced motion: the app's setting or the OS preference. Fades stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .cs-curve.is-snapped,
+  .game-root .cs-row.is-pulse {
+    animation: none;
+  }
+  .game-root .cs-row.is-pulse {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+    border-color: var(--g-gold);
+  }
+  .game-root .cs-range::-webkit-slider-thumb {
+    transition: none;
+  }
+}
+html.reduce-motion .game-root .cs-row.is-pulse {
+  animation: none !important;
+  box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+  border-color: var(--g-gold);
+}
+html.reduce-motion .game-root .cs-target,
+html.reduce-motion .game-root .cs-hold-right {
+  animation: cs-fade 1ms linear var(--cs-delay, 800ms) forwards !important;
+}

@@ -1,0 +1,274 @@
+/* Threshold Slider board. Scoped to .game-root and the ts- prefix; uses the shared palette tokens
+   so dark mode follows games.css. Nothing under 15px (PORTAL_PLAN §5). */
+
+.game-root .ts-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .ts-lead {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+}
+.game-root .ts-small {
+  font-size: 15px;
+  line-height: 1.55;
+}
+.game-root .ts-source {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .ts-source .ts-id {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 15px;
+}
+.game-root .ts-sentence {
+  overflow-wrap: anywhere;
+}
+
+/* The blank in the sentence: fills live as the marker moves. */
+.game-root .ts-blank {
+  display: inline-block;
+  min-width: 3.2em;
+  padding: 0 0.4em;
+  margin: 0 0.1em;
+  border-bottom: 2px dashed var(--g-gold);
+  border-radius: 4px 4px 0 0;
+  background: var(--g-pale-gold);
+  color: var(--g-gold);
+  font-family: var(--g-sans);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1.45;
+}
+.game-root .ts-blank.is-empty {
+  color: var(--g-ink-muted);
+}
+.game-root .ts-blank.is-right {
+  border-bottom: 2px solid var(--g-green);
+  background: var(--g-pale-green);
+  color: var(--g-green);
+}
+.game-root .ts-blank.is-wrong {
+  border-bottom: 2px solid var(--g-red);
+  background: var(--g-pale-red);
+  color: var(--g-red);
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+/* Readout: the value the marker is on, large, in the notes' own units. */
+.game-root .ts-readout {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.game-root .ts-readout.is-idle {
+  color: var(--g-ink-muted);
+}
+
+/* The scale: a straight rule (sharp axis), ticks below, a round marker on top. The whole band is
+   the hit area (≥ 56px tall); the rule is inset by half a marker so the ends stay on screen. */
+.game-root .ts-scale {
+  position: relative;
+  padding: 0 22px;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  border-radius: 10px;
+}
+.game-root .ts-scale.is-disabled {
+  cursor: default;
+}
+.game-root .ts-scale:focus-visible {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 4px;
+}
+.game-root .ts-band {
+  position: relative;
+  height: 56px;
+}
+.game-root .ts-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 27px;
+  height: 2px;
+  background: var(--g-navy);
+}
+.game-root .ts-fill {
+  position: absolute;
+  left: 0;
+  top: 26px;
+  height: 4px;
+  background: var(--g-gold);
+  opacity: 0.55;
+}
+.game-root .ts-tick {
+  position: absolute;
+  top: 29px;
+  width: 1px;
+  height: 9px;
+  background: var(--g-rule);
+  transform: translateX(-0.5px);
+}
+.game-root .ts-tick.is-major {
+  height: 13px;
+  background: var(--g-ink-muted);
+}
+.game-root .ts-tol {
+  position: absolute;
+  top: 18px;
+  height: 20px;
+  background: var(--g-pale-green);
+  border-left: 1px solid var(--g-green);
+  border-right: 1px solid var(--g-green);
+}
+.game-root .ts-thumb {
+  position: absolute;
+  top: 28px;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border-radius: 999px;
+  background: var(--g-card);
+  border: 3px solid var(--g-gold);
+  box-shadow: 0 2px 6px rgba(var(--g-shadow), 0.22);
+  transition: left 120ms ease, transform 160ms ease, border-color 160ms ease;
+}
+.game-root .ts-scale.is-dragging .ts-thumb {
+  transition: none;
+  transform: scale(1.12);
+  box-shadow: 0 6px 14px rgba(var(--g-shadow), 0.28);
+}
+.game-root .ts-thumb.is-idle {
+  border-color: var(--g-ink-muted);
+}
+.game-root .ts-thumb.is-right {
+  border-color: var(--g-green);
+  background: var(--g-pale-green);
+}
+.game-root .ts-thumb.is-wrong {
+  border-color: var(--g-red);
+  background: var(--g-pale-red);
+}
+/* Where the notes draw the line: a green post that drops in after the answer. */
+.game-root .ts-post {
+  position: absolute;
+  top: 6px;
+  width: 3px;
+  height: 44px;
+  margin-left: -1.5px;
+  background: var(--g-green);
+  border-radius: 2px;
+  animation: ts-drop 380ms cubic-bezier(0.2, 0.9, 0.3, 1) var(--g-hold) both;
+}
+.game-root .ts-post.is-now {
+  animation-delay: 0ms;
+}
+@keyframes ts-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.game-root .ts-burst-at {
+  position: absolute;
+  top: 28px;
+  width: 0;
+  height: 0;
+}
+.game-root .ts-ticklabels {
+  position: relative;
+  height: 1.6em;
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.game-root .ts-ticklabels > span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+.game-root .ts-ticklabels > span.is-first {
+  transform: translateX(-22px);
+}
+.game-root .ts-ticklabels > span.is-last {
+  transform: translateX(calc(-100% + 22px));
+}
+@media (max-width: 639px) {
+  .game-root .ts-ticklabels > span.is-wide {
+    display: none;
+  }
+}
+@media (min-width: 640px) {
+  .game-root .ts-ticklabels > span.is-narrow {
+    display: none;
+  }
+}
+
+.game-root .g-btn.ts-step {
+  min-width: 48px;
+  min-height: 48px;
+  font-size: 1.25rem;
+}
+.game-root .ts-input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 10px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 16px;
+}
+.game-root .ts-input:focus-visible {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 1px;
+}
+.game-root .ts-input[aria-invalid='true'] {
+  border-color: var(--g-red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-root .ts-thumb {
+    transition: none;
+  }
+  .game-root .ts-scale.is-dragging .ts-thumb {
+    transform: none;
+  }
+  .game-root .ts-post {
+    animation-name: g-fade-plain;
+    animation-duration: 1ms;
+  }
+}
+html.reduce-motion .game-root .ts-thumb {
+  transition: none;
+}
+html.reduce-motion .game-root .ts-scale.is-dragging .ts-thumb {
+  transform: none;
+}
+html.reduce-motion .game-root .ts-post {
+  animation-name: g-fade-plain;
+  animation-duration: 1ms;
+}

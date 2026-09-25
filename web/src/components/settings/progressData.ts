@@ -12,6 +12,8 @@ import type {
   TFState,
 } from '../../types';
 import { getAll, openDb } from '../../lib/db';
+import { exportGamesDb, importGamesDb } from '../../games/db';
+import type { GamesExport } from '../../games/db';
 
 /** File format for "Export progress" / "Import progress". */
 /**
@@ -28,6 +30,8 @@ export interface ProgressExport {
   tfAttempts: TFAttempt[];
   gymState: GymState[];
   gymAttempts: GymAttempt[];
+  /** Notes-game progress (separate frm-games database); absent in files from before the games layer. */
+  games?: GamesExport;
 }
 
 export interface ParsedImport {
@@ -60,6 +64,8 @@ export async function buildExport(): Promise<ProgressExport> {
     tfAttempts,
     gymState,
     gymAttempts,
+    // The games database is separate; a failure there shouldn't block exporting everything else.
+    games: await exportGamesDb().catch(() => undefined),
   };
 }
 
@@ -310,6 +316,7 @@ export function parseImport(text: string): ParsedImport {
       tfAttempts: ta.ok,
       gymState: gs.ok,
       gymAttempts: ga.ok,
+      games: gamesSnapshot(data.games),
     },
     skipped,
   };
@@ -352,4 +359,20 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   for (const r of data.gymState) gs.put(r);
   for (const r of data.gymAttempts) ga.put(r);
   await done;
+  // Wholesale replace applies to notes-game progress too: a file without it clears it.
+  await importGamesDb(data.games ?? { kind: 'frm-games', version: 1, exportedAt: '', sessions: [], items: [], coverage: [] });
+}
+
+/** Keeps a games snapshot only if it has the expected shape; row contents are the games layer's own format. */
+function gamesSnapshot(v: unknown): GamesExport | undefined {
+  if (!isRec(v) || v.kind !== 'frm-games') return undefined;
+  const rows = (x: unknown) => (Array.isArray(x) ? x.filter(isRec) : []);
+  return {
+    kind: 'frm-games',
+    version: 1,
+    exportedAt: str(v.exportedAt) ? v.exportedAt : '',
+    sessions: rows(v.sessions) as unknown as GamesExport['sessions'],
+    items: rows(v.items) as unknown as GamesExport['items'],
+    coverage: rows(v.coverage) as unknown as GamesExport['coverage'],
+  };
 }

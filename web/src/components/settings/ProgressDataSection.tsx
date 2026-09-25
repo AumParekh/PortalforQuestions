@@ -135,7 +135,7 @@ export function ProgressDataSection() {
 
       <SettingsRow
         label="Export progress"
-        hint="Download a JSON backup of your question records, attempts and sessions, plus True/False and Formula Gym progress."
+        hint="Download a JSON backup of your question records, attempts and sessions, plus True/False, Formula Gym and notes-game progress."
       >
         <button type="button" onClick={onExport} disabled={!available || busy} className={`${buttonSecondary} w-full sm:w-auto`}>
           <Download className="h-5 w-5" aria-hidden="true" />
@@ -187,7 +187,7 @@ export function ProgressDataSection() {
         </div>
       </SettingsRow>
 
-      <SettingsRow label="Reset everything" hint="Erases every question record, attempt and session, and all True/False and Formula Gym progress, on this device. Your settings and saved session setup are kept.">
+      <SettingsRow label="Reset everything" hint="Erases every question record, attempt and session, and all True/False, Formula Gym and notes-game progress, on this device. Your settings and saved session setup are kept.">
         <button type="button" disabled={!available || busy} onClick={() => setPending({ kind: 'all' })} className={`${buttonDangerOutline} w-full sm:w-auto`}>
           <Trash2 className="h-5 w-5" aria-hidden="true" />
           Reset everything
@@ -232,7 +232,7 @@ export function ProgressDataSection() {
               </p>
             )}
             <p>
-              Everything currently saved on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}, plus True/False and Formula Gym progress) will be
+              Everything currently saved on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}, plus True/False, Formula Gym and notes-game progress) will be
               replaced. Export first if you might want it back. The page reloads afterwards.
             </p>
           </>
@@ -266,7 +266,7 @@ export function ProgressDataSection() {
       >
         <p>
           This permanently deletes {plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')} and{' '}
-          {plural(sessionCount, 'session')} from this device, along with all True/False and Formula Gym progress. Your settings and saved session setup are kept.
+          {plural(sessionCount, 'session')} from this device, along with all True/False, Formula Gym and notes-game progress. Your settings and saved session setup are kept.
         </p>
         <p>Export your progress first if you might want it back.</p>
       </ConfirmDialog>

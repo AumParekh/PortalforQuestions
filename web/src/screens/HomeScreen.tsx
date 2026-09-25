@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
+import { BarChart3, BookOpen, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
@@ -16,6 +16,7 @@ import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
 import { isDue, localDay, useGym } from '../formulas/storage';
+import { useGameProgress } from '../games/progress';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
 
@@ -140,9 +141,12 @@ export function HomeScreen() {
   const tfAttempts = useTf((s) => s.attempts);
   const tfCount = useTf((s) => s.cards.length);
   const gymAttempts = useGym((s) => s.attempts);
+  const gameSessions = useGameProgress((s) => s.sessions);
   const gymStates = useGym((s) => s.states);
   // True/False and Formula Gym answers count as study activity for the streak and today's goal.
   const studyEvents = useMemo(() => [...attempts, ...tfAttempts, ...gymAttempts], [attempts, tfAttempts, gymAttempts]);
+  // A notes-game session counts as a study day for the streak, not as answers toward today's goal.
+  const streakEvents = useMemo(() => [...studyEvents, ...gameSessions.map((g) => ({ timestamp: g.timestamp }))], [studyEvents, gameSessions]);
   const progressStatus = useProgress((s) => s.status);
   const sessionStatus = useSession((s) => s.status);
   const answeredCount = useSession((s) => Object.keys(s.answers).length);
@@ -159,7 +163,7 @@ export function HomeScreen() {
 
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
   const day = useToday();
-  const streak = useMemo(() => streaks(studyEvents), [studyEvents, day]);
+  const streak = useMemo(() => streaks(streakEvents), [streakEvents, day]);
   const today = useMemo(() => answeredToday(studyEvents), [studyEvents, day]);
   const formulasDue = useMemo(() => {
     const d = localDay();
@@ -368,6 +372,12 @@ export function HomeScreen() {
             title="Formula Gym"
             detail={formulasDue > 0 ? `${formulasDue} ${formulasDue === 1 ? 'formula' : 'formulas'} due for review` : 'Recall, rebuild and apply every formula in the notes'}
             onClick={() => navigate('/formulas')}
+          />
+          <QuickAction
+            icon={<Gamepad2 className="h-5 w-5" aria-hidden="true" />}
+            title="Notes Games"
+            detail="Play the notes: traps, tables, sequences, curves, trees and more"
+            onClick={() => navigate('/games')}
           />
           <QuickAction
             icon={<Gauge className="h-5 w-5" aria-hidden="true" />}

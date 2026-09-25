@@ -413,7 +413,7 @@ node('g20-2009', 'G20 Pittsburgh OTC derivatives reforms', 'G20 2009', 2009,
      related=['dodd-frank', 'bilateral-margin-2011'])
 
 node('bilateral-margin-2011', 'Margin requirements for non-cleared OTC derivatives',
-     'Bilateral IM/VM', 2011, E('C17', 361, '2011'), 'counterparty',
+     'Bilat. margin', 2011, E('C17', 361, '2011'), 'counterparty',
      [('g20-2009', 'sequence', 'The G20 followed the clearing mandate with bilateral '
        'collateral rules for non-clearable trades', E('C17', 361, 'G20'))],
      ['CR-17', 'CR-14', 'CR-18'], E('C17', 361, 'bilateral collateral requirements'),
@@ -617,7 +617,7 @@ node('dora', 'Digital Operational Resilience Act (DORA)', 'DORA', None, None, 'o
          ('Cyber and ICT risks at financial institutions', E('CI8', 167, 'cyber risks and ICT risks')),
      ],
      aliases=['DORA', 'Digital Operational Resilience'],
-     related=['bcbs-opres', 'outsourcing-guidance'])
+     related=['bcbs-opres', 'outsourcing-guidance', 'bali-fintech'])
 
 node('outsourcing-guidance', 'Guidance on Managing Outsourcing Risk', 'Outsourcing', None,
      None, 'oprisk', [], ['ORR-12'], E('O12', 1, 'Guidance on Managing Outsourcing Risk'),
@@ -785,7 +785,7 @@ node('dodd-frank', 'Dodd-Frank Act', 'Dodd-Frank', 2010, E('I9', 173, '2010'), '
          ('The dark side of retail credit risk', E('C7', 109, 'dark side')),
      ],
      aliases=['Dodd-Frank', 'Dodd', 'Volcker', 'Title IV', 'FSOC', 'CFPB'],
-     related=['adv-act-1940', 'aifmd', 'mifid-2', 'g20-2009'])
+     related=['adv-act-1940', 'aifmd', 'mifid-2', 'g20-2009', 'basel-3'])
 
 node('aifmd', 'Alternative Investment Fund Managers Directive (AIFMD)', 'AIFMD', 2010,
      E('I9', 174, '2010'), 'conduct', [], ['IM-9'], E('I9', 174, 'AIFMD'),
@@ -875,7 +875,7 @@ node('solvency-2', 'Solvency II', 'Solvency II', None, None, 'insurance',
          ('Internal models use one-year VaR at 99.5%', E('O21', 549, '99.5')),
      ],
      aliases=['Solvency II', 'MCR', 'SCR'],
-     related=['basel-2'])
+     related=['basel-2', 'mra-1996'])
 
 node('bcbs-crypto', 'BCBS proposed treatment of bank crypto-asset exposures', 'BCBS crypto',
      None, None, 'tech', [], ['CI-6'], E('CI6', 248, 'The BCBS proposal'),
@@ -934,7 +934,7 @@ node('fsb-ai-2024', 'FSB report: financial stability implications of AI', 'FSB A
           E('CI2', 11, 'market correlations')),
      ],
      aliases=['FSB', 'Financial Stability Board'],
-     related=['dora', 'bali-fintech', 'model-risk-guidance'])
+     related=['dora', 'bali-fintech', 'model-risk-guidance', 'outsourcing-guidance'])
 
 # ---------------------------------------------------------------------------------------------
 # Changes: (reading, node, text, decoys, why, evidence)
@@ -946,7 +946,7 @@ CHANGES = [
      E('O21', 22, 'G10')),
     ('ORR-21', 'bcbs-1974',
      'Response to banks interconnected across economies after 1960s-70s trade growth.',
-     ['basel-1', 'amend-1995'], 'Cross-border banking risk prompted the committee itself, before any accord.',
+     ['basel-1', 'basel-2'], 'Cross-border banking risk prompted the committee itself, before any accord.',
      E('O21', 14, '1960s')),
 
     ('ORR-21', 'basel-1',
@@ -1038,7 +1038,7 @@ CHANGES = [
      E('O21', 349, 'disclose')),
     ('ORR-1', 'basel-2',
      'Operational loss events classified into seven Level 1 event types.',
-     ['sma', 'bcbs-opres'], 'The seven event types are the Basel II categories; SMA reuses them.',
+     ['sma', 'basel-3'], 'The seven event types are the Basel II categories; SMA reuses them.',
      E('O1', 64, 'seven Basel II event')),
     ('ORR-2', 'basel-2',
      'Supervisors may add capital for concentration, compliance and governance risks outside Pillar 1.',
@@ -1059,7 +1059,7 @@ CHANGES = [
      E('O21', 538, 'Solvency Capital Requirement')),
     ('ORR-21', 'solvency-2',
      'Internal-model capital uses one-year VaR at 99.5% confidence.',
-     ['basel-2', 'frtb'], '99.5% one-year is the insurance internal model; Basel IRB uses 99.9%.',
+     ['basel-2', 'mra-1996'], '99.5% one-year is the insurance internal model; Basel IRB uses 99.9%.',
      E('O21', 549, '99.5')),
 
     ('ORR-22', 'basel-2-5',
@@ -1076,7 +1076,7 @@ CHANGES = [
      E('O22', 102, 'collateralised debt obligations')),
     ('ORR-22', 'basel-2-5',
      'Unrated or below BB- correlation positions need dollar-for-dollar capital.',
-     ['frtb', 'basel-3-final'], 'The 100% charge sits inside the Basel 2.5 CRM.',
+     ['frtb', 'mra-1996'], 'The 100% charge sits inside the Basel 2.5 CRM.',
      E('O22', 105, 'dollar-for-dollar')),
     ('MR-18', 'basel-2-5',
      'Banks may use their own approved models for the securitisation correlation charge.',
@@ -1138,7 +1138,7 @@ CHANGES = [
      E('O22', 187, '8.5')),
     ('ORR-22', 'basel-3',
      'Global systemically important banks hold extra capital buffers of 1% to 3.5%.',
-     ['basel-3-final', 'dodd-frank'], 'G-SIB risk-based buffers are Basel III; 2017 added a G-SIB leverage buffer.',
+     ['basel-3-final', 'basel-2'], 'G-SIB risk-based buffers are Basel III; 2017 added a G-SIB leverage buffer.',
      E('O22', 196, '3.5')),
     ('ORR-22', 'basel-3',
      'Capital adjusted downward for pension plan deficits and group cross-holdings.',
@@ -1180,7 +1180,7 @@ CHANGES = [
      E('O23', 29, 'loan-to-value')),
     ('ORR-23', 'basel-3-final',
      'Securitisation in the floor: SEC-ERBA, SEC-SA or a 1,250% risk weight.',
-     ['frtb', 'basel-2-5'], 'These are the output-floor approaches for securitisation.',
+     ['frtb', 'basel-3'], 'These are the output-floor approaches for securitisation.',
      E('O23', 113, 'SEC-ERBA')),
 
     ('ORR-24', 'sma',
@@ -1251,7 +1251,7 @@ CHANGES = [
      ['sr-10-6', 'occ-2012'], 'This is Principle 5 of the BCBS Sound Principles.',
      E('L3', 78, 'Principle 5')),
     ('LTR-1', 'bcbs-liq-2008',
-     'A bank owns its liquidity risk: robust framework, contingency funding plan and HQLA cushion.',
+     'A bank owns its liquidity risk: robust framework, contingency funding plan and unencumbered liquid-asset cushion.',
      ['sr-10-6', 'occ-2012', 'lcr'], 'The first principle: the bank owns, the supervisor assesses.',
      E('L1', 226, 'responsible')),
 
@@ -1305,7 +1305,7 @@ CHANGES = [
      E('C17', 361, 'bilateral collateral')),
     ('CR-17', 'bilateral-margin-2011',
      'Aims to cut regulatory arbitrage between clearable and non-clearable OTC trades.',
-     ['g20-2009', 'basel-3-final'], 'Margin on non-cleared trades removes the incentive to avoid clearing.',
+     ['g20-2009', 'dodd-frank'], 'Margin on non-cleared trades removes the incentive to avoid clearing.',
      E('C17', 366, 'regulatory arbitrage')),
     ('CR-14', 'bilateral-margin-2011',
      'Bilateral trades, historically lightly margined, get margin rules similar to central clearing.',
@@ -1326,7 +1326,7 @@ CHANGES = [
      E('O22', 334, 'proprietary trading')),
     ('ORR-22', 'dodd-frank',
      'A consumer financial protection bureau ensures clear and fair consumer lending.',
-     ['mifid-2', 'mifid-1'], 'CFPB was established by the US statute.',
+     ['mifid-2', 'basel-3'], 'CFPB was established by the US statute.',
      E('O22', 331, 'Consumer')),
     ('IM-9', 'dodd-frank',
      'Hedge fund advisers with at least $150 million must register with the SEC and appoint a CCO.',
@@ -1346,7 +1346,7 @@ CHANGES = [
      E('C7', 113, 'ability to repay')),
     ('ORR-14', 'dodd-frank',
      'US statute protecting whistleblowers and regulating OTC derivatives.',
-     ['mifid-2', 'mifid-1'], 'Whistleblower protection is in the US statute, not MiFID.',
+     ['mifid-2', 'g20-2009'], 'Whistleblower protection is in the US statute, not MiFID.',
      E('O14', 34, 'whistleblowers')),
 
     ('IM-9', 'adv-act-1940',
@@ -1416,7 +1416,7 @@ CHANGES = [
      E('O15', 91, 'separate team')),
     ('ORR-15', 'model-risk-guidance',
      'Vendor models need more sensitivity analysis and benchmarking; vendors must supply details.',
-     ['outsourcing-guidance', 'dora'], 'Third-party model validation guidance.',
+     ['outsourcing-guidance', 'fsb-ai-2024'], 'Third-party model validation guidance.',
      E('O15', 147, 'sensitivity analysis')),
     ('ORR-15', 'model-risk-guidance',
      'Revalidation is required after major model changes.',
@@ -1428,7 +1428,7 @@ CHANGES = [
      E('O15', 117, 'Process verification')),
     ('ORR-16', 'model-risk-guidance',
      'Independent model risk review would have exposed limits of the copula CDO-pricing model.',
-     ['basel-2-5', 'frtb'], 'ORR-16\'s lesson: model risk management would have caught this.',
+     ['mra-1996', 'frtb'], 'ORR-16\'s lesson: model risk management would have caught this.',
      E('O16', 72, 'CDO pricing model')),
 
     ('ORR-1', 'bcbs-opres',
@@ -1454,7 +1454,7 @@ CHANGES = [
      E('O17', 133, 'eight asset classes')),
     ('ORR-17', 'scap-2009',
      'Explicit post-stress common equity threshold to confirm the bank stays viable.',
-     ['ccar', 'basel-3'], 'Capital-adequacy focus arrived with the 2009 program.',
+     ['ccar', 'eba-2011'], 'Capital-adequacy focus arrived with the 2009 program.',
      E('O17', 28, 'common equity threshold')),
 
     ('ORR-20', 'ccar',
@@ -1481,7 +1481,7 @@ CHANGES = [
      E('CI6', 265, '1,250')),
     ('CI-6', 'bcbs-crypto',
      'Lower-risk crypto assets weighted similarly to, or below, traditional assets.',
-     ['bali-fintech', 'basel-3'], 'Group 1 treatment in the proposed standard.',
+     ['bali-fintech', 'basel-3-final'], 'Group 1 treatment in the proposed standard.',
      E('CI6', 262, 'similar to or lower than')),
     ('CI-6', 'bali-fintech',
      'Regulators prioritise resources toward jurisdictions with significant crypto presence.',
@@ -1499,6 +1499,18 @@ CHANGES = [
      'Third-party dependency and service-provider concentration flagged as AI stability vulnerabilities.',
      ['dora', 'outsourcing-guidance'], 'One of the five vulnerabilities the 2024 report assesses.',
      E('CI2', 10, 'third-party')),
+
+    # -- additions (appended to keep earlier ids stable) --
+    ('CR-14', 'g20-2009',
+     'Non-centrally cleared OTC derivatives attract higher capital requirements.',
+     ['bilateral-margin-2011', 'amend-1995'],
+     'The 2009 Pittsburgh list adds capital on non-cleared trades; the 2011 rules add margin.',
+     E('C14', 249, 'higher capital requirements', 'non-centrally cleared')),
+    ('ORR-17', 'eba-2011',
+     'Detailed release meant to restore credibility and transparency after previous, less effective tests.',
+     ['ccar', 'scap-2009'],
+     'The 2011 European round followed earlier tests that had lost credibility.',
+     E('O17', 148, 'restore credibility', 'less effective tests')),
 ]
 
 # ---------------------------------------------------------------------------------------------

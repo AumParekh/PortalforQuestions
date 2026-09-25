@@ -8,7 +8,13 @@ import { chromium } from 'playwright';
 const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
 const ROUTES = ['/', '/setup', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/sense', '/games'];
 // Sections with a Start button that can be played from the keyboard.
-const PLAYABLE = ['/truefalse', '/formulas', '/sense'];
+const PLAYABLE = [
+  { route: '/truefalse', buttons: [/^\s*Start\s*$/] },
+  { route: '/formulas', buttons: [/^\s*Start\s*$/] },
+  { route: '/sense', buttons: [/^\s*Start\s*$/] },
+  // Notes games: the auto-pick Play button, then the arc's Begin.
+  { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Begin\s*$/] },
+];
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 800 },
   { name: 'desktop', width: 1280, height: 900 },
@@ -53,19 +59,26 @@ for (const vp of VIEWPORTS) {
   }
   // Play-through: start each playable section and drive it with its keyboard shortcuts
   // (Space reveals, 1 answers, Enter moves on), failing on any crash or console error.
-  for (const route of PLAYABLE) {
+  for (const { route, buttons } of PLAYABLE) {
     errors = [];
     const label = `${vp.name} play #${route}`;
     try {
       await page.goto(`${BASE}/#${route}`, { waitUntil: 'networkidle', timeout: 30000 });
       await page.waitForTimeout(1500);
-      const start = page.getByRole('button', { name: /^\s*Start\s*$/ }).first();
-      if ((await start.count()) === 0 || !(await start.isEnabled())) {
-        console.log(`--  ${label} (no Start available; content not generated yet?)`);
+      let started = true;
+      for (const name of buttons) {
+        const button = page.getByRole('button', { name }).first();
+        if ((await button.count()) === 0 || !(await button.isEnabled())) {
+          started = false;
+          break;
+        }
+        await button.click();
+        await page.waitForTimeout(800);
+      }
+      if (!started) {
+        console.log(`--  ${label} (nothing to start; content not generated yet?)`);
         continue;
       }
-      await start.click();
-      await page.waitForTimeout(800);
       for (let i = 0; i < 12; i++) {
         for (const key of [' ', '1', 'Enter']) {
           await page.keyboard.press(key);

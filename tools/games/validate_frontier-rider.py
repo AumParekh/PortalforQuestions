@@ -35,8 +35,8 @@ What is asserted, for every item:
     point vs rf) is unchanged within 1e-9 and the point stays on it; "cal_slope" (steeper /
     flatter / same) is recomputed from the tangency Sharpe ratio;
   * notes_checks: every numeric check recomputes within its tolerance, and its literal string
-    appears on the cited line of source_file; every citation line exists and every literal
-    in citations appears on its line.
+    appears on the cited line of source_file (or of the check's own source_file); every citation
+    carries a literal that appears on its cited line; extra_sources name real readings/lines.
 """
 import json
 import math
@@ -292,14 +292,26 @@ def validate(path=DEFAULT_JSON):
             elif block_ids[sb][0] != rid:
                 err(where, 'source_block %s belongs to %s' % (sb, block_ids[sb][0]))
         for c in it['citations']:
+            csrc = lines_of(c['source_file']) if c.get('source_file') else src
+            if csrc is None:
+                err(where, 'citation source_file %r missing' % c.get('source_file'))
+                continue
             ln = c.get('line')
-            if not isinstance(ln, int) or not (1 <= ln <= len(src)):
+            if not isinstance(ln, int) or not (1 <= ln <= len(csrc)):
                 err(where, 'citation line %r out of range' % ln)
                 continue
-            if c.get('literal') and c['literal'] not in src[ln - 1]:
+            if not c.get('literal'):
+                err(where, 'citation of line %d needs a literal that appears on that line' % ln)
+            elif c['literal'] not in csrc[ln - 1]:
                 err(where, 'citation literal %r not on line %d' % (c['literal'], ln))
         if not it['citations']:
             err(where, 'needs at least one citation')
+        for xs in it.get('extra_sources', []):
+            xsrc = lines_of(xs.get('source_file', ''))
+            if xs.get('reading_id') not in readings or xs.get('source_file') != readings[xs['reading_id']]['source_file']:
+                err(where, 'extra_source %r does not match its reading' % xs.get('source_file'))
+            elif xsrc is None or any(not (1 <= l <= len(xsrc)) for l in xs.get('lines', [])):
+                err(where, 'extra_source lines out of range')
 
         assets = it['assets']
         n = len(assets)
@@ -478,11 +490,15 @@ def validate(path=DEFAULT_JSON):
             if abs(got - c['expected']) > c['tol']:
                 err(where, 'notes_check %s at %s: computed %.5f, notes %.5f (tol %g)'
                     % (c['quantity'], c.get('at', 'from'), got, c['expected'], c['tol']))
+            csrc = lines_of(c['source_file']) if c.get('source_file') else src
             ln = c.get('line')
-            if not isinstance(ln, int) or not (1 <= ln <= len(src)):
+            if csrc is None:
+                err(where, 'notes_check source_file %r missing' % c.get('source_file'))
+            elif not isinstance(ln, int) or not (1 <= ln <= len(csrc)):
                 err(where, 'notes_check line out of range')
-            elif c.get('literal') not in src[ln - 1]:
-                err(where, 'notes_check literal %r not on line %d' % (c.get('literal'), ln))
+            elif not c.get('literal') or c['literal'] not in csrc[ln - 1]:
+                err(where, 'notes_check literal %r not on line %d of %s'
+                    % (c.get('literal'), ln, c.get('source_file', sf)))
 
         report.append((it['id'], it['point'], p, move, p0, p1))
     return errors, report

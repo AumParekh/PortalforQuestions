@@ -1,0 +1,462 @@
+/* Tail Shaper board. Scoped to .game-root and the ts- prefix; colours come from the shared palette
+   tokens in games.css, so dark mode (html.dark .game-root) follows automatically. Nothing under
+   15px (PORTAL_PLAN §5); SVG text is 15px in a 1:1 viewBox. */
+
+.game-root .ts-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+}
+.game-root .ts-text {
+  font-size: 16px;
+  line-height: 1.6;
+}
+.game-root .ts-note {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--g-ink-muted);
+}
+.game-root .ts-desc,
+.game-root .ts-reading {
+  font-family: var(--g-serif);
+  line-height: 1.65;
+  max-width: 62ch;
+  overflow-wrap: anywhere;
+}
+.game-root .ts-desc {
+  font-size: 1.125rem;
+}
+.game-root .ts-reading {
+  font-size: 17px;
+}
+.game-root .ts-source {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .ts-phase-label,
+.game-root .ts-overlay-kicker {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .ts-overlay-kicker {
+  color: var(--g-gold);
+}
+.game-root .ts-chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--g-navy);
+}
+.game-root .ts-axis-title {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .ts-legend {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+}
+
+/* ---- Live tail chips (discovery, and after the round resolves) ---- */
+.game-root .ts-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0.15rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--g-rule);
+  background: var(--g-soft);
+  color: var(--g-ink);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+.game-root .ts-chip.is-fat {
+  background: var(--g-pale-gold);
+  border-color: var(--g-gold);
+  color: var(--g-gold);
+}
+.game-root .ts-chip.is-mid {
+  border-style: dashed;
+  border-color: var(--g-gold);
+}
+.game-root .ts-chip.is-thin {
+  background: var(--g-pale-navy);
+  border-color: var(--g-navy);
+  color: var(--g-navy);
+}
+
+/* ---- Charts ---- */
+.game-root .ts-chart svg {
+  display: block;
+  overflow: visible;
+}
+.game-root .ts-tick-label {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  fill: var(--g-ink-muted);
+  font-variant-numeric: tabular-nums;
+}
+.game-root .ts-gridline {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+.game-root .ts-axis {
+  stroke: var(--g-ink-muted);
+  stroke-width: 1.5;
+  shape-rendering: crispEdges;
+}
+.game-root .ts-curve,
+.game-root .ts-start,
+.game-root .ts-target,
+.game-root .ts-bench,
+.game-root .ts-smile,
+.game-root .ts-before,
+.game-root .ts-level {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.game-root .ts-area {
+  fill: var(--g-navy);
+  opacity: 0.1;
+  transition: fill 240ms ease;
+}
+.game-root .ts-area.is-snapped {
+  fill: var(--g-green);
+  opacity: 0.16;
+}
+.game-root .ts-curve {
+  stroke: var(--g-navy);
+  stroke-width: 3.5;
+  transition: stroke 240ms ease;
+}
+.game-root .ts-curve.is-snapped {
+  stroke: var(--g-green);
+  animation: ts-snap 640ms cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.game-root .ts-curve.is-missed {
+  stroke: var(--g-red);
+  stroke-dasharray: 8 6;
+}
+.game-root .ts-bench {
+  stroke: var(--g-grey);
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+}
+.game-root .ts-start {
+  stroke: var(--g-grey);
+  stroke-width: 2.5;
+  stroke-dasharray: 1 7;
+  opacity: 0.7;
+}
+.game-root .ts-start.is-overlay {
+  opacity: 0.9;
+}
+.game-root .ts-mu {
+  stroke: var(--g-navy);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0.6;
+}
+.game-root .ts-extra {
+  fill: var(--g-gold);
+  stroke: none;
+  opacity: 0.45;
+}
+.game-root .ts-target {
+  stroke: var(--g-green);
+  stroke-width: 3.5;
+  opacity: 0;
+  animation: ts-fade 520ms ease var(--ts-delay, 800ms) forwards;
+}
+.game-root .ts-target.is-static,
+.game-root .ts-smile.is-static,
+.game-root .ts-before.is-static {
+  opacity: 1;
+  animation: none;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+.game-root .ts-before.is-static {
+  stroke-dasharray: 6 5;
+}
+
+/* Implied-volatility overlay: the curve draws itself in (pathLength = 1). */
+.game-root .ts-overlay {
+  border-top: 1px solid var(--g-rule);
+  padding-top: 1rem;
+}
+.game-root .ts-smile {
+  stroke: var(--g-gold);
+  stroke-width: 3.5;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: ts-draw 900ms ease-out 120ms forwards;
+}
+.game-root .ts-before {
+  stroke: var(--g-grey);
+  stroke-width: 2.5;
+  stroke-dasharray: 0.012 0.01;
+  opacity: 0.9;
+}
+.game-root .ts-smile-dot {
+  fill: var(--g-gold);
+  opacity: 0;
+  animation: ts-fade 300ms ease 900ms forwards;
+}
+.game-root .ts-level {
+  stroke: var(--g-ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.game-root .ts-atm {
+  stroke: var(--g-rule);
+  stroke-width: 1.5;
+}
+@keyframes ts-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ts-snap {
+  0% {
+    stroke-width: 3.5;
+  }
+  30% {
+    stroke-width: 8;
+  }
+  100% {
+    stroke-width: 3.5;
+  }
+}
+@keyframes ts-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.game-root .ts-hold-right {
+  opacity: 0;
+  animation: ts-fade 520ms ease var(--ts-delay, 800ms) forwards;
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem 1rem;
+}
+
+/* ---- Slider rows ---- */
+.game-root .ts-row {
+  border: 1px solid var(--g-rule);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem 0.5rem;
+  background: var(--g-card);
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.game-root .ts-row.is-locked {
+  background: var(--g-soft);
+}
+.game-root .ts-row.is-pulse {
+  animation: ts-pulse 900ms ease-in-out 3;
+}
+.game-root .ts-row.is-bounce {
+  border-color: var(--g-green);
+  animation: ts-bounce 420ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes ts-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(154, 107, 16, 0);
+    border-color: var(--g-rule);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+    border-color: var(--g-gold);
+  }
+}
+@keyframes ts-bounce {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.game-root .ts-param-label {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.game-root .ts-value {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+}
+.game-root .ts-ends {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--g-ink-muted);
+}
+.game-root .ts-step {
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+.game-root .ts-track {
+  height: 44px;
+}
+.game-root .ts-range {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.game-root .ts-range:disabled {
+  cursor: default;
+}
+.game-root .ts-range::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .ts-range::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--g-rule);
+}
+.game-root .ts-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  margin-top: -11px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+  transition:
+    transform 120ms ease,
+    background-color 200ms ease;
+}
+.game-root .ts-range::-moz-range-thumb {
+  box-sizing: border-box;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--g-card);
+  background: var(--g-navy);
+  box-shadow: 0 2px 8px -2px rgba(var(--g-shadow), 0.45);
+}
+.game-root .ts-range:active:not(:disabled)::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.game-root .ts-row.is-locked .ts-range::-webkit-slider-thumb {
+  background: var(--g-green);
+}
+.game-root .ts-row.is-locked .ts-range::-moz-range-thumb {
+  background: var(--g-green);
+}
+.game-root .ts-row.is-pulse .ts-range::-webkit-slider-thumb {
+  background: var(--g-gold);
+}
+.game-root .ts-row.is-pulse .ts-range::-moz-range-thumb {
+  background: var(--g-gold);
+}
+.game-root .ts-range:focus-visible {
+  outline: 2px solid var(--g-gold);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+/* Under the track: where the slider started (grey tick); after a miss or a hint, the band of values the words allow (green). */
+.game-root .ts-tick {
+  position: absolute;
+  top: calc(50% + 7px);
+  width: 2px;
+  height: 9px;
+  margin-left: -1px;
+  background: var(--g-grey);
+  pointer-events: none;
+}
+.game-root .ts-band {
+  position: absolute;
+  top: calc(50% - 7px);
+  height: 14px;
+  min-width: 6px;
+  border-radius: 7px;
+  background: var(--g-green);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* Reduced motion: the app's setting or the OS preference. Fades stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .ts-curve.is-snapped,
+  .game-root .ts-row.is-pulse,
+  .game-root .ts-row.is-bounce {
+    animation: none;
+  }
+  .game-root .ts-row.is-pulse {
+    box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+    border-color: var(--g-gold);
+  }
+  .game-root .ts-smile {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .game-root .ts-smile-dot {
+    animation: none;
+    opacity: 1;
+  }
+  .game-root .ts-range::-webkit-slider-thumb {
+    transition: none;
+  }
+}
+html.reduce-motion .game-root .ts-row.is-pulse {
+  animation: none !important;
+  box-shadow: 0 0 0 4px rgba(154, 107, 16, 0.35);
+  border-color: var(--g-gold);
+}
+html.reduce-motion .game-root .ts-curve.is-snapped,
+html.reduce-motion .game-root .ts-row.is-bounce {
+  animation: none !important;
+}
+html.reduce-motion .game-root .ts-smile {
+  animation: none !important;
+  stroke-dashoffset: 0;
+}
+html.reduce-motion .game-root .ts-smile-dot {
+  animation: none !important;
+  opacity: 1;
+}
+html.reduce-motion .game-root .ts-target,
+html.reduce-motion .game-root .ts-hold-right {
+  animation: ts-fade 1ms linear var(--ts-delay, 800ms) forwards !important;
+}

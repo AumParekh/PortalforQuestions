@@ -5,8 +5,10 @@ import type { AnyMechanicPlugin } from '../arc/plugin';
 import type { MechanicId } from '../types';
 import { MECHANIC_CATALOGUE } from '../types';
 import { shatter } from './shatter';
+import { plugin as frameworkNavigator } from './framework-navigator';
+import { plugin as attributionGrid } from './attribution-grid';
 
-const REGISTERED: AnyMechanicPlugin[] = [shatter];
+const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid];
 
 const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
 
