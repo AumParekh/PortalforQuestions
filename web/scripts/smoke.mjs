@@ -9,11 +9,12 @@ const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
 const ROUTES = ['/', '/setup', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/sense', '/games'];
 // Sections with a Start button that can be played from the keyboard.
 const PLAYABLE = [
-  { route: '/truefalse', buttons: [/^\s*Start\s*$/] },
-  { route: '/formulas', buttons: [/^\s*Start\s*$/] },
-  { route: '/sense', buttons: [/^\s*Start\s*$/] },
-  // Notes games: the auto-pick Play button, then the arc's Begin.
-  { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Begin\s*$/] },
+  { route: '/truefalse', buttons: [/^\s*Start\s*$/], required: true },
+  { route: '/formulas', buttons: [/^\s*Start\s*$/], required: true },
+  // Optional until content/games/sensecheck.json is generated.
+  { route: '/sense', buttons: [/^\s*Start\s*$/], required: false },
+  // Notes games: the auto-pick Play button (after the 9 MB notes file loads), then the arc's Begin.
+  { route: '/games', buttons: [/^\s*Play\s*$/, /^\s*Begin\s*$/], required: true },
 ];
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 800 },
@@ -59,7 +60,7 @@ for (const vp of VIEWPORTS) {
   }
   // Play-through: start each playable section and drive it with its keyboard shortcuts
   // (Space reveals, 1 answers, Enter moves on), failing on any crash or console error.
-  for (const { route, buttons } of PLAYABLE) {
+  for (const { route, buttons, required } of PLAYABLE) {
     errors = [];
     const label = `${vp.name} play #${route}`;
     try {
@@ -68,6 +69,8 @@ for (const vp of VIEWPORTS) {
       let started = true;
       for (const name of buttons) {
         const button = page.getByRole('button', { name }).first();
+        // Sections load their content lazily; give them time before deciding there's nothing to start.
+        await button.waitFor({ state: 'visible', timeout: 20000 }).catch(() => undefined);
         if ((await button.count()) === 0 || !(await button.isEnabled())) {
           started = false;
           break;
@@ -76,13 +79,17 @@ for (const vp of VIEWPORTS) {
         await page.waitForTimeout(800);
       }
       if (!started) {
-        console.log(`--  ${label} (nothing to start; content not generated yet?)`);
-        continue;
-      }
-      for (let i = 0; i < 12; i++) {
-        for (const key of [' ', '1', 'Enter']) {
-          await page.keyboard.press(key);
-          await page.waitForTimeout(250);
+        if (required) errors.push('could not start a session (button missing or disabled)');
+        else {
+          console.log(`--  ${label} (nothing to start; content not generated yet)`);
+          continue;
+        }
+      } else {
+        for (let i = 0; i < 12; i++) {
+          for (const key of [' ', '1', 'Enter']) {
+            await page.keyboard.press(key);
+            await page.waitForTimeout(250);
+          }
         }
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);

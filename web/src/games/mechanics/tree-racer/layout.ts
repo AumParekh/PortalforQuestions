@@ -22,16 +22,23 @@ export function textWidth(s: string): number {
   return Math.ceil(w);
 }
 
-/** 1-2-5 ticks covering [lo, hi], about n of them. */
+/** 1-2-2.5-5 ticks inside [lo, hi]: the step whose tick count is closest to n (at least 3 when possible). */
 export function niceTicks(lo: number, hi: number, n: number): number[] {
   if (!(hi > lo) || n < 2) return [lo];
-  const raw = (hi - lo) / (n - 1);
-  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-  const norm = raw / mag;
-  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
-  const out: number[] = [];
-  for (let v = Math.ceil(lo / step - 1e-9) * step; v <= hi + step * 1e-9; v += step) out.push(Math.round(v / step) * step);
-  return out;
+  const mag = Math.pow(10, Math.floor(Math.log10((hi - lo) / (n - 1))));
+  let best: number[] = [];
+  let bestScore = Infinity;
+  for (const f of [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20]) {
+    const step = f * mag;
+    const out: number[] = [];
+    for (let k = Math.ceil(lo / step - 1e-9); k * step <= hi + step * 1e-9; k++) out.push(Number((k * step).toPrecision(12)));
+    const score = Math.abs(out.length - n) + (out.length < 3 ? 10 : 0);
+    if (score < bestScore) {
+      best = out;
+      bestScore = score;
+    }
+  }
+  return best;
 }
 
 export function tickDecimals(ticks: readonly number[]): number {
@@ -138,7 +145,7 @@ export interface LatticeGeom {
 
 export const LAT_TOP = 34;
 export const LAT_BOTTOM = 36;
-export const CHIP_PAD_X = 16;
+export const CHIP_PAD_X = 12;
 
 export function chipHeight(lines: number): number {
   return lines * LINE + 12;
@@ -148,7 +155,7 @@ export function latticeGeometry(opts: { width: number; T: number; chipW: number;
   const { T, chipW, chipH } = opts;
   const firstX0 = chipW / 2 + 2;
   const lastX0 = opts.width - chipW / 2 - 2;
-  const minGap = chipW + 14;
+  const minGap = chipW + 6;
   let gap = T > 0 ? (lastX0 - firstX0) / T : 0;
   let firstX = firstX0;
   let width = opts.width;

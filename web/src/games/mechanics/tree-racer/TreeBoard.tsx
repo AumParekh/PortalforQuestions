@@ -430,13 +430,15 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
   }
 
   // Phantom layer: the wrong value, misregistered off its node, and the parent values it would make.
+  // Past phantoms sit behind the real chips; the current one is drawn on top.
   const ghosts: ReactNode[] = [];
+  const pastGhosts: ReactNode[] = [];
   const drawPhantom = (tag: string, step: number, w: Candidate, ph: Phantom | null, isPast: boolean, onNode: boolean) => {
     const [t, i] = item.order[step];
     const [wx, wy] = P(t, i);
     const from: [number, number] = onNode ? [wx, wy] : [wx + GHOST_DX, wy + GHOST_DY];
     const cls = `tr-phantom${isPast ? ' is-past' : ' tr-appear'}`;
-    ghosts.push(
+    (isPast ? pastGhosts : ghosts).push(
       <g key={`g${tag}`} className={cls}>
         {ph?.kind === 'parents' &&
           ph.at.map(([pt, pi], j) => {
@@ -479,6 +481,7 @@ function BackwardTree({ view, width }: { view: TreeView; width: number }) {
       ))}
       {loops}
       {lattice}
+      {pastGhosts}
       {chips}
       {ghosts}
       {racer}

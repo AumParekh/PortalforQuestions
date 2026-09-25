@@ -1,0 +1,583 @@
+/* Tree Racer board. Scoped to .game-root and the tr- prefix; colours come from the shared palette
+   tokens in games.css, so dark mode (html.dark .game-root) follows automatically. Nothing under
+   15px (PORTAL_PLAN §5); SVG text is 15px in a 1:1 viewBox. */
+
+.game-root .tr-phase-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-ink-muted);
+}
+.game-root .tr-title {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--g-navy);
+  overflow-wrap: anywhere;
+}
+.game-root .tr-rule {
+  font-family: var(--g-serif);
+  font-size: 17px;
+  line-height: 1.65;
+  max-width: 64ch;
+  overflow-wrap: anywhere;
+}
+.game-root .tr-text {
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.game-root .tr-note,
+.game-root .tr-source,
+.game-root .tr-axis-title,
+.game-root .tr-legend,
+.game-root .tr-why {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--g-ink-muted);
+  overflow-wrap: anywhere;
+}
+.game-root .tr-question {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--g-ink);
+}
+.game-root .tr-num {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-navy);
+  white-space: nowrap;
+}
+.game-root .tr-num.is-red {
+  color: var(--g-red);
+}
+
+/* ---- Parameter strip ---- */
+.game-root .tr-params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+}
+.game-root .tr-param {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  min-height: 36px;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid var(--g-rule);
+  border-radius: 999px;
+  background: var(--g-soft);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.game-root .tr-param dt {
+  color: var(--g-ink-muted);
+  font-weight: 600;
+}
+.game-root .tr-param dd {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-ink);
+  overflow-wrap: anywhere;
+}
+
+/* ---- Chart ---- */
+.game-root .tr-chart {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+.game-root .tr-svg {
+  display: block;
+  overflow: visible;
+  max-width: none;
+}
+.game-root .tr-svg text {
+  font-family: var(--g-sans);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+.game-root .tr-tick {
+  fill: var(--g-ink-muted);
+}
+.game-root .tr-tick.is-now {
+  fill: var(--g-gold);
+  font-weight: 700;
+}
+.game-root .tr-tick.is-ghost {
+  fill: var(--g-grey);
+  font-style: italic;
+}
+.game-root .tr-grid {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.game-root .tr-axis {
+  stroke: var(--g-ink-muted);
+  stroke-width: 1.5;
+  shape-rendering: crispEdges;
+}
+.game-root .tr-next-col {
+  stroke: var(--g-grey);
+  stroke-width: 1;
+  stroke-dasharray: 2 6;
+}
+.game-root .tr-edge {
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.game-root .tr-dot {
+  fill: var(--g-navy);
+  stroke: var(--g-card);
+  stroke-width: 2;
+}
+.game-root .tr-dot.is-given,
+.game-root .tr-dot.is-pre {
+  fill: var(--g-grey);
+}
+.game-root .tr-dot.is-won {
+  fill: var(--g-navy);
+}
+.game-root .tr-dot.is-lost {
+  fill: var(--g-navy);
+  stroke: var(--g-red);
+  stroke-width: 2.5;
+}
+.game-root .tr-label text {
+  fill: var(--g-ink);
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: var(--g-card);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+.game-root .tr-label.is-now text {
+  fill: var(--g-green);
+}
+.game-root .tr-label.is-phantom text {
+  fill: var(--g-red);
+}
+.game-root .tr-label.is-ghost text {
+  fill: var(--g-grey);
+  font-weight: 400;
+}
+.game-root .tr-label.is-past {
+  opacity: 0.45;
+}
+.game-root .tr-leader {
+  stroke: var(--g-rule);
+  stroke-width: 1;
+}
+
+/* The raced node: a rail on its date, pulsing stubs from its parent(s). */
+.game-root .tr-rail {
+  fill: var(--g-pale-gold);
+  stroke: var(--g-gold);
+  stroke-width: 1;
+  stroke-dasharray: 3 5;
+  animation: tr-rail-pulse 1.4s ease-in-out infinite;
+}
+.game-root .tr-rail-q {
+  fill: var(--g-gold);
+  font-weight: 700;
+}
+.game-root .tr-stub {
+  stroke: var(--g-gold);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 6 5;
+  animation: tr-march 900ms linear infinite;
+}
+.game-root .tr-lock-ring {
+  fill: none;
+  stroke: var(--g-green);
+  stroke-width: 2.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tr-lock 620ms ease-out forwards;
+}
+
+/* Closed loops: where up-then-down meets down-then-up. */
+.game-root .tr-loop {
+  fill: var(--g-pale-green);
+  stroke: var(--g-green);
+  stroke-width: 1;
+  stroke-opacity: 0.35;
+  opacity: 0.75;
+}
+.game-root .tr-loop.is-new {
+  animation: tr-loop-close 900ms ease-out both;
+}
+.game-root .tr-loop.is-fade {
+  animation: tr-fade 520ms ease both;
+}
+
+/* Phantom branches. */
+.game-root .tr-ph-edge {
+  stroke: var(--g-red);
+  stroke-width: 2.5;
+  stroke-dasharray: 7 6;
+  stroke-linecap: round;
+  fill: none;
+}
+.game-root .tr-ph-dot {
+  fill: var(--g-pale-red);
+  stroke: var(--g-red);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+.game-root .tr-ph-dot.is-child {
+  fill: var(--g-card);
+}
+.game-root .tr-phantom.is-past {
+  opacity: 0.32;
+}
+.game-root .tr-ring {
+  fill: none;
+  stroke: var(--g-grey);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+.game-root .tr-gap {
+  stroke: var(--g-red);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 4;
+  stroke-linecap: round;
+  opacity: 0.8;
+}
+.game-root .tr-appear {
+  animation: tr-fade 420ms ease both;
+}
+
+/* ---- Lattice chips (valuation trees) ---- */
+.game-root .tr-lat-edge {
+  stroke: var(--g-rule);
+  stroke-width: 1.5;
+}
+.game-root .tr-lat-edge.is-on {
+  stroke: var(--g-navy);
+  stroke-width: 2.5;
+}
+.game-root .tr-chip-box {
+  fill: var(--g-card);
+  stroke: var(--g-rule);
+  stroke-width: 1.5;
+}
+.game-root .tr-chip-main {
+  fill: var(--g-ink);
+  font-weight: 700;
+}
+.game-root .tr-chip-sub {
+  fill: var(--g-ink-muted);
+}
+.game-root .tr-chip.is-given .tr-chip-box,
+.game-root .tr-chip.is-pre .tr-chip-box {
+  fill: var(--g-soft);
+}
+.game-root .tr-chip.is-given .tr-chip-main,
+.game-root .tr-chip.is-pre .tr-chip-main {
+  font-weight: 600;
+  fill: var(--g-ink-muted);
+}
+.game-root .tr-chip.is-won .tr-chip-box {
+  stroke: var(--g-navy);
+  stroke-width: 2;
+}
+.game-root .tr-chip.is-lost .tr-chip-box {
+  stroke: var(--g-red);
+  stroke-width: 2;
+}
+.game-root .tr-chip.is-empty .tr-chip-box {
+  fill: transparent;
+  stroke-dasharray: 3 4;
+}
+.game-root .tr-chip.is-empty .tr-chip-main {
+  fill: var(--g-grey);
+}
+.game-root .tr-chip.is-target .tr-chip-box {
+  fill: var(--g-pale-gold);
+  stroke: var(--g-gold);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 4;
+}
+.game-root .tr-chip.is-target .tr-chip-main {
+  fill: var(--g-gold);
+}
+.game-root .tr-chip.is-target:not(.is-frozen) {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tr-chip-pulse 1.4s ease-in-out infinite;
+}
+.game-root .tr-chip.is-wrong .tr-chip-box {
+  fill: var(--g-pale-red);
+  stroke: var(--g-red);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+.game-root .tr-chip.is-wrong .tr-chip-main {
+  fill: var(--g-red);
+}
+.game-root .tr-chip.is-lock {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tr-chip-lock 420ms cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+.game-root .tr-chip.is-lock .tr-chip-box {
+  stroke: var(--g-green);
+}
+.game-root .tr-ghost-chip .tr-chip-box {
+  fill: var(--g-pale-red);
+  stroke: var(--g-red);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+.game-root .tr-ghost-chip .tr-chip-main {
+  fill: var(--g-red);
+  font-weight: 600;
+}
+.game-root .tr-legend-chip {
+  fill: var(--g-card);
+  stroke: var(--g-navy);
+  stroke-width: 2;
+}
+
+/* ---- Legend ---- */
+.game-root .tr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.game-root .tr-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ---- Candidates ---- */
+.game-root .tr-cands {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.75rem;
+}
+.game-root .tr-cand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 56px;
+  padding: 0.5rem 0.9rem;
+  border: 1.5px solid var(--g-rule);
+  border-radius: 14px;
+  background: var(--g-card);
+  color: var(--g-ink);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 120ms ease,
+    box-shadow 160ms ease;
+}
+.game-root .tr-cand:hover:not(:disabled) {
+  border-color: var(--g-navy);
+  box-shadow: 0 6px 16px -10px rgba(var(--g-shadow), 0.55);
+  transform: translateY(-1px);
+}
+.game-root .tr-cand:focus-visible {
+  outline: 3px solid var(--g-gold);
+  outline-offset: 2px;
+}
+.game-root .tr-cand:disabled {
+  cursor: default;
+}
+.game-root .tr-cand-value {
+  font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.game-root .tr-cand-key {
+  font-size: 15px;
+  color: var(--g-ink-muted);
+  border: 1px solid var(--g-rule);
+  border-radius: 6px;
+  min-width: 1.6rem;
+  text-align: center;
+}
+.game-root .tr-cand.is-correct {
+  border-color: var(--g-green);
+  background: var(--g-pale-green);
+  color: var(--g-green);
+  animation: tr-cand-lock 380ms cubic-bezier(0.2, 0.9, 0.3, 1.3);
+}
+.game-root .tr-cand.is-wrong {
+  border-color: var(--g-red);
+  border-style: dashed;
+  background: var(--g-pale-red);
+  color: var(--g-red);
+  animation: tr-bounce 420ms ease;
+}
+.game-root .tr-cand.is-dim {
+  opacity: 0.55;
+}
+
+/* ---- Feedback ---- */
+.game-root .tr-good {
+  border-left: 3px solid var(--g-green);
+  background: var(--g-pale-green);
+  border-radius: 0 8px 8px 0;
+  padding: 0.7rem 1rem;
+}
+.game-root .tr-bad {
+  border-left: 3px solid var(--g-red);
+  background: var(--g-pale-red);
+  border-radius: 0 8px 8px 0;
+  padding: 0.7rem 1rem;
+}
+.game-root .tr-complete {
+  border: 1px solid var(--g-navy);
+  background: var(--g-pale-navy);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+}
+
+/* ---- Motion ---- */
+@keyframes tr-rail-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes tr-march {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+@keyframes tr-lock {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+@keyframes tr-loop-close {
+  0% {
+    opacity: 0;
+    fill: var(--g-green);
+  }
+  35% {
+    opacity: 0.55;
+    fill: var(--g-green);
+  }
+  100% {
+    opacity: 0.75;
+  }
+}
+@keyframes tr-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tr-chip-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+@keyframes tr-chip-lock {
+  0% {
+    transform: scale(0.86);
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tr-cand-lock {
+  0% {
+    transform: scale(0.96);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tr-bounce {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  55% {
+    transform: translateX(5px);
+  }
+  80% {
+    transform: translateX(-2px);
+  }
+}
+
+/* Reduced motion: the app's setting or the OS preference. Fades stay; movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .game-root .tr-rail,
+  .game-root .tr-stub,
+  .game-root .tr-chip.is-target:not(.is-frozen),
+  .game-root .tr-chip.is-lock,
+  .game-root .tr-cand.is-correct,
+  .game-root .tr-cand.is-wrong {
+    animation: none;
+  }
+  .game-root .tr-lock-ring {
+    display: none;
+  }
+  .game-root .tr-loop.is-new {
+    animation: tr-fade 240ms ease both;
+  }
+  .game-root .tr-cand:hover:not(:disabled) {
+    transform: none;
+  }
+}
+html.reduce-motion .game-root .tr-rail,
+html.reduce-motion .game-root .tr-stub,
+html.reduce-motion .game-root .tr-chip.is-target:not(.is-frozen),
+html.reduce-motion .game-root .tr-chip.is-lock,
+html.reduce-motion .game-root .tr-cand.is-correct,
+html.reduce-motion .game-root .tr-cand.is-wrong {
+  animation: none;
+}
+html.reduce-motion .game-root .tr-lock-ring {
+  display: none;
+}
+html.reduce-motion .game-root .tr-loop.is-new {
+  animation: tr-fade 240ms ease both;
+}
+html.reduce-motion .game-root .tr-cand:hover:not(:disabled) {
+  transform: none;
+}

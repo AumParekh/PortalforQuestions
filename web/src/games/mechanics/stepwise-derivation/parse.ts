@@ -368,7 +368,7 @@ export interface NumberHit {
 /** Numbers written in a LaTeX snippet, in order. Subscripts and step tags are ignored. */
 export function numbersIn(tex: string): NumberHit[] {
   const t = tex
-    .replace(/\{,\}/g, '')
+    .replace(/\{,\}/g, ",")
     .replace(/_\{[^{}]*\}|_\d/g, ' ')
     .replace(/\\(?:q?quad|[,;:! ])/g, ' ')
     .replace(/Step\s*\d+/gi, ' ');
