@@ -670,20 +670,47 @@ function answerKey(c: Candidate): string {
   return `${c.number.value}|${c.number.suffix.trim().toLowerCase()}`;
 }
 
+export interface ClashKey {
+  flat: string;
+  words: Set<string>;
+  others: string[];
+}
+
+/** The context as displayed, for comparing sentences: lower case, no bullet, no end punctuation. */
+function flat(c: Candidate): string {
+  return toDisplay(c.context)
+    .toLowerCase()
+    .replace(/^[•\s]+/, '')
+    .replace(/[\s.;:,…]+$/, '');
+}
+
 /**
- * Two candidates that should not share a session: the same item, the same sentence (one context
+ * Two candidates that should not share a session: the same item; the same sentence (one context
  * inside the other: a table row and the sentence in one of its cells, a bullet with and without its
- * label), or the same fact restated with the same answer.
+ * label), so that neither round shows the other's answer; or, for prose, the same fact restated with
+ * the same answer ("Banks' exposure is minimal (< 1% of assets)" and "… is under 1% of assets").
  */
-export function clash(a: Candidate, b: Candidate, words: (c: Candidate) => Set<string>): boolean {
+export function clash(a: Candidate, b: Candidate, key: (c: Candidate) => ClashKey): boolean {
   if (a.id === b.id) return true;
-  const A = words(a);
-  const B = words(b);
-  if (!A.size || !B.size) return toDisplay(a.context).toLowerCase() === toDisplay(b.context).toLowerCase();
+  const ka = key(a);
+  const kb = key(b);
+  if (ka.flat.includes(kb.flat) || kb.flat.includes(ka.flat)) return true;
+  if (a.kind !== 'sentence' || b.kind !== 'sentence' || answerKey(a) !== answerKey(b)) return false;
+  // Same answer: the same fact if the sentences share much of their wording or another figure
+  // ("between $100 million and $1 billion" / "$100 million to $1 billion in revenue").
+  if (ka.others.some((x) => kb.others.includes(x))) return true;
   let inter = 0;
-  for (const w of A) if (B.has(w)) inter++;
-  if (inter / Math.min(A.size, B.size) >= 0.8) return true;
-  return answerKey(a) === answerKey(b) && inter / (A.size + B.size - inter) >= 0.4;
+  for (const w of ka.words) if (kb.words.has(w)) inter++;
+  const union = ka.words.size + kb.words.size - inter;
+  return union > 0 && inter / union >= 0.25;
+}
+
+/** The other figures a context writes (display text, answer blanked), e.g. "$1 billion", "3%". */
+function otherFigures(c: Candidate): string[] {
+  const rest = toDisplay(fragments(c.context, c.occ, 0, c.context.length).join(' '));
+  return [...rest.matchAll(/[$€£]?\d[\d,]*(?:\.\d+)?\s*(?:%|bp|bps|basis points|million|billion|trillion|[mb]n?\b)/gi)].map((m) =>
+    m[0].replace(/\s+/g, '').toLowerCase(),
+  );
 }
 
 /** True when one candidate's sentence writes the other's answer as the notes write it. */
@@ -706,18 +733,18 @@ export function selectCandidates(
   limit: number,
   rng: (() => number) | null,
 ): { c: Candidate; p: SliderPayload | null }[] {
-  const cache = new Map<Candidate, Set<string>>();
-  const words = (c: Candidate) => {
-    let w = cache.get(c);
-    if (!w) cache.set(c, (w = wordSet(c.context)));
-    return w;
+  const cache = new Map<Candidate, ClashKey>();
+  const key = (c: Candidate) => {
+    let k = cache.get(c);
+    if (!k) cache.set(c, (k = { flat: flat(c), words: wordSet(c.context), others: otherFigures(c) }));
+    return k;
   };
   const picked: { c: Candidate; p: SliderPayload | null }[] = [];
   const answers = new Map<string, number>();
   for (const strict of [true, false]) {
     for (const c of ordered) {
       if (picked.length >= limit) break;
-      if (picked.some((x) => x.c === c || clash(x.c, c, words))) continue;
+      if (picked.some((x) => x.c === c || clash(x.c, c, key))) continue;
       if ((answers.get(answerKey(c)) ?? 0) >= MAX_SAME_ANSWER) continue;
       if (strict && picked.some((x) => leaks(x.c, c))) continue;
       const p = rng ? toPayload(c, rng) : null;
@@ -836,6 +863,8 @@ function prioritise(cs: readonly Candidate[], ctx: ThresholdBuildInput): Candida
 
 export function buildThreshold(reading: Reading, ctx: ThresholdBuildInput): MechanicPlan<SliderPayload> | null {
   const all = candidates(reading);
+  // Same test as supports(): a reading it turns down never builds, whatever the order below.
+  if (selectCandidates(all, MIN_ITEMS, null).length < MIN_ITEMS) return null;
   // Due, then unseen, then the rest; one number per item and per sentence, at most two per answer.
   // If that order can't fill an arc, reading order can whenever supports() said yes.
   let picked = selectCandidates(prioritise(all, ctx), TARGET_ROUNDS, ctx.rng);
@@ -850,8 +879,8 @@ export function buildThreshold(reading: Reading, ctx: ThresholdBuildInput): Mech
     answersByCue.set(k, (answersByCue.get(k) ?? new Set<string>()).add(answerKey(c)));
   }
   for (const x of picked) if (x.p && (answersByCue.get(cueKey(x.c))?.size ?? 0) > 1) x.p = { ...x.p, cue: x.p.parts };
-  const nDisc = Math.max(3, Math.min(5, Math.floor(picked.length / 2)));
   const ready = picked.filter((x): x is { c: Candidate; p: SliderPayload } => !!x.p);
+  const nDisc = Math.max(3, Math.min(5, Math.floor(ready.length / 2)));
   const disc = ready.slice(0, nDisc);
   const press = ready.slice(nDisc, nDisc + 5);
   if (press.length < 3) return null;
