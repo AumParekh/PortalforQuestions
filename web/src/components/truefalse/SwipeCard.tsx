@@ -44,6 +44,9 @@ export function SwipeCard({ enabled, onSwipe, className, children }: Props) {
 
   const onPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (!enabled || e.pointerType === 'mouse') return;
+    // Let wide formulas/tables scroll sideways instead of starting a swipe.
+    const scroller = e.target instanceof Element ? e.target.closest<HTMLElement>('.katex-display, .table-scroll, pre') : null;
+    if (scroller && scroller.scrollWidth > scroller.clientWidth) return;
     reduced.current = prefersReducedMotion();
     drag.current = { x: e.clientX, y: e.clientY, locked: false };
   };

@@ -47,7 +47,7 @@ function dayBefore(day: string): string {
 }
 
 /** Consecutive local days with at least one answer. The current streak survives until a full day is missed. */
-export function streaks(attempts: AttemptRecord[], now = new Date()): { current: number; longest: number; studiedToday: boolean } {
+export function streaks(attempts: { timestamp: string }[], now = new Date()): { current: number; longest: number; studiedToday: boolean } {
   const days = new Set(attempts.map((a) => localDay(a.timestamp)));
   const today = localDay(now.toISOString());
   let longest = 0;
@@ -73,7 +73,7 @@ export function streaks(attempts: AttemptRecord[], now = new Date()): { current:
   return { current, longest, studiedToday: days.has(today) };
 }
 
-export function answeredToday(attempts: AttemptRecord[], now = new Date()): number {
+export function answeredToday(attempts: { timestamp: string }[], now = new Date()): number {
   const today = localDay(now.toISOString());
   return attempts.filter((a) => localDay(a.timestamp) === today).length;
 }

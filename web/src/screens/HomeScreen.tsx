@@ -1,20 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import {
-  BarChart3,
-  BookOpen,
-  CheckCircle2,
-  ChevronRight,
-  ClipboardList,
-  Dices,
-  Flame,
-  History,
-  Info,
-  Play,
-  PlayCircle,
-  Trophy,
-  Zap,
-} from 'lucide-react';
+import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, History, Info, Play, PlayCircle, Settings, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
@@ -28,6 +14,7 @@ import { navigate } from '../lib/router';
 import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
+import { useTf } from '../store/tf';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
 
@@ -149,6 +136,10 @@ export function HomeScreen() {
   const byId = useContent((s) => s.byId);
   const states = useProgress((s) => s.states);
   const attempts = useProgress((s) => s.attempts);
+  const tfAttempts = useTf((s) => s.attempts);
+  const tfCount = useTf((s) => s.cards.length);
+  // True/False answers count as study activity for the streak and today's goal.
+  const studyEvents = useMemo(() => [...attempts, ...tfAttempts], [attempts, tfAttempts]);
   const progressStatus = useProgress((s) => s.status);
   const sessionStatus = useSession((s) => s.status);
   const answeredCount = useSession((s) => Object.keys(s.answers).length);
@@ -165,8 +156,8 @@ export function HomeScreen() {
 
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
   const day = useToday();
-  const streak = useMemo(() => streaks(attempts), [attempts, day]);
-  const today = useMemo(() => answeredToday(attempts), [attempts, day]);
+  const streak = useMemo(() => streaks(studyEvents), [studyEvents, day]);
+  const today = useMemo(() => answeredToday(studyEvents), [studyEvents, day]);
   const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
   // Matches Review Wrong's default "Still wrong only" view.
   const wrongCount = useMemo(
@@ -187,7 +178,25 @@ export function HomeScreen() {
     <div className="mx-auto max-w-[720px] px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))]">
       <header className="flex items-center justify-between gap-3">
         <span className="text-lg font-bold tracking-tight">FRM Part II</span>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => navigate('/analytics')}
+            aria-label="Analytics"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <BarChart3 className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/settings')}
+            aria-label="Settings"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            <Settings className="h-5 w-5" aria-hidden="true" />
+          </button>
+          <ThemeToggle />
+        </div>
       </header>
 
       {sessionStatus === 'active' && (
@@ -340,6 +349,18 @@ export function HomeScreen() {
             detail={wrongCount > 0 ? 'Every question you have missed' : 'Nothing to review yet: questions you miss land here'}
             onClick={() => navigate('/review')}
             disabled={wrongCount === 0}
+          />
+          <QuickAction
+            icon={<CheckSquare className="h-5 w-5" aria-hidden="true" />}
+            title="True / False"
+            detail={tfCount > 0 ? `${tfCount.toLocaleString()} statements to judge` : 'Judge statements from your question bank'}
+            onClick={() => navigate('/truefalse')}
+          />
+          <QuickAction
+            icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />}
+            title="Analytics"
+            detail="Accuracy over time, weak topics, trap types"
+            onClick={() => navigate('/analytics')}
           />
           {mockFiles.length > 0 && (
             <QuickAction

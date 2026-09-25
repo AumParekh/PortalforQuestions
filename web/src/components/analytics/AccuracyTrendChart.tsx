@@ -53,7 +53,7 @@ function captionFor(days: Day[]): string {
   return `Accuracy slipped from ${pct(early)} to ${pct(late)} on recent days. A Review Wrong pass can pull it back.`;
 }
 
-const M = { left: 44, right: 14, top: 14 };
+const M = { left: 48, right: 14, top: 14 };
 const ACC_H = 150;
 const GAP = 22;
 const CNT_H = 56;
@@ -89,7 +89,8 @@ export function AccuracyTrendChart({ attempts, now }: { attempts: AttemptRecord[
   const activeCount = days.filter((d) => d.total > 0).length;
   const lastActive = days.reduce((last, d, i) => (d.total > 0 ? i : last), -1);
 
-  const labelIdx = [0, 7, 14, 21, DAYS - 1];
+  // Fewer date labels on narrow screens so 15px labels never collide.
+  const labelIdx = band * 7 < 72 ? [0, 10, 20, DAYS - 1] : [0, 7, 14, 21, DAYS - 1];
 
   const pick = (e: PointerEvent<SVGRectElement>) => {
     const rect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();

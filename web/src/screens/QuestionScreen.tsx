@@ -4,6 +4,7 @@ import { useSession } from '../store/session';
 import { useContent } from '../store/content';
 import { navigate } from '../lib/router';
 import { useTimer } from '../hooks/useTimer';
+import { haptic } from '../lib/settings';
 import { Timer } from '../components/Timer';
 import { QuestionCard } from '../components/QuestionCard';
 import { SolutionPanel } from '../components/SolutionPanel';
@@ -15,14 +16,6 @@ const TABLE_RE = /^\s*\|.*\|\s*$/m;
 // Shown for questions left unanswered when a finished session is reviewed: reveals the answer without scoring it.
 const UNANSWERED: AnswerRecord = { selected: '', correct: false, timeTakenSeconds: 0, timedOut: false };
 const KEY_MAP: Record<string, OptionKey> = { '1': 'a', '2': 'b', '3': 'c', '4': 'd', '5': 'e', a: 'a', b: 'b', c: 'c', d: 'd', e: 'e' };
-
-function haptic(pattern: number | number[]) {
-  try {
-    if (window.matchMedia?.('(pointer: coarse)').matches) navigator.vibrate?.(pattern);
-  } catch {
-    // vibrate can throw in some embedded browsers; feedback is optional
-  }
-}
 
 function isTypingTarget(el: EventTarget | null): boolean {
   if (!(el instanceof HTMLElement)) return false;

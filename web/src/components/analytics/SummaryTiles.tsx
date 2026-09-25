@@ -18,19 +18,20 @@ function Tile({ icon, label, value, sub }: { icon: ReactNode; label: string; val
 
 interface Props {
   stats: OverallStats;
-  answers: number;
+  /** Rows in the attempt log, the denominator for time per answer. */
+  attemptCount: number;
   streak: { current: number; longest: number };
 }
 
-export function SummaryTiles({ stats, answers, streak }: Props) {
+export function SummaryTiles({ stats, attemptCount, streak }: Props) {
   const icon = 'h-4 w-4 shrink-0';
-  const avg = answers > 0 ? Math.round(stats.secondsStudied / answers) : 0;
+  const avg = attemptCount > 0 ? Math.round(stats.secondsStudied / attemptCount) : 0;
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       <Tile
         icon={<CheckCircle2 className={icon} aria-hidden="true" />}
         label="Answered"
-        value={answers.toLocaleString()}
+        value={stats.totalAttempts.toLocaleString()}
         sub={plural(stats.questionsAttempted, 'unique question')}
       />
       <Tile

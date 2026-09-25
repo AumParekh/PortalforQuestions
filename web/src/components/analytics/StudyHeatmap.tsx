@@ -18,11 +18,11 @@ interface Cell {
 
 /** Fixed, readable thresholds (answers per day) rather than quantiles, so the legend means the same thing every week. */
 const LEVELS = [
-  { min: 0, label: '0', fill: 'fill-slate-100 dark:fill-slate-700', bg: 'bg-slate-100 dark:bg-slate-700' },
-  { min: 1, label: '1–5', fill: 'fill-indigo-200 dark:fill-indigo-900', bg: 'bg-indigo-200 dark:bg-indigo-900' },
-  { min: 6, label: '6–15', fill: 'fill-indigo-400 dark:fill-indigo-700', bg: 'bg-indigo-400 dark:bg-indigo-700' },
-  { min: 16, label: '16–30', fill: 'fill-indigo-600 dark:fill-indigo-500', bg: 'bg-indigo-600 dark:bg-indigo-500' },
-  { min: 31, label: '31+', fill: 'fill-indigo-800 dark:fill-indigo-300', bg: 'bg-indigo-800 dark:bg-indigo-300' },
+  { min: 0, label: '0', fill: 'fill-slate-100 dark:fill-slate-700/60', bg: 'bg-slate-100 dark:bg-slate-700/60' },
+  { min: 1, label: '1–5', fill: 'fill-indigo-200 dark:fill-indigo-800', bg: 'bg-indigo-200 dark:bg-indigo-800' },
+  { min: 6, label: '6–15', fill: 'fill-indigo-400 dark:fill-indigo-600', bg: 'bg-indigo-400 dark:bg-indigo-600' },
+  { min: 16, label: '16–30', fill: 'fill-indigo-600 dark:fill-indigo-400', bg: 'bg-indigo-600 dark:bg-indigo-400' },
+  { min: 31, label: '31+', fill: 'fill-indigo-800 dark:fill-indigo-200', bg: 'bg-indigo-800 dark:bg-indigo-200' },
 ] as const;
 
 function levelOf(n: number) {

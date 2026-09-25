@@ -10,6 +10,10 @@ import { QuestionScreen } from './screens/QuestionScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { DevLongestScreen } from './screens/DevLongestScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
+import { TrueFalseScreen } from './screens/TrueFalseScreen';
+import { AnalyticsScreen } from './screens/AnalyticsScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
+import { useTf } from './store/tf';
 
 function Skeleton() {
   return (
@@ -30,6 +34,7 @@ export default function App() {
   useEffect(() => {
     load();
     initPersistence();
+    useTf.getState().loadProgress();
   }, [load]);
 
   // A restored session may reference questions a content update removed; drop them rather than strand the user.
@@ -76,6 +81,12 @@ export default function App() {
       return <SummaryScreen />;
     case '/review':
       return <ReviewWrongScreen />;
+    case '/truefalse':
+      return <TrueFalseScreen />;
+    case '/analytics':
+      return <AnalyticsScreen />;
+    case '/settings':
+      return <SettingsScreen />;
     case '/dev/longest':
       return <DevLongestScreen />;
     default:
