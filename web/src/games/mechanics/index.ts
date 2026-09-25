@@ -12,8 +12,11 @@ import { plugin as blurtBoard } from './blurt-board';
 import { plugin as tableFill } from './table-fill';
 import { plugin as bucketDrop } from './bucket-drop';
 import { plugin as orderGame } from './order-game';
+import { plugin as caseDocket } from './case-docket';
+import { plugin as stepwiseDerivation } from './stepwise-derivation';
+import { plugin as thresholdSlider } from './threshold-slider';
 
-const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill, bucketDrop, orderGame];
+const REGISTERED: AnyMechanicPlugin[] = [shatter, frameworkNavigator, attributionGrid, clozeChain, blurtBoard, tableFill, bucketDrop, orderGame, caseDocket, stepwiseDerivation, thresholdSlider];
 
 const order = new Map(MECHANIC_CATALOGUE.map((m, i) => [m.id, i]));
 
