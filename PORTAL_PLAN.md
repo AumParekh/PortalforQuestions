@@ -270,6 +270,44 @@ schedule per formula):
   the game per formula so each is met in several forms (interleaving plus varied
   retrieval).
 
+**Added at the user's request (short, timed sessions):**
+- **Formula Memory Match** (90 s, 16 cards). Eight pairs, each a formula and its variable
+  key. The harder set pairs each formula with a worked number: the notes' worked example,
+  and later worked lines from the question bank. The player recognises which formula
+  produced it.
+- **Formula Repair** (90 s, 6 rounds). One element of a formula is wrong (a flipped sign,
+  a swapped variable, a replaced denominator). The player drags the right tile into the
+  broken slot and the formula snaps into place. Each corruption is labelled with its trap
+  category (Sign / Formula / Sibling). Data: each corruption carries a `repair` annotation
+  (the marked broken element, the fix and distractors). This is added by an enrichment
+  pass and checked by script: `marked` with `bad` gives the corruption, with `fix` gives
+  the true formula.
+- **Variable Auction** (120 s, 8 rounds). One variable is highlighted, with four
+  definitions: the right one and three from sibling formulas in the same reading, so σ
+  here competes with σ next door. Right +1 bid, wrong −1, start at 10. The final bid is
+  the only visible score in the gym.
+- **Sense Check** (3 min, 10 rounds, three modes mixed). It trains sizing and signing an
+  answer before computing it.
+  - *Direction Call*: a full setup, and which way does it move?
+  - *Magnitude Call*: four values pairwise ≥ 2.5× apart. The wrong ones are
+    "plausible-in-another-world" slips (forgot √T, daily vs annual, σ vs σ², one- vs
+    two-tailed), each named.
+  - *Intermediate Call*: the sign or size of an intermediate or residual in a partly done
+    chain.
+
+  All three share one frame: the scenario on top, 3–4 buttons, and a thin timer bar. A
+  right answer snaps green and the full working unfolds with intermediates named. A wrong
+  answer holds a beat while the correct option rises. No score shows during play; the
+  close gives three separate counts (direction, magnitude and intermediate calls), not a
+  composite.
+
+  Rotation: a different reading each session, and every third session one area only.
+
+  Deck: `content/games/sensecheck.json`, built from the bank's calculation questions and
+  the notes' worked examples. Every numeric round carries a `check` chain (inputs → named
+  steps → values) that is recomputed by script. Each slice is also recomputed by an
+  adversarial verifier.
+
 Formula days count toward the dashboard streak, like True/False. Progress is included
 in export/import.
 
