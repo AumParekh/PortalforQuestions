@@ -38,13 +38,28 @@ export interface ReviewMeta {
 }
 
 /**
- * One SM-2 step. Grades ≥ 3 advance (1 day, 6 days, then interval × EF); grades < 3 lapse:
+ * One SM-2 step. Grades ≥ 3 advance (1 day, 6 days, then interval × EF) — at most once per
+ * item per local day; grades < 3 lapse:
  * repetition resets and the item is due again today, so a miss anywhere resurfaces in the very
  * next session of any mechanic.
  */
 export function sm2(prev: ItemSrs | undefined, itemId: string, grade: number, now: Date = new Date(), meta: ReviewMeta = {}): ItemSrs {
-  const q = Math.max(0, Math.min(5, Math.round(grade)));
+  const q = Math.max(0, Math.min(5, Number.isFinite(grade) ? Math.round(grade) : 0));
   const today = localDate(now);
+  // A second pass on the same day (two rounds on one item, or a replay) is not spaced
+  // repetition: it must not climb 1 → 6 → 15 days in one sitting. Once an item has been passed
+  // today, further passes today are recorded but leave the schedule alone; a miss still lapses.
+  if (prev && q >= 3 && prev.lastResult === 'correct' && prev.lastReviewed && localDate(new Date(prev.lastReviewed)) === today) {
+    return {
+      ...prev,
+      itemId,
+      lastGrade: q,
+      lastReviewed: now.toISOString(),
+      reviews: (prev.reviews ?? 0) + 1,
+      readingId: meta.readingId ?? prev.readingId,
+      category: meta.category ?? prev.category,
+    };
+  }
   const efPrev = prev?.efactor ?? START_EFACTOR;
   const efactor = Math.max(MIN_EFACTOR, efPrev + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02)));
   let repetition = prev?.repetition ?? 0;

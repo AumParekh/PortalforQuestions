@@ -71,7 +71,11 @@ export function rotationInput(
           let v = cache.get(rid);
           if (v === undefined) {
             const r = corpus.readingById[rid];
-            v = !!r && m.supports(r, corpus);
+            try {
+              v = !!r && m.supports(r, corpus);
+            } catch {
+              v = false;
+            }
             cache.set(rid, v);
           }
           return v;

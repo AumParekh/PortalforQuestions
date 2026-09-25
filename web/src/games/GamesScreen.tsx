@@ -82,6 +82,16 @@ function prepare(corpus: Corpus, opts: PrepareOpts): Setup | string {
   return { plugin, reading, plan, frame, choice, statement, trigger };
 }
 
+/** A mechanic whose supports() throws on odd content is treated as not supporting that reading. */
+function supportsSafely(m: AnyMechanicPlugin, r: Reading, corpus: Corpus): boolean {
+  try {
+    return m.supports(r, corpus);
+  } catch (e) {
+    console.warn(`[games] ${m.id}.supports failed on ${r.reading_id}`, e);
+    return false;
+  }
+}
+
 function downloadText(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown' }));
   const a = document.createElement('a');
@@ -180,7 +190,7 @@ function ReadingView({
   onBack: () => void;
 }) {
   const coverage = useGameProgress((s) => s.coverage);
-  const playable = MECHANICS.filter((m) => m.supports(reading, corpus));
+  const playable = MECHANICS.filter((m) => supportsSafely(m, reading, corpus));
   const cov = readingCoverage(reading, coverage);
   return (
     <div className="g-enter space-y-6">
@@ -242,7 +252,7 @@ function MechanicView({
   onPlay: (o: PrepareOpts) => void;
   onBack: () => void;
 }) {
-  const readings = useMemo(() => corpus.readings.filter((r) => plugin.supports(r, corpus)), [corpus, plugin]);
+  const readings = useMemo(() => corpus.readings.filter((r) => supportsSafely(plugin, r, corpus)), [corpus, plugin]);
   return (
     <div className="g-enter space-y-6">
       <Header title={plugin.title} onBack={onBack} />
@@ -395,7 +405,7 @@ function Home({
       )}
 
       <section className="space-y-4">
-        <div className="flex gap-2" role="tablist" aria-label="Browse">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Browse">
           <GameButton selected={tab === 'readings'} onClick={() => setTab('readings')}>
             By reading
           </GameButton>
@@ -495,7 +505,14 @@ export function GamesScreen() {
 
   const play = (opts: PrepareOpts) => {
     if (!corpus) return;
-    const r = prepare(corpus, opts);
+    let r: Setup | string;
+    try {
+      r = prepare(corpus, opts);
+    } catch (e) {
+      // A mechanic's supports()/build() throwing must not leave the Play button silently dead.
+      console.warn('[games] could not prepare a session', e);
+      r = 'That session could not be built from the notes. Try another reading or mechanic.';
+    }
     if (view.kind !== 'brief' && view.kind !== 'play') setBack(view);
     setView(typeof r === 'string' ? { kind: 'none', message: r } : { kind: 'brief', setup: r });
   };

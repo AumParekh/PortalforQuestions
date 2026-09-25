@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { CoverageRow, ItemSrs, SessionLog } from './types';
 import { clearGamesDb, getAllRows, putRows, putSessionWithCoverage } from './db';
 import { localDate, sm2 } from './srs';
+import { formatLogLines } from './log';
 import type { ReviewMeta } from './srs';
 
 interface GameProgressState {
@@ -20,6 +21,9 @@ interface GameProgressState {
   resetAll: () => Promise<void>;
 }
 
+/** Bumped by resetAll so a load that was in flight doesn't restore cleared rows. */
+let generation = 0;
+
 function warn(e: unknown) {
   console.warn('[games] write failed', e);
 }
@@ -32,25 +36,49 @@ export const useGameProgress = create<GameProgressState>((set, get) => ({
 
   load: async () => {
     if (get().status !== 'idle') return;
+    const gen = generation;
     set({ status: 'loading' });
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('frm-games timed out')), 5000));
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('frm-games timed out')), 5000);
+      });
       const [sessions, items, coverage] = await Promise.race([
         Promise.all([getAllRows('sessions'), getAllRows('items'), getAllRows('coverage')]),
         timeout,
       ]);
-      sessions.sort((a, b) => a.number - b.number || a.timestamp.localeCompare(b.timestamp));
-      // Anything answered before load finished lives in memory; keep the newer of the two.
+      // A reset while loading wins: don't resurrect what it cleared.
+      if (gen !== generation) {
+        set({ status: 'ready' });
+        return;
+      }
+      // Anything answered or closed before load finished lives only in memory (writes are skipped
+      // until the database is ready): keep it, newer than the stored copy, and write it through.
       const mem = get();
       const itemMap: Record<string, ItemSrs> = {};
       for (const r of items) itemMap[r.itemId] = r;
       for (const r of Object.values(mem.items)) itemMap[r.itemId] = r;
       const covMap: Record<string, CoverageRow> = {};
       for (const r of coverage) covMap[r.objectiveId] = r;
-      set({ status: 'ready', sessions, items: itemMap, coverage: covMap });
+      for (const r of Object.values(mem.coverage)) covMap[r.objectiveId] = r;
+      const stored = new Set(sessions.map((s) => s.sessionId));
+      const pending = mem.sessions.filter((s) => !stored.has(s.sessionId));
+      // Sessions logged before load got a number from an empty list; renumber them after the stored ones.
+      let next = sessions.reduce((n, s) => Math.max(n, s.number), 0);
+      const renumbered = pending.map((s) => {
+        next += 1;
+        return s.number === next ? s : { ...s, number: next, lines: formatLogLines({ ...s, number: next }) };
+      });
+      const allSessions = [...sessions, ...renumbered].sort((a, b) => a.number - b.number || a.timestamp.localeCompare(b.timestamp));
+      set({ status: 'ready', sessions: allSessions, items: itemMap, coverage: covMap });
+      if (Object.keys(mem.items).length) putRows('items', Object.values(mem.items)).catch(warn);
+      if (Object.keys(mem.coverage).length) putRows('coverage', Object.values(mem.coverage)).catch(warn);
+      if (renumbered.length) putRows('sessions', renumbered).catch(warn);
     } catch (e) {
       console.warn('[games] IndexedDB unavailable, game history will not be saved', e);
       set({ status: 'unavailable' });
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
     }
   },
 
@@ -84,8 +112,12 @@ export const useGameProgress = create<GameProgressState>((set, get) => ({
   },
 
   resetAll: async () => {
+    generation += 1;
     set({ sessions: [], items: {}, coverage: {} });
-    if (get().status === 'ready') await clearGamesDb();
+    // Clear the database whatever the in-memory status: a reset before the games layer has
+    // loaded (or while it is loading) must still erase what is stored. Only a database that
+    // could not be opened at all is skipped.
+    if (get().status !== 'unavailable') await clearGamesDb();
   },
 }));
 

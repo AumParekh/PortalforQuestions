@@ -12,6 +12,8 @@ export interface RotationSession {
   mechanic: MechanicId;
   readingId: string;
   rounds: readonly { category?: TrapCategory; correct: boolean }[];
+  /** The logged "#N"; when present the next session is numbered after the highest (as the log numbers it). */
+  number?: number;
 }
 
 export interface RotationReading {
@@ -181,7 +183,9 @@ function relaxedList(relaxM: boolean, relaxR: boolean): RotationChoice['relaxed'
 export function chooseSession(input: RotationInput): RotationChoice | null {
   const { sessions, readings, mechanics } = input;
   const due = input.dueByReading ?? {};
-  const sessionNumber = sessions.length + 1;
+  // Same numbering the session log uses (highest #N + 1), so "session #10 is a tenth" matches the
+  // GAME LOG line even if an import left gaps.
+  const sessionNumber = sessions.reduce((n, s, i) => Math.max(n, typeof s.number === 'number' ? s.number : i + 1), 0) + 1;
   const lastS = sessions[sessions.length - 1];
   const last = lastS ? { mechanic: lastS.mechanic, readingId: lastS.readingId } : null;
   const recentM = new Set(recentMechanics(sessions));
@@ -247,13 +251,14 @@ export function chooseSession(input: RotationInput): RotationChoice | null {
   const ordered = byDrought(sessions, mechanics);
 
   if (priority) {
-    const drillers = ordered.filter((m) => m.drills?.includes(priority));
-    for (const [relaxM, relaxR] of RELAXATIONS) {
-      for (const m of drillers) {
-        if (!relaxM && recentM.has(m.id)) continue;
-        const rid = pickReading(m, relaxR, priority);
-        if (rid) return make(m.id, rid, 'priority-category', relaxedList(relaxM, relaxR));
-      }
+    // The priority steers which mechanic and reading come next, but never overrides the no-repeat
+    // rules (§12.4) while something else is playable: only drillers not played in the last three
+    // sessions, on readings not played in the last three. Otherwise the general pass below runs,
+    // and build() still weights the category up through ctx.priorityCategory.
+    for (const m of ordered) {
+      if (!m.drills?.includes(priority) || recentM.has(m.id)) continue;
+      const rid = pickReading(m, false, priority);
+      if (rid) return make(m.id, rid, 'priority-category');
     }
   }
 

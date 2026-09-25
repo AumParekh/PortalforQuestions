@@ -12,7 +12,7 @@ import type {
   TFState,
 } from '../../types';
 import { getAll, openDb } from '../../lib/db';
-import { exportGamesDb, importGamesDb } from '../../games/db';
+import { exportGamesDb, importGamesDb, sanitizeGamesExport } from '../../games/db';
 import type { GamesExport } from '../../games/db';
 
 /** File format for "Export progress" / "Import progress". */
@@ -131,10 +131,11 @@ function questionState(v: unknown): QuestionState | null {
     lastAttempted: isoDate(v.lastAttempted) ? v.lastAttempted : null,
     lastSelected: lastSelected === undefined ? null : lastSelected,
     avgTimeSeconds: count(v.avgTimeSeconds) ? v.avgTimeSeconds : 0,
-    interval: numOr(v.interval, 0),
-    repetition: numOr(v.repetition, 0),
-    efactor: numOr(v.efactor, 2.5),
-    dueDate: str(v.dueDate) ? v.dueDate : null,
+    // Same bounds as the scheduler (src/lib/srs.ts caps intervals at 3650 days; SM-2 EF lives in [1.3, 5]).
+    interval: Math.min(3650, Math.max(0, numOr(v.interval, 0))),
+    repetition: Math.max(0, numOr(v.repetition, 0)),
+    efactor: Math.min(5, Math.max(1.3, numOr(v.efactor, 2.5))),
+    dueDate: localDate(v.dueDate) ? v.dueDate : null,
     markedForReview: v.markedForReview === true,
   };
 }
@@ -303,7 +304,10 @@ export function parseImport(text: string): ParsedImport {
     tfAttemptRows.length +
     gymStateRows.length +
     gymAttemptRows.length;
-  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + gs.bad + ga.bad;
+  // Game rows are validated here too, so a bad row is reported as skipped instead of failing (or
+  // half-applying) the games part of the import.
+  const games = sanitizeGamesExport(data.games);
+  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + gs.bad + ga.bad + (games?.skipped ?? 0);
   if (total > 0 && skipped === total) throw new Error('None of the records in this file could be read.');
   return {
     data: {
@@ -316,7 +320,7 @@ export function parseImport(text: string): ParsedImport {
       tfAttempts: ta.ok,
       gymState: gs.ok,
       gymAttempts: ga.ok,
-      games: gamesSnapshot(data.games),
+      games: games?.snapshot,
     },
     skipped,
   };
@@ -359,20 +363,13 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   for (const r of data.gymState) gs.put(r);
   for (const r of data.gymAttempts) ga.put(r);
   await done;
-  // Wholesale replace applies to notes-game progress too: a file without it clears it.
-  await importGamesDb(data.games ?? { kind: 'frm-games', version: 1, exportedAt: '', sessions: [], items: [], coverage: [] });
-}
-
-/** Keeps a games snapshot only if it has the expected shape; row contents are the games layer's own format. */
-function gamesSnapshot(v: unknown): GamesExport | undefined {
-  if (!isRec(v) || v.kind !== 'frm-games') return undefined;
-  const rows = (x: unknown) => (Array.isArray(x) ? x.filter(isRec) : []);
-  return {
-    kind: 'frm-games',
-    version: 1,
-    exportedAt: str(v.exportedAt) ? v.exportedAt : '',
-    sessions: rows(v.sessions) as unknown as GamesExport['sessions'],
-    items: rows(v.items) as unknown as GamesExport['items'],
-    coverage: rows(v.coverage) as unknown as GamesExport['coverage'],
-  };
+  // Wholesale replace applies to notes-game progress too: a file without it clears it. The games
+  // database is separate, so this can't share the transaction above; if it fails (games storage
+  // blocked in this browser), the question-bank import has already landed and must still be
+  // reported as done, so the failure is logged rather than thrown.
+  try {
+    await importGamesDb(data.games ?? { kind: 'frm-games', version: 1, exportedAt: '', sessions: [], items: [], coverage: [] });
+  } catch (e) {
+    console.warn('[import] notes-game progress was not restored', e);
+  }
 }

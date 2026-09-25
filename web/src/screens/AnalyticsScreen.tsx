@@ -92,9 +92,14 @@ export function AnalyticsScreen() {
   // Recomputed when the local date rolls over so "today" and the 30-day window stay current on long-lived tabs.
   const now = useMemo(() => new Date(), [day]);
   const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
-  // Notes-game sessions count as study days for the streak, as on Home.
-  const streakEvents = useMemo(() => [...studyEvents, ...gameSessions.map((g) => ({ timestamp: g.timestamp }))], [studyEvents, gameSessions]);
-  const streak = useMemo(() => streaks(streakEvents, now), [streakEvents, now]);
+  // Notes-game sessions count as study days for the streak, as on Home — and so they also have to show on
+  // the heatmap (one answer per game round, on the day the session closed), or the heatmap would contradict
+  // the streak printed under it. A logged game session always has at least one round.
+  const activityEvents = useMemo(
+    () => [...studyEvents, ...gameSessions.flatMap((g) => g.rounds.map((r) => ({ timestamp: g.timestamp, isCorrect: r.correct })))],
+    [studyEvents, gameSessions],
+  );
+  const streak = useMemo(() => streaks(activityEvents, now), [activityEvents, now]);
 
   const loading = status === 'idle' || status === 'loading';
 
@@ -110,13 +115,13 @@ export function AnalyticsScreen() {
         )}
         {loading ? (
           <Skeleton />
-        ) : studyEvents.length === 0 ? (
+        ) : activityEvents.length === 0 ? (
           <EmptyState />
         ) : (
           <>
             <SummaryTiles stats={stats} attemptCount={attempts.length} streak={streak} />
             <AccuracyTrendChart attempts={attempts} now={now} />
-            <StudyHeatmap attempts={studyEvents} now={now} currentStreak={streak.current} />
+            <StudyHeatmap attempts={activityEvents} now={now} currentStreak={streak.current} />
             <SubjectAccuracy questions={subjectQuestions} states={states} />
             <TopicAccuracy questions={subjectQuestions} states={states} />
             <WeakestLoList questions={subjectQuestions} states={states} />

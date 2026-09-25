@@ -10,7 +10,9 @@ export interface Token {
   norm: string;
 }
 
+// Order matters: the \\ line break goes first, or "\\ " would be read as "\" + "\ " and leave a stray backslash.
 const MACRO_SYMBOLS: Record<string, string> = {
+  '\\\\': ' ',
   '\\%': '%',
   '\\&': '&',
   '\\#': '#',
@@ -23,7 +25,6 @@ const MACRO_SYMBOLS: Record<string, string> = {
   '\\,': ' ',
   '\\;': ' ',
   '\\ ': ' ',
-  '\\\\': ' ',
 };
 
 /** Splits on $…$, $$…$$, \( … \) and \[ … \], honouring \$ as a literal dollar. */
