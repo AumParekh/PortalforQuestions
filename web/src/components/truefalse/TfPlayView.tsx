@@ -21,11 +21,44 @@ function isActivatable(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && !!el.closest('button, a, summary, [role="button"]');
 }
 
-/** Explanation, original wording and a link to the source question. Shared with the summary's missed list. */
+/** Renders text with the given phrases wrapped in <mark>, longest phrase first so overlaps resolve sensibly. */
+function Highlighted({ text, phrases, tone }: { text: string; phrases: string[]; tone: 'fix' | 'wrong' }) {
+  const wanted = [...new Set(phrases.map((p) => p.trim()).filter(Boolean))].sort((a, b) => b.length - a.length);
+  if (wanted.length === 0) return <>{text}</>;
+  const re = new RegExp(`(${wanted.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g');
+  const cls =
+    tone === 'fix'
+      ? 'rounded bg-emerald-100 px-0.5 text-emerald-900 dark:bg-emerald-500/25 dark:text-emerald-100'
+      : 'rounded bg-red-100 px-0.5 text-red-900 line-through decoration-2 dark:bg-red-500/25 dark:text-red-100';
+  return (
+    <>
+      {text.split(re).map((part, i) => (wanted.includes(part) ? <mark key={i} className={cls}>{part}</mark> : <span key={i}>{part}</span>))}
+    </>
+  );
+}
+
+/** Explanation, the corrected/original wording, and a link to the source question. Shared with the summary's missed list. */
 export function TfExplanation({ card }: { card: TFCard }) {
   const source = useContent((s) => s.byId[card.sourceId]);
+  const twin = useTf((s) => (card.twinId ? s.byId[card.twinId] : undefined));
   return (
     <div className="space-y-3">
+      {!card.isTrue && card.correction && (
+        <div className="rounded-xl border border-emerald-600/30 bg-emerald-50 p-3 dark:border-emerald-500/30 dark:bg-emerald-950/30">
+          <p className="text-[15px] font-semibold text-emerald-800 dark:text-emerald-200">What would make it true</p>
+          <p className="mt-1 text-base leading-relaxed text-slate-900 dark:text-slate-100">
+            <Highlighted text={card.correction} phrases={(card.changes ?? []).map((c) => c.to)} tone="fix" />
+          </p>
+        </div>
+      )}
+      {card.variant === 'corrected' && twin && (
+        <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
+          <p className="text-[15px] font-semibold text-slate-700 dark:text-slate-300">The false version it was fixed from</p>
+          <p className="mt-1 text-[15px] leading-relaxed text-slate-700 dark:text-slate-300">
+            <Highlighted text={twin.statement} phrases={(twin.changes ?? []).map((c) => c.from)} tone="wrong" />
+          </p>
+        </div>
+      )}
       <Markdown className="text-base leading-relaxed text-slate-800 dark:text-slate-200">{card.explanation}</Markdown>
       {card.edited && card.originalText && (
         <div className="text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">

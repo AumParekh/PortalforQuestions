@@ -182,6 +182,13 @@ export interface TFCard {
   explanation: string;
   edited: boolean;
   originalText?: string;
+  /** On a false card: the same sentence with the few words changed that make it true. */
+  correction?: string;
+  changes?: { from: string; to: string }[];
+  /** 'corrected' = a true twin derived from a false card by that minimal edit. */
+  variant?: 'original' | 'corrected';
+  /** The linked card (false original ↔ corrected twin). */
+  twinId?: string;
 }
 
 /** Per-card progress (IndexedDB store "tfState"). */

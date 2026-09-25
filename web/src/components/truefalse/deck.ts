@@ -162,8 +162,30 @@ export function buildDeck(cards: TFCard[], states: Record<string, TFState>, setu
     setup.order === 'weakest'
       ? [...pool].sort((a, b) => cardAccuracy(states[a.id]) - cardAccuracy(states[b.id]) || a.id.localeCompare(b.id))
       : shuffle(pool);
-  const ids = ordered.map((c) => c.id);
+  const ids = spreadTwins(ordered.map((c) => c.id), cards);
   return setup.size === 'all' ? ids : ids.slice(0, setup.size);
+}
+
+const TWIN_GAP = 4;
+
+/** Keeps a false card and its corrected twin at least TWIN_GAP apart so one never gives away the other. */
+export function spreadTwins(ids: string[], cards: TFCard[]): string[] {
+  const twinOf = new Map<string, string>();
+  for (const c of cards) if (c.twinId) twinOf.set(c.id, c.twinId);
+  const out: string[] = [];
+  const deferred: string[] = [];
+  const place = (id: string) => {
+    const twin = twinOf.get(id);
+    const recent = out.slice(-TWIN_GAP);
+    if (twin && recent.includes(twin)) return false;
+    out.push(id);
+    return true;
+  };
+  for (const id of ids) {
+    if (!place(id)) deferred.push(id);
+    for (let i = 0; i < deferred.length; i++) if (place(deferred[i])) deferred.splice(i--, 1);
+  }
+  return [...out, ...deferred];
 }
 
 export function pct(correct: number, total: number): number {
