@@ -6,7 +6,9 @@
 import { chromium } from 'playwright';
 
 const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
-const ROUTES = ['/', '/setup', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/games'];
+const ROUTES = ['/', '/setup', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/sense', '/games'];
+// Sections with a Start button that can be played from the keyboard.
+const PLAYABLE = ['/truefalse', '/formulas', '/sense'];
 const VIEWPORTS = [
   { name: 'phone', width: 375, height: 800 },
   { name: 'desktop', width: 1280, height: 900 },
@@ -45,6 +47,35 @@ for (const vp of VIEWPORTS) {
       if (vp.width <= 375 && state.overflow > 1) errors.push(`page scrolls horizontally by ${state.overflow}px`);
     } catch (e) {
       errors.push(`navigation: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    if (errors.length) failures.push(`${label}\n  ${errors.join('\n  ')}`);
+    else console.log(`ok  ${label}`);
+  }
+  // Play-through: start each playable section and drive it with its keyboard shortcuts
+  // (Space reveals, 1 answers, Enter moves on), failing on any crash or console error.
+  for (const route of PLAYABLE) {
+    errors = [];
+    const label = `${vp.name} play #${route}`;
+    try {
+      await page.goto(`${BASE}/#${route}`, { waitUntil: 'networkidle', timeout: 30000 });
+      await page.waitForTimeout(1500);
+      const start = page.getByRole('button', { name: /^\s*Start\s*$/ }).first();
+      if ((await start.count()) === 0 || !(await start.isEnabled())) {
+        console.log(`--  ${label} (no Start available; content not generated yet?)`);
+        continue;
+      }
+      await start.click();
+      await page.waitForTimeout(800);
+      for (let i = 0; i < 12; i++) {
+        for (const key of [' ', '1', 'Enter']) {
+          await page.keyboard.press(key);
+          await page.waitForTimeout(250);
+        }
+      }
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      if (vp.width <= 375 && overflow > 1) errors.push(`page scrolls horizontally by ${overflow}px during play`);
+    } catch (e) {
+      errors.push(`play: ${e instanceof Error ? e.message : String(e)}`);
     }
     if (errors.length) failures.push(`${label}\n  ${errors.join('\n  ')}`);
     else console.log(`ok  ${label}`);
