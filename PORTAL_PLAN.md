@@ -246,6 +246,21 @@ loads into `corpus.extras`. Validators live in `tools/games/validate_<id>.py`.
   bounce back while the right cell pulses. The pattern is revealed when the grid is
   full.
 
+- **Framework Navigator.** Regulatory frameworks as a navigable tree, one node per
+  framework, connected in the order they appeared, with lineages for capital, market,
+  liquidity, op risk/resilience, counterparty, model risk, resolution and so on.
+  - Tapping a node reveals what it introduced, what it restricted and what it was
+    responding to.
+  - Mode 2 places a given regulatory change on its node (the change text never names the
+    framework).
+  - Mode 3 compares two nodes, with curated differences for the most-confused pairs.
+  - The validator checks the tree has no cycles, dates run forward, and references are
+    valid.
+- **Attribution Grid.** A statement about a control, report or risk decision is placed
+  on first line / second line / third line / board or committee. A wrong placement shows
+  that role's actual responsibility and why the statement belongs elsewhere. Statements
+  never contain the role's name; each role has at least 15 items.
+
 ## 3d. Formula Gym (added on request: "games for formula remembering")
 
 A dedicated section for getting every formula in the notes into long-term memory,

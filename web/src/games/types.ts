@@ -256,7 +256,9 @@ export type MechanicId =
   | 'tail-shaper'
   | 'waterfall-builder'
   | 'frontier-rider'
-  | 'grid-settler';
+  | 'grid-settler'
+  | 'framework-navigator'
+  | 'attribution-grid';
 
 export type MechanicFamily = 'detection' | 'structural' | 'relational' | 'application' | 'explorable' | 'assessment' | 'retention';
 
@@ -305,6 +307,8 @@ export const MECHANIC_CATALOGUE: readonly { id: MechanicId; name: string; family
   { id: 'waterfall-builder', name: 'Waterfall Builder', family: 'structural' },
   { id: 'frontier-rider', name: 'Frontier Rider', family: 'explorable' },
   { id: 'grid-settler', name: 'Grid Settler', family: 'structural' },
+  { id: 'framework-navigator', name: 'Framework Navigator', family: 'relational' },
+  { id: 'attribution-grid', name: 'Attribution Grid', family: 'detection' },
 ];
 
 const NAME_BY_ID = Object.fromEntries(MECHANIC_CATALOGUE.map((m) => [m.id, m.name])) as Record<MechanicId, string>;
