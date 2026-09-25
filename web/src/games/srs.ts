@@ -1,6 +1,7 @@
 // SM-2 spaced repetition, shared by every mechanic. Pure functions only; the store in
 // progress.ts applies them (`review(itemId, grade)`) and persists the result.
 import type { ItemSrs, TrapCategory } from './types';
+import { capNextDue, effectiveDue } from './examDate';
 
 export const MIN_EFACTOR = 1.3;
 export const START_EFACTOR = 2.5;
@@ -41,7 +42,8 @@ export interface ReviewMeta {
  * One SM-2 step. Grades ≥ 3 advance (1 day, 6 days, then interval × EF) — at most once per
  * item per local day; grades < 3 lapse:
  * repetition resets and the item is due again today, so a miss anywhere resurfaces in the very
- * next session of any mechanic.
+ * next session of any mechanic. The next due date never lands after exam − 2 while the exam is
+ * ahead (games/examDate.ts).
  */
 export function sm2(prev: ItemSrs | undefined, itemId: string, grade: number, now: Date = new Date(), meta: ReviewMeta = {}): ItemSrs {
   const q = Math.max(0, Math.min(5, Number.isFinite(grade) ? Math.round(grade) : 0));
@@ -80,7 +82,7 @@ export function sm2(prev: ItemSrs | undefined, itemId: string, grade: number, no
     interval,
     repetition,
     efactor: Math.round(efactor * 1000) / 1000,
-    dueDate: addDays(today, interval),
+    dueDate: capNextDue(addDays(today, interval), today),
     lastResult: q >= 3 ? 'correct' : 'wrong',
     lastGrade: q,
     lastReviewed: now.toISOString(),
@@ -91,23 +93,32 @@ export function sm2(prev: ItemSrs | undefined, itemId: string, grade: number, no
   };
 }
 
+/**
+ * The day an item counts as due on `today`: its stored due date, except that a schedule set before exam − 2 that
+ * lands after it counts as due on exam − 2 (games/examDate.ts).
+ */
+export function itemDueDate(s: ItemSrs, today: string = localDate()): string {
+  return effectiveDue(s.dueDate, s.interval, today);
+}
+
 export function isDue(s: ItemSrs | undefined, today: string = localDate()): boolean {
-  return !!s && s.dueDate <= today;
+  return !!s && itemDueDate(s, today) <= today;
 }
 
 /** IDs of due items, most overdue first (then most lapses). */
 export function dueItemIds(items: Record<string, ItemSrs>, today: string = localDate()): string[] {
   return Object.values(items)
-    .filter((s) => s.dueDate <= today)
-    .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || b.lapses - a.lapses || a.itemId.localeCompare(b.itemId))
-    .map((s) => s.itemId);
+    .map((s) => ({ s, due: itemDueDate(s, today) }))
+    .filter((x) => x.due <= today)
+    .sort((a, b) => a.due.localeCompare(b.due) || b.s.lapses - a.s.lapses || a.s.itemId.localeCompare(b.s.itemId))
+    .map((x) => x.s.itemId);
 }
 
 /** Due-item count per reading (items carry the reading they were last reviewed in). */
 export function dueCountByReading(items: Record<string, ItemSrs>, today: string = localDate()): Record<string, number> {
   const out: Record<string, number> = {};
   for (const s of Object.values(items)) {
-    if (s.dueDate <= today && s.readingId) out[s.readingId] = (out[s.readingId] ?? 0) + 1;
+    if (s.readingId && itemDueDate(s, today) <= today) out[s.readingId] = (out[s.readingId] ?? 0) + 1;
   }
   return out;
 }
@@ -118,6 +129,6 @@ export function dueCountByReading(items: Record<string, ItemSrs>, today: string 
  */
 export function srsPriority(s: ItemSrs | undefined, today: string = localDate()): number {
   if (!s) return 1;
-  if (s.dueDate <= today) return 0;
+  if (itemDueDate(s, today) <= today) return 0;
   return 2;
 }

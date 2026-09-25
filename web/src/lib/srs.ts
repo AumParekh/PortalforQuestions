@@ -1,5 +1,6 @@
 import { addDays, sm2 } from '../formulas/storage';
 import type { AnswerRecord, QuestionState } from '../types';
+import { capNextDue, effectiveDue } from '../games/examDate';
 
 /**
  * Spaced repetition for the question bank (plan §4). Uses the same SM-2 step as the Formula Gym
@@ -48,7 +49,8 @@ export function scheduleOf(s: Partial<QuestionSchedule> | undefined): QuestionSc
 /**
  * The schedule after one answer. A miss restarts SM-2 and is due again today (next session). A correct answer on
  * or after the due date (or the first time a question is scheduled) advances it; a correct answer before the due
- * date keeps the schedule as it is, so answering the same question repeatedly can't inflate its interval.
+ * date keeps the schedule as it is, so answering the same question repeatedly can't inflate its interval. The next
+ * due date never lands after exam − 2 while the exam is ahead (games/examDate.ts).
  */
 export function nextSchedule(
   prev: Partial<QuestionSchedule> | undefined,
@@ -59,16 +61,22 @@ export function nextSchedule(
   const cur = scheduleOf(prev);
   const grade = questionGrade(rec, par);
   if (grade < 3) return { ...sm2(cur, grade), dueDate: today };
-  if (cur.dueDate && cur.dueDate > today) return cur;
+  if (cur.dueDate && effectiveDue(cur.dueDate, cur.interval, today) > today) return cur;
   const next = sm2(cur, grade);
   const interval = Math.min(MAX_INTERVAL_DAYS, next.interval);
-  return { ...next, interval, dueDate: addDays(today, interval) };
+  return { ...next, interval, dueDate: capNextDue(addDays(today, interval), today) };
+}
+
+/** The day a row counts as due on `today`: its stored due date, capped at exam − 2 (games/examDate.ts); null if unscheduled. */
+export function questionDueDay(s: Partial<QuestionSchedule> | undefined, today: string): string | null {
+  const due = dueDay(s?.dueDate);
+  return due ? effectiveDue(due, s?.interval, today) : null;
 }
 
 /** Attempted, scheduled, and due on or before `today`. */
 export function isQuestionDue(s: QuestionState | undefined, today: string): boolean {
   if (!s || !(s.totalAttempts > 0)) return false;
-  const due = dueDay(s.dueDate);
+  const due = questionDueDay(s, today);
   return !!due && due <= today;
 }
 
@@ -86,7 +94,7 @@ export function dueQuestionIds(
     .filter((s) => isQuestionDue(s, today) && include(s.questionId))
     .sort(
       (a, b) =>
-        (dueDay(a.dueDate) ?? '').localeCompare(dueDay(b.dueDate) ?? '') ||
+        (questionDueDay(a, today) ?? '').localeCompare(questionDueDay(b, today) ?? '') ||
         Number(b.lastResult === 'wrong') - Number(a.lastResult === 'wrong') ||
         scheduleOf(a).efactor - scheduleOf(b).efactor ||
         a.questionId.localeCompare(b.questionId),
@@ -105,7 +113,7 @@ export function nextDue(
   let count = 0;
   for (const s of Object.values(states)) {
     if (!(s.totalAttempts > 0) || !include(s.questionId)) continue;
-    const d = dueDay(s.dueDate);
+    const d = questionDueDay(s, today);
     if (!d || d <= today) continue;
     if (day === null || d < day) {
       day = d;

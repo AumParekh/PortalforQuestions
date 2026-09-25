@@ -17,6 +17,7 @@ import {
 import type { HapticsMode, SessionCount, StudyDefaults, ThemeMode } from '../lib/settings';
 import { Segmented, SettingsRow, SettingsSection, Switch } from '../components/settings/controls';
 import { ProgressDataSection } from '../components/settings/ProgressDataSection';
+import { ExamDateSection } from '../components/settings/ExamDateSection';
 
 const THEMES: { value: ThemeMode; label: string; icon: ReactNode }[] = [
   { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" aria-hidden="true" /> },
@@ -101,6 +102,8 @@ export function SettingsScreen() {
       </header>
 
       <main className="mx-auto max-w-[720px] space-y-6 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+        <ExamDateSection />
+
         <SettingsSection title="Appearance">
           <SettingsRow label="Theme" hint="System follows your device's light or dark setting.">
             <Segmented label="Theme" value={theme} options={THEMES} onChange={changeTheme} />

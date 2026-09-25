@@ -1,6 +1,7 @@
 import { sourceKey } from './parse';
 import { AREAS, MODES } from './types';
 import type { Scenario, SenseArea, SenseMode } from './types';
+import { effectiveDue } from '../games/examDate';
 
 /**
  * Pure session planning for Sense Check (plan §3d). No React, no stores, no storage: everything the planner
@@ -70,6 +71,8 @@ export function withSession(history: SenseHistory, record: SessionRecord): Sense
 
 export interface ItemProgress {
   dueDate: string | null;
+  /** Days between the review that set `dueDate` and it; lets the exam-day cap apply to older schedules. */
+  interval?: number;
   lastResult: 'correct' | 'wrong' | null;
   totalCorrect: number;
   totalWrong: number;
@@ -79,7 +82,7 @@ export interface ItemProgress {
 export function priorityTier(p: ItemProgress | undefined, today: string): number {
   if (!p || p.totalCorrect + p.totalWrong === 0) return 2;
   const weak = p.lastResult === 'wrong' || p.totalWrong > p.totalCorrect;
-  if (p.dueDate && p.dueDate <= today) return weak ? 5 : 4;
+  if (p.dueDate && effectiveDue(p.dueDate, p.interval, today) <= today) return weak ? 5 : 4;
   return weak ? 3 : 1;
 }
 

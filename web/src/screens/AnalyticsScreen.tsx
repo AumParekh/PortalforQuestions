@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { AlertTriangle, ArrowLeft, BarChart3, Plus } from 'lucide-react';
 import { AccuracyTrendChart } from '../components/analytics/AccuracyTrendChart';
 import { SubjectAccuracy, TopicAccuracy } from '../components/analytics/AccuracyBars';
+import { ExamCoverage } from '../components/analytics/ExamCoverage';
 import { SessionList } from '../components/analytics/SessionList';
 import { StudyHeatmap } from '../components/analytics/StudyHeatmap';
 import { SummaryTiles } from '../components/analytics/SummaryTiles';
@@ -120,6 +121,7 @@ export function AnalyticsScreen() {
         ) : (
           <>
             <SummaryTiles stats={stats} attemptCount={attempts.length} streak={streak} />
+            <ExamCoverage questions={subjectQuestions} states={states} />
             <AccuracyTrendChart attempts={attempts} now={now} />
             <StudyHeatmap attempts={activityEvents} now={now} currentStreak={streak.current} />
             <SubjectAccuracy questions={subjectQuestions} states={states} />

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULT_EXAM_DATE, isExamDay, setExamDate } from '../games/examDate';
 
 /**
  * Small device-local preferences (plan §4: localStorage only for tiny synchronous settings).
@@ -28,6 +29,8 @@ export interface Settings {
   defaultTimerEnabled: boolean;
   defaultTimerSeconds: number;
   defaultSessionCount: SessionCount;
+  /** Local YYYY-MM-DD; drives the Home countdown, the study phase and the exam-day cap on reviews (games/examDate.ts). */
+  examDate: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -37,6 +40,7 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultTimerEnabled: true,
   defaultTimerSeconds: 120,
   defaultSessionCount: 20,
+  examDate: DEFAULT_EXAM_DATE,
 };
 
 function isTimerSeconds(v: unknown): v is number {
@@ -59,6 +63,7 @@ export function sanitizeSettings(value: unknown): Settings {
     defaultTimerEnabled: typeof v.defaultTimerEnabled === 'boolean' ? v.defaultTimerEnabled : d.defaultTimerEnabled,
     defaultTimerSeconds: isTimerSeconds(v.defaultTimerSeconds) ? v.defaultTimerSeconds : d.defaultTimerSeconds,
     defaultSessionCount: isSessionCount(v.defaultSessionCount) ? v.defaultSessionCount : d.defaultSessionCount,
+    examDate: isExamDay(v.examDate) ? v.examDate : d.examDate,
   };
 }
 
@@ -87,6 +92,7 @@ function pickSettings(s: Settings): Settings {
     defaultTimerEnabled: s.defaultTimerEnabled,
     defaultTimerSeconds: s.defaultTimerSeconds,
     defaultSessionCount: s.defaultSessionCount,
+    examDate: s.examDate,
   };
 }
 
@@ -94,15 +100,20 @@ interface SettingsState extends Settings {
   set: (patch: Partial<Settings>) => void;
 }
 
-export const useSettings = create<SettingsState>((set, get) => ({
-  ...loadSettings(),
-  set: (patch) => {
-    const next = sanitizeSettings({ ...pickSettings(get()), ...patch });
-    set(next);
-    saveSettings(next);
-    applyClasses(next);
-  },
-}));
+export const useSettings = create<SettingsState>((set, get) => {
+  const initial = loadSettings();
+  setExamDate(initial.examDate);
+  return {
+    ...initial,
+    set: (patch) => {
+      const next = sanitizeSettings({ ...pickSettings(get()), ...patch });
+      setExamDate(next.examDate);
+      set(next);
+      saveSettings(next);
+      applyClasses(next);
+    },
+  };
+});
 
 // Reduce motion: a stylesheet injected once so the class works without touching globals.css.
 const REDUCE_MOTION_STYLE_ID = 'frm-reduce-motion';

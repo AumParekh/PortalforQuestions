@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GymAttempt, GymKind, GymState } from '../types';
 import { getAll, putGymAttempts } from '../lib/db';
+import { capNextDue, effectiveDue } from '../games/examDate';
 import { newId } from '../store/session';
 
 /**
@@ -59,8 +60,9 @@ export function gradeFor(correct: boolean, seconds: number, fast: number, fair: 
   return 3;
 }
 
+/** Due on or before `today`; a schedule set before exam − 2 that lands after it counts as due on exam − 2 (games/examDate.ts). */
 export function isDue(state: GymState | undefined, today = localDay()): boolean {
-  return !!state?.dueDate && state.dueDate <= today;
+  return !!state?.dueDate && effectiveDue(state.dueDate, state.interval, today) <= today;
 }
 
 /** Mastered = passed at least three spaced (due) reviews in a row and last answered correctly. */
@@ -136,8 +138,8 @@ export const useGym = create<GymStore>((set, get) => ({
       // Only a review that is due (or the first sighting) moves the schedule forward. A correct answer before the
       // due date (the same formula met again in another game, "Drill these again") keeps the schedule as it is,
       // so a burst of answers in one sitting can't jump the interval or mark a formula mastered. A miss always
-      // starts it over.
-      const early = !!prev.dueDate && prev.dueDate > today;
+      // starts it over. The next due date never lands after exam − 2 while the exam is ahead (games/examDate.ts).
+      const early = !!prev.dueDate && effectiveDue(prev.dueDate, prev.interval, today) > today;
       const next: Schedule =
         early && grade >= 3 ? { repetition: prev.repetition, interval: prev.interval, efactor: prev.efactor } : sm2(prev, grade);
       const state: GymState = {
@@ -145,7 +147,7 @@ export const useGym = create<GymStore>((set, get) => ({
         kind: a.kind,
         readingId: a.readingId || prev.readingId,
         ...next,
-        dueDate: early && grade >= 3 ? prev.dueDate : addDays(today, next.interval),
+        dueDate: early && grade >= 3 ? prev.dueDate : capNextDue(addDays(today, next.interval), today),
         totalAttempts: prev.totalAttempts + 1,
         totalCorrect: prev.totalCorrect + (a.correct ? 1 : 0),
         totalWrong: prev.totalWrong + (a.correct ? 0 : 1),

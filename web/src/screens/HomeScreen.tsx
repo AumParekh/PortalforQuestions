@@ -4,6 +4,8 @@ import { BarChart3, BookOpen, CalendarDays, Gamepad2, CheckCircle2, CheckSquare,
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
+import { ExamCountdown, TodaysPlan } from '../components/dashboard/ExamPlan';
+import type { PlanRow, PlanSection } from '../components/dashboard/ExamPlan';
 import { QUEST_GOAL, startDueReview, startMock, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
 import { AccuracyChip, ProgressBar } from '../components/dashboard/ProgressBar';
 import { SearchBox } from '../components/dashboard/SearchBox';
@@ -11,6 +13,10 @@ import { StatTile } from '../components/dashboard/StatTile';
 import { TopicMap } from '../components/dashboard/TopicMap';
 import { WeakLos } from '../components/dashboard/WeakLos';
 import { navigate } from '../lib/router';
+import type { Route } from '../lib/router';
+import { daysToExam, examPhase } from '../games/examDate';
+import type { ExamPhase } from '../games/examDate';
+import { useSettings } from '../lib/settings';
 import { DUE_SESSION_CAP, dueQuestionIds, nextDue } from '../lib/srs';
 import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
@@ -18,6 +24,7 @@ import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
 import { addDays, isDue, localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
+import { dueItemIds } from '../games/srs';
 import { useSession } from '../store/session';
 import type { ContentFile, QuestionState } from '../types';
 
@@ -139,6 +146,22 @@ function dayAtNoon(day: string): Date {
   return new Date(y, m - 1, d, 12);
 }
 
+/** Suggested order of today's reviews by phase: the formula sheet leads in the final review. */
+const PLAN_ORDER: Record<ExamPhase, PlanSection[]> = {
+  setup: ['questions', 'formulas', 'truefalse', 'games', 'sense'],
+  learn: ['questions', 'formulas', 'truefalse', 'games', 'sense'],
+  consolidate: ['questions', 'formulas', 'sense', 'truefalse', 'games'],
+  final: ['formulas', 'questions', 'sense', 'truefalse', 'games'],
+  after: ['questions', 'formulas', 'truefalse', 'games', 'sense'],
+};
+
+const PLAN_ROUTE: Record<Exclude<PlanSection, 'questions'>, Route> = {
+  formulas: '/formulas',
+  sense: '/sense',
+  truefalse: '/truefalse',
+  games: '/games',
+};
+
 function dueDetail(count: number, today: string, next: { day: string; count: number } | null): string {
   if (count > 0) {
     return count > DUE_SESSION_CAP
@@ -164,6 +187,11 @@ export function HomeScreen() {
   const gymAttempts = useGym((s) => s.attempts);
   const gameSessions = useGameProgress((s) => s.sessions);
   const gymStates = useGym((s) => s.states);
+  const tfStates = useTf((s) => s.states);
+  const tfById = useTf((s) => s.byId);
+  const tfDeckReady = useTf((s) => s.deckStatus === 'ready');
+  const gameItems = useGameProgress((s) => s.items);
+  const exam = useSettings((s) => s.examDate);
   // True/False and Formula Gym answers count as study activity for the streak and today's goal.
   const studyEvents = useMemo(() => [...attempts, ...tfAttempts, ...gymAttempts], [attempts, tfAttempts, gymAttempts]);
   // A notes-game session counts as a study day for the streak, not as answers toward today's goal.
@@ -186,16 +214,35 @@ export function HomeScreen() {
   const day = useToday();
   const streak = useMemo(() => streaks(streakEvents), [streakEvents, day]);
   const today = useMemo(() => answeredToday(studyEvents), [studyEvents, day]);
-  const formulasDue = useMemo(() => {
+  const gymDue = useMemo(() => {
     const d = localDay();
-    return Object.values(gymStates).filter((s) => s.kind === 'formula' && isDue(s, d)).length;
-  }, [gymStates, day]);
+    let formula = 0;
+    let scenario = 0;
+    for (const s of Object.values(gymStates)) {
+      if (!isDue(s, d)) continue;
+      if (s.kind === 'formula') formula++;
+      else scenario++;
+    }
+    return { formula, scenario };
+  }, [gymStates, day, exam]);
+  const formulasDue = gymDue.formula;
+  // True/False has no schedule: a card counts until it is answered correctly again (only cards still in the deck
+  // once the deck has loaded).
+  const tfMissed = useMemo(
+    () => Object.values(tfStates).filter((s) => s.lastResult === 'wrong' && (!tfDeckReady || tfById[s.cardId])).length,
+    [tfStates, tfById, tfDeckReady],
+  );
+  const gamesDue = useMemo(() => dueItemIds(gameItems, localDay()).length, [gameItems, day, exam]);
+  const examInfo = useMemo(() => {
+    const d = localDay();
+    return { days: daysToExam(d, exam), phase: examPhase(d, exam) };
+  }, [exam, day]);
   // Spaced-repetition reviews: attempted questions whose due date is today or earlier.
   const questionDue = useMemo(() => {
     const d = localDay();
     const known = (id: string) => !!byId[id];
     return { today: d, count: dueQuestionIds(states, d, known).length, next: nextDue(states, d, known) };
-  }, [states, byId, day]);
+  }, [states, byId, day, exam]);
   const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
   // Matches Review Wrong's default "Still wrong only" view.
   const wrongCount = useMemo(
@@ -209,6 +256,24 @@ export function HomeScreen() {
   }, [files, states]);
 
   const questDone = today >= QUEST_GOAL;
+
+  const planRows = useMemo((): PlanRow[] => {
+    const counts: Record<PlanSection, number> = {
+      questions: questionDue.count,
+      formulas: gymDue.formula,
+      sense: gymDue.scenario,
+      truefalse: tfMissed,
+      games: gamesDue,
+    };
+    return PLAN_ORDER[examInfo.phase].map((key) => ({
+      key,
+      count: counts[key],
+      onOpen:
+        key === 'questions'
+          ? () => (questionDue.count > 0 ? startDueReview(states, byId, localDay()) : navigate('/setup'))
+          : () => navigate(PLAN_ROUTE[key]),
+    }));
+  }, [questionDue.count, gymDue, tfMissed, gamesDue, examInfo.phase, states, byId]);
 
   const scrollToMocks = () => mocksRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
@@ -236,6 +301,9 @@ export function HomeScreen() {
           <ThemeToggle />
         </div>
       </header>
+
+      <ExamCountdown days={examInfo.days} phase={examInfo.phase} exam={exam} onOpenSettings={() => navigate('/settings')} />
+      <TodaysPlan rows={planRows} phase={examInfo.phase} />
 
       {sessionStatus === 'active' && (
         <button
