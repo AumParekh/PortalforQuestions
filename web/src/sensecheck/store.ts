@@ -12,6 +12,11 @@ const HISTORY_KEY = 'frm.senseCheck.v1';
 /** Grade speed bands (seconds): a quick call is the skill being trained. */
 const FAST_SECONDS = 8;
 const FAIR_SECONDS = 20;
+/**
+ * Answers this soon after a round appears are ignored: they are the second tap of a double-tap on Start or Next
+ * landing on whichever option now sits under the finger, not a call.
+ */
+const GHOST_TAP_MS = 350;
 
 // ---- Deck ----
 
@@ -92,6 +97,8 @@ export interface SenseRun {
   usedMs: number;
   runningSince: number | null;
   roundStartedAt: number;
+  /** Set while the clock is suspended mid-round (screen left or tab hidden); `resume` picks up from here. */
+  suspendedAt: number | null;
   timedOut: boolean;
 }
 
@@ -104,8 +111,11 @@ interface RunStore {
   phase: 'intro' | 'play' | 'summary';
   run: SenseRun | null;
   start: (plan: SessionPlan) => void;
-  /** Answers the current round with option `chosen`; ignored once answered or after time is up. */
-  answer: (chosen: number) => void;
+  /** Answers the current round with option `chosen`; false (and nothing recorded) once answered or after time is up. */
+  answer: (chosen: number) => boolean;
+  /** Stops the clock mid-round while the screen is away (route left, tab hidden); `resume` restarts it. */
+  suspend: () => void;
+  resume: () => void;
   next: () => void;
   /** Ends the session now (clock ran out, or leaving early). */
   finish: (timedOut: boolean) => void;
@@ -122,18 +132,18 @@ export const useSenseRun = create<RunStore>((set, get) => ({
     const now = Date.now();
     set({
       phase: 'play',
-      run: { sessionId: newId('scs'), plan, index: 0, results: [], usedMs: 0, runningSince: now, roundStartedAt: now, timedOut: false },
+      run: { sessionId: newId('scs'), plan, index: 0, results: [], usedMs: 0, runningSince: now, roundStartedAt: now, suspendedAt: null, timedOut: false },
     });
   },
 
   answer: (chosen) => {
     const run = get().run;
-    if (!run || run.results.length !== run.index || run.runningSince === null) return;
+    if (get().phase !== 'play' || !run || run.results.length !== run.index || run.runningSince === null) return false;
     const now = Date.now();
-    if (remainingMs(run, now) <= 0) return;
+    if (remainingMs(run, now) <= 0 || now - run.roundStartedAt < GHOST_TAP_MS) return false;
     const scenario = run.plan.rounds[run.index];
     const option = scenario?.options[chosen];
-    if (!scenario || !option) return;
+    if (!scenario || !option) return false;
     // The session enters the rotation history once it is really played, so an accidental Start doesn't use up a reading.
     if (run.results.length === 0) {
       const { plan } = run;
@@ -153,23 +163,49 @@ export const useSenseRun = create<RunStore>((set, get) => ({
       sessionId: run.sessionId,
       measure: scenario.mode,
     });
+    return true;
+  },
+
+  suspend: () => {
+    const run = get().run;
+    if (get().phase !== 'play' || !run || run.runningSince === null) return;
+    const now = Date.now();
+    set({ run: { ...run, usedMs: run.usedMs + (now - run.runningSince), runningSince: null, suspendedAt: now } });
+  },
+
+  resume: () => {
+    const run = get().run;
+    if (get().phase !== 'play' || !run || run.suspendedAt === null || run.runningSince !== null) return;
+    if (run.results.length !== run.index) {
+      set({ run: { ...run, suspendedAt: null } });
+      return;
+    }
+    const now = Date.now();
+    // The time away counts neither against the session clock nor toward this round's answer time.
+    set({ run: { ...run, runningSince: now, roundStartedAt: run.roundStartedAt + (now - run.suspendedAt), suspendedAt: null } });
   },
 
   next: () => {
     const run = get().run;
     if (!run || run.results.length <= run.index) return;
     const now = Date.now();
-    if (run.index + 1 >= run.plan.rounds.length || remainingMs(run, now) <= 0) {
+    if (run.index + 1 >= run.plan.rounds.length) {
       set({ phase: 'summary' });
       return;
     }
-    set({ run: { ...run, index: run.index + 1, runningSince: now, roundStartedAt: now } });
+    if (remainingMs(run, now) <= 0) {
+      set({ phase: 'summary', run: { ...run, timedOut: true } });
+      return;
+    }
+    set({ run: { ...run, index: run.index + 1, runningSince: now, roundStartedAt: now, suspendedAt: null } });
   },
 
   finish: (timedOut) => {
     const run = get().run;
-    if (!run) return;
-    set({ phase: 'summary', run: { ...run, timedOut, runningSince: null } });
+    if (!run || get().phase !== 'play') return;
+    const now = Date.now();
+    const usedMs = run.usedMs + (run.runningSince !== null ? now - run.runningSince : 0);
+    set({ phase: 'summary', run: { ...run, timedOut, usedMs, runningSince: null, suspendedAt: null } });
   },
 
   toIntro: () => set({ phase: 'intro', run: null }),

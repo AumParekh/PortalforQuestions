@@ -3,7 +3,7 @@ import { Check, X } from 'lucide-react';
 import { Markdown } from '../components/Markdown';
 import type { SenseResult } from './store';
 import type { Scenario } from './types';
-import { ModeTag, ReadingLine, prefersReducedMotion } from './ui';
+import { ModeTag, ReadingLine, focusIfLost, prefersReducedMotion, scrollX } from './ui';
 import { WorkingPanel } from './Working';
 
 type ButtonState = 'idle' | 'right' | 'wrong' | 'rising' | 'muted';
@@ -51,11 +51,22 @@ interface Props {
 /** The shared frame for all three modes: scenario on top, 3–4 buttons, working underneath once answered. */
 export function RoundView({ scenario, result, revealed, onAnswer }: Props) {
   const workingRef = useRef<HTMLDivElement>(null);
+  const scenarioRef = useRef<HTMLDivElement>(null);
+
+  // A new round (this view is keyed per round): focus lands on the scenario, not on the page body.
+  useEffect(() => {
+    focusIfLost(scenarioRef.current);
+  }, []);
 
   useEffect(() => {
     if (!revealed) return;
     workingRef.current?.scrollIntoView({ block: 'nearest', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    // The chosen option is now disabled, which drops focus; carry it (or the round's own focus) to the working.
+    if (document.activeElement === scenarioRef.current) workingRef.current?.focus({ preventScroll: true });
+    else focusIfLost(workingRef.current);
   }, [revealed]);
+
+  const right = scenario.options.find((o) => o.correct);
 
   return (
     <div className="space-y-5">
@@ -64,9 +75,13 @@ export function RoundView({ scenario, result, revealed, onAnswer }: Props) {
         <ReadingLine scenario={scenario} />
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-card-light p-4 shadow-sm dark:border-slate-700 dark:bg-card-dark sm:p-6">
-        <Markdown className="text-lg leading-relaxed text-slate-900 dark:text-slate-100">{scenario.setup}</Markdown>
-        <Markdown className="mt-4 text-xl font-semibold leading-snug text-slate-900 dark:text-slate-50">{scenario.ask}</Markdown>
+      <div
+        ref={scenarioRef}
+        tabIndex={-1}
+        className="rounded-2xl border border-slate-200 bg-card-light p-4 shadow-sm outline-none focus-visible:ring-0 dark:border-slate-700 dark:bg-card-dark sm:p-6"
+      >
+        <Markdown className={`${scrollX} text-lg leading-relaxed text-slate-900 dark:text-slate-100`}>{scenario.setup}</Markdown>
+        <Markdown className={`${scrollX} mt-4 text-xl font-semibold leading-snug text-slate-900 dark:text-slate-50`}>{scenario.ask}</Markdown>
       </div>
 
       <div className="flex flex-col gap-3" role="group" aria-label="Your call">
@@ -87,7 +102,7 @@ export function RoundView({ scenario, result, revealed, onAnswer }: Props) {
                 {state === 'right' || state === 'rising' ? <Check className="h-4 w-4" /> : state === 'wrong' ? <X className="h-4 w-4" /> : i + 1}
               </span>
               <span className="min-w-0 flex-1 break-words">
-                <Markdown className="leading-relaxed text-slate-900 dark:text-slate-100">{opt.label}</Markdown>
+                <Markdown className={`${scrollX} leading-relaxed text-slate-900 dark:text-slate-100`}>{opt.label}</Markdown>
                 {SR[state] && <span className="sr-only">{SR[state]}</span>}
               </span>
             </button>
@@ -95,14 +110,20 @@ export function RoundView({ scenario, result, revealed, onAnswer }: Props) {
         })}
       </div>
 
-      {result && (
-        <p role="status" className="sr-only">
-          {result.correct ? 'Correct.' : `Not quite. The answer is ${scenario.options.find((o) => o.correct)?.label ?? ''}.`}
-        </p>
-      )}
+      {/* Always mounted, so the verdict is announced when it is filled in (a live region added with its text often isn't). */}
+      <div role="status" className="sr-only">
+        {result?.correct && <p>Correct.</p>}
+        {result && !result.correct && right && (
+          <>
+            <p>Not quite. The answer is:</p>
+            {/* Rendered, so math is read out from KaTeX's MathML rather than as raw LaTeX. */}
+            <Markdown>{right.label}</Markdown>
+          </>
+        )}
+      </div>
 
       {result && revealed && (
-        <div ref={workingRef} className="scroll-mt-24">
+        <div ref={workingRef} tabIndex={-1} className="scroll-mb-32 scroll-mt-24 outline-none focus-visible:ring-0">
           <WorkingPanel scenario={scenario} chosen={result.chosen} />
         </div>
       )}

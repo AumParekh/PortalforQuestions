@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronDown, Home, RotateCcw, X } from 'lucide-react';
 import { Markdown } from '../components/Markdown';
 import { navigate } from '../lib/router';
@@ -7,7 +7,7 @@ import { useSenseRun } from './store';
 import type { SenseResult } from './store';
 import { MODES, MODE_LABEL } from './types';
 import type { Scenario } from './types';
-import { ModeTag, ReadingLine, Shell, btnPrimary, btnSecondary, card, linkButton } from './ui';
+import { ModeTag, ReadingLine, Shell, btnPrimary, btnSecondary, card, focusIfLost, linkButton, scrollX } from './ui';
 import { WorkingPanel } from './Working';
 
 function MissedRound({ scenario, result }: { scenario: Scenario; result: SenseResult }) {
@@ -20,24 +20,24 @@ function MissedRound({ scenario, result }: { scenario: Scenario; result: SenseRe
         <ModeTag mode={scenario.mode} />
         <ReadingLine scenario={scenario} />
       </div>
-      <Markdown className="mt-3 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-50">{scenario.ask}</Markdown>
+      <Markdown className={`${scrollX} mt-3 text-lg font-semibold leading-snug text-slate-900 dark:text-slate-50`}>{scenario.ask}</Markdown>
       <div className="mt-3 space-y-1.5 text-base">
         <div className="flex items-start gap-2 text-red-800 dark:text-red-300">
           <X className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="sr-only">Your call: </span>
-          <Markdown className="min-w-0 flex-1 leading-relaxed">{chosen?.label ?? ''}</Markdown>
+          <Markdown className={`${scrollX} min-w-0 flex-1 leading-relaxed`}>{chosen?.label ?? ''}</Markdown>
         </div>
         {right && (
           <div className="flex items-start gap-2 text-emerald-800 dark:text-emerald-300">
             <Check className="mt-1 h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="sr-only">Correct: </span>
-            <Markdown className="min-w-0 flex-1 leading-relaxed">{right.label}</Markdown>
+            <Markdown className={`${scrollX} min-w-0 flex-1 leading-relaxed`}>{right.label}</Markdown>
           </div>
         )}
       </div>
       {scenario.takeaway && (
         <div className="mt-3 rounded-xl bg-primary-50 px-3 py-2.5 dark:bg-primary/15">
-          <Markdown className="text-base leading-relaxed text-slate-900 dark:text-slate-50">{scenario.takeaway}</Markdown>
+          <Markdown className={`${scrollX} text-base leading-relaxed text-slate-900 dark:text-slate-50`}>{scenario.takeaway}</Markdown>
         </div>
       )}
       <div className="mt-2">
@@ -47,7 +47,7 @@ function MissedRound({ scenario, result }: { scenario: Scenario; result: SenseRe
         </button>
         {open && (
           <div className="mt-2 space-y-4">
-            <Markdown className="text-base leading-relaxed text-slate-800 dark:text-slate-200">{scenario.setup}</Markdown>
+            <Markdown className={`${scrollX} text-base leading-relaxed text-slate-800 dark:text-slate-200`}>{scenario.setup}</Markdown>
             <WorkingPanel scenario={{ ...scenario, takeaway: '' }} chosen={result.chosen} animate={false} />
           </div>
         )}
@@ -59,9 +59,12 @@ function MissedRound({ scenario, result }: { scenario: Scenario; result: SenseRe
 export function SummaryView() {
   const run = useSenseRun((s) => s.run);
   const counts = useMemo(() => countByMode(run?.results ?? []), [run]);
+  const headingRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0 });
+    // The round that had focus is gone (and time running out moves here unprompted): land on the verdict.
+    focusIfLost(headingRef.current);
   }, []);
 
   if (!run) return null;
@@ -75,7 +78,9 @@ export function SummaryView() {
     <Shell onBack={toIntro}>
       <div className="space-y-6">
         <section className={card}>
-          <h2 className="text-xl font-semibold">{run.timedOut ? 'Time’s up' : played < total ? 'Session ended' : 'Session done'}</h2>
+          <h2 ref={headingRef} tabIndex={-1} className="text-xl font-semibold outline-none focus-visible:ring-0">
+            {run.timedOut ? 'Time’s up' : played < total ? 'Session ended' : 'Session done'}
+          </h2>
           {/* One line, three separate counts: never a composite score. */}
           <p className="mt-3 text-lg font-semibold tabular-nums leading-relaxed text-slate-900 dark:text-slate-50">
             {MODES.map((m) => `${MODE_LABEL[m]} ${counts[m].total > 0 ? `${counts[m].correct}/${counts[m].total}` : '–'}`).join(' · ')}

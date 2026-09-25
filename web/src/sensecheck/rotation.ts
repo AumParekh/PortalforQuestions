@@ -232,14 +232,26 @@ export function planSession(
     usedSources.add(sourceKey(s));
     quota[s.mode]--;
   };
-  // Pass 1 keeps the mode mix; pass 2 tops up whatever the mix couldn't fill.
-  for (const respectQuota of [true, false]) {
+  const tierOf = (s: Scenario) => priorityTier(progress[s.id], options.today);
+  // The featured reading always supplies the first round, even when none of its scenarios is due.
+  const lead = byReading.get(featured)?.[0];
+  if (lead) take(lead);
+  // Pass 1 keeps the mode mix and skips scenarios already seen and not due, so a due or weak scenario from a later
+  // reading beats a merely-seen one from an earlier reading; pass 2 lets those in; pass 3 tops up whatever the mix
+  // couldn't fill.
+  const passes: { respectQuota: boolean; minTier: number }[] = [
+    { respectQuota: true, minTier: 2 },
+    { respectQuota: true, minTier: 0 },
+    { respectQuota: false, minTier: 0 },
+  ];
+  for (const { respectQuota, minTier } of passes) {
     for (const r of order) {
       for (const s of byReading.get(r) ?? []) {
         if (picked.length >= size) break;
         // Rounds built on the same question would give each other's answers away.
         if (usedIds.has(s.id) || usedSources.has(sourceKey(s))) continue;
         if (respectQuota && quota[s.mode] <= 0) continue;
+        if (tierOf(s) < minTier) continue;
         take(s);
       }
     }

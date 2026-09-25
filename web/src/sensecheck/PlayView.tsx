@@ -49,6 +49,18 @@ export function PlayView() {
     window.scrollTo({ top: 0 });
   }, [index, run?.sessionId]);
 
+  // The session survives leaving the screen; its clock doesn't run while the screen is gone or the tab is hidden.
+  useEffect(() => {
+    const store = useSenseRun.getState();
+    const onVisibility = () => (document.visibilityState === 'hidden' ? store.suspend() : store.resume());
+    store.resume();
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      store.suspend();
+    };
+  }, []);
+
   // Clock out while a round waits for an answer: the session ends there.
   useEffect(() => {
     if (ticking && left <= 0) useSenseRun.getState().finish(true);
@@ -57,8 +69,8 @@ export function PlayView() {
   const answer = useCallback(
     (i: number) => {
       if (result || !scenario?.options[i]) return;
-      haptic(scenario.options[i].correct ? 15 : [30, 40, 30]);
-      useSenseRun.getState().answer(i);
+      // The store is the single gate: a second tap or key in the same frame is ignored there.
+      if (useSenseRun.getState().answer(i)) haptic(scenario.options[i].correct ? 15 : [30, 40, 30]);
     },
     [result, scenario],
   );
@@ -101,6 +113,7 @@ export function PlayView() {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-surface-light/85 pt-[env(safe-area-inset-top)] backdrop-blur-md dark:border-slate-700 dark:bg-surface-dark/85">
         <div className="mx-auto flex w-full max-w-[720px] items-center gap-2 px-4 py-1">
+          <h1 className="sr-only">Sense Check</h1>
           <button
             type="button"
             onClick={leave}

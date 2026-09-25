@@ -6,7 +6,7 @@ import { QuestionCard } from '../components/QuestionCard';
 import { useContent } from '../store/content';
 import type { AnswerRecord } from '../types';
 import type { Scenario } from './types';
-import { linkButton, prefersReducedMotion } from './ui';
+import { linkButton, prefersReducedMotion, scrollX } from './ui';
 
 /** Delay between working steps as they unfold. */
 const STEP_MS = 240;
@@ -51,9 +51,15 @@ export function WorkingPanel({ scenario, chosen, animate = true }: { scenario: S
     <div className="space-y-4">
       {missed && wrong && (
         <Appear className="rounded-xl border border-red-600/30 bg-red-50 p-3 dark:border-red-500/30 dark:bg-red-950/30">
-          <p className="break-words text-[15px] font-semibold text-red-800 dark:text-red-200">Why not “{wrong.label}”</p>
+          {/* The label is Markdown (it can hold $…$ math), so it is rendered, not printed raw. */}
+          <div className="flex flex-wrap items-baseline text-[15px] font-semibold text-red-800 dark:text-red-200">
+            <span className="mr-1">Why not</span>
+            <span aria-hidden="true">“</span>
+            <Markdown className={`${scrollX} min-w-0 [&_p]:inline`}>{wrong.label}</Markdown>
+            <span aria-hidden="true">”</span>
+          </div>
           {wrong.why ? (
-            <Markdown className="mt-1 text-base leading-relaxed text-slate-900 dark:text-slate-100">{wrong.why}</Markdown>
+            <Markdown className={`${scrollX} mt-1 text-base leading-relaxed text-slate-900 dark:text-slate-100`}>{wrong.why}</Markdown>
           ) : (
             <p className="mt-1 text-base leading-relaxed text-slate-900 dark:text-slate-100">The working below shows where it lands.</p>
           )}
@@ -69,9 +75,7 @@ export function WorkingPanel({ scenario, chosen, animate = true }: { scenario: S
               <li key={i}>
                 <Appear>
                   {step.label && <p className="break-words text-[15px] font-semibold text-primary-700 dark:text-primary-100">{step.label}</p>}
-                  <div className="overflow-x-auto">
-                    <Markdown className="text-base leading-relaxed text-slate-900 dark:text-slate-100">{step.display}</Markdown>
-                  </div>
+                  <Markdown className={`${scrollX} text-base leading-relaxed text-slate-900 dark:text-slate-100`}>{step.display}</Markdown>
                 </Appear>
               </li>
             ))}
@@ -82,7 +86,7 @@ export function WorkingPanel({ scenario, chosen, animate = true }: { scenario: S
       {done && scenario.takeaway && (
         <Appear className="flex gap-2 rounded-xl bg-primary-50 px-3 py-2.5 dark:bg-primary/15">
           <Lightbulb className="mt-1 h-4 w-4 shrink-0 text-primary-700 dark:text-primary-100" aria-hidden="true" />
-          <Markdown className="min-w-0 flex-1 text-base leading-relaxed text-slate-900 dark:text-slate-50">{scenario.takeaway}</Markdown>
+          <Markdown className={`${scrollX} min-w-0 flex-1 text-base leading-relaxed text-slate-900 dark:text-slate-50`}>{scenario.takeaway}</Markdown>
         </Appear>
       )}
 
@@ -104,7 +108,8 @@ export function SourceQuestion({ questionId }: { questionId: string }) {
         <ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
       {open && (
-        <div className="mt-2 space-y-4">
+        // Read-only: the correct option is shown and nothing here records an answer or starts a session.
+        <div className={`${scrollX} mt-2 space-y-4`}>
           <p className="text-[15px] text-slate-600 dark:text-slate-400">
             {question.id} · {question.subject}
           </p>

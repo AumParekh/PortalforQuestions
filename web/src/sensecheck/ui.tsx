@@ -12,6 +12,16 @@ export const btnSecondary =
 export const linkButton =
   '-ml-2 inline-flex min-h-[44px] items-center gap-1.5 rounded-lg px-2 text-[15px] font-semibold text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15';
 export const card = 'rounded-2xl bg-card-light p-5 shadow-sm dark:bg-card-dark sm:p-6';
+/** For rendered content: a formula wider than the screen scrolls inside its own box, never the page. */
+export const scrollX = 'max-w-full overflow-x-auto overflow-y-hidden';
+
+/** Moves focus to `el` when the previous focus was lost (unmounted, disabled, or on the page body), so keyboard and screen-reader users keep their place. */
+export function focusIfLost(el: HTMLElement | null) {
+  if (!el) return;
+  const active = document.activeElement;
+  const lost = !active || active === document.body || !active.isConnected || (active instanceof HTMLButtonElement && active.disabled);
+  if (lost) el.focus({ preventScroll: true });
+}
 
 export function prefersReducedMotion(): boolean {
   try {
