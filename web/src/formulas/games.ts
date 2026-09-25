@@ -97,7 +97,8 @@ export function canPlay(game: FormulaGame, f: Formula, index: DeckIndex, opts: {
     case 'memory':
       return opts.numbers ? f.worked.some((w) => w.display.length <= MAX_WORKED_CHARS) || exampleLine(f) !== null : f.variables.length > 0;
     case 'repair':
-      return f.corruptions.some((c) => c.repair) || (f.skeleton !== '' && f.decoys.length > 0);
+      // The fallback needs a decoy to break a slot with and at least one other tile to offer beside the fix.
+      return f.corruptions.some((c) => c.repair) || (f.skeleton !== '' && f.decoys.length > 0 && f.decoys.length + f.slots.length >= 3);
     case 'auction':
       return f.variables.length > 0 && hasAuctionDistractors(f, index);
   }

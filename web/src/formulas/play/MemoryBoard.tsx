@@ -12,6 +12,19 @@ import { VariableList, Verdict, card } from '../ui';
 
 const MISMATCH_MS = 800;
 
+/**
+ * Board progress by round key, so leaving the Formula Gym mid-board and coming back resumes it instead of
+ * dealing a fresh board whose pairs would be logged a second time.
+ */
+interface BoardProgress {
+  matched: string[];
+  seen: string[];
+  errored: string[];
+  startedAt: number;
+  done: boolean;
+}
+const boards = new Map<string, BoardProgress>();
+
 const FACE_LABEL: Record<MemoryCard['face'], string> = { formula: 'Formula', key: 'Key', number: 'Number' };
 
 function FaceIcon({ face, className }: { face: MemoryCard['face']; className: string }) {
@@ -38,15 +51,24 @@ export function MemoryBoard({
   result?: RoundResult;
   timeUp: boolean;
 }) {
+  const saved = useRef<BoardProgress>(
+    boards.get(round.key) ?? {
+      matched: result ? result.items.filter((i) => i.correct).map((i) => i.id) : [],
+      seen: [],
+      errored: [],
+      startedAt: performance.now(),
+      done: !!result,
+    },
+  ).current;
   const [up, setUp] = useState<number[]>([]);
-  const [matched, setMatched] = useState<string[]>(() => (result ? result.items.filter((i) => i.correct).map((i) => i.id) : []));
-  const [seen, setSeen] = useState<string[]>([]);
-  const [errored, setErrored] = useState<string[]>([]);
+  const [matched, setMatched] = useState<string[]>(saved.matched);
+  const [seen, setSeen] = useState<string[]>(saved.seen);
+  const [errored, setErrored] = useState<string[]>(saved.errored);
   const [tray, setTray] = useState<number[]>([]);
   const [locked, setLocked] = useState(false);
-  const shownAt = useRef(performance.now());
+  const shownAt = useRef(saved.startedAt);
   const holdTimer = useRef<number | null>(null);
-  const done = useRef(!!result);
+  const done = useRef(saved.done || !!result);
   const total = round.ids.length;
 
   useEffect(
@@ -55,6 +77,11 @@ export function MemoryBoard({
     },
     [],
   );
+
+  useEffect(() => {
+    if (boards.size > 4) boards.clear();
+    boards.set(round.key, { matched, seen, errored, startedAt: shownAt.current, done: done.current });
+  }, [round.key, matched, seen, errored]);
 
   const log = (id: string, correct: boolean, grade: number) => {
     const run = useGymRun.getState().run;
@@ -80,6 +107,8 @@ export function MemoryBoard({
     const unmatchedErrors = erroredNow.filter((id) => !matchedNow.includes(id));
     for (const id of unmatchedErrors) log(id, false, 1);
     const items = [...matchedNow.map((id) => ({ id, correct: !erroredNow.includes(id) })), ...unmatchedErrors.map((id) => ({ id, correct: false }))];
+    const saved = boards.get(round.key);
+    if (saved) saved.done = true;
     useGymRun.getState().answer({
       key: round.key,
       game: 'memory',
@@ -90,11 +119,13 @@ export function MemoryBoard({
   };
 
   useEffect(() => {
-    if (timeUp && !done.current) {
-      if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
-      setLocked(true);
-      finish(matched, errored);
-    }
+    if (!timeUp) return;
+    if (holdTimer.current !== null) window.clearTimeout(holdTimer.current);
+    setLocked(true);
+    if (done.current) return;
+    // The clock beat the board: log what's left and end the session. (A cleared board waits for Next.)
+    finish(matched, errored);
+    useGymRun.getState().finish(true);
     // Runs once when the clock hits zero; finish() reads the latest state from this render.
   }, [timeUp]);
 

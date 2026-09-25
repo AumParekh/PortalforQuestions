@@ -9,6 +9,7 @@ import {
   Check,
   ChevronDown,
   Dumbbell,
+  Gauge,
   Gavel,
   Grid3x3,
   Hammer,
@@ -449,6 +450,22 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
               );
             })}
           </ul>
+          {/* Sibling game with its own deck and route. */}
+          <button
+            type="button"
+            onClick={() => navigate('/sense')}
+            className="flex min-h-[72px] w-full items-start gap-3 rounded-xl border border-slate-200 bg-card-light px-3 py-2.5 text-left hover:bg-slate-50 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-800"
+          >
+            <span className="mt-0.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-slate-800 dark:text-primary-100">
+              <Gauge className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">Sense Check</span>
+              <span className="block text-[15px] leading-snug text-slate-600 dark:text-slate-400">
+                Size and sign an answer before computing it: direction, magnitude and intermediate calls. 3 min · 10 rounds.
+              </span>
+            </span>
+          </button>
         </section>
 
         {mode === 'memory' && (

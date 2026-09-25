@@ -83,11 +83,12 @@ export function PlayView() {
     window.scrollTo({ top: 0 });
   }, [index, run?.sessionId]);
 
-  // Clock out: end the session, once a Memory board has logged what it saw.
+  // Clock out: end the session unless every round is already answered (then Next still leads to the results).
+  // A Memory board ends itself, once it has logged what it saw.
   useEffect(() => {
-    if (!timeUp || !round) return;
-    if (round.game !== 'memory' || result) useGymRun.getState().finish(true);
-  }, [timeUp, round, result]);
+    if (!timeUp || !round || round.game === 'memory' || answered >= total) return;
+    useGymRun.getState().finish(true);
+  }, [timeUp, round, answered, total]);
 
   // Timed games keep moving after a right answer.
   useEffect(() => {

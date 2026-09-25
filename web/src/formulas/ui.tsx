@@ -39,14 +39,18 @@ export function isActivatable(el: EventTarget | null): boolean {
   return el instanceof HTMLElement && !!el.closest('button, a, summary, [role="button"]');
 }
 
-/** Window keydown handler while `active`; ignores modified keys and typing in fields. */
+/**
+ * Window keydown handler while `active`; ignores modified keys, typing in fields, auto-repeat (a held Enter
+ * must not answer the next round too) and Enter/Space on a focused button, which the button itself handles.
+ */
 export function useKeys(handler: (e: KeyboardEvent) => void, active: boolean) {
   const ref = useRef(handler);
   ref.current = handler;
   useEffect(() => {
     if (!active) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || isTypingTarget(e.target)) return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || isTypingTarget(e.target)) return;
+      if ((e.key === 'Enter' || e.key === ' ') && isActivatable(e.target)) return;
       ref.current(e);
     };
     window.addEventListener('keydown', onKey);

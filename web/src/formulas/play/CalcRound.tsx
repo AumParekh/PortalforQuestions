@@ -30,7 +30,9 @@ export function CalcRound({ round, formula, result }: { round: Extract<Round, { 
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (result) return;
-    const v = parseAnswer(text);
+    const parsed = parseAnswer(text);
+    // "5%" typed for an answer asked as a decimal means 0.05.
+    const v = parsed !== null && text.includes('%') && (!unit.trim() || /\bdecimal\b|probability/i.test(unit)) ? parsed / 100 : parsed;
     if (v === null) {
       setError('Enter a number, e.g. 12.5');
       return;
@@ -65,7 +67,7 @@ export function CalcRound({ round, formula, result }: { round: Extract<Round, { 
           {suffix.trim() && <span> in {unit}</span>}.
         </p>
         <p className="text-[15px] text-slate-600 dark:text-slate-400">
-          {unit.toLowerCase() === 'decimal' ? 'As a decimal, ' : ''}
+          {/\bdecimal\b/i.test(unit) ? 'As a decimal, ' : ''}
           {decimals === 0 ? 'to a whole number' : `to ${decimals} decimal ${decimals === 1 ? 'place' : 'places'}`}. Within 1% counts.
         </p>
 

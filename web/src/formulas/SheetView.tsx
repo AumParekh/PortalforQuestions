@@ -103,7 +103,7 @@ export function SheetView({ formulas, initialArea }: { formulas: Formula[]; init
                 key={a.code}
                 type="button"
                 aria-pressed={area === a.code}
-                aria-label={a.name}
+                aria-label={`${a.name} (${a.code})`}
                 onClick={() => {
                   setArea(a.code);
                   window.scrollTo({ top: 0 });

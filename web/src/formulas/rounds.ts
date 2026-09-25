@@ -65,8 +65,9 @@ export function withinTolerance(given: number, answer: number, decimals: number)
 
 /** Parses typed numbers leniently: spaces, thousands commas, a decimal comma and a trailing % or unit. */
 export function parseAnswer(raw: string): number | null {
-  let s = raw.trim().replace(/\s+/g, '').replace(/[%$€£]/g, '').replace(/[−–]/g, '-');
-  if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, '');
+  let s = raw.trim().replace(/\s+/g, '').replace(/[%$€£]/g, '').replace(/[−–]/g, '-').replace(/^\+/, '');
+  // "1,234" groups thousands, but "0,125" is a decimal comma (no number is written with a leading 0 group).
+  if (/^-?[1-9]\d{0,2}(,\d{3})+(\.\d+)?$/.test(s)) s = s.replace(/,/g, '');
   else if (/^-?\d*,\d+$/.test(s)) s = s.replace(',', '.');
   if (!/^-?(\d+\.?\d*|\.\d+)(e-?\d+)?$/i.test(s)) return null;
   const v = Number(s);
@@ -133,6 +134,17 @@ function repairCategory(f: Formula, bad: string, fix: string, index: DeckIndex):
   return symbols.has(b) ? 'Sibling' : 'Formula';
 }
 
+/** How alike two tiles are in kind: same symbol base, both operators/functions, or both signs. */
+function kinship(a: string, b: string): number {
+  const na = normTex(a);
+  const nb = normTex(b);
+  if (SIGNS.has(na) && SIGNS.has(nb)) return 3;
+  const command = /^\\[A-Za-z]+$/;
+  if (command.test(na) && command.test(nb)) return 2;
+  if (symbolBase(na) === symbolBase(nb)) return 2;
+  return /[A-Za-z]/.test(na) === /[A-Za-z]/.test(nb) ? 1 : 0;
+}
+
 function buildRepair(f: Formula, index: DeckIndex): Round | null {
   const fromData = shuffle(f.corruptions.filter((c) => c.repair));
   for (const c of fromData) {
@@ -144,11 +156,15 @@ function buildRepair(f: Formula, index: DeckIndex): Round | null {
   }
   // Fallback: a decoy dropped into one slot of the skeleton is the broken element.
   if (!f.skeleton || f.decoys.length === 0) return null;
-  const slotNums = skeletonSlots(f.skeleton);
-  for (const n of shuffle(slotNums)) {
+  // A decoy that could pass for the slot's piece (P_{t+1} for P_t, \exp for \ln, − for +) makes a believable
+  // break; an unrelated one (\exp where a price belongs) doesn't, so those come last.
+  const pairs: { n: number; fix: string; bad: string; score: number }[] = [];
+  for (const n of skeletonSlots(f.skeleton)) {
     const fix = f.slots[n - 1];
-    const bad = pickOne(f.decoys.filter((d) => normTex(d) !== normTex(fix)));
-    if (!bad) continue;
+    for (const bad of f.decoys) if (normTex(bad) !== normTex(fix)) pairs.push({ n, fix, bad, score: kinship(fix, bad) + Math.random() });
+  }
+  pairs.sort((a, b) => b.score - a.score);
+  for (const { n, fix, bad } of pairs.slice(0, 12)) {
     const marked = f.skeleton.replace(/\{\{(\d+)\}\}/g, (_, d: string) => (Number(d) === n ? '{{bad}}' : `{${f.slots[Number(d) - 1]}}`));
     const pool = [...f.decoys, ...f.slots].filter((t) => normTex(t) !== normTex(fix) && normTex(t) !== normTex(bad));
     const distractors = shuffle([...new Map(pool.map((t) => [normTex(t), t])).values()]).slice(0, 3);

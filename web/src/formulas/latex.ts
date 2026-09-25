@@ -25,17 +25,22 @@ const RELATIONS = ['\\approx', '\\equiv', '\\simeq', '\\propto'];
 export function splitEquation(latex: string): { lhs: string; op: string; rhs: string } | null {
   if (/\\begin\{/.test(latex)) return null;
   let depth = 0;
+  // \left( … \right) and \bigl[ … \bigr] pairs: a relation inside one must not split the formula.
+  let fences = 0;
   for (let i = 0; i < latex.length; i++) {
     const c = latex[i];
     if (c === '\\') {
+      const name = /^\\([A-Za-z]+)/.exec(latex.slice(i))?.[1];
+      if (name === 'left' || /^(big|Big|bigg|Bigg)l$/.test(name ?? '')) fences++;
+      else if (name === 'right' || /^(big|Big|bigg|Bigg)r$/.test(name ?? '')) fences--;
       const cmd = RELATIONS.find((r) => latex.startsWith(r, i) && !/[A-Za-z]/.test(latex[i + r.length] ?? ''));
-      if (cmd && depth === 0) return parts(latex.slice(0, i), cmd, latex.slice(i + cmd.length));
-      i++;
+      if (cmd && depth === 0 && fences === 0) return parts(latex.slice(0, i), cmd, latex.slice(i + cmd.length));
+      i += name ? name.length : 1;
       continue;
     }
     if (c === '{') depth++;
     else if (c === '}') depth--;
-    else if (c === '=' && depth === 0) {
+    else if (c === '=' && depth === 0 && fences === 0) {
       // `:=` keeps the colon with the operator.
       if (latex[i - 1] === ':') return parts(latex.slice(0, i - 1), ':=', latex.slice(i + 1));
       return parts(latex.slice(0, i), '=', latex.slice(i + 1));
@@ -187,25 +192,49 @@ export function highlightChange(right: string, wrong: string): string | null {
     endB--;
   }
   if (sb.length === 0) return null;
-  // Widen the span one token each side until it wraps cleanly (\frac{N}{T} → \frac{T}{N} marks the whole
-  // fraction); give up once it would cover most of the formula, where a highlight says nothing. A pure
-  // deletion (nothing in `wrong` differs) marks the tokens either side of the gap.
-  let lo = endB > start ? start : Math.max(0, start - 1);
-  let hi = endB > start ? endB : Math.min(sb.length, start + 1);
-  for (;;) {
-    const from = sb[lo];
-    const to = sb[hi - 1] + 1;
-    const changed = b.slice(from, to);
-    // Wrapping the arguments of \frac & co. into one group would starve the command of its second argument.
-    if (balanced(changed) && cleanCut(b[sb[lo - 1]], changed, b[sb[hi]])) {
+  // The smallest span around the change that wraps cleanly (\frac{N}{T} → \frac{T}{N} marks the whole
+  // fraction; a term dropped from a numerator marks that numerator). Spans grow in either direction
+  // independently, and we give up once one would cover most of the formula, where a highlight says nothing.
+  // A pure deletion (nothing in `wrong` differs) marks what sits next to the gap.
+  let baseLo = start;
+  let baseHi = endB;
+  if (endB <= start) {
+    // Deletion: at the end of a group mark what's left before the gap, at its start what follows it.
+    const before = b[sb[start - 1]];
+    const after = b[sb[start]];
+    // Group edges: braces, and the delimiter of a sized pair (\left[ … \right]).
+    const opens = before === undefined || before === '{' || DELIMITER_SIZES.has(b[sb[start - 2]]);
+    const closes = after === undefined || after === '}' || DELIMITER_SIZES.has(after);
+    if (start > 0 && closes) {
+      baseLo = start - 1;
+      baseHi = start;
+    } else if (start < sb.length && opens) {
+      baseLo = start;
+      baseHi = start + 1;
+    } else {
+      baseLo = Math.max(0, start - 1);
+      baseHi = Math.min(sb.length, start + 1);
+    }
+    // A lone subscript says little (the t of P_t): take its base along.
+    while (baseLo >= 2 && (b[sb[baseLo - 1]] === '_' || b[sb[baseLo - 1]] === '^')) baseLo -= 2;
+  }
+  const maxSize = Math.max(baseHi - baseLo, Math.floor(sb.length * 0.7));
+  let renders = 0;
+  for (let size = baseHi - baseLo; size <= maxSize; size++) {
+    for (let lo = Math.max(0, baseHi - size); lo <= baseLo; lo++) {
+      const hi = lo + size;
+      if (hi > sb.length) break;
+      const from = sb[lo];
+      const to = sb[hi - 1] + 1;
+      const changed = b.slice(from, to);
+      // Wrapping the arguments of \frac & co. into one group would starve the command of its second argument.
+      if (!balanced(changed) || !cleanCut(b[sb[lo - 1]], changed, b[sb[hi]])) continue;
       const out = join([...b.slice(0, from), `{\\textcolor{${TEX_RED}}{`, ...changed, '}}', ...b.slice(to)]);
       if (texValid(out)) return out;
+      if (++renders >= 40) return null;
     }
-    if (lo === 0 && hi === sb.length) return null;
-    if (lo > 0) lo--;
-    if (hi < sb.length) hi++;
-    if ((hi - lo) / sb.length > 0.7) return null;
   }
+  return null;
 }
 
 const TEXT_COMMANDS = new Set(['\\text', '\\textrm', '\\textit', '\\textbf', '\\mathrm', '\\mathit', '\\mathbf', '\\operatorname']);

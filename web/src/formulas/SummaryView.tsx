@@ -68,7 +68,8 @@ export function SummaryView() {
   if (!run) return null;
 
   const accuracy = summary.answers > 0 ? summary.right / summary.answers : null;
-  const outOfTime = run.timedOut && run.results.length < run.rounds.length;
+  // A Memory board is one round that is always answered, so for it timedOut alone means the clock beat the board.
+  const outOfTime = run.timedOut && (run.results.length < run.rounds.length || run.mode === 'memory');
   const title = run.mode === 'workout' ? 'Workout' : GAME_BY_ID[run.mode].label;
 
   const drillAgain = () => {

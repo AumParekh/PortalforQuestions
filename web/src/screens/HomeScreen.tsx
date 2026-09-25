@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
+import { BarChart3, BookOpen, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
@@ -368,6 +368,12 @@ export function HomeScreen() {
             title="Formula Gym"
             detail={formulasDue > 0 ? `${formulasDue} ${formulasDue === 1 ? 'formula' : 'formulas'} due for review` : 'Recall, rebuild and apply every formula in the notes'}
             onClick={() => navigate('/formulas')}
+          />
+          <QuickAction
+            icon={<Gauge className="h-5 w-5" aria-hidden="true" />}
+            title="Sense Check"
+            detail="3-minute rounds: size and sign an answer before computing it"
+            onClick={() => navigate('/sense')}
           />
           <QuickAction
             icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />}

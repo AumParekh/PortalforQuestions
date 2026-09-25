@@ -79,7 +79,10 @@ function repairOf(v: unknown): FormulaRepair | null {
   const fix = str(v.fix);
   if (!marked.includes('{{bad}}') || !bad || !fix || normTex(bad) === normTex(fix)) return null;
   const category = CATEGORIES.find((c) => c.toLowerCase() === str(v.category).toLowerCase()) ?? 'Formula';
-  return { marked, bad, fix, distractors: dedupe(strings(v.distractors), [fix]), category };
+  // The broken piece itself and the fix are never distractors; with none left there is nothing to choose between.
+  const distractors = dedupe(strings(v.distractors), [fix, bad]);
+  if (distractors.length === 0) return null;
+  return { marked, bad, fix, distractors, category };
 }
 
 function calcOf(v: unknown): FormulaCalc | null {

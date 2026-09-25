@@ -63,7 +63,7 @@ export function isDue(state: GymState | undefined, today = localDay()): boolean 
   return !!state?.dueDate && state.dueDate <= today;
 }
 
-/** Mastered = passed at least three spaced reviews in a row and last answered correctly. */
+/** Mastered = passed at least three spaced (due) reviews in a row and last answered correctly. */
 export function isMastered(state: GymState | undefined): boolean {
   return !!state && state.repetition >= 3 && state.lastResult === 'correct';
 }
@@ -133,13 +133,19 @@ export const useGym = create<GymStore>((set, get) => ({
     for (const a of answers) {
       const prev = states[a.itemId] ?? blankState(a.itemId, a.kind, a.readingId);
       const grade = Math.min(5, Math.max(0, Math.round(a.grade)));
-      const next = sm2(prev, grade);
+      // Only a review that is due (or the first sighting) moves the schedule forward. A correct answer before the
+      // due date (the same formula met again in another game, "Drill these again") keeps the schedule as it is,
+      // so a burst of answers in one sitting can't jump the interval or mark a formula mastered. A miss always
+      // starts it over.
+      const early = !!prev.dueDate && prev.dueDate > today;
+      const next: Schedule =
+        early && grade >= 3 ? { repetition: prev.repetition, interval: prev.interval, efactor: prev.efactor } : sm2(prev, grade);
       const state: GymState = {
         ...prev,
         kind: a.kind,
         readingId: a.readingId || prev.readingId,
         ...next,
-        dueDate: addDays(today, next.interval),
+        dueDate: early && grade >= 3 ? prev.dueDate : addDays(today, next.interval),
         totalAttempts: prev.totalAttempts + 1,
         totalCorrect: prev.totalCorrect + (a.correct ? 1 : 0),
         totalWrong: prev.totalWrong + (a.correct ? 0 : 1),

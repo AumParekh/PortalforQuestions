@@ -12,6 +12,7 @@ import { DevLongestScreen } from './screens/DevLongestScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
 import { TrueFalseScreen } from './screens/TrueFalseScreen';
 import { FormulaGymScreen } from './formulas/FormulaGymScreen';
+import { SenseCheckScreen } from './sensecheck/SenseCheckScreen';
 import { AnalyticsScreen } from './screens/AnalyticsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { useTf } from './store/tf';
@@ -99,6 +100,8 @@ function Routes() {
       return <TrueFalseScreen />;
     case '/formulas':
       return <FormulaGymScreen />;
+    case '/sense':
+      return <SenseCheckScreen />;
     case '/analytics':
       return <AnalyticsScreen />;
     case '/settings':

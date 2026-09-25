@@ -4,7 +4,8 @@ import type { Formula } from './types';
 
 export function unitSuffix(unit: string): string {
   const u = unit.trim();
-  if (!u || u.toLowerCase() === 'decimal') return '';
+  // "decimal", "per year (decimal)": a plain number, no suffix.
+  if (!u || /\bdecimal\b/i.test(u)) return '';
   return u === '%' ? '%' : ` ${u}`;
 }
 

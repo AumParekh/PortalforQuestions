@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { highlightChange } from '../latex';
 import type { Round } from '../rounds';
@@ -25,7 +25,8 @@ function kindLabel(kind: string): string {
 
 /** A wrong version with its changed piece in red, the kind of error and why it's wrong. */
 export function WhyWrong({ formula, corruption }: { formula: Formula; corruption: FormulaCorruption }) {
-  const marked = highlightChange(formula.latex, corruption.latex) ?? corruption.latex;
+  // Token diffing plus KaTeX checks: worth keeping out of every re-render.
+  const marked = useMemo(() => highlightChange(formula.latex, corruption.latex) ?? corruption.latex, [formula.latex, corruption.latex]);
   return (
     <div className="space-y-1">
       <Tex latex={marked} display />

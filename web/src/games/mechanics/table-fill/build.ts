@@ -115,7 +115,7 @@ export function stripEnumerator(cell: string): string {
 }
 
 /** Headers of two side-by-side lists rather than one row per thing (the pairing across a row means nothing). */
-const LIST_HEADER = /\b(advantages?|disadvantages?|pros|cons|benefits?|drawbacks?|strengths?|weaknesse?s?|limitations?)\b/i;
+const LIST_HEADER = /\b(advantages?|disadvantages?|pros|cons|benefits?|drawbacks?|strengths?|weaknesse?s?|limitations?|challenges?|costs?|risks?|opportunities|threats)\b/i;
 
 export interface GridRow {
   /** Row sub-item ID; null when the extractor gave none (display only). */
@@ -125,6 +125,20 @@ export interface GridRow {
   group: string | null;
   /** Cell count matched the headers, so the row can be played. */
   aligned: boolean;
+}
+
+/**
+ * A grid of figures indexed by numbers (years, days, horizons) or wider than six columns — a
+ * transition matrix, a worked calculation — is an exhibit to read, not a table to recall.
+ */
+function isExhibit(headers: readonly string[], grid: readonly GridRow[], eligible: readonly EligibleRow[]): boolean {
+  const liftable = eligible.flatMap((e) => e.blankable.map((c) => e.cells[c]));
+  if (liftable.length === 0 || liftable.filter(isBareNumber).length < liftable.length * 0.6) return false;
+  const mostly = (xs: readonly string[]) => {
+    const filled = xs.filter((x) => normCell(x));
+    return filled.length > 0 && filled.filter(isBareNumber).length * 2 > filled.length;
+  };
+  return headers.length >= 7 || mostly(headers.slice(1)) || mostly(grid.map((g) => g.cells[0] ?? ''));
 }
 
 export interface EligibleRow {
@@ -167,7 +181,6 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
       const rawHeaders = tableHeaders(b);
       const headed = rawHeaders.map((h, i) => (h.trim() ? i : -1)).filter((i) => i >= 0);
       if (rawHeaders.length < 2 || headed.length < 2) continue;
-      if (headed.every((i) => LIST_HEADER.test(toDisplay(rawHeaders[i])))) continue;
       const rows = validRows(b);
       const width = Math.max(rawHeaders.length, ...rows.map((r) => r.cells.length));
       const headers = [...rawHeaders, ...new Array<string>(width - rawHeaders.length).fill('')];
@@ -185,7 +198,10 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
         const col = grid.filter((g) => g.aligned && normCell(g.cells[c])).map((g) => g.cells[c]);
         return col.length >= 2 && col.filter((x) => ENUMERATOR.test(x)).length * 2 >= col.length;
       });
-      if (headed.every((c) => enumerated[c])) continue;
+      // Side-by-side lists: every column in use is a list heading or a numbered list, with no row-label column.
+      const used = headers.map((_, c) => c).filter((c) => grid.some((g) => normCell(g.cells[c])));
+      if (used.every((c) => LIST_HEADER.test(toDisplay(headers[c])))) continue;
+      if (used.every((c) => enumerated[c])) continue;
       for (const g of grid) g.cells = g.cells.map((x, c) => (enumerated[c] ? stripEnumerator(x) : x));
       const eligible: EligibleRow[] = [];
       grid.forEach((g, index) => {
@@ -194,6 +210,7 @@ export function eligibleTables(reading: Reading): EligibleTable[] {
         if (blankable.length) eligible.push({ id: g.id, index, cells: g.cells, blankable });
       });
       if (eligible.reduce((n, e) => n + rowCapacity(e), 0) < MIN_SHEET_BLANKS) continue;
+      if (isExhibit(headers, grid, eligible)) continue;
       out.push({ block: b, objectiveId: o.id, headers, grid, eligible });
     }
   }

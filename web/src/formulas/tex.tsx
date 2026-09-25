@@ -18,7 +18,12 @@ export function renderTex(latex: string, display: boolean): string {
   try {
     html = katex.renderToString(latex, { displayMode: display, throwOnError: true, strict: 'ignore' });
   } catch {
-    html = katex.renderToString(latex, { displayMode: display, throwOnError: false, strict: 'ignore' });
+    try {
+      html = katex.renderToString(latex, { displayMode: display, throwOnError: false, strict: 'ignore' });
+    } catch {
+      // Only non-parse failures get here; show the source rather than take the screen down.
+      html = `<code>${latex.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code>`;
+    }
   }
   if (cache.size >= CACHE_MAX) cache.clear();
   cache.set(key, html);
