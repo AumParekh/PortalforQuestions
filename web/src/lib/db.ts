@@ -1,8 +1,9 @@
-import type { AttemptRecord, GymAttempt, GymState, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
+import type { AttemptRecord, GymAttempt, GymState, MockResult, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
 
 const DB_NAME = 'frm-portal';
-// v2 adds the True/False stores, v3 the gym stores (Formula Gym and siblings); upgrades create only what's missing, so older data is kept.
-const DB_VERSION = 3;
+// v2 adds the True/False stores, v3 the gym stores (Formula Gym and siblings), v4 mock exam results; upgrades create
+// only what's missing, so older data is kept.
+const DB_VERSION = 4;
 
 export type StoreName =
   | 'questionState'
@@ -12,7 +13,8 @@ export type StoreName =
   | 'tfState'
   | 'tfAttempts'
   | 'gymState'
-  | 'gymAttempts';
+  | 'gymAttempts'
+  | 'mockResults';
 
 interface StoreValue {
   questionState: QuestionState;
@@ -23,6 +25,7 @@ interface StoreValue {
   tfAttempts: TFAttempt;
   gymState: GymState;
   gymAttempts: GymAttempt;
+  mockResults: MockResult;
 }
 
 let dbPromise: Promise<IDBDatabase> | null = null;
@@ -101,6 +104,9 @@ export function openDb(): Promise<IDBDatabase> {
         const s = db.createObjectStore('gymAttempts', { keyPath: 'attemptId' });
         s.createIndex('itemId', 'itemId');
         s.createIndex('timestamp', 'timestamp');
+      }
+      if (!db.objectStoreNames.contains('mockResults')) {
+        db.createObjectStore('mockResults', { keyPath: 'resultId' });
       }
     };
     req.onsuccess = () => {

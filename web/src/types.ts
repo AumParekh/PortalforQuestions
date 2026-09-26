@@ -42,6 +42,10 @@ export interface Question {
   optionAnalysis: Partial<Record<OptionKey, OptionVerdict>>;
   trap: { operators: TrapOperator[]; explanation: string };
   notes: { added: boolean; typeMismatch: boolean; loType: LoType };
+  /** Mock files only: the question's number in the paper (1-based). */
+  number?: number;
+  /** Mock files only, when the source gives one (e.g. "easy", "medium", "hard"). */
+  difficulty?: string;
   /** Set by the loader: the content file this question came from, e.g. "IR.json" or "mocks/mock-exam-1.json". */
   file: string;
 }
@@ -164,6 +168,43 @@ export interface SessionRecord {
   wrong: number;
   accuracy: number;
   avgTimeSeconds: number;
+}
+
+/** How a mock attempt ended: the candidate submitted it, or the clock ran out. */
+export type MockEndReason = 'submit' | 'time';
+
+/** One question's outcome inside a submitted mock. */
+export interface MockResultItem {
+  questionId: string;
+  /** Number shown in the paper. */
+  number: number;
+  subject: string;
+  /** Empty string when left unanswered. */
+  selected: OptionKey | '';
+  correctOption: OptionKey;
+  correct: boolean;
+  flagged: boolean;
+  /** Seconds the question was on screen (summed over visits). */
+  timeSeconds: number;
+}
+
+/**
+ * Written once when a mock is submitted (IndexedDB store "mockResults"). `resultId` is the attempt id, which is also
+ * the `sessionId` on the attempt rows and the session record the submission writes.
+ */
+export interface MockResult {
+  resultId: string;
+  /** The mock's file name without folder or extension, e.g. "mock-exam-1" for mocks/mock-exam-1.json. */
+  slug: string;
+  name: string;
+  startedAt: string;
+  submittedAt: string;
+  timeLimitMinutes: number;
+  endedBy: MockEndReason;
+  total: number;
+  answered: number;
+  correct: number;
+  items: MockResultItem[];
 }
 
 /** One True/False statement derived from a question option (content/flashcards/<CODE>.json). */
