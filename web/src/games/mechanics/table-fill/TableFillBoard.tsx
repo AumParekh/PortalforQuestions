@@ -10,8 +10,8 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
 import type { Blank, Sheet, TableFillPayload, Tile } from './build';
-import { normCell, rowGrade } from './build';
-import { toDisplay } from '../../text';
+import { normCell, plainText, rowGrade } from './build';
+import { toDisplay, toSegments } from '../../text';
 import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 
 const SMALL: CSSProperties = { fontSize: 15, lineHeight: 1.55 };
@@ -25,11 +25,6 @@ type CellState =
   | { status: 'right'; text: string }
   | { status: 'wrong'; text: string; wrong: string }
   | { status: 'revealed'; text: string };
-
-function letterOf(objectiveId: string | undefined): string {
-  const m = objectiveId ? /\s([a-z]+)$/i.exec(objectiveId.trim()) : null;
-  return m ? m[1] : '';
-}
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = useState(false);
@@ -62,16 +57,58 @@ function columnMinRem(sheet: Sheet, col: number): number {
   return 14;
 }
 
-/** A cell in the row that stays on screen, and tells it apart if one can: how the row is named to screen readers and in feedback. */
-function anchorOf(sheet: Sheet, rowIndex: number): string {
+/** A cell in the row that stays on screen, and tells it apart if one can (LaTeX, as the notes have it). */
+function anchorCell(sheet: Sheet, rowIndex: number): string | null {
   const row = sheet.rows[rowIndex];
   const blanked = new Set(sheet.blanks.filter((b) => b.row === rowIndex).map((b) => b.col));
   const shown = row.cells.map((_, i) => i).filter((i) => !blanked.has(i) && toDisplay(row.cells[i]).trim());
   // Prefer a cell that tells this row apart ("Negative (…)" rather than the "Rise Fall" every row has).
   const own = shown.find((i) => sheet.rows.some((r, j) => j !== rowIndex && normCell(r.cells[i] ?? '') !== normCell(row.cells[i])));
   const at = own ?? shown[0];
-  const cell = at === undefined ? undefined : row.cells[at];
-  return cell ? toDisplay(cell) : `row ${rowIndex + 1}`;
+  return at === undefined ? null : row.cells[at] || null;
+}
+
+/** A cell as words for screen readers: formulas flattened to Unicode, or read without their TeX markup. */
+function spoken(latex: string): string {
+  return toSegments(latex)
+    .map((seg) =>
+      seg.kind === 'text'
+        ? seg.text
+        : plainText(`$${seg.tex}$`)
+            .replace(/^\$|\$$/g, '')
+            .replace(/\\([a-zA-Z]+)/g, ' $1 ')
+            .replace(/[{}^_\\&]/g, ' '),
+    )
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** How the row is named to screen readers: its anchor cell as words. */
+function anchorOf(sheet: Sheet, rowIndex: number): string {
+  const cell = anchorCell(sheet, rowIndex);
+  return cell ? spoken(cell) : `row ${rowIndex + 1}`;
+}
+
+/** The latest correction: the row's anchor, the column, the notes' cell and the tile placed there. */
+type Miss = { n: number; row: number; col: number; answer: string; wrong: string } | { n: number; timeout: true };
+
+function MissLine({ sheet, miss }: { sheet: Sheet; miss: Miss }) {
+  if ('timeout' in miss) return <>Time ran out. The cells in gold are filled in from the notes.</>;
+  const anchor = anchorCell(sheet, miss.row);
+  const header = sheet.headers[miss.col] ?? '';
+  return (
+    <>
+      {anchor ? <NoteText latex={anchor} /> : `Row ${miss.row + 1}`}
+      {header.trim() && (
+        <>
+          {' · '}
+          <NoteText latex={header} />
+        </>
+      )}
+      : the notes have “<NoteText latex={miss.answer} />”, not “<NoteText latex={miss.wrong} />”.
+    </>
+  );
 }
 
 function TileButton({
@@ -212,8 +249,8 @@ function SheetBoard({
   const [settled, setSettled] = useState(true);
   /** Screen-reader announcement of every placement. */
   const [announce, setAnnounce] = useState('');
-  /** The latest correction stays on screen until the next one: correct version and its source. */
-  const [lastMiss, setLastMiss] = useState<string | null>(null);
+  /** The latest correction stays on screen until the next one. */
+  const [lastMiss, setLastMiss] = useState<Miss | null>(null);
 
   const cellsRef = useRef(cells);
   cellsRef.current = cells;
@@ -291,7 +328,7 @@ function SheetBoard({
     setCells(state);
     setCursor(nextOpen(state, blank));
     revealCursor.current = true;
-    const header = toDisplay(sheet.headers[blank.col] ?? '');
+    const header = spoken(sheet.headers[blank.col] ?? '');
     const anchor = anchorOf(sheet, blank.row);
     if (right) {
       setAnnounce(`${anchor} · ${header}: placed.`);
@@ -303,9 +340,8 @@ function SheetBoard({
         holdTimer.current = null;
         setSettled(true);
       }, HOLD_MS);
-      const line = `${anchor} · ${header}: the notes have “${toDisplay(blank.answer)}”, not “${toDisplay(tile.text)}”.`;
-      setLastMiss(line);
-      setAnnounce(`${line} Block ${sheet.blockId}.`);
+      setLastMiss((m) => ({ n: (m?.n ?? 0) + 1, row: blank.row, col: blank.col, answer: blank.answer, wrong: tile.text }));
+      setAnnounce(`${anchor} · ${header}: the notes have “${spoken(blank.answer)}”, not “${spoken(tile.text)}”.`);
     }
     report(blank.row, state, false);
   };
@@ -385,7 +421,7 @@ function SheetBoard({
     setCells(state);
     setTray([]);
     setCursor(null);
-    setLastMiss('Time ran out. The cells in gold are filled in from the notes.');
+    setLastMiss((m) => ({ n: (m?.n ?? 0) + 1, timeout: true }));
     setAnnounce('Time ran out. The rest of the table is filled in from the notes.');
     for (const r of openRows) report(r, state, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -412,8 +448,8 @@ function SheetBoard({
   }, [finished, settled]);
 
   const cursorBlank = cursor ? blankByKey.get(cursor) : undefined;
-  const choosingFor = cursorBlank ? `${toDisplay(sheet.headers[cursorBlank.col] ?? '')} · ${anchorOf(sheet, cursorBlank.row)}` : null;
-  const letter = letterOf(rounds[0]?.objectiveId);
+  const choosingFor = cursorBlank ? `${spoken(sheet.headers[cursorBlank.col] ?? '')} · ${anchorOf(sheet, cursorBlank.row)}` : null;
+  const cursorAnchor = cursorBlank ? anchorCell(sheet, cursorBlank.row) : null;
   const showHeading = sheet.heading && (phase === 'pressure' || finished);
   const width = sheet.headers.length;
 
@@ -478,7 +514,7 @@ function SheetBoard({
             );
           }
           const selected = cursor === key;
-          const header = toDisplay(sheet.headers[ci] ?? '');
+          const header = spoken(sheet.headers[ci] ?? '');
           return (
             <td key={ci} className="g-grid-cell" style={{ ...tdStyle, padding: '0.35rem' }}>
               <button
@@ -524,7 +560,6 @@ function SheetBoard({
       <div className="space-y-1">
         <div className="g-kicker" style={KICKER}>
           {sheet.wholeColumn !== null ? 'A whole column is out' : 'Cells lifted out'}
-          {letter ? ` · LO ${letter}` : ''}
         </div>
         {showHeading && (
           <p className="g-serif g-strong" style={{ fontSize: 18 }}>
@@ -571,8 +606,8 @@ function SheetBoard({
         {announce}
       </p>
       {lastMiss && (
-        <p key={lastMiss} className="g-settle" style={SMALL} aria-hidden="true">
-          {lastMiss} <span className="g-muted">block <span style={MONO}>{sheet.blockId}</span></span>
+        <p key={lastMiss.n} className="g-settle" style={SMALL} aria-hidden="true">
+          <MissLine sheet={sheet} miss={lastMiss} />
         </p>
       )}
 
@@ -589,9 +624,15 @@ function SheetBoard({
           }}
         >
           <p className="g-muted" style={SMALL}>
-            {choosingFor ? (
+            {cursorBlank ? (
               <>
-                Choosing for <span className="g-strong">{choosingFor}</span>. Tap a tile, press its number, or drag it onto any blank.
+                Choosing for{' '}
+                <span className="g-strong">
+                  <NoteText latex={sheet.headers[cursorBlank.col] ?? ''} />
+                  {' · '}
+                  {cursorAnchor ? <NoteText latex={cursorAnchor} /> : `row ${cursorBlank.row + 1}`}
+                </span>
+                . Tap a tile, press its number, or drag it onto any blank.
               </>
             ) : (
               'Tap a blank in the table, then a tile, or drag a tile onto a blank.'
@@ -618,15 +659,10 @@ function SheetBoard({
         </div>
       )}
 
-      {finished && (
+      {finished && sheet.caption && (
         <div className="g-settle space-y-3 border-l-[3px] pl-4" style={{ borderColor: 'var(--g-navy)' }}>
-          {sheet.caption && (
-            <p className="g-serif" style={{ fontSize: 17 }}>
-              <NoteText latex={sheet.caption} />
-            </p>
-          )}
-          <p className="g-source" style={SMALL}>
-            block <span style={MONO}>{sheet.blockId}</span>
+          <p className="g-serif" style={{ fontSize: 17 }}>
+            <NoteText latex={sheet.caption} />
           </p>
         </div>
       )}

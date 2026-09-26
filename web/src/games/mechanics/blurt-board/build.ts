@@ -78,6 +78,16 @@ export function isWorking(plain: string): boolean {
   return (plain.match(/\d[\d,]*\.\d+/g) ?? []).some((x) => significantDigits(x) >= 5);
 }
 const TRAP_LABEL = /^[A-Z][A-Za-z]*(?:[ -][A-Za-z]+){0,2}(?:,\s*[A-Z]{1,4}-\d+\s*[a-z]?)?\s*[.:]\s+/;
+/**
+ * What a trap bullet shows starts after its trap label: the trap's shape, often with the objective
+ * it points at ("\\term{Sibling, IM-2 e.}", "Polarity:"). A lead-in that is content ("Too many
+ * exceptions:", "Smile:") stays.
+ */
+const TRAP_LABEL_MACRO = /^\s*\\(?:term|textbf|emph)\{([^{}]*)\}\s*/;
+const TRAP_SHAPE =
+  /^(?:(?:polarity|sibling|role|sign|scope|definition|formula|intermediate results?|sequence|calculation|number|ranking|input twin|confidence twin)\b[^.:]{0,40}|[A-Z]{1,4}-\d+[^.:]{0,12})\s*[.:]?$/i;
+const TRAP_SHAPE_TEXT =
+  /^\s*(?:polarity|sibling|role|sign|scope|definition|formula|intermediate results?|sequence|calculation|number|ranking)(?:,\s*[A-Z]{1,4}-\d+[^.:]{0,12})?\s*[.:]\s+/i;
 const LO_VERB = /^(Describe|Explain|Identify|Calculate|Compare|Evaluate|Distinguish|Assess|Define|Apply|Discuss|Summari[sz]e|Differentiate|Estimate|Interpret|Analy[sz]e|Contrast|Outline|Recogni[sz]e|Construct|Derive|List)\b/;
 
 function obj(x: SubItemLike): Record<string, unknown> | null {
@@ -240,7 +250,12 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     // Learning-objective restatements are the prompt, not recall material.
     if (b.type === 'keybox' && LO_VERB.test(plain)) return;
     // A trap bullet's lead-in label is its trap category ("Sibling, IM-2 e."), not content.
-    if (b.type === 'trapbox') plain = plain.replace(TRAP_LABEL, '');
+    let shownText = text;
+    if (b.type === 'trapbox') {
+      plain = plain.replace(TRAP_LABEL, '');
+      const m = TRAP_LABEL_MACRO.exec(text);
+      shownText = m && TRAP_SHAPE.test(toDisplay(m[1]).trim()) ? text.slice(m[0].length) : text.replace(TRAP_SHAPE_TEXT, '');
+    }
     // A bare lead-in to a sub-list ("European Union (EU):") says nothing itself; worked arithmetic is an example.
     if ((/:\s*$/.test(plain) && !/[.!?]\s/.test(plain) && plain.split(/\s+/).length <= 10) || isWorking(plain)) return;
     // An argument's set-up ("suppose for the sake of argument that ...") is not a point to recall.
@@ -269,7 +284,7 @@ function bulletTargets(b: Block, objectiveText: string): RawTarget[] {
     } else context = listIntro(b, i);
     if (!renderable(context)) context = '';
     // The list's joining punctuation ("...; and") is not part of the point.
-    const display = text.replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '').trimEnd();
+    const display = shownText.replace(/(?:[;,]\s*(?:and|or)|[;,])\s*$/, '').trimEnd();
     out.push({ itemId: id, blockId: b.id, kind: 'point', display, ...(context ? { context } : {}), keyText: lead, emph: emphasised(text).map(plainOf), acronyms: [], values: [], key: `p:${stems.join(' ')}` });
   });
   return out;
@@ -567,13 +582,6 @@ export function shortName(t: BlurtTarget): string {
   return emph[0] ?? leadSentence(plain).replace(/[.;:]+$/, '');
 }
 
-const KIND_ROLE: Record<TargetKind, string> = {
-  term: 'A marked term',
-  point: 'A point the notes make',
-  number: 'A number the notes pin down',
-  variable: 'A variable from the notation key',
-};
-
 /** A sentence that renders on a tile: no display formula, no layout macros. */
 function renderable(latex: string): boolean {
   return !/\$\$|\\\[/.test(latex) && splitMath(latex).every((seg) => seg.kind === 'math' || !FOREIGN_MACRO.test(seg.text));
@@ -677,10 +685,8 @@ function plainName(t: BlurtTarget): string {
   return plainContext(t.display.split(' — ').slice(1).join(' — '));
 }
 
-export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
-  const block = corpus.blockById[t.blockId];
+export function namingFor(_corpus: Corpus, t: BlurtTarget, objectiveId: string): ConceptNaming {
   const term = plainName(t) || shortName(t);
-  const where = block?.title ? ` in “${toDisplay(block.title)}”` : '';
   // A context or statement that needs KaTeX is left out of the line.
   const ctx = plainContext(t.context);
   const shown = plainContext(t.display);
@@ -690,7 +696,8 @@ export function namingFor(corpus: Corpus, t: BlurtTarget, objectiveId: string): 
     term,
     blockId: t.blockId,
     objectiveId,
-    line: body && !same ? `${KIND_ROLE[t.kind]} under ${objectiveId}${where}: ${body}` : `${KIND_ROLE[t.kind]} under ${objectiveId}${where}.`,
+    // The notes' own words around the item; nothing when they only repeat its name.
+    line: body && !same ? body : '',
   };
 }
 
@@ -729,7 +736,7 @@ export function buildBlurt(reading: Reading, ctx: BlurtBuildInput): MechanicPlan
   const concept = namingFor(ctx.corpus, disc.targets.find((t) => plainName(t)) ?? disc.targets[0], disc.objectiveId);
   return {
     rounds,
-    target: `free recall of ${disc.objectiveId} and ${pres.objectiveId}`,
+    target: concept.term,
     opening: `${reading.reading_id} · Blurt Board. Two objectives, two blank boards. For each, write down everything you can remember — one idea per line, in your own words, in any order. Then the board shows what the notes hold that you found, and what stayed dark. The second board runs against the clock.`,
     concept,
   };
@@ -745,7 +752,8 @@ export function nameAfterDiscovery(corpus: Corpus, plan: MechanicPlan<BlurtPaylo
     const t = target(x);
     return !!t && plainName(t) !== '';
   };
-  const pick = missed.find((x) => target(x)?.kind === 'term' && plain(x)) ?? missed.find(plain) ?? missed[0] ?? played.find(plain) ?? played[0];
+  // The naming screen prints text: an item that needs KaTeX is named only when nothing else can be.
+  const pick = missed.find((x) => target(x)?.kind === 'term' && plain(x)) ?? missed.find(plain) ?? played.find(plain) ?? missed[0] ?? played[0];
   if (!pick) return plan.concept;
   const t = pick.r.payload.board.targets.find((x) => x.itemId === pick.r.itemId);
   return t ? namingFor(corpus, t, pick.r.payload.board.objectiveId) : plan.concept;

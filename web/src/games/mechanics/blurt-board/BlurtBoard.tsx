@@ -1,7 +1,7 @@
 // Blurt Board renderer: one objective, one blank board per phase. The player writes everything
 // they remember; on Check, the objective's items light up where the board carried them and fade
 // in, after a beat, where it did not. Calm and big: free recall is the whole game.
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, CSSProperties, KeyboardEvent, ReactNode } from 'react';
 import type { MechanicRenderProps, RoundResult } from '../../arc/plugin';
 import { GameButton, GameCard, NoteText, TimerBar, WrongHold } from '../../theme/primitives';
@@ -24,23 +24,14 @@ const SLOT_LABEL: Record<TargetKind, string> = {
 
 /** 15px floor for all secondary text (PORTAL_PLAN §5); the shared g-small / g-kicker are 14px. */
 const SMALL: CSSProperties = { fontSize: 15, lineHeight: 1.55 };
-/** Long player lines, block IDs and formulas wrap inside their tile instead of widening the page. */
+/** Long player lines and formulas wrap inside their tile instead of widening the page. */
 const WRAP: CSSProperties = { overflowWrap: 'anywhere', minWidth: 0 };
-const MONO: CSSProperties = { fontFamily: "'JetBrains Mono', 'Fira Code', ui-monospace, monospace", fontSize: 15 };
 
 function Kicker({ children }: { children: ReactNode }) {
   return (
     <div className="g-kicker" style={{ fontSize: 15 }}>
       {children}
     </div>
-  );
-}
-
-function Source({ blockId }: { blockId: string }) {
-  return (
-    <span className="g-muted block" style={SMALL}>
-      block <span style={MONO}>{blockId}</span>
-    </span>
   );
 }
 
@@ -114,7 +105,6 @@ function Slot({ t, i, result, checked }: { t: BlurtTarget; i: number; result: Ta
         <p style={SMALL}>
           <span className="g-strong">You wrote</span> <Quote text={result.hit.text} />
         </p>
-        <Source blockId={t.blockId} />
       </li>
     );
   }
@@ -135,22 +125,16 @@ function Slot({ t, i, result, checked }: { t: BlurtTarget; i: number; result: Ta
         holdMs={HOLD_MS + i * STAGGER_MS}
         wrong={wrong}
         right={
-          <>
-            <span style={{ fontSize: 17 }}>
-              <ItemText t={t} />
-            </span>
-            <span className="mt-1 block">
-              <Source blockId={t.blockId} />
-            </span>
-          </>
+          <span style={{ fontSize: 17 }}>
+            <ItemText t={t} />
+          </span>
         }
       />
     </li>
   );
 }
 
-function YourBoard({ check, targets, extras }: { check: BoardCheck; targets: readonly BlurtTarget[]; extras: readonly BlurtTarget[] }) {
-  const byId = useMemo(() => new Map([...targets, ...extras].map((t) => [t.itemId, t])), [targets, extras]);
+function YourBoard({ check }: { check: BoardCheck }) {
   if (check.segments.length === 0) return <p style={SMALL}>The board was left blank.</p>;
   const anyDark = check.segmentHits.some((h) => h.length === 0);
   return (
@@ -167,20 +151,6 @@ function YourBoard({ check, targets, extras }: { check: BoardCheck; targets: rea
               <span className={`g-serif${lit ? '' : ' g-muted'}`} style={{ fontSize: 17 }}>
                 {line}
               </span>
-              {lit && (
-                <span className="g-muted block" style={SMALL}>
-                  matched{' '}
-                  {check.segmentHits[i]
-                    .map((id) => byId.get(id)?.blockId)
-                    .filter((x, k, xs): x is string => !!x && xs.indexOf(x) === k)
-                    .map((b, k) => (
-                      <span key={b}>
-                        {k > 0 && ', '}
-                        <span style={MONO}>{b}</span>
-                      </span>
-                    ))}
-                </span>
-              )}
             </li>
           );
         })}
@@ -209,7 +179,6 @@ function Extras({ check, extras }: { check: BoardCheck; extras: readonly BlurtTa
                 <div className="g-serif" style={{ fontSize: 17 }}>
                   <ItemText t={t} />
                 </div>
-                <Source blockId={t.blockId} />
               </li>
             ))}
           </ul>
@@ -226,7 +195,6 @@ function Extras({ check, extras }: { check: BoardCheck; extras: readonly BlurtTa
                 <div className="g-serif" style={{ fontSize: 17 }}>
                   <ItemText t={t} />
                 </div>
-                <Source blockId={t.blockId} />
               </li>
             ))}
           </ul>
@@ -325,9 +293,6 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
       <Kicker>{phase === 'discovery' ? 'A blank board' : 'A blank board, against the clock'}</Kicker>
 
       <GameCard tone="soft" className="space-y-2">
-        <p className="g-muted" style={SMALL}>
-          <span className="g-strong">{board.objectiveId}</span>
-        </p>
         {board.objectiveText ? (
           <div className="g-reading">
             <NoteText latex={board.objectiveText} />
@@ -400,7 +365,7 @@ export function BlurtBoardView({ phase, rounds, onResult, onPhaseDone }: Mechani
         <>
           <GameCard className="space-y-3">
             <Kicker>Your board</Kicker>
-            <YourBoard check={check} targets={board.targets} extras={board.extras} />
+            <YourBoard check={check} />
           </GameCard>
           <Extras check={check} extras={board.extras} />
           <div className="flex justify-end">

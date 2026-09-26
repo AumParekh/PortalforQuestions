@@ -6,7 +6,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives, subItemText, trapObjective } from '../../corpus';
 import type { ItemSrs, Reading, Trap, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { diffTokens, emphasised, normWord, phrase, stripCategoryLead, toDisplay, tokenize } from '../../text';
+import { diffTokens, emphasised, normWord, phrase, stripCategoryLead, toDisplay, toSegments, tokenize } from '../../text';
 import type { Token } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
@@ -192,12 +192,20 @@ export function buildPayload(t: Trap, siblings: readonly Trap[], rng: () => numb
   };
 }
 
+/** Traps about how the notes were put together ("covered by the crash layer only"), not about the finance. */
+const EDITORIAL = /\b(source notes|source layers?|crash layer|either layer|GARP curriculum|GARP source|gap-fill(?:s|ed)?)\b/i;
+
+/** The reading's traps that state something about the finance. */
+export function playableTraps(reading: Reading): Trap[] {
+  return reading.traps.filter((t) => !EDITORIAL.test(toDisplay(`${trapBody(t, 'text')} ${trapBody(t, 'correct')}`)));
+}
+
 export function corruptibleTraps(reading: Reading): Trap[] {
-  return reading.traps.filter((t) => classifyCorruption(t) !== null);
+  return playableTraps(reading).filter((t) => classifyCorruption(t) !== null);
 }
 
 export function supportsShatter(reading: Reading): boolean {
-  return corruptibleTraps(reading).length >= MIN_CORRUPTED && reading.traps.length >= MIN_ROUNDS;
+  return corruptibleTraps(reading).length >= MIN_CORRUPTED && playableTraps(reading).length >= MIN_ROUNDS;
 }
 
 /** Comfortable reading + ruling time for a statement, scaled for pressure. */
@@ -228,8 +236,9 @@ export function namingFor(corpus: Corpus, reading: Reading, t: Trap): ConceptNam
     term,
     blockId: t.source_block ?? t.id,
     objectiveId,
-    // The notes' own sentence; nothing when the term already is that sentence.
-    line: term === bare ? '' : sentence,
+    // The notes' own sentence; nothing when the term already is that sentence, or when it needs
+    // KaTeX (the naming screen prints text).
+    line: term === bare || toSegments(correct).some((seg) => seg.kind === 'math') ? '' : sentence,
   };
 }
 
@@ -252,7 +261,7 @@ export function buildShatter(reading: Reading, ctx: ShatterBuildInput): Mechanic
   const corruptible = prioritise(corruptibleTraps(reading), ctx);
   if (corruptible.length < MIN_CORRUPTED) return null;
   const truths = prioritise(
-    reading.traps.filter((t) => !corruptible.includes(t)),
+    playableTraps(reading).filter((t) => !corruptible.includes(t)),
     ctx,
   );
   const total = Math.min(MAX_ROUNDS, Math.max(MIN_ROUNDS, Math.min(TARGET_ROUNDS, corruptible.length + truths.length)));
@@ -265,7 +274,7 @@ export function buildShatter(reading: Reading, ctx: ShatterBuildInput): Mechanic
   const extraTrue = corruptible.slice(nCorrupt, nCorrupt + Math.max(0, total - nCorrupt - nTrue));
   nTrue += extraTrue.length;
 
-  const siblings = reading.traps;
+  const siblings = playableTraps(reading);
   const corruptItems = corruptible
     .slice(0, nCorrupt)
     .map((t) => buildPayload(t, siblings, ctx.rng, false, readingTerms(ctx.corpus, reading, t)));

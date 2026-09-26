@@ -377,8 +377,20 @@ function headingOf(b: Block): string | null {
   return null;
 }
 
+/** A caption's own number ("Table CI-3.1.", "Table CI-1.3 (the notes' Table 3.1).") labels the page, not the finance. */
+const CAPTION_NUMBER = /^\s*Table\s+[A-Z]{1,4}-\d+(?:\.\d+)*(?:\s*\([^()]*\))?\.?\s*/;
+/**
+ * Sentences about how the notes were put together ("reproduced from the source notes", "turned on
+ * its side so it fits a page") or that only point elsewhere ("The fuller treatment is at CR-19 a.").
+ */
+const CAPTION_EDITORIAL = /\bsource notes\b|\bturned on its side\b|\btext layer\b|\b(?:is|are) (?:treated |covered )?at [A-Z]{1,4}-\d+/i;
+
 function captionOf(b: Block): string | null {
-  const c = str(b.caption_latex) || str(b.caption);
+  const raw = (str(b.caption_latex) || str(b.caption)).replace(CAPTION_NUMBER, '');
+  const c = raw
+    .split(/(?<=[.!?])\s+(?=[A-Z\\$“])/)
+    .filter((x) => !CAPTION_EDITORIAL.test(toDisplay(x)))
+    .join(' ');
   return c.trim() ? c : null;
 }
 
@@ -635,20 +647,16 @@ export function plainText(latex: string): string {
     .trim();
 }
 
-/** Just-in-time naming for a table: its heading, and the caption as the one line. */
+/** Just-in-time naming for a table: its heading, and the caption as the one line (else what its columns line up). */
 export function namingFor(corpus: Corpus, reading: Reading, blockId: string): ConceptNaming {
   const b = corpus.blockById[blockId];
   const heading = b ? headingOf(b) : null;
   const headers = b ? tableHeaders(b).map((h) => plainText(h)).filter(Boolean) : [];
-  const term = heading ? stripEnumerator(plainText(heading)).replace(/^summary:\s*/i, '').replace(/[.:;]+$/, '') : headers.join(' · ') || `Table in ${reading.reading_id}`;
+  const term = heading ? stripEnumerator(plainText(heading)).replace(/^summary:\s*/i, '').replace(/[.:;]+$/, '') : headers.join(' · ') || 'The table';
   const caption = b ? captionOf(b) : null;
   const los = learningObjectives(reading);
   const objectiveId = corpus.objectiveOfBlock[blockId] ?? los[los.length - 1]?.id ?? reading.reading_id;
-  const line = caption
-    ? plainText(caption)
-    : headers.length
-      ? `The table in ${reading.reading_id} that lines up ${headers.join(', ')} row by row.`
-      : `A table from ${reading.reading_id}.`;
+  const line = caption ? plainText(caption) : heading && headers.length ? `It lines up ${headers.join(', ')} row by row.` : '';
   return { term: term.charAt(0).toUpperCase() + term.slice(1), blockId, objectiveId, line };
 }
 

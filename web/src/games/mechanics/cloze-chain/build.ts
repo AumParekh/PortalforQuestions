@@ -7,7 +7,7 @@ import type { Corpus } from '../../corpus';
 import type { Block, BlockType, ItemSrs, Objective, Reading, SubItem, SubItemLike, TrapCategory } from '../../types';
 import { isLearningObjective } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { toDisplay } from '../../text';
+import { toDisplay, toSegments } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { AnswerKey } from './match';
@@ -627,7 +627,25 @@ function toCandidate(s: string, t: Target, block: Block, objectiveId: string, re
 }
 
 /** Editorial notes about the notes themselves ("written below from the GARP curriculum"), not content. */
-const EDITORIAL = /\b(source notes|either layer|GARP curriculum|GARP source|gap-fill(?:s|ed)?|not left blank|this objective does not)\b/i;
+const EDITORIAL = /\b(source notes|either layer|crash layer|source layers?|GARP curriculum|GARP source|gap-fill(?:s|ed)?|not left blank|this objective does not)\b/i;
+
+/**
+ * A trap bullet's lead-in names the trap, not the finance: its shape ("Sibling.", "Polarity / role.",
+ * "Sign on the expiring item."), often with the objective it points at ("Sign, IM-7 h."), or only
+ * that objective ("IM-3 c.").
+ */
+const TRAP_LABEL =
+  /^(?:(?:polarity|sibling|role|sign|scope|definition|formula|intermediate results?|sequence|calculation|number|ranking|input twin|confidence twin)\b[^.:]{0,40}|[A-Z]{1,4}-\d+[^.:]{0,12})\s*[.:]?$/i;
+const TRAP_LABEL_MACRO = /^\s*\\(?:term|textbf|emph)\{([^{}]*)\}\s*/;
+const TRAP_LABEL_TEXT =
+  /^\s*(?:polarity|sibling|role|sign|scope|definition|formula|intermediate results?|sequence|calculation|number|ranking)(?:,\s*[A-Z]{1,4}-\d+[^.:]{0,12})?\s*[.:]\s+/i;
+
+/** A trap-box sentence without its trap label. */
+export function stripTrapLabel(s: string): string {
+  const m = TRAP_LABEL_MACRO.exec(s);
+  if (m && TRAP_LABEL.test(toDisplay(m[1]).trim())) return s.slice(m[0].length);
+  return s.replace(TRAP_LABEL_TEXT, '');
+}
 
 function sentenceOk(s: string): boolean {
   if (/\\begin|\\end|&|\\\\|\\item/.test(s)) return false;
@@ -663,7 +681,8 @@ function blockSentences(block: Block, objectiveId: string, readingId: string, co
   let first = true;
   for (const unit of unitsOf(body)) {
     const bulletId = bulletFor(unit, block, usedBullets);
-    for (const s of splitSentences(unit.latex)) {
+    for (const sentence of splitSentences(unit.latex)) {
+      const s = block.type === 'trapbox' ? stripTrapLabel(sentence) : sentence;
       if (!sentenceOk(s)) continue;
       const order = counter.n++;
       const raw: Target[] = [];
@@ -1049,8 +1068,10 @@ export function gradeFor(correct: boolean, cue: CueLevel, timedOut: boolean): nu
 // ---------------------------------------------------------------------------------------------
 // Plan
 
+/** The objective statement as plain text; null when it needs KaTeX (the naming screen prints text). */
 function objectiveText(o: Objective | undefined): string | null {
   if (!o || typeof o.text !== 'string' || !o.text.trim()) return null;
+  if (toSegments(o.text).some((seg) => seg.kind === 'math')) return null;
   return toDisplay(o.text).replace(/[.;:]+$/, '');
 }
 
@@ -1086,11 +1107,13 @@ function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
   // A direction word or a number names no concept ("“less” is the word it hangs on"): the line names
   // its block's title instead, or the thread's objective on its own.
   const bare = c.kind === 'number' || c.kind === 'direction';
-  const hangs = !bare ? ` “${c.answer}” is the word it hangs on here.` : c.blockTitle ? ` It runs through “${c.blockTitle}” here.` : '';
+  // A title with a formula in it would print as TeX on the naming screen.
+  const title = c.blockTitle && !/\$[^$]*[\\^_{}][^$]*\$/.test(c.blockTitle) ? c.blockTitle : null;
+  const hangs = !bare ? ` “${c.answer}” is the word it hangs on here.` : title ? ` It runs through “${title}” here.` : '';
   const line = text
     ? `The thread you were rebuilding: ${text}.${hangs}`
-    : c.blockTitle
-      ? `The thread you were rebuilding runs through “${c.blockTitle}”; “${c.answer}” is the word it hangs on.`
+    : title
+      ? `The thread you were rebuilding runs through “${title}”; “${c.answer}” is the word it hangs on.`
       : `“${c.answer}” is the word the thread you were rebuilding hangs on.`;
   return { term, blockId: c.blockId, objectiveId: c.objectiveId, line };
 }
