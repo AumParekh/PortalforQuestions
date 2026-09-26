@@ -522,7 +522,7 @@ export function buildFrameworkNavigator(reading: Reading, ctx: BuildInput): Mech
   return {
     rounds,
     target: `${shorts.slice(0, 4).join(', ')}${shorts.length > 4 ? ' …' : ''}: what each introduced, restricted and answered`,
-    opening: `${reading.reading_id} · Framework Navigator. One map of how the rules grew, lineage by lineage, oldest on the left. ${
+    opening: `Framework Navigator. One map of how the rules grew, lineage by lineage, oldest on the left. ${
       lit.length === 1 ? 'One node belongs to this reading; it is lit.' : `${lit.length} nodes belong to this reading; they are lit.`
     } Open them, put each change where it was made, then tell close neighbours apart against the clock.`,
     concept,

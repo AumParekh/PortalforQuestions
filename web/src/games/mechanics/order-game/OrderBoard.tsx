@@ -1,7 +1,7 @@
 // Order Game board: a column of cards the player puts back in the notes' order. Tap a card to
 // pick it up, tap another card to drop it in that place; or use the arrow buttons; or, with a card
 // focused, the arrow keys. Check marks every position right or wrong; a miss holds for a beat and
-// the notes' order fades in underneath with its source block (§10.3).
+// the notes' order fades in underneath (§10.3).
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, MutableRefObject } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
@@ -278,8 +278,6 @@ function Round({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [done, settled]);
 
-  // No category names before the naming step (§11): discovery cites the block only.
-  const source = `${phase === 'pressure' ? 'Sequence · ' : ''}${seq.objectiveId ? `${seq.objectiveId} · ` : ''}block ${seq.blockId}`;
   const instruction =
     mode === 'restore'
       ? 'This set is nearly in the notes’ order: one piece has been moved. Find it and put it back.'
@@ -346,7 +344,6 @@ function Round({
                 <NoteText latex={seq.note} />
               </p>
             )}
-            <p className="og-source">{source}</p>
           </div>
         </div>
       )}
@@ -375,7 +372,6 @@ function Round({
                     <NoteText latex={seq.note} />
                   </p>
                 )}
-                <p className="og-source">{source}</p>
               </div>
             }
             onSettled={() => setSettled(true)}

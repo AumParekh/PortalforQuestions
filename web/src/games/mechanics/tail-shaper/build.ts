@@ -68,15 +68,45 @@ export interface TailPayload extends Puzzle {
 // ---------------------------------------------------------------------------------------------
 // Display text
 
-/** Notes-style ASCII to reading text: "nu_L" → "νL", "mu" → "μ", "--" → "—", "->" → "→". */
+/** A reading id as the curated notes cite it ("MR-17"). */
+const READING_REF = String.raw`\b[A-Z]{2,4}-\d+\b`;
+
+/**
+ * Drops the curated file's pointers into the notes, keeping the finance: "(MR-1)" and
+ * "(MR-17 mechanism)" go, "which MR-17 calls" reads "which the notes call", "the lognormal of MR-1"
+ * loses its "of MR-1", and a sentence that is only about where something came from is dropped.
+ */
+export function withoutRefs(s: string): string {
+  const t = s
+    .replace(new RegExp(String.raw`\s*\(${READING_REF}(?:\s+\w+)?\)`, 'g'), '')
+    .replace(new RegExp(String.raw`\bwhich ${READING_REF} calls\b`, 'g'), 'which the notes call')
+    .replace(new RegExp(String.raw`\s+of ${READING_REF}`, 'g'), '')
+    .replace(/\bthe ([\w-]+) item\b/g, '$1 options');
+  const ref = new RegExp(READING_REF);
+  return t
+    .split(/(?<=[.!?])\s+(?=[A-Z“"(])/)
+    .filter((sent) => !ref.test(sent))
+    .join(' ')
+    .trim();
+}
+
+/**
+ * Notes-style ASCII to reading text, with the file's pointers into the notes dropped: "nu_L" → "νL",
+ * "mu" → "μ", "xi" → "ξ", "S0" → "S₀", "--" → "—", "->" → "→", "~normal" → "near-normal".
+ */
 export function pretty(s: string): string {
-  return s
+  return withoutRefs(s)
     .replace(/\s--\s/g, ' — ')
     .replace(/->/g, '→')
+    .replace(/~(?=[a-z])/g, 'near-')
+    .replace(/\s?~\s?/g, ' ≈ ')
     .replace(/\bnu_L\b/g, 'νL')
     .replace(/\bnu_R\b/g, 'νR')
     .replace(/\bnu\b/g, 'ν')
-    .replace(/\bmu\b/g, 'μ');
+    .replace(/\bmu\b/g, 'μ')
+    .replace(/\bxi\b/g, 'ξ')
+    .replace(/\bFrechet\b/g, 'Fréchet')
+    .replace(/\bS0\b/g, 'S₀');
 }
 
 const START_SENTENCE = /\b(?:you start|the start|start with|starting)\b/i;
@@ -107,12 +137,20 @@ export const LABEL_READING: Record<SmileLabel, string> = {
 export const MECHANISM_LINE =
   'Where the implied distribution has more probability mass than lognormal, options struck there are worth more than BSM says, and implied volatility there is higher.';
 
-/** Short caption from smile_note: file paths shortened, the plotting expression dropped. */
+/**
+ * Short caption from smile_note, content only: the file and line the curve was plotted at, the
+ * plotting expression and the sampling grid are dropped ("Illustrative: the curve plotted in the
+ * notes. Only its shape is examinable; …").
+ */
 export function smileCaption(note: string): string {
-  return note
-    .replace(/\s*\(pgfplots expression .*?\)(?=,\s*sampled)/, '')
-    .replace(/(?:[\w.-]+\/)+([\w.-]+\.tex)/g, '$1')
-    .trim();
+  return pretty(
+    note
+      .replace(/\s+at\s+(?:[\w.-]+\/)*[\w.-]+\.tex(?::\d+)?/g, '')
+      .replace(/\s*\(pgfplots expression .*?\)(?=,\s*sampled|\.\s|\.?$)/, '')
+      .replace(/,\s*sampled at .*?(?=\.\s+[A-Z]|\.?$)/, '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  );
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -274,7 +312,7 @@ export function buildTailShaper(reading: Reading, ctx: TailBuildInput): Mechanic
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Tail Shaper. ${rounds.length} return distributions, each described in the notes’ own words, and one density with four sliders. Bend the curve until it matches the words. When it does, the curve an options desk would quote for that distribution is drawn over it.`,
+    opening: `Tail Shaper. ${rounds.length} return distributions, each described in the notes’ own words, and one density with four sliders. Bend the curve until it matches the words. When it does, the curve an options desk would quote for that distribution is drawn over it.`,
     concept,
   };
 }

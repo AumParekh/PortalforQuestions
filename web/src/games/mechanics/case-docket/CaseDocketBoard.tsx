@@ -5,7 +5,7 @@
 // Every chip has its own route buttons (tap, or Tab + Enter); keys T / N (docket) or 1 / 2 and the
 // arrow keys (bench) route the chip in focus, else the next one. Mouse and pen can also drag a chip
 // onto a lane; touch uses the buttons so the page still scrolls. A wrong filing holds in the wrong
-// lane for a beat, then the chip moves to the right one with its case named and its source block.
+// lane for a beat, then the chip moves to the right one with its case named.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { MechanicRenderProps, MechanicRound } from '../../arc/plugin';
@@ -100,7 +100,6 @@ function CaseCards({ phase, cases }: { phase: PlayPhase; cases: DocketCase[] }) 
         <GameCard key={c.id} tone="soft" className="cd-case space-y-1">
           <div className="cd-label">{phase === 'discovery' ? 'On the docket' : 'On the bench'}</div>
           <h2 className="cd-case-name">{c.name}</h2>
-          {c.citedIn.length > 0 && <p className="cd-small">Cited in {c.citedIn.join(' · ')}</p>}
         </GameCard>
       ))}
     </div>
@@ -196,11 +195,10 @@ function Chip({
   );
 }
 
-/** A filed chip inside a lane, with its case named and its source once settled. */
-function Filed({ round, placement, holding, phase, lanes }: { round: Round; placement: Placement; holding: boolean; phase: PlayPhase; lanes: Lane[] }) {
+/** A filed chip inside a lane, with its case named once settled. */
+function Filed({ round, placement, holding, lanes }: { round: Round; placement: Placement; holding: boolean; lanes: Lane[] }) {
   const p = round.payload;
   const chosenLabel = lanes.find((l) => l.id === placement.chosen)?.label;
-  const source = phase === 'discovery' || !p.category ? `block ${round.blockId}` : `${p.category} · block ${round.blockId}`;
   if (holding) {
     return (
       <div className="cd-filed is-holding" aria-hidden="true">
@@ -217,12 +215,7 @@ function Filed({ round, placement, holding, phase, lanes }: { round: Round; plac
   return (
     <div className={`cd-filed ${placement.correct ? 'is-hit cd-stamp' : 'is-missed g-assemble'}`}>
       <Fact p={p} revealed />
-      <p className="cd-source">
-        {where}{' '}
-        <span className="g-mono">
-          {p.factReading} · {source}
-        </span>
-      </p>
+      <p className="cd-source">{where}</p>
     </div>
   );
 }
@@ -289,13 +282,13 @@ export function CaseDocketBoard({ phase, rounds, onResult, onPhaseDone }: Mechan
     const answerLabel = lanes.find((l) => l.id === round.payload.answer)?.label ?? round.payload.answer;
     if (correct) {
       record(roundId, { lane: laneId, chosen: laneId, correct: true });
-      setMessage(`Filed under ${answerLabel}. From the ${round.payload.ownerName} file, block ${round.blockId}.`);
+      setMessage(`Filed under ${answerLabel}. From the ${round.payload.ownerName} file.`);
       if (timed) setGate('cooldown');
       focusNext(roundId);
       return;
     }
     setHold({ roundId, chosen: laneId });
-    setMessage(`Not ${lanes.find((l) => l.id === laneId)?.label ?? laneId}. It belongs to the ${round.payload.ownerName} file, block ${round.blockId}.`);
+    setMessage(`Not ${lanes.find((l) => l.id === laneId)?.label ?? laneId}. It belongs to the ${round.payload.ownerName} file.`);
   };
 
   // Wrong filing: hold in the wrong lane for a beat, then settle into the right one.
@@ -320,7 +313,7 @@ export function CaseDocketBoard({ phase, rounds, onResult, onPhaseDone }: Mechan
     const t = window.setTimeout(() => {
       onResult({ roundId: current.id, correct: false, timeMs: limit, timedOut: true });
       record(current.id, { lane: current.payload.answer, chosen: null, correct: false });
-      setMessage(`Time ran out. It belongs to the ${current.payload.ownerName} file, block ${current.blockId}.`);
+      setMessage(`Time ran out. It belongs to the ${current.payload.ownerName} file.`);
       setGate('await');
     }, limit);
     return () => window.clearTimeout(t);
@@ -457,7 +450,7 @@ export function CaseDocketBoard({ phase, rounds, onResult, onPhaseDone }: Mechan
               <div className="space-y-2">
                 {items.length === 0 && <p className="cd-small cd-empty">Nothing filed yet.</p>}
                 {items.map(({ r, p, holding }) => (
-                  <Filed key={`${r.id}${holding ? '-hold' : ''}`} round={r} placement={p} holding={holding} phase={phase} lanes={lanes} />
+                  <Filed key={`${r.id}${holding ? '-hold' : ''}`} round={r} placement={p} holding={holding} lanes={lanes} />
                 ))}
               </div>
             </section>

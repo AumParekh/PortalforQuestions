@@ -3,7 +3,7 @@
 // moves. Drag snaps to detents; arrow keys step a detent, Shift+arrow the finest step, Page keys a
 // tick; the ± buttons step finely by tap; or type the value and press Enter. Locking in drops a
 // green post where the notes draw the line; a miss holds the player's mark for a beat, then the
-// sentence is shown whole with its source block ID.
+// sentence is shown whole.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
@@ -343,11 +343,6 @@ function RoundCard({
 
   const live = value === null ? null : readout(value, p);
   const answer = readout(p.answer, p);
-  const source = (
-    <p className="ts-source">
-      block <span className="ts-id">{round.blockId}</span>
-    </p>
-  );
   const shownParts = phase === 'discovery' ? p.parts : p.cue;
 
   return (
@@ -371,7 +366,6 @@ function RoundCard({
             <span className="g-strong">On the line: {answer}.</span>
           </p>
           <Restored p={p} />
-          {source}
         </div>
       )}
 
@@ -396,7 +390,6 @@ function RoundCard({
             }
             onSettled={() => setSettled(true)}
           />
-          {source}
         </div>
       )}
 

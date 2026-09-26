@@ -33,7 +33,7 @@ import {
   slipGrade,
 } from './flow';
 import type { WaterfallPayload } from './build';
-import { KIND_WORD, openCount, sentence } from './build';
+import { openCount, sentence } from './build';
 import type { FlowItem } from './schema';
 import './waterfall-builder.css';
 
@@ -470,17 +470,13 @@ function Round({
     .map((c, i) => ({ c, i }))
     .filter((x) => x.c > 0)
     .map((x) => ({ slot: x.i, right: item.steps[stack.slots[x.i]].text, tried: stack.firstWrong[x.i] >= 0 ? item.steps[stack.firstWrong[x.i]].text : '' }));
-  const source = `block ${round.blockId}`;
 
   return (
     <GameCard className="g-enter wb-board relative space-y-5">
       {timed && status === 'play' && <TimerBar ms={round.timeLimitMs ?? 30000} />}
 
       <header className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="g-chip">{KIND_WORD[item.kind]}</span>
-          <span className="g-kicker">{phase === 'discovery' ? 'Build the flow' : 'Against the clock'}</span>
-        </div>
+        <div className="g-kicker">{phase === 'discovery' ? 'Build the flow' : 'Against the clock'}</div>
         <h2 className="g-serif text-[1.3rem] font-semibold leading-snug" style={{ color: 'var(--g-navy)' }}>
           {item.title}
         </h2>
@@ -660,7 +656,6 @@ function Round({
           {loop && closed && <RingFigure item={item} delayMs={reduced ? 0 : LOOP_DRAW_MS} />}
 
           <p className="g-serif">{item.explanation}</p>
-          <p className="g-source">{source}</p>
 
           <div className="flex justify-end">
             <button ref={nextRef} type="button" className="g-btn is-primary" onClick={onNext} disabled={!settled}>

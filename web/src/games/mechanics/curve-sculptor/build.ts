@@ -237,7 +237,7 @@ export function buildCurveSculptor(reading: Reading, ctx: CurveBuildInput): Mech
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Curve Sculptor. ${rounds.length} curves this reading describes in words. Each is drawn with one of its three settings out of place, so it doesn't look the way the words say. Find the setting that's wrong and drag it until the curve snaps into shape.`,
+    opening: `Curve Sculptor. ${rounds.length} curves this reading describes in words. Each is drawn with one of its three settings out of place, so it doesn't look the way the words say. Find the setting that's wrong and drag it until the curve snaps into shape.`,
     concept,
   };
 }

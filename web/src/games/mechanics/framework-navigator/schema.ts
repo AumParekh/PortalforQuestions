@@ -120,6 +120,47 @@ export function yearLabel(n: Pick<FnNode, 'year' | 'yearStart'>): string | null 
   return String(n.yearStart);
 }
 
+/** A reading cited in a curated line ("ORR-2", "LTR-9"), with any notes line after it ("l.148"). */
+const REF = String.raw`\b(?:MR|CR|ORR|LTR|IM|CI)-\d+\b(?:\s+l\.\s?\d+(?:[-–]\d+)?)?`;
+/** Third-person verbs whose plural is not the word less its final s. */
+/** A bracketed notes line on its own: "(l.201)", "(ll.12-14)". */
+const LINE_REF = /\s*\((?:ll?\.|lines?)\s?\d+(?:[-–]\d+)?(?:(?:,\s*|\s+and\s+)(?:ll?\.\s?)?\d+(?:[-–]\d+)?)*\)/g;
+const PLURAL_VERB: Record<string, string> = { has: 'have', does: 'do', goes: 'go', is: 'are', was: 'were' };
+
+/**
+ * Takes the reading citations out of a curated line, leaving only what the notes say: a
+ * citation in brackets or heading a sentence goes ("(LTR-6)", "ORR-2: …", "CR-2 oversight
+ * principle: …", "(l.201)"), and a reading used as a noun becomes "the notes" ("CR-3 lists …" → "The notes
+ * list …", "ORR-2's table" → "the notes' table", "in ORR-2" → "in the notes").
+ */
+function dropReadingRefs(s: string): string {
+  const startsSentence = (src: string, at: number) => /(?:^|[.!?]\s+)$/.test(src.slice(0, at));
+  const cap = (w: string) => w.charAt(0).toUpperCase() + w.slice(1);
+  const notes = (src: string, at: number) => (startsSentence(src, at) ? 'The notes' : 'the notes');
+  return (
+    s
+      // "(LTR-6)", "(ORR-2 l.148)", "(the excess-loss model of MR-3)", "(l.201)"
+      .replace(LINE_REF, '')
+      .replace(new RegExp(String.raw`\s*\([^()]*${REF}[^()]*\)`, 'g'), '')
+      // "ORR-19 (BIS): the board …", "CR-2's independence principle: …" heading a sentence
+      .replace(
+        new RegExp(String.raw`(^|[.!?]\s+)${REF}(?:'s)?(?:\s*\([^()]*\))?(?:\s+([a-z]+(?:[ -][a-z]+){0,2}))?:\s*([a-z]?)`, 'g'),
+        (_m, lead: string, head: string | undefined, next: string) => (head ? `${lead}${cap(head)}: ${next}` : `${lead}${next.toUpperCase()}`),
+      )
+      // "LTR-9 and LTR-6 place …"
+      .replace(new RegExp(String.raw`${REF}(?:,\s*${REF})*,?\s+and\s+${REF}`, 'g'), (_m, at: number, src: string) => notes(src, at))
+      // "ORR-2's table"
+      .replace(new RegExp(`${REF}'s\\b`, 'g'), (_m, at: number, src: string) => `${notes(src, at)}'`)
+      // "CR-3 lists …": the verb follows the plural subject
+      .replace(new RegExp(String.raw`(?<!\b(?:in|of|by|from|to|with|under|than|and)\s)${REF}\s+([a-z]+)`, 'g'), (_m, verb: string, at: number, src: string) => {
+        const plural = PLURAL_VERB[verb] ?? (/[^s]s$/.test(verb) ? verb.slice(0, -1) : verb);
+        return `${notes(src, at)} ${plural}`;
+      })
+      .replace(new RegExp(REF, 'g'), (_m, at: number, src: string) => notes(src, at))
+      .trim()
+  );
+}
+
 function parseLineage(x: unknown): FnLineage | null {
   if (!isRecord(x)) return null;
   const id = str(x.id);
@@ -173,7 +214,7 @@ function parseNode(x: unknown, lineages: ReadonlySet<string>): FnNode | null {
     restricted,
     responding_to,
     evidence: parseEvidence(x.evidence),
-    summary: str(x.summary) ?? '',
+    summary: dropReadingRefs(str(x.summary) ?? ''),
     aliases: strList(x.aliases),
     related: strList(x.related).filter((r) => r !== id),
   };
@@ -194,7 +235,7 @@ function parseChange(x: unknown, nodes: Record<string, FnNode>): FnChange | null
     text,
     node,
     decoys: decoys.slice(0, 3),
-    why: str(x.why) ?? '',
+    why: dropReadingRefs(str(x.why) ?? ''),
     sourceFile: str(x.source_file),
     sourceLine: posInt(x.source_line),
     sourceBlock: str(x.source_block),
@@ -207,7 +248,7 @@ function parsePair(x: unknown, nodes: Record<string, FnNode>): FnPair | null {
   const b = str(x.b);
   const readingId = str(x.reading_id);
   if (!a || !b || a === b || !nodes[a] || !nodes[b] || !readingId) return null;
-  const differences = strList(x.differences);
+  const differences = strList(x.differences).map(dropReadingRefs);
   if (differences.length === 0) return null;
   const differenceSources: FnPair['differenceSources'] = [];
   if (Array.isArray(x.difference_sources)) {

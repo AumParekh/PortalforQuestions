@@ -6,7 +6,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives, subItemText, trapObjective } from '../../corpus';
 import type { ItemSrs, Reading, Trap, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { diffTokens, emphasised, normWord, phrase, stripCategoryLead, toDisplay, toSegments, tokenize } from '../../text';
+import { contentTitle, diffTokens, emphasised, normWord, phrase, stripCategoryLead, toDisplay, toSegments, tokenize } from '../../text';
 import type { Token } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
@@ -226,7 +226,8 @@ export function namingFor(corpus: Corpus, reading: Reading, t: Trap): ConceptNam
   const block = t.source_block ? corpus.blockById[t.source_block] : undefined;
   const phrases = emphasised(correct).filter((x) => x.split(/\s+/).length >= 2);
   const sentence = toDisplay(correct);
-  const title = block?.title && !GENERIC_TITLE.test(block.title) ? toDisplay(block.title) : null;
+  const blockTitle = contentTitle(block?.title);
+  const title = blockTitle && !GENERIC_TITLE.test(blockTitle) ? toDisplay(blockTitle) : null;
   const longest = phrases.sort((a, b) => b.length - a.length)[0];
   const bare = sentence.replace(/[.;:]+$/, '');
   const term = longest ?? (sentence.split(/\s+/).length <= 16 ? bare : null) ?? title ?? bare;
@@ -309,7 +310,7 @@ export function buildShatter(reading: Reading, ctx: ShatterBuildInput): Mechanic
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Shatter. ${rounds.length} statements from this reading. Some stand as written; some have had one word turned around; some have had one idea traded for its neighbour. Rule on each, then point to the break.`,
+    opening: `Shatter. ${rounds.length} statements from this reading. Some stand as written; some have had one word turned around; some have had one idea traded for its neighbour. Rule on each, then point to the break.`,
     concept,
   };
 }

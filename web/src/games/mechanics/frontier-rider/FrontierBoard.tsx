@@ -9,11 +9,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ChangeEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
-import { GameCard, TimerBar } from '../../theme/primitives';
+import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 import type { Pt, State } from './maths';
 import { applySlider, easeInOut, fmt, riderOf, snapToGrid, solveState } from './maths';
 import type { FrOption, FrontierPayload } from './build';
-import { axisShort, factLines, lineName, pointName, sliderValue } from './build';
+import { axisShort, factLines, lineName, noteLatex, pointName, sliderValue } from './build';
 import type { CallStatus, RiderStatus } from './Plane';
 import { Plane } from './Plane';
 import './frontier-rider.css';
@@ -240,7 +240,6 @@ function Round({
   const chartLabel = (where: string) =>
     `${where}. The marked portfolio is at ${xName} ${fmt(rider.sigma, 2)}% and ${yName} ${fmt(rider.mu, 2)}%.`;
   const facts = factLines(item, named);
-  const source = `block ${round.blockId}${item.sourceLine ? ` · ${item.readingId} l.${item.sourceLine}` : ''}`;
   const lo = Math.min(sl.from, sl.to);
   const hi = Math.max(sl.from, sl.to);
 
@@ -249,16 +248,23 @@ function Round({
   const truth = (
     <div className="space-y-3">
       <p className="fr-text">
-        <span className="g-strong">{correct.label}</span>
-        {correct.why && <span className="block mt-1">{correct.why}</span>}
+        <span className="g-strong">
+          <NoteText latex={noteLatex(correct.label)} />
+        </span>
+        {correct.why && (
+          <span className="block mt-1">
+            <NoteText latex={noteLatex(correct.why)} />
+          </span>
+        )}
       </p>
       <ul className="fr-facts space-y-1">
         {facts.map((f) => (
           <li key={f}>{f}</li>
         ))}
       </ul>
-      <p className="fr-reading">{item.explanation}</p>
-      <p className="fr-source">{source}</p>
+      <p className="fr-reading">
+        <NoteText latex={noteLatex(item.explanation)} />
+      </p>
     </div>
   );
 
@@ -267,8 +273,14 @@ function Round({
       {timed && stage === 'predict' && round.timeLimitMs && <TimerBar ms={round.timeLimitMs} />}
 
       <div className="space-y-2">
-        {p.kind === 'move' && <p className="fr-title">{item.title}</p>}
-        <p className="fr-question">{p.question}</p>
+        {p.kind === 'move' && (
+          <p className="fr-title">
+            <NoteText latex={noteLatex(item.title)} />
+          </p>
+        )}
+        <p className="fr-question">
+          <NoteText latex={noteLatex(p.question)} />
+        </p>
       </div>
 
       <figure className="space-y-2">
@@ -296,7 +308,7 @@ function Round({
       <div className={`fr-slider${stage === 'predict' ? ' is-locked' : ''}${stage === 'watch' && !timed && !playing ? ' is-live' : ''}${revealed ? (right ? ' is-done' : ' is-missed') : ''}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
           <label htmlFor={`${clipBase}-range`} className="fr-param-label">
-            {sl.label}
+            <NoteText latex={noteLatex(sl.label)} />
           </label>
           <span className="fr-value" aria-hidden="true">
             {sliderValue(item, value)}
@@ -360,7 +372,9 @@ function Round({
               <span className="fr-option-key" aria-hidden="true">
                 {i + 1}
               </span>
-              <span>{o.label}</span>
+              <span>
+                <NoteText latex={noteLatex(o.label)} />
+              </span>
             </button>
           );
         })}
@@ -392,11 +406,18 @@ function Round({
                 'Time ran out before a call.'
               ) : (
                 <>
-                  You called: <span className="g-strong">{picked.label}</span>
+                  You called:{' '}
+                  <span className="g-strong">
+                    <NoteText latex={noteLatex(picked.label)} />
+                  </span>
                 </>
               )}
             </p>
-            {picked?.why && <p className="fr-text fr-muted">{picked.why}</p>}
+            {picked?.why && (
+              <p className="fr-text fr-muted">
+                <NoteText latex={noteLatex(picked.why)} />
+              </p>
+            )}
           </div>
           <div className="fr-hold-right" style={{ '--fr-delay': `${HOLD_MS}ms` } as CSSProperties} aria-live="polite">
             {truth}

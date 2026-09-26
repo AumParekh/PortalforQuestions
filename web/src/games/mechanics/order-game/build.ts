@@ -13,7 +13,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Reading, TableRow, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { latexTextToPlain, splitMath, toDisplay } from '../../text';
+import { contentTitle, latexTextToPlain, splitMath, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 
@@ -258,7 +258,8 @@ function sectionName(b: Block): string {
 }
 
 function titleOf(b: Block): string {
-  return b.title ? cleanSpaces(toDisplay(b.title)) : '';
+  const title = contentTitle(b.title);
+  return title ? cleanSpaces(toDisplay(title)) : '';
 }
 
 /** A concept name: a non-generic block title, else the section heading, else the lead-in itself. */
@@ -1310,7 +1311,7 @@ export function buildOrderGame(reading: Reading, ctx: OrderBuildInput): Mechanic
     rounds,
     target: concept.term,
     // Only promise the one-piece-out rounds when the session has them.
-    opening: `${reading.reading_id} · Order Game. ${sets} ${sets === 1 ? 'set' : 'sets'} of steps from this reading. ${
+    opening: `Order Game. ${sets} ${sets === 1 ? 'set' : 'sets'} of steps from this reading. ${
       rounds.some((r) => r.payload.mode === 'restore') ? 'Some arrive shuffled; later ones arrive nearly right, with one piece out of place.' : 'Each arrives shuffled.'
     } Put each back the way the notes run it.`,
     concept,

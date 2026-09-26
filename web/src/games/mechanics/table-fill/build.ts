@@ -8,7 +8,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, PlayPhase, Reading, TableRow, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { mathToPlain, toDisplay, toSegments } from '../../text';
+import { contentTitle, mathToPlain, toDisplay, toSegments } from '../../text';
 import { seededRng, shuffle } from '../../random';
 import { srsPriority } from '../../srs';
 
@@ -370,7 +370,7 @@ const GENERIC_HEADING = /^(summary|table|comparison|overview)\.?$/i;
 
 function headingOf(b: Block): string | null {
   const titleRow = str((b as unknown as { title_row?: unknown }).title_row);
-  for (const h of [str(b.title), titleRow, str(b.section)]) {
+  for (const h of [contentTitle(b.title) ?? '', titleRow, str(b.section)]) {
     const d = h.trim();
     if (d && !GENERIC_HEADING.test(toDisplay(d))) return d;
   }
@@ -593,7 +593,7 @@ function attempt(reading: Reading, tables: readonly EligibleTable[], ctx: BuildC
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Table Fill. ${nTables === 1 ? 'A table' : `${nTables} tables`} from this reading, with cells lifted out and laid loose underneath. The headers and the cells left standing are your only clues: put every loose cell back where the notes have it. Later, whole columns go.`,
+    opening: `Table Fill. ${nTables === 1 ? 'A table' : `${nTables} tables`} from this reading, with cells lifted out and laid loose underneath. The headers and the cells left standing are your only clues: put every loose cell back where the notes have it. Later, whole columns go.`,
     concept,
   };
 }

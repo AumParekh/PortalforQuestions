@@ -4,7 +4,7 @@
 // a tile into the slot and the slot locks green. A wrong one lands in the wrong slot, which
 // bounces while the right slot pulses; a dashed phantom arc then carries the tile to where it
 // belongs, and the panel shows the chosen role's actual responsibility and why the statement
-// belongs elsewhere, with its source block. Tile flights run on requestAnimationFrame and jump
+// belongs elsewhere. Tile flights run on requestAnimationFrame and jump
 // straight to the end under reduced motion. The overlay SVG uses the container's own pixel size
 // as its viewBox, so nothing in it is scaled.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -193,14 +193,6 @@ function Docket({ total, index, kinds }: { total: number; index: number; kinds: 
   );
 }
 
-function Source({ round }: { round: Round }) {
-  return (
-    <p className="ag-source">
-      {round.payload.item.readingId} · block <span className="ag-mono">{round.blockId}</span>
-    </p>
-  );
-}
-
 function Feedback({ round, outcome, phase }: { round: Round; outcome: Outcome; phase: PlayPhase }) {
   const { item, roles } = round.payload;
   const right = roles[item.role];
@@ -215,7 +207,6 @@ function Feedback({ round, outcome, phase }: { round: Round; outcome: Outcome; p
             Not {lower(roles[item.confusable].label)}: {item.whyNot}
           </p>
         )}
-        <Source round={round} />
       </div>
     );
   }
@@ -245,7 +236,6 @@ function Feedback({ round, outcome, phase }: { round: Round; outcome: Outcome; p
         <p>
           <span className="ag-strong">Belongs to {lower(right.label)}.</span> <span className="g-serif">{item.why}</span>
         </p>
-        <Source round={round} />
       </div>
     </div>
   );
@@ -279,8 +269,7 @@ function Summary({ rounds, filed, onContinue, phase }: { rounds: readonly Round[
                   <li key={f.roundId} className={`ag-filed ${f.kind === 'ok' ? 'is-ok' : 'is-fixed'}`}>
                     <span className="g-serif ag-text">{r.payload.item.statement}</span>
                     <span className="ag-muted ag-text block">
-                      {f.kind === 'ok' ? 'Filed here first time.' : 'Moved here from another desk.'} {r.payload.item.readingId} ·{' '}
-                      <span className="ag-mono">{r.blockId}</span>
+                      {f.kind === 'ok' ? 'Filed here first time.' : 'Moved here from another desk.'}
                     </span>
                   </li>
                 );
@@ -298,7 +287,7 @@ function Summary({ rounds, filed, onContinue, phase }: { rounds: readonly Round[
   );
 }
 
-export function AttributionBoard({ phase, rounds, reading, onResult, onPhaseDone }: MechanicRenderProps<AgPayload>) {
+export function AttributionBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRenderProps<AgPayload>) {
   const [index, setIndex] = useState(0);
   const [stage, setStage] = useState<Stage>('ask');
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -605,7 +594,7 @@ export function AttributionBoard({ phase, rounds, reading, onResult, onPhaseDone
 
   const { item, roles, topUp } = round.payload;
   const armed = stage === 'ask';
-  const topUps = [...new Set(rounds.filter((r) => r.payload.topUp).map((r) => r.payload.item.readingId))];
+  const topUps = rounds.some((r) => r.payload.topUp);
   const ghost = over && geo ? tileCentre(geo.slots[over], countIn(over)) : null;
   const slotProps = (id: RoleId) => ({
     role: roles[id],
@@ -624,9 +613,9 @@ export function AttributionBoard({ phase, rounds, reading, onResult, onPhaseDone
     <div className="space-y-5">
       <div className="space-y-2">
         <p className="ag-kicker">{phase === 'discovery' ? 'Whose job is this?' : 'Whose job is this? Under pressure'}</p>
-        {topUps.length > 0 && (
+        {topUps && (
           <p className="ag-text ag-muted">
-            {reading.reading_id} has few statements about who does what, so some here come from {topUps.join(', ')} in the same area. Each one is marked.
+            This reading has few statements about who does what, so some here come from neighbouring readings. Each one is marked.
           </p>
         )}
       </div>
@@ -649,7 +638,7 @@ export function AttributionBoard({ phase, rounds, reading, onResult, onPhaseDone
           onPointerCancel={endDrag}
           key={round.id}
         >
-          {topUp && <span className="ag-chip">from {item.readingId}</span>}
+          {topUp && <span className="ag-chip">from a neighbouring reading</span>}
           <p className="g-reading ag-statement">{item.statement}</p>
         </div>
         {/* Hidden rather than emptied once answered, so the slots below never shift mid-flight. */}

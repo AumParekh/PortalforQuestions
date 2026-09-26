@@ -737,7 +737,7 @@ export function buildBlurt(reading: Reading, ctx: BlurtBuildInput): MechanicPlan
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Blurt Board. Two objectives, two blank boards. For each, write down everything you can remember — one idea per line, in your own words, in any order. Then the board shows what the notes hold that you found, and what stayed dark. The second board runs against the clock.`,
+    opening: `Blurt Board. Two objectives, two blank boards. For each, write down everything you can remember — one idea per line, in your own words, in any order. Then the board shows what the notes hold that you found, and what stayed dark. The second board runs against the clock.`,
     concept,
   };
 }

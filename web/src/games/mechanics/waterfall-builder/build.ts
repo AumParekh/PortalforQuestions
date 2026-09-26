@@ -109,8 +109,6 @@ export function sentence(s: string): string {
   return /[.!?”"]$/.test(t) ? t : `${t}.`;
 }
 
-export const KIND_WORD: Record<FlowItem['kind'], string> = { stack: 'stack', process: 'process', loop: 'loop' };
-
 /** Just-in-time naming (§8.3): the flow's name and which way it runs. */
 export function namingFor(corpus: Corpus, reading: Reading, item: FlowItem): ConceptNaming {
   const tail = item.kind === 'loop' && item.loopClosure ? ` ${sentence(item.loopClosure)}` : '';
@@ -235,7 +233,7 @@ export function buildWaterfall(reading: Reading, ctx: WaterfallBuildInput): Mech
     rounds,
     target: concept.term,
     opening:
-      `${reading.reading_id} · Waterfall Builder. ${flows === 1 ? 'One flow' : `${flows} flows`} from this reading, each an empty column with its pieces scattered below. ` +
+      `Waterfall Builder. ${flows === 1 ? 'One flow' : `${flows} flows`} from this reading, each an empty column with its pieces scattered below. ` +
       `Drop them in top to bottom, in the order things actually happen. A column that works lights up as it fills` +
       (hasLoop ? '; a flow that feeds itself closes into a circle.' : '.'),
     concept,

@@ -15,7 +15,7 @@ import type { MechanicRenderProps, MechanicRound } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
 import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 import type { TreePayload } from './build';
-import { dateLabel, dateWords, mistakeLine, nodeWords, paramRows, quantityWord } from './build';
+import { dateLabel, dateWords, mistakeLine, nodeWords, notation, paramRows, quantityWord, teachesLatex } from './build';
 import type { Candidate, Phantom, TreeItem } from './schema';
 import { nodeKey } from './schema';
 import { formatValue, shortDisplay } from './maths';
@@ -521,7 +521,7 @@ function TreeHeader({ item, phase }: { item: TreeItem; phase: PlayPhase }) {
     <div className="space-y-3">
       {phase === 'pressure' ? (
         <div className="space-y-1">
-          <p className="tr-title">{item.title}</p>
+          <p className="tr-title">{notation(item.title)}</p>
           <p className="tr-note">{item.model}</p>
         </div>
       ) : (
@@ -827,7 +827,6 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
   const settled = stage === 'settled';
   const picked = outcome && outcome.picked !== null ? p.candidates[outcome.picked] : null;
   const treeDone = p.step === item.order.length - 1;
-  const source = `block ${round.blockId}`;
   const svgWidth = Math.max(280, width || 320);
   const note = routesNote(item, t, i);
   // Each candidate stays on one line: columns are at least as wide as the longest value needs.
@@ -936,11 +935,10 @@ export function TreeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
                 ))}
               </ul>
             )}
-            {(stage === 'reveal' || settled) && <p className="tr-source">{source}</p>}
             {settled && treeDone && (
               <div className="tr-complete g-assemble">
                 <p className="tr-text">
-                  <span className="g-strong">Tree complete.</span> {item.teaches}
+                  <span className="g-strong">Tree complete.</span> <NoteText latex={teachesLatex(item.teaches)} />
                 </p>
               </div>
             )}

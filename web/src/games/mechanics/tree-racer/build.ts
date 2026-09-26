@@ -164,11 +164,33 @@ export function quantityWord(item: TreeItem): string {
 }
 
 /** Discovery shows mistakes by what was computed, without naming the concept still to come. */
+const SYMBOL: Record<string, string> = { sigma: 'σ', Sigma: 'σ', lambda: 'λ' };
+
+/** The curated lines' ASCII notation as characters: "sigma sqrt(dt)" → "σ √dt", "r0" → "r₀", "+/-" → "±". */
+export function notation(s: string): string {
+  return s
+    .replace(/\b(sigma|Sigma|lambda)\b/g, (w) => SYMBOL[w])
+    .replace(/\bsqrt\((\w+)\)/g, '√$1')
+    .replace(/\bsqrt\(([^()]*)\)/g, '√($1)')
+    .replace(/\br0\b/g, 'r₀')
+    .replace(/\+\/-/g, '±');
+}
+
 export function mistakeLine(mistake: string, phase: 'discovery' | 'pressure'): string {
-  if (phase === 'pressure') return mistake;
+  if (phase === 'pressure') return notation(mistake);
   const m = /^non-recombining path:\s*(.+)$/i.exec(mistake);
-  if (!m) return mistake;
-  return m[1][0].toUpperCase() + m[1].slice(1);
+  if (!m) return notation(mistake);
+  return notation(m[1][0].toUpperCase() + m[1].slice(1));
+}
+
+/**
+ * A curated line (`teaches`, a title) as a NoteText snippet: its dollars are amounts, never math,
+ * and a bare exponent such as "e^{(a1+a2)dt}" is set as math, so no braces reach the screen.
+ */
+export function teachesLatex(s: string): string {
+  return notation(s)
+    .replace(/\$/g, '\\$')
+    .replace(/[A-Za-z0-9₀]*\^\{[^{}$]*\}/g, (m) => `$${m.replace('₀', '_0')}$`);
 }
 
 export interface ParamRow {
@@ -256,7 +278,7 @@ export function namingFor(corpus: Corpus, reading: Reading, item: TreeItem): Con
     term: TERMS[item.modelCode],
     blockId: blockOf(item),
     objectiveId: objectiveOf(corpus, reading, item),
-    line: item.teaches || item.title,
+    line: teachesLatex(item.teaches || item.title),
   };
 }
 
@@ -322,7 +344,7 @@ export function buildTreeRacer(reading: Reading, ctx: TreeBuildInput): MechanicP
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Tree Racer. A tree of ${noun}, one node at a time. Each highlighted node has three candidate values and only one keeps the tree in one piece. Pick it and the tree grows; pick another and watch where that branch goes.`,
+    opening: `Tree Racer. A tree of ${noun}, one node at a time. Each highlighted node has three candidate values and only one keeps the tree in one piece. Pick it and the tree grows; pick another and watch where that branch goes.`,
     concept,
   };
 }

@@ -137,6 +137,93 @@ export function factLines(item: FrItem, named: boolean): string[] {
 }
 
 // ---------------------------------------------------------------------------------------------
+// Display text: the notes' content only
+
+/** A reading id as the curated file cites it ("IM-5"). */
+const REF = String.raw`\b[A-Z]{2,4}-\d+\b`;
+/** One pointer to a line of the notes: "l.533", "IM-5 l.523-526", "table l.196-197", "IM-6 figure caption l.353-357". */
+const LINE = String.raw`(?:${REF}(?:'s)?\s+)?(?:(?:figure caption|table|trap summary)\s+)?\bl\.\s?\d+(?:\s?[-–]\s?\d+)?`;
+/** A run of them ("l.559 / l.505", "IM-1 l.128-129; table l.196-197"), with an "as in"/"as used at" lead-in and the comma before. */
+const LINES = new RegExp(String.raw`(?:\s*,)?\s*(?:as (?:in|at|used at)\s+)?${LINE}(?:\s*[,;/]\s*${LINE})*`, 'g');
+const REF_VERB = new RegExp(String.raw`^${REF}\s+(backs|links|makes|gives|sets|says|calls|draws|lists|flags|treats|adds|uses|puts|keeps|states|shows|does|has)\b`);
+const REF_RE = new RegExp(REF);
+
+function verbBase(v: string): string {
+  return v === 'does' ? 'do' : v === 'has' ? 'have' : v.replace(/s$/, '');
+}
+
+/** "IM-4 links …" → "The notes link …" (at the start of a sentence or a bracket). */
+function refSubject(s: string, capital: boolean): string {
+  return s.replace(REF_VERB, (_, v: string) => `${capital ? 'The' : 'the'} notes ${verbBase(v)}`);
+}
+
+/**
+ * Drops the curated file's pointers into the notes and keeps the finance: line references ("(IM-5
+ * l.523-526)", ", l.285,"), item ids ("as in fr-IM-4-01") and reading ids used as a source ("the
+ * IM-5 two-currency universe" → "the two-currency universe", "IM-4 links" → "The notes link"). A
+ * bracket left empty goes with its space; a sentence still naming a reading is dropped.
+ */
+export function withoutRefs(text: string): string {
+  let t = text.replace(/\s+as in fr-[A-Za-z0-9-]+/g, '');
+  t = t.replace(/\s*\(([^()]*)\)/g, (whole, inner: string) => {
+    let body = inner
+      .replace(LINES, '')
+      .replace(/^[\s,;:/]+|[\s,;:/]+$/g, '')
+      .trim();
+    if (!body || new RegExp(String.raw`^${REF}$`).test(body)) return '';
+    body = refSubject(body, false).replace(new RegExp(String.raw`^${REF}\s+`), '');
+    return `${/^\s/.test(whole) ? ' ' : ''}(${body})`;
+  });
+  t = t
+    .replace(LINES, '')
+    .replace(/\bStart \(([^()]*)\)/g, 'Start: $1')
+    .replace(new RegExp(String.raw`\bthe ${REF}\s+`, 'g'), 'the ')
+    .replace(new RegExp(String.raw`\b${REF}'s own\b`, 'g'), "the notes' own");
+  return t
+    .split(/(?<=[.!?])\s+(?=[A-Z“"(])/)
+    .map((sent) => refSubject(sent, true))
+    .filter((sent) => sent && !REF_RE.test(sent))
+    .join(' ')
+    .trim();
+}
+
+const GREEK = 'lambda|sigma|gamma|beta|rho|mu';
+
+function symbol(base: string, sub?: string, sup?: string): string {
+  const b = new RegExp(`^(?:${GREEK})$`).test(base) ? `\\${base}` : base.length > 1 ? `\\mathrm{${base}}` : base;
+  const s = sub ? `_{${sub.length > 1 && !/^\d+$/.test(sub) ? `\\mathrm{${sub}}` : sub}}` : '';
+  const p = sup ? `^{${sup}}` : '';
+  return `${b}${s}${p}`;
+}
+
+/**
+ * The notes' ASCII notation as a NoteText snippet: "lambda_A = IR / (2 sigma_A)" gets its symbols set
+ * as math ($\lambda_A$, $\sigma_A$), as do "gamma-bar", "y*", "S^-1", "sqrt(…)", "sigma1" and "w1";
+ * "->" becomes an arrow, "x" between numbers a times sign, and dollar, ampersand and hash signs stay
+ * literal. Pointers into the notes are dropped first (withoutRefs).
+ */
+export function noteLatex(text: string): string {
+  const math: string[] = [];
+  const keep = (tex: string) => `\u0000${math.push(tex) - 1}\u0000`;
+  let t = withoutRefs(text)
+    .replace(/->/g, '→')
+    .replace(/\s~\s/g, ' ≈ ')
+    .replace(/(\d%?)\s+x\s+(?=[\w(])/g, '$1 × ')
+    .replace(/\bsqrt\(([^()]*)\)/g, (_, inner: string) => keep(`\\sqrt{${inner.replace(/\^-?(\d+)/g, (m) => `^{${m.slice(1)}}`)}}`))
+    .replace(/\bE\(([A-Za-z])_([A-Za-z])\)/g, (_, b: string, i: string) => keep(`E(${b}_{${i}})`))
+    .replace(/\bgamma-bar\b/g, () => keep('\\bar{\\gamma}'))
+    .replace(/\by\*/g, () => keep('y^*'))
+    .replace(new RegExp(String.raw`\b(${GREEK}|[A-Za-z]+)(?:_([A-Za-z0-9]+))?(?:\^(-?\d+))?(?![\w^])`, 'g'), (m, base: string, sub?: string, sup?: string) => {
+      const greek = new RegExp(`^(?:${GREEK})$`).test(base);
+      if (!sub && !sup && !(greek && base !== 'beta' && base !== 'mu')) return m;
+      return keep(symbol(base, sub, sup));
+    })
+    .replace(new RegExp(String.raw`\b(${GREEK}|w)(\d)\b`, 'g'), (_, base: string, d: string) => keep(symbol(base, d)));
+  t = t.replace(/[$&#%_]/g, (c) => `\\${c}`);
+  return t.replace(/\u0000(\d+)\u0000/g, (_, i: string) => `$${math[Number(i)]}$`);
+}
+
+// ---------------------------------------------------------------------------------------------
 // Rounds from one item
 
 function moveRound(item: FrItem, rng: () => number): Omit<FrontierPayload, 'kind' | 'item'> {
@@ -228,9 +315,15 @@ export function toPayload(c: Candidate, named: boolean, rng: () => number): Fron
 // Naming
 
 const TERM: Record<FrItem['point'], [string, string]> = {
-  tangency: ['Tangency portfolio: weights ∝ Σ⁻¹(μ − r_f·1)', 'Maximum-IR manager mix: the tangency portfolio, with the benchmark as r_f'],
-  'min-variance': ['Global minimum-variance portfolio: weights ∝ Σ⁻¹1', 'Global minimum-variance portfolio: weights ∝ Σ⁻¹1'],
-  complete: ['Optimal complete portfolio: y* = (E[R_T] − r_f) / (A·σ_T²)', 'Optimal active risk on the line from the benchmark: σ = IR / A'],
+  tangency: [
+    'Tangency portfolio: weights $\\propto \\Sigma^{-1}(\\mu - r_f\\mathbf{1})$',
+    'Maximum-IR manager mix: the tangency portfolio, with the benchmark as $r_f$',
+  ],
+  'min-variance': ['Global minimum-variance portfolio: weights $\\propto \\Sigma^{-1}\\mathbf{1}$', 'Global minimum-variance portfolio: weights $\\propto \\Sigma^{-1}\\mathbf{1}$'],
+  complete: [
+    'Optimal complete portfolio: $y^* = (E[R_T] - r_f) / (A\\sigma_T^2)$',
+    'Optimal active risk on the line from the benchmark: $\\sigma = \\mathrm{IR} / A$',
+  ],
 };
 
 /** The explanation's first sentence (two when the first is very short). */
@@ -263,7 +356,7 @@ export function namingFor(corpus: Corpus, reading: Reading, item: FrItem): Conce
     term: TERM[item.point][item.plane.active ? 1 : 0],
     blockId: blockOf(item),
     objectiveId: objectiveOf(corpus, reading, item),
-    line: leadSentence(item.explanation),
+    line: noteLatex(leadSentence(withoutRefs(item.explanation))),
   };
 }
 
@@ -401,7 +494,7 @@ export function buildFrontierRider(reading: Reading, ctx: FrontierBuildInput): M
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Frontier Rider. ${rounds.length} calls on a risk–return plane. Each time, one input sits on a slider and one portfolio is marked. Before anything moves, call where it goes. Then move the slider and watch the curve and the line break and re-form.`,
+    opening: `Frontier Rider. ${rounds.length} calls on a risk–return plane. Each time, one input sits on a slider and one portfolio is marked. Before anything moves, call where it goes. Then move the slider and watch the curve and the line break and re-form.`,
     concept,
   };
 }

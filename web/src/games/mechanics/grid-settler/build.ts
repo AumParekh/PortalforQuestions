@@ -17,7 +17,7 @@ import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '..
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { GsData, GsGrid, GsTile } from './schema';
-import { firstSentence, gridData } from './schema';
+import { firstSentence, gridData, noteLatex, noteLine } from './schema';
 import { spreadPick, splitCounts, timeFor } from './maths';
 
 export type PresetKind = 'given' | 'earlier';
@@ -136,10 +136,11 @@ export function objectiveFor(corpus: Corpus, reading: Reading, grid: GsGrid): st
   return corpus.objectiveOfBlock[grid.sourceBlock] ?? learningObjectives(reading)[0]?.id ?? reading.reading_id;
 }
 
-/** The default naming (§8.3): the grid's title, and the first line of the notes' explanation. */
+/** The default naming (§8.3): the grid's title, and the first line of the notes' explanation (as NoteText snippets). */
 export function defaultNaming(corpus: Corpus, reading: Reading, grid: GsGrid): ConceptNaming {
-  const line = grid.explanation ? firstSentence(grid.explanation) : `${grid.x.label} against ${grid.y.label}, as ${reading.reading_id} sets it out.`;
-  return { term: grid.title, blockId: grid.sourceBlock, objectiveId: objectiveFor(corpus, reading, grid), line };
+  const explanation = noteLine(grid.explanation);
+  const line = explanation ? firstSentence(explanation) : `${grid.x.label} against ${grid.y.label}.`;
+  return { term: noteLatex(grid.title), blockId: grid.sourceBlock, objectiveId: objectiveFor(corpus, reading, grid), line: noteLatex(line) };
 }
 
 export function buildGrid(reading: Reading, ctx: GsBuildInput): MechanicPlan<GsPayload> | null {
@@ -183,11 +184,11 @@ export function buildGrid(reading: Reading, ctx: GsBuildInput): MechanicPlan<GsP
 
   const main = plans[0].grid;
   const concept = defaultNaming(ctx.corpus, reading, main);
-  const axes = (g: GsGrid) => `${g.x.label} runs across, ${g.y.label} runs down`;
+  const axes = (g: GsGrid) => noteLatex(`${g.x.label} runs across, ${g.y.label} runs down`);
   const opening =
     plans.length === 1
-      ? `${reading.reading_id} · Grid Settler. One grid: ${axes(main)}. ${main.tiles.length} tiles, and each belongs in one cell. Some cells take several, some stay empty. Settle them all and see what the full grid shows.`
-      : `${reading.reading_id} · Grid Settler. Two grids from this reading, one before the pause and one after. In the first, ${axes(main)}. Each tile belongs in one cell; some cells take several, some stay empty. Watch what each grid shows once it is full.`;
+      ? `Grid Settler. One grid: ${axes(main)}. ${main.tiles.length} tiles, and each belongs in one cell. Some cells take several, some stay empty. Settle them all and see what the full grid shows.`
+      : `Grid Settler. Two grids from this reading, one before the pause and one after. In the first, ${axes(main)}. Each tile belongs in one cell; some cells take several, some stay empty. Watch what each grid shows once it is full.`;
   return { rounds, target: main.title, opening, concept };
 }
 
@@ -206,8 +207,10 @@ export function nameAfterDiscovery(corpus: Corpus, reading: Reading, plan: Mecha
   const base = defaultNaming(corpus, reading, first.payload.grid);
   if (!missed) return base;
   const { grid, tile } = missed.payload;
+  const why = noteLine(tile.why);
+  const placed = `${tile.text} sits at ${grid.x.values[tile.x]} × ${grid.y.values[tile.y]}`;
   return {
     ...base,
-    line: `${base.line} ${tile.text} sits at ${grid.x.values[tile.x]} × ${grid.y.values[tile.y]}: ${tile.why}`,
+    line: `${base.line} ${noteLatex(why ? `${placed}: ${why}` : `${placed}.`)}`,
   };
 }

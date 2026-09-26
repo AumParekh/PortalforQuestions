@@ -104,7 +104,7 @@ export function splitCounts(total: number): { discovery: number; pressure: numbe
 }
 
 /** The default naming (§8.3): the frame itself, one line per slot from the roles' own summaries. */
-export function defaultNaming(reading: Reading, roles: Record<RoleId, AgRole>, blockId: string, objectiveId: string): ConceptNaming {
+export function defaultNaming(roles: Record<RoleId, AgRole>, blockId: string, objectiveId: string): ConceptNaming {
   const parts = ROLE_IDS.map((id) => {
     const s = firstSentence(roles[id].responsibility);
     return s ? `${roles[id].label}: ${s.charAt(0).toLowerCase()}${s.slice(1)}.` : '';
@@ -113,7 +113,7 @@ export function defaultNaming(reading: Reading, roles: Record<RoleId, AgRole>, b
     term: 'Three lines of defence, with the board above them',
     blockId,
     objectiveId,
-    line: parts.length ? parts.join(' ') : `Who does what in ${reading.reading_id}: own the risk, oversee it, assure it, and set direction from above.`,
+    line: parts.length ? parts.join(' ') : `Who does what here: own the risk, oversee it, assure it, and set direction from above.`,
   };
 }
 
@@ -148,16 +148,16 @@ export function buildAttribution(reading: Reading, ctx: AgBuildInput): MechanicP
   const anchor = rounds.find((r) => !r.payload.topUp) ?? rounds[0];
   const los = learningObjectives(reading);
   const objectiveId = (anchor.payload.topUp ? undefined : anchor.objectiveId) ?? los[0]?.id ?? reading.reading_id;
-  const concept = defaultNaming(reading, data.roles, anchor.blockId, objectiveId);
+  const concept = defaultNaming(data.roles, anchor.blockId, objectiveId);
   const topUps = rounds.filter((r) => r.payload.topUp).length;
   const n = rounds.length;
   return {
     rounds,
     target: 'whose job each control, report and risk decision is',
     opening:
-      `${reading.reading_id} · Attribution Grid. ${n} statements about a control, a report or a risk decision, and four desks to file them on. ` +
+      `Attribution Grid. ${n} statements about a control, a report or a risk decision, and four desks to file them on. ` +
       `Before you answer, ask whose job it is.` +
-      (topUps ? ` ${reading.reading_id} gives ${n - topUps}; the rest come from neighbouring ${reading.area} readings.` : ''),
+      (topUps ? ` This reading gives ${n - topUps}; the rest come from neighbouring readings.` : ''),
     concept,
   };
 }

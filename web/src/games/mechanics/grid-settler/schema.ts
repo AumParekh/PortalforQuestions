@@ -172,3 +172,55 @@ export function firstSentence(s: string): string {
   const m = /^(.+?[.;])(\s+[A-Z(]|$)/.exec(s);
   return (m ? m[1] : s).trim();
 }
+
+// ---------------------------------------------------------------------------------------------
+// Display text: the notes' content only
+
+/** A reading id as the curated file cites it ("CR-6"). */
+const REF = String.raw`\b[A-Z]{2,4}-\d+\b`;
+const CELL_POINTER = new RegExp(String.raw`^${REF} table:.*\bcolumn,.*\brow\.?$`);
+const LEAD = new RegExp(String.raw`^${REF}(?: [a-z])?(?: summary table)?(?: \(([^()]*)\))?[:.]\s+`);
+const LEAD_VERB = new RegExp(String.raw`^${REF}(?: [a-z])? (grades|lays|gives|rates|links|sets|lists|puts|draws|treats|shows)\b`);
+const REF_RE = new RegExp(REF);
+
+/**
+ * A curated line with the file's pointers into the notes dropped, keeping the finance. A line that is
+ * only a pointer ("CR-6 table: PIT column, Horizon row.") becomes empty; a lead-in naming the reading
+ * and objective ("CR-10 a: market versus credit VaR.") loses it; "ORR-1 b grades …" reads "The notes
+ * grade …"; "the trapbox flags" reads "the notes flag"; a sentence still naming a reading, or about
+ * how the game was built ("… is what the objective asks for", "the offered corruption"), is dropped.
+ */
+export function noteLine(s: string): string {
+  const t = s.trim();
+  if (CELL_POINTER.test(t)) return '';
+  const body = t
+    .replace(LEAD, (_, aside?: string) => (aside ? `${aside}: ` : ''))
+    .replace(LEAD_VERB, (_, v: string) => `The notes ${v.replace(/s$/, '')}`)
+    .replace(new RegExp(String.raw`\s+in the ${REF} table\b`, 'g'), '')
+    .replace(/\bthe (?:trap|key|remember|example)\s?box flags\b/gi, 'the notes flag')
+    .replace(/\bthe (?:trap|key|remember|example)\s?box\b/gi, 'the notes')
+    .replace(new RegExp(String.raw`\bthe ${REF}\s+`, 'g'), 'the ')
+    .replace(/;[^;.]*\bwhat the objective asks for\b/g, '');
+  const kept = body
+    .split(/(?<=[.!?])\s+(?=[A-Z“"(])/)
+    .filter((sent) => sent && !REF_RE.test(sent) && !/\boffered corruption\b/.test(sent))
+    .join(' ')
+    .trim();
+  return kept.charAt(0).toUpperCase() + kept.slice(1);
+}
+
+/** A symbol written with an underscore ("D_A", "D_L"). */
+const SUBSCRIPT = /\b([A-Z])_([A-Z])\b/g;
+
+/**
+ * Curated text as a NoteText snippet: "D_A" is set as math ($D_{A}$) and the characters LaTeX would
+ * read as markup ("S&P", "M&A", a dollar amount) stay literal.
+ */
+export function noteLatex(s: string): string {
+  return s.replace(/[&$#%]/g, (c) => `\\${c}`).replace(SUBSCRIPT, (_, b: string, i: string) => `$${b}_{${i}}$`);
+}
+
+/** Plain text for an aria-label: "D_A" reads as "DA". */
+export function plainText(s: string): string {
+  return s.replace(SUBSCRIPT, '$1$2');
+}

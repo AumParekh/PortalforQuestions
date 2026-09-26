@@ -821,3 +821,47 @@ export function stripCategoryLead(latex: string, labels: readonly (string | null
   }
   return t;
 }
+
+/** Titles that only label the box they head ("Learning objectives for this reading"), not the finance in it. */
+const BOX_LABEL_TITLE = /^(?:learning objectives\b|the \w+ objectives\b|what the objective asks for$|consolidated trap summary\b)/i;
+
+/**
+ * A block title as the notes' content, or null: the gap-fill lead "What the objective asks for:" is
+ * dropped ("What the objective asks for: Credit Risk Plus" → "Credit Risk Plus"), and a title that
+ * only labels its box ("Consolidated trap summary — IM-1", "The four objectives in this reading") is
+ * null. Returns the title's LaTeX; callers convert it for display as before.
+ */
+export function contentTitle(title: unknown): string | null {
+  if (typeof title !== 'string') return null;
+  const t = title.replace(/^\s*what the objective asks for\s*(?:[:—–]|---?)\s*/i, '').trim();
+  return t && !BOX_LABEL_TITLE.test(t) ? t : null;
+}
+
+export interface ScriptPart {
+  text: string;
+  /** Set when the part is a subscript or superscript of the character before it. */
+  script?: 'sub' | 'sup';
+}
+
+/**
+ * ASCII sub- and superscripts written into the notes' plain text: "LR_cc", "PD_A", "V_{1,L}",
+ * "λ^(i−1)", "λ^n", "e^-0.015". The script must follow a letter, digit or closing bracket, so a
+ * blank ("Jump-to-____") is left alone.
+ */
+const ASCII_SCRIPT = /(?<=[\p{L}\p{N})\]])(?:_(\{[^{}]*\}|[\p{L}\p{Nd}]+(?:,[\p{L}\p{Nd}]+)*)|\^(\([^()]*\)|\{[^{}]*\}|[-−+]?[\p{L}\p{N}.]*[\p{L}\p{N}]))/gu;
+
+/** Splits plain text into runs and ASCII sub/superscripts ("LR_cc" → "LR", sub "cc"), so none shows as notation. */
+export function scriptParts(text: string): ScriptPart[] {
+  const out: ScriptPart[] = [];
+  let at = 0;
+  for (const m of text.matchAll(ASCII_SCRIPT)) {
+    const i = m.index ?? 0;
+    if (i > at) out.push({ text: text.slice(at, i) });
+    const sub = m[1] !== undefined;
+    const body = (sub ? m[1] : m[2]).replace(/^[{(]([\s\S]*)[})]$/, '$1');
+    out.push({ text: body, script: sub ? 'sub' : 'sup' });
+    at = i + m[0].length;
+  }
+  if (at < text.length) out.push({ text: text.slice(at) });
+  return out;
+}

@@ -48,13 +48,12 @@ function OpView({ c }: { c: Choice }) {
   return <MathLine tex={c.op} className="sd-op-math" />;
 }
 
-/** Why a move is where it is, in one line (block IDs always shown). */
+/** Why a move is where it is, in one line: the notes' content only, never where it sits. */
 function choiceNote(c: Choice, ex: Example): string {
-  if (c.kind === 'true') return `The notes' next step · block ${c.blockId}, step ${c.n}.`;
-  if (c.kind === 'ahead')
-    return `Step ${c.n} of this same example: it needs ${c.needs ?? 'a result'}, which the working has not produced yet · block ${c.blockId}.`;
-  const from = c.title ? ` (${c.title})` : '';
-  return c.blockId === ex.blockId ? `Another step of this example · block ${c.blockId}.` : `A step from block ${c.blockId}${from}. There it leads to:`;
+  if (c.kind === 'true') return "The notes' next step.";
+  if (c.kind === 'ahead') return `A later step of this same example: it needs ${c.needs ?? 'a result'}, which the working has not produced yet.`;
+  if (c.blockId === ex.blockId) return 'Another step of this example.';
+  return c.title ? `A step from another worked example (${c.title}). There it leads to:` : 'A step from another worked example. There it leads to:';
 }
 
 /**
@@ -161,15 +160,12 @@ function Round({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [outcome, settled]);
 
-  // No trap-category names before the naming step (§11): discovery cites the block only.
-  const source =
-    phase === 'discovery' || !round.category ? `block ${round.blockId} · step ${gapMove.n}` : `${round.category} · block ${round.blockId} · step ${gapMove.n}`;
   const picked = outcome?.picked != null ? p.options[outcome.picked] : null;
   const others = p.options.filter((_c, i) => i !== p.answer && i !== outcome?.picked);
   const tail = ex.moves.slice(p.blank + 1);
 
   return (
-    <GameCard className="sd-card g-enter relative space-y-5" label={`Worked example, block ${ex.blockId}`}>
+    <GameCard className="sd-card g-enter relative space-y-5" label="Worked example">
       {timed && !outcome && <TimerBar ms={round.timeLimitMs ?? 20000} />}
 
       <header className="space-y-3">
@@ -180,7 +176,7 @@ function Round({
         )}
         {ex.context.length > 0 && (
           <div className="sd-context">
-            <p className="sd-note">Carried over from block {ex.contextFrom}:</p>
+            <p className="sd-note">Carried over from the example before:</p>
             <Parts parts={ex.context} />
           </div>
         )}
@@ -207,7 +203,6 @@ function Round({
                 <MoveView m={gapMove} showLead={false} />
               </div>
               <ShatterBurst />
-              <p className="sd-source g-settle">{source}</p>
             </div>
           )}
           {outcome && !outcome.correct && (
@@ -221,7 +216,6 @@ function Round({
                     <MoveView m={gapMove} showLead={false} />
                   </>
                 }
-                source={source}
                 onSettled={() => setSettled(true)}
               />
             </div>

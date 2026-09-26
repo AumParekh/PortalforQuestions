@@ -3,7 +3,7 @@
 // chute with a draining clock; the dealt card is already in hand, so one tap or key drops it.
 // Mouse and pen can also drag a card onto a bucket; touch uses tap-tap so the page still scrolls.
 // A wrong drop shakes in the bucket it landed in for a beat while the right bucket lights up, then
-// the card settles into the right bucket with the source block ID.
+// the card settles into the right bucket (only the notes' content is shown, never where it sits).
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
@@ -208,7 +208,7 @@ function Board({
     } else {
       setHold({ roundId, dropped: bucketId });
       setMessage(
-        `Not ${plainLabel(bucketLabel(board, bucketId))}. It belongs under ${plainLabel(bucketLabel(board, round.payload.bucketId))}. Block ${round.blockId}.`,
+        `Not ${plainLabel(bucketLabel(board, bucketId))}. It belongs under ${plainLabel(bucketLabel(board, round.payload.bucketId))}.`,
       );
     }
   };
@@ -217,7 +217,7 @@ function Board({
     if (hold || placed[round.id]) return;
     onResult({ roundId: round.id, correct: false, timeMs: round.timeLimitMs ?? performance.now() - clock.current, timedOut: true });
     setHold({ roundId: round.id, dropped: null });
-    setMessage(`Time ran out. It belongs under ${plainLabel(bucketLabel(board, round.payload.bucketId))}. Block ${round.blockId}.`);
+    setMessage(`Time ran out. It belongs under ${plainLabel(bucketLabel(board, round.payload.bucketId))}.`);
   };
 
   // A wrong card holds for a beat, then settles into the right bucket.
@@ -363,7 +363,7 @@ function Board({
             <p className="bd-small g-muted">Watch where it goes.</p>
           )}
           <p className="bd-small g-muted">
-            {lastMiss && message ? message : selected ? 'Now choose its bucket.' : 'Pick a card, then choose its bucket.'}
+            {lastMiss && message ? <NoteText latex={message} /> : selected ? 'Now choose its bucket.' : 'Pick a card, then choose its bucket.'}
             <span className="bd-key ml-2" aria-hidden="true">
               1–{board.buckets.length}
             </span>
@@ -402,7 +402,9 @@ function Board({
           )}
           {gate === 'await' && !hold && (
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="bd-small g-muted min-w-0 flex-1">{message}</p>
+              <p className="bd-small g-muted min-w-0 flex-1">
+                <NoteText latex={message} />
+              </p>
               <button
                 ref={nextRef}
                 type="button"
@@ -466,10 +468,11 @@ function Board({
                 return (
                   <div key={r.id} className={`bd-placed ${missed ? 'is-missed bd-fade' : 'g-snap-in'}`}>
                     <CardBody p={r.payload} />
-                    <p className="bd-source mt-1 font-sans">
-                      {missed ? (p.dropped ? `You dropped it under ${plainLabel(bucketLabel(board, p.dropped))}. ` : 'Time ran out. ') : ''}
-                      block <span className="font-mono">{r.blockId}</span>
-                    </p>
+                    {missed && (
+                      <p className="bd-source mt-1 font-sans">
+                        {p.dropped ? <NoteText latex={`You dropped it under ${plainLabel(bucketLabel(board, p.dropped))}.`} /> : 'Time ran out.'}
+                      </p>
+                    )}
                   </div>
                 );
               })}

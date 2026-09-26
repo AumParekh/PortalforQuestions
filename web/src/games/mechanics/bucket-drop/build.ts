@@ -16,7 +16,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Reading, SubItem, SubItemLike, TableRow, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound } from '../../arc/plugin';
-import { normWord, toDisplay } from '../../text';
+import { contentTitle, normWord, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 
@@ -365,7 +365,8 @@ export function tableSchemes(corpus: Corpus, b: Block): Scheme[] {
     const n = tableCells(row).length;
     return n < ncol && c === n - 1;
   };
-  const where = b.title ? stripEnumerator(plain(b.title)) || null : b.section ? stripEnumerator(plain(b.section)) || null : null;
+  const title = contentTitle(b.title);
+  const where = title ? stripEnumerator(plain(title)) || null : b.section ? stripEnumerator(plain(b.section)) || null : null;
   const caption = b.caption ? plain(b.caption) : '';
 
   const asColumns = !headers[0] || !firstIsLabel || GENERIC_FIRST_HEADER.test(plain(headers[0]));
@@ -520,7 +521,8 @@ export function labelScheme(corpus: Corpus, b: Block): Scheme | null {
   }
   if (new Set(buckets.map((x) => normKey(x.label))).size !== buckets.length) return null;
   const lead = typeof (b as { lead_in?: unknown }).lead_in === 'string' ? plain((b as { lead_in?: string }).lead_in) : '';
-  const heading = b.title ? plain(b.title) : lead && wordCount(lead) <= 14 ? lead.replace(/[:.]$/, '') : b.section ? plain(b.section) : null;
+  const title = contentTitle(b.title);
+  const heading = title ? plain(title) : lead && wordCount(lead) <= 14 ? lead.replace(/[:.]$/, '') : b.section ? plain(b.section) : null;
   const s: Scheme = {
     key: `${b.id}#labels`,
     kind: 'labels',
@@ -567,13 +569,14 @@ export function nestedScheme(corpus: Corpus, b: Block): Scheme | null {
     }
   });
   if (buckets.length < 2) return null;
+  const title = contentTitle(b.title);
   const s: Scheme = {
     key: `${b.id}#nested`,
     kind: 'nested',
     blockId: b.id,
     objectiveId,
     prompt: 'Each card is a sub-point. Which point does it sit under?',
-    name: b.title ? plain(b.title) : listLabels(buckets.map((x) => x.label)),
+    name: title ? plain(title) : listLabels(buckets.map((x) => x.label)),
     line: `The notes break ${listLabels(buckets.map((x) => x.label))} into their own sub-points.`,
     buckets,
     items: finaliseItems(items, buckets),
@@ -615,7 +618,7 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
   const section = (b: Block) => (b.section ? cleanLabel(b.section) : '');
   const own = (b: Block) => {
     const lead = (b as { lead_in?: unknown }).lead_in;
-    const raw = b.title ?? (typeof lead === 'string' ? lead : '');
+    const raw = contentTitle(b.title) ?? (typeof lead === 'string' ? lead : '');
     return raw ? cleanLabel(raw) : '';
   };
   const distinct = (f: (b: Block) => string) => new Set(blocks.map(f).filter((l) => l && okLabel(l)).map(normKey)).size;
@@ -674,7 +677,7 @@ export function headingScheme(reading: Reading, objectiveIdx: number): Scheme | 
     prompt: 'Each card is a point from the notes. Which heading was it listed under?',
     name: headingsName(buckets, o.text),
     // No count: the board uses only the headings that carry bullets, and the notes may have more.
-    line: `Under ${o.id}, the notes list these points under the headings ${listLabels(buckets.map((x) => x.label))}.`,
+    line: `The notes list these points under the headings ${listLabels(buckets.map((x) => x.label))}.`,
     buckets,
     items: finaliseItems(items, buckets),
   };
@@ -919,7 +922,7 @@ export function buildBucketDrop(reading: Reading, ctx: BucketBuildInput): Mechan
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Bucket Drop. ${total} pieces of this reading, and the bins the notes keep them in. Drop each piece where it lives. The first board waits for you; the second one deals against a clock.`,
+    opening: `Bucket Drop. ${total} pieces of this reading, and the bins the notes keep them in. Drop each piece where it lives. The first board waits for you; the second one deals against a clock.`,
     concept,
   };
 }

@@ -7,7 +7,7 @@ import type { Corpus } from '../../corpus';
 import type { Block, BlockType, ItemSrs, Objective, Reading, SubItem, SubItemLike, TrapCategory } from '../../types';
 import { isLearningObjective } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { toDisplay, toSegments } from '../../text';
+import { contentTitle, toDisplay, toSegments } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 import type { AnswerKey } from './match';
@@ -581,7 +581,8 @@ function contrastTargets(s: string, block: Block, bulletId: string | null): Targ
 }
 
 function titleOf(b: Block): string | null {
-  const t = typeof b.title === 'string' ? toDisplay(b.title) : '';
+  const title = contentTitle(b.title);
+  const t = title ? toDisplay(title) : '';
   return t && !GENERIC_TITLE.test(t) ? t : null;
 }
 

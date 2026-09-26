@@ -11,7 +11,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Reading, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { mathToPlain, toDisplay, toSegments } from '../../text';
+import { contentTitle, mathToPlain, toDisplay, toSegments } from '../../text';
 import { srsPriority } from '../../srs';
 import { seededRng, shuffle } from '../../random';
 import type { Move, NumberHit, Part } from './parse';
@@ -105,8 +105,9 @@ export const MAX_OP_TEX = 260;
 type ExboxFields = Block & { question_latex?: unknown; solution_latex?: unknown; body_latex?: unknown };
 
 /** Lifts "Example —", "Example 2:", "Question 1 —" from a title; null when nothing else is left. */
-export function cleanTitle(title: unknown): string | null {
-  if (typeof title !== 'string') return null;
+export function cleanTitle(raw: unknown): string | null {
+  const title = contentTitle(raw);
+  if (title === null) return null;
   const t = title
     .replace(/^\s*(?:worked\s+)?(?:example|examples|question)\s*\d*\s*(?:continued)?\s*(?:—|–|---|--|:|\.)?\s*/i, '')
     .trim();
@@ -676,7 +677,7 @@ export function plain(latex: string): string {
 
 /** Plain text of an example's heading, for lines of feedback and naming. */
 export function headingText(ex: Example): string {
-  return ex.heading ? plain(ex.heading) : `Worked example ${ex.blockId}`;
+  return ex.heading ? plain(ex.heading) : 'This worked example';
 }
 
 /** The section as a concept name, unless it is a list label or a step heading. */
@@ -693,7 +694,7 @@ function landing(result: string): string {
   return flatMath(parts[parts.length - 1] ?? result).replace(/ ([,;])/g, '$1');
 }
 
-/** Just-in-time naming (§8.3): the concept the example works, its block, its LO, and the notes' chain. */
+/** Just-in-time naming (§8.3): the concept the example works and the notes' chain (block and LO are logged only). */
 export function namingFor(ex: Example, reading: Reading, corpus: Corpus): ConceptNaming {
   const heading = ex.heading ? plain(ex.heading) : '';
   const term = sectionTerm(ex) ?? (heading && !/^\s*step\s*\d/i.test(heading) ? heading : null) ?? plain(reading.title ?? reading.reading_id);
@@ -720,7 +721,7 @@ export function namingFor(ex: Example, reading: Reading, corpus: Corpus): Concep
       : `${h}: the notes' results, in order, run ${results.slice(0, 6).join(' → ')}.`;
   else if (results.length === 1)
     line = otherWork ? `${h}: the notes' working reaches ${results[0]}.` : `${h}: one line takes the givens to ${results[0]}.`;
-  else line = `${h}, worked in ${reading.reading_id}.`;
+  else line = `${h}, worked step by step in the notes.`;
   const los = learningObjectives(reading);
   const objectiveId = ex.objectiveId ?? corpus.objectiveOfBlock[ex.blockId] ?? los[los.length - 1]?.id ?? reading.reading_id;
   return { term, blockId: ex.blockId, objectiveId, line };
@@ -746,7 +747,7 @@ export function buildStepwise(reading: Reading, ctx: BuildInput): MechanicPlan<S
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Stepwise Derivation. ${n === 1 ? 'A worked example' : `${n} worked examples`} from this reading, with lines held back. At each gap three moves are on the table and only one is the notes' next step. Choose one and see where it leads.`,
+    opening: `Stepwise Derivation. ${n === 1 ? 'A worked example' : `${n} worked examples`} from this reading, with lines held back. At each gap three moves are on the table and only one is the notes' next step. Choose one and see where it leads.`,
     concept,
   };
 }

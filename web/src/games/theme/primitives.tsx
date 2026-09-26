@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
 import { Markdown } from '../../components/Markdown';
-import { toSegments } from '../text';
+import { scriptParts, toSegments } from '../text';
 
 type Tone = 'default' | 'soft' | 'navy';
 
@@ -70,7 +70,20 @@ export function NoteText({ latex, className = '' }: { latex: string; className?:
   const segs = useMemo(() => toSegments(latex), [latex]);
   return (
     <span className={`g-inline-math ${className}`}>
-      {segs.map((s, i) => (s.kind === 'text' ? <span key={i}>{s.text}</span> : <InlineMath key={i} tex={s.tex} />))}
+      {segs.map((s, i) => (s.kind === 'text' ? <PlainText key={i} text={s.text} /> : <InlineMath key={i} tex={s.tex} />))}
+    </span>
+  );
+}
+
+/**
+ * Plain text from the notes, with ASCII sub- and superscripts ("LR_cc", "λ^(i−1)") set as real ones,
+ * so no notation shows as source.
+ */
+export function PlainText({ text }: { text: string }) {
+  const parts = useMemo(() => scriptParts(text), [text]);
+  return (
+    <span>
+      {parts.map((p, i) => (p.script === 'sub' ? <sub key={i}>{p.text}</sub> : p.script === 'sup' ? <sup key={i}>{p.text}</sup> : p.text))}
     </span>
   );
 }

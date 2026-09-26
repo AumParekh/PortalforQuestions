@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, ChangeEvent } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
-import { GameButton, GameCard, TimerBar } from '../../theme/primitives';
+import { GameButton, GameCard, PlainText, TimerBar } from '../../theme/primitives';
 import type { Axis, ParamSpec } from './maths';
 import { chartLayout, closeness, decimalsOf, fmt, onGrid, sample, shapeReport, snaps } from './maths';
 import type { CurvePayload } from './build';
@@ -231,7 +231,7 @@ function SliderRow({
     <div className={cls}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
         <label htmlFor={id} className="cs-param-label">
-          {p.label}
+          <PlainText text={p.label} />
         </label>
         <span className="cs-value" aria-hidden="true">
           {shown}
@@ -414,24 +414,29 @@ function Round({
   const brokenLines = (p.broken.length ? p.broken : item.shapeWords).map((w) => ({ w, m: meaningOf(w) }));
   const culprit = variant.param;
   const culpritLabel = paramLabel(item, culprit);
-  const source = `block ${round.blockId}`;
 
   return (
     <GameCard className="g-enter relative space-y-5 !px-4 sm:!px-6">
       {timed && !resolved && round.timeLimitMs && <TimerBar ms={round.timeLimitMs} />}
 
       <div className="space-y-3">
-        <p className="cs-desc">{item.description}</p>
+        <p className="cs-desc">
+          <PlainText text={item.description} />
+        </p>
         <ShapeChips words={item.shapeWords} report={report} live={discovery || resolved} />
       </div>
 
       <figure className="space-y-2">
         <figcaption className="cs-chart-title">
-          {capitalise(axisTitle(item.y))} against {lowerFirst(axisTitle(item.x))}
+          <PlainText text={`${capitalise(axisTitle(item.y))} against ${lowerFirst(axisTitle(item.x))}`} />
         </figcaption>
-        <div className="cs-axis-title">↑ {axisTitle(item.y)}</div>
+        <div className="cs-axis-title">
+          ↑ <PlainText text={axisTitle(item.y)} />
+        </div>
         <CurveChart item={item} params={params} startParams={p.startParams} status={status} warmth={warmth} clipId={`cs-clip-${round.id.replace(/[^A-Za-z0-9_-]/g, '_')}`} />
-        <div className="cs-axis-title text-right">{axisTitle(item.x)} →</div>
+        <div className="cs-axis-title text-right">
+          <PlainText text={axisTitle(item.x)} /> →
+        </div>
         <Legend status={status} />
       </figure>
 
@@ -482,8 +487,9 @@ function Round({
               </li>
             ))}
           </ul>
-          <p className="cs-reading">{variant.curated ? item.explanation : derivedExplanation(p)}</p>
-          <p className="cs-source">{source}</p>
+          <p className="cs-reading">
+            <PlainText text={variant.curated ? item.explanation : derivedExplanation(p)} />
+          </p>
         </div>
       )}
 
@@ -501,8 +507,9 @@ function Round({
                 </li>
               ))}
             </ul>
-            <p className="cs-reading">{variant.curated ? item.explanation : derivedExplanation(p)}</p>
-            <p className="cs-source">{source}</p>
+            <p className="cs-reading">
+              <PlainText text={variant.curated ? item.explanation : derivedExplanation(p)} />
+            </p>
           </div>
         </div>
       )}

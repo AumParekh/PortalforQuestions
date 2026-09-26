@@ -308,11 +308,11 @@ function SmilePanel({ p, id }: { p: TailPayload; id: string }) {
       <figcaption className="ts-chart-title">What the option market quotes for this density</figcaption>
       <div className="ts-axis-title">↑ Implied volatility (%)</div>
       <SmileChart points={sm.points} before={sm.before} clipId={`${id}-smile`} />
-      <div className="ts-axis-title text-right">Strike over spot, K/S0 →</div>
+      <div className="ts-axis-title text-right">Strike over spot, K/S₀ →</div>
       <LegendRow rows={rows} />
       <p className="ts-text">{LABEL_READING[sm.label]}</p>
       <p className="ts-note">Low strikes (left) pay off in the left tail; high strikes (right) in the right tail.</p>
-      <p className="ts-source">{smileCaption(sm.note)}</p>
+      <p className="ts-caption">{smileCaption(sm.note)}</p>
     </figure>
   );
 }
@@ -386,7 +386,7 @@ function SliderRow({
             step={p.step}
             value={value}
             disabled={locked}
-            aria-valuetext={`${shown}${p.lowLabel && value <= p.min + (p.max - p.min) * 0.1 ? `, ${p.lowLabel}` : ''}${p.highLabel && value >= p.max - (p.max - p.min) * 0.1 ? `, ${p.highLabel}` : ''}`}
+            aria-valuetext={`${shown}${p.lowLabel && value <= p.min + (p.max - p.min) * 0.1 ? `, ${pretty(p.lowLabel)}` : ''}${p.highLabel && value >= p.max - (p.max - p.min) * 0.1 ? `, ${pretty(p.highLabel)}` : ''}`}
             onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(onGrid(p, Number(e.currentTarget.value)))}
           />
           <span className="ts-tick" style={{ left: trackLeft(p, start) }} aria-hidden="true" />
@@ -397,8 +397,8 @@ function SliderRow({
       </div>
       {(p.lowLabel || p.highLabel) && (
         <div className="ts-ends flex flex-wrap justify-between gap-x-4">
-          <span>← {p.lowLabel}</span>
-          <span className="text-right">{p.highLabel} →</span>
+          <span>← {pretty(p.lowLabel)}</span>
+          <span className="text-right">{pretty(p.highLabel)} →</span>
         </div>
       )}
     </div>
@@ -549,7 +549,6 @@ function Round({
 
   const resolved = status !== 'play';
   const outOfBox = item.matters.filter((n) => !withinOne(params[n], item.target[n], item.tolerance[n]));
-  const source = `block ${round.blockId}`;
   const [rl, rr] = tailRatios(params.nuL, params.nuR, thresholds.tailZ);
   const densityCaption =
     discovery || resolved
@@ -643,7 +642,6 @@ function Round({
             <span className="g-strong">Matched.</span> {LABEL_TERM[item.smile.label]}.
           </p>
           <p className="ts-reading">{pretty(item.explanation)}</p>
-          <p className="ts-source">{source}</p>
         </div>
       )}
 
@@ -657,7 +655,6 @@ function Round({
               {item.matters.map((n) => pretty(specs[n].label).replace(/\s*\(.*\)$/, '').toLowerCase()).join(' and ')}; the green band on each is what the words allow.
             </p>
             <p className="ts-reading">{pretty(item.explanation)}</p>
-            <p className="ts-source">{source}</p>
           </div>
         </div>
       )}

@@ -10,7 +10,7 @@ import type { Corpus } from '../../corpus';
 import { learningObjectives } from '../../corpus';
 import type { Block, ItemSrs, Reading, SubItem, SubItemLike, TableRow, TrapCategory } from '../../types';
 import type { ConceptNaming, MechanicPlan, MechanicRound, RoundResult } from '../../arc/plugin';
-import { emphasised, latexTextToPlain, toDisplay } from '../../text';
+import { contentTitle, emphasised, latexTextToPlain, toDisplay } from '../../text';
 import { srsPriority } from '../../srs';
 import { shuffle } from '../../random';
 
@@ -832,7 +832,7 @@ function leadFor(c: Candidate): string | null {
   const fits = (x: string | null | undefined): x is string =>
     typeof x === 'string' && !!x.trim() && toDisplay(x).length <= 90 && !mentionsValue(x, c.number.value);
   if (c.rowLabel) return fits(c.rowLabel) ? c.rowLabel : null;
-  const title = c.block.title;
+  const title = contentTitle(c.block.title);
   if (fits(title) && !GENERIC_TITLE.test(toDisplay(title))) return title.trim();
   const section = c.block.section;
   return fits(section) ? section.trim() : null;
@@ -966,7 +966,7 @@ export function buildThreshold(reading: Reading, ctx: ThresholdBuildInput): Mech
   return {
     rounds,
     target: concept.term,
-    opening: `${reading.reading_id} · Threshold Slider. ${rounds.length} numbers from this reading, each cut out of its sentence. Slide the marker to where the notes draw the line — first with the whole sentence in view, then from a short cue.`,
+    opening: `Threshold Slider. ${rounds.length} numbers from this reading, each cut out of its sentence. Slide the marker to where the notes draw the line — first with the whole sentence in view, then from a short cue.`,
     concept,
   };
 }

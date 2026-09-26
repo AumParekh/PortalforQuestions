@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/plugin';
 import type { PlayPhase } from '../../types';
 import type { ShatterPayload, Verdict } from './build';
-import { GameButton, GameCard, InlineMath, NoteText, ShatterBurst, TimerBar, WrongHold } from '../../theme/primitives';
+import { GameButton, GameCard, InlineMath, NoteText, PlainText, ShatterBurst, TimerBar, WrongHold } from '../../theme/primitives';
 
 const VERDICTS: { v: Verdict; key: string; hint: string }[] = [
   { v: 'TRUE', key: 't', hint: 'stands as written' },
@@ -46,7 +46,7 @@ function Statement({
         ]
           .filter(Boolean)
           .join(' ');
-        const body = t.math ? <InlineMath tex={t.text} /> : t.text;
+        const body = t.math ? <InlineMath tex={t.text} /> : <PlainText text={t.text} />;
         return (
           <span key={i}>
             {tappable ? (

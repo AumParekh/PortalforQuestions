@@ -6,7 +6,7 @@
 // or bin; a right placement locks (the node's ring closes, the card settles green); a wrong one
 // bounces back, grows a phantom branch from the wrong node that leads nowhere, and the right node
 // or bin pulses until the card lands there. Comparing two nodes lights the lineage between them and
-// closes the loop with an arc when the sort is done. Every answer shows its source block.
+// closes the loop with an arc when the sort is done.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, MutableRefObject, PointerEvent, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -32,10 +32,6 @@ type Round = MechanicRound<FnPayload>;
 function nodeTitle(n: FnNode): string {
   const y = yearLabel(n);
   return y ? `${n.name} (${y})` : `${n.name} (undated in the notes)`;
-}
-
-function sourceLine(blockId: string): string {
-  return `block ${blockId}`;
 }
 
 /** setTimeout whose pending callbacks are cleared when the component unmounts. */
@@ -340,7 +336,7 @@ function SortBoard({
 // ---------------------------------------------------------------------------------------------
 // The reveal: what a node introduced, restricted and was responding to
 
-function NodeCard({ data, node, highlight, blockId }: { data: FnData; node: FnNode; highlight?: ReadonlySet<string>; blockId?: string }) {
+function NodeCard({ data, node, highlight }: { data: FnData; node: FnNode; highlight?: ReadonlySet<string> }) {
   const lane = data.lineages.find((l) => l.id === node.lineage)?.label ?? node.lineage;
   const parents = node.parents.map((p) => data.nodeById[p]?.short).filter(Boolean);
   const kids = (data.childrenOf[node.id] ?? []).map((k) => data.nodeById[k]?.short).filter(Boolean);
@@ -374,7 +370,6 @@ function NodeCard({ data, node, highlight, blockId }: { data: FnData; node: FnNo
           </section>
         ))}
       </div>
-      <p className="fn-source">{sourceLine(blockId ?? node.sourceBlock ?? node.id)}</p>
     </article>
   );
 }
@@ -389,14 +384,13 @@ interface RoundProps<P> {
   base: BaseLayout;
   lit: ReadonlySet<string>;
   showAll: boolean;
-  readingId: string;
   onAnswered: (r: RoundResult) => void;
   onNext: () => void;
   last: boolean;
 }
 
-function treeCaption(readingId: string, extra: string): string {
-  return `Each circle is a framework, oldest on the left, one row per lineage; lines run from a framework to what grew out of it. Filled circles belong to ${readingId}. ${extra}`;
+function treeCaption(extra: string): string {
+  return `Each circle is a framework, oldest on the left, one row per lineage; lines run from a framework to what grew out of it. Filled circles belong to this reading. ${extra}`;
 }
 
 function NextButton({ enabled, last, onClick }: { enabled: boolean; last: boolean; onClick: () => void }) {
@@ -418,7 +412,7 @@ function NextButton({ enabled, last, onClick }: { enabled: boolean; last: boolea
 
 type PlaceStage = 'place' | 'fix' | 'hold' | 'done';
 
-function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswered, onNext, last }: RoundProps<PlacePayload>) {
+function PlaceRound({ round, phase, data, base, lit, showAll, onAnswered, onNext, last }: RoundProps<PlacePayload>) {
   const p = round.payload;
   const answer = data.nodeById[p.answer];
   const [stage, setStage] = useState<PlaceStage>('place');
@@ -572,7 +566,7 @@ function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswe
           else targets.current.delete(id);
         }}
         scrollerRef={scroller}
-        caption={treeCaption(readingId, 'Ringed circles are this round’s choices.')}
+        caption={treeCaption('Ringed circles are this round’s choices.')}
       />
 
       {/* The same choices as buttons: on a phone the tree is wider than the screen and a ringed
@@ -612,7 +606,6 @@ function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswe
               <p className="fn-text">
                 <span className="g-strong">{nodeTitle(answer)}.</span> {explain}
               </p>
-              <p className="fn-source">{sourceLine(round.blockId)}</p>
             </div>
           ) : (
             <WrongHold
@@ -631,7 +624,6 @@ function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswe
                   <span className="g-strong">{nodeTitle(answer)}.</span> {explain}
                 </span>
               }
-              source={sourceLine(round.blockId)}
               holdMs={HOLD_MS}
               onSettled={() => setSettled(true)}
             />
@@ -642,7 +634,7 @@ function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswe
 
       {stage === 'done' && !timed && (
         <div className="space-y-3">
-          <NodeCard data={data} node={answer} highlight={highlight} blockId={answer.sourceBlock ?? undefined} />
+          <NodeCard data={data} node={answer} highlight={highlight} />
           {peek && peek !== p.answer && data.nodeById[peek] && <NodeCard data={data} node={data.nodeById[peek]} />}
           <p className="fn-small g-muted">Tap any framework on the map to look inside it.</p>
         </div>
@@ -654,7 +646,7 @@ function PlaceRound({ round, phase, data, base, lit, showAll, readingId, onAnswe
 // ---------------------------------------------------------------------------------------------
 // Explore: open a node, sort its items into introduced / restricted / responding to
 
-function ExploreRound({ round, data, base, lit, showAll, readingId, onAnswered, onNext, last }: RoundProps<ExplorePayload>) {
+function ExploreRound({ round, data, base, lit, showAll, onAnswered, onNext, last }: RoundProps<ExplorePayload>) {
   const p = round.payload;
   const node = data.nodeById[p.node];
   const [stage, setStage] = useState<'closed' | 'sort' | 'done'>('closed');
@@ -714,7 +706,7 @@ function ExploreRound({ round, data, base, lit, showAll, readingId, onAnswered, 
         tappable={stage === 'closed' ? new Set([p.node]) : stage === 'done' ? 'all' : new Set<string>()}
         onTap={stage === 'closed' ? open : (id) => setPeek(id === peek ? null : id)}
         verb={stage === 'closed' ? 'Open' : 'Look inside'}
-        caption={treeCaption(readingId, 'The pulsing circle is the one to open.')}
+        caption={treeCaption('The pulsing circle is the one to open.')}
       />
 
       {stage !== 'closed' && (
@@ -722,7 +714,7 @@ function ExploreRound({ round, data, base, lit, showAll, readingId, onAnswered, 
           <SortBoard bins={bins} chips={chips} forceDone={false} onComplete={complete} twoUp={false} />
           {stage === 'done' && (
             <>
-              <NodeCard data={data} node={node} highlight={new Set(p.chips.map((c) => c.text))} blockId={round.blockId} />
+              <NodeCard data={data} node={node} highlight={new Set(p.chips.map((c) => c.text))} />
               {peek && peek !== p.node && data.nodeById[peek] && <NodeCard data={data} node={data.nodeById[peek]} />}
               <p className="fn-small g-muted">Tap any framework on the map to look inside it.</p>
               <NextButton enabled last={last} onClick={onNext} />
@@ -737,7 +729,7 @@ function ExploreRound({ round, data, base, lit, showAll, readingId, onAnswered, 
 // ---------------------------------------------------------------------------------------------
 // Compare: two neighbours; sort items to the one they belong to
 
-function CompareRound({ round, phase, data, base, lit, showAll, readingId, onAnswered, onNext, last }: RoundProps<ComparePayload>) {
+function CompareRound({ round, phase, data, base, lit, showAll, onAnswered, onNext, last }: RoundProps<ComparePayload>) {
   const p = round.payload;
   const a = data.nodeById[p.a];
   const b = data.nodeById[p.b];
@@ -794,7 +786,7 @@ function CompareRound({ round, phase, data, base, lit, showAll, readingId, onAns
         tappable={new Set<string>()}
         verb="Look inside"
         loop={{ a: p.a, b: p.b, closed: stage === 'done' }}
-        caption={treeCaption(readingId, 'A and B are joined by the lineage between them; the arc closes when you finish.')}
+        caption={treeCaption('A and B are joined by the lineage between them; the arc closes when you finish.')}
       />
 
       <GameCard className="space-y-4">
@@ -821,7 +813,6 @@ function CompareRound({ round, phase, data, base, lit, showAll, readingId, onAns
                 </p>
               </div>
             )}
-            <p className="fn-source">{sourceLine(round.blockId)}</p>
             <NextButton enabled last={last} onClick={onNext} />
           </div>
         )}
@@ -886,7 +877,6 @@ export function FrameworkBoard({ phase, rounds, reading, corpus, onResult, onPha
     base,
     lit,
     showAll,
-    readingId: reading.reading_id,
     onAnswered: answered,
     onNext: next,
     last: index + 1 === rounds.length,

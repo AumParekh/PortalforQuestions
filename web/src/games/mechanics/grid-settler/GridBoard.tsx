@@ -5,7 +5,7 @@
 // - Right cell: the tile snaps in (a short flight with a slight overshoot) and the cell locks green.
 // - Wrong cell: the tile lands, the cell bounces, and after a beat (~800 ms) the tile bounces back
 //   to the tray while the right cell pulses. A dashed phantom arc runs from the tile to the right
-//   cell, the correction fades in with its source block, and the player settles the tile there.
+//   cell, the correction fades in with the notes' reason, and the player settles the tile there.
 // - Time out (pressure): the tile travels the phantom arc to its cell on its own.
 // - Full grid: cells shade by how many tiles they hold, empty cells hatch, marginal bars rise along
 //   the bottom and right edges, and the pattern from the notes appears as the grid's caption.
@@ -15,9 +15,10 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, MutableRefObject, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
 import type { MechanicRenderProps, MechanicRound } from '../../arc/plugin';
-import { GameCard, TimerBar } from '../../theme/primitives';
+import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 import type { GsPayload, PresetKind } from './build';
 import type { GsGrid, GsTile } from './schema';
+import { noteLatex, noteLine, plainText } from './schema';
 import type { Pt, Rect } from './maths';
 import {
   bands,
@@ -143,7 +144,7 @@ function Chip({ tile, kind, flights, flightKey }: { tile: GsTile; kind: Kind | '
       }}
       className={`gs-chip is-${kind}`}
     >
-      {tile.text}
+      <Note text={tile.text} />
     </span>
   );
 }
@@ -188,7 +189,7 @@ function TrayCard({
       tabIndex={draggable ? 0 : -1}
       aria-pressed={selected}
       aria-disabled={!draggable || undefined}
-      aria-label={`Tile: ${round.payload.tile.text}${selected ? ' (picked up; now choose a cell)' : ''}`}
+      aria-label={`Tile: ${plainText(round.payload.tile.text)}${selected ? ' (picked up; now choose a cell)' : ''}`}
       className={cls}
       style={drag ? ({ transform: `translate(${drag.dx}px, ${drag.dy}px) scale(1.035) rotate(-0.6deg)` } as CSSProperties) : undefined}
       onPointerDown={onPointerDown}
@@ -203,7 +204,7 @@ function TrayCard({
         }
       }}
     >
-      {round.payload.tile.text}
+      <Note text={round.payload.tile.text} />
     </div>
   );
 }
@@ -225,12 +226,22 @@ function cellName(grid: GsGrid, x: number, y: number): string {
   return `${grid.x.values[x]} · ${grid.y.values[y]}`;
 }
 
-function Source({ grid, blockId }: { grid: GsGrid; blockId: string }) {
-  return (
-    <p className="gs-source">
-      {grid.readingId} · block <span className="gs-mono">{blockId}</span>
-    </p>
-  );
+/** Curated text as the notes put it: "D_A" set as math, nothing else touched. */
+function Note({ text }: { text: string }) {
+  return <NoteText latex={noteLatex(text)} />;
+}
+
+/** The notes' reason a tile sits where it does, when the curated line carries one. */
+function Why({ tile }: { tile: GsTile }) {
+  const why = noteLine(tile.why);
+  return why ? (
+    <>
+      {' '}
+      <span className="g-serif">
+        <Note text={why} />
+      </span>
+    </>
+  ) : null;
 }
 
 function FeedbackPanel({ fb, round, children }: { fb: Feedback; round: Round; children?: ReactNode }) {
@@ -241,9 +252,9 @@ function FeedbackPanel({ fb, round, children }: { fb: Feedback; round: Round; ch
       <GameCard className="g-settle space-y-3">
         <div className={fb.kind === 'ok' ? 'gs-ok' : 'gs-fixed'} aria-live="polite">
           <p className="gs-text">
-            <span className="gs-strong">{fb.kind === 'ok' ? 'Locked' : 'Settled'}: {right}.</span> <span className="g-serif">{tile.why}</span>
+            <span className="gs-strong">{fb.kind === 'ok' ? 'Locked' : 'Settled'}: {right}.</span>
+            <Why tile={tile} />
           </p>
-          <Source grid={grid} blockId={round.blockId} />
         </div>
         {children}
       </GameCard>
@@ -256,16 +267,16 @@ function FeedbackPanel({ fb, round, children }: { fb: Feedback; round: Round; ch
       <div className="space-y-2" style={{ '--g-hold': wrong ? `${HOLD_MS}ms` : '0ms' } as CSSProperties}>
         {wrong ? (
           <p className="g-hold-wrong gs-text">
-            <span className="gs-strong">Not {wrong}.</span> “{tile.text}” does not sit under {grid.x.label}: {grid.x.values[cx]}, {grid.y.label}: {grid.y.values[cy]}.
+            <span className="gs-strong">Not {wrong}.</span> “<Note text={tile.text} />” does not sit under {grid.x.label}: {grid.x.values[cx]}, {grid.y.label}: {grid.y.values[cy]}.
           </p>
         ) : (
           <p className="gs-text gs-muted">Time ran out.</p>
         )}
         <div className="g-hold-right gs-text" aria-live="polite">
           <p>
-            <span className="gs-strong">It belongs at {right}.</span> <span className="g-serif">{tile.why}</span>
+            <span className="gs-strong">It belongs at {right}.</span>
+            <Why tile={tile} />
           </p>
-          <Source grid={grid} blockId={round.blockId} />
         </div>
       </div>
       {children}
@@ -620,7 +631,7 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
 
   const cellLabel = (x: number, y: number) => {
     const name = `${grid.x.label}: ${grid.x.values[x]}; ${grid.y.label}: ${grid.y.values[y]}`;
-    const inHand = handRound?.payload.tile.text;
+    const inHand = handRound ? plainText(handRound.payload.tile.text) : undefined;
     return armedCells && inHand ? `Place “${inHand}” at ${name}` : name;
   };
 
@@ -631,7 +642,9 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
     <div className="space-y-5">
       <div className="space-y-2">
         <p className="gs-kicker">{timed ? 'Settle each tile. Under pressure' : 'Settle each tile'}</p>
-        <h2 className="gs-title">{grid.title}</h2>
+        <h2 className="gs-title">
+          <Note text={grid.title} />
+        </h2>
       </div>
       <Docket rounds={rounds} outcome={outcome} current={stage === 'end' ? null : (fb && stage !== 'ask' ? fb.roundId : selected)} />
       {timed && stage === 'ask' && current && <TimerBar key={current.id} ms={current.timeLimitMs ?? 12000} />}
@@ -803,10 +816,15 @@ export function GridBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRend
           {reveal ? (
             <>
               <p className="gs-kicker">What the full grid shows</p>
-              <p className="g-reading g-assemble">{grid.pattern}</p>
-              {grid.explanation && <p className="gs-text gs-muted g-serif">{grid.explanation}</p>}
+              <p className="g-reading g-assemble">
+                <Note text={noteLine(grid.pattern)} />
+              </p>
+              {noteLine(grid.explanation) && (
+                <p className="gs-text gs-muted g-serif">
+                  <Note text={noteLine(grid.explanation)} />
+                </p>
+              )}
               <p className="gs-text gs-muted">Shading marks how many tiles each cell holds; the bars along the bottom and right edge total each column and row.</p>
-              <Source grid={grid} blockId={grid.sourceBlock} />
             </>
           ) : (
             <>

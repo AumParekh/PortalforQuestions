@@ -25,13 +25,37 @@ const isStr = (v: unknown): v is string => typeof v === 'string' && v.trim().len
 
 function axisOf(v: unknown): Axis | null {
   if (!isRecord(v) || !isStr(v.label) || !isNum(v.min) || !isNum(v.max) || !(v.max > v.min)) return null;
-  return { label: v.label.trim(), min: v.min, max: v.max, unit: typeof v.unit === 'string' ? v.unit.trim() : '' };
+  return { label: notation(v.label.trim()), min: v.min, max: v.max, unit: typeof v.unit === 'string' ? v.unit.trim() : '' };
 }
 
 function paramOf(v: unknown): ParamSpec | null {
   if (!isRecord(v) || !isStr(v.name) || !/^[A-Za-z_][A-Za-z0-9_]*$/.test(v.name) || v.name === 'x') return null;
   if (!isStr(v.label) || !isNum(v.min) || !isNum(v.max) || !isNum(v.step) || !(v.max > v.min) || !(v.step > 0)) return null;
-  return { name: v.name, label: v.label.trim(), min: v.min, max: v.max, step: v.step };
+  return { name: v.name, label: notation(v.label.trim()), min: v.min, max: v.max, step: v.step };
+}
+
+/** A reading cited in a curated line ("MR-3"), with any notes line after it ("l.148"). */
+const REF = String.raw`\b(?:MR|CR|ORR|LTR|IM|CI)-\d+\b(?:\s+l\.\s?\d+(?:[-–]\d+)?)?`;
+
+/**
+ * Takes reading citations out of a curated line: a bracket that cites a reading or a notes line
+ * goes ("(the excess-loss model of MR-3)", "(l.201)"), and any other reading becomes "the notes".
+ */
+function dropReadingRefs(s: string): string {
+  return s
+    .replace(new RegExp(String.raw`\s*\([^()]*${REF}[^()]*\)|\s*\((?:ll?\.|lines?)\s?\d+(?:[-–]\d+)?\)`, 'g'), '')
+    .replace(new RegExp(REF, 'g'), 'the notes')
+    .trim();
+}
+
+const GREEK: Record<string, string> = { theta: 'θ', sigma: 'σ', mu: 'μ', xi: 'ξ' };
+
+/**
+ * The curated lines' ASCII symbols as characters: "theta" → θ, "sigma" → σ, "r0" → r₀, "X/S0" → X/S₀.
+ * Sub- and superscripts written with _ and ^ ("E[r_T]", "e^(-kT)") are set by PlainText.
+ */
+export function notation(s: string): string {
+  return s.replace(/\b(theta|sigma|mu|xi)\b/g, (_, w: string) => GREEK[w]).replace(/\b([A-Za-z])0\b/g, '$1₀');
 }
 
 /** Type guard + normaliser for one curated item; null when anything is off. */
@@ -67,8 +91,8 @@ export function parseItem(raw: unknown): CurveItem | null {
     id: id.trim(),
     readingId: reading_id.trim(),
     sourceBlock: isStr(raw.source_block) ? raw.source_block.trim() : null,
-    description: description.trim(),
-    explanation: explanation.trim(),
+    description: notation(dropReadingRefs(description.trim())),
+    explanation: notation(dropReadingRefs(explanation.trim())),
     expr,
     x,
     y,

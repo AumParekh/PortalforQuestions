@@ -21,7 +21,7 @@ export type DocketMode = 'docket' | 'compare';
 export interface DocketCase {
   id: string;
   name: string;
-  /** Readings that name the case, for the case card. */
+  /** Readings that name the case (logged, not shown: the card names only the case). */
   citedIn: string[];
 }
 
@@ -38,7 +38,7 @@ export interface DocketPayload {
   names: string[];
   /** The fact as the notes state it. */
   text: string;
-  /** Reading the fact comes from. */
+  /** Reading the fact comes from (not shown). */
   factReading: string;
   /** Docket: 'this' | 'not'. Compare: the owning case id. */
   answer: string;
@@ -296,7 +296,7 @@ export function buildCaseDocket(reading: Reading, ctx: BuildInput): MechanicPlan
   return {
     rounds: [...discovery, ...pressure],
     target: concept.term,
-    opening: `${reading.reading_id} · Case Docket. A case file lands on the bench with a stack of loose facts. Some belong to it; some were lifted from other files. Sort the stack. Then a second file joins the first, and every fact has to go back where it came from.`,
+    opening: `Case Docket. A case file lands on the bench with a stack of loose facts. Some belong to it; some were lifted from other files. Sort the stack. Then a second file joins the first, and every fact has to go back where it came from.`,
     concept,
   };
 }
