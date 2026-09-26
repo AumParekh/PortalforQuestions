@@ -1,0 +1,2875 @@
+[
+  {
+    "id": "CR-4-F01",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 63,
+    "objective": "CR-4 b",
+    "name": "Loss rate from recovery rate",
+    "prompt": "How is the loss rate (LGD) obtained from the recovery rate?",
+    "latex": "\\mathrm{LR} = 1 - \\mathrm{RR}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{LR}",
+        "meaning": "loss rate (= loss given default), fraction of exposure lost on default, as a decimal/percentage"
+      },
+      {
+        "symbol": "\\mathrm{RR}",
+        "meaning": "recovery rate, the fraction of exposure recovered after default, as a decimal/percentage"
+      }
+    ],
+    "skeleton": "\\mathrm{LR} = {{1}} - {{2}}",
+    "slots": [
+      "1",
+      "\\mathrm{RR}"
+    ],
+    "decoys": [
+      "\\mathrm{PD}",
+      "\\mathrm{EA}",
+      "\\mathrm{RR}^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{LR} = 1 + \\mathrm{RR}",
+        "kind": "sign",
+        "why": "Recovering more must reduce the loss; adding RR would push LR above 100%."
+      },
+      {
+        "latex": "\\mathrm{LR} = \\mathrm{RR} - 1",
+        "kind": "sign",
+        "why": "Subtraction order reversed: this gives a negative loss rate for any RR below 100%."
+      },
+      {
+        "latex": "\\mathrm{LR} = 1 - \\mathrm{PD}",
+        "kind": "wrong-variable",
+        "why": "The complement of PD is the survival probability, not the loss severity; LR is the complement of the recovery rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{RR}",
+        "direction": "down",
+        "why": "Every extra cent recovered is a cent not lost, so a higher recovery rate lowers the loss rate one for one."
+      }
+    ],
+    "intuition": "What you don't get back is what you lose: loss rate and recovery rate always add up to 100%.",
+    "calc": {
+      "expr": "1 - RR",
+      "inputs": [
+        {
+          "name": "RR",
+          "symbol": "\\mathrm{RR}",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{LR}",
+        "unit": "decimal",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "LGD",
+      "recovery rate"
+    ]
+  },
+  {
+    "id": "CR-4-F02",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 78,
+    "objective": "CR-4 c",
+    "name": "Expected loss of a single credit asset",
+    "prompt": "What is the expected loss on a loan, given its outstanding exposure, default probability and loss rate?",
+    "latex": "\\mathrm{EL} = \\mathrm{EA} \\times \\mathrm{PD} \\times \\mathrm{LR}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{EL}",
+        "meaning": "expected loss (currency), the average loss the bank anticipates on the asset"
+      },
+      {
+        "symbol": "\\mathrm{EA}",
+        "meaning": "exposure amount (currency): the outstanding balance, not the total commitment; same quantity as EAD"
+      },
+      {
+        "symbol": "\\mathrm{PD}",
+        "meaning": "probability of default over the horizon, as a decimal"
+      },
+      {
+        "symbol": "\\mathrm{LR}",
+        "meaning": "loss rate (= LGD), as a decimal"
+      }
+    ],
+    "skeleton": "\\mathrm{EL} = {{1}} \\times {{2}} \\times {{3}}",
+    "slots": [
+      "\\mathrm{EA}",
+      "\\mathrm{PD}",
+      "\\mathrm{LR}"
+    ],
+    "decoys": [
+      "\\mathrm{RR}",
+      "\\sigma_{\\mathrm{PD}}",
+      "\\mathrm{LR}^{2}",
+      "\\mathrm{UL}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{EL} = \\mathrm{EA} \\times \\mathrm{PD} \\times \\mathrm{RR}",
+        "kind": "wrong-variable",
+        "why": "Uses the recovery rate instead of the loss rate: the loss is the part NOT recovered, LR = 1 - RR."
+      },
+      {
+        "latex": "\\mathrm{EL} = \\mathrm{EA} \\times \\mathrm{PD}",
+        "kind": "missing-term",
+        "why": "Ignores severity: it assumes the whole exposure is lost on default, overstating EL unless LR = 100%."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{EA}",
+        "direction": "up",
+        "why": "More money outstanding means more to lose."
+      },
+      {
+        "variable": "\\mathrm{PD}",
+        "direction": "up",
+        "why": "A more likely default raises the average loss proportionally."
+      },
+      {
+        "variable": "\\mathrm{LR}",
+        "direction": "up",
+        "why": "A more severe default (lower recovery) raises the loss per default."
+      }
+    ],
+    "intuition": "How much is out there, times how likely it goes bad, times how much of it you lose when it does.",
+    "calc": {
+      "expr": "EA * PD * LR",
+      "inputs": [
+        {
+          "name": "EA",
+          "symbol": "\\mathrm{EA}",
+          "min": 100000,
+          "max": 10000000,
+          "step": 50000,
+          "unit": "$"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}",
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.001,
+          "unit": "decimal"
+        },
+        {
+          "name": "LR",
+          "symbol": "\\mathrm{LR}",
+          "min": 0.05,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{EL}",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "EA": 1800000,
+          "PD": 0.01,
+          "LR": 0.4
+        },
+        "output": 7200,
+        "source_line": 148
+      }
+    },
+    "tags": [
+      "expected loss",
+      "credit capital"
+    ]
+  },
+  {
+    "id": "CR-4-F03",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 108,
+    "objective": "CR-4 d",
+    "name": "Unexpected loss as a standard deviation (definition)",
+    "prompt": "How is unexpected loss at the horizon defined in terms of the asset's value at the horizon date?",
+    "latex": "\\mathrm{UL}_H \\equiv \\sqrt{\\operatorname{var}(V_H)}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{UL}_H",
+        "meaning": "unexpected loss measured at the horizon date H"
+      },
+      {
+        "symbol": "V_H",
+        "meaning": "value of the risky asset at the horizon date H"
+      }
+    ],
+    "skeleton": "{{1}} \\equiv \\sqrt{ {{2}} }",
+    "slots": [
+      "\\mathrm{UL}_H",
+      "\\operatorname{var}(V_H)"
+    ],
+    "decoys": [
+      "\\mathrm{EL}_H",
+      "E(V_H)",
+      "\\operatorname{var}(V_H)^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{UL}_H \\equiv \\operatorname{var}(V_H)",
+        "kind": "exponent",
+        "why": "UL is a standard deviation, not a variance: the square root is missing."
+      },
+      {
+        "latex": "\\mathrm{UL}_H \\equiv E(V_H)",
+        "kind": "wrong-variable",
+        "why": "The mean of the value distribution is the expected-loss side of the story; UL is its variability."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Expected loss is the average; unexpected loss is the typical swing around it, i.e. a standard deviation.",
+    "calc": null,
+    "tags": [
+      "unexpected loss",
+      "definition"
+    ]
+  },
+  {
+    "id": "CR-4-F04",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 114,
+    "objective": "CR-4 d",
+    "name": "Unexpected loss of a single asset",
+    "prompt": "What is the unexpected loss of one loan, from its exposure, PD, loss rate and the volatilities of PD and loss rate?",
+    "latex": "\\mathrm{UL} = \\mathrm{EA} \\times \\sqrt{\\mathrm{PD}\\times\\sigma^{2}_{\\mathrm{LR}} + \\mathrm{LR}^{2}\\times\\sigma^{2}_{\\mathrm{PD}}}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{UL}",
+        "meaning": "unexpected loss of the asset (currency), the standard deviation of its loss"
+      },
+      {
+        "symbol": "\\mathrm{EA}",
+        "meaning": "exposure amount (currency), the outstanding balance"
+      },
+      {
+        "symbol": "\\mathrm{PD}",
+        "meaning": "probability of default, as a decimal"
+      },
+      {
+        "symbol": "\\sigma^{2}_{\\mathrm{LR}}",
+        "meaning": "variance of the loss rate (square of the standard deviation of LR, decimals)"
+      },
+      {
+        "symbol": "\\mathrm{LR}",
+        "meaning": "loss rate (= LGD), as a decimal"
+      },
+      {
+        "symbol": "\\sigma^{2}_{\\mathrm{PD}}",
+        "meaning": "variance of the default probability (square of the standard deviation of PD, decimals)"
+      }
+    ],
+    "skeleton": "\\mathrm{UL} = \\mathrm{EA} \\times \\sqrt{ {{1}} \\times {{2}} + {{3}} \\times {{4}} }",
+    "slots": [
+      "\\mathrm{PD}",
+      "\\sigma^{2}_{\\mathrm{LR}}",
+      "\\mathrm{LR}^{2}",
+      "\\sigma^{2}_{\\mathrm{PD}}"
+    ],
+    "decoys": [
+      "\\mathrm{PD}^{2}",
+      "\\mathrm{LR}",
+      "\\sigma_{\\mathrm{LR}}",
+      "\\sigma_{\\mathrm{PD}}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{UL} = \\mathrm{EA} \\times \\sqrt{\\mathrm{PD}^{2}\\times\\sigma^{2}_{\\mathrm{LR}} + \\mathrm{LR}^{2}\\times\\sigma^{2}_{\\mathrm{PD}}}",
+        "kind": "exponent",
+        "why": "PD enters the first term unsquared; only LR is squared."
+      },
+      {
+        "latex": "\\mathrm{UL} = \\mathrm{EA} \\times \\sqrt{\\mathrm{LR}\\times\\sigma^{2}_{\\mathrm{PD}} + \\mathrm{PD}^{2}\\times\\sigma^{2}_{\\mathrm{LR}}}",
+        "kind": "sibling",
+        "why": "Roles of PD and LR swapped: PD (unsquared) multiplies the LR variance, LR squared multiplies the PD variance."
+      },
+      {
+        "latex": "\\mathrm{UL} = \\mathrm{EA} \\times (\\mathrm{PD}\\times\\sigma^{2}_{\\mathrm{LR}} + \\mathrm{LR}^{2}\\times\\sigma^{2}_{\\mathrm{PD}})",
+        "kind": "exponent",
+        "why": "Without the square root this is a variance-type number, not a standard deviation of loss."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{EA}",
+        "direction": "up",
+        "why": "UL scales linearly with the exposure."
+      },
+      {
+        "variable": "\\sigma^{2}_{\\mathrm{LR}}",
+        "direction": "up",
+        "why": "More uncertainty about recovery means more loss variability."
+      },
+      {
+        "variable": "\\sigma^{2}_{\\mathrm{PD}}",
+        "direction": "up",
+        "why": "More uncertainty about default means more loss variability."
+      },
+      {
+        "variable": "\\mathrm{LR}",
+        "direction": "up",
+        "why": "A more severe loss amplifies the default-uncertainty term (LR squared)."
+      },
+      {
+        "variable": "\\mathrm{PD}",
+        "direction": "up",
+        "why": "With the PD volatility held fixed, a higher PD gives the recovery uncertainty more weight."
+      }
+    ],
+    "intuition": "Loss variability comes from two sources, uncertain recovery (weighted by PD) and uncertain default (weighted by LR squared), added under one root and scaled by exposure.",
+    "calc": {
+      "expr": "EA * Math.sqrt(PD * sLR**2 + LR**2 * sPD**2)",
+      "inputs": [
+        {
+          "name": "EA",
+          "symbol": "\\mathrm{EA}",
+          "min": 100000,
+          "max": 10000000,
+          "step": 50000,
+          "unit": "$"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}",
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.001,
+          "unit": "decimal"
+        },
+        {
+          "name": "sLR",
+          "symbol": "\\sigma_{\\mathrm{LR}}",
+          "min": 0.01,
+          "max": 0.5,
+          "step": 0.01,
+          "unit": "decimal (std dev)"
+        },
+        {
+          "name": "LR",
+          "symbol": "\\mathrm{LR}",
+          "min": 0.05,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "sPD",
+          "symbol": "\\sigma_{\\mathrm{PD}}",
+          "min": 0.01,
+          "max": 0.3,
+          "step": 0.005,
+          "unit": "decimal (std dev)"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{UL}",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "EA": 1800000,
+          "PD": 0.01,
+          "sLR": 0.3,
+          "LR": 0.4,
+          "sPD": 0.1
+        },
+        "output": 90000,
+        "source_line": 153
+      }
+    },
+    "tags": [
+      "unexpected loss",
+      "credit capital"
+    ]
+  },
+  {
+    "id": "CR-4-F05",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 131,
+    "objective": "CR-4 e",
+    "name": "Variance of the default probability (binomial)",
+    "prompt": "Treating default as a Bernoulli event, what is the variance of the default probability?",
+    "latex": "\\sigma^{2}_{\\mathrm{PD}} = \\mathrm{PD} \\times (1-\\mathrm{PD})",
+    "variables": [
+      {
+        "symbol": "\\sigma^{2}_{\\mathrm{PD}}",
+        "meaning": "variance of the default probability (feeds the second term of the UL formula)"
+      },
+      {
+        "symbol": "\\mathrm{PD}",
+        "meaning": "probability of default, as a decimal"
+      }
+    ],
+    "skeleton": "{{1}} = \\mathrm{PD} \\times ({{2}} - {{3}})",
+    "slots": [
+      "\\sigma^{2}_{\\mathrm{PD}}",
+      "1",
+      "\\mathrm{PD}"
+    ],
+    "decoys": [
+      "\\sigma_{\\mathrm{PD}}",
+      "\\mathrm{PD}^{2}",
+      "\\mathrm{LR}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\sigma^{2}_{\\mathrm{PD}} = \\mathrm{PD} \\times (1+\\mathrm{PD})",
+        "kind": "sign",
+        "why": "Bernoulli variance uses the probability of NOT defaulting, 1 - PD."
+      },
+      {
+        "latex": "\\sigma_{\\mathrm{PD}} = \\mathrm{PD} \\times (1-\\mathrm{PD})",
+        "kind": "exponent",
+        "why": "PD(1-PD) is the variance; the standard deviation is its square root."
+      },
+      {
+        "latex": "\\sigma^{2}_{\\mathrm{PD}} = \\mathrm{PD} \\times (1-\\mathrm{LR})",
+        "kind": "wrong-variable",
+        "why": "The binomial variance involves only PD and its complement, not the loss rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{PD}",
+        "direction": "depends",
+        "why": "Rises with PD while PD < 50% (the realistic credit range) and falls above 50%, peaking at PD = 0.5."
+      }
+    ],
+    "intuition": "A coin that almost never lands 'default' has little variance; p times (1 - p) is the coin-flip variance.",
+    "calc": {
+      "expr": "PD * (1 - PD)",
+      "inputs": [
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}",
+          "min": 0.001,
+          "max": 0.5,
+          "step": 0.001,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\sigma^{2}_{\\mathrm{PD}}",
+        "unit": "decimal",
+        "decimals": 6
+      },
+      "example": null
+    },
+    "tags": [
+      "default probability",
+      "binomial"
+    ]
+  },
+  {
+    "id": "CR-4-F06",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 174,
+    "objective": "CR-4 f",
+    "name": "Portfolio expected loss",
+    "prompt": "How is a credit portfolio's expected loss built from its individual assets?",
+    "latex": "\\mathrm{EL}_P = \\sum_i \\mathrm{EL}_i = \\sum_i \\bigl(\\mathrm{EA}_i \\times \\mathrm{LR}_i \\times \\mathrm{PD}_i\\bigr)",
+    "variables": [
+      {
+        "symbol": "\\mathrm{EL}_P",
+        "meaning": "expected loss of the portfolio (currency)"
+      },
+      {
+        "symbol": "\\mathrm{EL}_i",
+        "meaning": "expected loss of asset i (currency)"
+      },
+      {
+        "symbol": "\\mathrm{EA}_i",
+        "meaning": "exposure amount of asset i (currency)"
+      },
+      {
+        "symbol": "\\mathrm{LR}_i",
+        "meaning": "loss rate of asset i, as a decimal"
+      },
+      {
+        "symbol": "\\mathrm{PD}_i",
+        "meaning": "probability of default of asset i, as a decimal"
+      }
+    ],
+    "skeleton": "\\mathrm{EL}_P = {{1}} \\mathrm{EL}_i = \\sum_i \\bigl( {{2}} \\times {{3}} \\times {{4}} \\bigr)",
+    "slots": [
+      "\\sum_i",
+      "\\mathrm{EA}_i",
+      "\\mathrm{LR}_i",
+      "\\mathrm{PD}_i"
+    ],
+    "decoys": [
+      "\\prod_i",
+      "\\mathrm{UL}_i",
+      "\\rho_{ij}",
+      "\\mathrm{RR}_i"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{EL}_P = \\sqrt{\\sum_i\\sum_j \\rho_{ij}\\,\\mathrm{EL}_i\\,\\mathrm{EL}_j}",
+        "kind": "sibling",
+        "why": "That is the UL aggregation rule; expected losses simply add, and correlation plays no part."
+      },
+      {
+        "latex": "\\mathrm{EL}_P = \\sum_i \\bigl(\\mathrm{EA}_i \\times \\mathrm{RR}_i \\times \\mathrm{PD}_i\\bigr)",
+        "kind": "wrong-variable",
+        "why": "Recovery rate in place of loss rate: the loss is the part not recovered."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{EL}_i",
+        "direction": "up",
+        "why": "Portfolio EL is a plain sum, so any asset's EL feeds through one for one."
+      },
+      {
+        "variable": "\\mathrm{EA}_i",
+        "direction": "up",
+        "why": "More exposure on any asset raises its EL and hence the total."
+      },
+      {
+        "variable": "\\mathrm{PD}_i",
+        "direction": "up",
+        "why": "Higher default probability on any asset raises the total EL."
+      },
+      {
+        "variable": "\\mathrm{LR}_i",
+        "direction": "up",
+        "why": "Higher severity on any asset raises the total EL."
+      }
+    ],
+    "intuition": "Averages add: portfolio EL is just the sum of the loan ELs, and correlation never touches it.",
+    "calc": {
+      "expr": "EAA * LRA * PDA + EAB * LRB * PDB",
+      "inputs": [
+        {
+          "name": "EAA",
+          "symbol": "\\mathrm{EA}_A",
+          "min": 100000,
+          "max": 10000000,
+          "step": 50000,
+          "unit": "$"
+        },
+        {
+          "name": "LRA",
+          "symbol": "\\mathrm{LR}_A",
+          "min": 0.05,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "PDA",
+          "symbol": "\\mathrm{PD}_A",
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.001,
+          "unit": "decimal"
+        },
+        {
+          "name": "EAB",
+          "symbol": "\\mathrm{EA}_B",
+          "min": 100000,
+          "max": 10000000,
+          "step": 50000,
+          "unit": "$"
+        },
+        {
+          "name": "LRB",
+          "symbol": "\\mathrm{LR}_B",
+          "min": 0.05,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "PDB",
+          "symbol": "\\mathrm{PD}_B",
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.001,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{EL}_P",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "EAA": 8250000,
+          "LRA": 0.5,
+          "PDA": 0.005,
+          "EAB": 1800000,
+          "LRB": 0.4,
+          "PDB": 0.01
+        },
+        "output": 27825,
+        "source_line": 271
+      }
+    },
+    "tags": [
+      "expected loss",
+      "portfolio"
+    ]
+  },
+  {
+    "id": "CR-4-F07",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 177,
+    "objective": "CR-4 f",
+    "name": "Portfolio unexpected loss",
+    "prompt": "How is a credit portfolio's unexpected loss built from the individual assets' unexpected losses and their default correlations?",
+    "latex": "\\mathrm{UL}_P = \\sqrt{\\sum_i\\sum_j \\rho_{ij}\\,\\mathrm{UL}_i\\,\\mathrm{UL}_j}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "unexpected loss of the portfolio (currency)"
+      },
+      {
+        "symbol": "\\rho_{ij}",
+        "meaning": "default correlation between assets i and j (rho_ii = 1)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_i",
+        "meaning": "unexpected loss of asset i (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_j",
+        "meaning": "unexpected loss of asset j (currency)"
+      }
+    ],
+    "skeleton": "\\mathrm{UL}_P = \\sqrt{\\sum_i\\sum_j {{1}}\\,{{2}}\\,{{3}} }",
+    "slots": [
+      "\\rho_{ij}",
+      "\\mathrm{UL}_i",
+      "\\mathrm{UL}_j"
+    ],
+    "decoys": [
+      "\\mathrm{EL}_i",
+      "\\rho_{ij}^{2}",
+      "\\mathrm{UL}_i^{2}",
+      "\\sqrt{\\rho_{ij}}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{UL}_P = \\sum_i\\sum_j \\rho_{ij}\\,\\mathrm{UL}_i\\,\\mathrm{UL}_j",
+        "kind": "exponent",
+        "why": "Missing the square root: the double sum is the portfolio loss variance, not its standard deviation."
+      },
+      {
+        "latex": "\\mathrm{UL}_P = \\sum_i \\mathrm{UL}_i",
+        "kind": "missing-term",
+        "why": "Simple addition holds only when every pairwise correlation is 1; otherwise diversification makes UL_P smaller."
+      },
+      {
+        "latex": "\\mathrm{UL}_P = \\sqrt{\\sum_i\\sum_j \\rho_{ij}^{2}\\,\\mathrm{UL}_i\\,\\mathrm{UL}_j}",
+        "kind": "exponent",
+        "why": "Correlation enters the covariance linearly, not squared."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\rho_{ij}",
+        "direction": "up",
+        "why": "Higher default correlation means more concentration risk and less diversification, so UL_P rises (EL_P is unaffected)."
+      },
+      {
+        "variable": "\\mathrm{UL}_i",
+        "direction": "up",
+        "why": "A riskier asset adds to portfolio variability (with the non-negative correlations typical of credit books)."
+      }
+    ],
+    "intuition": "Unexpected losses combine like standard deviations in a portfolio: square, weight by correlation, add, root, so they add up to less than the sum unless correlation is 1.",
+    "calc": {
+      "expr": "Math.sqrt(ULA**2 + ULB**2 + 2*rho*ULA*ULB)",
+      "inputs": [
+        {
+          "name": "ULA",
+          "symbol": "\\mathrm{UL}_A",
+          "min": 1000,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "ULB",
+          "symbol": "\\mathrm{UL}_B",
+          "min": 1000,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "rho",
+          "symbol": "\\rho_{AB}",
+          "min": -0.5,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{UL}_P",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "ULA": 325333,
+          "ULB": 90000,
+          "rho": 0.3
+        },
+        "output": 362642,
+        "source_line": 274
+      }
+    },
+    "tags": [
+      "unexpected loss",
+      "portfolio",
+      "correlation"
+    ]
+  },
+  {
+    "id": "CR-4-F08",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 202,
+    "objective": "CR-4 f",
+    "name": "General unexpected loss contribution (risk contribution) of asset i",
+    "prompt": "In general, how much of the portfolio's unexpected loss is attributable to asset i?",
+    "latex": "\\mathrm{ULC}_i = \\mathrm{ULMC}_i \\times \\mathrm{UL}_i = \\frac{\\displaystyle\\sum_{j} \\mathrm{UL}_j\\,\\rho_{ij}}{\\mathrm{UL}_P}\\times \\mathrm{UL}_i",
+    "variables": [
+      {
+        "symbol": "\\mathrm{ULC}_i",
+        "meaning": "unexpected loss contribution (risk contribution) of loan i to portfolio UL (currency)"
+      },
+      {
+        "symbol": "\\mathrm{ULMC}_i",
+        "meaning": "marginal contribution of loan i to portfolio UL: the partial derivative of UL_P with respect to UL_i"
+      },
+      {
+        "symbol": "\\mathrm{UL}_i",
+        "meaning": "stand-alone unexpected loss of loan i (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_j",
+        "meaning": "stand-alone unexpected loss of loan j (currency)"
+      },
+      {
+        "symbol": "\\rho_{ij}",
+        "meaning": "default correlation between loans i and j (rho_ii = 1)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      }
+    ],
+    "skeleton": "\\mathrm{ULC}_i = {{1}} \\times \\mathrm{UL}_i = \\frac{\\displaystyle\\sum_{j} {{2}}\\,{{3}} }{ {{4}} }\\times \\mathrm{UL}_i",
+    "slots": [
+      "\\mathrm{ULMC}_i",
+      "\\mathrm{UL}_j",
+      "\\rho_{ij}",
+      "\\mathrm{UL}_P"
+    ],
+    "decoys": [
+      "\\mathrm{EL}_P",
+      "\\mathrm{UL}_P^{2}",
+      "\\sqrt{\\rho}",
+      "\\mathrm{EL}_j"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{ULC}_i = \\frac{\\displaystyle\\sum_{j} \\mathrm{UL}_j\\,\\rho_{ij}}{\\mathrm{UL}_i}\\times \\mathrm{UL}_P",
+        "kind": "inverted",
+        "why": "UL_i and UL_P swapped: the marginal contribution is divided by portfolio UL, then scaled by the loan's own UL."
+      },
+      {
+        "latex": "\\mathrm{ULC}_i = \\frac{\\displaystyle\\sum_{j} \\mathrm{UL}_j\\,\\rho_{ij}}{\\mathrm{UL}_P^{2}}\\times \\mathrm{UL}_i",
+        "kind": "exponent",
+        "why": "Dividing by the portfolio variance instead of UL_P breaks the property that the ULCs sum to UL_P."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\rho_{ij}",
+        "direction": "up",
+        "why": "A loan more correlated with the rest of the book carries more of the portfolio's undiversified risk."
+      }
+    ],
+    "intuition": "Each loan's share of portfolio UL is its own UL times how strongly it co-moves with the whole book, built so that the shares add up exactly to UL_P.",
+    "calc": null,
+    "tags": [
+      "risk contribution",
+      "portfolio"
+    ]
+  },
+  {
+    "id": "CR-4-F09",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 213,
+    "objective": "CR-4 f",
+    "name": "Two-asset risk contribution of asset 1",
+    "prompt": "In a two-asset portfolio, what is asset 1's risk contribution to portfolio unexpected loss? (Asset 2's is the mirror image.)",
+    "latex": "\\mathrm{RC}_1 = \\mathrm{UL}_1 \\times \\frac{\\mathrm{UL}_1 + (\\rho_{1,2}\\times\\mathrm{UL}_2)}{\\mathrm{UL}_P}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{RC}_1",
+        "meaning": "risk contribution (= ULC) of asset 1 to portfolio UL (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_1",
+        "meaning": "stand-alone unexpected loss of asset 1 (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_2",
+        "meaning": "stand-alone unexpected loss of asset 2 (currency)"
+      },
+      {
+        "symbol": "\\rho_{1,2}",
+        "meaning": "default correlation between assets 1 and 2"
+      },
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      }
+    ],
+    "skeleton": "\\mathrm{RC}_1 = \\mathrm{UL}_1 \\times \\frac{ {{1}} + ({{2}}\\times {{3}})}{ {{4}} }",
+    "slots": [
+      "\\mathrm{UL}_1",
+      "\\rho_{1,2}",
+      "\\mathrm{UL}_2",
+      "\\mathrm{UL}_P"
+    ],
+    "decoys": [
+      "\\sqrt{\\rho_{1,2}}",
+      "\\mathrm{UL}_P^{2}",
+      "\\mathrm{RC}_2",
+      "\\mathrm{EL}_P"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{RC}_1 = \\mathrm{UL}_1 \\times \\frac{\\mathrm{UL}_2 + (\\rho_{1,2}\\times\\mathrm{UL}_1)}{\\mathrm{UL}_P}",
+        "kind": "sibling",
+        "why": "The un-correlated term inside the bracket must be the asset's OWN UL; this borrows asset 2's bracket."
+      },
+      {
+        "latex": "\\mathrm{RC}_1 = \\mathrm{UL}_1 \\times \\frac{\\mathrm{UL}_1 + (2\\rho_{1,2}\\times\\mathrm{UL}_2)}{\\mathrm{UL}_P}",
+        "kind": "scaling",
+        "why": "The factor 2 belongs to the cross term of the portfolio variance, not to one asset's contribution; with it RC_1 + RC_2 would exceed UL_P."
+      },
+      {
+        "latex": "\\mathrm{RC}_1 = \\mathrm{UL}_1 \\times \\frac{\\mathrm{UL}_1 + (\\rho_{1,2}\\times\\mathrm{UL}_2)}{\\mathrm{UL}_P^{2}}",
+        "kind": "exponent",
+        "why": "Divide by UL_P, not its square; otherwise the contribution is not in currency units."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\rho_{1,2}",
+        "direction": "up",
+        "why": "Higher correlation raises asset 1's share of portfolio UL, even after UL_P itself rises."
+      }
+    ],
+    "intuition": "Own UL times (own UL plus the correlated slice of the other's UL), over portfolio UL: the two RCs are built to add up to UL_P.",
+    "calc": {
+      "expr": "UL1 * (UL1 + rho*UL2) / Math.sqrt(UL1**2 + UL2**2 + 2*rho*UL1*UL2)",
+      "inputs": [
+        {
+          "name": "UL1",
+          "symbol": "\\mathrm{UL}_1",
+          "min": 1000,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "UL2",
+          "symbol": "\\mathrm{UL}_2",
+          "min": 1000,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "rho",
+          "symbol": "\\rho_{1,2}",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{RC}_1",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "UL1": 325333,
+          "UL2": 90000,
+          "rho": 0.3
+        },
+        "output": 316084,
+        "source_line": 279
+      }
+    },
+    "tags": [
+      "risk contribution",
+      "portfolio"
+    ]
+  },
+  {
+    "id": "CR-4-F10",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 219,
+    "objective": "CR-4 f",
+    "name": "Risk contributions add up to portfolio UL",
+    "prompt": "In a two-asset portfolio, what do the two assets' risk contributions sum to?",
+    "latex": "\\mathrm{RC}_1 + \\mathrm{RC}_2 = \\mathrm{UL}_P",
+    "variables": [
+      {
+        "symbol": "\\mathrm{RC}_1",
+        "meaning": "risk contribution of asset 1 (currency)"
+      },
+      {
+        "symbol": "\\mathrm{RC}_2",
+        "meaning": "risk contribution of asset 2 (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      }
+    ],
+    "skeleton": "{{1}} + {{2}} = {{3}}",
+    "slots": [
+      "\\mathrm{RC}_1",
+      "\\mathrm{RC}_2",
+      "\\mathrm{UL}_P"
+    ],
+    "decoys": [
+      "\\mathrm{EL}_P",
+      "\\mathrm{UL}_1",
+      "\\mathrm{UL}_P^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{RC}_1 + \\mathrm{RC}_2 = \\mathrm{UL}_1 + \\mathrm{UL}_2",
+        "kind": "wrong-variable",
+        "why": "The contributions add to the diversified portfolio UL; they equal the sum of stand-alone ULs only when correlation is 1."
+      },
+      {
+        "latex": "\\mathrm{RC}_1^{2} + \\mathrm{RC}_2^{2} = \\mathrm{UL}_P^{2}",
+        "kind": "exponent",
+        "why": "Risk contributions are additive in levels, not in squares."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Risk contributions are a full allocation: slice UL_P up and the slices add back to exactly UL_P.",
+    "calc": {
+      "expr": "RC1 + RC2",
+      "inputs": [
+        {
+          "name": "RC1",
+          "symbol": "\\mathrm{RC}_1",
+          "min": 0,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "RC2",
+          "symbol": "\\mathrm{RC}_2",
+          "min": 0,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{UL}_P",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "RC1": 316084,
+          "RC2": 46558
+        },
+        "output": 362642,
+        "source_line": 281
+      }
+    },
+    "tags": [
+      "risk contribution",
+      "additivity"
+    ]
+  },
+  {
+    "id": "CR-4-F15",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 223,
+    "objective": "CR-4 f",
+    "name": "Portfolio UL for n identical loans",
+    "prompt": "For a portfolio of n identical loans with one constant pairwise default correlation, what is the portfolio's unexpected loss in terms of a single loan's UL?",
+    "latex": "\\mathrm{UL}_P = \\mathrm{UL}_i\\sqrt{n + \\rho(n^{2}-n)}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_i",
+        "meaning": "stand-alone unexpected loss of each identical loan (currency)"
+      },
+      {
+        "symbol": "n",
+        "meaning": "number of identical loans in the portfolio"
+      },
+      {
+        "symbol": "\\rho",
+        "meaning": "constant pairwise default correlation (decimal)"
+      }
+    ],
+    "skeleton": "\\mathrm{UL}_P = {{1}}\\sqrt{ {{2}} + {{3}}({{4}}) }",
+    "slots": [
+      "\\mathrm{UL}_i",
+      "n",
+      "\\rho",
+      "n^{2}-n"
+    ],
+    "decoys": [
+      "n^{2}",
+      "\\sqrt{\\rho}",
+      "\\rho^{2}",
+      "\\tfrac{1}{n}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{UL}_P = \\mathrm{UL}_i\\sqrt{n + \\rho(n^{2}+n)}",
+        "kind": "sign",
+        "why": "There are n^2 - n cross pairs (i not equal to j), not n^2 + n: the n diagonal terms are already counted in the first n."
+      },
+      {
+        "latex": "\\mathrm{UL}_P = \\mathrm{UL}_i\\sqrt{n + \\rho^{2}(n^{2}-n)}",
+        "kind": "exponent",
+        "why": "Correlation enters the portfolio variance linearly, not squared."
+      },
+      {
+        "latex": "\\mathrm{UL}_P = \\mathrm{UL}_i\\bigl(n + \\rho(n^{2}-n)\\bigr)",
+        "kind": "exponent",
+        "why": "Without the square root this is a variance multiple, not a standard deviation of loss."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{UL}_i",
+        "direction": "up",
+        "why": "Portfolio UL scales with each loan's own UL."
+      },
+      {
+        "variable": "\\rho",
+        "direction": "up",
+        "why": "Higher correlation weights all n^2 - n cross pairs more heavily, so less risk diversifies away."
+      },
+      {
+        "variable": "n",
+        "direction": "up",
+        "why": "Adding loans adds risk in total (the term under the root grows with n), even though each loan's share UL_P/n falls."
+      }
+    ],
+    "intuition": "n own variances plus rho times the n^2 - n cross pairs, rooted: rho = 1 gives n times UL_i, rho = 0 gives only root n times UL_i.",
+    "calc": {
+      "expr": "ULi * Math.sqrt(n + rho*(n**2 - n))",
+      "inputs": [
+        {
+          "name": "ULi",
+          "symbol": "\\mathrm{UL}_i",
+          "min": 1000,
+          "max": 100000,
+          "step": 500,
+          "unit": "$"
+        },
+        {
+          "name": "n",
+          "symbol": "n",
+          "min": 1,
+          "max": 1000,
+          "step": 1,
+          "unit": "loans"
+        },
+        {
+          "name": "rho",
+          "symbol": "\\rho",
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{UL}_P",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": null
+    },
+    "tags": [
+      "unexpected loss",
+      "portfolio",
+      "diversification"
+    ]
+  },
+  {
+    "id": "CR-4-F11",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 226,
+    "objective": "CR-4 f",
+    "name": "UL contribution in a portfolio of n identical loans",
+    "prompt": "For n identical loans with constant pairwise correlation, what is each loan's UL contribution (before letting n grow large)?",
+    "latex": "\\mathrm{ULC}_i = \\frac{\\mathrm{UL}_P}{n} = \\mathrm{UL}_i\\sqrt{\\tfrac{1}{n} + \\rho\\bigl(1-\\tfrac{1}{n}\\bigr)}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{ULC}_i",
+        "meaning": "UL contribution of each loan (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      },
+      {
+        "symbol": "n",
+        "meaning": "number of identical loans in the portfolio"
+      },
+      {
+        "symbol": "\\mathrm{UL}_i",
+        "meaning": "stand-alone unexpected loss of each loan (currency)"
+      },
+      {
+        "symbol": "\\rho",
+        "meaning": "constant pairwise default correlation"
+      }
+    ],
+    "skeleton": "\\mathrm{ULC}_i = \\frac{ {{1}} }{n} = \\mathrm{UL}_i\\sqrt{ {{2}} + {{3}}\\bigl(1-\\tfrac{1}{n}\\bigr)}",
+    "slots": [
+      "\\mathrm{UL}_P",
+      "\\tfrac{1}{n}",
+      "\\rho"
+    ],
+    "decoys": [
+      "\\sqrt{\\rho}",
+      "\\tfrac{1}{n^{2}}",
+      "\\mathrm{EL}_P",
+      "\\rho^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i\\sqrt{\\tfrac{1}{n} + \\rho\\bigl(1+\\tfrac{1}{n}\\bigr)}",
+        "kind": "sign",
+        "why": "The correlated share is (n^2 - n)/n^2 = 1 - 1/n, not 1 + 1/n."
+      },
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i\\sqrt{\\tfrac{1}{n} + \\rho^{2}\\bigl(1-\\tfrac{1}{n}\\bigr)}",
+        "kind": "exponent",
+        "why": "Correlation enters the variance linearly; squaring it understates the contribution."
+      },
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i\\bigl(\\tfrac{1}{n} + \\rho\\bigl(1-\\tfrac{1}{n}\\bigr)\\bigr)",
+        "kind": "exponent",
+        "why": "The square root is missing: this is a variance share, not a standard-deviation contribution."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\rho",
+        "direction": "up",
+        "why": "More correlation leaves more undiversifiable risk per loan."
+      },
+      {
+        "variable": "n",
+        "direction": "down",
+        "why": "More loans diversify away more idiosyncratic risk (for rho < 1), shrinking each loan's contribution toward UL_i times root rho."
+      },
+      {
+        "variable": "\\mathrm{UL}_i",
+        "direction": "up",
+        "why": "The contribution scales with each loan's own UL."
+      }
+    ],
+    "intuition": "Each loan keeps a 1/n slice of its own risk plus the correlated part of everyone else's; as n grows the 1/n slice vanishes.",
+    "calc": {
+      "expr": "ULi * Math.sqrt(1/n + rho*(1 - 1/n))",
+      "inputs": [
+        {
+          "name": "ULi",
+          "symbol": "\\mathrm{UL}_i",
+          "min": 1000,
+          "max": 100000,
+          "step": 500,
+          "unit": "$"
+        },
+        {
+          "name": "n",
+          "symbol": "n",
+          "min": 1,
+          "max": 1000,
+          "step": 1,
+          "unit": "loans"
+        },
+        {
+          "name": "rho",
+          "symbol": "\\rho",
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{ULC}_i",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "risk contribution",
+      "diversification"
+    ]
+  },
+  {
+    "id": "CR-4-F12",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 230,
+    "objective": "CR-4 f",
+    "name": "Large-portfolio shortcut for UL contribution",
+    "prompt": "In a large portfolio of similar loans with constant pairwise default correlation, what is each loan's UL contribution?",
+    "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i \\times \\sqrt{\\rho}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{ULC}_i",
+        "meaning": "UL contribution of loan i to portfolio UL (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_i",
+        "meaning": "stand-alone unexpected loss of loan i (currency)"
+      },
+      {
+        "symbol": "\\rho",
+        "meaning": "constant pairwise default correlation (loans of similar characteristics and size, n large)"
+      }
+    ],
+    "skeleton": "{{1}} = {{2}} \\times \\sqrt{ {{3}} }",
+    "slots": [
+      "\\mathrm{ULC}_i",
+      "\\mathrm{UL}_i",
+      "\\rho"
+    ],
+    "decoys": [
+      "\\mathrm{UL}_P",
+      "\\rho^{2}",
+      "1-\\rho"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i \\times \\rho",
+        "kind": "exponent",
+        "why": "Forgetting the square root: with UL = 10,500 and rho = 0.32 this gives the distractor 3,360 instead of 5,940."
+      },
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i \\times \\rho^{2}",
+        "kind": "exponent",
+        "why": "Squaring the correlation gives the distractor 1,075; the contribution uses the square root of rho."
+      },
+      {
+        "latex": "\\mathrm{ULC}_i = \\mathrm{UL}_i \\times \\sqrt{1-\\rho}",
+        "kind": "wrong-variable",
+        "why": "What survives diversification is the correlated part, root rho, not the idiosyncratic part."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{UL}_i",
+        "direction": "up",
+        "why": "The contribution is proportional to the loan's own UL."
+      },
+      {
+        "variable": "\\rho",
+        "direction": "up",
+        "why": "With idiosyncratic risk diversified away, only the correlated part remains, and it grows with rho."
+      }
+    ],
+    "intuition": "In a huge book, idiosyncratic risk washes out and each loan contributes only its correlated part: UL times root rho.",
+    "calc": {
+      "expr": "ULi * Math.sqrt(rho)",
+      "inputs": [
+        {
+          "name": "ULi",
+          "symbol": "\\mathrm{UL}_i",
+          "min": 1000,
+          "max": 100000,
+          "step": 500,
+          "unit": "$"
+        },
+        {
+          "name": "rho",
+          "symbol": "\\rho",
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{ULC}_i",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "ULi": 10500,
+          "rho": 0.32
+        },
+        "output": 5939.7,
+        "source_line": 452
+      }
+    },
+    "tags": [
+      "risk contribution",
+      "diversification"
+    ]
+  },
+  {
+    "id": "CR-4-F13",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 369,
+    "objective": "CR-4 g",
+    "name": "Portfolio economic capital",
+    "prompt": "How is economic capital for the whole credit portfolio derived from its unexpected loss?",
+    "latex": "\\text{Economic Capital}_P = \\mathrm{UL}_P \\times \\mathrm{CM}",
+    "variables": [
+      {
+        "symbol": "\\text{Economic Capital}_P",
+        "meaning": "economic capital held against the portfolio's unexpected losses (currency)"
+      },
+      {
+        "symbol": "\\mathrm{UL}_P",
+        "meaning": "portfolio unexpected loss (currency)"
+      },
+      {
+        "symbol": "\\mathrm{CM}",
+        "meaning": "capital multiplier: number of portfolio ULs between the expected outcome and the chosen confidence level (e.g. 99.97%)"
+      }
+    ],
+    "skeleton": "\\text{Economic Capital}_P = {{1}} \\times {{2}}",
+    "slots": [
+      "\\mathrm{UL}_P",
+      "\\mathrm{CM}"
+    ],
+    "decoys": [
+      "\\mathrm{EL}_P",
+      "\\mathrm{ULC}_i",
+      "\\mathrm{UL}_P^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Economic Capital}_P = \\mathrm{EL}_P \\times \\mathrm{CM}",
+        "kind": "wrong-variable",
+        "why": "Economic capital covers UNexpected losses; expected losses are covered by reserves and pricing."
+      },
+      {
+        "latex": "\\text{Economic Capital}_P = \\mathrm{EL}_P + \\mathrm{UL}_P \\times \\mathrm{CM}",
+        "kind": "extra-term",
+        "why": "Economic capital is the distance from the expected outcome to the confidence level, so EL is not added on top."
+      },
+      {
+        "latex": "\\text{Economic Capital}_P = \\frac{\\mathrm{UL}_P}{\\mathrm{CM}}",
+        "kind": "inverted",
+        "why": "A higher confidence level (larger CM) must raise capital, not lower it."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{UL}_P",
+        "direction": "up",
+        "why": "More loss variability needs a bigger buffer."
+      },
+      {
+        "variable": "\\mathrm{CM}",
+        "direction": "up",
+        "why": "A higher confidence level (e.g. a higher target rating) raises the multiplier and hence capital."
+      }
+    ],
+    "intuition": "Capital = how many standard deviations of loss you want to survive, times one standard deviation (UL_P).",
+    "calc": {
+      "expr": "ULP * CM",
+      "inputs": [
+        {
+          "name": "ULP",
+          "symbol": "\\mathrm{UL}_P",
+          "min": 10000,
+          "max": 1000000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "CM",
+          "symbol": "\\mathrm{CM}",
+          "min": 1,
+          "max": 10,
+          "step": 0.5,
+          "unit": "x"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Economic Capital}_P",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": null
+    },
+    "tags": [
+      "economic capital",
+      "capital multiplier"
+    ]
+  },
+  {
+    "id": "CR-4-F14",
+    "reading_id": "CR-4",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+    "source_line": 370,
+    "objective": "CR-4 g",
+    "name": "Economic capital allocated to a single transaction",
+    "prompt": "How much economic capital is attributed to a single loan in the portfolio?",
+    "latex": "\\text{Economic Capital}_i = \\mathrm{ULC}_i \\times \\mathrm{CM}",
+    "variables": [
+      {
+        "symbol": "\\text{Economic Capital}_i",
+        "meaning": "economic capital attributed to transaction i (currency)"
+      },
+      {
+        "symbol": "\\mathrm{ULC}_i",
+        "meaning": "UL contribution of transaction i to portfolio UL (currency)"
+      },
+      {
+        "symbol": "\\mathrm{CM}",
+        "meaning": "capital multiplier (the same one used for the portfolio)"
+      }
+    ],
+    "skeleton": "\\text{Economic Capital}_i = {{1}} \\times {{2}}",
+    "slots": [
+      "\\mathrm{ULC}_i",
+      "\\mathrm{CM}"
+    ],
+    "decoys": [
+      "\\mathrm{UL}_i",
+      "\\mathrm{EL}_i",
+      "\\mathrm{UL}_P"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Economic Capital}_i = \\mathrm{UL}_i \\times \\mathrm{CM}",
+        "kind": "wrong-variable",
+        "why": "Using stand-alone UL ignores diversification; allocated capital across loans would then sum to more than portfolio capital."
+      },
+      {
+        "latex": "\\text{Economic Capital}_i = \\mathrm{EL}_i \\times \\mathrm{CM}",
+        "kind": "wrong-variable",
+        "why": "Capital covers unexpected, not expected, losses."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{ULC}_i",
+        "direction": "up",
+        "why": "Capital is directly proportional to the transaction's contribution to portfolio risk."
+      },
+      {
+        "variable": "\\mathrm{CM}",
+        "direction": "up",
+        "why": "A higher confidence level raises capital for every transaction."
+      }
+    ],
+    "intuition": "Because the ULCs sum to UL_P, applying the same multiplier to each ULC splits portfolio capital exactly across loans.",
+    "calc": {
+      "expr": "ULCi * CM",
+      "inputs": [
+        {
+          "name": "ULCi",
+          "symbol": "\\mathrm{ULC}_i",
+          "min": 1000,
+          "max": 500000,
+          "step": 1000,
+          "unit": "$"
+        },
+        {
+          "name": "CM",
+          "symbol": "\\mathrm{CM}",
+          "min": 1,
+          "max": 10,
+          "step": 0.5,
+          "unit": "x"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Economic Capital}_i",
+        "unit": "$",
+        "decimals": 0
+      },
+      "example": null
+    },
+    "tags": [
+      "economic capital",
+      "risk contribution"
+    ]
+  },
+  {
+    "id": "LTR-7-F01",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 133,
+    "objective": "LTR-7 c",
+    "name": "Positive cash flow at risk (inflow shortfall)",
+    "prompt": "How is positive cash flow at risk measured on an expected inflow?",
+    "latex": "\\text{cfaR}^{+} = \\text{Expected inflow} - \\text{Actual inflow}",
+    "variables": [
+      {
+        "symbol": "\\text{cfaR}^{+}",
+        "meaning": "positive cash flow at risk at confidence alpha: the maximum shortfall of an inflow, reported as a positive number"
+      },
+      {
+        "symbol": "\\text{Expected inflow}",
+        "meaning": "expected (average) cash inflow"
+      },
+      {
+        "symbol": "\\text{Actual inflow}",
+        "meaning": "the adverse (lower) inflow at the chosen confidence level"
+      }
+    ],
+    "skeleton": "\\text{cfaR}^{+} = {{1}} - {{2}}",
+    "slots": [
+      "\\text{Expected inflow}",
+      "\\text{Actual inflow}"
+    ],
+    "decoys": [
+      "\\text{Expected outflow}",
+      "\\text{Actual outflow}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{cfaR}^{+} = \\text{Actual inflow} - \\text{Expected inflow}",
+        "kind": "sign",
+        "why": "Reversed order gives a negative number (e.g. 90 - 100 = -10, the offered distractor); cfaR is reported as a positive shortfall."
+      },
+      {
+        "latex": "\\text{cfaR}^{+} = \\text{Actual outflow} - \\text{Expected outflow}",
+        "kind": "sibling",
+        "why": "That is negative cfaR, defined on outflows at 1 - alpha."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{Expected inflow}",
+        "direction": "up",
+        "why": "Expecting more makes the same actual inflow a bigger shortfall."
+      },
+      {
+        "variable": "\\text{Actual inflow}",
+        "direction": "down",
+        "why": "Receiving more cash shrinks the shortfall."
+      }
+    ],
+    "intuition": "Inflows hurt when they come in short: expected minus actual, always a positive number.",
+    "calc": {
+      "expr": "EIN - AIN",
+      "inputs": [
+        {
+          "name": "EIN",
+          "symbol": "\\text{Expected inflow}",
+          "min": 10,
+          "max": 500,
+          "step": 5,
+          "unit": "$M"
+        },
+        {
+          "name": "AIN",
+          "symbol": "\\text{Actual inflow}",
+          "min": 0,
+          "max": 500,
+          "step": 5,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{cfaR}^{+}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "EIN": 100,
+          "AIN": 90
+        },
+        "output": 10,
+        "source_line": 141
+      }
+    },
+    "tags": [
+      "cash flow at risk",
+      "liquidity risk"
+    ]
+  },
+  {
+    "id": "LTR-7-F02",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 134,
+    "objective": "LTR-7 c",
+    "name": "Negative cash flow at risk (outflow excess)",
+    "prompt": "How is negative cash flow at risk measured on an expected outflow?",
+    "latex": "\\text{cfaR}^{-} = \\text{Actual outflow} - \\text{Expected outflow}",
+    "variables": [
+      {
+        "symbol": "\\text{cfaR}^{-}",
+        "meaning": "negative cash flow at risk at 1 - alpha: the excess of an outflow over expectation, reported as a positive number"
+      },
+      {
+        "symbol": "\\text{Actual outflow}",
+        "meaning": "the adverse (higher) outflow at the chosen confidence level"
+      },
+      {
+        "symbol": "\\text{Expected outflow}",
+        "meaning": "expected (average) cash outflow"
+      }
+    ],
+    "skeleton": "\\text{cfaR}^{-} = {{1}} - {{2}}",
+    "slots": [
+      "\\text{Actual outflow}",
+      "\\text{Expected outflow}"
+    ],
+    "decoys": [
+      "\\text{Expected inflow}",
+      "\\text{Actual inflow}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{cfaR}^{-} = \\text{Expected outflow} - \\text{Actual outflow}",
+        "kind": "sign",
+        "why": "Reversed order gives -3 in the worked case; the adverse surprise on an outflow is paying MORE, actual minus expected."
+      },
+      {
+        "latex": "\\text{cfaR}^{-} = \\text{Expected inflow} - \\text{Actual inflow}",
+        "kind": "sibling",
+        "why": "That is positive cfaR, the shortfall on inflows."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{Actual outflow}",
+        "direction": "up",
+        "why": "Paying out more than planned widens the excess."
+      },
+      {
+        "variable": "\\text{Expected outflow}",
+        "direction": "down",
+        "why": "A higher expected outflow leaves less room for surprise."
+      }
+    ],
+    "intuition": "Outflows hurt when they come in big: actual minus expected, the mirror of cfaR+ so it is also positive.",
+    "calc": {
+      "expr": "AOUT - EOUT",
+      "inputs": [
+        {
+          "name": "AOUT",
+          "symbol": "\\text{Actual outflow}",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "EOUT",
+          "symbol": "\\text{Expected outflow}",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{cfaR}^{-}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "AOUT": 15,
+          "EOUT": 12
+        },
+        "output": 3,
+        "source_line": 143
+      }
+    },
+    "tags": [
+      "cash flow at risk",
+      "liquidity risk"
+    ]
+  },
+  {
+    "id": "LTR-7-F03",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 154,
+    "objective": "LTR-7 c",
+    "name": "Term structure of positive unexpected cash flows (TSCF+)",
+    "prompt": "What collection of quantities makes up the term structure of positive unexpected cash flows from t0 to tb?",
+    "latex": "\\text{TSCF}^{+}_{\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{+}_{\\alpha}(t_0,t_0),\\; \\text{cfaR}^{+}_{\\alpha}(t_0,t_1),\\;\\ldots,\\; \\text{cfaR}^{+}_{\\alpha}(t_0,t_b) \\bigr\\}",
+    "variables": [
+      {
+        "symbol": "\\text{TSCF}^{+}_{\\alpha}",
+        "meaning": "term structure of positive unexpected cash flows at confidence alpha"
+      },
+      {
+        "symbol": "\\text{cfaR}^{+}_{\\alpha}",
+        "meaning": "positive cash flow at risk at confidence alpha for each date, measured from t0"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "confidence level"
+      },
+      {
+        "symbol": "t_0",
+        "meaning": "reference date"
+      },
+      {
+        "symbol": "t_1",
+        "meaning": "first future date"
+      },
+      {
+        "symbol": "t_b",
+        "meaning": "terminal date"
+      }
+    ],
+    "skeleton": "\\text{TSCF}^{+}_{\\alpha}(t_0,t_b) = \\bigl\\{ {{1}}(t_0,t_0),\\; \\text{cfaR}^{+}_{\\alpha}(t_0,t_1),\\;\\ldots,\\; \\text{cfaR}^{+}_{\\alpha}(t_0,{{2}}) \\bigr\\}",
+    "slots": [
+      "\\text{cfaR}^{+}_{\\alpha}",
+      "t_b"
+    ],
+    "decoys": [
+      "\\text{cfaR}^{-}_{1-\\alpha}",
+      "\\text{cf}^{+}_{e}",
+      "t_1"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{TSCF}^{+}_{\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_0),\\; \\ldots,\\; \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_b) \\bigr\\}",
+        "kind": "sibling",
+        "why": "The positive term structure is built from positive cfaR at alpha; negative cfaR at 1 - alpha builds TSCF-."
+      },
+      {
+        "latex": "\\text{TSCF}^{+}_{\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cf}^{+}_{e}(t_0,t_0),\\; \\ldots,\\; \\text{cf}^{+}_{e}(t_0,t_b) \\bigr\\}",
+        "kind": "wrong-variable",
+        "why": "Expected cash flows form the TSECF; TSCF collects the UNexpected shortfalls (cfaR)."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Take the inflow cash flow at risk for every date out to the horizon and line them up: that ladder is TSCF+.",
+    "calc": null,
+    "tags": [
+      "term structure",
+      "cash flow at risk"
+    ]
+  },
+  {
+    "id": "LTR-7-F04",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 156,
+    "objective": "LTR-7 c",
+    "name": "Term structure of negative unexpected cash flows (TSCF-)",
+    "prompt": "What collection of quantities makes up the term structure of negative unexpected cash flows, and at what confidence level?",
+    "latex": "\\text{TSCF}^{-}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_0),\\; \\ldots,\\; \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_b) \\bigr\\}",
+    "variables": [
+      {
+        "symbol": "\\text{TSCF}^{-}_{1-\\alpha}",
+        "meaning": "term structure of negative unexpected cash flows at 1 - alpha"
+      },
+      {
+        "symbol": "\\text{cfaR}^{-}_{1-\\alpha}",
+        "meaning": "negative cash flow at risk at 1 - alpha for each date, measured from t0"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "confidence level"
+      },
+      {
+        "symbol": "t_0",
+        "meaning": "reference date"
+      },
+      {
+        "symbol": "t_b",
+        "meaning": "terminal date"
+      }
+    ],
+    "skeleton": "\\text{TSCF}^{-}_{ {{1}} }(t_0,t_b) = \\bigl\\{ {{2}}(t_0,t_0),\\; \\ldots,\\; \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_b) \\bigr\\}",
+    "slots": [
+      "1-\\alpha",
+      "\\text{cfaR}^{-}_{1-\\alpha}"
+    ],
+    "decoys": [
+      "\\alpha",
+      "\\text{cfaR}^{+}_{\\alpha}",
+      "\\text{cf}^{-}_{e}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{TSCF}^{-}_{\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{-}_{\\alpha}(t_0,t_0),\\; \\ldots,\\; \\text{cfaR}^{-}_{\\alpha}(t_0,t_b) \\bigr\\}",
+        "kind": "wrong-variable",
+        "why": "Negative cfaR is defined at 1 - alpha, the opposite tail from positive cfaR."
+      },
+      {
+        "latex": "\\text{TSCF}^{-}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{+}_{\\alpha}(t_0,t_0),\\; \\ldots,\\; \\text{cfaR}^{+}_{\\alpha}(t_0,t_b) \\bigr\\}",
+        "kind": "sibling",
+        "why": "Those are the positive (inflow-shortfall) cfaRs that build TSCF+."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Same ladder as TSCF+, but for outflow excesses, read in the other tail (1 - alpha).",
+    "calc": null,
+    "tags": [
+      "term structure",
+      "cash flow at risk"
+    ]
+  },
+  {
+    "id": "LTR-7-F05",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 157,
+    "objective": "LTR-7 c",
+    "name": "Term structure of liquidity at risk (TSLaR)",
+    "prompt": "How is the term structure of liquidity at risk built from the adverse cash flows and the cumulated term structures?",
+    "latex": "\\text{TSLaR}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cf}_{1-\\alpha}(t_0,t_i) - \\text{TSECCF}(t_0,t_i) - \\text{TSCLGC}(t_0,t_i) \\bigr\\}_{i=1,\\ldots,b}",
+    "variables": [
+      {
+        "symbol": "\\text{TSLaR}_{1-\\alpha}",
+        "meaning": "term structure of liquidity at risk at 1 - alpha: unexpected cash flows at each date, net of cumulated expected cash flows and cumulated LGC"
+      },
+      {
+        "symbol": "\\text{cf}_{1-\\alpha}",
+        "meaning": "cash flow at date t_i at the 1 - alpha level (the adverse/minimum level of cash flows)"
+      },
+      {
+        "symbol": "\\text{TSECCF}",
+        "meaning": "term structure of expected cumulated cash flows"
+      },
+      {
+        "symbol": "\\text{TSCLGC}",
+        "meaning": "term structure of cumulated liquidity generation capacity"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "confidence level"
+      },
+      {
+        "symbol": "t_0",
+        "meaning": "reference date"
+      },
+      {
+        "symbol": "t_i",
+        "meaning": "the i-th future date"
+      },
+      {
+        "symbol": "t_b",
+        "meaning": "terminal date"
+      },
+      {
+        "symbol": "b",
+        "meaning": "index of the terminal date (number of future dates)"
+      }
+    ],
+    "skeleton": "\\text{TSLaR}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ {{1}}(t_0,t_i) - {{2}}(t_0,t_i) - {{3}}(t_0,t_i) \\bigr\\}_{i=1,\\ldots,b}",
+    "slots": [
+      "\\text{cf}_{1-\\alpha}",
+      "\\text{TSECCF}",
+      "\\text{TSCLGC}"
+    ],
+    "decoys": [
+      "\\text{TSECF}",
+      "\\text{TSLGC}",
+      "\\text{cfaR}^{+}_{\\alpha}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{TSLaR}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cf}_{1-\\alpha}(t_0,t_i) - \\text{TSECF}(t_0,t_i) - \\text{TSLGC}(t_0,t_i) \\bigr\\}_{i=1,\\ldots,b}",
+        "kind": "wrong-variable",
+        "why": "TSLaR nets the CUMULATED structures (TSECCF and TSCLGC), not the single-period TSECF and TSLGC."
+      },
+      {
+        "latex": "\\text{TSLaR}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cf}_{1-\\alpha}(t_0,t_i) - \\text{TSECCF}(t_0,t_i) + \\text{TSCLGC}(t_0,t_i) \\bigr\\}_{i=1,\\ldots,b}",
+        "kind": "sign",
+        "why": "The notes' TSLaR subtracts both the cumulated expected cash flows and the cumulated LGC."
+      },
+      {
+        "latex": "\\text{TSLaR}_{1-\\alpha}(t_0,t_b) = \\bigl\\{ \\text{cf}_{1-\\alpha}(t_0,t_i) - \\text{TSECCF}(t_0,t_i) \\bigr\\}_{i=1,\\ldots,b}",
+        "kind": "missing-term",
+        "why": "Leaves out the cumulated liquidity generation capacity, which TSLaR is also stated net of."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Liquidity at risk, date by date: the adverse cash flow, net of what you already expect to have cumulatively and of what your liquidity sources can cumulatively raise.",
+    "calc": null,
+    "tags": [
+      "liquidity at risk",
+      "term structure"
+    ]
+  },
+  {
+    "id": "LTR-7-F06",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 197,
+    "objective": "LTR-7 d",
+    "name": "Term structure of expected cash flows (TSECF, maturity ladder)",
+    "prompt": "What does the term structure of expected cash flows (the maturity ladder) contain at each date from t0 to tb?",
+    "latex": "\\text{TSECF}(t_0,t_b) = \\bigl\\{ \\text{cf}^{+}_{e}(t_0,t_0),\\, \\text{cf}^{-}_{e}(t_0,t_0),\\, \\text{cf}^{+}_{e}(t_0,t_1),\\, \\text{cf}^{-}_{e}(t_0,t_1),\\, \\ldots,\\, \\text{cf}^{+}_{e}(t_0,t_b),\\, \\text{cf}^{-}_{e}(t_0,t_b) \\bigr\\}",
+    "variables": [
+      {
+        "symbol": "\\text{TSECF}",
+        "meaning": "term structure of expected cash flows (maturity ladder)"
+      },
+      {
+        "symbol": "\\text{cf}^{+}_{e}",
+        "meaning": "expected positive cash flow at each date"
+      },
+      {
+        "symbol": "\\text{cf}^{-}_{e}",
+        "meaning": "expected negative cash flow at each date"
+      },
+      {
+        "symbol": "t_0",
+        "meaning": "reference date"
+      },
+      {
+        "symbol": "t_1",
+        "meaning": "first future date"
+      },
+      {
+        "symbol": "t_b",
+        "meaning": "terminal date (expiry of the longest-maturity contract)"
+      }
+    ],
+    "skeleton": "\\text{TSECF}(t_0,t_b) = \\bigl\\{ {{1}}(t_0,t_0),\\, {{2}}(t_0,t_0),\\, \\text{cf}^{+}_{e}(t_0,t_1),\\, \\text{cf}^{-}_{e}(t_0,t_1),\\, \\ldots,\\, \\text{cf}^{+}_{e}(t_0,t_b),\\, \\text{cf}^{-}_{e}(t_0,{{3}}) \\bigr\\}",
+    "slots": [
+      "\\text{cf}^{+}_{e}",
+      "\\text{cf}^{-}_{e}",
+      "t_b"
+    ],
+    "decoys": [
+      "\\text{cfaR}^{+}_{\\alpha}",
+      "\\text{TSLGC}",
+      "t_1"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{TSECF}(t_0,t_b) = \\bigl\\{ \\text{cf}^{+}_{e}(t_0,t_0) - \\text{cf}^{-}_{e}(t_0,t_0),\\, \\ldots,\\, \\text{cf}^{+}_{e}(t_0,t_b) - \\text{cf}^{-}_{e}(t_0,t_b) \\bigr\\}",
+        "kind": "sibling",
+        "why": "TSECF keeps positive and negative expected flows SEPARATELY at each date rather than netting them."
+      },
+      {
+        "latex": "\\text{TSECF}(t_0,t_b) = \\bigl\\{ \\text{cfaR}^{+}_{\\alpha}(t_0,t_0),\\, \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_0),\\, \\ldots,\\, \\text{cfaR}^{+}_{\\alpha}(t_0,t_b),\\, \\text{cfaR}^{-}_{1-\\alpha}(t_0,t_b) \\bigr\\}",
+        "kind": "wrong-variable",
+        "why": "TSECF holds expected values; cash flows at risk build the TSCF term structures."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "A maturity ladder: for every date, list expected money in and expected money out side by side, unnetted.",
+    "calc": null,
+    "tags": [
+      "term structure",
+      "maturity ladder"
+    ]
+  },
+  {
+    "id": "LTR-7-F07",
+    "reading_id": "LTR-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+    "source_line": 199,
+    "objective": "LTR-7 d",
+    "name": "Term structure of cumulated LGC (TSCLGC)",
+    "prompt": "How is the term structure of cumulated liquidity generation capacity built from the term structure of LGC?",
+    "latex": "\\text{TSCLGC}(t_0,t_b) = \\Bigl\\{ \\textstyle\\sum_{i=0}^{1}\\text{TSLGC}(t_0,t_i),\\; \\sum_{i=0}^{2}\\text{TSLGC}(t_0,t_i),\\; \\ldots,\\; \\sum_{i=0}^{b}\\text{TSLGC}(t_0,t_i) \\Bigr\\}",
+    "variables": [
+      {
+        "symbol": "\\text{TSCLGC}",
+        "meaning": "term structure of cumulated liquidity generation capacity up to t_b"
+      },
+      {
+        "symbol": "\\text{TSLGC}",
+        "meaning": "term structure of LGC: liquidity that sources of liquidity can generate at each date (expected values)"
+      },
+      {
+        "symbol": "t_0",
+        "meaning": "reference date"
+      },
+      {
+        "symbol": "t_i",
+        "meaning": "the i-th future date"
+      },
+      {
+        "symbol": "t_b",
+        "meaning": "terminal date"
+      },
+      {
+        "symbol": "b",
+        "meaning": "index of the terminal date"
+      }
+    ],
+    "skeleton": "\\text{TSCLGC}(t_0,t_b) = \\Bigl\\{ \\textstyle\\sum_{i=0}^{1}{{1}}(t_0,t_i),\\; \\sum_{i=0}^{2}\\text{TSLGC}(t_0,t_i),\\; \\ldots,\\; {{2}}_{i=0}^{ {{3}} }\\text{TSLGC}(t_0,t_i) \\Bigr\\}",
+    "slots": [
+      "\\text{TSLGC}",
+      "\\sum",
+      "b"
+    ],
+    "decoys": [
+      "\\text{TSECF}",
+      "\\prod",
+      "\\text{TSECCF}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{TSCLGC}(t_0,t_b) = \\bigl\\{ \\text{TSLGC}(t_0,t_1),\\; \\ldots,\\; \\text{TSLGC}(t_0,t_b) \\bigr\\}",
+        "kind": "missing-term",
+        "why": "Not cumulated: that is just the TSLGC itself; TSCLGC is the running total."
+      },
+      {
+        "latex": "\\text{TSCLGC}(t_0,t_b) = \\Bigl\\{ \\textstyle\\sum_{i=0}^{1}\\text{TSECF}(t_0,t_i),\\; \\ldots,\\; \\sum_{i=0}^{b}\\text{TSECF}(t_0,t_i) \\Bigr\\}",
+        "kind": "wrong-variable",
+        "why": "Cumulating expected cash flows (causes of liquidity) gives the TSECCF; TSCLGC cumulates the sources of liquidity."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Running total of what your liquidity sources can raise: each entry adds one more date's LGC.",
+    "calc": null,
+    "tags": [
+      "liquidity generation capacity",
+      "term structure"
+    ]
+  },
+  {
+    "id": "ORR-18-F01",
+    "reading_id": "ORR-18",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/01_OR_ORR18.tex",
+    "source_line": 67,
+    "objective": "ORR-18 c",
+    "name": "RAROC (compact definition)",
+    "prompt": "What is RAROC in its compact form: which income measure over which capital measure?",
+    "latex": "\\mathrm{RAROC}=\\frac{\\text{after-tax expected risk-adjusted net income}}{\\text{economic capital}}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{RAROC}",
+        "meaning": "risk-adjusted return on capital, as a decimal/percentage"
+      },
+      {
+        "symbol": "\\text{after-tax expected risk-adjusted net income}",
+        "meaning": "expected net income after costs, expected losses and taxes (currency)"
+      },
+      {
+        "symbol": "\\text{economic capital}",
+        "meaning": "risk capital required for the activity (currency), not accounting capital"
+      }
+    ],
+    "skeleton": "\\mathrm{RAROC}=\\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "\\text{after-tax expected risk-adjusted net income}",
+      "\\text{economic capital}"
+    ],
+    "decoys": [
+      "\\text{accounting capital}",
+      "\\text{regulatory capital}",
+      "\\text{pre-tax accounting profit}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{RAROC}=\\frac{\\text{economic capital}}{\\text{after-tax expected risk-adjusted net income}}",
+        "kind": "inverted",
+        "why": "RAROC is a return on capital: income on top, capital underneath."
+      },
+      {
+        "latex": "\\mathrm{RAROC}=\\frac{\\text{after-tax expected risk-adjusted net income}}{\\text{accounting capital}}",
+        "kind": "wrong-variable",
+        "why": "RAROC's defining feature is using economic capital instead of accounting capital."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{after-tax expected risk-adjusted net income}",
+        "direction": "up",
+        "why": "More risk-adjusted income per unit of capital."
+      },
+      {
+        "variable": "\\text{economic capital}",
+        "direction": "down",
+        "why": "A riskier activity ties up more capital for the same income."
+      }
+    ],
+    "intuition": "Return on the capital the risk actually consumes: risk-adjusted profit over economic capital.",
+    "calc": {
+      "expr": "NI / EC * 100",
+      "inputs": [
+        {
+          "name": "NI",
+          "symbol": "\\text{after-tax expected risk-adjusted net income}",
+          "min": 0,
+          "max": 100,
+          "step": 0.5,
+          "unit": "$M"
+        },
+        {
+          "name": "EC",
+          "symbol": "\\text{economic capital}",
+          "min": 10,
+          "max": 1000,
+          "step": 10,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{RAROC}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "RAROC",
+      "performance measurement"
+    ]
+  },
+  {
+    "id": "ORR-18-F02",
+    "reading_id": "ORR-18",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/01_OR_ORR18.tex",
+    "source_line": 72,
+    "objective": "ORR-18 c",
+    "name": "RAROC (expanded numerator)",
+    "prompt": "Write out RAROC with every component of the numerator: what is added, what is subtracted, and what is it divided by?",
+    "latex": "\\mathrm{RAROC}=\\frac{\\text{expected revenues}-\\text{costs}-\\text{expected losses}-\\text{taxes}+\\text{return on economic capital}\\pm\\text{transfers}}{\\text{economic capital}}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{RAROC}",
+        "meaning": "risk-adjusted return on capital, as a decimal/percentage"
+      },
+      {
+        "symbol": "\\text{expected revenues}",
+        "meaning": "expected revenues (use actual revenues for performance evaluation)"
+      },
+      {
+        "symbol": "\\text{costs}",
+        "meaning": "costs, e.g. direct operating costs and interest (funding) expense"
+      },
+      {
+        "symbol": "\\text{expected losses}",
+        "meaning": "expected losses (use actual losses for performance evaluation)"
+      },
+      {
+        "symbol": "\\text{taxes}",
+        "meaning": "taxes on the resulting income"
+      },
+      {
+        "symbol": "\\text{return on economic capital}",
+        "meaning": "return earned on the economic capital itself, e.g. the risk-free rate times economic capital"
+      },
+      {
+        "symbol": "\\text{transfers}",
+        "meaning": "transfer-pricing adjustments (plus or minus)"
+      },
+      {
+        "symbol": "\\text{economic capital}",
+        "meaning": "economic capital required (currency)"
+      }
+    ],
+    "skeleton": "\\mathrm{RAROC}=\\frac{\\text{expected revenues}-\\text{costs}-{{1}}-{{2}}+{{3}}\\pm\\text{transfers}}{ {{4}} }",
+    "slots": [
+      "\\text{expected losses}",
+      "\\text{taxes}",
+      "\\text{return on economic capital}",
+      "\\text{economic capital}"
+    ],
+    "decoys": [
+      "\\text{unexpected losses}",
+      "\\text{accounting capital}",
+      "\\text{regulatory capital}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{RAROC}=\\frac{\\text{expected revenues}-\\text{costs}-\\text{expected losses}-\\text{taxes}-\\text{return on economic capital}\\pm\\text{transfers}}{\\text{economic capital}}",
+        "kind": "sign",
+        "why": "The return earned on economic capital is income to the activity, so it is added, not subtracted."
+      },
+      {
+        "latex": "\\mathrm{RAROC}=\\frac{\\text{expected revenues}-\\text{costs}-\\text{unexpected losses}-\\text{taxes}+\\text{return on economic capital}\\pm\\text{transfers}}{\\text{economic capital}}",
+        "kind": "wrong-variable",
+        "why": "Unexpected losses are what the economic capital in the denominator covers; only expected losses are a cost in the numerator."
+      },
+      {
+        "latex": "\\mathrm{RAROC}=\\frac{\\text{expected revenues}-\\text{costs}-\\text{taxes}+\\text{return on economic capital}\\pm\\text{transfers}}{\\text{economic capital}}",
+        "kind": "missing-term",
+        "why": "Leaving out expected losses makes the income not risk-adjusted."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{expected revenues}",
+        "direction": "up",
+        "why": "More revenue, more risk-adjusted income."
+      },
+      {
+        "variable": "\\text{costs}",
+        "direction": "down",
+        "why": "Costs reduce the numerator."
+      },
+      {
+        "variable": "\\text{expected losses}",
+        "direction": "down",
+        "why": "Expected losses are a cost of doing the business."
+      },
+      {
+        "variable": "\\text{taxes}",
+        "direction": "down",
+        "why": "RAROC is an after-tax measure."
+      },
+      {
+        "variable": "\\text{return on economic capital}",
+        "direction": "up",
+        "why": "Income earned on the capital buffer adds to the numerator."
+      },
+      {
+        "variable": "\\text{economic capital}",
+        "direction": "down",
+        "why": "Holding the numerator (including the return on capital) fixed, more capital means a lower return per unit."
+      }
+    ],
+    "intuition": "Revenue, minus everything it costs (operating and funding costs, expected losses, taxes), plus what the capital cushion itself earns, all over that cushion.",
+    "calc": {
+      "expr": "(REV - COST - EL + ROEC + TR) * (1 - t) / EC * 100",
+      "inputs": [
+        {
+          "name": "REV",
+          "symbol": "\\text{expected revenues}",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "COST",
+          "symbol": "\\text{costs}",
+          "min": 0,
+          "max": 500,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "EL",
+          "symbol": "\\text{expected losses}",
+          "min": 0,
+          "max": 100,
+          "step": 0.5,
+          "unit": "$M"
+        },
+        {
+          "name": "ROEC",
+          "symbol": "\\text{return on economic capital}",
+          "min": 0,
+          "max": 20,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "TR",
+          "symbol": "\\text{transfers}",
+          "min": -10,
+          "max": 10,
+          "step": 0.5,
+          "unit": "$M"
+        },
+        {
+          "name": "t",
+          "symbol": "t",
+          "min": 0,
+          "max": 0.5,
+          "step": 0.01,
+          "unit": "decimal tax rate (taxes = t x pre-tax income)"
+        },
+        {
+          "name": "EC",
+          "symbol": "\\text{economic capital}",
+          "min": 10,
+          "max": 1000,
+          "step": 10,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{RAROC}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "REV": 105,
+          "COST": 85,
+          "EL": 7.5,
+          "ROEC": 1.2,
+          "TR": 0,
+          "t": 0.25,
+          "EC": 120
+        },
+        "output": 8.56,
+        "source_line": 125
+      }
+    },
+    "tags": [
+      "RAROC",
+      "capital budgeting"
+    ]
+  },
+  {
+    "id": "ORR-18-F03",
+    "reading_id": "ORR-18",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/01_OR_ORR18.tex",
+    "source_line": 182,
+    "objective": "ORR-18 e",
+    "name": "After-tax hurdle rate (weighted cost of equity capital)",
+    "prompt": "What is the single after-tax hurdle rate a firm uses for RAROC decisions, from its common and preferred equity?",
+    "latex": "h_{AT}=\\frac{\\bigl[(CE \\times R_{CE}) + (PE \\times R_{PE})\\bigr]}{(CE+PE)}",
+    "variables": [
+      {
+        "symbol": "h_{AT}",
+        "meaning": "after-tax hurdle rate: the after-tax weighted-average cost of equity capital (decimal)"
+      },
+      {
+        "symbol": "CE",
+        "meaning": "common equity (amount)"
+      },
+      {
+        "symbol": "R_{CE}",
+        "meaning": "cost of common equity, e.g. from the CAPM (decimal)"
+      },
+      {
+        "symbol": "PE",
+        "meaning": "preferred equity (amount)"
+      },
+      {
+        "symbol": "R_{PE}",
+        "meaning": "cost of preferred equity: the yield on the firm's preferred shares (decimal)"
+      }
+    ],
+    "skeleton": "h_{AT}=\\frac{\\bigl[(CE \\times {{1}}) + ({{2}} \\times R_{PE})\\bigr]}{ {{3}} }",
+    "slots": [
+      "R_{CE}",
+      "PE",
+      "(CE+PE)"
+    ],
+    "decoys": [
+      "R_{F}",
+      "(CE \\times PE)",
+      "\\beta_{CE}",
+      "R_{M}"
+    ],
+    "corruptions": [
+      {
+        "latex": "h_{AT}=\\frac{\\bigl[(CE \\times R_{PE}) + (PE \\times R_{CE})\\bigr]}{(CE+PE)}",
+        "kind": "sibling",
+        "why": "Each cost must be weighted by its own equity amount; here the weights are swapped."
+      },
+      {
+        "latex": "h_{AT}=(CE \\times R_{CE}) + (PE \\times R_{PE})",
+        "kind": "missing-term",
+        "why": "Without dividing by total equity this is a currency cost, not a rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "R_{CE}",
+        "direction": "up",
+        "why": "A dearer common equity raises the weighted cost."
+      },
+      {
+        "variable": "R_{PE}",
+        "direction": "up",
+        "why": "A dearer preferred equity raises the weighted cost."
+      },
+      {
+        "variable": "CE",
+        "direction": "depends",
+        "why": "More common equity raises the hurdle only if R_CE exceeds R_PE (it shifts weight toward the dearer source)."
+      },
+      {
+        "variable": "PE",
+        "direction": "depends",
+        "why": "More preferred equity raises the hurdle only if R_PE exceeds R_CE."
+      }
+    ],
+    "intuition": "The hurdle is just the equity-weighted average of what common and preferred holders demand.",
+    "calc": {
+      "expr": "(CE*RCE + PE*RPE) / (CE + PE)",
+      "inputs": [
+        {
+          "name": "CE",
+          "symbol": "CE",
+          "min": 10,
+          "max": 1000,
+          "step": 10,
+          "unit": "$M"
+        },
+        {
+          "name": "RCE",
+          "symbol": "R_{CE}",
+          "min": 0.03,
+          "max": 0.25,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "PE",
+          "symbol": "PE",
+          "min": 0,
+          "max": 500,
+          "step": 10,
+          "unit": "$M"
+        },
+        {
+          "name": "RPE",
+          "symbol": "R_{PE}",
+          "min": 0.02,
+          "max": 0.15,
+          "step": 0.005,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "h_{AT}",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "hurdle rate",
+      "RAROC"
+    ]
+  },
+  {
+    "id": "ORR-18-F04",
+    "reading_id": "ORR-18",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/01_OR_ORR18.tex",
+    "source_line": 192,
+    "objective": "ORR-18 e",
+    "name": "Cost of common equity via the CAPM",
+    "prompt": "How is the cost of common equity that feeds the hurdle rate determined with the CAPM?",
+    "latex": "R_{CE}=R_{F}+\\beta_{CE}\\,(R_{M}-R_{F})",
+    "variables": [
+      {
+        "symbol": "R_{CE}",
+        "meaning": "cost of common equity (decimal)"
+      },
+      {
+        "symbol": "R_{F}",
+        "meaning": "risk-free rate (decimal)"
+      },
+      {
+        "symbol": "\\beta_{CE}",
+        "meaning": "beta of the firm's common equity"
+      },
+      {
+        "symbol": "R_{M}",
+        "meaning": "expected market return (decimal)"
+      }
+    ],
+    "skeleton": "R_{CE}={{1}}+{{2}}\\,({{3}}-{{4}})",
+    "slots": [
+      "R_{F}",
+      "\\beta_{CE}",
+      "R_{M}",
+      "R_{F}"
+    ],
+    "decoys": [
+      "R_{PE}",
+      "h_{AT}",
+      "\\mathrm{RAROC}"
+    ],
+    "corruptions": [
+      {
+        "latex": "R_{CE}=R_{F}+\\beta_{CE}\\,(R_{F}-R_{M})",
+        "kind": "sign",
+        "why": "The market risk premium is R_M minus R_F; reversing it makes riskier equity cheaper."
+      },
+      {
+        "latex": "R_{CE}=\\beta_{CE}\\,(R_{M}-R_{F})",
+        "kind": "missing-term",
+        "why": "Forgets the risk-free base: this is only the risk premium."
+      },
+      {
+        "latex": "R_{CE}=R_{F}+\\beta_{CE}\\,R_{M}",
+        "kind": "missing-term",
+        "why": "Beta multiplies the excess market return, not the whole market return."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\beta_{CE}",
+        "direction": "up",
+        "why": "More systematic risk demands a higher return (when R_M > R_F)."
+      },
+      {
+        "variable": "R_{M}",
+        "direction": "up",
+        "why": "A higher market return raises the premium for positive beta."
+      },
+      {
+        "variable": "R_{F}",
+        "direction": "depends",
+        "why": "Net effect is (1 - beta): up if beta < 1, down if beta > 1."
+      }
+    ],
+    "intuition": "Risk-free plus beta times the market's extra return: the price of the systematic risk shareholders bear.",
+    "calc": {
+      "expr": "RF + beta*(RM - RF)",
+      "inputs": [
+        {
+          "name": "RF",
+          "symbol": "R_{F}",
+          "min": 0,
+          "max": 0.08,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "beta",
+          "symbol": "\\beta_{CE}",
+          "min": 0,
+          "max": 2.5,
+          "step": 0.05,
+          "unit": ""
+        },
+        {
+          "name": "RM",
+          "symbol": "R_{M}",
+          "min": 0.02,
+          "max": 0.15,
+          "step": 0.005,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "R_{CE}",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "CAPM",
+      "cost of equity",
+      "hurdle rate"
+    ]
+  },
+  {
+    "id": "ORR-18-F05",
+    "reading_id": "ORR-18",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/01_OR_ORR18.tex",
+    "source_line": 211,
+    "objective": "ORR-18 f",
+    "name": "Adjusted RAROC (ARAROC)",
+    "prompt": "How is RAROC adjusted for the systematic riskiness of returns so it can be compared with the risk-free rate?",
+    "latex": "\\text{Adjusted RAROC} = \\mathrm{RAROC} - \\beta_{E}\\,(R_{M}-R_{F})",
+    "variables": [
+      {
+        "symbol": "\\text{Adjusted RAROC}",
+        "meaning": "RAROC net of the systematic risk premium; accept if it exceeds R_F (decimal)"
+      },
+      {
+        "symbol": "\\mathrm{RAROC}",
+        "meaning": "unadjusted risk-adjusted return on capital (decimal)"
+      },
+      {
+        "symbol": "\\beta_{E}",
+        "meaning": "the firm's equity beta"
+      },
+      {
+        "symbol": "R_{M}",
+        "meaning": "expected market return (decimal)"
+      },
+      {
+        "symbol": "R_{F}",
+        "meaning": "risk-free rate (decimal)"
+      }
+    ],
+    "skeleton": "\\text{Adjusted RAROC} = {{1}} - {{2}}\\,({{3}}-{{4}})",
+    "slots": [
+      "\\mathrm{RAROC}",
+      "\\beta_{E}",
+      "R_{M}",
+      "R_{F}"
+    ],
+    "decoys": [
+      "h_{AT}",
+      "R_{CE}",
+      "\\beta_{E}^{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Adjusted RAROC} = \\mathrm{RAROC} + \\beta_{E}\\,(R_{M}-R_{F})",
+        "kind": "sign",
+        "why": "The systematic risk premium is removed, not added: 0.12 + 0.09 = 21% would wrongly accept the project."
+      },
+      {
+        "latex": "\\text{Adjusted RAROC} = \\mathrm{RAROC} - \\beta_{E}\\,(R_{F}-R_{M})",
+        "kind": "sign",
+        "why": "The premium is R_M minus R_F; reversing it adds the premium back."
+      },
+      {
+        "latex": "\\text{Adjusted RAROC} = \\mathrm{RAROC} - \\beta_{E}\\,R_{M}",
+        "kind": "missing-term",
+        "why": "Beta multiplies the excess market return (R_M - R_F), not R_M itself."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{RAROC}",
+        "direction": "up",
+        "why": "Adjusted RAROC moves one for one with RAROC."
+      },
+      {
+        "variable": "\\beta_{E}",
+        "direction": "down",
+        "why": "More systematic risk means a larger deduction (with R_M > R_F)."
+      },
+      {
+        "variable": "R_{M}",
+        "direction": "down",
+        "why": "A bigger market premium means a larger deduction for positive beta."
+      },
+      {
+        "variable": "R_{F}",
+        "direction": "up",
+        "why": "A higher risk-free rate shrinks the premium being deducted (for positive beta)."
+      }
+    ],
+    "intuition": "Strip out the CAPM risk premium the business earns just by bearing market risk; what is left must beat the risk-free rate.",
+    "calc": {
+      "expr": "RAROC - beta*(RM - RF)",
+      "inputs": [
+        {
+          "name": "RAROC",
+          "symbol": "\\mathrm{RAROC}",
+          "min": -0.05,
+          "max": 0.4,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "beta",
+          "symbol": "\\beta_{E}",
+          "min": 0,
+          "max": 2.5,
+          "step": 0.05,
+          "unit": ""
+        },
+        {
+          "name": "RM",
+          "symbol": "R_{M}",
+          "min": 0.02,
+          "max": 0.15,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "RF",
+          "symbol": "R_{F}",
+          "min": 0,
+          "max": 0.08,
+          "step": 0.005,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Adjusted RAROC}",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "RAROC": 0.12,
+          "beta": 1.5,
+          "RM": 0.11,
+          "RF": 0.05
+        },
+        "output": 0.03,
+        "source_line": 228
+      }
+    },
+    "tags": [
+      "adjusted RAROC",
+      "CAPM"
+    ]
+  },
+  {
+    "id": "CR-6-F01",
+    "reading_id": "CR-6",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/14_CR_CR6.tex",
+    "source_line": 207,
+    "objective": "CR-6 c",
+    "name": "Linear scoring model to be fitted",
+    "prompt": "What is the linear model assumed at the model-fitting stage of building a credit scoring system?",
+    "latex": "f(x) = \\beta_0 + \\beta_1 x_1 + \\beta_2 x_2 + \\dots + \\beta_n x_n",
+    "variables": [
+      {
+        "symbol": "f(x)",
+        "meaning": "model output (score) used to classify default / non-default"
+      },
+      {
+        "symbol": "\\beta_0",
+        "meaning": "constant term"
+      },
+      {
+        "symbol": "\\beta_1, \\beta_2, \\dots, \\beta_n",
+        "meaning": "coefficients on the risk attributes"
+      },
+      {
+        "symbol": "x_1, x_2, \\dots, x_n",
+        "meaning": "the borrower's risk attributes (e.g. financial ratios, payment history)"
+      },
+      {
+        "symbol": "n",
+        "meaning": "number of risk attributes"
+      }
+    ],
+    "skeleton": "f(x) = {{1}} + \\beta_1 {{2}} + \\beta_2 x_2 + \\dots + {{3}} x_n",
+    "slots": [
+      "\\beta_0",
+      "x_1",
+      "\\beta_n"
+    ],
+    "decoys": [
+      "L(\\beta, X)",
+      "\\beta^{*}",
+      "x_0"
+    ],
+    "corruptions": [
+      {
+        "latex": "f(x) = \\beta_1 x_1 + \\beta_2 x_2 + \\dots + \\beta_n x_n",
+        "kind": "missing-term",
+        "why": "The parameter vector includes a constant term beta_0."
+      },
+      {
+        "latex": "f(x) = \\beta_0 + \\beta_1 x_1^{2} + \\beta_2 x_2^{2} + \\dots + \\beta_n x_n^{2}",
+        "kind": "exponent",
+        "why": "The assumed model is linear in the risk attributes."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\beta_0",
+        "direction": "up",
+        "why": "The constant shifts every score one for one."
+      }
+    ],
+    "intuition": "A score is a constant plus a weighted sum of risk attributes; model fitting is choosing the weights.",
+    "calc": null,
+    "tags": [
+      "credit scoring",
+      "model fitting"
+    ]
+  },
+  {
+    "id": "CR-6-F02",
+    "reading_id": "CR-6",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/14_CR_CR6.tex",
+    "source_line": 212,
+    "objective": "CR-6 c",
+    "name": "Optimal parameters: loss minimisation",
+    "prompt": "How are the optimal coefficients of the scoring model chosen from the training data?",
+    "latex": "\\beta^{*} = \\arg\\min_{\\beta \\in \\mathbb{R}} L(\\beta, X)",
+    "variables": [
+      {
+        "symbol": "\\beta^{*}",
+        "meaning": "the optimal parameter vector"
+      },
+      {
+        "symbol": "\\beta",
+        "meaning": "parameter vector (beta_0, beta_1, ..., beta_n)"
+      },
+      {
+        "symbol": "L",
+        "meaning": "loss function: the difference between the model's output and the classification in the training data"
+      },
+      {
+        "symbol": "X",
+        "meaning": "the training data (risk attributes with their default / non-default classification)"
+      }
+    ],
+    "skeleton": "{{1}} = \\arg{{2}}_{\\beta \\in \\mathbb{R}} {{3}}(\\beta, X)",
+    "slots": [
+      "\\beta^{*}",
+      "\\min",
+      "L"
+    ],
+    "decoys": [
+      "\\max",
+      "f",
+      "\\beta_0"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\beta^{*} = \\arg\\max_{\\beta \\in \\mathbb{R}} L(\\beta, X)",
+        "kind": "sign",
+        "why": "L measures misfit, so the best parameters minimise it."
+      },
+      {
+        "latex": "\\beta^{*} = \\min_{\\beta \\in \\mathbb{R}} L(\\beta, X)",
+        "kind": "missing-term",
+        "why": "Without arg this is the minimum loss VALUE, not the parameter vector that achieves it."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Pick the coefficients that make the model's output disagree least with the known defaults in the training data.",
+    "calc": null,
+    "tags": [
+      "credit scoring",
+      "model fitting"
+    ]
+  }
+]

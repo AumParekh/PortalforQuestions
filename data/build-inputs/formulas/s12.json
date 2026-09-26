@@ -1,0 +1,3353 @@
+[
+ {
+  "id": "IM-1-F01",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 94,
+  "objective": "IM-1 b",
+  "name": "CAPM: expected portfolio return",
+  "prompt": "Under the CAPM, what is a portfolio's expected return, given the risk-free rate, its beta and the market's expected return?",
+  "latex": "E(R_P) = R_f + \\beta_P\\left[E(R_M) - R_f\\right]",
+  "variables": [
+   {
+    "symbol": "E(R_P)",
+    "meaning": "expected return on the portfolio"
+   },
+   {
+    "symbol": "R_f",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\beta_P",
+    "meaning": "portfolio's sensitivity to the single priced factor, the market"
+   },
+   {
+    "symbol": "E(R_M)",
+    "meaning": "expected return on the market portfolio; E(R_M) - R_f is the market risk premium"
+   }
+  ],
+  "skeleton": "E(R_P) = {{1}} + {{2}}\\left[{{3}} - {{4}}\\right]",
+  "slots": [
+   "R_f",
+   "\\beta_P",
+   "E(R_M)",
+   "R_f"
+  ],
+  "decoys": [
+   "E(R_P)",
+   "\\sigma_M",
+   "\\beta_P^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "E(R_P) = R_f + \\beta_P E(R_M)",
+    "kind": "missing-term",
+    "why": "Beta must multiply the market risk PREMIUM, E(R_M) - R_f, not the whole market return."
+   },
+   {
+    "latex": "E(R_P) = \\beta_P\\left[E(R_M) - R_f\\right]",
+    "kind": "missing-term",
+    "why": "Drops the risk-free intercept: this is only the portfolio's risk premium, not its expected return."
+   },
+   {
+    "latex": "E(R_P) = R_f + \\beta_P\\left[E(R_M) + R_f\\right]",
+    "kind": "sign",
+    "why": "The premium is the market return in excess of the risk-free rate, so R_f is subtracted inside the bracket."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\beta_P",
+    "direction": "up",
+    "why": "Beta scales the market risk premium E(R_M) - R_f; with that premium positive, as the notes treat it, more beta earns more."
+   },
+   {
+    "variable": "E(R_M)",
+    "direction": "up",
+    "why": "A higher expected market return raises the premium that beta scales."
+   },
+   {
+    "variable": "R_f",
+    "direction": "depends",
+    "why": "Net effect is (1 - beta) times the change: up if beta < 1, down if beta > 1."
+   }
+  ],
+  "intuition": "Risk-free rate plus a reward for market risk: only beta, the exposure to the single bad-times factor, is paid.",
+  "calc": {
+   "expr": "rf + beta*(rm - rf)",
+   "inputs": [
+    {
+     "name": "rf",
+     "symbol": "R_f",
+     "min": 0,
+     "max": 8,
+     "step": 0.5,
+     "unit": "%"
+    },
+    {
+     "name": "beta",
+     "symbol": "\\beta_P",
+     "min": 0,
+     "max": 2.5,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "rm",
+     "symbol": "E(R_M)",
+     "min": 4,
+     "max": 15,
+     "step": 0.5,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "E(R_P)",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "CAPM",
+   "factor risk"
+  ]
+ },
+ {
+  "id": "IM-1-F02",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 136,
+  "objective": "IM-1 c",
+  "name": "CAPM: market risk premium from average risk aversion",
+  "prompt": "In CAPM equilibrium, what determines the market risk premium, in terms of investors' average risk aversion and market risk?",
+  "latex": "E(R_m) - R_f = \\bar{\\gamma}\\,\\sigma_m^{2}",
+  "variables": [
+   {
+    "symbol": "E(R_m)",
+    "meaning": "expected return on the market portfolio"
+   },
+   {
+    "symbol": "R_f",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\bar{\\gamma}",
+    "meaning": "risk aversion of the 'average' investor: the wealth-weighted average degree of risk aversion across all investors"
+   },
+   {
+    "symbol": "\\sigma_m^{2}",
+    "meaning": "variance of the market portfolio's return"
+   }
+  ],
+  "skeleton": "E(R_m) - R_f = {{1}}\\,{{2}}",
+  "slots": [
+   "\\bar{\\gamma}",
+   "\\sigma_m^{2}"
+  ],
+  "decoys": [
+   "\\sigma_m",
+   "\\beta_P",
+   "\\frac{1}{\\bar{\\gamma}}"
+  ],
+  "corruptions": [
+   {
+    "latex": "E(R_m) - R_f = \\bar{\\gamma}\\,\\sigma_m",
+    "kind": "exponent",
+    "why": "The premium scales with market VARIANCE, not standard deviation."
+   },
+   {
+    "latex": "E(R_m) - R_f = \\frac{\\sigma_m^{2}}{\\bar{\\gamma}}",
+    "kind": "inverted",
+    "why": "This would make the premium fall as investors become more risk averse; in fact both drivers raise it."
+   },
+   {
+    "latex": "E(R_m) = \\bar{\\gamma}\\,\\sigma_m^{2}",
+    "kind": "missing-term",
+    "why": "gamma-bar times variance gives the PREMIUM over the risk-free rate, not the total expected market return."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\bar{\\gamma}",
+    "direction": "up",
+    "why": "A more risk-averse average investor demands more to hold the market."
+   },
+   {
+    "variable": "\\sigma_m^{2}",
+    "direction": "up",
+    "why": "A more volatile market is more painful to hold, so it must pay more."
+   }
+  ],
+  "intuition": "Premium = how much the average investor hates risk times how much risk the market has; both push the same way.",
+  "calc": {
+   "expr": "100 * gamma * sigma**2",
+   "inputs": [
+    {
+     "name": "gamma",
+     "symbol": "\\bar{\\gamma}",
+     "min": 1,
+     "max": 10,
+     "step": 0.5,
+     "unit": ""
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma_m",
+     "min": 0.1,
+     "max": 0.3,
+     "step": 0.01,
+     "unit": "decimal (volatility; squared in the formula)"
+    }
+   ],
+   "output": {
+    "symbol": "E(R_m) - R_f",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "CAPM",
+   "risk aversion"
+  ]
+ },
+ {
+  "id": "IM-1-F03",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 222,
+  "objective": "IM-1 e",
+  "name": "Multifactor (multi-beta) expected return",
+  "prompt": "With several factors in the SDF, how is an asset's expected return built from the risk-free rate, its factor betas and the factor risk premiums?",
+  "latex": "E(r_i) = r_f + \\beta_{i,1}E(f_1) + \\beta_{i,2}E(f_2) + \\cdots + \\beta_{i,K}E(f_K)",
+  "variables": [
+   {
+    "symbol": "E(r_i)",
+    "meaning": "expected return on asset i"
+   },
+   {
+    "symbol": "r_f",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\beta_{i,1}",
+    "meaning": "beta of asset i with respect to factor 1 (generally beta_{i,k} for factor k)"
+   },
+   {
+    "symbol": "E(f_1)",
+    "meaning": "risk premium of factor 1 (generally E(f_k) for factor k)"
+   },
+   {
+    "symbol": "\\beta_{i,2}",
+    "meaning": "beta of asset i with respect to factor 2"
+   },
+   {
+    "symbol": "E(f_2)",
+    "meaning": "risk premium of factor 2"
+   },
+   {
+    "symbol": "\\beta_{i,K}",
+    "meaning": "beta of asset i with respect to the last (K-th) factor"
+   },
+   {
+    "symbol": "E(f_K)",
+    "meaning": "risk premium of the K-th factor"
+   }
+  ],
+  "skeleton": "E(r_i) = {{1}} + {{2}}{{3}} + \\beta_{i,2}E(f_2) + \\cdots + \\beta_{i,K}{{4}}",
+  "slots": [
+   "r_f",
+   "\\beta_{i,1}",
+   "E(f_1)",
+   "E(f_K)"
+  ],
+  "decoys": [
+   "f_1",
+   "\\beta_{i,m}",
+   "E(r_m)"
+  ],
+  "corruptions": [
+   {
+    "latex": "E(r_i) = \\beta_{i,1}E(f_1) + \\beta_{i,2}E(f_2) + \\cdots + \\beta_{i,K}E(f_K)",
+    "kind": "missing-term",
+    "why": "Without r_f this is only the asset's risk premium; the E(f_k) are premiums, so the risk-free rate must be added back."
+   },
+   {
+    "latex": "E(r_i) = r_f + \\beta_{i}\\left[E(r_m) - r_f\\right]",
+    "kind": "sibling",
+    "why": "That is the single-factor CAPM; the multifactor model adds a beta-times-premium term for every factor, each its own kind of bad time."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\beta_{i,1}",
+    "direction": "depends",
+    "why": "Up if factor 1 carries a positive risk premium E(f_1), down if negative."
+   },
+   {
+    "variable": "E(f_1)",
+    "direction": "depends",
+    "why": "Up if the asset has positive exposure beta_{i,1} to factor 1, down if negative."
+   },
+   {
+    "variable": "r_f",
+    "direction": "up",
+    "why": "With the factor premiums held fixed, the risk-free rate adds one-for-one."
+   }
+  ],
+  "intuition": "Same shape as the CAPM, but you get paid separately for each kind of bad time you are exposed to.",
+  "calc": null,
+  "tags": [
+   "multifactor",
+   "APT",
+   "SDF"
+  ]
+ },
+ {
+  "id": "IM-1-F04",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 252,
+  "objective": "IM-1 e",
+  "name": "CAPM as an SDF: m linear in the market return",
+  "prompt": "In the CAPM special case, how is the stochastic discount factor m built from the market return?",
+  "latex": "m = a + b \\times r_m",
+  "variables": [
+   {
+    "symbol": "m",
+    "meaning": "stochastic discount factor (pricing kernel), an index of bad times"
+   },
+   {
+    "symbol": "a",
+    "meaning": "constant"
+   },
+   {
+    "symbol": "b",
+    "meaning": "constant, NEGATIVE: low market returns (bad times) go with high m"
+   },
+   {
+    "symbol": "r_m",
+    "meaning": "return on the market"
+   }
+  ],
+  "skeleton": "m = {{1}} + {{2}} \\times {{3}}",
+  "slots": [
+   "a",
+   "b",
+   "r_m"
+  ],
+  "decoys": [
+   "r_f",
+   "\\beta",
+   "E(m)"
+  ],
+  "corruptions": [
+   {
+    "latex": "m = a + b \\times r_f",
+    "kind": "wrong-variable",
+    "why": "The CAPM's single factor is the MARKET return; the risk-free rate does not define bad times."
+   },
+   {
+    "latex": "m = a + b \\times r_m^{2}",
+    "kind": "exponent",
+    "why": "The CAPM is exactly the case where m is LINEAR in the market return; nonlinearity is what the general m(F) allows."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_m",
+    "direction": "down",
+    "why": "b is negative: a higher market return means good times, so a lower m."
+   },
+   {
+    "variable": "a",
+    "direction": "up",
+    "why": "The intercept adds one-for-one."
+   },
+   {
+    "variable": "b",
+    "direction": "depends",
+    "why": "Depends on the sign of r_m: raises m when the market return is positive, lowers it when negative."
+   }
+  ],
+  "intuition": "The CAPM's SDF is a straight line in the market return with a negative slope: bad market, high m.",
+  "calc": {
+   "expr": "a + b*rm",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0.5,
+     "max": 1.5,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "b",
+     "symbol": "b",
+     "min": -5,
+     "max": -0.5,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "rm",
+     "symbol": "r_m",
+     "min": -0.3,
+     "max": 0.3,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "m",
+    "unit": "",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "SDF",
+   "CAPM"
+  ]
+ },
+ {
+  "id": "IM-1-F05",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 283,
+  "objective": "IM-1 e",
+  "name": "Discount-rate model price",
+  "prompt": "In the traditional discount-rate model, how is an asset's price obtained from its payoff and its expected return?",
+  "latex": "P_i = E\\left[\\frac{\\text{payoff}_i}{1+E(r_i)}\\right]",
+  "variables": [
+   {
+    "symbol": "P_i",
+    "meaning": "price of asset i today"
+   },
+   {
+    "symbol": "\\text{payoff}_i",
+    "meaning": "the asset's payoff"
+   },
+   {
+    "symbol": "E(r_i)",
+    "meaning": "the asset's expected return (the discount rate, e.g. from the CAPM), constant across states"
+   }
+  ],
+  "skeleton": "P_i = E\\left[\\frac{ {{1}} }{1+{{2}}}\\right]",
+  "slots": [
+   "\\text{payoff}_i",
+   "E(r_i)"
+  ],
+  "decoys": [
+   "m",
+   "r_f",
+   "m \\times \\text{payoff}_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "P_i = E\\left[\\text{payoff}_i \\times (1+E(r_i))\\right]",
+    "kind": "inverted",
+    "why": "Discounting divides by one plus the discount rate; multiplying compounds forward instead."
+   },
+   {
+    "latex": "P_i = E\\left[\\frac{\\text{payoff}_i}{1+r_f}\\right]",
+    "kind": "wrong-variable",
+    "why": "A risky payoff is discounted at the asset's own expected return, not at the risk-free rate."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{payoff}_i",
+    "direction": "up",
+    "why": "A larger payoff is worth more today."
+   },
+   {
+    "variable": "E(r_i)",
+    "direction": "down",
+    "why": "A higher discount rate lowers the present value."
+   }
+  ],
+  "intuition": "Old route: divide the payoff by one plus a single discount rate that is the same in every state.",
+  "calc": {
+   "expr": "payoff/(1 + r)",
+   "inputs": [
+    {
+     "name": "payoff",
+     "symbol": "\\text{payoff}_i",
+     "min": 50,
+     "max": 200,
+     "step": 5,
+     "unit": "$ (expected)"
+    },
+    {
+     "name": "r",
+     "symbol": "E(r_i)",
+     "min": 0.02,
+     "max": 0.15,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "P_i",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "SDF",
+   "valuation"
+  ]
+ },
+ {
+  "id": "IM-1-F06",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 287,
+  "objective": "IM-1 e",
+  "name": "SDF pricing equation",
+  "prompt": "In the SDF model, how is an asset's price obtained from its payoff and the stochastic discount factor?",
+  "latex": "P_i = E\\left[m \\times \\text{payoff}_i\\right]",
+  "variables": [
+   {
+    "symbol": "P_i",
+    "meaning": "price of asset i today"
+   },
+   {
+    "symbol": "m",
+    "meaning": "stochastic discount factor (pricing kernel), high in bad times"
+   },
+   {
+    "symbol": "\\text{payoff}_i",
+    "meaning": "the asset's payoff, state by state"
+   }
+  ],
+  "skeleton": "P_i = E\\left[{{1}} \\times {{2}}\\right]",
+  "slots": [
+   "m",
+   "\\text{payoff}_i"
+  ],
+  "decoys": [
+   "1+E(r_i)",
+   "r_m",
+   "\\frac{1}{m}"
+  ],
+  "corruptions": [
+   {
+    "latex": "P_i = E\\left[\\frac{\\text{payoff}_i}{m}\\right]",
+    "kind": "inverted",
+    "why": "The SDF MULTIPLIES the payoff inside the expectation; dividing is the discount-rate route's habit."
+   },
+   {
+    "latex": "P_i = E(m) \\times E\\left[\\text{payoff}_i\\right]",
+    "kind": "sibling",
+    "why": "Pulling m out of the expectation ignores the covariance of m with the payoff, which is exactly what prices risk; it only holds for a risk-free payoff."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "New route: discount inside the expectation, state by state, so payoffs in bad (high-m) states count for more.",
+  "calc": null,
+  "tags": [
+   "SDF",
+   "valuation"
+  ]
+ },
+ {
+  "id": "IM-1-F07",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 304,
+  "objective": "IM-1 e",
+  "name": "SDF pricing in returns: 1 = E[m(1+r)]",
+  "prompt": "Dividing the SDF pricing equation by the asset's price gives what relation that must hold for every asset's return?",
+  "latex": "1 = E\\left[m \\times (1+r_i)\\right]",
+  "variables": [
+   {
+    "symbol": "m",
+    "meaning": "stochastic discount factor"
+   },
+   {
+    "symbol": "r_i",
+    "meaning": "return on asset i"
+   }
+  ],
+  "skeleton": "{{1}} = E\\left[{{2}} \\times (1+{{3}})\\right]",
+  "slots": [
+   "1",
+   "m",
+   "r_i"
+  ],
+  "decoys": [
+   "0",
+   "r_f",
+   "P_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "1 = E\\left[\\frac{1+r_i}{m}\\right]",
+    "kind": "inverted",
+    "why": "m multiplies the gross return; it does not divide it."
+   },
+   {
+    "latex": "1 = E(m) \\times \\left(1+E(r_i)\\right)",
+    "kind": "sibling",
+    "why": "Splitting the expectation drops cov(r_i, m); that shortcut is valid only for the risk-free asset."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Every asset's gross return, weighted by m, must price back to exactly one dollar.",
+  "calc": null,
+  "tags": [
+   "SDF"
+  ]
+ },
+ {
+  "id": "IM-1-F08",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 308,
+  "objective": "IM-1 e",
+  "name": "Risk-free bond price equals E(m)",
+  "prompt": "For a risk-free bond (a constant payoff), how is its price, expressed through the risk-free rate, tied to the stochastic discount factor?",
+  "latex": "\\frac{1}{1+r_f} = E(m)",
+  "variables": [
+   {
+    "symbol": "r_f",
+    "meaning": "risk-free rate (decimal)"
+   },
+   {
+    "symbol": "E(m)",
+    "meaning": "expected value of the stochastic discount factor"
+   }
+  ],
+  "skeleton": "\\frac{ {{1}} }{1+{{2}}} = {{3}}",
+  "slots": [
+   "1",
+   "r_f",
+   "E(m)"
+  ],
+  "decoys": [
+   "r_m",
+   "\\operatorname{var}(m)",
+   "m"
+  ],
+  "corruptions": [
+   {
+    "latex": "1+r_f = E(m)",
+    "kind": "inverted",
+    "why": "E(m) is the PRICE of one dollar for sure, 1/(1+r_f), a number below one, not the gross risk-free return."
+   },
+   {
+    "latex": "\\frac{1}{1-r_f} = E(m)",
+    "kind": "sign",
+    "why": "Discounting at the risk-free rate divides by 1 + r_f."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_f",
+    "direction": "down",
+    "why": "A higher risk-free rate makes the sure dollar cheaper today, so the bond price, and E(m), is lower."
+   }
+  ],
+  "intuition": "The average discount factor is just the price of a sure dollar.",
+  "calc": {
+   "expr": "1/(1 + rf)",
+   "inputs": [
+    {
+     "name": "rf",
+     "symbol": "r_f",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "E(m)",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "SDF",
+   "risk-free rate"
+  ]
+ },
+ {
+  "id": "IM-1-F09",
+  "reading_id": "IM-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/05_IM_IM1.tex",
+  "source_line": 314,
+  "objective": "IM-1 e",
+  "name": "SDF risk premium: beta on m times price of bad-times risk",
+  "prompt": "Using the SDF, how is an asset's risk premium written as a beta with respect to m times the price of bad-times risk?",
+  "latex": "E(r_i) - r_f = \\underbrace{\\frac{\\operatorname{cov}(r_i,m)}{\\operatorname{var}(m)}}_{\\beta_{i,m}} \\times \\underbrace{\\left(-\\frac{\\operatorname{var}(m)}{E(m)}\\right)}_{\\lambda_m}",
+  "variables": [
+   {
+    "symbol": "E(r_i)",
+    "meaning": "expected return on asset i"
+   },
+   {
+    "symbol": "r_f",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\operatorname{cov}(r_i,m)",
+    "meaning": "covariance of the asset's return with the SDF (high when the asset pays off in bad times)"
+   },
+   {
+    "symbol": "\\operatorname{var}(m)",
+    "meaning": "variance of the SDF"
+   },
+   {
+    "symbol": "E(m)",
+    "meaning": "expected value of the SDF"
+   },
+   {
+    "symbol": "\\beta_{i,m}",
+    "meaning": "beta of the asset with respect to the SDF"
+   },
+   {
+    "symbol": "\\lambda_m",
+    "meaning": "price of 'bad times' risk (negative)"
+   }
+  ],
+  "skeleton": "E(r_i) - r_f = \\underbrace{\\frac{ {{1}} }{ {{2}} }}_{\\beta_{i,m}} \\times \\underbrace{\\left({{3}}\\frac{\\operatorname{var}(m)}{ {{4}} }\\right)}_{\\lambda_m}",
+  "slots": [
+   "\\operatorname{cov}(r_i,m)",
+   "\\operatorname{var}(m)",
+   "-",
+   "E(m)"
+  ],
+  "decoys": [
+   "+",
+   "\\operatorname{var}(r_i)",
+   "\\operatorname{cov}(r_m,m)"
+  ],
+  "corruptions": [
+   {
+    "latex": "E(r_i) - r_f = \\underbrace{\\frac{\\operatorname{cov}(r_i,m)}{\\operatorname{var}(m)}}_{\\beta_{i,m}} \\times \\underbrace{\\left(\\frac{\\operatorname{var}(m)}{E(m)}\\right)}_{\\lambda_m}",
+    "kind": "sign",
+    "why": "Without the minus sign, assets that pay off in bad times would earn MORE; the negative lambda is what makes them earn less."
+   },
+   {
+    "latex": "E(r_i) - r_f = \\underbrace{\\frac{\\operatorname{cov}(r_i,m)}{\\operatorname{var}(m)}}_{\\beta_{i,m}} \\times \\underbrace{\\left(-\\frac{E(m)}{\\operatorname{var}(m)}\\right)}_{\\lambda_m}",
+    "kind": "inverted",
+    "why": "The price of bad-times risk is minus var(m) over E(m), not its reciprocal."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\operatorname{cov}(r_i,m)",
+    "direction": "down",
+    "why": "Higher covariance with m means the asset pays off in bad times, so it is valuable and earns a LOWER premium."
+   },
+   {
+    "variable": "\\operatorname{var}(m)",
+    "direction": "none",
+    "why": "var(m) cancels between beta and lambda; the premium is -cov(r_i,m)/E(m)."
+   },
+   {
+    "variable": "E(m)",
+    "direction": "depends",
+    "why": "The premium is -cov/E(m): a larger E(m) shrinks its magnitude, so it falls if cov is negative and rises if cov is positive."
+   }
+  ],
+  "intuition": "Pay off in bad times and you are insurance: high covariance with m, low expected return.",
+  "calc": {
+   "expr": "100 * (cov/varm) * (-varm/Em)",
+   "inputs": [
+    {
+     "name": "cov",
+     "symbol": "\\operatorname{cov}(r_i,m)",
+     "min": -0.02,
+     "max": 0.02,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "varm",
+     "symbol": "\\operatorname{var}(m)",
+     "min": 0.01,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "Em",
+     "symbol": "E(m)",
+     "min": 0.9,
+     "max": 0.99,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "E(r_i) - r_f",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "SDF",
+   "risk premium"
+  ]
+ },
+ {
+  "id": "MR-15-F01",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 25,
+  "objective": "MR-15 a",
+  "name": "Time-dependent volatility model (general)",
+  "prompt": "How is the short-rate change written when both the drift and the volatility are functions of time?",
+  "latex": "dr = \\lambda(t)\\,dt + \\sigma(t)\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "\\lambda(t)",
+    "meaning": "time-dependent drift (carried over from Ho-Lee)"
+   },
+   {
+    "symbol": "\\sigma(t)",
+    "meaning": "time-dependent volatility: sigma is now a function of t rather than a constant"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normally distributed with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,dt + {{2}}\\,dw",
+  "slots": [
+   "\\lambda(t)",
+   "\\sigma(t)"
+  ],
+  "decoys": [
+   "\\sigma",
+   "\\lambda",
+   "k(\\theta - r)"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma\\,dw",
+    "kind": "sibling",
+    "why": "That is Ho-Lee: constant volatility. The new ingredient here is sigma(t)."
+   },
+   {
+    "latex": "dr = \\lambda\\,dt + \\sigma(t)\\,dw",
+    "kind": "wrong-variable",
+    "why": "The drift stays time-dependent, lambda(t), as in Ho-Lee."
+   },
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma(t)\\,r\\,dw",
+    "kind": "extra-term",
+    "why": "Volatility here depends on time only, not on the level of the rate (that is the lognormal idea)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\lambda(t)",
+    "direction": "up",
+    "why": "A higher drift raises the expected rate change."
+   },
+   {
+    "variable": "\\sigma(t)",
+    "direction": "depends",
+    "why": "Magnifies the shock: raises dr if dw > 0, lowers it if dw < 0."
+   }
+  ],
+  "intuition": "Ho-Lee with the volatility dial allowed to turn over time.",
+  "calc": null,
+  "tags": [
+   "term structure",
+   "volatility"
+  ]
+ },
+ {
+  "id": "MR-15-F02",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 40,
+  "objective": "MR-15 b",
+  "name": "Model 3: exponentially decaying volatility",
+  "prompt": "In Model 3, how is the short-rate change written when volatility starts at sigma and decays exponentially to zero?",
+  "latex": "dr = \\lambda(t)\\,dt + \\sigma e^{-\\alpha t}\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "\\lambda(t)",
+    "meaning": "time-dependent drift"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility at t = 0"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "decay rate of volatility (volatility decreases exponentially to 0 for alpha > 0)"
+   },
+   {
+    "symbol": "t",
+    "meaning": "time (years)"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,dt + {{2}} e^{ {{3}} }\\,dw",
+  "slots": [
+   "\\lambda(t)",
+   "\\sigma",
+   "-\\alpha t"
+  ],
+  "decoys": [
+   "\\alpha t",
+   "\\sigma(t)",
+   "k(\\theta - r)"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma e^{\\alpha t}\\,dw",
+    "kind": "sign",
+    "why": "Volatility DECLINES toward zero; a positive exponent would make it explode."
+   },
+   {
+    "latex": "dr = k(\\theta - r)\\,dt + \\sigma e^{-\\alpha t}\\,dw",
+    "kind": "sibling",
+    "why": "Model 3 keeps the Ho-Lee drift and has no mean reversion; it only mimics Vasicek's terminal standard deviation."
+   },
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma e^{-\\alpha}\\,dw",
+    "kind": "missing-term",
+    "why": "The decay depends on time: the exponent is -alpha times t."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\lambda(t)",
+    "direction": "up",
+    "why": "A higher drift raises the expected rate change."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "depends",
+    "why": "Faster decay shrinks the shock term: lowers dr if dw > 0, raises it if dw < 0."
+   }
+  ],
+  "intuition": "Ho-Lee with a volatility that fades away like radioactive decay: sigma times e to the minus alpha t.",
+  "calc": {
+   "expr": "lam*dt + sigma*Math.exp(-alpha*t)*dw",
+   "inputs": [
+    {
+     "name": "lam",
+     "symbol": "\\lambda(t)",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "% per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": "% per year"
+    },
+    {
+     "name": "alpha",
+     "symbol": "\\alpha",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": "per year"
+    },
+    {
+     "name": "t",
+     "symbol": "t",
+     "min": 0.083333,
+     "max": 10,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "lam": 0.24,
+     "dt": 0.083333,
+     "sigma": 1.5,
+     "alpha": 0.3,
+     "t": 0.083333,
+     "dw": 0.2
+    },
+    "output": 0.31,
+    "source_line": 52
+   }
+  },
+  "tags": [
+   "term structure",
+   "Model 3"
+  ]
+ },
+ {
+  "id": "MR-15-F03",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 74,
+  "objective": "MR-15 b",
+  "name": "Model 3: ceiling on the terminal standard deviation",
+  "prompt": "In Model 3, what level does the standard deviation of the terminal short rate flatten toward as the horizon grows?",
+  "latex": "\\text{asymptote} = \\frac{\\sigma}{\\sqrt{2\\alpha}}",
+  "variables": [
+   {
+    "symbol": "\\text{asymptote}",
+    "meaning": "limiting standard deviation of the terminal short-rate distribution as the horizon lengthens"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility at t = 0"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "decay rate of volatility"
+   }
+  ],
+  "skeleton": "\\text{asymptote} = \\frac{ {{1}} }{\\sqrt{ {{2}} }}",
+  "slots": [
+   "\\sigma",
+   "2\\alpha"
+  ],
+  "decoys": [
+   "\\alpha",
+   "\\sigma^2",
+   "T"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{asymptote} = \\frac{\\sigma}{2\\alpha}",
+    "kind": "exponent",
+    "why": "The ceiling is a standard deviation, so the 2-alpha sits under a square root."
+   },
+   {
+    "latex": "\\text{asymptote} = \\frac{\\sigma}{\\sqrt{\\alpha}}",
+    "kind": "scaling",
+    "why": "Dropping the 2 overstates the ceiling by a factor of sqrt(2)."
+   },
+   {
+    "latex": "\\text{asymptote} = \\sigma\\sqrt{2\\alpha}",
+    "kind": "inverted",
+    "why": "Faster decay must LOWER the ceiling, so alpha belongs in the denominator."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "More initial volatility means more cumulative uncertainty."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "down",
+    "why": "Faster decay kills volatility sooner, so uncertainty stops growing at a lower level."
+   }
+  ],
+  "intuition": "Because volatility dies away, uncertainty stops growing like sqrt(T) and flattens at sigma over root 2-alpha.",
+  "calc": {
+   "expr": "sigma/Math.sqrt(2*alpha)",
+   "inputs": [
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.01,
+     "unit": "%"
+    },
+    {
+     "name": "alpha",
+     "symbol": "\\alpha",
+     "min": 0.01,
+     "max": 0.5,
+     "step": 0.005,
+     "unit": "per year"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{asymptote}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "sigma": 1.26,
+     "alpha": 0.025
+    },
+    "output": 5.63,
+    "source_line": 74
+   }
+  },
+  "tags": [
+   "term structure",
+   "Model 3"
+  ]
+ },
+ {
+  "id": "MR-15-F04",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 143,
+  "objective": "MR-15 e",
+  "name": "Cox-Ingersoll-Ross (CIR) short-rate process",
+  "prompt": "In the CIR model, how is the short-rate change written with mean reversion and volatility that rises with the rate level?",
+  "latex": "dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "k",
+    "meaning": "speed of mean reversion"
+   },
+   {
+    "symbol": "\\theta",
+    "meaning": "long-run level of the short rate"
+   },
+   {
+    "symbol": "r",
+    "meaning": "current short-term rate (decimal inside the square root)"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility parameter; sigma*sqrt(r) is the basis point volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}({{2}} - {{3}})\\,dt + \\sigma {{4}}\\,dw",
+  "slots": [
+   "k",
+   "\\theta",
+   "r",
+   "\\sqrt{r}"
+  ],
+  "decoys": [
+   "\\ln r",
+   "\\sqrt{\\theta}",
+   "\\alpha"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = k(r - \\theta)\\,dt + \\sigma\\sqrt{r}\\,dw",
+    "kind": "sign",
+    "why": "The drift pulls the rate TOWARD theta: positive when r is below the long-run level."
+   },
+   {
+    "latex": "dr = k(\\theta - r)\\,dt + \\sigma r\\,dw",
+    "kind": "exponent",
+    "why": "Volatility proportional to r is the lognormal model; CIR scales by the SQUARE ROOT of r."
+   },
+   {
+    "latex": "dr = k(\\theta - r)\\,dt + \\sigma\\,dw",
+    "kind": "sibling",
+    "why": "That is Vasicek, with basis point volatility independent of the rate level."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\theta",
+    "direction": "up",
+    "why": "A higher long-run level strengthens the upward pull."
+   },
+   {
+    "variable": "k",
+    "direction": "depends",
+    "why": "Faster reversion raises dr when r is below theta and lowers it when r is above theta."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "depends",
+    "why": "Magnifies the shock: raises dr if dw > 0, lowers it if dw < 0."
+   }
+  ],
+  "intuition": "Vasicek with volatility that grows with the square root of the rate, so vol shrinks as rates approach zero.",
+  "calc": {
+   "expr": "100 * (k*(theta - r)*dt + sigma*Math.sqrt(r)*dw)",
+   "inputs": [
+    {
+     "name": "k",
+     "symbol": "k",
+     "min": 0.01,
+     "max": 1,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "theta",
+     "symbol": "\\theta",
+     "min": 0.01,
+     "max": 0.3,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0.005,
+     "max": 0.2,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.005,
+     "max": 0.05,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "k": 0.04,
+     "theta": 0.24,
+     "r": 0.05,
+     "dt": 0.083333,
+     "sigma": 0.015,
+     "dw": 0.2
+    },
+    "output": 0.13,
+    "source_line": 158
+   }
+  },
+  "tags": [
+   "term structure",
+   "CIR"
+  ]
+ },
+ {
+  "id": "MR-15-F05",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 174,
+  "objective": "MR-15 e",
+  "name": "Lognormal Model 4: dr proportional to r",
+  "prompt": "In the lognormal model (Model 4), how is the short-rate change written so that basis point volatility is proportional to the rate?",
+  "latex": "dr = a\\,r\\,dt + \\sigma\\,r\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "a",
+    "meaning": "drift parameter"
+   },
+   {
+    "symbol": "r",
+    "meaning": "current short-term rate"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "yield volatility (constant); sigma*r is the basis point volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,{{2}}\\,dt + {{3}}\\,{{4}}\\,dw",
+  "slots": [
+   "a",
+   "r",
+   "\\sigma",
+   "r"
+  ],
+  "decoys": [
+   "\\sqrt{r}",
+   "\\ln r",
+   "k"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = a\\,r\\,dt + \\sigma\\sqrt{r}\\,dw",
+    "kind": "sibling",
+    "why": "Square-root scaling is CIR; the lognormal model's basis point volatility rises LINEARLY with r."
+   },
+   {
+    "latex": "dr = a\\,dt + \\sigma\\,r\\,dw",
+    "kind": "missing-term",
+    "why": "The drift is also proportional to r in this model."
+   },
+   {
+    "latex": "dr = a\\,r\\,dt + \\sigma\\,dw",
+    "kind": "missing-term",
+    "why": "Without the r on the shock, basis point volatility would be constant, as in normal models."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "a",
+    "direction": "up",
+    "why": "With a positive rate, a higher drift parameter raises the expected change."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "depends",
+    "why": "Magnifies the shock: raises dr if dw > 0, lowers it if dw < 0."
+   }
+  ],
+  "intuition": "Everything scales with r: constant yield volatility, basis point volatility that rises in a straight line with the rate.",
+  "calc": {
+   "expr": "100 * (a*r*dt + sigma*r*dw)",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0.005,
+     "max": 0.2,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.05,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal (yield volatility)"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "lognormal"
+  ]
+ },
+ {
+  "id": "MR-15-F06",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 275,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers model: lognormal with deterministic drift",
+  "prompt": "In the Salomon Brothers (lognormal, deterministic drift) model, what process does the short rate follow, and in what variable?",
+  "latex": "d\\bigl[\\ln(r)\\bigr] = a(t)\\,dt + \\sigma\\,dw",
+  "variables": [
+   {
+    "symbol": "\\ln(r)",
+    "meaning": "natural logarithm of the short-term rate"
+   },
+   {
+    "symbol": "a(t)",
+    "meaning": "time-varying drift, as in Ho-Lee"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "constant (yield) volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "d\\bigl[{{1}}\\bigr] = {{2}}\\,dt + {{3}}\\,dw",
+  "slots": [
+   "\\ln(r)",
+   "a(t)",
+   "\\sigma"
+  ],
+  "decoys": [
+   "r",
+   "\\sigma r",
+   "k(t)"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = a(t)\\,dt + \\sigma\\,dw",
+    "kind": "sibling",
+    "why": "Written on r this is Ho-Lee, with additive steps that can go negative; the crucial change is writing it on ln(r)."
+   },
+   {
+    "latex": "d\\bigl[\\ln(r)\\bigr] = a(t)\\,dt + \\sigma\\,r\\,dw",
+    "kind": "extra-term",
+    "why": "In log space the shock is simply sigma dw; the proportionality to r appears only after exponentiating."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "a(t)",
+    "direction": "up",
+    "why": "A higher drift raises the expected change in ln(r)."
+   }
+  ],
+  "intuition": "Ho-Lee, but on ln(r): additive steps in logs become multiplicative steps in rates, so rates stay positive.",
+  "calc": null,
+  "tags": [
+   "term structure",
+   "lognormal"
+  ]
+ },
+ {
+  "id": "MR-15-F07",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 307,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers tree: rate at the up node after one step",
+  "prompt": "In the lognormal (Salomon Brothers) tree, what is the short rate at the up node after the first step, starting from r_0?",
+  "latex": "r_u = r_0\\,e^{(a_1 dt + \\sigma\\sqrt{dt})}",
+  "variables": [
+   {
+    "symbol": "r_u",
+    "meaning": "rate at the up node after one step (label ours; the notes show the node value)"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "initial short rate"
+   },
+   {
+    "symbol": "a_1",
+    "meaning": "drift in the first period"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility of ln(r)"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "length of a tree step (years)"
+   }
+  ],
+  "skeleton": "r_u = {{1}}\\,e^{({{2}} dt + {{3}}\\sqrt{dt})}",
+  "slots": [
+   "r_0",
+   "a_1",
+   "\\sigma"
+  ],
+  "decoys": [
+   "\\ln r_0",
+   "a_2",
+   "\\sigma dt"
+  ],
+  "corruptions": [
+   {
+    "latex": "r_u = r_0 + a_1 dt + \\sigma\\sqrt{dt}",
+    "kind": "sibling",
+    "why": "Additive steps belong to normal models such as Ho-Lee; the lognormal tree is multiplicative, so rates stay positive."
+   },
+   {
+    "latex": "r_u = r_0\\,e^{(a_1 dt + \\sigma\\,dt)}",
+    "kind": "exponent",
+    "why": "The volatility step scales with the square root of the time step, sigma*sqrt(dt)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "The node is a multiple of the starting rate."
+   },
+   {
+    "variable": "a_1",
+    "direction": "up",
+    "why": "A higher drift raises the exponent."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "The up move adds sigma*sqrt(dt) to the exponent."
+   }
+  ],
+  "intuition": "Take the step in ln(r) space, then exponentiate: the up node is r_0 times e to the (drift + one volatility step).",
+  "calc": {
+   "expr": "r0*Math.exp(a1*dt + sigma*Math.sqrt(dt))",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 1,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "a1",
+     "symbol": "a_1",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.05,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "r_u",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "rate tree"
+  ]
+ },
+ {
+  "id": "MR-15-F08",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 309,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers tree: up-up node after two steps",
+  "prompt": "In the lognormal tree, what is the rate at the top node after two up steps, starting from r_0?",
+  "latex": "r_{uu} = r_0\\,e^{((a_1+a_2)dt + 2\\sigma\\sqrt{dt})}",
+  "variables": [
+   {
+    "symbol": "r_{uu}",
+    "meaning": "rate at the up-up node after two steps (label ours; the notes show the node value)"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "initial short rate"
+   },
+   {
+    "symbol": "a_1",
+    "meaning": "drift in the first period"
+   },
+   {
+    "symbol": "a_2",
+    "meaning": "drift in the second period"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility of ln(r)"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "length of a tree step (years)"
+   }
+  ],
+  "skeleton": "r_{uu} = {{1}}\\,e^{(({{2}}+{{3}})dt + {{4}}\\sqrt{dt})}",
+  "slots": [
+   "r_0",
+   "a_1",
+   "a_2",
+   "2\\sigma"
+  ],
+  "decoys": [
+   "\\sigma",
+   "\\ln r_0",
+   "\\sigma^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "r_{uu} = r_0\\,e^{((a_1+a_2)dt + \\sigma\\sqrt{dt})}",
+    "kind": "missing-term",
+    "why": "Two up moves add TWO volatility steps, 2 sigma sqrt(dt), to the exponent."
+   },
+   {
+    "latex": "r_{uu} = r_0 + (a_1+a_2)dt + 2\\sigma\\sqrt{dt}",
+    "kind": "sibling",
+    "why": "Additive steps are the normal (Ho-Lee) tree; the lognormal tree exponentiates the log-space steps."
+   },
+   {
+    "latex": "r_{uu} = r_0\\,e^{((a_1+a_2)dt + 2\\sigma\\,dt)}",
+    "kind": "exponent",
+    "why": "Each volatility step scales with the square root of the time step."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "The node is a multiple of the starting rate."
+   },
+   {
+    "variable": "a_1",
+    "direction": "up",
+    "why": "A higher first-period drift raises the exponent."
+   },
+   {
+    "variable": "a_2",
+    "direction": "up",
+    "why": "A higher second-period drift raises the exponent."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "Both up moves add sigma sqrt(dt) to the exponent."
+   }
+  ],
+  "intuition": "Two up moves: both drifts plus two volatility steps in the exponent, then exponentiate.",
+  "calc": {
+   "expr": "r0*Math.exp((a1 + a2)*dt + 2*sigma*Math.sqrt(dt))",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 1,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "a1",
+     "symbol": "a_1",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "a2",
+     "symbol": "a_2",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.05,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "r_{uu}",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "rate tree"
+  ]
+ },
+ {
+  "id": "MR-15-F09",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 310,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers tree: middle node after two steps",
+  "prompt": "In the lognormal tree, what is the rate at the middle node after two steps (one up, one down)?",
+  "latex": "r_{ud} = r_0\\,e^{(a_1+a_2)dt}",
+  "variables": [
+   {
+    "symbol": "r_{ud}",
+    "meaning": "rate at the middle node after two steps (label ours)"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "initial short rate"
+   },
+   {
+    "symbol": "a_1",
+    "meaning": "drift in the first period"
+   },
+   {
+    "symbol": "a_2",
+    "meaning": "drift in the second period"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "length of a tree step (years)"
+   }
+  ],
+  "skeleton": "r_{ud} = {{1}}\\,e^{({{2}}+{{3}})dt}",
+  "slots": [
+   "r_0",
+   "a_1",
+   "a_2"
+  ],
+  "decoys": [
+   "\\sigma",
+   "\\ln r_0",
+   "2\\sigma"
+  ],
+  "corruptions": [
+   {
+    "latex": "r_{ud} = r_0\\,e^{(a_1+a_2)dt + 2\\sigma\\sqrt{dt}}",
+    "kind": "extra-term",
+    "why": "That is the up-up node; at the middle node the up and down volatility steps cancel."
+   },
+   {
+    "latex": "r_{ud} = r_0 + (a_1+a_2)dt",
+    "kind": "sibling",
+    "why": "Additive steps are the normal (Ho-Lee) tree; in the lognormal tree the drifts sit in the exponent."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "The node is a multiple of the starting rate."
+   },
+   {
+    "variable": "a_1",
+    "direction": "up",
+    "why": "A higher first-period drift raises the exponent."
+   },
+   {
+    "variable": "a_2",
+    "direction": "up",
+    "why": "A higher second-period drift raises the exponent."
+   }
+  ],
+  "intuition": "Up then down: the volatility steps cancel and only the accumulated drift is left in the exponent.",
+  "calc": {
+   "expr": "r0*Math.exp((a1 + a2)*dt)",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 1,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "a1",
+     "symbol": "a_1",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "a2",
+     "symbol": "a_2",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "r_{ud}",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "rate tree"
+  ]
+ },
+ {
+  "id": "MR-15-F15",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 308,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers tree: rate at the down node after one step",
+  "prompt": "In the lognormal (Salomon Brothers) tree, what is the short rate at the down node after the first step, starting from r_0?",
+  "latex": "r_d = r_0\\,e^{(a_1 dt - \\sigma\\sqrt{dt})}",
+  "variables": [
+   {
+    "symbol": "r_d",
+    "meaning": "rate at the down node after one step (label ours; the notes show the node value)"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "initial short rate"
+   },
+   {
+    "symbol": "a_1",
+    "meaning": "drift in the first period"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility of ln(r)"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "length of a tree step (years)"
+   }
+  ],
+  "skeleton": "r_d = {{1}}\\,e^{({{2}} dt {{3}} \\sigma\\sqrt{ {{4}} })}",
+  "slots": [
+   "r_0",
+   "a_1",
+   "-",
+   "dt"
+  ],
+  "decoys": [
+   "+",
+   "a_2",
+   "dt^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "r_d = r_0 + a_1 dt - \\sigma\\sqrt{dt}",
+    "kind": "sibling",
+    "why": "Subtracting the volatility step from the rate itself is the additive normal (Ho-Lee) tree; the lognormal tree subtracts it in the exponent, so the down node stays positive."
+   },
+   {
+    "latex": "r_d = r_0\\,e^{(-a_1 dt - \\sigma\\sqrt{dt})}",
+    "kind": "sign",
+    "why": "Only the volatility step is subtracted on a down move; the drift a_1 dt is added at both nodes."
+   },
+   {
+    "latex": "r_d = r_0\\,e^{(a_1 dt - \\sigma\\,dt)}",
+    "kind": "exponent",
+    "why": "The volatility step scales with the square root of the time step, sigma*sqrt(dt)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "The node is a multiple of the starting rate."
+   },
+   {
+    "variable": "a_1",
+    "direction": "up",
+    "why": "A higher drift raises the exponent."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "down",
+    "why": "The down move subtracts sigma*sqrt(dt) from the exponent, so more volatility pushes the down node lower."
+   }
+  ],
+  "intuition": "Down move: same drift, minus one volatility step in the exponent; e to anything is positive, so the rate never goes below zero.",
+  "calc": {
+   "expr": "r0*Math.exp(a1*dt - sigma*Math.sqrt(dt))",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 1,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "a1",
+     "symbol": "a_1",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.05,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "r_d",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "rate tree"
+  ]
+ },
+ {
+  "id": "MR-15-F16",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 311,
+  "objective": "MR-15 f",
+  "name": "Salomon Brothers tree: down-down node after two steps",
+  "prompt": "In the lognormal tree, what is the rate at the bottom node after two down steps, starting from r_0?",
+  "latex": "r_{dd} = r_0\\,e^{((a_1+a_2)dt - 2\\sigma\\sqrt{dt})}",
+  "variables": [
+   {
+    "symbol": "r_{dd}",
+    "meaning": "rate at the down-down node after two steps (label ours; the notes show the node value)"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "initial short rate"
+   },
+   {
+    "symbol": "a_1",
+    "meaning": "drift in the first period"
+   },
+   {
+    "symbol": "a_2",
+    "meaning": "drift in the second period"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility of ln(r)"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "length of a tree step (years)"
+   }
+  ],
+  "skeleton": "r_{dd} = {{1}}\\,e^{(({{2}}+{{3}})dt {{4}} 2\\sigma\\sqrt{dt})}",
+  "slots": [
+   "r_0",
+   "a_1",
+   "a_2",
+   "-"
+  ],
+  "decoys": [
+   "+",
+   "\\sigma",
+   "\\ln r_0"
+  ],
+  "corruptions": [
+   {
+    "latex": "r_{dd} = r_0\\,e^{((a_1+a_2)dt - \\sigma\\sqrt{dt})}",
+    "kind": "missing-term",
+    "why": "Two down moves subtract TWO volatility steps, 2 sigma sqrt(dt), from the exponent."
+   },
+   {
+    "latex": "r_{dd} = r_0\\,e^{(-(a_1+a_2)dt - 2\\sigma\\sqrt{dt})}",
+    "kind": "sign",
+    "why": "The drifts are added on every path; only the volatility steps change sign on down moves."
+   },
+   {
+    "latex": "r_{dd} = r_0 + (a_1+a_2)dt - 2\\sigma\\sqrt{dt}",
+    "kind": "sibling",
+    "why": "Additive steps are the normal (Ho-Lee) tree and can go negative; the lognormal tree exponentiates the log-space steps."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "The node is a multiple of the starting rate."
+   },
+   {
+    "variable": "a_1",
+    "direction": "up",
+    "why": "A higher first-period drift raises the exponent."
+   },
+   {
+    "variable": "a_2",
+    "direction": "up",
+    "why": "A higher second-period drift raises the exponent."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "down",
+    "why": "Both down moves subtract sigma*sqrt(dt), so more volatility pushes the bottom node lower."
+   }
+  ],
+  "intuition": "Two down moves: both drifts minus two volatility steps in the exponent; the bottom of the tree shrinks toward zero but never crosses it.",
+  "calc": {
+   "expr": "r0*Math.exp((a1 + a2)*dt - 2*sigma*Math.sqrt(dt))",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 1,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "a1",
+     "symbol": "a_1",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "a2",
+     "symbol": "a_2",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.05,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "r_{dd}",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "rate tree"
+  ]
+ },
+ {
+  "id": "MR-15-F10",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 335,
+  "objective": "MR-15 f",
+  "name": "Black-Karasinski: lognormal with mean reversion",
+  "prompt": "In the Black-Karasinski model, how does ln(r) evolve with time-varying mean reversion, long-run level and volatility?",
+  "latex": "d\\bigl[\\ln(r)\\bigr] = k(t)\\bigl[\\ln\\theta(t) - \\ln(r)\\bigr]\\,dt + \\sigma(t)\\,dw",
+  "variables": [
+   {
+    "symbol": "\\ln(r)",
+    "meaning": "natural logarithm of the short-term rate"
+   },
+   {
+    "symbol": "k(t)",
+    "meaning": "time-varying mean reversion speed"
+   },
+   {
+    "symbol": "\\theta(t)",
+    "meaning": "time-varying long-run level"
+   },
+   {
+    "symbol": "\\sigma(t)",
+    "meaning": "time-varying volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "d\\bigl[\\ln(r)\\bigr] = {{1}}\\bigl[{{2}} - {{3}}\\bigr]\\,dt + {{4}}\\,dw",
+  "slots": [
+   "k(t)",
+   "\\ln\\theta(t)",
+   "\\ln(r)",
+   "\\sigma(t)"
+  ],
+  "decoys": [
+   "\\theta(t)",
+   "r",
+   "a(t)"
+  ],
+  "corruptions": [
+   {
+    "latex": "d\\bigl[\\ln(r)\\bigr] = k(t)\\bigl[\\ln(r) - \\ln\\theta(t)\\bigr]\\,dt + \\sigma(t)\\,dw",
+    "kind": "sign",
+    "why": "Mean reversion pulls ln(r) TOWARD ln theta(t), so the bracket is target minus current."
+   },
+   {
+    "latex": "d\\bigl[\\ln(r)\\bigr] = k(t)\\bigl[\\theta(t) - r\\bigr]\\,dt + \\sigma(t)\\,dw",
+    "kind": "wrong-variable",
+    "why": "The whole process lives in log space: the gap is ln theta(t) minus ln(r), not theta minus r."
+   },
+   {
+    "latex": "d\\bigl[\\ln(r)\\bigr] = a(t)\\,dt + \\sigma(t)\\,dw",
+    "kind": "sibling",
+    "why": "A deterministic drift is the Salomon Brothers idea; Black-Karasinski adds mean reversion."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\theta(t)",
+    "direction": "up",
+    "why": "A higher long-run level strengthens the upward pull on ln(r)."
+   },
+   {
+    "variable": "k(t)",
+    "direction": "depends",
+    "why": "Faster reversion raises the change when r is below theta(t) and lowers it when above."
+   }
+  ],
+  "intuition": "Vasicek-style mean reversion done in logs, with every parameter allowed to move through time.",
+  "calc": null,
+  "tags": [
+   "term structure",
+   "Black-Karasinski"
+  ]
+ },
+ {
+  "id": "MR-15-F11",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 360,
+  "objective": "MR-15 f",
+  "name": "Model 1: no drift",
+  "prompt": "What is the short-rate process in Model 1, the simplest normal model with no drift?",
+  "latex": "dr = \\sigma\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "constant (basis point) volatility"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,{{2}}",
+  "slots": [
+   "\\sigma",
+   "dw"
+  ],
+  "decoys": [
+   "dt",
+   "\\lambda",
+   "\\sigma^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = \\sigma\\,dt",
+    "kind": "wrong-variable",
+    "why": "Volatility multiplies the random shock dw; sigma dt would be a deterministic drift."
+   },
+   {
+    "latex": "dr = \\lambda\\,dt + \\sigma\\,dw",
+    "kind": "extra-term",
+    "why": "Adding the drift gives Model 2; Model 1 has none."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma",
+    "direction": "depends",
+    "why": "Magnifies the shock: raises dr if dw > 0, lowers it if dw < 0."
+   }
+  ],
+  "intuition": "Pure noise: rates wander with no drift, normally distributed.",
+  "calc": {
+   "expr": "sigma*dw",
+   "inputs": [
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": "% per year"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "normal models"
+  ]
+ },
+ {
+  "id": "MR-15-F12",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 364,
+  "objective": "MR-15 f",
+  "name": "Model 2: constant drift",
+  "prompt": "What is the short-rate process in Model 2, which adds a constant drift to Model 1?",
+  "latex": "dr = \\lambda\\,dt + \\sigma\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "\\lambda",
+    "meaning": "constant drift, interpretable as a risk premium for longer horizons"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "constant (basis point) volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,{{2}} + {{3}}\\,{{4}}",
+  "slots": [
+   "\\lambda",
+   "dt",
+   "\\sigma",
+   "dw"
+  ],
+  "decoys": [
+   "\\lambda(t)",
+   "k(\\theta - r)",
+   "\\sigma\\sqrt{r}"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = \\lambda\\,dt + \\sigma\\,dt",
+    "kind": "wrong-variable",
+    "why": "Volatility multiplies the random shock dw, not the time step."
+   },
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma\\,dw",
+    "kind": "sibling",
+    "why": "A time-dependent drift is Ho-Lee; Model 2's drift is a constant."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\lambda",
+    "direction": "up",
+    "why": "A higher drift raises the expected rate change."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "depends",
+    "why": "Magnifies the shock: raises dr if dw > 0, lowers it if dw < 0."
+   }
+  ],
+  "intuition": "Model 1 plus a steady upward push, read as a risk premium.",
+  "calc": {
+   "expr": "lam*dt + sigma*dw",
+   "inputs": [
+    {
+     "name": "lam",
+     "symbol": "\\lambda",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "% per year"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": "% per year"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "normal models"
+  ]
+ },
+ {
+  "id": "MR-15-F13",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 367,
+  "objective": "MR-15 f",
+  "name": "Ho-Lee: time-dependent drift",
+  "prompt": "What is the Ho-Lee short-rate process, which generalises Model 2's drift?",
+  "latex": "dr = \\lambda(t)\\,dt + \\sigma\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "\\lambda(t)",
+    "meaning": "time-dependent drift"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "constant (basis point) volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}\\,dt + {{2}}\\,dw",
+  "slots": [
+   "\\lambda(t)",
+   "\\sigma"
+  ],
+  "decoys": [
+   "\\lambda",
+   "\\sigma(t)",
+   "k(\\theta - r)"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = \\lambda\\,dt + \\sigma\\,dw",
+    "kind": "sibling",
+    "why": "A constant drift is Model 2; Ho-Lee lets the drift vary with time."
+   },
+   {
+    "latex": "dr = \\lambda(t)\\,dt + \\sigma e^{-\\alpha t}\\,dw",
+    "kind": "sibling",
+    "why": "Decaying volatility is Model 3; Ho-Lee's volatility is constant."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\lambda(t)",
+    "direction": "up",
+    "why": "A higher drift raises the expected rate change."
+   }
+  ],
+  "intuition": "Model 2 with a drift that can change every period, so the tree can fit today's curve.",
+  "calc": null,
+  "tags": [
+   "term structure",
+   "Ho-Lee"
+  ]
+ },
+ {
+  "id": "MR-15-F14",
+  "reading_id": "MR-15",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+  "source_line": 371,
+  "objective": "MR-15 f",
+  "name": "Vasicek: mean-reverting drift",
+  "prompt": "What is the Vasicek short-rate process, where the drift depends on the current rate?",
+  "latex": "dr = k(\\theta - r)\\,dt + \\sigma\\,dw",
+  "variables": [
+   {
+    "symbol": "dr",
+    "meaning": "change in the short-term rate"
+   },
+   {
+    "symbol": "k",
+    "meaning": "speed of mean reversion"
+   },
+   {
+    "symbol": "\\theta",
+    "meaning": "long-run level of the short rate"
+   },
+   {
+    "symbol": "r",
+    "meaning": "current short-term rate"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "constant (basis point) volatility"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time step (years)"
+   },
+   {
+    "symbol": "dw",
+    "meaning": "random shock, normal with mean 0 and standard deviation sqrt(dt)"
+   }
+  ],
+  "skeleton": "dr = {{1}}({{2}} - {{3}})\\,dt + {{4}}\\,dw",
+  "slots": [
+   "k",
+   "\\theta",
+   "r",
+   "\\sigma"
+  ],
+  "decoys": [
+   "\\sigma\\sqrt{r}",
+   "\\lambda(t)",
+   "\\alpha"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr = k(r - \\theta)\\,dt + \\sigma\\,dw",
+    "kind": "sign",
+    "why": "The drift pulls the rate toward theta, so it is positive when r is below the long-run level."
+   },
+   {
+    "latex": "dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw",
+    "kind": "sibling",
+    "why": "Square-root volatility is CIR; Vasicek's volatility does not depend on the rate level."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\theta",
+    "direction": "up",
+    "why": "A higher long-run level strengthens the upward pull."
+   },
+   {
+    "variable": "r",
+    "direction": "down",
+    "why": "A higher current rate weakens (or reverses) the pull toward theta."
+   },
+   {
+    "variable": "k",
+    "direction": "depends",
+    "why": "Faster reversion raises dr when r is below theta and lowers it when above."
+   }
+  ],
+  "intuition": "The drift is a rubber band: the further r is from theta, the harder it is pulled back, at speed k.",
+  "calc": {
+   "expr": "k*(theta - r)*dt + sigma*dw",
+   "inputs": [
+    {
+     "name": "k",
+     "symbol": "k",
+     "min": 0.01,
+     "max": 1,
+     "step": 0.01,
+     "unit": "per year"
+    },
+    {
+     "name": "theta",
+     "symbol": "\\theta",
+     "min": 1,
+     "max": 12,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0.5,
+     "max": 12,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.083333,
+     "max": 1,
+     "step": 0.083333,
+     "unit": "years"
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": "% per year"
+    },
+    {
+     "name": "dw",
+     "symbol": "dw",
+     "min": -0.6,
+     "max": 0.6,
+     "step": 0.1,
+     "unit": "normal draw"
+    }
+   ],
+   "output": {
+    "symbol": "dr",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "term structure",
+   "Vasicek"
+  ]
+ },
+ {
+  "id": "IM-6-F01",
+  "reading_id": "IM-6",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/10_IM_IM6.tex",
+  "source_line": 140,
+  "objective": "IM-6 e",
+  "name": "Expected pension surplus",
+  "prompt": "What is a fund's expected surplus over the horizon, given current assets and liabilities and their respective growth rates?",
+  "latex": "\\text{Expected surplus} = A\\,(1 + R_A) - L\\,(1 + R_L)",
+  "variables": [
+   {
+    "symbol": "A",
+    "meaning": "current value of the assets"
+   },
+   {
+    "symbol": "R_A",
+    "meaning": "return on the assets (decimal)"
+   },
+   {
+    "symbol": "L",
+    "meaning": "current value of the liabilities"
+   },
+   {
+    "symbol": "R_L",
+    "meaning": "growth rate of the liabilities (decimal)"
+   }
+  ],
+  "skeleton": "\\text{Expected surplus} = {{1}}\\,(1 + {{2}}) - {{3}}\\,(1 + {{4}})",
+  "slots": [
+   "A",
+   "R_A",
+   "L",
+   "R_L"
+  ],
+  "decoys": [
+   "S",
+   "\\Delta A",
+   "R_f"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Expected surplus} = A \\times 1 + R_A - L \\times 1 + R_L",
+    "kind": "scaling",
+    "why": "The parentheses are load-bearing: without them the returns are added as raw numbers instead of scaling the assets and liabilities (the notes' source misprint)."
+   },
+   {
+    "latex": "\\text{Expected surplus} = A\\,(1 + R_A) - L\\,(1 - R_L)",
+    "kind": "sign",
+    "why": "Liabilities GROW at R_L, which reduces the surplus."
+   },
+   {
+    "latex": "\\text{Expected surplus} = A\\,(1 + R_L) - L\\,(1 + R_A)",
+    "kind": "wrong-variable",
+    "why": "Each side grows at its own rate: assets at R_A, liabilities at R_L."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "A",
+    "direction": "up",
+    "why": "More assets (with R_A > -100%) means more surplus."
+   },
+   {
+    "variable": "R_A",
+    "direction": "up",
+    "why": "Higher asset returns grow the asset side."
+   },
+   {
+    "variable": "L",
+    "direction": "down",
+    "why": "More liabilities eat into the surplus."
+   },
+   {
+    "variable": "R_L",
+    "direction": "down",
+    "why": "Faster liability growth eats into the surplus."
+   }
+  ],
+  "intuition": "Grow the assets at their return, grow the liabilities at theirs, and subtract.",
+  "calc": {
+   "expr": "A*(1 + RA) - L*(1 + RL)",
+   "inputs": [
+    {
+     "name": "A",
+     "symbol": "A",
+     "min": 100,
+     "max": 2000,
+     "step": 50,
+     "unit": "$M"
+    },
+    {
+     "name": "RA",
+     "symbol": "R_A",
+     "min": -0.2,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "L",
+     "symbol": "L",
+     "min": 100,
+     "max": 2000,
+     "step": 50,
+     "unit": "$M"
+    },
+    {
+     "name": "RL",
+     "symbol": "R_L",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Expected surplus}",
+    "unit": "$M",
+    "decimals": 1
+   },
+   "example": null
+  },
+  "tags": [
+   "funding risk",
+   "surplus at risk"
+  ]
+ },
+ {
+  "id": "IM-6-F02",
+  "reading_id": "IM-6",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/10_IM_IM6.tex",
+  "source_line": 239,
+  "objective": "IM-6 h",
+  "name": "Information ratio of an active manager",
+  "prompt": "How is an active manager's information ratio computed from the expected tracking error and its volatility?",
+  "latex": "\\text{IR}_i = \\frac{\\mu_i}{\\omega_i}",
+  "variables": [
+   {
+    "symbol": "\\text{IR}_i",
+    "meaning": "information ratio of manager i"
+   },
+   {
+    "symbol": "\\mu_i",
+    "meaning": "expected tracking error of the manager (expected active return over the benchmark)"
+   },
+   {
+    "symbol": "\\omega_i",
+    "meaning": "volatility of the manager's tracking error (TEV)"
+   }
+  ],
+  "skeleton": "\\text{IR}_i = \\frac{ {{1}} }{ {{2}} }",
+  "slots": [
+   "\\mu_i",
+   "\\omega_i"
+  ],
+  "decoys": [
+   "\\omega_i^2",
+   "\\sigma_i",
+   "\\mu_p"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{IR}_i = \\frac{\\omega_i}{\\mu_i}",
+    "kind": "inverted",
+    "why": "The IR is reward per unit of active risk: expected tracking error over its volatility."
+   },
+   {
+    "latex": "\\text{IR}_i = \\frac{\\mu_i}{\\omega_i^2}",
+    "kind": "exponent",
+    "why": "Divide by the tracking-error VOLATILITY, not its variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu_i",
+    "direction": "up",
+    "why": "More expected active return per unit of active risk."
+   },
+   {
+    "variable": "\\omega_i",
+    "direction": "down",
+    "why": "More active risk for the same expected active return."
+   }
+  ],
+  "intuition": "Skill per unit of active risk: how much you beat the benchmark for each unit of wobble around it.",
+  "calc": {
+   "expr": "mu/omega",
+   "inputs": [
+    {
+     "name": "mu",
+     "symbol": "\\mu_i",
+     "min": 0,
+     "max": 6,
+     "step": 0.1,
+     "unit": "%"
+    },
+    {
+     "name": "omega",
+     "symbol": "\\omega_i",
+     "min": 1,
+     "max": 10,
+     "step": 0.5,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{IR}_i",
+    "unit": "",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "mu": 3.6,
+     "omega": 6
+    },
+    "output": 0.6,
+    "source_line": 304
+   }
+  },
+  "tags": [
+   "risk budgeting",
+   "information ratio"
+  ]
+ },
+ {
+  "id": "IM-6-F03",
+  "reading_id": "IM-6",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/10_IM_IM6.tex",
+  "source_line": 239,
+  "objective": "IM-6 h",
+  "name": "Information ratio of the whole portfolio",
+  "prompt": "How is the portfolio's own information ratio computed from its expected tracking error and its tracking-error volatility?",
+  "latex": "\\text{IR}_p = \\frac{\\mu_p}{\\omega_p}",
+  "variables": [
+   {
+    "symbol": "\\text{IR}_p",
+    "meaning": "information ratio of the whole portfolio of managers"
+   },
+   {
+    "symbol": "\\mu_p",
+    "meaning": "portfolio's expected tracking error (expected excess return over the benchmark)"
+   },
+   {
+    "symbol": "\\omega_p",
+    "meaning": "portfolio's tracking-error volatility (TEV)"
+   }
+  ],
+  "skeleton": "\\text{IR}_p = \\frac{ {{1}} }{ {{2}} }",
+  "slots": [
+   "\\mu_p",
+   "\\omega_p"
+  ],
+  "decoys": [
+   "\\mu_i",
+   "\\omega_i",
+   "\\omega_p^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{IR}_p = \\frac{\\omega_p}{\\mu_p}",
+    "kind": "inverted",
+    "why": "Reward goes on top: expected excess return over tracking-error volatility."
+   },
+   {
+    "latex": "\\text{IR}_p = \\frac{\\mu_p}{\\omega_i}",
+    "kind": "wrong-variable",
+    "why": "The portfolio IR uses the PORTFOLIO's TEV, which diversification makes lower than the managers' TEVs."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu_p",
+    "direction": "up",
+    "why": "More expected excess return for the same active risk."
+   },
+   {
+    "variable": "\\omega_p",
+    "direction": "down",
+    "why": "More active risk for the same expected excess return."
+   }
+  ],
+  "intuition": "Same ratio as for one manager, but diversification across independent managers can push it above every individual IR.",
+  "calc": {
+   "expr": "mu/omega",
+   "inputs": [
+    {
+     "name": "mu",
+     "symbol": "\\mu_p",
+     "min": 0,
+     "max": 6,
+     "step": 0.1,
+     "unit": "%"
+    },
+    {
+     "name": "omega",
+     "symbol": "\\omega_p",
+     "min": 1,
+     "max": 10,
+     "step": 0.5,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{IR}_p",
+    "unit": "",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "mu": 2.886,
+     "omega": 4.0
+    },
+    "output": 0.72,
+    "source_line": 307
+   }
+  },
+  "tags": [
+   "risk budgeting",
+   "information ratio"
+  ]
+ },
+ {
+  "id": "IM-6-F04",
+  "reading_id": "IM-6",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/10_IM_IM6.tex",
+  "source_line": 260,
+  "objective": "IM-6 h",
+  "name": "Risk-budget weight given to an active manager",
+  "prompt": "What weight of the portfolio should a given active manager run, from the manager's and the portfolio's information ratios and tracking errors?",
+  "latex": "\\text{weight of portfolio managed by manager } i = \\frac{\\text{IR}_i \\times (\\text{portfolio's tracking error})}{\\text{IR}_p \\times (\\text{manager's tracking error})}",
+  "variables": [
+   {
+    "symbol": "\\text{IR}_i",
+    "meaning": "information ratio of manager i"
+   },
+   {
+    "symbol": "\\text{IR}_p",
+    "meaning": "information ratio of the whole portfolio (an output of the optimisation, not given)"
+   },
+   {
+    "symbol": "\\text{portfolio's tracking error}",
+    "meaning": "the portfolio's target tracking-error volatility (TEV), omega_p"
+   },
+   {
+    "symbol": "\\text{manager's tracking error}",
+    "meaning": "manager i's tracking-error volatility (TEV), omega_i"
+   }
+  ],
+  "skeleton": "\\text{weight of portfolio managed by manager } i = \\frac{ {{1}} \\times ({{2}})}{ {{3}} \\times ({{4}})}",
+  "slots": [
+   "\\text{IR}_i",
+   "\\text{portfolio's tracking error}",
+   "\\text{IR}_p",
+   "\\text{manager's tracking error}"
+  ],
+  "decoys": [
+   "\\text{IR}_i^2",
+   "\\text{portfolio's expected return}",
+   "\\text{manager's expected return}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{weight of portfolio managed by manager } i = \\frac{\\text{IR}_i \\times (\\text{manager's tracking error})}{\\text{IR}_p \\times (\\text{portfolio's tracking error})}",
+    "kind": "inverted",
+    "why": "A manager with MORE tracking error needs a SMALLER weight to use the same risk budget, so the manager's TE goes in the denominator."
+   },
+   {
+    "latex": "\\text{weight of portfolio managed by manager } i = \\frac{\\text{IR}_p \\times (\\text{portfolio's tracking error})}{\\text{IR}_i \\times (\\text{manager's tracking error})}",
+    "kind": "inverted",
+    "why": "Better managers (higher IR_i) get MORE weight, so IR_i is on top."
+   },
+   {
+    "latex": "\\text{weight of portfolio managed by manager } i = \\frac{\\text{IR}_i \\times (\\text{portfolio's tracking error})}{\\text{manager's tracking error}}",
+    "kind": "missing-term",
+    "why": "Without dividing by IR_p the weights do not scale to the overall tracking-error budget."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{IR}_i",
+    "direction": "up",
+    "why": "Risk budgets are proportional to information ratios: more skill, more risk."
+   },
+   {
+    "variable": "\\text{portfolio's tracking error}",
+    "direction": "up",
+    "why": "A bigger overall active-risk budget allows larger manager weights."
+   },
+   {
+    "variable": "\\text{IR}_p",
+    "direction": "down",
+    "why": "Relative to a stronger overall portfolio, each manager's share shrinks."
+   },
+   {
+    "variable": "\\text{manager's tracking error}",
+    "direction": "down",
+    "why": "A more volatile manager uses up the budget with less money."
+   }
+  ],
+  "intuition": "Give each manager risk in proportion to skill: weight = (own IR / portfolio IR) x (portfolio TE / own TE).",
+  "calc": {
+   "expr": "IRi*TEp/(IRp*TEi)",
+   "inputs": [
+    {
+     "name": "IRi",
+     "symbol": "\\text{IR}_i",
+     "min": 0.1,
+     "max": 1.0,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "TEp",
+     "symbol": "\\text{portfolio's tracking error}",
+     "min": 1,
+     "max": 8,
+     "step": 0.5,
+     "unit": "%"
+    },
+    {
+     "name": "IRp",
+     "symbol": "\\text{IR}_p",
+     "min": 0.2,
+     "max": 1.2,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "TEi",
+     "symbol": "\\text{manager's tracking error}",
+     "min": 2,
+     "max": 12,
+     "step": 0.5,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "w_i",
+    "unit": "fraction",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "IRi": 0.6,
+     "TEp": 4,
+     "IRp": 0.72,
+     "TEi": 6
+    },
+    "output": 0.555,
+    "source_line": 304
+   }
+  },
+  "tags": [
+   "risk budgeting",
+   "active managers"
+  ]
+ },
+ {
+  "id": "CR-10-F01",
+  "reading_id": "CR-10",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+  "source_line": 113,
+  "objective": "CR-10 d",
+  "name": "Vasicek worst case default rate (WCDR)",
+  "prompt": "Under Vasicek's Gaussian copula model, what is the worst case default rate at confidence X, given PD and the correlation factor?",
+  "latex": "\\mathrm{WCDR}(T,X) = N\\left(\\frac{N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}\\,N^{-1}(X)}{\\sqrt{1-\\rho}}\\right)",
+  "variables": [
+   {
+    "symbol": "\\mathrm{WCDR}(T,X)",
+    "meaning": "worst case default rate over horizon T at confidence level X"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time horizon"
+   },
+   {
+    "symbol": "X",
+    "meaning": "confidence level"
+   },
+   {
+    "symbol": "\\mathrm{PD}",
+    "meaning": "probability of default"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation factor (asset return correlation between companies)"
+   },
+   {
+    "symbol": "N",
+    "meaning": "cumulative standard normal distribution function"
+   },
+   {
+    "symbol": "N^{-1}",
+    "meaning": "inverse cumulative standard normal"
+   }
+  ],
+  "skeleton": "\\mathrm{WCDR}(T,X) = N\\left(\\frac{N^{-1}( {{1}} ) + {{2}}\\,N^{-1}( {{3}} )}{ {{4}} }\\right)",
+  "slots": [
+   "\\mathrm{PD}",
+   "\\sqrt{\\rho}",
+   "X",
+   "\\sqrt{1-\\rho}"
+  ],
+  "decoys": [
+   "\\rho",
+   "\\sqrt{1+\\rho}",
+   "1-X",
+   "\\mathrm{LGD}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{WCDR}(T,X) = N\\left(\\frac{N^{-1}(\\mathrm{PD}) - \\sqrt{\\rho}\\,N^{-1}(X)}{\\sqrt{1-\\rho}}\\right)",
+    "kind": "sign",
+    "why": "The systematic shock is ADDED: a bad draw of the common factor pushes the default rate up toward the worst case."
+   },
+   {
+    "latex": "\\mathrm{WCDR}(T,X) = N\\left(\\frac{N^{-1}(\\mathrm{PD}) + \\sqrt{1-\\rho}\\,N^{-1}(X)}{\\sqrt{\\rho}}\\right)",
+    "kind": "inverted",
+    "why": "sqrt(rho) scales the systematic factor in the numerator; sqrt(1 - rho) is the denominator."
+   },
+   {
+    "latex": "\\mathrm{WCDR}(T,X) = N\\left(\\frac{N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}\\,N^{-1}(1-X)}{\\sqrt{1-\\rho}}\\right)",
+    "kind": "wrong-variable",
+    "why": "Using 1 - X flips the systematic draw to a GOOD scenario, giving a best case rather than a worst case."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}",
+    "direction": "up",
+    "why": "A higher unconditional default probability raises the worst case too."
+   },
+   {
+    "variable": "X",
+    "direction": "up",
+    "why": "A higher confidence level looks further into the tail."
+   },
+   {
+    "variable": "\\rho",
+    "direction": "up",
+    "why": "rho sits as sqrt(rho) on top and sqrt(1 - rho) below, so at the high confidence levels used (N^{-1}(X) above -N^{-1}(PD)) raising it pushes the ratio, and the WCDR, up; at rho = 0 WCDR equals PD."
+   }
+  ],
+  "intuition": "Shift the PD threshold by a bad systematic draw (weighted by root rho), rescale by root (1 - rho), and map back to a probability.",
+  "calc": null,
+  "tags": [
+   "credit VaR",
+   "Vasicek",
+   "Basel IRB"
+  ]
+ },
+ {
+  "id": "CR-10-F02",
+  "reading_id": "CR-10",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+  "source_line": 116,
+  "objective": "CR-10 d",
+  "name": "IRB capital requirement from WCDR",
+  "prompt": "Under the Basel II IRB application of Vasicek's model, how is the capital requirement for a portfolio built from each loan's worst case default rate, exposure and loss severity?",
+  "latex": "\\text{Capital requirement} = \\sum_{i=1}^{n} \\mathrm{WCDR}_i(T,X)\\times \\mathrm{EAD}_i \\times \\mathrm{LGD}_i",
+  "variables": [
+   {
+    "symbol": "\\mathrm{WCDR}_i(T,X)",
+    "meaning": "worst case default rate of exposure i over horizon T at confidence X"
+   },
+   {
+    "symbol": "\\mathrm{EAD}_i",
+    "meaning": "exposure at default of exposure i"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_i",
+    "meaning": "loss given default of exposure i (decimal)"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of exposures in the portfolio"
+   }
+  ],
+  "skeleton": "\\text{Capital requirement} = \\sum_{i=1}^{n} {{1}}\\times {{2}} \\times {{3}}",
+  "slots": [
+   "\\mathrm{WCDR}_i(T,X)",
+   "\\mathrm{EAD}_i",
+   "\\mathrm{LGD}_i"
+  ],
+  "decoys": [
+   "\\mathrm{PD}_i",
+   "1-\\mathrm{LGD}_i",
+   "\\sqrt{\\rho}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Capital requirement} = \\sum_{i=1}^{n} \\mathrm{PD}_i\\times \\mathrm{EAD}_i \\times \\mathrm{LGD}_i",
+    "kind": "wrong-variable",
+    "why": "Using PD gives the expected loss; the capital requirement uses the WORST CASE default rate."
+   },
+   {
+    "latex": "\\text{Capital requirement} = \\sum_{i=1}^{n} \\mathrm{WCDR}_i(T,X)\\times \\mathrm{EAD}_i",
+    "kind": "missing-term",
+    "why": "Defaults only cost the loss given default share of the exposure, so LGD must multiply."
+   },
+   {
+    "latex": "\\text{Capital requirement} = \\sum_{i=1}^{n} \\mathrm{WCDR}_i(T,X)\\times \\mathrm{EAD}_i \\times (1-\\mathrm{LGD}_i)",
+    "kind": "wrong-variable",
+    "why": "1 - LGD is the recovery rate; the loss is the LGD share."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{WCDR}_i(T,X)",
+    "direction": "up",
+    "why": "A worse tail default rate means more loss to cover."
+   },
+   {
+    "variable": "\\mathrm{EAD}_i",
+    "direction": "up",
+    "why": "More exposure, more potential loss."
+   },
+   {
+    "variable": "\\mathrm{LGD}_i",
+    "direction": "up",
+    "why": "A larger loss share per default means more capital."
+   }
+  ],
+  "intuition": "Capital = worst-case defaults times what is exposed times how much of it is lost, summed over loans.",
+  "calc": null,
+  "tags": [
+   "credit VaR",
+   "Basel IRB",
+   "capital"
+  ]
+ },
+ {
+  "id": "CR-10-F03",
+  "reading_id": "CR-10",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+  "source_line": 218,
+  "objective": "CR-10 e",
+  "name": "CreditRisk+: Poisson probability of m defaults",
+  "prompt": "In CreditRisk+, with n loans each with small default probability q, what is the probability of exactly m defaults in a year?",
+  "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{-qn}(qn)^{m}}{m!}",
+  "variables": [
+   {
+    "symbol": "m",
+    "meaning": "number of defaults"
+   },
+   {
+    "symbol": "q",
+    "meaning": "(average) probability of default of each loan over the year"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of loans"
+   },
+   {
+    "symbol": "qn",
+    "meaning": "expected number of defaults"
+   }
+  ],
+  "skeleton": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{ {{1}} }( {{2}} )^{ {{3}} }}{ {{4}} }",
+  "slots": [
+   "-qn",
+   "qn",
+   "m",
+   "m!"
+  ],
+  "decoys": [
+   "q",
+   "n!",
+   "-m"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{qn}(qn)^{m}}{m!}",
+    "kind": "sign",
+    "why": "The Poisson weight is e to the MINUS the expected number of defaults; a plus sign would give probabilities above one."
+   },
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{-qn}(qn)^{m}}{n!}",
+    "kind": "wrong-variable",
+    "why": "The factorial is of the number of defaults m, not the number of loans n."
+   },
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{-qn}\\,m^{qn}}{m!}",
+    "kind": "exponent",
+    "why": "The expected number of defaults qn is the base and m the exponent, not the other way round."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "q",
+    "direction": "depends",
+    "why": "Raising q raises the mean qn: the probability of m defaults rises if m is above qn and falls if m is below qn."
+   },
+   {
+    "variable": "m",
+    "direction": "depends",
+    "why": "The probability rises with m up to about the mean qn, then falls."
+   }
+  ],
+  "intuition": "Insurance maths for defaults: Poisson with mean qn, the binomial's limit when q is small and n is large.",
+  "calc": null,
+  "tags": [
+   "CreditRisk+",
+   "Poisson",
+   "default distribution"
+  ]
+ }
+]

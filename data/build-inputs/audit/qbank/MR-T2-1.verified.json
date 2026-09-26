@@ -1,0 +1,229 @@
+{
+ "slice": "MR-T2-1",
+ "decisions": [
+  {
+   "id": "MR-T2-31",
+   "field": "solution",
+   "verdict": "modify",
+   "final": "Step 1. Locate the tail. With $n=20$ observations at 90% confidence, the tail contains the worst 10% of outcomes:\n\n$\\text{number of tail observations} = (1-0.90) \\times 20 = 2$\n\nThe two worst observations are -84 and -61.\n\nStep 2. Expected shortfall is the AVERAGE loss across those tail observations, not the cut-off value itself:\n\n$\\text{ES} = (84 + 61)/2 = 145/2 = 72.5$\n\nThe 90% expected shortfall is USD 72.5 thousand.\n\nThe relationship worth carrying: expected shortfall is always at least as large as VaR at the same confidence level, because it averages values that are all at or beyond the VaR threshold. Here the 90% VaR, under the curriculum (Dowd) convention that the VaR is observation number $(1-cl)\\times n+1 = 0.10\\times 20+1 = 3$, i.e. the third worst, is USD 47 thousand (the same rule used in the historical-simulation VaR questions). The ES of 72.5 averages the two losses beyond that cut-off and exceeds the VaR as it must. (Under the alternative $(1-cl)\\times n$ convention the VaR would be the second worst, USD 61 thousand; the ES of 72.5 still exceeds it.) If your expected shortfall ever comes out BELOW your VaR, you have made an error.",
+   "reason": "Confirmed: source p.32 calls 61 the VaR 'under the Dowd convention', but Dowd/FRM uses position (1-cl)n+1 (Q38 in this slice uses it: 30 obs at 90% -> 4th worst), giving the 3rd worst = 47 here. ES = (84+61)/2 = 72.5 is unaffected (key d correct under either convention). Modified the auditor's fix only to add a one-line note on the alternative (1-cl)n convention (under which 61 would be the VaR), matching the convention note already in Q38, so the learner is not misled either way. final = full solution text."
+  },
+  {
+   "id": "MR-T2-31",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "optionAnalysis": {
+     "a": {
+      "verdict": "incorrect",
+      "reason": "USD 47.0 thousand is the third worst observation, which is the 90% VaR under the curriculum $(1-cl)\\times n+1$ convention (position 3). It is the cut-off, not the expected shortfall: answering it means stopping at the VaR instead of averaging the losses beyond it."
+     },
+     "b": {
+      "verdict": "incorrect",
+      "reason": "USD 61.0 thousand is the second worst observation, the less severe of the two tail losses. It would be the VaR only under the alternative $(1-cl)\\times n$ convention (under the curriculum convention the VaR is 47); either way it is a single observation, and answering it means reporting one tail loss instead of averaging both."
+     },
+     "c": {
+      "verdict": "incorrect",
+      "reason": "USD 64.0 thousand averages the worst THREE observations, $(84+61+47)/3 = 64.0$, using a tail of 15% rather than 10%. The tail width has been mis-set."
+     },
+     "d": {
+      "verdict": "correct",
+      "reason": "USD 72.5 thousand, the average of the two tail losses."
+     }
+    },
+    "trap.explanation": "Option (a) is the VaR-instead-of-ES trap: VaR answers 'how bad is the threshold', expected shortfall answers 'how bad is it on average once the threshold is breached'. A candidate who locates the cut-off correctly and then reports it has done the hard part and stopped. Option (b) is a single tail observation rather than the tail average (and would be the VaR only under the alternative (1-cl) x n counting rule). Option (c) is the tail-width error and is worth noticing because (1 - confidence) x n must be computed before anything else."
+   },
+   "reason": "Confirmed the source (p.32) option analysis and trap call 61 the VaR, contradicting the (1-cl)n+1 convention of Q38. Auditor's rewrite of (a)/(b) is right in substance; modified (b) to acknowledge 61 is the VaR under the alternative (1-cl)n rule, and supplied the concrete trap.explanation rewrite the auditor only described. final = full optionAnalysis dict plus replacement trap.explanation (trap.operators may stay)."
+  },
+  {
+   "id": "MR-T2-42",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "USD 35.3 million follows from no correct treatment of the inputs. In particular it is NOT the 99% figure: using the 99% deviate 2.326 in the lognormal expression gives $100\\times[1-\\exp(0.10-0.9304)] = $ USD 56.4 million, LARGER than the 95% figure, as VaR must be when confidence rises."
+    },
+    "b": {
+     "verdict": "correct",
+     "reason": "USD 42.8 million, computed above."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "USD 66.0 million is approximately $100\\times\\sigma z = 100\\times0.658 = 65.8$, the volatility term of the normal VaR with the mean dropped and no lognormal transformation at all. (Dropping only the mean inside the exponential would give $100\\times[1-\\exp(-0.658)] = 48.2$.)"
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "USD 74.7 million $= 100\\times[\\exp(\\sigma z-\\mu)-1] = 100\\times[\\exp(0.558)-1]$, which exponentiates with the sign reversed (an upside move) instead of computing $1-\\exp(\\mu-\\sigma z)$. A lognormal loss can never be computed that way; note it would also be unbounded above, unlike a true lognormal VaR."
+    }
+   },
+   "reason": "Recomputed: key b = 100[1-exp(0.10-0.658)] = 42.76 confirmed. Stated derivations are false: 99% lognormal = 56.41 (not 35.3, and larger not smaller); 1-exp(-0.658)=48.21 (not 66.0); 1-exp(-0.758)=53.14 (not 74.7). 74.72 = exp(0.558)-1 exactly; 65.8 = 100*sigma*z is the nearest source for 66.0; 35.3 matches no clean formula (brute-forced z in {1.645,1.96,2.326,2.576} x 11 formula variants). Source p.43-44 carries the same error. Accepting the auditor's rewrite; final = full optionAnalysis dict. Trap explanation ('option (d) is built on the sign of mu') remains broadly true of (d) as rewritten (sign reversal) and needs no change."
+  },
+  {
+   "id": "MR-T2-44",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "1.54 is exactly half the correct VaR ($3.08/2$) and follows from no valid aggregation. For reference, stock B alone gives $-3+\\sqrt{15}\\times1.645 = 3.37$ and stock A alone gives $-0.5+1\\times1.645 = 1.145$; neither is offered."
+    },
+    "b": {
+     "verdict": "correct",
+     "reason": "3.08, computed above."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "4.87 is $\\sqrt{1}+\\sqrt{15} = 4.873$, the SUM OF THE STANDARD DEVIATIONS reported as though it were the VaR. Adding standard deviations is the perfect-correlation assumption, not the independent one; and even that sigma used correctly would give $-3.5+4.873\\times1.645 = 4.52$, not 4.87."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "56.00 matches no standard error (it equals $3.5\\times16$, mean times variance, which has no meaning). The closely related error of using the variance of 16 as if it were the standard deviation gives $-3.5+16\\times1.645 = 22.82$, not 56."
+    }
+   },
+   "reason": "Recomputed: mu=3.5, var=16, sigma=4, VaR=-3.5+6.58=3.08 (key b confirmed). The stated derivations for a (3.37), c (4.87 treated as sigma -> 4.52) and d (22.8) do not produce the option values; source p.45 identical. Accepting the auditor's second alternative (rewrite analysis to describe what the values actually are), which avoids altering source option values; final = full optionAnalysis dict. Trap explanation calls (c) the intended kill (sum of SDs) which still holds."
+  },
+  {
+   "id": "MR-T2-45",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "CAD 1,453,879 uses the wrong volatility or the wrong deviate; it corresponds to no correct combination of the position value with a standard confidence level and the 9% volatility."
+    },
+    "b": {
+     "verdict": "correct",
+     "reason": "CAD 4,186,800 = 20,000,000 x 2.326 x 0.09."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "CAD 4,636,800 $= 20{,}000{,}000\\times2.576\\times0.09$, which uses the 99.5% deviate (2.576) instead of the 99% deviate (2.326) with the correct position and volatility. (Importing the correlation, e.g. scaling the 12% portfolio volatility by 0.60, would give $20{,}000{,}000\\times2.326\\times0.072 = 3{,}349{,}440$.)"
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "CAD 5,813,777 corresponds to no clean combination of the inputs. The nearest recognisable error, pairing the PORTFOLIO volatility of 12% with the bond X position ($20{,}000{,}000\\times2.326\\times0.12$), gives CAD 5,582,400: the wrong volatility paired with the right position, an error to guard against even though it is not exactly what is offered."
+    }
+   },
+   "reason": "Recomputed: key b = 20e6 x 2.326 x 0.09 = 4,186,800 confirmed. 20e6 x 2.576 x 0.09 = 4,636,800 exactly (so c is the 99.5%-deviate error, not a correlation error); 20e6 x 2.326 x 0.12 = 5,582,400 != 5,813,777; searched positions {20,130,150}m x z {1,1.645,1.96,2.326,2.33,2.576} x vol/corr variants and found no exact source for 5,813,777 or 1,453,879. Source p.46 identical. Accepting auditor's analysis-rewrite alternative for d (no option-value change); final = full optionAnalysis dict. The trap explanation (excess-data / correlation red herring) remains valid."
+  },
+  {
+   "id": "MR-T2-40",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "options": [
+     {
+      "key": "a",
+      "text": "95% VaR 32.289; 99% VaR 51.4932"
+     },
+     {
+      "key": "b",
+      "text": "95% VaR 36.225; 99% VaR 41.586"
+     },
+     {
+      "key": "c",
+      "text": "95% VaR 46.389; 99% VaR 65.593"
+     },
+     {
+      "key": "d",
+      "text": "95% VaR 60.489; 99% VaR 79.693"
+     }
+    ],
+    "optionAnalysis": {
+     "a": {
+      "verdict": "correct",
+      "reason": "Both values computed from $-\\mu + \\sigma z$ with the correct deviates."
+     },
+     "b": {
+      "verdict": "incorrect",
+      "reason": "95% VaR 36.225 and 99% VaR 41.586 correspond to deviates of roughly 1.79 and 1.98, which match no standard confidence level, and the two figures are implausibly close together for a 4 percentage point difference in confidence."
+     },
+     "c": {
+      "verdict": "incorrect",
+      "reason": "46.389 and 65.593 are the volatility terms alone, $\\sigma z$, with the mean term dropped entirely. They are genuine intermediate quantities of the correct working."
+     },
+     "d": {
+      "verdict": "incorrect",
+      "reason": "60.489 and 79.693 correspond to $+14.1+\\sigma z$ ($14.1+46.389$ and $14.1+65.593$), adding the mean instead of subtracting it. This treats an expected profit as though it worsened the loss."
+     }
+    }
+   },
+   "reason": "Recomputed: key a (-14.1+28.2z: 32.289, 51.4932) confirmed. 14.1+28.2x2.326 = 79.693 matches, but 14.1+28.2x1.645 = 60.489, not 55.236 (55.236 needs z=1.4587; 28.2x1.96=55.272 is also not exact). Source p.41 reads 55.236. Agree with the auditor's primary fix (change option d's 95% figure to 60.489 so the sign-error distractor is internally consistent; no collision with other options, key unchanged). Marked 'modify' only because the fix touches the options field, not just optionAnalysis: final gives the full options list (d changed) and the full optionAnalysis dict with d's reason made explicit."
+  },
+  {
+   "id": "MR-T2-33",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-34",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-35",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-36",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-37",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-49",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  },
+  {
+   "id": "MR-T2-50",
+   "field": "reading",
+   "verdict": "accept",
+   "final": "Non-Parametric Approaches",
+   "reason": "Topic is already 'Non-Parametric Approaches' and LO13 (age-/volatility-/correlation-weighted and filtered HS) belongs to Dowd's 'Non-Parametric Approaches' reading; other MR items on that reading (MR-T4) use reading='Non-Parametric Approaches'. Classification only; no effect on key."
+  }
+ ],
+ "added": [
+  {
+   "id": "MR-T2-31",
+   "field": "trap",
+   "severity": "wrong-content",
+   "addedByVerifier": true,
+   "current": "Option (b) is the intended kill. VaR answers 'how bad is the threshold', expected shortfall answers 'how bad is it on average once the threshold is breached'. A candidate who locates the tail correctly and then reports its boundary has done the hard part and stopped. Option (c) is the tail-width error and is worth noticing because (1 - confidence) x n must be computed before anything else.",
+   "proposed": "Option (a) is the VaR-instead-of-ES trap: VaR answers 'how bad is the threshold', expected shortfall answers 'how bad is it on average once the threshold is breached'. A candidate who locates the cut-off correctly and then reports it has done the hard part and stopped. Option (b) is a single tail observation rather than the tail average (and would be the VaR only under the alternative (1-cl) x n counting rule). Option (c) is the tail-width error and is worth noticing because (1 - confidence) x n must be computed before anything else.",
+   "source_says": "PDF p.32 TRAP identical (calls 61 the VaR).",
+   "derivation": "Companion to the Q31 solution/optionAnalysis fixes: under the (1-cl)n+1 convention the VaR is 47 (option a), so the 'reports the VaR instead of the ES' trap is option (a), not (b).",
+   "evidence": "PDF p.32; Q38 (PDF p.39) convention.",
+   "confidence": "high"
+  }
+ ],
+ "spotChecked": {
+  "ids": [
+   "MR-T2-39",
+   "MR-T2-41",
+   "MR-T2-43",
+   "MR-T2-46",
+   "MR-T2-48",
+   "MR-T2-51"
+  ],
+  "result": "All keys and solutions re-derived and match the PDF (p.39-50): Q39 14th worst after roll = -6.25%, x USD 90 = 5.625; Q41 USD 23.0/36.6; Q43 432,500 / 351,100; Q46 36.96%; Q48 USD 1.28m; Q51 (a). No problems found."
+ }
+}

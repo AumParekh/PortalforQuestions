@@ -1,0 +1,2844 @@
+[
+ {
+  "id": "SC-bank-IR1-01",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-05"
+  },
+  "trap_category": "Sibling",
+  "setup": "A pension fund has USD 20m in three sleeves: 30% US stocks ($\\sigma = 12\\%$), 40% US bonds ($\\sigma = 5\\%$), 30% non-US stocks ($\\sigma = 18\\%$). Portfolio volatility is 10%. One-year horizon, 99% ($z = 2.33$).",
+  "ask": "Roughly how big is the fund's **undiversified** VaR?",
+  "options": [
+   {
+    "label": "≈ USD 5.1m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 16m",
+    "correct": false,
+    "why": "Applied each sleeve's volatility to the full USD 20m. The weights were dropped, so every sleeve was counted at 100% of the fund."
+   },
+   {
+    "label": "≈ USD 1.7m",
+    "correct": false,
+    "why": "Stopped after one sleeve. That is the US-stock individual VaR alone, not the sum across all three."
+   },
+   {
+    "label": "≈ USD 0.47m",
+    "correct": false,
+    "why": "That is the diversification benefit (undiversified minus diversified VaR), not the undiversified VaR itself."
+   }
+  ],
+  "working": [
+   {
+    "label": "US stocks VaR",
+    "display": "$2.33 \\times 0.12 \\times 6.0 = 1.68$",
+    "value": 1.68
+   },
+   {
+    "label": "US bonds VaR",
+    "display": "$2.33 \\times 0.05 \\times 8.0 = 0.93$",
+    "value": 0.93
+   },
+   {
+    "label": "Non-US stocks VaR",
+    "display": "$2.33 \\times 0.18 \\times 6.0 = 2.52$",
+    "value": 2.52
+   },
+   {
+    "label": "Diversified VaR (cross-check)",
+    "display": "$2.33 \\times 0.10 \\times 20 = 4.66$",
+    "value": 4.66
+   },
+   {
+    "label": "Undiversified VaR",
+    "display": "$1.68 + 0.93 + 2.52 \\approx \\text{USD } 5.13\\text{m}$",
+    "value": 5.13
+   }
+  ],
+  "takeaway": "Undiversified VaR is the plain sum of individual VaRs (the ρ = +1 case), so in a long-only book it always sits above diversified VaR.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "W": 20,
+    "w1": 0.3,
+    "s1": 0.12,
+    "w2": 0.4,
+    "s2": 0.05,
+    "w3": 0.3,
+    "s3": 0.18,
+    "sp": 0.1
+   },
+   "steps": [
+    {
+     "name": "v1",
+     "expr": "z*s1*w1*W",
+     "value": 1.6776
+    },
+    {
+     "name": "v2",
+     "expr": "z*s2*w2*W",
+     "value": 0.932
+    },
+    {
+     "name": "v3",
+     "expr": "z*s3*w3*W",
+     "value": 2.5164
+    },
+    {
+     "name": "div",
+     "expr": "z*sp*W",
+     "value": 4.66
+    },
+    {
+     "name": "undiv",
+     "expr": "v1+v2+v3",
+     "value": 5.126
+    },
+    {
+     "name": "slip_noweights",
+     "expr": "z*(s1+s2+s3)*W",
+     "value": 16.31
+    },
+    {
+     "name": "slip_benefit",
+     "expr": "undiv-div",
+     "value": 0.466
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-02",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-05"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Same USD 20m fund (99%, $z = 2.33$). Diversified VaR $= 2.33 \\times 10\\% \\times 20 =$ USD 4.66m. Two of three individual VaRs are done: US stocks 1.68 + US bonds 0.93 = USD 2.61m. Still to add: non-US stocks, USD 6m at $\\sigma = 18\\%$.",
+  "ask": "The diversification benefit (undiversified minus diversified VaR): positive, negative, or too close to call?",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "That would need the sum of individual VaRs to fall below diversified VaR. With every position long, the sum is the ρ = +1 upper bound, so it can't."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The non-US sleeve adds about 2.52, so the sum is 5.13. That is USD 0.47m (about 10%) above 4.66, which is a clear gap."
+   }
+  ],
+  "working": [
+   {
+    "label": "Non-US stocks VaR",
+    "display": "$2.33 \\times 0.18 \\times 6.0 = 2.52$",
+    "value": 2.52
+   },
+   {
+    "label": "Undiversified VaR",
+    "display": "$2.61 + 2.52 = 5.13$",
+    "value": 5.13
+   },
+   {
+    "label": "Diversification benefit",
+    "display": "$5.13 - 4.66 = +0.47$",
+    "value": 0.47
+   }
+  ],
+  "takeaway": "Sum of individual VaRs ≥ diversified VaR for a long-only book, so the diversification benefit is never negative.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "W": 20,
+    "sp": 0.1,
+    "done": 2.61,
+    "s3": 0.18,
+    "x3": 6.0
+   },
+   "steps": [
+    {
+     "name": "div",
+     "expr": "z*sp*W",
+     "value": 4.66
+    },
+    {
+     "name": "v3",
+     "expr": "z*s3*x3",
+     "value": 2.5164
+    },
+    {
+     "name": "undiv",
+     "expr": "done+v3",
+     "value": 5.1264
+    },
+    {
+     "name": "benefit",
+     "expr": "undiv-div",
+     "value": 0.4664
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-03",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-06"
+  },
+  "trap_category": "Sibling",
+  "setup": "A USD 1m portfolio holds 60% in Asset A (beta to the portfolio 0.80) and 40% in Asset B (beta 1.30). Diversified 95% VaR $= 1.645 \\times 0.060606 \\times 1{,}000{,}000 \\approx$ USD 99,700. Component VaR of A $= 99{,}700 \\times 0.80 \\times 0.60 \\approx$ USD 47,850.",
+  "ask": "Is B's component VaR bigger than A's, smaller, or too close to call?",
+  "options": [
+   {
+    "label": "B's is bigger",
+    "correct": true
+   },
+   {
+    "label": "A's is bigger",
+    "correct": false,
+    "why": "A has more capital, but component VaR scales with weight × beta: 0.40 × 1.30 = 0.52 for B against 0.60 × 0.80 = 0.48 for A."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The weight × beta shares must sum to 1. A takes 0.48, so B takes 0.52, which puts B about USD 4,000 ahead."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio VaR",
+    "display": "$1.645 \\times 0.060606 \\times 1{,}000{,}000 = 99{,}697$",
+    "value": 99697
+   },
+   {
+    "label": "A's share",
+    "display": "$w_A\\beta_A = 0.60 \\times 0.80 = 0.48$",
+    "value": 0.48
+   },
+   {
+    "label": "B's share",
+    "display": "$w_B\\beta_B = 0.40 \\times 1.30 = 0.52$",
+    "value": 0.52
+   },
+   {
+    "label": "Component VaR of B",
+    "display": "$99{,}697 \\times 0.52 = \\text{USD } 51{,}842$",
+    "value": 51842
+   }
+  ],
+  "takeaway": "Component VaR share = weight × beta. The smaller position can carry more risk if its beta is high enough.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "sp": 0.060606,
+    "W": 1000000,
+    "wA": 0.6,
+    "bA": 0.8,
+    "wB": 0.4,
+    "bB": 1.3
+   },
+   "steps": [
+    {
+     "name": "VaRp",
+     "expr": "z*sp*W",
+     "value": 99696.9
+    },
+    {
+     "name": "shA",
+     "expr": "wA*bA",
+     "value": 0.48
+    },
+    {
+     "name": "shB",
+     "expr": "wB*bB",
+     "value": 0.52
+    },
+    {
+     "name": "cA",
+     "expr": "VaRp*shA",
+     "value": 47854.5
+    },
+    {
+     "name": "cB",
+     "expr": "VaRp*shB",
+     "value": 51842.4
+    },
+    {
+     "name": "gap",
+     "expr": "cB-cA",
+     "value": 3987.87
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-04",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-07"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 950m equity portfolio ($\\sigma_p = 19\\%$) holds USD 98m of one stock with $\\sigma = 24\\%$ and correlation 0.60 with the portfolio. One-year 95% VaR, $z = 1.65$.",
+  "ask": "The stock's **component** VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ USD 23m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 62m",
+    "correct": false,
+    "why": "Scaled the individual VaR by (1 + ρ) instead of ρ."
+   },
+   {
+    "label": "≈ USD 230m",
+    "correct": false,
+    "why": "Stopped at $VaR_p \\times \\beta$ and forgot to multiply by the position's weight, 98/950."
+   },
+   {
+    "label": "≈ USD 7m",
+    "correct": false,
+    "why": "Scale slip: about 0.3× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$1.65 \\times 0.24 \\times 98 = 38.81$",
+    "value": 38.81
+   },
+   {
+    "label": "Component VaR",
+    "display": "$VaR_i \\times \\rho = 38.81 \\times 0.60 = \\text{USD } 23.3\\text{m}$",
+    "value": 23.28
+   },
+   {
+    "label": "Long-route check",
+    "display": "$\\beta = 0.60 \\times 0.24/0.19 = 0.758;\\ 297.8 \\times 0.758 \\times 98/950 = 23.3$",
+    "value": 23.28
+   }
+  ],
+  "takeaway": "Component VaR = individual VaR × ρ. The portfolio σ and NAV cancel out.",
+  "check": {
+   "inputs": {
+    "z": 1.65,
+    "si": 0.24,
+    "x": 98,
+    "rho": 0.6,
+    "sp": 0.19,
+    "W": 950
+   },
+   "steps": [
+    {
+     "name": "VaRi",
+     "expr": "z*si*x",
+     "value": 38.808
+    },
+    {
+     "name": "CVaR",
+     "expr": "VaRi*rho",
+     "value": 23.2848
+    },
+    {
+     "name": "beta",
+     "expr": "rho*si/sp",
+     "value": 0.757895
+    },
+    {
+     "name": "VaRp",
+     "expr": "z*sp*W",
+     "value": 297.825
+    },
+    {
+     "name": "CVaR_long",
+     "expr": "VaRp*beta*x/W",
+     "value": 23.2848
+    },
+    {
+     "name": "slip_1plusrho",
+     "expr": "VaRi*(1+rho)",
+     "value": 62.0928
+    },
+    {
+     "name": "slip_noweight",
+     "expr": "VaRp*beta",
+     "value": 225.72
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-05",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-07"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Same position: USD 98m of a stock with $\\sigma = 24\\%$ and correlation 0.60 with the USD 950m portfolio. You've found its standalone (individual) 95% VaR: $1.65 \\times 0.24 \\times 98 =$ USD 38.8m.",
+  "ask": "Will its component VaR come out above, below, or equal to USD 38.8m?",
+  "options": [
+   {
+    "label": "Below",
+    "correct": true
+   },
+   {
+    "label": "Above",
+    "correct": false,
+    "why": "Component VaR = individual VaR × ρ. With ρ = 0.60 < 1 the figure shrinks, to 23.3."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "They are equal only when ρ = +1, where there is no diversification credit. Here ρ = 0.60."
+   }
+  ],
+  "working": [
+   {
+    "label": "Collapse",
+    "display": "$CVaR_i = VaR_p\\,\\beta_i\\,w_i = VaR_i \\times \\rho_{i,p}$",
+    "value": null
+   },
+   {
+    "label": "Component VaR",
+    "display": "$38.81 \\times 0.60 = \\text{USD } 23.3\\text{m}$",
+    "value": 23.28
+   }
+  ],
+  "takeaway": "Individual VaR is the ceiling for component VaR. The discount is the position's correlation with the portfolio.",
+  "check": {
+   "inputs": {
+    "z": 1.65,
+    "si": 0.24,
+    "x": 98,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "VaRi",
+     "expr": "z*si*x",
+     "value": 38.808
+    },
+    {
+     "name": "CVaR",
+     "expr": "VaRi*rho",
+     "value": 23.2848
+    },
+    {
+     "name": "diff",
+     "expr": "CVaR-VaRi",
+     "value": -15.5232
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-06",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-08"
+  },
+  "trap_category": "Sibling",
+  "setup": "USD 2m portfolio: USD 1m Technology and USD 1m Real Estate. Marginal VaRs are 0.3153 (Tech) and 0.5300 (Real Estate). Diversified 95% VaR is USD 845,301.",
+  "ask": "Tech holds half the capital. Is its share of diversified VaR more than half, less than half, or about half?",
+  "options": [
+   {
+    "label": "Less than half",
+    "correct": true
+   },
+   {
+    "label": "More than half",
+    "correct": false,
+    "why": "On equal dollars, Tech's marginal VaR (0.315) is well below Real Estate's (0.530). Component VaRs are 315,300 against 530,000."
+   },
+   {
+    "label": "About half",
+    "correct": false,
+    "why": "It's about 37% against 63%, which is not close."
+   }
+  ],
+  "working": [
+   {
+    "label": "Component VaR, Tech",
+    "display": "$0.3153 \\times 1{,}000{,}000 = 315{,}300$",
+    "value": 315300
+   },
+   {
+    "label": "Component VaR, Real Estate",
+    "display": "$0.5300 \\times 1{,}000{,}000 = 530{,}000$",
+    "value": 530000
+   },
+   {
+    "label": "Tech's share",
+    "display": "$315{,}300 / 845{,}301 = 37.3\\%$",
+    "value": 0.373
+   }
+  ],
+  "takeaway": "Component VaR = marginal VaR × that position's dollars. On equal dollars, the lower marginal VaR is the smaller risk share.",
+  "check": {
+   "inputs": {
+    "mT": 0.3153,
+    "mR": 0.53,
+    "x": 1000000,
+    "VaRp": 845301
+   },
+   "steps": [
+    {
+     "name": "cT",
+     "expr": "mT*x",
+     "value": 315300.0
+    },
+    {
+     "name": "cR",
+     "expr": "mR*x",
+     "value": 530000.0
+    },
+    {
+     "name": "total",
+     "expr": "cT+cR",
+     "value": 845300.0
+    },
+    {
+     "name": "shareT",
+     "expr": "cT/VaRp",
+     "value": 0.373003
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-07",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-10"
+  },
+  "trap_category": "Sibling",
+  "setup": "USD 1.3m portfolio: Financial fund USD 500k (individual VaR 329,000; marginal VaR 0.5897) and Energy fund USD 800k (individual VaR 263,200). Diversified 95% VaR is USD 513,900. Component VaR of Financial $= 0.5897 \\times 500{,}000 \\approx$ USD 294,850.",
+  "ask": "Is Financial's **incremental** VaR larger than its component VaR, smaller, or the same?",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Removing Financial leaves Energy alone at 263,200. Incremental VaR = 513,900 − 263,200 = 250,700, which is below 294,850."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "The two only coincide for a tiny position. For a whole block, portfolio VaR is convex in the position, so the full-removal figure comes in lower."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR without Financial",
+    "display": "$VaR_{p-\\text{Fin}} = VaR_{Energy} = 263{,}200$",
+    "value": 263200
+   },
+   {
+    "label": "Incremental VaR",
+    "display": "$513{,}900 - 263{,}200 = 250{,}700$",
+    "value": 250700
+   },
+   {
+    "label": "Component VaR",
+    "display": "$0.5897 \\times 500{,}000 = 294{,}850$",
+    "value": 294850
+   },
+   {
+    "label": "Incremental − component",
+    "display": "$250{,}700 - 294{,}850 = -44{,}150$",
+    "value": -44150
+   }
+  ],
+  "takeaway": "Individual > component > incremental VaR for a large long position. Incremental VaR subtracts the *other* leg's standalone VaR.",
+  "check": {
+   "inputs": {
+    "VaRp": 513900,
+    "VaRE": 263200,
+    "mF": 0.5897,
+    "xF": 500000
+   },
+   "steps": [
+    {
+     "name": "IVaR",
+     "expr": "VaRp-VaRE",
+     "value": 250700.0
+    },
+    {
+     "name": "CVaR",
+     "expr": "mF*xF",
+     "value": 294850.0
+    },
+    {
+     "name": "gap",
+     "expr": "IVaR-CVaR",
+     "value": -44150.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-08",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-09"
+  },
+  "trap_category": "Sibling",
+  "setup": "A two-currency portfolio: USD 2m CAD exposure (beta to the portfolio 0.615) and USD 1m EUR exposure (beta 1.770).",
+  "ask": "EUR holds a third of the capital. Is its share of portfolio VaR more than a third, less than a third, or exactly a third?",
+  "options": [
+   {
+    "label": "More than a third",
+    "correct": true
+   },
+   {
+    "label": "Less than a third",
+    "correct": false,
+    "why": "Share of VaR = weight × beta. A beta above 1 means more risk than capital: (1/3) × 1.77 = 59%."
+   },
+   {
+    "label": "Exactly a third",
+    "correct": false,
+    "why": "That would need beta = 1. EUR's beta is 1.77."
+   }
+  ],
+  "working": [
+   {
+    "label": "EUR share",
+    "display": "$w_{EUR}\\beta_{EUR} = \\tfrac13 \\times 1.770 = 0.590$",
+    "value": 0.59
+   },
+   {
+    "label": "CAD share (check)",
+    "display": "$\\tfrac23 \\times 0.615 = 0.410;\\ 0.41 + 0.59 = 1$",
+    "value": 0.41
+   }
+  ],
+  "takeaway": "Percentage contribution to VaR = w × β. Beta above 1 means the position's risk share exceeds its capital share.",
+  "check": {
+   "inputs": {
+    "wE": 0.3333333333333333,
+    "bE": 1.77,
+    "wC": 0.6666666666666666,
+    "bC": 0.615
+   },
+   "steps": [
+    {
+     "name": "shE",
+     "expr": "wE*bE",
+     "value": 0.59
+    },
+    {
+     "name": "shC",
+     "expr": "wC*bC",
+     "value": 0.41
+    },
+    {
+     "name": "total",
+     "expr": "shE+shC",
+     "value": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-09",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-15"
+  },
+  "trap_category": "Sibling",
+  "setup": "A USD 20m portfolio is split between a Tech ETF and a REIT ETF. At a 50/50 mix, marginal VaR is 0.118 for Tech and 0.386 for the REIT.",
+  "ask": "To lower diversified VaR, should the manager shift money toward Tech, toward the REIT, or stay put?",
+  "options": [
+   {
+    "label": "Toward Tech",
+    "correct": true
+   },
+   {
+    "label": "Toward the REIT",
+    "correct": false,
+    "why": "Each dollar in the REIT adds 0.386 of VaR against Tech's 0.118. Move money from the high-marginal-VaR leg to the low one."
+   },
+   {
+    "label": "Stay put",
+    "correct": false,
+    "why": "VaR is at its minimum only when the marginal VaRs are equal. A 0.268 gap means the mix isn't there yet."
+   }
+  ],
+  "working": [
+   {
+    "label": "Marginal VaR gap",
+    "display": "$0.386 - 0.118 = 0.268 > 0$ (REIT costlier per dollar)",
+    "value": 0.268
+   },
+   {
+    "label": "VaR at 50/50",
+    "display": "$0.118 \\times 10{,}000 + 0.386 \\times 10{,}000 = 5{,}040$ (000s)",
+    "value": 5040
+   },
+   {
+    "label": "VaR at 65/35",
+    "display": "$0.231 \\times 13{,}000 + 0.232 \\times 7{,}000 = 4{,}627$ (000s): marginal VaRs equal, lower VaR",
+    "value": 4627
+   }
+  ],
+  "takeaway": "Minimum VaR means equal marginal VaRs. Shift dollars from the higher marginal VaR to the lower.",
+  "check": {
+   "inputs": {
+    "mT2": 0.118,
+    "mR2": 0.386,
+    "xT2": 10000,
+    "xR2": 10000,
+    "mT3": 0.231,
+    "mR3": 0.232,
+    "xT3": 13000,
+    "xR3": 7000
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "mR2-mT2",
+     "value": 0.268
+    },
+    {
+     "name": "VaR2",
+     "expr": "mT2*xT2+mR2*xR2",
+     "value": 5040.0
+    },
+    {
+     "name": "VaR3",
+     "expr": "mT3*xT3+mR3*xR3",
+     "value": 4627.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-10",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-16"
+  },
+  "trap_category": "Sibling",
+  "setup": "A USD 10m portfolio is split between an Energy ETF (expected excess return 6%) and a Healthcare ETF (12%). At 60% Energy, marginal VaR is 0.085 for Energy and 0.353 for Healthcare.",
+  "ask": "To raise the portfolio's excess-return-to-VaR ratio, shift toward Energy, toward Healthcare, or stay put?",
+  "options": [
+   {
+    "label": "Toward Energy",
+    "correct": true
+   },
+   {
+    "label": "Toward Healthcare",
+    "correct": false,
+    "why": "Healthcare has the higher raw return, but it earns only 12/0.353 = 34 per unit of marginal VaR. Energy earns 6/0.085 = 71."
+   },
+   {
+    "label": "Stay put",
+    "correct": false,
+    "why": "The ratio is at its best only when return / marginal VaR is equal across positions. 71 against 34 is far from equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "Energy return per marginal VaR",
+    "display": "$6.0 / 0.085 = 70.6$",
+    "value": 70.6
+   },
+   {
+    "label": "Healthcare return per marginal VaR",
+    "display": "$12.0 / 0.353 = 34.0$",
+    "value": 34.0
+   },
+   {
+    "label": "Result",
+    "display": "Tilt to Energy: at 75% Energy the ratios are 47.6 vs 45.6 and return/VaR rises from 0.437 to 0.468",
+    "value": null
+   }
+  ],
+  "takeaway": "Best return-to-VaR comes where E/ΔVaR is equal across positions. Add to the position with the higher ratio.",
+  "check": {
+   "inputs": {
+    "EE": 6.0,
+    "EH": 12.0,
+    "mE": 0.085,
+    "mH": 0.353
+   },
+   "steps": [
+    {
+     "name": "rE",
+     "expr": "EE/mE",
+     "value": 70.5882
+    },
+    {
+     "name": "rH",
+     "expr": "EH/mH",
+     "value": 33.9943
+    },
+    {
+     "name": "gap",
+     "expr": "rE-rH",
+     "value": 36.5939
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-11",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 85: Ang, Alpha (and the Low-Risk Anomaly)",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-46"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two managers share a benchmark. Manager 1: alpha 2.35%, tracking error 25%. Manager 2: alpha 3.00%, tracking error 34%.",
+  "ask": "Which manager has the higher information ratio, or is it too close to call?",
+  "options": [
+   {
+    "label": "Manager 1",
+    "correct": true
+   },
+   {
+    "label": "Manager 2",
+    "correct": false,
+    "why": "Manager 2 has the higher alpha, but 3.00/34 = 0.088 < 2.35/25 = 0.094. The extra active risk more than uses up the extra alpha."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "Cross-multiply: 2.35 × 34 = 79.9 against 3.00 × 25 = 75.0. That's a clear 6% edge to Manager 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "IR, Manager 1",
+    "display": "$2.35 / 25 = 0.0940$",
+    "value": 0.094
+   },
+   {
+    "label": "IR, Manager 2",
+    "display": "$3.00 / 34 = 0.0882$",
+    "value": 0.0882
+   }
+  ],
+  "takeaway": "IR = alpha / tracking error. The higher-alpha manager can still have the lower IR if the extra alpha came with proportionally more active risk.",
+  "check": {
+   "inputs": {
+    "a1": 2.35,
+    "te1": 25,
+    "a2": 3.0,
+    "te2": 34
+   },
+   "steps": [
+    {
+     "name": "IR1",
+     "expr": "a1/te1",
+     "value": 0.094
+    },
+    {
+     "name": "IR2",
+     "expr": "a2/te2",
+     "value": 0.0882353
+    },
+    {
+     "name": "gap",
+     "expr": "IR1-IR2",
+     "value": 0.00576471
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-12",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 85: Ang, Alpha (and the Low-Risk Anomaly)",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-48"
+  },
+  "trap_category": "Formula",
+  "setup": "A manager has an information coefficient of 0.15 and makes 36 independent bets a year (breadth 36).",
+  "ask": "By the fundamental law of active management, her information ratio is closest to…",
+  "options": [
+   {
+    "label": "≈ 0.90",
+    "correct": true
+   },
+   {
+    "label": "≈ 5.4",
+    "correct": false,
+    "why": "Dropped the square root: IC × BR instead of IC × √BR."
+   },
+   {
+    "label": "≈ 0.15",
+    "correct": false,
+    "why": "Ignored breadth and reported the IC as the IR."
+   },
+   {
+    "label": "≈ 0.025",
+    "correct": false,
+    "why": "Divided by √BR instead of multiplying."
+   }
+  ],
+  "working": [
+   {
+    "label": "Square root of breadth",
+    "display": "$\\sqrt{36} = 6$",
+    "value": 6
+   },
+   {
+    "label": "Information ratio",
+    "display": "$IR = IC\\sqrt{BR} = 0.15 \\times 6 = 0.90$",
+    "value": 0.9
+   }
+  ],
+  "takeaway": "IR = IC × √BR. Breadth pays off only as a square root.",
+  "check": {
+   "inputs": {
+    "IC": 0.15,
+    "BR": 36
+   },
+   "steps": [
+    {
+     "name": "rootBR",
+     "expr": "sqrt(BR)",
+     "value": 6.0
+    },
+    {
+     "name": "IR",
+     "expr": "IC*rootBR",
+     "value": 0.9
+    },
+    {
+     "name": "slip_noroot",
+     "expr": "IC*BR",
+     "value": 5.4
+    },
+    {
+     "name": "slip_divide",
+     "expr": "IC/rootBR",
+     "value": 0.025
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-13",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 85: Ang, Alpha (and the Low-Risk Anomaly)",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-48"
+  },
+  "trap_category": "Formula",
+  "setup": "Today: $IC = 0.15$ with breadth 12, so $IR = 0.15\\sqrt{12} \\approx 0.52$. The manager proposes tripling breadth to 36 bets a year, but expects her IC to drop to 0.10 because the extra bets are lower-conviction.",
+  "ask": "Her information ratio: rises, falls, or roughly unchanged?",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "IC falls by a third (×0.67), but tripling breadth multiplies IR by √3 = 1.73. The net factor is 0.67 × 1.73 = 1.15, which is up."
+   },
+   {
+    "label": "Roughly unchanged",
+    "correct": false,
+    "why": "The net multiplier is 1.15, taking IR from 0.52 to 0.60, a 15% rise."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net multiplier",
+    "display": "$\\tfrac{0.10}{0.15} \\times \\sqrt{3} = 0.667 \\times 1.732 = 1.15$",
+    "value": 1.155
+   },
+   {
+    "label": "New IR",
+    "display": "$0.10 \\times \\sqrt{36} = 0.60 > 0.52$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "IR scales linearly with IC but only with √breadth. Tripling breadth offsets an IC cut of up to 42% (1/√3).",
+  "check": {
+   "inputs": {
+    "IC0": 0.15,
+    "BR0": 12,
+    "IC1": 0.1,
+    "BR1": 36
+   },
+   "steps": [
+    {
+     "name": "IR0",
+     "expr": "IC0*sqrt(BR0)",
+     "value": 0.519615
+    },
+    {
+     "name": "IR1",
+     "expr": "IC1*sqrt(BR1)",
+     "value": 0.6
+    },
+    {
+     "name": "mult",
+     "expr": "IR1/IR0",
+     "value": 1.1547
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-14",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 85: Ang, Alpha (and the Low-Risk Anomaly)",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-50"
+  },
+  "trap_category": "Formula",
+  "setup": "A great manager (information coefficient 0.12) has a score of +1.5, a standardised view, on a stock with 30% residual volatility.",
+  "ask": "The implied alpha of this view is closest to…",
+  "options": [
+   {
+    "label": "≈ 5.4%",
+    "correct": true
+   },
+   {
+    "label": "≈ 45%",
+    "correct": false,
+    "why": "Dropped the IC. σ × score is the raw view with no shrinkage for how little of the forecast is real signal."
+   },
+   {
+    "label": "≈ 1.6%",
+    "correct": false,
+    "why": "Used the residual variance, 0.09, where the volatility, 0.30, belongs."
+   },
+   {
+    "label": "≈ 16%",
+    "correct": false,
+    "why": "Scale slip: about 3× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Alpha",
+    "display": "$\\alpha = IC \\times \\sigma_{resid} \\times \\text{score} = 0.12 \\times 0.30 \\times 1.5 = 0.054$",
+    "value": 0.054
+   }
+  ],
+  "takeaway": "Alpha = IC × σ × score. The small IC shrinks even a strong view to a few percent.",
+  "check": {
+   "inputs": {
+    "IC": 0.12,
+    "s": 0.3,
+    "score": 1.5
+   },
+   "steps": [
+    {
+     "name": "alpha",
+     "expr": "IC*s*score",
+     "value": 0.054
+    },
+    {
+     "name": "slip_noIC",
+     "expr": "s*score",
+     "value": 0.45
+    },
+    {
+     "name": "slip_var",
+     "expr": "IC*s**2*score",
+     "value": 0.0162
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-15",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 83: Ang, Factor Theory",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-51"
+  },
+  "trap_category": "Formula",
+  "setup": "Single-factor pricing kernel: $E(m) = 1/1.03 = 0.9709$, $\\text{var}(m) = 0.090$ (σ of $m$ = 30%), and $\\text{cov}(r_i, m) = -0.1068$.",
+  "ask": "The asset's risk premium $E(r_i) - R_f$ is closest to…",
+  "options": [
+   {
+    "label": "≈ +11%",
+    "correct": true
+   },
+   {
+    "label": "≈ +37%",
+    "correct": false,
+    "why": "Used σ(m) = 0.30 in place of var(m) in the price of risk: λ = −0.30/0.9709."
+   },
+   {
+    "label": "≈ +3.3%",
+    "correct": false,
+    "why": "Used σ(m) = 0.30 in place of var(m) in the beta denominator: β = −0.1068/0.30."
+   },
+   {
+    "label": "≈ +110%",
+    "correct": false,
+    "why": "Scale slip: 10× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta to the kernel",
+    "display": "$\\beta(i,m) = -0.1068/0.090 = -1.187$",
+    "value": -1.187
+   },
+   {
+    "label": "Price of risk",
+    "display": "$\\lambda(m) = -\\text{var}(m)/E(m) = -0.090/0.9709 = -0.0927$",
+    "value": -0.0927
+   },
+   {
+    "label": "Risk premium",
+    "display": "$(-1.187)(-0.0927) = +0.110 = 11\\%$",
+    "value": 0.11
+   }
+  ],
+  "takeaway": "In the kernel model β and λ are both negative. Their product is the positive premium.",
+  "check": {
+   "inputs": {
+    "Em": 0.9709,
+    "varm": 0.09,
+    "sm": 0.3,
+    "cov": -0.1068
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "cov/varm",
+     "value": -1.18667
+    },
+    {
+     "name": "lam",
+     "expr": "-varm/Em",
+     "value": -0.0926975
+    },
+    {
+     "name": "prem",
+     "expr": "beta*lam",
+     "value": 0.110001
+    },
+    {
+     "name": "slip_lam_sigma",
+     "expr": "beta*(-sm/Em)",
+     "value": 0.36667
+    },
+    {
+     "name": "slip_beta_sigma",
+     "expr": "(cov/sm)*lam",
+     "value": 0.0330003
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-16",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 83: Ang, Factor Theory",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-51"
+  },
+  "trap_category": "Sign",
+  "setup": "Same kernel: $E(m) = 0.9709$, $\\text{var}(m) = 0.090$, $\\text{cov}(r_i, m) = -0.1068$. First step done: $\\beta(i,m) = -0.1068/0.090 = -1.187$.",
+  "ask": "Next intermediate: the price of bad-times risk $\\lambda(m)$. Is it positive, negative, or zero?",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "λ(m) = −var(m)/E(m). Both var(m) and E(m) are positive, so the leading minus makes it −0.0927. The premium is positive only because negative β × negative λ is positive."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "var(m) = 0.09 ≠ 0, so λ(m) = −0.0927."
+   }
+  ],
+  "working": [
+   {
+    "label": "Price of risk",
+    "display": "$\\lambda(m) = -\\text{var}(m)/E(m) = -0.090/0.9709 = -0.0927$",
+    "value": -0.0927
+   },
+   {
+    "label": "Premium",
+    "display": "$(-1.187)(-0.0927) = +11.0\\%$",
+    "value": 0.11
+   }
+  ],
+  "takeaway": "λ(m) = −var(m)/E(m) is always negative. Paired with a negative β(i,m), it gives a positive premium.",
+  "check": {
+   "inputs": {
+    "Em": 0.9709,
+    "varm": 0.09,
+    "cov": -0.1068
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "cov/varm",
+     "value": -1.18667
+    },
+    {
+     "name": "lam",
+     "expr": "-varm/Em",
+     "value": -0.0926975
+    },
+    {
+     "name": "prem",
+     "expr": "beta*lam",
+     "value": 0.110001
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-17",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-55"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A manager's alpha is 1.90% per month, and the monthly standard deviation of the alpha estimate is 4.0%. To reject 'it's luck' you need $t = \\bar\\alpha\\sqrt{N}/\\sigma(\\alpha) \\ge 1.645$, where $N$ is the number of months (two-sided 10%).",
+  "ask": "How long a track record is needed?",
+  "options": [
+   {
+    "label": "≈ 1.0 year",
+    "correct": true
+   },
+   {
+    "label": "≈ 12 years",
+    "correct": false,
+    "why": "N ≈ 12 is in months. Reading it as years is the unit slip."
+   },
+   {
+    "label": "≈ 0.29 years",
+    "correct": false,
+    "why": "Stopped at √N ≈ 3.46 and treated it as the number of months."
+   },
+   {
+    "label": "≈ 3.5 years",
+    "correct": false,
+    "why": "Stopped at √N ≈ 3.46 and read it as years."
+   }
+  ],
+  "working": [
+   {
+    "label": "Square root of N",
+    "display": "$\\sqrt{N} \\ge 1.645 \\times 4.0 / 1.90 = 3.46$",
+    "value": 3.463
+   },
+   {
+    "label": "Months",
+    "display": "$N \\ge 3.46^2 = 12.0$ months",
+    "value": 11.99
+   },
+   {
+    "label": "Years",
+    "display": "$12.0 / 12 \\approx 1.0$ year",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "N = (z·σ/α)² comes out in the data's own time unit. Convert months to years at the end.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "sig": 4.0,
+    "a": 1.9
+   },
+   "steps": [
+    {
+     "name": "rootN",
+     "expr": "z*sig/a",
+     "value": 3.46316
+    },
+    {
+     "name": "N",
+     "expr": "rootN**2",
+     "value": 11.9935
+    },
+    {
+     "name": "years",
+     "expr": "N/12",
+     "value": 0.999455
+    },
+    {
+     "name": "slip_rootN_months",
+     "expr": "rootN/12",
+     "value": 0.288596
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-18",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-55"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A more ordinary manager: alpha 0.25% per month, and the monthly standard deviation of the alpha estimate is 4.0%. Reject 'luck' when $\\bar\\alpha\\sqrt{N}/\\sigma(\\alpha) \\ge 1.645$, where $N$ is the number of months.",
+  "ask": "How long a track record is needed?",
+  "options": [
+   {
+    "label": "≈ 58 years",
+    "correct": true
+   },
+   {
+    "label": "≈ 690 years",
+    "correct": false,
+    "why": "N ≈ 693 is in months. Reading it as years is the unit slip."
+   },
+   {
+    "label": "≈ 2.2 years",
+    "correct": false,
+    "why": "Stopped at √N ≈ 26.3 and treated it as months."
+   },
+   {
+    "label": "≈ 19 years",
+    "correct": false,
+    "why": "Scale slip: about 0.3× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Square root of N",
+    "display": "$\\sqrt{N} \\ge 1.645 \\times 4.0 / 0.25 = 26.3$",
+    "value": 26.32
+   },
+   {
+    "label": "Months",
+    "display": "$N \\ge 26.3^2 = 693$ months",
+    "value": 692.7
+   },
+   {
+    "label": "Years",
+    "display": "$693 / 12 \\approx 58$ years",
+    "value": 57.7
+   }
+  ],
+  "takeaway": "The required track record grows with 1/α². A modest alpha takes decades to prove.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "sig": 4.0,
+    "a": 0.25
+   },
+   "steps": [
+    {
+     "name": "rootN",
+     "expr": "z*sig/a",
+     "value": 26.32
+    },
+    {
+     "name": "N",
+     "expr": "rootN**2",
+     "value": 692.742
+    },
+    {
+     "name": "years",
+     "expr": "N/12",
+     "value": 57.7285
+    },
+    {
+     "name": "slip_rootN_months",
+     "expr": "rootN/12",
+     "value": 2.19333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-19",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 88: Jorion, VaR and Risk Budgeting in Investment Management",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-43"
+  },
+  "trap_category": "Formula",
+  "setup": "A pension fund has USD 4,550m of assets with annual volatility 7%. You want one-year VaR at 95% ($z = 1.65$).",
+  "ask": "VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ USD 530m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 33m",
+    "correct": false,
+    "why": "Scaled the annual σ down to one day (÷√252), but the horizon is one year."
+   },
+   {
+    "label": "≈ USD 160m",
+    "correct": false,
+    "why": "Scale slip: about 0.3× the true figure."
+   },
+   {
+    "label": "≈ USD 53,000m",
+    "correct": false,
+    "why": "Used 7 instead of 0.07, treating the percentage as a whole number."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR",
+    "display": "$1.65 \\times 0.07 \\times 4{,}550 = \\text{USD } 525.5\\text{m}$",
+    "value": 525.5
+   }
+  ],
+  "takeaway": "VaR = z × σ × W, with σ as a decimal and matched to the horizon.",
+  "check": {
+   "inputs": {
+    "z": 1.65,
+    "s": 0.07,
+    "W": 4550
+   },
+   "steps": [
+    {
+     "name": "VaR",
+     "expr": "z*s*W",
+     "value": 525.525
+    },
+    {
+     "name": "slip_daily",
+     "expr": "VaR/sqrt(252)",
+     "value": 33.105
+    },
+    {
+     "name": "slip_pct",
+     "expr": "z*7*W",
+     "value": 52552.5
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.3*VaR",
+     "value": 157.658
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-20",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 88: Jorion, VaR and Risk Budgeting in Investment Management",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-12"
+  },
+  "trap_category": "Formula",
+  "setup": "Two equally sized active managers, USD 360m each, both with $\\sigma = 14\\%$, and correlation 0.65 between them. With $z = 2.33$, each has an individual risk budget of $2.33 \\times 0.14 \\times 360 \\approx$ USD 117.4m. At zero correlation the pair would total $117.4\\sqrt2 \\approx$ USD 166m.",
+  "ask": "Is the sleeve's actual total risk budget above USD 166m, below it, or too close to call?",
+  "options": [
+   {
+    "label": "Above",
+    "correct": true
+   },
+   {
+    "label": "Below",
+    "correct": false,
+    "why": "Only a negative correlation could push the total below the ρ = 0 figure. ρ = +0.65 adds a positive cross term."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The multiplier is √(2 + 2 × 0.65) = √3.3 = 1.82, against √2 = 1.41. The total is about 213, well above 166."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual budget",
+    "display": "$2.33 \\times 0.14 \\times 360 = 117.4$",
+    "value": 117.43
+   },
+   {
+    "label": "Multiplier",
+    "display": "$\\sqrt{2 + 2\\rho} = \\sqrt{3.30} = 1.817$",
+    "value": 1.817
+   },
+   {
+    "label": "Total risk budget",
+    "display": "$117.4 \\times 1.817 = \\text{USD } 213\\text{m}$ (between 166 and 235)",
+    "value": 213.3
+   }
+  ],
+  "takeaway": "For two equal budgets, total = B × √(2 + 2ρ): between B√2 at ρ = 0 and 2B at ρ = 1.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "s": 0.14,
+    "x": 360,
+    "rho": 0.65
+   },
+   "steps": [
+    {
+     "name": "B",
+     "expr": "z*s*x",
+     "value": 117.432
+    },
+    {
+     "name": "mult",
+     "expr": "sqrt(2+2*rho)",
+     "value": 1.81659
+    },
+    {
+     "name": "total",
+     "expr": "B*mult",
+     "value": 213.326
+    },
+    {
+     "name": "rho0",
+     "expr": "B*sqrt(2)",
+     "value": 166.074
+    },
+    {
+     "name": "rho1",
+     "expr": "2*B",
+     "value": 234.864
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-21",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 88: Jorion, VaR and Risk Budgeting in Investment Management",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-14"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "USD 800m is split between two independent active managers to maximise IR, subject to 5% total tracking error. A: IR 0.75, TEV 8%. B: IR 0.50, TEV 8%. The optimum gives $IR_p = \\sqrt{0.75^2 + 0.50^2} = 0.901$ and $x_i = IR_i\\,(\\omega_p/IR_p)/\\omega_i$, so $x_A = 0.75 \\times (0.05/0.901)/0.08 = 52.0\\%$.",
+  "ask": "The weight left in the benchmark, $1 - x_A - x_B$: positive, negative, or roughly zero?",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "x_B = (0.50/0.75) × 52.0% = 34.7%, so the two managers total 86.7%, under 100%."
+   },
+   {
+    "label": "Roughly zero",
+    "correct": false,
+    "why": "The manager weights aren't forced to sum to one. 13.3% sits in the benchmark, which uses up no tracking-error budget."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight in B",
+    "display": "$x_B = 0.50 \\times (0.05/0.901)/0.08 = 34.7\\%$",
+    "value": 0.3467
+   },
+   {
+    "label": "Managers combined",
+    "display": "$52.0\\% + 34.7\\% = 86.7\\%$",
+    "value": 0.8667
+   },
+   {
+    "label": "Benchmark residual",
+    "display": "$1 - 0.867 = +13.3\\%$",
+    "value": 0.1333
+   }
+  ],
+  "takeaway": "Risk budgets are proportional to IRs. Any leftover capital goes to the zero-TEV benchmark, so manager weights need not sum to 100%.",
+  "check": {
+   "inputs": {
+    "IRA": 0.75,
+    "IRB": 0.5,
+    "wp": 0.05,
+    "wA": 0.08,
+    "wB": 0.08
+   },
+   "steps": [
+    {
+     "name": "IRp",
+     "expr": "sqrt(IRA**2+IRB**2)",
+     "value": 0.901388
+    },
+    {
+     "name": "xA",
+     "expr": "IRA*(wp/IRp)/wA",
+     "value": 0.520031
+    },
+    {
+     "name": "xB",
+     "expr": "IRB*(wp/IRp)/wB",
+     "value": 0.346688
+    },
+    {
+     "name": "resid",
+     "expr": "1-xA-xB",
+     "value": 0.133281
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-22",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 90: Stowell & Stowell, Hedge Fund Investment Strategies",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-44"
+  },
+  "trap_category": "Formula",
+  "setup": "Convertible arbitrage: you are long one convertible with delta 53% and a conversion ratio of 21.2037 shares, and you delta-hedge by shorting the stock.",
+  "ask": "How many shares do you short?",
+  "options": [
+   {
+    "label": "≈ 11 shares",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.53 shares",
+    "correct": false,
+    "why": "Used delta alone, without converting the bond into share-equivalents with the conversion ratio. That leaves the position almost unhedged."
+   },
+   {
+    "label": "≈ 40 shares",
+    "correct": false,
+    "why": "Divided the conversion ratio by delta instead of multiplying."
+   },
+   {
+    "label": "≈ 3.4 shares",
+    "correct": false,
+    "why": "Scale slip: about 0.3× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Hedge",
+    "display": "$\\text{delta} \\times \\text{conversion ratio} = 0.53 \\times 21.2037 = 11.24$ shares",
+    "value": 11.24
+   }
+  ],
+  "takeaway": "Shares to short = delta × conversion ratio: the bond's share-equivalents scaled by its current sensitivity.",
+  "check": {
+   "inputs": {
+    "delta": 0.53,
+    "CR": 21.2037
+   },
+   "steps": [
+    {
+     "name": "shares",
+     "expr": "delta*CR",
+     "value": 11.238
+    },
+    {
+     "name": "slip_divide",
+     "expr": "CR/delta",
+     "value": 40.007
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-23",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 90: Stowell & Stowell, Hedge Fund Investment Strategies",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-44"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Convertible arbitrage: long one convertible at USD 1,013.75 (delta 53%, conversion ratio 21.2037), short $0.53 \\times 21.2037 \\approx 11.24$ shares at USD 41.54. The stock falls 5% (USD 2.08 a share), and the model marks the convertible down to USD 991.78, a loss of USD 21.97 on that leg.",
+  "ask": "Net P&L on the hedged position (ignoring coupons, borrow fees and dividends): positive, negative, or too close to call?",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "The short leg gains 11.24 × 2.08 ≈ 23.34, which more than covers the 21.97 lost on the convertible."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The net is +1.37: small, but the sign is reliable. The convex long leg loses less than the linear short leg gains."
+   }
+  ],
+  "working": [
+   {
+    "label": "Shares short",
+    "display": "$0.53 \\times 21.2037 = 11.24$",
+    "value": 11.24
+   },
+   {
+    "label": "Price change",
+    "display": "$41.54 \\times (-5\\%) = -2.077$",
+    "value": -2.077
+   },
+   {
+    "label": "Short-stock leg",
+    "display": "$11.24 \\times 2.077 = +23.34$",
+    "value": 23.34
+   },
+   {
+    "label": "Convertible leg",
+    "display": "$991.78 - 1{,}013.75 = -21.97$",
+    "value": -21.97
+   },
+   {
+    "label": "Hedged P&L",
+    "display": "$23.34 - 21.97 = +\\text{USD } 1.37$",
+    "value": 1.37
+   }
+  ],
+  "takeaway": "A delta-hedged convertible is long convexity: small gains whichever way the stock moves.",
+  "check": {
+   "inputs": {
+    "delta": 0.53,
+    "CR": 21.2037,
+    "S": 41.54,
+    "Cdn": 991.78,
+    "C0": 1013.75
+   },
+   "steps": [
+    {
+     "name": "shares",
+     "expr": "delta*CR",
+     "value": 11.238
+    },
+    {
+     "name": "dS",
+     "expr": "-0.05*S",
+     "value": -2.077
+    },
+    {
+     "name": "shortPL",
+     "expr": "-shares*dS",
+     "value": 23.3412
+    },
+    {
+     "name": "bondPL",
+     "expr": "Cdn-C0",
+     "value": -21.97
+    },
+    {
+     "name": "net",
+     "expr": "shortPL+bondPL",
+     "value": 1.37124
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-24",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 90: Stowell & Stowell, Hedge Fund Investment Strategies",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-44"
+  },
+  "trap_category": "Sign",
+  "setup": "Same hedge: long one convertible at USD 1,013.75, short 11.24 shares at USD 41.54. This time the stock **rises** 5%, and the model marks the convertible up to USD 1,038.07.",
+  "ask": "Hedged P&L (ignoring coupons, borrow fees and dividends): gain, loss, or exactly zero?",
+  "options": [
+   {
+    "label": "Gain",
+    "correct": true
+   },
+   {
+    "label": "Loss",
+    "correct": false,
+    "why": "The short leg loses 11.24 × 2.08 = 23.34, but the convertible gains 24.32, for a net of +0.98."
+   },
+   {
+    "label": "Exactly zero",
+    "correct": false,
+    "why": "Delta neutralises only the first-order move. The convertible's convexity leaves a small gain of +0.98."
+   }
+  ],
+  "working": [
+   {
+    "label": "Convertible leg",
+    "display": "$1{,}038.07 - 1{,}013.75 = +24.32$",
+    "value": 24.32
+   },
+   {
+    "label": "Short-stock leg",
+    "display": "$-11.24 \\times 2.077 = -23.34$",
+    "value": -23.34
+   },
+   {
+    "label": "Hedged P&L",
+    "display": "$24.32 - 23.34 = +\\text{USD } 0.98$",
+    "value": 0.98
+   }
+  ],
+  "takeaway": "Delta-hedged convertible = long volatility. It gains on both a 5% rise and a 5% fall.",
+  "check": {
+   "inputs": {
+    "delta": 0.53,
+    "CR": 21.2037,
+    "S": 41.54,
+    "Cup": 1038.07,
+    "C0": 1013.75
+   },
+   "steps": [
+    {
+     "name": "shares",
+     "expr": "delta*CR",
+     "value": 11.238
+    },
+    {
+     "name": "dS",
+     "expr": "0.05*S",
+     "value": 2.077
+    },
+    {
+     "name": "bondPL",
+     "expr": "Cup-C0",
+     "value": 24.32
+    },
+    {
+     "name": "shortPL",
+     "expr": "-shares*dS",
+     "value": -23.3412
+    },
+    {
+     "name": "net",
+     "expr": "bondPL+shortPL",
+     "value": 0.978755
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-25",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-53"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "$r_f = 3\\%$. The market returned 11% with $\\sigma = 20\\%$. Donald's portfolio returned 15% with $\\sigma = 40\\%$ and correlation 0.80 with the market. So far: $\\beta_p = 0.80 \\times 40/20 = 1.60$.",
+  "ask": "Jensen's alpha: positive, negative, or too close to call?",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "15% beats the market's 11%, but the CAPM required return at β = 1.60 is 3 + 1.60 × 8 = 15.8%, so alpha is −0.8%."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "−0.8% is small, but its sign is clear, and Sharpe (0.30 vs 0.40) and Treynor (7.5 vs 8.0) both agree the portfolio lagged."
+   }
+  ],
+  "working": [
+   {
+    "label": "Required return",
+    "display": "$3 + 1.60 \\times (11 - 3) = 15.8\\%$",
+    "value": 15.8
+   },
+   {
+    "label": "Jensen's alpha",
+    "display": "$15.0 - 15.8 = -0.80\\%$",
+    "value": -0.8
+   }
+  ],
+  "takeaway": "Beating the market on raw return isn't alpha. Charge for β first: β > 1 raises the hurdle.",
+  "check": {
+   "inputs": {
+    "rf": 3.0,
+    "rm": 11.0,
+    "sm": 20.0,
+    "rp": 15.0,
+    "sp": 40.0,
+    "rho": 0.8
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "rho*sp/sm",
+     "value": 1.6
+    },
+    {
+     "name": "req",
+     "expr": "rf+beta*(rm-rf)",
+     "value": 15.8
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-req",
+     "value": -0.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-26",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 99: Ang, Illiquid Assets",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T3-45"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "An illiquid-fund database reports a mean return of 12% and volatility of 8%. With $r_f = 2\\%$, the reported Sharpe ratio is 1.25. Two corrections are pending: survivorship cuts the return by 4 points (to 8%), and unsmoothing lifts volatility to 11%.",
+  "ask": "Applied on its own, which correction pulls the Sharpe ratio down further, or is it too close to call?",
+  "options": [
+   {
+    "label": "The return (survivorship) fix",
+    "correct": true
+   },
+   {
+    "label": "The volatility (unsmoothing) fix",
+    "correct": false,
+    "why": "Volatility alone gives 10/11 = 0.91. The return fix gives 6/8 = 0.75, a bigger cut, because it removes 40% of the excess return."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The two single-fix ratios are 0.75 and 0.91, which are 0.16 apart."
+   }
+  ],
+  "working": [
+   {
+    "label": "Return fix only",
+    "display": "$(8 - 2)/8 = 0.75$",
+    "value": 0.75
+   },
+   {
+    "label": "Volatility fix only",
+    "display": "$(12 - 2)/11 = 0.91$",
+    "value": 0.909
+   },
+   {
+    "label": "Both",
+    "display": "$(8 - 2)/11 = 0.55$",
+    "value": 0.545
+   }
+  ],
+  "takeaway": "Reported illiquid Sharpe ratios are inflated twice: the return is overstated and the volatility understated.",
+  "check": {
+   "inputs": {
+    "r": 12.0,
+    "rc": 8.0,
+    "rf": 2.0,
+    "s": 8.0,
+    "sc": 11.0
+   },
+   "steps": [
+    {
+     "name": "S0",
+     "expr": "(r-rf)/s",
+     "value": 1.25
+    },
+    {
+     "name": "S_ret",
+     "expr": "(rc-rf)/s",
+     "value": 0.75
+    },
+    {
+     "name": "S_vol",
+     "expr": "(r-rf)/sc",
+     "value": 0.909091
+    },
+    {
+     "name": "S_both",
+     "expr": "(rc-rf)/sc",
+     "value": 0.545455
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-27",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 88: Jorion, VaR and Risk Budgeting in Investment Management",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T2-42"
+  },
+  "trap_category": null,
+  "setup": "A pension fund has USD 100,000 of assets and USD 90,000 of liabilities. Expected surplus growth is 5% of assets a year, and the 99% one-year surplus VaR is 22% of assets. Expected surplus in a year: $10{,}000 + 5{,}000 =$ USD 15,000.",
+  "ask": "At the 1% tail, is the surplus positive (still a surplus), negative (a deficit), or too close to call?",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "VaR is 22% × 100,000 = USD 22,000, bigger than the 15,000 expected cushion: 15,000 − 22,000 = −7,000."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "A USD 7,000 deficit against a USD 22,000 VaR is not borderline."
+   }
+  ],
+  "working": [
+   {
+    "label": "Surplus VaR",
+    "display": "$22\\% \\times 100{,}000 = 22{,}000$",
+    "value": 22000
+   },
+   {
+    "label": "1% tail surplus",
+    "display": "$15{,}000 - 22{,}000 = -\\text{USD } 7{,}000$ (a deficit)",
+    "value": -7000
+   }
+  ],
+  "takeaway": "Tail surplus = expected surplus − surplus VaR. A VaR bigger than the cushion means a deficit in the tail.",
+  "check": {
+   "inputs": {
+    "A": 100000,
+    "L": 90000,
+    "mu": 0.05,
+    "v": 0.22
+   },
+   "steps": [
+    {
+     "name": "S0",
+     "expr": "A-L",
+     "value": 10000.0
+    },
+    {
+     "name": "ES1",
+     "expr": "S0+mu*A",
+     "value": 15000.0
+    },
+    {
+     "name": "VaR",
+     "expr": "v*A",
+     "value": 22000.0
+    },
+    {
+     "name": "tail",
+     "expr": "ES1-VaR",
+     "value": -7000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-28",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "Reading 93: Private Markets Investing",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-NA-11"
+  },
+  "trap_category": "Sibling",
+  "setup": "A private fund called USD 100m at $t = 0$ and USD 50m at $t = 1$, then distributed USD 220m at $t = 2$. A reference index went 1.00 → 1.10 → 1.21. Raw multiple (MOIC) $= 220/150 = 1.47\\times$.",
+  "ask": "Will the public market equivalent (PME) come out higher than 1.47, lower, or the same?",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "PME discounts each cash flow by index growth. The distribution is furthest out (÷1.21) while the calls are discounted less, so the ratio shrinks: 181.8/145.5 = 1.25."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "That would happen only if the index were flat. It grew 21%, and PME strips that out."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discounted calls",
+    "display": "$100 + 50/1.10 = 145.45$",
+    "value": 145.45
+   },
+   {
+    "label": "Discounted distribution",
+    "display": "$220/1.21 = 181.82$",
+    "value": 181.82
+   },
+   {
+    "label": "PME",
+    "display": "$181.82/145.45 = 1.25 < 1.47$",
+    "value": 1.25
+   }
+  ],
+  "takeaway": "PME = MOIC with the market's return taken out. In a rising market it's below the raw multiple, and above 1 means the fund beat the index.",
+  "check": {
+   "inputs": {
+    "c0": 100,
+    "c1": 50,
+    "d2": 220,
+    "I1": 1.1,
+    "I2": 1.21
+   },
+   "steps": [
+    {
+     "name": "calls",
+     "expr": "c0+c1/I1",
+     "value": 145.455
+    },
+    {
+     "name": "dist",
+     "expr": "d2/I2",
+     "value": 181.818
+    },
+    {
+     "name": "PME",
+     "expr": "dist/calls",
+     "value": 1.25
+    },
+    {
+     "name": "MOIC",
+     "expr": "d2/(c0+c1)",
+     "value": 1.46667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-29",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "Reading 90: Stowell & Stowell, Hedge Fund Investment Strategies",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-FT-75"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Capital-structure trade: buy one USD 1,000-face bond (6% annual coupon) at USD 350 and short 120 shares at USD 2.50. In two years the firm liquidates: both coupons are paid, the bond recovers USD 400, and the stock goes to zero.",
+  "ask": "Total gain on the combined position is closest to…",
+  "options": [
+   {
+    "label": "≈ USD 470",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 170",
+    "correct": false,
+    "why": "Counted only the bond leg (coupons + recovery − price) and forgot the USD 300 made on the short."
+   },
+   {
+    "label": "≈ USD 50",
+    "correct": false,
+    "why": "Counted only the bond's price gain, 400 − 350, and dropped both the coupons and the short."
+   },
+   {
+    "label": "≈ USD 1,400",
+    "correct": false,
+    "why": "Scale slip: about 3× the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond leg",
+    "display": "$2 \\times 60 + 400 - 350 = +170$",
+    "value": 170
+   },
+   {
+    "label": "Short leg",
+    "display": "$120 \\times 2.50 - 0 = +300$",
+    "value": 300
+   },
+   {
+    "label": "Total",
+    "display": "$170 + 300 = \\text{USD } 470$",
+    "value": 470
+   }
+  ],
+  "takeaway": "Long senior / short junior pays twice in liquidation: the recovery gain on the bond, plus the full short proceeds when the equity is wiped out.",
+  "check": {
+   "inputs": {
+    "F": 1000,
+    "c": 0.06,
+    "P": 350,
+    "rec": 400,
+    "n": 120,
+    "S": 2.5
+   },
+   "steps": [
+    {
+     "name": "bond",
+     "expr": "2*c*F+rec-P",
+     "value": 170.0
+    },
+    {
+     "name": "short",
+     "expr": "n*S",
+     "value": 300.0
+    },
+    {
+     "name": "total",
+     "expr": "bond+short",
+     "value": 470.0
+    },
+    {
+     "name": "slip_price",
+     "expr": "rec-P",
+     "value": 50.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-30",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 93: Private Markets Investing",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-NA-75"
+  },
+  "trap_category": null,
+  "setup": "An endowment holds USD 700m of public equity and USD 300m of private equity, against a 30% private-equity target. Public equities fall 30% in a quarter. The private-equity book still carries last quarter's valuation, and no capital is called or distributed.",
+  "ask": "The reported private-equity weight: above target, below target, or on target?",
+  "options": [
+   {
+    "label": "Above target",
+    "correct": true
+   },
+   {
+    "label": "Below target",
+    "correct": false,
+    "why": "The denominator shrank (1,000 → 790) while the stale 300 numerator didn't move: 300/790 = 38%."
+   },
+   {
+    "label": "On target",
+    "correct": false,
+    "why": "That would require private equity to be marked down 30% as well. It hasn't been repriced."
+   }
+  ],
+  "working": [
+   {
+    "label": "New total",
+    "display": "$700 \\times 0.70 + 300 = 790$",
+    "value": 790
+   },
+   {
+    "label": "PE weight",
+    "display": "$300/790 = 38.0\\%$ against a 30% target",
+    "value": 0.38
+   }
+  ],
+  "takeaway": "Denominator effect: a public-market drop mechanically overweights stale-marked private assets.",
+  "check": {
+   "inputs": {
+    "pub": 700,
+    "pe": 300,
+    "drop": 0.3
+   },
+   "steps": [
+    {
+     "name": "total",
+     "expr": "pub*(1-drop)+pe",
+     "value": 790.0
+    },
+    {
+     "name": "w",
+     "expr": "pe/total",
+     "value": 0.379747
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-31",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 86: Grinold & Kahn, Portfolio Construction",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-FT-71"
+  },
+  "trap_category": "Sign",
+  "setup": "An active position has alpha 0.80% and beta 1.50. The benchmark's alpha is 0.060%.",
+  "ask": "After neutralising for benchmark exposure, the position's alpha is higher than 0.80%, lower, or unchanged?",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "The part of alpha that comes from benchmark exposure, 0.060 × 1.50 = 0.09, is subtracted, which gives 0.71%."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "It would be unchanged only if the benchmark alpha were zero. Here 0.09 comes off."
+   }
+  ],
+  "working": [
+   {
+    "label": "Benchmark-attributable alpha",
+    "display": "$0.060 \\times 1.50 = 0.090\\%$",
+    "value": 0.09
+   },
+   {
+    "label": "Neutral alpha",
+    "display": "$0.80 - 0.09 = 0.71\\%$",
+    "value": 0.71
+   }
+  ],
+  "takeaway": "Benchmark-neutral alpha = α − β × α_benchmark. With a positive benchmark alpha, neutralising only takes alpha away.",
+  "check": {
+   "inputs": {
+    "a": 0.8,
+    "b": 1.5,
+    "ab": 0.06
+   },
+   "steps": [
+    {
+     "name": "adj",
+     "expr": "ab*b",
+     "value": 0.09
+    },
+    {
+     "name": "neutral",
+     "expr": "a-adj",
+     "value": 0.71
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-32",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 91: Stowell & Stowell, Hedge Funds",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T3-43"
+  },
+  "trap_category": "Polarity",
+  "setup": "A hedge fund holds USD 100 of stock financed with a USD 75 margin loan, so equity is USD 25 and debt-to-equity is 3.0×. The stock falls 10%.",
+  "ask": "Debt-to-equity leverage: rises, falls, or unchanged?",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "The loan stays at 75 while equity takes the whole 10 loss, dropping to 15: 75/15 = 5.0×."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "It would stay the same only if the loan shrank with the asset. It doesn't, so equity takes the full loss."
+   }
+  ],
+  "working": [
+   {
+    "label": "Equity after the fall",
+    "display": "$90 - 75 = 15$",
+    "value": 15
+   },
+   {
+    "label": "Leverage",
+    "display": "$75/15 = 5.0\\times$ (up from 3.0×)",
+    "value": 5.0
+   }
+  ],
+  "takeaway": "Price falls raise leverage mechanically. Getting back to target forces sales, and that selling feeds the spiral.",
+  "check": {
+   "inputs": {
+    "V": 100,
+    "D": 75,
+    "drop": 0.1
+   },
+   "steps": [
+    {
+     "name": "E0",
+     "expr": "V-D",
+     "value": 25.0
+    },
+    {
+     "name": "lev0",
+     "expr": "D/E0",
+     "value": 3.0
+    },
+    {
+     "name": "E1",
+     "expr": "V*(1-drop)-D",
+     "value": 15.0
+    },
+    {
+     "name": "lev1",
+     "expr": "D/E1",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-33",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 86: Grinold & Kahn, Portfolio Construction",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T3-33"
+  },
+  "trap_category": null,
+  "setup": "A stock's no-trade band: buy only if alpha exceeds $PC + 2\\lambda_A\\psi\\,MCAR$, and sell only if alpha drops below $2\\lambda_A\\psi\\,MCAR - SC$. The purchase cost is 0.40% and the sales cost 0.60%. Active risk aversion $\\lambda_A$ doubles from 0.10 to 0.20.",
+  "ask": "The band's width: widens, narrows, unchanged, or can't tell without the stock's alpha?",
+  "options": [
+   {
+    "label": "Unchanged",
+    "correct": true
+   },
+   {
+    "label": "Widens",
+    "correct": false,
+    "why": "The centring term 2λψMCAR appears in both bounds and cancels. Width = PC + SC = 1.00% whatever λ is; higher λ only shifts the band up."
+   },
+   {
+    "label": "Narrows",
+    "correct": false,
+    "why": "Risk aversion moves where the band sits, not its width. The width is round-trip cost, PC + SC = 1.00%."
+   },
+   {
+    "label": "Can't tell without the stock's alpha",
+    "correct": false,
+    "why": "Alpha is what gets compared with the band; it doesn't set the band's width. The width is PC + SC."
+   }
+  ],
+  "working": [
+   {
+    "label": "Width",
+    "display": "$(PC + 2\\lambda_A\\psi MCAR) - (2\\lambda_A\\psi MCAR - SC) = PC + SC$",
+    "value": null
+   },
+   {
+    "label": "Value",
+    "display": "$0.40\\% + 0.60\\% = 1.00\\%$ (band shifts up; width fixed)",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "The no-trade band is PC + SC wide. Risk aversion shifts it without resizing it.",
+  "check": {
+   "inputs": {
+    "PC": 0.4,
+    "SC": 0.6,
+    "cen1": 0.8,
+    "cen2": 1.6
+   },
+   "steps": [
+    {
+     "name": "width1",
+     "expr": "(PC+cen1)-(cen1-SC)",
+     "value": 1.0
+    },
+    {
+     "name": "width2",
+     "expr": "(PC+cen2)-(cen2-SC)",
+     "value": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-34",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-35"
+  },
+  "trap_category": "Sibling",
+  "setup": "A manager goes from 10 to 20 stocks, spreading the additions across several industries. Assume the portfolio's excess return and beta are unchanged.",
+  "ask": "The portfolio's Sharpe ratio: rises, falls, or roughly unchanged?",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Diversification cuts idiosyncratic variance σ²(e), so total σ falls. With the excess return fixed, Sharpe goes up."
+   },
+   {
+    "label": "Roughly unchanged",
+    "correct": false,
+    "why": "That describes Treynor, whose denominator β doesn't move. Sharpe divides by total σ, which does fall."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance split",
+    "display": "$\\sigma_p^2 = \\beta_p^2\\sigma_m^2 + \\sigma^2(e_p)$: diversification shrinks $\\sigma^2(e_p)$",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "$\\sigma_p \\downarrow$ with the numerator fixed $\\Rightarrow$ Sharpe $\\uparrow$; Treynor (÷β) unchanged",
+    "value": null
+   }
+  ],
+  "takeaway": "Sharpe rewards diversification because it divides by total σ. Treynor ignores it because it divides by β.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-IR1-35",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-43"
+  },
+  "trap_category": "Polarity",
+  "setup": "A low-volatility fund beat the Russell 1000 by 0.28% a year. The risk-matched benchmark is 65% Russell 1000 + 35% risk-free asset, and $r_f$ is well below the Russell's return.",
+  "ask": "Measured against the risk-matched benchmark, the fund's alpha: rises, falls, or unchanged?",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "The blend returns less than the Russell because 35% of it earns $r_f$. With the fund's return fixed, fund − benchmark gets bigger."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Alpha is a residual against the benchmark, so it moves whenever the benchmark's return does. Here the benchmark's return falls."
+   }
+  ],
+  "working": [
+   {
+    "label": "New benchmark",
+    "display": "$r_B = 0.65\\,r_{R1000} + 0.35\\,r_f < r_{R1000}$",
+    "value": null
+   },
+   {
+    "label": "Alpha",
+    "display": "$\\alpha = r_{fund} - r_B$: benchmark down $\\Rightarrow \\alpha$ up (and tracking error falls, so IR rises too)",
+    "value": null
+   }
+  ],
+  "takeaway": "A benchmark riskier than the fund understates alpha. Matching the fund's risk lowers the hurdle and raises alpha.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-IR1-36",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 83: Ang, Factor Theory",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-21"
+  },
+  "trap_category": "Sign",
+  "setup": "Pricing-kernel model: $E(r_i) - R_f = \\beta(i,m)\\,\\lambda(m)$ with $\\lambda(m) = -0.09$. An asset's $\\beta(i,m)$ moves from −0.95 to −0.33.",
+  "ask": "Its risk premium: rises, falls, or unchanged?",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "β goes up (toward zero), but λ is negative: (−0.33)(−0.09) = 2.97%, down from 8.55%."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "The premium is proportional to β(i,m). A smaller magnitude of negative β means a smaller premium."
+   }
+  ],
+  "working": [
+   {
+    "label": "Premium before",
+    "display": "$(-0.95)(-0.09) = 8.55\\%$",
+    "value": 0.0855
+   },
+   {
+    "label": "Premium after",
+    "display": "$(-0.33)(-0.09) = 2.97\\%$",
+    "value": 0.0297
+   }
+  ],
+  "takeaway": "Against the kernel, a higher (less negative) β means a lower premium. The asset pays off more in bad times, so it needs less compensation.",
+  "check": {
+   "inputs": {
+    "lam": -0.09,
+    "b0": -0.95,
+    "b1": -0.33
+   },
+   "steps": [
+    {
+     "name": "p0",
+     "expr": "b0*lam",
+     "value": 0.0855
+    },
+    {
+     "name": "p1",
+     "expr": "b1*lam",
+     "value": 0.0297
+    },
+    {
+     "name": "chg",
+     "expr": "p1-p0",
+     "value": -0.0558
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-37",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T1-11"
+  },
+  "trap_category": null,
+  "setup": "A USD 30m portfolio holds a Consumer ETF (USD 20m, $\\sigma = 12\\%$) and a Materials ETF (USD 10m, $\\sigma = 38\\%$), with correlation +0.15. The 95% individual VaRs are 3.95m and 6.25m, portfolio VaR is 7.88m, and Consumer's component VaR is about 2.45m. The correlation doubles to +0.30.",
+  "ask": "Consumer's component VaR: rises, falls, or unchanged?",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Higher ρ raises Consumer's covariance with the portfolio and lifts portfolio VaR itself. Both push component VaR up, from 2.45 to 2.76."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Component VaR = individual VaR × ρ(i,p), and ρ(i,p) rises when the pairwise correlation rises."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio VaR at ρ = 0.30",
+    "display": "$\\sqrt{3.948^2 + 6.251^2 + 2(0.30)(3.948)(6.251)} = 8.34$",
+    "value": 8.335
+   },
+   {
+    "label": "Component VaR at ρ = 0.15",
+    "display": "$3.948\\,(3.948 + 0.15 \\times 6.251)/7.878 = 2.45$",
+    "value": 2.448
+   },
+   {
+    "label": "Component VaR at ρ = 0.30",
+    "display": "$3.948\\,(3.948 + 0.30 \\times 6.251)/8.335 = 2.76$",
+    "value": 2.758
+   }
+  ],
+  "takeaway": "In a long two-asset book, higher correlation means less diversification, so each position's component VaR goes up.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "xC": 20,
+    "sC": 0.12,
+    "xM": 10,
+    "sM": 0.38,
+    "r0": 0.15,
+    "r1": 0.3
+   },
+   "steps": [
+    {
+     "name": "VC",
+     "expr": "z*sC*xC",
+     "value": 3.948
+    },
+    {
+     "name": "VM",
+     "expr": "z*sM*xM",
+     "value": 6.251
+    },
+    {
+     "name": "Vp0",
+     "expr": "sqrt(VC**2+VM**2+2*r0*VC*VM)",
+     "value": 7.87816
+    },
+    {
+     "name": "CC0",
+     "expr": "VC*(VC+r0*VM)/Vp0",
+     "value": 2.44836
+    },
+    {
+     "name": "Vp1",
+     "expr": "sqrt(VC**2+VM**2+2*r1*VC*VM)",
+     "value": 8.33481
+    },
+    {
+     "name": "CC1",
+     "expr": "VC*(VC+r1*VM)/Vp1",
+     "value": 2.75836
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IR1-38",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "Reading 99: Ang, Illiquid Assets",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-T3-15"
+  },
+  "trap_category": "Polarity",
+  "setup": "An illiquid asset is appraised only quarterly, so its reported return series misses the price moves between observations.",
+  "ask": "Reported beta relative to the true beta: overstated, understated, or unbiased?",
+  "options": [
+   {
+    "label": "Understated",
+    "correct": true
+   },
+   {
+    "label": "Overstated",
+    "correct": false,
+    "why": "Infrequent trading smooths the series. Betas, volatilities and correlations all come out too low. (Overstated *returns* come from survivorship and selection bias, a different effect.)"
+   },
+   {
+    "label": "Unbiased",
+    "correct": false,
+    "why": "Missing the variation between observations is not the same as there being none. Sampled risk measures are biased down."
+   }
+  ],
+  "working": [
+   {
+    "label": "Mechanism",
+    "display": "Sparse sampling $\\Rightarrow$ smoothed returns $\\Rightarrow$ $\\hat\\beta,\\ \\hat\\sigma,\\ \\hat\\rho$ all biased down",
+    "value": null
+   },
+   {
+    "label": "Illustration",
+    "display": "Quarterly-sampled vol $0.23$ vs $0.28$ from daily data on the same price path",
+    "value": null
+   }
+  ],
+  "takeaway": "Infrequent trading understates risk. Survivorship and selection bias overstate returns. Both flatter reported Sharpe ratios.",
+  "check": null
+ }
+]

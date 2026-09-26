@@ -1,0 +1,79 @@
+{
+ "slice": "MR-T1-1",
+ "decisions": [
+  {
+   "id": "MR-T1-29",
+   "field": "options",
+   "verdict": "modify",
+   "final": {
+    "options.a.text": "$ES_3$ is a 10-day shock applied to all variables in categories 3, 4 and 5 while categories 1 and 2 are held constant, then scaled by $\\sqrt{(40-20)/10}$ to reflect the 20-day increment from the category 2 horizon to the category 3 horizon. Total expected shortfall is the square root of the sum of the squares of the five scaled measures. The historical simulation uses 250 overlapping 10-day trials.",
+    "options.b.text": "$ES_3$ is a 10-day shock applied to all variables in categories 3, 4 and 5 while categories 1 and 2 are held constant, then scaled by $\\sqrt{(40-20)/10}$. Total expected shortfall is the simple sum of the five scaled measures, because variable changes are assumed perfectly correlated. The simulation uses 250 overlapping trials."
+   },
+   "reason": "Confirmed. The solution's own formula scales ES_j by sqrt((LH_j-LH_{j-1})/LH_1); for category 3 under the final horizons (10,20,40,60,120) that is sqrt((40-20)/10)=sqrt(2), which Q30 uses and whose trap text explicitly calls sqrt(40/10) the level-instead-of-increment error. sqrt(40/10) was the correct increment only under the consultative horizons (60-20=40). The source's 'update' substituted the new level for the increment. Key (a) stays: b/c/d each still carry a disqualifying error (simple sum, unscaled direct shocks, non-overlapping trials). Modified only to keep the fix short so (a) does not become conspicuously longer than (b), and to drop 'to reach a 40-day equivalent' (the nested increment does not represent a 40-day ES on its own)."
+  },
+  {
+   "id": "MR-T1-43",
+   "field": "question",
+   "verdict": "accept",
+   "final": {
+    "question": "A treasury analyst at a US bank is checking a dealer quote for no-arbitrage consistency. The spot value of a foreign currency is USD 0.5500. The continuously compounded risk-free rate is 4.0% per annum in the United States and 8.0% per annum in the foreign country. A one-year European call on the foreign currency struck at USD 0.5700 trades at USD 0.0325, and its implied volatility is 23.8% per annum. Applying put-call parity with the foreign risk-free rate in the role of the dividend yield $q$, which is nearest to the no-arbitrage value of the corresponding European put?",
+    "solution": "Put-call parity for a currency option, where the foreign risk-free rate plays the role of a continuous dividend yield. The stated implied volatility is a distraction and is not needed.\n\nPut-call parity for an asset paying a continuous yield $q$:\n\n$$p + S_0 e^{-qT} = c + Ke^{-rT} \\quad\\Rightarrow\\quad p = c + Ke^{-rT} - S_0 e^{-qT}$$\n\nAssign each rate to its correct leg. The domestic rate $r$ discounts the strike, because the strike is a domestic-currency cash flow. The foreign rate $q$ discounts the spot, because holding the foreign currency earns the foreign rate.\n\n$$Ke^{-rT} = 0.5700 \\times e^{-0.04\\times1} = 0.5700 \\times 0.960789 = 0.547650$$\n$$S_0 e^{-qT} = 0.5500 \\times e^{-0.08\\times1} = 0.5500 \\times 0.923116 = 0.507714$$\n$$p = 0.0325 + 0.547650 - 0.507714 = 0.072436$$\n\nThe put is worth approximately USD 0.0724. The implied volatility of 23.8% is not required and must not be used: parity is a no-arbitrage identity holding independently of any pricing model, and consistency with the call's 23.8% is guaranteed automatically by the equality of call and put implied volatility.",
+    "trap.explanation": "The real trap is time rather than arithmetic: the stated 23.8% implied volatility invites a full Black-Scholes computation that is unnecessary, since parity alone answers the question. The secondary trap is rate assignment, since the two rates are structurally close enough to be swapped without the answer looking absurd."
+   },
+   "reason": "Re-solved with Garman-Kohlhagen (S=0.55, K=0.57, r=4%, rf=8%, T=1): at sigma=14.5% the call is 0.01459, not 0.0325; the volatility that reproduces 0.0325 is 23.79%, and at that volatility the GK put is 0.07244, exactly the parity answer (key c). The stem data are internally inconsistent and the solution's claim that consistency with the call's volatility is 'guaranteed' is false with 14.5%. Changing the volatility to 23.8% (stem, solution, trap) makes the data consistent without touching any option. Key (c) confirmed by parity: 0.0325+0.547650-0.507714=0.072436. Source (PDF p.45-46) has the same 14.5%, so this is a source error."
+  },
+  {
+   "id": "MR-T1-07",
+   "field": "solution",
+   "verdict": "accept",
+   "final": {
+    "question": "An analyst computes implied volatilities from traded call options on a large-cap technology stock. The resulting skew is typical of equity options: implied volatility is a decreasing function of strike price. She draws four conclusions.\n\nI. The implied distribution has negative skewness and negative excess kurtosis.\nII. For identical strikes and maturities, the out-of-the-money put carries a higher implied volatility than the in-the-money call.\nIII. Compared with the normal distribution, the implied distribution has a lighter left tail.\nIV. Compared with the lognormal distribution, the implied distribution has a lighter right tail.\n\nWhich of her conclusions is necessarily true?",
+    "solution": "Concept tested: precisely what a downward skew does and does not license you to infer about the implied distribution.\n\nBase result: a downward skew means high implied volatility at low strikes and low implied volatility at high strikes. Low strikes price the left tail (out-of-the-money puts, in-the-money calls); high strikes price the right tail. So relative to the lognormal benchmark the implied distribution has a heavier left tail and a lighter right tail.\n\nIV is necessarily true: a direct restatement of the base result, with the correct benchmark (lognormal) and the correct direction (lighter right tail).\n\nI is not necessarily true: one heavy tail and one light tail does not pin down overall excess kurtosis, which measures total tail weight and can come out positive, zero, or negative. Negative excess kurtosis would require both tails to be light, which the skew contradicts on the left.\n\nII is false: at a common strike and maturity, put-call parity forces the European call and the European put to share one implied volatility, whatever the shape of the skew. The skew describes how implied volatility varies across strikes; it creates no gap between a call and a put at the same strike.\n\nIII is false on two counts: the skew implies a heavier, not lighter, left tail; and the benchmark is the lognormal distribution, not the normal."
+   },
+   "reason": "Confirmed. The source's reasoning (II 'undefined'; 'at a given strike an ITM call is more expensive than an ITM put') is wrong: at one strike a call and a put cannot both be ITM, and the comparison in II is well defined. For a non-dividend stock, c(K1<S) >= c(S) >= p(S) >= p(K2<S) because c(S)-p(S)=S(1-e^{-rT})>=0, so II is true by no-arbitrage (it can fail only if q>r); a no-dividend reader would pick II and IV, which is not an option. Rewording II into the parity statement (same strike, OTM put vs ITM call, higher IV) makes it unambiguously false, tests LO 2/3, and preserves key (a) IV only; options c and d still include II so their analyses remain valid."
+  },
+  {
+   "id": "MR-T1-16",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "optionAnalysis.c": {
+     "verdict": "incorrect",
+     "reason": "Serial correlation in returns changes how variance scales with the horizon. Positive autocorrelation raises long-horizon annualised volatility (upward slope) and negative autocorrelation lowers it. It describes returns, not a state-dependent volatility level, so it is not the curriculum explanation for a term structure whose slope depends on where current volatility sits relative to its long-run level."
+    },
+    "solution": "Concept tested: the volatility term structure as an expectation of average future volatility, and mean reversion as the mechanism capable of generating either slope.\n\nThe term structure plots implied volatility against time to maturity at a given strike. A long-dated implied volatility is, loosely, the market's expectation of average volatility over the life of the option.\n\nMean reversion means volatility is pulled back toward a long-run level: short-dated volatility high implies expected to fall implies downward-sloping term structure; short-dated volatility low implies expected to rise implies upward-sloping term structure.\n\nMean reversion is the candidate whose slope depends on the current level of volatility relative to its long-run level, which is exactly what makes it the explanation for a term structure shape. Given that short-dated volatility is currently high, it delivers the observed downward slope."
+   },
+   "reason": "Confirmed: Var(sum of n returns)=n*sigma^2*[1+2*sum(1-k/n)rho_k], so negative serial correlation lowers annualised long-horizon volatility (downward slope). Option (c) states no sign, so the rationale 'implies an upward slope' and the solution's 'only one of the four candidates that can produce either slope' are false as stated. Key (a) remains the most plausible, curriculum answer. Source p.17 has the same text."
+  },
+  {
+   "id": "MR-T1-47",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "Numerical computation of normal expected shortfall, and the sign convention when the stated mean is a positive expected return but the answer is required as a loss.\n\nStep 1. Identify the quantile. For $X=97.5\\%$, the standard normal point with 2.5% probability of being exceeded is $Y=1.960$.\n\nStep 2. Evaluate the tail multiplier.\n\n$$\\exp(-Y^2/2)=\\exp(-1.960^2/2)=\\exp(-1.9208)=0.146490$$\n$$\\sqrt{2\\pi}\\times(1-X)=2.506628\\times0.025=0.0626657$$\n$$\\text{multiplier}=0.146490/0.0626657=2.3376$$\n\nStep 3. Apply the sign convention. The stated mean of $+1.0\\%$ is an expected profit, so it reduces the expected loss in the tail.\n\n$$ES = -1.0\\%+5.0\\%\\times2.3376 = -1.0\\%+11.688\\% = 10.688\\% \\approx 10.69\\%$$\n\nShortcut: under normality the 97.5% expected shortfall is almost exactly the 99% VaR, whose multiplier is 2.326. Using 2.326 gives $-1.0\\%+11.63\\%=10.63\\%$, which selects the same option in a fraction of the time and requires no density evaluation.",
+    "options.d.text": "10.69%",
+    "optionAnalysis.d.reason": "10.69%, computed above."
+   },
+   "reason": "Confirmed arithmetic slip: exp(-1.96^2/2)=0.1464897, multiplier 2.3376 (exact z=1.95996 gives 2.3378, as used in Q48), ES=10.688% (10.689% with exact z). Key (d) is unchanged; distractors 4.00/7.22/8.80 verified. Modified only to also relabel option (d) to 10.69% so the option matches the correctly rounded result; this is optional, and if option text must stay as sourced keep 10.68% and apply only the solution change."
+  },
+  {
+   "id": "MR-T1-15",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "Concept tested: the two curriculum explanations for the equity skew, one fundamental (financial leverage) and one behavioural or technical (crashophobia). Both push in the same direction.\n\nExplanation 1: capital structure leverage. Firm value is split between debt and equity. If equity value falls while the debt load is roughly fixed, the debt-to-equity ratio rises. Higher financial leverage amplifies the effect of a given change in enterprise value on the residual equity claim, so equity volatility rises. Falling price implies rising volatility, a negative price-volatility relationship, which fattens the left tail and lifts implied volatility at low strikes.\n\nThe magnitude is material. Consider a firm with EBIT of 20 million and EBIT volatility of 20%, a standard deviation of 4 million. If it takes on perpetual interest expense of 10 million per year, earnings available to equity fall to 10 million while their standard deviation stays at 4 million, so, holding the price-to-earnings multiple constant, equity volatility doubles to 40% ($20\\% \\times 20/(20-10)$). Raising interest expense to 15 million takes equity volatility to 80% ($20\\% \\times 20/(20-15)$). With zero debt, equity volatility equals EBIT volatility exactly.\n\nExplanation 2: crashophobia. Rubinstein's explanation, dated to the October 1987 crash. Participants attach more weight to a sharp downward move than a lognormal distribution permits, either because they believe the probability is genuinely higher or because out-of-the-money puts are demanded as catastrophe insurance. Either way those puts, which are struck low, are bid up, lifting implied volatility on the left.\n\nBoth explanations raise implied volatility at low strikes, so both produce the same downward-sloping skew."
+   },
+   "reason": "Confirmed that 37%/74% do not follow from the stated inputs: with a constant P/E, equity value is proportional to EBIT-I, so equity volatility = 20% x 20/(20-I) = 40% (I=10) and 80% (I=15); taxes cancel. I also could not reproduce 37% from discrete up/down or log-return variants, and the 'curriculum illustration' attribution cannot be traced (Hull's chapter describes leverage only qualitatively). Modified from the auditor's fix to drop the untraceable 'curriculum illustration' attribution and show the derivation, so the numbers are self-justifying. Not tested by any option; key (a) unaffected."
+  }
+ ],
+ "added": [],
+ "spotChecked": {
+  "MR-T1-05": "ok: put IV 38% > call IV 30% => put rich; buy call, sell put, short stock is the parity arbitrage",
+  "MR-T1-27": "ok: final horizons 10/20/40/60/120, IG corporate spread 40 days; table matches BCBS final",
+  "MR-T1-38": "ok: >12 at 99% or >30 at 97.5% => whole desk to SA until back within thresholds",
+  "MR-T1-45": "ok: 19.80, 21.60 -> 21.00; distractors 17.60, 23.27 reproduced",
+  "MR-T1-46": "ok: parity put 3.2963; BSM put at 63.8% = 4.131; table internally consistent (calls reprice at stated IVs)",
+  "MR-T1-48": "ok: 30*(4%+15%*2.3378)=11.72; distractors 9.32, 10.02, 13.19 reproduced",
+  "MR-T1-30": "ok: 61.68; (c) 73.70 consultative horizons, (a) 55.50 reproduced"
+ }
+}

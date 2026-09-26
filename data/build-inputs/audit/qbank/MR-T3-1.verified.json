@@ -1,0 +1,129 @@
+{
+ "slice": "MR-T3-1",
+ "decisions": [
+  {
+   "id": "MR-T3-02",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "The second drawback of DV01-neutral hedging: the yield relationship it assumes is static, so the hedge degrades as market regimes change.\n\nA DV01-neutral hedge fixes the hedge ratio from the two DV01s at a single point in time, and implicitly assumes the relationship between the two yields is one-for-one and unchanging. Two things then go wrong as conditions move.\n\n| Assumption | What actually happens |\n|---|---|\n| Yields move one for one | The corporate yield and the government yield move by different amounts, and the ratio between them varies with the credit cycle |\n| The relationship is stable over time | Correlations between corporate and government yields break down in stress, which is exactly when the hedge is needed most |\n\nThis is why the regression hedge is described as more flexible: the slope coefficient can be re-estimated over a rolling window, and it explicitly measures the historical co-movement rather than assuming it. Note, though, that the regression hedge inherits the same weakness in a milder form: it too is estimated from past data and can fail when the relationship shifts.\n\nThe two drawbacks in this LO are distinct: the previous question (MR-T3-01) concerns the shape of the shift (parallel versus non-parallel), while this question concerns the stability of the relationship over time. They are separate criticisms.",
+   "reason": "Source p.3 says 'Q1 concerns the SHAPE of the shift ... This question concerns the STABILITY'; JSON says 'this question' for both, which is self-contradictory. Fix applied as a sentence replacement within the full solution (also restores the source's closing 'They are separate criticisms.')."
+  },
+  {
+   "id": "MR-T3-21",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "Applying the generalized Pareto VaR and expected shortfall formulae, including the exceedance-frequency term and the tail-index scaling of the expected shortfall.\n\nStep 1. Write the generalized Pareto VaR expression.\n\n$$VaR = u + \\frac{\\beta}{\\xi}\\left\\{\\left[\\frac{n}{N_u}(1-c)\\right]^{-\\xi} - 1\\right\\}$$\n\nStep 2. Evaluate the bracket. Note that $n/N_u$ is the reciprocal of the supplied exceedance proportion.\n\n$$\\frac{n}{N_u} = \\frac{1}{0.05} = 20$$\n\n$$20 \\times (1 - 0.99) = 20 \\times 0.01 = 0.20$$\n\n$$0.20^{-0.30} = 1.62066$$\n\nStep 3. Assemble the VaR.\n\n$$VaR = 1 + \\left(\\frac{0.60}{0.30}\\right) \\times (1.62066 - 1) = 1 + 2.0 \\times 0.62066 = 1 + 1.24131 = 2.2413\\%$$\n\nStep 4. Apply the expected shortfall expression, which scales the VaR by $1/(1-\\xi)$ and adds a term correcting for the threshold.\n\n$$ES = \\frac{VaR}{1-\\xi} + \\frac{\\beta - \\xi u}{1-\\xi}$$\n\n$$ES = \\frac{2.24131}{0.70} + \\frac{0.60 - 0.30 \\times 1}{0.70} = 3.20187 + \\frac{0.30}{0.70} = 3.20187 + 0.42857 = 3.6304\\%$$\n\nStructural check: the expected shortfall must exceed the VaR at the same confidence level, since it averages losses at or beyond that point. Here 3.63% exceeds 2.24%, as required. Any answer pairing an expected shortfall below its VaR can be rejected immediately.",
+   "reason": "python: 0.2**-0.3 = 1.6206566; VaR = 1 + 2*(0.6206566) = 2.241313; ES = (2.241313 + 0.6 - 0.3)/0.7 = 3.630447. The source's 1.62057 is an arithmetic slip that forced the 'approximately' fudges; corrected intermediates now land exactly on key (b). Key unchanged."
+  },
+  {
+   "id": "MR-T3-21",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "Neither figure is the output of the stated formulae, and the pair is not even internally consistent: applying ES = (VaR + beta - xi u)/(1 - xi) to a VaR of 1.5825% gives 2.6893%, not 2.2385%. Note that the operative error on this template, using the exceedance proportion 0.05 in place of its reciprocal 20 inside the bracket, does not produce this option either: $[0.05 \\times 0.01]^{-0.30}$ gives a VaR of about 18.56% and an ES of about 26.94%. A 99% VaR only modestly above the 1% threshold should also look too small once the exceedance proportion is only 5%."
+    },
+    "b": {
+     "verdict": "correct",
+     "reason": "VaR = 2.2413% and ES = 3.6304%, computed above."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "The expected shortfall of 0.5252% is below the VaR, which is impossible, since ES averages losses at or beyond the VaR; the option can be rejected on structure alone. The figures are not the output of a simple sign flip either: subtracting the threshold correction instead of adding it gives (2.2413 - 0.30)/0.70 = 2.7733%, and the VaR of 2.2548% is also not the formula output of 2.2413%."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "VaR = 2.2500% and ES = 3.5000% are rounded approximations that drop the precision of the exponentiation step. They are close enough to look plausible and are not the output of the stated formulae."
+    }
+   },
+   "reason": "Confirmed: 0.05 in place of 20 gives VaR 18.5587% / ES 26.9409% (not 1.5825%); sign-flipped threshold term gives ES 2.7733% (not 0.5252%). Also (a)'s ES is inconsistent with its own VaR ((1.5825+0.3)/0.7 = 2.6893). Rather than rebuilding option text (which departs from the source options and would destroy (c)'s ES<VaR structural lesson), keep options as in source and rewrite reasons a and c to be truthful. Companion trap.explanation fix is in 'added'. Key (b) unaffected."
+  },
+  {
+   "id": "MR-T3-07",
+   "field": "solution",
+   "verdict": "modify",
+   "final": "Computing beta as covariance over the variance of the independent variable, where the variance must be calculated from data using the sample convention.\n\nStep 1. Compute the mean of the hedging instrument series. Only $Y_h$ is needed, because beta divides by the variance of the independent variable:\n\n$$\\bar{Y_h} = \\frac{2.0 + 2.5 + 1.5 + 3.0}{4} = \\frac{9.0}{4} = 2.25$$\n\nStep 2. Compute the sum of squared deviations.\n\nDeviations: $-0.25, +0.25, -0.75, +0.75$\n\nSquared: $0.0625 + 0.0625 + 0.5625 + 0.5625 = 1.25$\n\nStep 3. Convert to the sample variance, dividing by $n - 1$:\n\n$$\\text{Var}(Y_h) = \\frac{1.25}{4-1} = \\frac{1.25}{3} = 0.41667$$\n\nStep 4. Apply the regression slope formula:\n\n$$\\beta = \\frac{\\text{Cov}(Y_h, Y_p)}{\\text{Var}(Y_h)} = \\frac{0.273}{0.41667} = 0.655 \\approx 0.66$$\n\nThe $Y_p$ column is not required for this calculation. It is supplied because the covariance would normally be computed from it, but here the covariance is given directly, which makes the $Y_p$ column excess data.\n\nData note: the tabulated $Y_p$ column is not consistent with the stated covariance. Its deviations from its mean of 1.75 are identical to those of $Y_h$ ($-0.25, +0.25, -0.75, +0.75$), so the covariance implied by the table is $1.25/3 = 0.41667$ and the implied beta would be exactly 1.00. The question is framed so that the covariance of 0.273 is given as an input and the $Y_p$ column is not used; if you compute the covariance from the table you will get 0.41667, which is a flaw in the source data rather than an error in your working.",
+   "reason": "Auditor flagged the question field. Inconsistency confirmed (python: Yp and Yh deviations identical, sample cov 0.41667, beta 1.00; given 0.273/0.41667 = 0.655 -> key (b) correct). Stem left unchanged (it already says the covariance is given separately, matching the source rewording); fix redirected to the solution field: append a data note disclosing the inconsistency, as the source's own note does. Final = full new solution."
+  },
+  {
+   "id": "MR-T3-05",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "Both specifications are estimated from historical market data. Neither is theoretical, so the distinction drawn does not exist."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "Cumulative versus isolated movements is the level versus change distinction, not the regression versus reverse regression distinction. The neighbouring contrast has been substituted."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "The two produce identical ratios only in the degenerate case of a perfect fit, where R-squared equals 1. Asserting identity in general is an unqualified claim contradicted by the beta times beta-star identity."
+    },
+    "d": {
+     "verdict": "correct",
+     "reason": "The direction of the regression determines what is minimised. Because beta x beta* = R-squared, the reverse slope beta* equals R-squared / beta, so it falls short of the reciprocal 1/beta by a factor of R-squared and the two coincide only when the fit is perfect."
+    }
+   },
+   "reason": "beta*beta* = R^2 so beta* = R^2/beta; 'the two slopes differ by a factor of R-squared' is loose/wrong (would mean beta* = R^2*beta). Auditor's fix is right in substance; final text slightly tightened. Full optionAnalysis object given with only d.reason changed."
+  },
+  {
+   "id": "MR-T3-06",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "0.64 = 0.8 x (0.04 / 0.05), which inverts the ratio of standard deviations so that the hedging instrument sits in the numerator. This is the reverse regression slope, not the regression slope."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "0.80 is the correlation alone, with the ratio of standard deviations dropped entirely. Correlation equals beta only when the two standard deviations are equal, which is not the case here (0.05 versus 0.04)."
+    },
+    "c": {
+     "verdict": "correct",
+     "reason": "1.00 = 0.8 x 1.25."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "1.25 is the ratio of standard deviations alone, with the correlation dropped. It is the hedge ratio that would apply if the two yields were perfectly correlated."
+    }
+   },
+   "reason": "beta here is a yield-change on yield-change slope (bp per bp), so it is unit free like correlation; the 'unit free' rationale is incorrect. beta = rho*sigma_p/sigma_h equals rho only when sigma_p = sigma_h. Key (c) = 0.8*1.25 = 1.00 verified. Full optionAnalysis object given with only b.reason changed."
+  }
+ ],
+ "added": [
+  {
+   "id": "MR-T3-21",
+   "field": "trap",
+   "severity": "wrong-content",
+   "current": "One distractor can be eliminated on structure alone, without computing anything, because an expected shortfall below its own VaR violates the definition of the measure; it arises from flipping the sign of the threshold-correction term. Another substitutes the stem's exceedance proportion directly where its reciprocal belongs inside the bracket, the operative numerical trap on this template. The last rounds away the precision of the exponentiation step to produce plausible-looking but unearned figures.",
+   "proposed": {
+    "operators": [
+     "wrong-input-twin",
+     "sign-error",
+     "dropped-term"
+    ],
+    "explanation": "One distractor can be eliminated on structure alone, without computing anything, because an expected shortfall below its own VaR violates the definition of the measure. Another pairs a VaR and an ES that do not reproduce from the formulae and are not even consistent with each other; the operative numerical trap on this template is substituting the stem's exceedance proportion 0.05 where its reciprocal 20 belongs inside the bracket (which would give a VaR near 18.56%), so always convert N(u)/n to n/N(u) before multiplying by (1 - c). The last rounds away the precision of the exponentiation step to produce plausible-looking but unearned figures."
+   },
+   "source_says": "Source trap (p.23) attributes (c) to a sign flip and (a) to the reciprocal error, the same unreproducible mechanisms.",
+   "derivation": "Same as MR-T3-21 optionAnalysis decision: sign flip gives ES 2.7733%, 0.05-for-20 gives VaR 18.5587%; neither matches options (a)/(c).",
+   "evidence": "PDF p.22-23, Q21 trap",
+   "confidence": "high",
+   "addedByVerifier": true
+  }
+ ],
+ "spotChecked": [
+  "MR-T3-08",
+  "MR-T3-10",
+  "MR-T3-15",
+  "MR-T3-16",
+  "MR-T3-17",
+  "MR-T3-18",
+  "MR-T3-19"
+ ],
+ "spotCheckNotes": "Keys, stems and options match source; MR-T3-08 recomputed: -100 x 0.300/0.250 x 0.8 = -96.0 (b). No problems found."
+}

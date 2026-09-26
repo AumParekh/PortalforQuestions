@@ -1,0 +1,267 @@
+{
+ "slice": "CR-T2-1",
+ "decisions": [
+  {
+   "id": "CR-T2-08",
+   "field": "answer",
+   "verdict": "accept",
+   "final": {
+    "answer": "d (unchanged)",
+    "edits": [
+     {
+      "path": "question",
+      "from": "at a yield of 6.0%. Summing",
+      "to": "at a yield of 6.0%. The loan's scheduled cash flows are fixed. Summing"
+     },
+     {
+      "path": "options.1.text",
+      "set": "If the yield increases to 7.0%, the Macaulay duration will decrease to 4.95 years."
+     },
+     {
+      "path": "solution",
+      "from": "The direction in statement (b), which is the subtle part. For a standard bond, a higher yield shortens Macaulay duration. For a level-payment fully amortising loan, the payment is recalculated at the higher yield: the interest component of each payment rises and the principal component falls in the early years, pushing principal repayment later. That effect dominates, so duration lengthens modestly, from 5.02 to 5.09. Statement (b) is true.",
+      "to": "The direction in statement (b). The scheduled cash flows are fixed, so only the discount rate changes. A higher yield discounts distant cash flows more heavily, so Macaulay duration shortens, from 5.02 to 4.95 years, exactly as for a bullet bond. Statement (b) is true. (Even if the level payment were repriced at 7.0%, duration would still be 4.95: for a level-payment annuity the payment size cancels out of the duration ratio, so duration depends only on the discount rate.)"
+     },
+     {
+      "path": "optionAnalysis.b.reason",
+      "set": "The statement is true. Higher yield discounts distant cash flows more heavily, shifting weight toward the front of the schedule, so Macaulay duration shortens from 5.02 to 4.95 years."
+     },
+     {
+      "path": "trap.explanation",
+      "from": "Statement (b) additionally carries a polarity trap of its own, since the instinct from bond mathematics is that higher yield shortens duration, which is true for a bullet bond but not for a repriced level-payment amortising loan.",
+      "to": "Statement (b) checks direction: higher yield shortens Macaulay duration for an amortising loan just as for a bullet bond, because distant cash flows are discounted more heavily."
+     }
+    ]
+   },
+   "reason": "I checked this myself in Python (10-year annual-pay level annuity). At 6% coupon and 6% yield, WAL = 5.978 and Macaulay D = 5.022, which matches the stem. At a 7% yield, D = 4.946 whether the cash flows stay fixed or the payment is repriced at 7%, because the payment size cancels in the duration ratio. So 5.09 cannot be reached, and statement (b) as written is false. Source p17 has the same wrong claim, so this is a source error. With a repriced payment the WAL is 6.054, which is option (d)'s 6.05, so under the source's own repricing logic (d) would be true. Under the fixed-schedule reading both (b) and (d) are false. Changing the key to b is not safe, because the solution's WAL-invariance teaching makes (d) false. The auditor's preferred fix works: fix the schedule in the stem and change (b) to 'decrease to 4.95'. (d) is then the single false statement and key d stands. The exact edits are listed."
+  },
+  {
+   "id": "CR-T2-21",
+   "field": "options",
+   "verdict": "modify",
+   "final": {
+    "edits": [
+     {
+      "path": "options.3.text",
+      "set": "Increasing the default correlation while holding granularity at 20 positions leaves the expected loss unchanged at USD 10 million."
+     },
+     {
+      "path": "solution",
+      "from": "Statement (d): correlation. Raising correlation reduces diversification and fattens the tail, so credit VaR rises. True.",
+      "to": "Statement (d): correlation. Correlation changes the shape of the loss distribution, not its mean: expected loss is $20 \\times 0.01 \\times 50 = \\text{USD } 10$ million at any correlation. True. Note that at this 95% level, higher correlation does not raise credit VaR here. The probability of no default rises toward 99% as correlation rises, so the 95th percentile stays at 1 default and eventually falls to 0. This is the same threshold effect as in Question 16."
+     },
+     {
+      "path": "solution",
+      "from": "Where USD 990 million would come from. That is the $\\rho = 1$ result: full notional of USD 1,000 million less expected loss of USD 10 million.",
+      "to": "Where USD 990 million would come from. That is the perfect-correlation figure: full notional of USD 1,000 million less expected loss of USD 10 million. It applies at $\\rho = 1$ only when the confidence level is above 99%. At 95%, the 99% probability of no default puts the quantile in the no-loss state."
+     },
+     {
+      "path": "solution",
+      "from": "| Higher default correlation | None | Increases | Full notional less expected loss, USD 990 million |",
+      "to": "| Higher default correlation | None | Fattens the tail; raises credit VaR once the confidence level is beyond the no-default probability | Full notional less expected loss, USD 990 million (confidence above 99%) |"
+     },
+     {
+      "path": "optionAnalysis.d.reason",
+      "set": "The statement is true. Correlation reshapes the loss distribution but leaves its mean unchanged, so expected loss stays at USD 10 million."
+     },
+     {
+      "path": "optionAnalysis.c.reason",
+      "from": "USD 990 million is the perfect-correlation limit, not the perfect-granularity limit.",
+      "to": "USD 990 million is the perfect-correlation figure (at confidence levels above 99%), not the perfect-granularity limit."
+     }
+    ]
+   },
+   "reason": "The auditor is right that (d) is false in this setup. I re-derived it with a one-factor Gaussian copula (pure Python): P(<=1 default) is 0.9831 at rho=0, bottoms out at about 0.959 near rho 0.45, and is still 0.975 at rho 0.9. P(0) rises to 0.964 at rho 0.9 and to 0.99 at rho=1. So q95 stays at 1 default and VaR stays at 40, then drops to 0 at high correlation. It never rises. Replacing (d) with the EL-invariance statement is right. I am modifying the fix because the auditor missed a related error. The solution's 'That is the rho = 1 result' for USD 990 million, the lever table ('Increases', limit 990) and optionAnalysis c all present 990 as the correlation outcome at this 95% level. But at rho=1, P(no default)=99% > 95%, so the 95% credit VaR is 0, not 990. The added edits qualify 990 as holding only at confidence above 99%. Key c is unchanged. Source p38-39 has the same text. Its own trap says this item was 'rebuilt' from a version where both (c) and (d) were false, and the rebuild did not actually fix (d)."
+  },
+  {
+   "id": "CR-T2-29",
+   "field": "solution",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "solution",
+      "from": "This evaluates to approximately 0.10%, against an independence benchmark of $0.02\\% \\times 0.02\\% = 0.0004\\%$. An asset correlation of 0.16 therefore raises joint default by a factor of roughly 250.",
+      "to": "This evaluates to approximately 0.092%, against an independence benchmark of $2\\% \\times 2\\% = 0.04\\%$. An asset correlation of 0.16 therefore raises joint default by a factor of roughly 2.3."
+     },
+     {
+      "path": "solution",
+      "from": "\\rho^{default} = \\frac{0.0010 - 0.0004}{\\sqrt{0.02 \\times 0.98 \\times 0.02 \\times 0.98}} \\approx 0.031",
+      "to": "\\rho^{default} = \\frac{0.00092 - 0.0004}{\\sqrt{0.02 \\times 0.98 \\times 0.02 \\times 0.98}} \\approx 0.026"
+     },
+     {
+      "path": "solution",
+      "from": "default correlation about 0.03.",
+      "to": "default correlation about 0.026."
+     }
+    ]
+   },
+   "reason": "Re-derived: k = N^-1(0.02) = -2.0537. Phi2(k,k;0.16), found by integrating N((k-0.4m)/sqrt(0.84))^2 over m, is 0.000919 = 0.092%. Independence gives 0.02^2 = 0.0004 = 0.04%, which matches option (c) and the solution's own numerator. The ratio is 2.30, not 250. Default correlation = (0.000919-0.0004)/0.0196 = 0.0265. Source p52 has the same errors. Key a is unaffected."
+  },
+  {
+   "id": "CR-T2-15",
+   "field": "solution",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "question",
+      "from": "and the 95th percentile of the number of defaults is 4,",
+      "to": "and the 95th percentile of the number of defaults is assumed to be 4,"
+     },
+     {
+      "path": "solution",
+      "from": "Note on granularity. With 100 independent credits, the 95th percentile of 4 sits only one default above the mean of 3, which is why credit VaR is small relative to expected loss.",
+      "to": "Note on the given percentile. The question fixes the 95th percentile at 4 defaults by assumption. Under an exact binomial with $n = 100$ and $p = 3\\%$ it would be 6 defaults ($P(\\le 5) = 91.9\\%$, $P(\\le 6) = 96.9\\%$), giving a credit VaR of $6 \\times 10{,}000 - 30{,}000 = \\text{USD } 30{,}000$. Either way, with 100 independent credits the quantile sits only a few defaults above the mean of 3, which is why credit VaR is small relative to the notional."
+     }
+    ]
+   },
+   "reason": "Binomial(100, 0.03) CDF: P(<=4)=0.8179, P(<=5)=0.9192, P(<=6)=0.9688, so the true 95th percentile is 6. The premise of 4 is inconsistent with zero correlation. Key (a) still follows from the premise as given, so the right fix is to label the premise as an assumption and correct the note, which presents 4 as a binomial fact. This is option (i) of the auditor's fix. Changing the premise would also change the options and is unnecessary. Source p30 has the same premise and note (from AnalystPrep)."
+  },
+  {
+   "id": "CR-T2-16",
+   "field": "trap",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "trap.explanation",
+      "from": "will find a 99th percentile of roughly 3 defaults and compute a credit VaR near USD 70,000",
+      "to": "will find a 99th percentile of 4 defaults and compute a credit VaR near USD 103,000 ($4 \\times 33{,}333 - 30{,}000$)"
+     }
+    ]
+   },
+   "reason": "Binomial(30, 0.03): P(<=3)=0.9881 < 0.99 and P(<=4)=0.9982, so the 99th percentile is 4 defaults. 4 x 33,333 - 30,000 = 103,333. The USD 70,000 figure is the 3-default value. Source p31 has the same slip. Key a (970,000) is re-derived and correct."
+  },
+  {
+   "id": "CR-T2-27",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.a.reason",
+      "set": "Omitting the subtraction of $\\pi_1\\pi_2$ in the numerator gives $0.0002 / 0.0038575 = 0.0518$. The dropped term error overstates correlation because it attributes all joint default to dependence rather than only the excess over independence. 0.05796 is a distractor near that dropped-term value."
+     },
+     {
+      "path": "optionAnalysis.b.reason",
+      "set": "0.00262 is an order of magnitude too small and follows from no defined step. Note that dividing by the product of variances instead of the product of standard deviations would give $0.000185 / 0.0000149 \\approx 12.4$, far too large, not too small."
+     },
+     {
+      "path": "optionAnalysis.c.reason",
+      "set": "0.00338 is likewise an order of magnitude too small and follows from no defined step. Using $\\pi_1\\pi_2$ in the denominator would give $0.000185 / 0.000015 \\approx 12.3$, not 0.00338."
+     },
+     {
+      "path": "trap.explanation",
+      "from": "Options (b) and (c) are square root omissions in the denominator, which is the standard failure when the formula is recalled as a covariance over variances rather than a covariance over standard deviations. Both produce answers an order of magnitude too small.",
+      "to": "Options (b) and (c) are an order of magnitude too small and do not follow from a defined step. The denominator must be the product of Bernoulli standard deviations. Recalling the formula as a covariance over variances (omitting the square root) would make the answer far too large, about 12, not too small."
+     }
+    ]
+   },
+   "reason": "Re-derived: rho = 0.000185/sqrt(0.002991 x 0.004975) = 0.04796, so key d is correct. The no-subtraction value is 0.05185, not 0.05796. Dividing by the product of variances gives 12.43. Dividing by pi1*pi2 gives 12.33. Neither yields 0.00262 or 0.00338, and omitting the root makes the answer larger, not smaller, so the trap sentence is wrong. Source p48 has the same text. I adopted the auditor's fix and wrote out the exact replacement text."
+  },
+  {
+   "id": "CR-T2-30",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.a.reason",
+      "set": "7.83% is approximately $N(-1.415)$, which is what results from using $\\beta^2 = 0.36$ in place of $\\beta$ in the numerator: $(-1.645 + 0.36 \\times 1.41)/0.80 = -1.42$. This understates the downturn effect."
+     },
+     {
+      "path": "optionAnalysis.d.reason",
+      "set": "22.75% is approximately $N(-0.75)$. It overstates the downturn effect and follows from no correct step. Omitting the denominator entirely gives $N(-0.799) = 21.2\\%$, and a wrong sign on the market factor term gives $N(-3.11) \\approx 0.09\\%$."
+     }
+    ]
+   },
+   "reason": "Key c: N(-0.799/0.8) = N(-0.999) = 15.90%, correct. N(-0.799) with no denominator = 21.2%, not 7.83%. Wrong sign gives N(-3.114) = 0.09%, not 22.75%. beta^2 in the numerator gives N(-1.422) = 7.75%, which is close to option a (N(-1.415) = 7.85%), not d. N^-1(0.2275) = -0.747. Source p54 has the same text."
+  },
+  {
+   "id": "CR-T2-07",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.a.reason",
+      "set": "145 days is well below the correct 187 days. The superstore pool (82 days) is the only shorter pool and carries under 20% of the balance, so it cannot pull the average below the 169-day office pool that makes up over half the balance."
+     }
+    ]
+   },
+   "reason": "The superstore pool (82 days) is shorter than the office pool, so 'all other components are longer' is false. It is also true that a weighted average can fall below the majority component in general; here it does not only because the shorter pool is small. WAM = 24,733/132 = 187.37. Key c is correct. Source p15 has the same text."
+  },
+  {
+   "id": "CR-T2-03",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.d.reason",
+      "set": "10.7% is 130 / 1,210, the 91 to 120 day bucket alone, which omits the 121+ day bucket. 3.84% does not follow from the stated write-off."
+     }
+    ]
+   },
+   "reason": "130/1,210 = 10.74% exactly, so option d's delinquency figure has a defined (wrong) derivation. Key c is re-derived: 190/1,210 = 15.70% and 35/1,210 = 2.89%. Source p8 has the same text."
+  },
+  {
+   "id": "CR-T2-26",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.c.reason",
+      "set": "0.812 is close to the correct value but follows from no defined step. For example, dropping the $(1-\\pi)$ factors gives $0.002988 / 0.003464 = 0.863$, which is still not 0.812."
+     }
+    ]
+   },
+   "reason": "rho_max = 0.002988/sqrt(0.002991 x 0.003984) = 0.8656, so key d is correct. The sqrt(pi1 pi2) variant gives 0.8626, so the source text (p47) claims a route to 0.812 while computing 0.862, which contradicts itself."
+  },
+  {
+   "id": "CR-T2-36",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "edits": [
+     {
+      "path": "optionAnalysis.a.reason",
+      "set": "Incorrect as a complete answer. True, but only one of three correct functions."
+     }
+    ]
+   },
+   "reason": "Source p65 reads '(a) Incorrect as a complete answer. True, but only one of three correct functions.' Normalisation turned this into 'True as a complete answer', which contradicts the incorrect verdict and key d."
+  }
+ ],
+ "added": [
+  {
+   "id": "CR-T2-16",
+   "field": "solution",
+   "severity": "wrong-content",
+   "addedByVerifier": true,
+   "current": "Contrast with an independent-credit portfolio of the same notional and default probability, which produces a credit VaR of only USD 10,000.",
+   "proposed": "Contrast with Question 15, where 100 independent credits with the same notional and default probability produced a credit VaR of only USD 10,000 at 95%. Even this portfolio's 30 positions, if independent, would give only about USD 103,000 at 99% ($4 \\times 33{,}333 - 30{,}000$).",
+   "edits": [
+    {
+     "path": "solution",
+     "from": "Contrast with an independent-credit portfolio of the same notional and default probability, which produces a credit VaR of only USD 10,000.",
+     "to": "Contrast with Question 15, where 100 independent credits with the same notional and default probability produced a credit VaR of only USD 10,000 at 95%. Even this portfolio's 30 positions, if independent, would give only about USD 103,000 at 99% ($4 \\times 33{,}333 - 30{,}000$)."
+    }
+   ],
+   "source_says": "'Contrast with Question 21. There, 100 independent credits at p = 3% produced a credit VaR of USD 10,000 on a USD 1 million portfolio.' This cross-reference is to what is now Q15. The JSON dropped the '100 credits' qualifier.",
+   "derivation": "As rewritten, the sentence implies that 30 independent 3% credits give a 99% credit VaR of USD 10,000. Binomial(30, 0.03) has q99 = 4 defaults, so VaR = 4 x 33,333 - 30,000 = 103,333. The USD 10,000 comes from Q15's 100-credit, 95%, assumed-quantile setup.",
+   "evidence": "PDF p31-32 (Q16 solution, 'Contrast with Question 21').",
+   "confidence": "high"
+  }
+ ],
+ "spotChecked": [
+  "CR-T2-04",
+  "CR-T2-05",
+  "CR-T2-06",
+  "CR-T2-28",
+  "CR-T2-33"
+ ],
+ "spotCheckNotes": "Q4 MPR 300/1500=20% (a). Q5 DSCR 68/54=1.259, breakeven 20.6% (a). Q6 WAC 579.2/80=7.24%, simple mean 6.95% (b). Q28 0.6x0.5=0.30 (a). Q33 Altman coefficients, X4 definition and 2.99/1.81 cut-offs (a). All keys and solutions are correct. Reading the flagged Q16 in full turned up the added solution flag."
+}

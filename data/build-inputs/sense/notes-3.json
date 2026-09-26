@@ -1,0 +1,1608 @@
+[
+  {
+    "id": "SC-notes-3-01",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 137
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A 6-month call lets you buy USD 1,000 face of a (then) 6-month zero at USD 990. In 6 months that zero will be worth either USD 987.654 (rate 2.50%) or USD 992.556 (rate 1.50%). Today a 6-month zero costs 0.990099 and a 1-year zero 0.978842 per USD 1 face.",
+    "ask": "Roughly what is the call worth today, priced by a replicating portfolio?",
+    "options": [
+      {
+        "label": "≈ USD 0.50",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 2.6",
+        "correct": false,
+        "why": "That is the down-state payoff, $992.556 - 990$, taken as the value. It ignores that the call pays nothing in the up state and that the payoff is six months away."
+      },
+      {
+        "label": "≈ USD 0.050",
+        "correct": false,
+        "why": "Scale slip: a tenth of the true value."
+      },
+      {
+        "label": "≈ USD 520",
+        "correct": false,
+        "why": "That is the face of 1-year zeros in the replicating portfolio ($F^1 \\approx 521$), a position size rather than the call's cost. The short USD 515 of 6-month zeros almost cancels it."
+      }
+    ],
+    "working": [
+      {
+        "label": "Payoffs",
+        "display": "Up: $\\max(987.654 - 990, 0) = 0$; down: $992.556 - 990 = 2.556$",
+        "value": 2.556
+      },
+      {
+        "label": "1-year zero face",
+        "display": "$F^1 = \\dfrac{2.556}{0.992556 - 0.987654} = 521.4$",
+        "value": 521.4
+      },
+      {
+        "label": "6-month zero face",
+        "display": "$F^5 = -0.987654 \\times 521.4 = -515.0$ (short)",
+        "value": -515.0
+      },
+      {
+        "label": "Call value",
+        "display": "$0.990099(-515.0) + 0.978842(521.4) = 0.504$",
+        "value": 0.504
+      }
+    ],
+    "takeaway": "The replicating portfolio is two big legs that nearly cancel, so the call is worth a small fraction of its best-case payoff.",
+    "check": {
+      "inputs": {
+        "pu": 0.987654,
+        "pd": 0.992556,
+        "K": 990,
+        "d05": 0.990099,
+        "d1": 0.978842
+      },
+      "steps": [
+        {
+          "name": "pay_d",
+          "expr": "pd*1000 - K",
+          "value": 2.556
+        },
+        {
+          "name": "F1",
+          "expr": "pay_d/(pd - pu)",
+          "value": 521.42
+        },
+        {
+          "name": "F5",
+          "expr": "-pu*F1",
+          "value": -514.98
+        },
+        {
+          "name": "price",
+          "expr": "d05*F5 + d1*F1",
+          "value": 0.50409
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-02",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 121
+    },
+    "trap_category": "Sign",
+    "setup": "You replicate a 6-month call on a zero (payoff USD 0 if the 6-month rate is 2.50%, USD 2.556 if it is 1.50%) using 6-month zeros (face $F^5$) and 1-year zeros (face $F^1$). In 6 months the 6-month zero pays $F^5$ in either state. The 1-year zero is then worth 0.987654 (up) or 0.992556 (down) per USD 1 face.",
+    "ask": "In the replicating portfolio, is the 6-month-zero position long, short or zero?",
+    "options": [
+      {
+        "label": "Short",
+        "correct": true
+      },
+      {
+        "label": "Long",
+        "correct": false,
+        "why": "In the up state the 1-year leg is worth $0.987654\\,F^1 > 0$, yet the portfolio must be worth USD 0. Only a short 6-month leg cancels it: $F^5 = -515$."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "A 1-year zero on its own is worth a positive amount in both states. It cannot be worth USD 0 in one state and USD 2.556 in the other. A second leg of the opposite sign is required."
+      }
+    ],
+    "working": [
+      {
+        "label": "Up-state equation",
+        "display": "$F^5 + 0.987654\\,F^1 = 0$",
+        "value": null
+      },
+      {
+        "label": "Down-state equation",
+        "display": "$F^5 + 0.992556\\,F^1 = 2.556$",
+        "value": null
+      },
+      {
+        "label": "Subtract",
+        "display": "$F^1 = 2.556 / 0.004902 = 521.4$",
+        "value": 521.4
+      },
+      {
+        "label": "6-month leg",
+        "display": "$F^5 = -0.987654 \\times 521.4 = -515.0$: short",
+        "value": -515.0
+      }
+    ],
+    "takeaway": "To replicate a call on a bond, buy the longer zero and short the shorter one. The zero-payoff state forces the short.",
+    "check": {
+      "inputs": {
+        "pu": 0.987654,
+        "pd": 0.992556,
+        "K": 990,
+        "d05": 0.990099,
+        "d1": 0.978842
+      },
+      "steps": [
+        {
+          "name": "pay_d",
+          "expr": "pd*1000 - K",
+          "value": 2.556
+        },
+        {
+          "name": "F1",
+          "expr": "pay_d/(pd - pu)",
+          "value": 521.42
+        },
+        {
+          "name": "F5",
+          "expr": "-pu*F1",
+          "value": -514.98
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-03",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 250
+    },
+    "trap_category": "Formula",
+    "setup": "A 3-year, 7% annual-coupon bond sits on a recombining rate tree. A European call with strike 100 is exercised on the ex-coupon bond price at year 2, which is USD 98.56, USD 100.62 or USD 102.20 (top, middle, bottom). Year-1 rates are 5.99% (up) and 4.44% (down); today's rate is 3.00%. Risk-neutral up-probabilities are 0.76 today and 0.60 at each year-1 node.",
+    "ask": "Roughly what is the call worth today?",
+    "options": [
+      {
+        "label": "≈ USD 0.45",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 2.2",
+        "correct": false,
+        "why": "That is the best payoff, at the bottom node ($102.20 - 100$). The path there has only $0.24 \\times 0.40 \\approx 10\\%$ probability, and the payoff still has to be discounted."
+      },
+      {
+        "label": "≈ USD 6.3",
+        "correct": false,
+        "why": "The USD 7 coupon was added to the option payoffs, giving $105.56 - 100$ and so on. The coupon goes into the bond's backward induction. Option values carry no coupon."
+      },
+      {
+        "label": "≈ USD 0.045",
+        "correct": false,
+        "why": "Scale slip: a tenth of the true value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Year-2 payoffs",
+        "display": "$\\max(B - 100, 0)$: $0,\\; 0.62,\\; 2.20$",
+        "value": null
+      },
+      {
+        "label": "Year-1 up node",
+        "display": "$\\dfrac{0 \\times 0.6 + 0.62 \\times 0.4}{1.0599} = 0.23$",
+        "value": 0.23
+      },
+      {
+        "label": "Year-1 down node",
+        "display": "$\\dfrac{0.62 \\times 0.6 + 2.20 \\times 0.4}{1.0444} = 1.20$",
+        "value": 1.2
+      },
+      {
+        "label": "Call today",
+        "display": "$\\dfrac{0.23 \\times 0.76 + 1.20 \\times 0.24}{1.03} = 0.45$",
+        "value": 0.45
+      }
+    ],
+    "takeaway": "An option that pays off only in one corner of the tree is worth a fraction of its best payoff. Coupons go into bond values, never into option values.",
+    "check": {
+      "inputs": {
+        "c": 7,
+        "K": 100,
+        "r1u": 0.0599,
+        "r1d": 0.0444,
+        "r0": 0.03,
+        "B2u": 98.56,
+        "B2m": 100.62,
+        "B2d": 102.2
+      },
+      "steps": [
+        {
+          "name": "o_m",
+          "expr": "max(B2m - K, 0)",
+          "value": 0.62
+        },
+        {
+          "name": "o_d",
+          "expr": "max(B2d - K, 0)",
+          "value": 2.2
+        },
+        {
+          "name": "V1u",
+          "expr": "(0*0.6 + o_m*0.4)/(1 + r1u)",
+          "value": 0.23398
+        },
+        {
+          "name": "V1d",
+          "expr": "(o_m*0.6 + o_d*0.4)/(1 + r1d)",
+          "value": 1.1988
+        },
+        {
+          "name": "V0",
+          "expr": "(V1u*0.76 + V1d*0.24)/(1 + r0)",
+          "value": 0.45197
+        },
+        {
+          "name": "V0_cpn_slip",
+          "expr": "((B2u+c-K)*0.6 + (B2m+c-K)*0.4)/(1+r1u)*0.76/(1+r0) + ((B2m+c-K)*0.6 + (B2d+c-K)*0.4)/(1+r1d)*0.24/(1+r0)",
+          "value": 6.2854
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-04",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 374
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A CMT swap on USD 1,000,000 pays $\\tfrac{1{,}000{,}000}{2}(y_{CMT} - 7.00\\%)$ each half-year. At six months the rate is 7.25% (up) or 6.75% (down), so the payoff there is ±USD 1,250. At one year it is 7.50%, 7.00% or 6.50%, paying +USD 2,500, USD 0 or −USD 2,500. Risk-neutral up-probabilities are 0.76 today and 0.60 at each six-month node. Discount each step at half the node's rate.",
+    "ask": "Which six-month node value is larger in absolute size, $V_{1,U}$ or $V_{1,L}$?",
+    "options": [
+      {
+        "label": "$V_{1,U}$",
+        "correct": true
+      },
+      {
+        "label": "$V_{1,L}$",
+        "correct": false,
+        "why": "From the down node, the −USD 2,500 outcome has only 0.40 probability, so its continuation is −USD 967. The up node's continuation is +USD 1,448."
+      },
+      {
+        "label": "Equal, since the payoffs are symmetric",
+        "correct": false,
+        "why": "The payoffs are symmetric but the probabilities are 0.60/0.40, which tilts both nodes upward: +USD 2,697.53 against −USD 2,217.35."
+      }
+    ],
+    "working": [
+      {
+        "label": "Up continuation",
+        "display": "$\\dfrac{2{,}500 \\times 0.6 + 0 \\times 0.4}{1.03625} = 1{,}447.53$",
+        "value": 1447.53
+      },
+      {
+        "label": "$V_{1,U}$",
+        "display": "$1{,}447.53 + 1{,}250 = 2{,}697.53$",
+        "value": 2697.53
+      },
+      {
+        "label": "Down continuation",
+        "display": "$\\dfrac{0 \\times 0.6 - 2{,}500 \\times 0.4}{1.03375} = -967.35$",
+        "value": -967.35
+      },
+      {
+        "label": "$V_{1,L}$",
+        "display": "$-967.35 - 1{,}250 = -2{,}217.35$",
+        "value": -2217.35
+      },
+      {
+        "label": "Compare",
+        "display": "$2{,}697.53 > 2{,}217.35$",
+        "value": null
+      }
+    ],
+    "takeaway": "When the risk-neutral probability is not 0.5, symmetric payoffs do not produce symmetric node values.",
+    "check": {
+      "inputs": {
+        "N": 1000000,
+        "fix": 0.07,
+        "y1u": 0.0725,
+        "y1d": 0.0675,
+        "y0": 0.07,
+        "y2u": 0.075,
+        "y2m": 0.07,
+        "y2d": 0.065
+      },
+      "steps": [
+        {
+          "name": "p1u",
+          "expr": "N/2*(y1u - fix)",
+          "value": 1250.0
+        },
+        {
+          "name": "p1d",
+          "expr": "N/2*(y1d - fix)",
+          "value": -1250.0
+        },
+        {
+          "name": "p2u",
+          "expr": "N/2*(y2u - fix)",
+          "value": 2500.0
+        },
+        {
+          "name": "p2d",
+          "expr": "N/2*(y2d - fix)",
+          "value": -2500.0
+        },
+        {
+          "name": "V1u",
+          "expr": "(p2u*0.6 + 0*0.4)/(1 + y1u/2) + p1u",
+          "value": 2697.5
+        },
+        {
+          "name": "V1d",
+          "expr": "(0*0.6 + p2d*0.4)/(1 + y1d/2) + p1d",
+          "value": -2217.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-05",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 382
+    },
+    "trap_category": "Formula",
+    "setup": "A CMT swap on USD 1,000,000 pays $\\tfrac{1{,}000{,}000}{2}(y_{CMT} - 7.00\\%)$ each half-year. At six months the rate is 7.25% (up) or 6.75% (down), so the payoff there is ±USD 1,250. At one year it is 7.50%, 7.00% or 6.50%, paying +USD 2,500, USD 0 or −USD 2,500. Today's rate is 7.00%. Risk-neutral up-probabilities are 0.76 today and 0.60 at each six-month node. Discount each step at half the node's rate.",
+    "ask": "Roughly what is the swap worth today to the CMT receiver?",
+    "options": [
+      {
+        "label": "≈ USD 1,500",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 150,000",
+        "correct": false,
+        "why": "Rates entered as percent numbers: $7.25 - 7.00 = 0.25$ used in place of $0.0025$. Every payoff is 100× too large."
+      },
+      {
+        "label": "≈ USD 15m",
+        "correct": false,
+        "why": "Rate gaps entered in basis points: 25 used in place of 0.0025. Every payoff is 10,000× too large."
+      },
+      {
+        "label": "≈ USD 150",
+        "correct": false,
+        "why": "Scale slip: a tenth of the true value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Six-month payoffs",
+        "display": "$500{,}000 \\times (\\pm 0.0025) = \\pm 1{,}250$",
+        "value": 1250
+      },
+      {
+        "label": "$V_{1,U}$",
+        "display": "$\\dfrac{2{,}500 \\times 0.6}{1.03625} + 1{,}250 = 2{,}697.53$",
+        "value": 2697.53
+      },
+      {
+        "label": "$V_{1,L}$",
+        "display": "$\\dfrac{-2{,}500 \\times 0.4}{1.03375} - 1{,}250 = -2{,}217.35$",
+        "value": -2217.35
+      },
+      {
+        "label": "Swap value",
+        "display": "$\\dfrac{2{,}697.53 \\times 0.76 - 2{,}217.35 \\times 0.24}{1.035} = 1{,}466.63$",
+        "value": 1466.63
+      }
+    ],
+    "takeaway": "A 25 bp rate gap on half of USD 1m is USD 1,250 per period. Size one payoff first, and the swap's value follows in the low thousands.",
+    "check": {
+      "inputs": {
+        "N": 1000000,
+        "fix": 0.07,
+        "y1u": 0.0725,
+        "y1d": 0.0675,
+        "y0": 0.07,
+        "y2u": 0.075,
+        "y2m": 0.07,
+        "y2d": 0.065
+      },
+      "steps": [
+        {
+          "name": "p1u",
+          "expr": "N/2*(y1u - fix)",
+          "value": 1250.0
+        },
+        {
+          "name": "p1d",
+          "expr": "N/2*(y1d - fix)",
+          "value": -1250.0
+        },
+        {
+          "name": "p2u",
+          "expr": "N/2*(y2u - fix)",
+          "value": 2500.0
+        },
+        {
+          "name": "p2d",
+          "expr": "N/2*(y2d - fix)",
+          "value": -2500.0
+        },
+        {
+          "name": "V1u",
+          "expr": "(p2u*0.6 + 0*0.4)/(1 + y1u/2) + p1u",
+          "value": 2697.5
+        },
+        {
+          "name": "V1d",
+          "expr": "(0*0.6 + p2d*0.4)/(1 + y1d/2) + p1d",
+          "value": -2217.4
+        },
+        {
+          "name": "V0",
+          "expr": "(V1u*0.76 + V1d*0.24)/(1 + y0/2)",
+          "value": 1466.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-06",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-12",
+    "reading_id": "MR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+      "line": 272
+    },
+    "trap_category": "Polarity",
+    "setup": "A risk-neutral tree prices a CMT swap at USD 1,466.63. The swap trades in the market at USD 1,464.40. You solve for the option-adjusted spread: one constant spread added to every discount rate in the tree so that the model value equals the market price.",
+    "ask": "Is the OAS positive, negative or zero?",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "A negative spread lowers the discount rates and raises the model value, which pushes it further above the market price."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "A zero OAS would mean the model already matches the market. The USD 2.23 gap needs a spread, about +20 bp here."
+      }
+    ],
+    "working": [
+      {
+        "label": "Market minus model",
+        "display": "$1{,}464.40 - 1{,}466.63 = -2.23$: the market is below the model",
+        "value": -2.23
+      },
+      {
+        "label": "Fix",
+        "display": "Lower the model value by raising every discount rate",
+        "value": null
+      },
+      {
+        "label": "OAS",
+        "display": "$\\approx +20$ bp",
+        "value": 20
+      }
+    ],
+    "takeaway": "Market price below model price → raise the discount rates → positive OAS.",
+    "check": {
+      "inputs": {
+        "model": 1466.63,
+        "market": 1464.4
+      },
+      "steps": [
+        {
+          "name": "gap",
+          "expr": "market - model",
+          "value": -2.23
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-07",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-11",
+    "reading_id": "MR-11",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+      "line": 86
+    },
+    "trap_category": "Formula",
+    "setup": "A trader sells USD 100m face of a T-bond (DV01 0.068 per USD 100 face) and hedges it by buying TIPS (DV01 0.084 per USD 100 face). The hedge is DV01-neutral: both yields are assumed to move by the same number of basis points.",
+    "ask": "Is the TIPS face amount more than, less than or equal to USD 100m?",
+    "options": [
+      {
+        "label": "Less than USD 100m",
+        "correct": true
+      },
+      {
+        "label": "More than USD 100m",
+        "correct": false,
+        "why": "This inverts the ratio: $100 \\times 0.084/0.068 = \\text{USD }123.5$m. The TIPS is the more rate-sensitive bond, so less face is needed."
+      },
+      {
+        "label": "Equal to USD 100m",
+        "correct": false,
+        "why": "Equal face amounts hedge only if the DV01s are equal. They are 0.068 and 0.084."
+      }
+    ],
+    "working": [
+      {
+        "label": "DV01 hedge",
+        "display": "$F^R = F^N \\times \\dfrac{DV01^N}{DV01^R} = 100 \\times \\dfrac{0.068}{0.084}$",
+        "value": null
+      },
+      {
+        "label": "TIPS face",
+        "display": "$F^R = \\text{USD }80.95$m",
+        "value": 80.95
+      }
+    ],
+    "takeaway": "In a DV01 hedge, a more sensitive hedging instrument means a smaller face amount.",
+    "check": {
+      "inputs": {
+        "FN": 100,
+        "DN": 0.068,
+        "DR": 0.084
+      },
+      "steps": [
+        {
+          "name": "FR",
+          "expr": "FN*DN/DR",
+          "value": 80.952
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-08",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-11",
+    "reading_id": "MR-11",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+      "line": 161
+    },
+    "trap_category": "Formula",
+    "setup": "The DV01-neutral hedge for a USD 100m T-bond short is USD 80.95m of TIPS. A regression of nominal yield changes on real yield changes, $\\Delta y^N = \\alpha + \\beta\\,\\Delta y^R + \\epsilon$, gives $\\beta = 1.0198$.",
+    "ask": "Moving to the regression hedge, does the TIPS face go up, go down or stay the same?",
+    "options": [
+      {
+        "label": "Goes up",
+        "correct": true
+      },
+      {
+        "label": "Goes down",
+        "correct": false,
+        "why": "That divides by $\\beta$. Nominal yields move 1.0198 bp per 1 bp of real yield, so each TIPS basis point has to offset slightly more T-bond P&L. Multiply by $\\beta$."
+      },
+      {
+        "label": "Stays the same",
+        "correct": false,
+        "why": "That holds only if $\\beta = 1$. With $\\beta = 1.0198$ the DV01 hedge is scaled up: $80.95 \\times 1.0198 = \\text{USD }82.55$m."
+      }
+    ],
+    "working": [
+      {
+        "label": "DV01-neutral",
+        "display": "$100 \\times 0.068/0.084 = 80.95$",
+        "value": 80.95
+      },
+      {
+        "label": "Regression hedge",
+        "display": "$80.95 \\times 1.0198 = \\text{USD }82.55$m",
+        "value": 82.55
+      }
+    ],
+    "takeaway": "When $\\beta > 1$ (nominal yields move more than real yields), buy more of the real bond than the DV01-neutral amount.",
+    "check": {
+      "inputs": {
+        "FN": 100,
+        "DN": 0.068,
+        "DR": 0.084,
+        "beta": 1.0198
+      },
+      "steps": [
+        {
+          "name": "FR_dv01",
+          "expr": "FN*DN/DR",
+          "value": 80.952
+        },
+        {
+          "name": "FR_reg",
+          "expr": "FR_dv01*beta",
+          "value": 82.555
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-09",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-11",
+    "reading_id": "MR-11",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+      "line": 218
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A trader who receives fixed on an illiquid 20-year euro swap hedges with 10-year and 30-year swaps. The regression $\\Delta y^{20} = \\alpha + \\beta^{10}\\Delta y^{10} + \\beta^{30}\\Delta y^{30} + \\epsilon$ gives $\\beta^{10} = 0.2221$ and $\\beta^{30} = 0.7765$ ($R^2 = 99.8\\%$).",
+    "ask": "Before computing face values: which hedge leg carries more of the 20-year swap's DV01?",
+    "options": [
+      {
+        "label": "The 30-year leg",
+        "correct": true
+      },
+      {
+        "label": "The 10-year leg",
+        "correct": false,
+        "why": "The 10-year risk weight is 0.2221, which covers only about 22% of the 20-year DV01."
+      },
+      {
+        "label": "About 50/50, since 20 is midway between 10 and 30",
+        "correct": false,
+        "why": "That is maturity interpolation. The regression shows the 20-year rate moving mostly with the 30-year: 77.65% against 22.21%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Risk weights",
+        "display": "$\\beta^{10} = 22.21\\%$, $\\beta^{30} = 77.65\\%$ of the 20-year DV01",
+        "value": null
+      },
+      {
+        "label": "Sum",
+        "display": "$0.2221 + 0.7765 = 0.9986$",
+        "value": 0.9986
+      },
+      {
+        "label": "Face values next",
+        "display": "$F^{10} = -\\dfrac{F^{20} DV01^{20}}{DV01^{10}}\\beta^{10}$, and likewise for $F^{30}$, each divided by its own DV01",
+        "value": null
+      }
+    ],
+    "takeaway": "In a two-variable regression hedge the betas are DV01 shares. Read them before thinking about face amounts.",
+    "check": {
+      "inputs": {
+        "b10": 0.2221,
+        "b30": 0.7765
+      },
+      "steps": [
+        {
+          "name": "total",
+          "expr": "b10 + b30",
+          "value": 0.9986
+        },
+        {
+          "name": "gap",
+          "expr": "b30 - b10",
+          "value": 0.5544
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-10",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-11",
+    "reading_id": "MR-11",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+      "line": 318
+    },
+    "trap_category": "Formula",
+    "setup": "To hedge a corporate bond with a Treasury, regressing corporate yield changes on Treasury yield changes gives $\\beta = 0.842$ (risk weight 84.2%). The reverse regression, Treasury changes on corporate changes, gives $\\beta = 0.921$.",
+    "ask": "Is the reverse regression's implied risk weight above or below 100%?",
+    "options": [
+      {
+        "label": "Above 100%",
+        "correct": true
+      },
+      {
+        "label": "Below 100%",
+        "correct": false,
+        "why": "0.921 is the reverse regression's slope. The implied risk weight is its reciprocal: $1/0.921 = 108.6\\%$."
+      },
+      {
+        "label": "The same 84.2%",
+        "correct": false,
+        "why": "Least squares is not symmetric. The two regressions agree only when the fit is perfect, and here the reverse regression implies 108.6%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Original weight",
+        "display": "$\\beta = 0.842 \\Rightarrow 84.2\\%$",
+        "value": 0.842
+      },
+      {
+        "label": "Reverse implied weight",
+        "display": "$1/0.921 = 1.086 \\Rightarrow 108.6\\%$",
+        "value": 1.086
+      }
+    ],
+    "takeaway": "For a reverse regression, invert the slope to get the risk weight, and expect a different answer from the direct regression.",
+    "check": {
+      "inputs": {
+        "b": 0.842,
+        "brev": 0.921
+      },
+      "steps": [
+        {
+          "name": "w_rev",
+          "expr": "1/brev",
+          "value": 1.0858
+        },
+        {
+          "name": "diff",
+          "expr": "1/brev - b",
+          "value": 0.24378
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-11",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-18",
+    "reading_id": "MR-18",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+      "line": 127
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A USD 950m bond portfolio defaults with probability 2%, and a default loses 40% of principal. Otherwise there is no loss.",
+    "ask": "Before computing expected shortfall: what is the 95% VaR?",
+    "options": [
+      {
+        "label": "USD 0",
+        "correct": true
+      },
+      {
+        "label": "USD 380m",
+        "correct": false,
+        "why": "Default occupies only the worst 2% of outcomes, so the 95th-percentile outcome is no default. USD 380m is the loss given default."
+      },
+      {
+        "label": "USD 7.6m",
+        "correct": false,
+        "why": "That is the expected loss, $0.02 \\times 380$. VaR is a quantile, not a mean, and at the 95th percentile the loss is zero."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss if default",
+        "display": "$0.40 \\times 950 = \\text{USD }380$m",
+        "value": 380
+      },
+      {
+        "label": "95% VaR",
+        "display": "$\\text{PD} = 2\\% < 5\\%$, so the 95th-percentile outcome is no default: VaR $= \\text{USD }0$",
+        "value": 0
+      }
+    ],
+    "takeaway": "When the loss event is rarer than the tail probability, VaR reports zero. That is the blind spot FRTB fixes by moving to ES.",
+    "check": {
+      "inputs": {
+        "P": 950,
+        "LGD": 0.4,
+        "PD": 0.02,
+        "tail": 0.05
+      },
+      "steps": [
+        {
+          "name": "L",
+          "expr": "LGD*P",
+          "value": 380.0
+        },
+        {
+          "name": "EL",
+          "expr": "PD*L",
+          "value": 7.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-12",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-18",
+    "reading_id": "MR-18",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+      "line": 143
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A USD 950m bond portfolio defaults with probability 2%, and a default loses 40% of principal. Otherwise there is no loss. Take the 95% expected shortfall as the average loss across the worst 5% of outcomes.",
+    "ask": "Roughly how large is the 95% expected shortfall?",
+    "options": [
+      {
+        "label": "≈ USD 150m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 380m",
+        "correct": false,
+        "why": "That is the loss given default. The worst 5% of outcomes is 2% default (loss USD 380m) and 3% no loss, so the tail average is $0.4 \\times 380$."
+      },
+      {
+        "label": "≈ USD 950m",
+        "correct": false,
+        "why": "This takes the whole principal, ignoring the 40% loss severity and the averaging across the tail."
+      },
+      {
+        "label": "≈ USD 7.6m",
+        "correct": false,
+        "why": "That is the expected loss over all outcomes, $0.02 \\times 380$, not the average across the tail."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss if default",
+        "display": "$0.40 \\times 950 = 380$",
+        "value": 380
+      },
+      {
+        "label": "95% VaR",
+        "display": "Default is only 2% of outcomes, so VaR $= 0$",
+        "value": 0
+      },
+      {
+        "label": "95% ES",
+        "display": "$\\dfrac{0.02}{0.05} \\times 380 = \\text{USD }152$m",
+        "value": 152
+      }
+    ],
+    "takeaway": "ES averages over the whole tail: a 2% loss event inside a 5% tail gets a weight of 2/5.",
+    "check": {
+      "inputs": {
+        "P": 950,
+        "LGD": 0.4,
+        "PD": 0.02,
+        "tail": 0.05
+      },
+      "steps": [
+        {
+          "name": "L",
+          "expr": "LGD*P",
+          "value": 380.0
+        },
+        {
+          "name": "EL",
+          "expr": "PD*L",
+          "value": 7.6
+        },
+        {
+          "name": "ES",
+          "expr": "PD/tail*L",
+          "value": 152.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-13",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-18",
+    "reading_id": "MR-18",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+      "line": 65
+    },
+    "trap_category": "Scope",
+    "setup": "A desk's daily losses are normally distributed with mean $\\mu$ and standard deviation $\\sigma$. Its capital measure changes from the 99% VaR, $\\mu + 2.326\\sigma$, to the FRTB 97.5% expected shortfall.",
+    "ask": "For this normal portfolio, what happens to the risk number?",
+    "options": [
+      {
+        "label": "Roughly unchanged",
+        "correct": true
+      },
+      {
+        "label": "Rises sharply, because ES averages the tail",
+        "correct": false,
+        "why": "A normal tail is thin, so the average beyond the 97.5% cut lands only 0.012$\\sigma$ past the 99% VaR. The two measures separate sharply only when tails are fat."
+      },
+      {
+        "label": "Falls, because 97.5% is a lower confidence level",
+        "correct": false,
+        "why": "A lower cut on its own would reduce the number. ES then averages beyond that cut, which almost exactly offsets it: $2.338\\sigma$ against $2.326\\sigma$."
+      }
+    ],
+    "working": [
+      {
+        "label": "99% VaR",
+        "display": "$\\mu + 2.326\\sigma$",
+        "value": 2.326
+      },
+      {
+        "label": "97.5% ES",
+        "display": "$\\mu + \\dfrac{\\phi(1.96)}{0.025}\\sigma = \\mu + 2.338\\sigma$",
+        "value": 2.338
+      },
+      {
+        "label": "Ratio",
+        "display": "$2.338/2.326 = 1.005$",
+        "value": 1.005
+      }
+    ],
+    "takeaway": "For normal returns, 97.5% ES ≈ 99% VaR. The switch matters only when the tails are fat.",
+    "check": {
+      "inputs": {
+        "z": 1.96,
+        "pi": 3.141592653589793,
+        "var99": 2.326
+      },
+      "steps": [
+        {
+          "name": "es975",
+          "expr": "exp(-z**2/2)/sqrt(2*pi)/0.025",
+          "value": 2.3376
+        },
+        {
+          "name": "ratio",
+          "expr": "es975/var99",
+          "value": 1.005
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-15",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 211
+    },
+    "trap_category": "Formula",
+    "setup": "At the start of Year 1, King Bank has assets of USD 125m earning 6.00%, liabilities of USD 75m paying 5.00%, and equity of USD 50m. At the end of Year 1, USD 25m of assets expire. No liabilities expire in Year 1.",
+    "ask": "Roughly what is the term structure of expected cumulated cash flows (TSECCF) at the end of Year 1?",
+    "options": [
+      {
+        "label": "≈ USD 29m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 3.8m",
+        "correct": false,
+        "why": "Interest only, $7.50 - 3.75$. The expiring USD 25m asset is itself a positive cash flow."
+      },
+      {
+        "label": "≈ USD 130m",
+        "correct": false,
+        "why": "This counts the whole USD 125m asset book as cash coming in. Only the USD 25m that expires produces a principal flow."
+      },
+      {
+        "label": "≈ USD 400m",
+        "correct": false,
+        "why": "Rates entered as whole numbers: $6 \\times 125 - 5 \\times 75 = 375$, plus 25."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expiring asset",
+        "display": "$+25$",
+        "value": 25
+      },
+      {
+        "label": "Interest earned",
+        "display": "$0.06 \\times 125 = 7.50$",
+        "value": 7.5
+      },
+      {
+        "label": "Interest paid",
+        "display": "$0.05 \\times 75 = 3.75$",
+        "value": 3.75
+      },
+      {
+        "label": "TSECCF(1)",
+        "display": "$25 + 7.50 - 3.75 = \\text{USD }28.75$m",
+        "value": 28.75
+      }
+    ],
+    "takeaway": "Year-1 TSECCF = expiring assets + interest earned − interest paid − any expiring liabilities.",
+    "check": {
+      "inputs": {
+        "A": 125,
+        "L": 75,
+        "ra": 0.06,
+        "rl": 0.05,
+        "expA": 25,
+        "expL2": 15
+      },
+      "steps": [
+        {
+          "name": "intA",
+          "expr": "ra*A",
+          "value": 7.5
+        },
+        {
+          "name": "intL",
+          "expr": "rl*L",
+          "value": 3.75
+        },
+        {
+          "name": "C1",
+          "expr": "expA + intA - intL",
+          "value": 28.75
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-16",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 222
+    },
+    "trap_category": "Intermediate result",
+    "setup": "King Bank's TSECCF at the end of Year 1 is +USD 28.75m. In Year 2 its remaining USD 100m of assets earn 6.00%. Liabilities of USD 75m pay 5.00% for the full year, and USD 15m of them expire at the end of Year 2.",
+    "ask": "Is TSECCF at the end of Year 2 positive, negative or too close to call?",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "Year 2's own net flow is $6.00 - 15 - 3.75 = -\\text{USD }12.75$m. That is the TSECF entry for the year. The cumulative figure also carries forward the +USD 28.75m."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "$28.75 - 12.75 = +16.00$ leaves a wide margin."
+      }
+    ],
+    "working": [
+      {
+        "label": "Interest earned",
+        "display": "$0.06 \\times 100 = 6.00$",
+        "value": 6.0
+      },
+      {
+        "label": "Interest paid",
+        "display": "$0.05 \\times 75 = 3.75$ (full base until the liabilities expire)",
+        "value": 3.75
+      },
+      {
+        "label": "Year-2 flow (TSECF)",
+        "display": "$6.00 - 15 - 3.75 = -12.75$",
+        "value": -12.75
+      },
+      {
+        "label": "TSECCF(2)",
+        "display": "$28.75 - 12.75 = +\\text{USD }16.00$m",
+        "value": 16.0
+      }
+    ],
+    "takeaway": "TSECCF is cumulative, so a negative year does not make it negative as long as earlier years built a cushion.",
+    "check": {
+      "inputs": {
+        "A": 125,
+        "L": 75,
+        "ra": 0.06,
+        "rl": 0.05,
+        "expA": 25,
+        "expL2": 15
+      },
+      "steps": [
+        {
+          "name": "C1",
+          "expr": "expA + ra*A - rl*L",
+          "value": 28.75
+        },
+        {
+          "name": "flow2",
+          "expr": "ra*(A - expA) - expL2 - rl*L",
+          "value": -12.75
+        },
+        {
+          "name": "C2",
+          "expr": "C1 + flow2",
+          "value": 16.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-17",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 350
+    },
+    "trap_category": "Sign",
+    "setup": "A bank enters a sell/buyback. At the start it sells a bond and receives USD 307,200, which is recorded in its cumulated liquidity generation capacity. At the end it buys the bond back for USD 307,350.",
+    "ask": "At the end date, which way does the bank's TSECF move?",
+    "options": [
+      {
+        "label": "Down",
+        "correct": true
+      },
+      {
+        "label": "Up",
+        "correct": false,
+        "why": "The USD 307,200 received at the start went to TSCLGC, not TSECF. At the end the bank pays USD 150 more than it received, which is a net outflow."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The two legs do not wash out. The USD 150 difference, the funding interest, enters TSECF on the end date."
+      }
+    ],
+    "working": [
+      {
+        "label": "Start",
+        "display": "TSCLGC $+307{,}200$; the bond leaves TSAA",
+        "value": null
+      },
+      {
+        "label": "End, net",
+        "display": "$307{,}200 - 307{,}350 = -150$ into TSECF",
+        "value": -150
+      }
+    ],
+    "takeaway": "In a sell/buyback, LGC rises at the start and TSECF falls by the interest at the end.",
+    "check": {
+      "inputs": {
+        "sell": 307200,
+        "buy": 307350
+      },
+      "steps": [
+        {
+          "name": "net",
+          "expr": "sell - buy",
+          "value": -150.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-18",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 333
+    },
+    "trap_category": "Sibling",
+    "setup": "A bank enters a buy/sellback. At the start it pays USD 500,000 for 40,000 bonds. At the end it sells them back and receives USD 501,000, including accrued interest.",
+    "ask": "At the start, what happens to the bank's cumulated liquidity generation capacity (TSCLGC)?",
+    "options": [
+      {
+        "label": "Unchanged",
+        "correct": true
+      },
+      {
+        "label": "Rises by USD 500,000",
+        "correct": false,
+        "why": "That is the sell/buyback pattern. In a buy/sellback cash goes out and no liquidity is generated. The bonds are added to TSAA instead."
+      },
+      {
+        "label": "Falls by USD 500,000",
+        "correct": false,
+        "why": "The USD 500,000 outflow is recorded in TSECF, not TSCLGC. LGC is not modified at either end."
+      }
+    ],
+    "working": [
+      {
+        "label": "Start",
+        "display": "TSECF $-500{,}000$; TSAA $+40{,}000$ bonds; TSCLGC unchanged",
+        "value": -500000
+      },
+      {
+        "label": "End",
+        "display": "TSECF $+501{,}000$; TSAA back to 0",
+        "value": 501000
+      },
+      {
+        "label": "Net cash",
+        "display": "$501{,}000 - 500{,}000 = +1{,}000$ (the interest earned)",
+        "value": 1000
+      }
+    ],
+    "takeaway": "A sell/buyback generates LGC at the start. A buy/sellback never does.",
+    "check": {
+      "inputs": {
+        "pay": 500000,
+        "recv": 501000
+      },
+      "steps": [
+        {
+          "name": "net",
+          "expr": "recv - pay",
+          "value": 1000.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-19",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 69
+    },
+    "trap_category": "Role",
+    "setup": "A corporate customer draws on its committed credit line at a fixed contract rate that is now below the current market rate. The bank has to fund the drawdown at market rates.",
+    "ask": "What is the financial impact of this exercise on the bank?",
+    "options": [
+      {
+        "label": "Negative",
+        "correct": true
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "That is the customer's view: borrowing below market is good for the customer. The bank lends below its own market funding cost."
+      },
+      {
+        "label": "Zero, since it is only a cash-flow event",
+        "correct": false,
+        "why": "Exercise changes the balance sheet (cash goes out) and also has a financial impact, set by the contract rate against market conditions."
+      }
+    ],
+    "working": [
+      {
+        "label": "Customer",
+        "display": "Borrows below market: a gain for the customer",
+        "value": null
+      },
+      {
+        "label": "Bank",
+        "display": "Earns the contract rate, pays the market rate: a loss for the bank",
+        "value": null
+      }
+    ],
+    "takeaway": "Sign a liquidity option's impact from the bank's side. It is the opposite of the customer's.",
+    "check": null
+  },
+  {
+    "id": "SC-notes-3-20",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-7",
+    "reading_id": "LTR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/13_LR_LTR7.tex",
+      "line": 140
+    },
+    "trap_category": "Sign",
+    "setup": "A bank expects an inflow of USD 100m on a date. At the 95% confidence level, the actual inflow could be as low as USD 90m.",
+    "ask": "Is the positive cash flow at risk ($\\text{cfaR}^{+}$), as reported, positive, negative or zero?",
+    "options": [
+      {
+        "label": "Positive (+USD 10m)",
+        "correct": true
+      },
+      {
+        "label": "Negative (−USD 10m)",
+        "correct": false,
+        "why": "Actual minus expected, $90 - 100$, gives $-10$. $\\text{cfaR}^{+}$ is expected minus actual, and it is reported as a positive shortfall."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "The inflow does fall short, by USD 10m. Zero would mean no adverse surprise."
+      }
+    ],
+    "working": [
+      {
+        "label": "$\\text{cfaR}^{+}$",
+        "display": "Expected inflow $-$ actual inflow $= 100 - 90 = +\\text{USD }10$m",
+        "value": 10
+      }
+    ],
+    "takeaway": "cfaR is always reported as a positive adverse surprise: expected − actual for inflows, actual − expected for outflows.",
+    "check": {
+      "inputs": {
+        "exp_in": 100,
+        "act_in": 90
+      },
+      "steps": [
+        {
+          "name": "cfaR_plus",
+          "expr": "exp_in - act_in",
+          "value": 10.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-21",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-17",
+    "reading_id": "CR-17",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/36_CR_CR17.tex",
+      "line": 175
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Under a CSA with a threshold of 100, no initial margin and no MTA, the portfolio was worth 250 at Time 1 and 150 of collateral was called, which is now held. At Time 2 the portfolio is worth 225.",
+    "ask": "At Time 2, is the credit support amount positive (call more), negative (return collateral) or zero?",
+    "options": [
+      {
+        "label": "Negative: collateral is returned",
+        "correct": true
+      },
+      {
+        "label": "Positive: call more",
+        "correct": false,
+        "why": "It is true that $225 - 150 = 75$ is uncollateralized, but the first 100 is the threshold and is never collateralized. Required collateral is $225 - 100 = 125$, and 150 is held."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "Required collateral is 125 and 150 is held, so 25 is surplus and has to be returned."
+      }
+    ],
+    "working": [
+      {
+        "label": "Required",
+        "display": "$\\max(225 - 100, 0) = 125$",
+        "value": 125
+      },
+      {
+        "label": "Credit support amount",
+        "display": "$125 - 150 = -25$: return 25",
+        "value": -25
+      }
+    ],
+    "takeaway": "Uncollateralized exposure can still be positive while the credit support amount is negative. The threshold slice is never covered.",
+    "check": {
+      "inputs": {
+        "V": 225,
+        "K": 100,
+        "C": 150
+      },
+      "steps": [
+        {
+          "name": "req",
+          "expr": "max(V - K, 0)",
+          "value": 125.0
+        },
+        {
+          "name": "csa",
+          "expr": "req - C",
+          "value": -25.0
+        },
+        {
+          "name": "uncoll",
+          "expr": "V - C",
+          "value": 75.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-22",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-17",
+    "reading_id": "CR-17",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/36_CR_CR17.tex",
+      "line": 175
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Under a CSA with a threshold of 100, no initial margin and no MTA, the portfolio was worth 250 at Time 1 and 150 of collateral was called, which is now held. At Time 2 the portfolio is worth 225.",
+    "ask": "Before any collateral moves at Time 2, roughly how much of the exposure is uncollateralized?",
+    "options": [
+      {
+        "label": "≈ 75",
+        "correct": true
+      },
+      {
+        "label": "≈ 25",
+        "correct": false,
+        "why": "That is the size of the credit support amount ($-25$, a return of collateral), not the uncollateralized exposure."
+      },
+      {
+        "label": "≈ 225",
+        "correct": false,
+        "why": "This ignores the 150 of collateral already held."
+      },
+      {
+        "label": "≈ 7.5",
+        "correct": false,
+        "why": "Scale slip: a tenth of the true value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Uncollateralized",
+        "display": "$225 - 150 = 75$",
+        "value": 75
+      },
+      {
+        "label": "Required collateral",
+        "display": "$\\max(225 - 100, 0) = 125$",
+        "value": 125
+      },
+      {
+        "label": "Credit support amount",
+        "display": "$125 - 150 = -25$",
+        "value": -25
+      }
+    ],
+    "takeaway": "Uncollateralized exposure (value minus collateral held) and the credit support amount are different numbers. Keep them apart.",
+    "check": {
+      "inputs": {
+        "V": 225,
+        "K": 100,
+        "C": 150
+      },
+      "steps": [
+        {
+          "name": "uncoll",
+          "expr": "V - C",
+          "value": 75.0
+        },
+        {
+          "name": "req",
+          "expr": "max(V - K, 0)",
+          "value": 125.0
+        },
+        {
+          "name": "csa",
+          "expr": "req - C",
+          "value": -25.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-3-23",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-17",
+    "reading_id": "CR-17",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/36_CR_CR17.tex",
+      "line": 140
+    },
+    "trap_category": "Polarity",
+    "setup": "Collateral held against a counterparty is $\\max(\\text{value} - K_c, 0) + \\mathrm{IM}_c$. The portfolio is worth 250. The CSA changes from threshold $K_c = 100$ with no initial margin to threshold $K_c = 0$ with initial margin of 40.",
+    "ask": "What happens to the total collateral the bank holds?",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Both changes add collateral. Removing the threshold collateralizes the first 100, and the initial margin is posted on top."
+      },
+      {
+        "label": "Roughly unchanged",
+        "correct": false,
+        "why": "Threshold and initial margin only offset when one rises as the other is added. Here both changes add collateral: dropping the threshold adds 100 and the initial margin adds 40, so 150 becomes 290."
+      }
+    ],
+    "working": [
+      {
+        "label": "Before",
+        "display": "$\\max(250 - 100, 0) + 0 = 150$",
+        "value": 150
+      },
+      {
+        "label": "After",
+        "display": "$\\max(250 - 0, 0) + 40 = 290$",
+        "value": 290
+      }
+    ],
+    "takeaway": "Threshold and initial margin pull in opposite directions: a higher threshold means less collateral, and more initial margin means more.",
+    "check": {
+      "inputs": {
+        "V": 250,
+        "K1": 100,
+        "K2": 0,
+        "IM": 40
+      },
+      "steps": [
+        {
+          "name": "c1",
+          "expr": "max(V - K1, 0)",
+          "value": 150.0
+        },
+        {
+          "name": "c2",
+          "expr": "max(V - K2, 0) + IM",
+          "value": 290.0
+        },
+        {
+          "name": "delta",
+          "expr": "c2 - c1",
+          "value": 140.0
+        }
+      ]
+    }
+  }
+]

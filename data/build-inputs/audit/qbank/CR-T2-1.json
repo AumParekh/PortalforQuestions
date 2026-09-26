@@ -1,0 +1,128 @@
+{
+ "slice": "CR-T2-1",
+ "checked": 36,
+ "notFound": [],
+ "flags": [
+  {
+   "id": "CR-T2-08",
+   "field": "answer",
+   "severity": "source-error",
+   "current": "d (statement (b) 'If the yield increases to 7.0%, the Macaulay duration will increase to 5.09 years' treated as TRUE)",
+   "proposed": "Statement (b) is false under every reading: for a level-payment annuity Macaulay duration depends only on the yield (payment size cancels), and at 7% it is 4.95 years, a DECREASE. Preferred fix (keeps key d): change option (b) to 'If the yield increases to 7.0%, the Macaulay duration will decrease to 4.95 years', add to the stem 'The loan's scheduled cash flows are fixed' (so WAL stays 5.98 and (d) is the only false statement), and rewrite the solution paragraph 'The direction in statement (b)...' to: 'Higher yield discounts distant cash flows more heavily, so duration shortens from 5.02 to 4.95 years; statement (b) is true.' Also fix optionAnalysis b and the trap text (which claim duration lengthens for a repriced loan). Alternative if option text is kept verbatim: key = b.",
+   "source_says": "Key (d); solution claims repricing the level payment at 7% 'pushes principal repayment later... duration lengthens modestly, from 5.02 to 5.09. Statement (b) is true.'",
+   "derivation": "python, USD 1 annual-pay 10y level annuity: coupon 6%/yield 6% -> WAL 5.978, Macaulay D 5.022 (matches stem). Coupon 7%/yield 7% (repriced) -> WAL 6.054, D 4.946. Coupon 6% cash flows discounted at 7% -> D 4.946. So D falls to 4.95 in both readings; 5.09 is unobtainable. Note the option (d) figure 6.05 is exactly the repriced WAL, so under the solution's own repricing logic (d) is TRUE and (b) is the single false statement; under the fixed-cash-flow reading both (b) and (d) are false. Either way (d) cannot be the unique EXCEPT answer as written. (Identity check: for a level annuity WAL + D = n+1 = 11 at equal coupon/yield.)",
+   "evidence": "PDF p16-17 (Q8, P2.T6.612.1); solution paragraph 'The direction in statement (b), which is the subtle part'. Source cover p1 notes one item was 'rebuilt' because of two false statements.",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-21",
+   "field": "options",
+   "severity": "unclear",
+   "current": "(d) Increasing the default correlation while holding granularity at 20 positions increases the 95% credit VaR.",
+   "proposed": "Replace (d) with a statement that is unambiguously true, e.g. '(d) Increasing the default correlation while holding granularity at 20 positions leaves the expected loss unchanged at USD 10 million.' and update optionAnalysis d / solution 'Statement (d)' accordingly. (Or move (d) to 99% confidence, where the base 99th-percentile is 2 defaults.)",
+   "source_says": "Key (c); (d) asserted true: 'Raising correlation reduces diversification and fattens the tail, so credit VaR rises.' Source trap text says the item was rebuilt from a version where both (c) and (d) were false.",
+   "derivation": "n=20, p=1%, zero recovery, 95% level. Base: P(0)=0.8179, P(<=1)=0.9831 -> q95 = 1 default, VaR = 50-10 = 40 (correct). Under a one-factor Gaussian copula (python integration) P(>=2 defaults) peaks at only ~4.1% (asset rho ~0.45), so q95 stays at 1 and VaR stays 40 for rho up to ~0.8; for rho >= ~0.85 P(0) > 95% so q95 = 0 and VaR = -10 (floored 0). Beta-binomial with default correlation 0.01-0.6 gives the same: P(>=2) max ~4.6%, P(0) rises to 0.97. So raising correlation never increases the 95% credit VaR here and eventually lowers it (same threshold effect the set itself explains in CR-T2-16). Statement (d) is therefore false as well as (c).",
+   "evidence": "PDF p38-39 (Q21 [ADDED]); trap paragraph on p39.",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-29",
+   "field": "solution",
+   "severity": "wrong-content",
+   "current": "This evaluates to approximately 0.10%, against an independence benchmark of $0.02\\% \\times 0.02\\% = 0.0004\\%$. An asset correlation of 0.16 therefore raises joint default by a factor of roughly 250. ... $\\rho^{default} = \\frac{0.0010 - 0.0004}{...} \\approx 0.031$",
+   "proposed": "This evaluates to approximately 0.092%, against an independence benchmark of $2\\% \\times 2\\% = 0.04\\%$. An asset correlation of 0.16 therefore raises joint default by a factor of roughly 2.3. ... $\\rho^{default} = \\frac{0.00092 - 0.0004}{\\sqrt{0.02 \\times 0.98 \\times 0.02 \\times 0.98}} \\approx 0.026$ (and 'default correlation about 0.03' -> 'about 0.026').",
+   "source_says": "Same text as JSON (0.02% x 0.02% = 0.0004%, factor of roughly 250, rho_default ~0.031).",
+   "derivation": "k = N^-1(0.02) = -2.0537. Phi2(k,k;0.16) computed by integrating N((k-0.4m)/sqrt(0.84))^2 over m ~ N(0,1): 0.000919 = 0.092%. Independence: 0.02*0.02 = 0.0004 = 0.04% (the solution's own formula uses 0.0004, and option (c) says 0.04%). Ratio 0.000919/0.0004 = 2.3, not 250. Default corr = (0.000919-0.0004)/0.0196 = 0.0265.",
+   "evidence": "PDF p52 (Q29 solution, Step 3 and 'The resulting default correlation').",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-15",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "Stem premise 'the 95th percentile of the number of defaults is 4' and solution note 'With 100 independent credits, the 95th percentile of 4 sits only one default above the mean of 3'",
+   "proposed": "Key (a) follows from the premise as given, so no key change. Either (i) reword the stem to 'Assume the 95th percentile of the number of defaults is 4' and delete/replace the note with 'Under an exact binomial(100, 3%) the 95th percentile would be 6 defaults (credit VaR USD 30,000); the question fixes it at 4 by assumption.', or (ii) change the premise to 6 and the key/options accordingly (credit VaR = 60,000 - 30,000 = USD 0.03 million).",
+   "source_says": "AnalystPrep Q.1842 premise '95th percentile ... is 4'; answer (a) USD 0.01 million.",
+   "derivation": "Binomial(100, 0.03) CDF: P(<=4)=0.8179, P(<=5)=0.9192, P(<=6)=0.9688 -> 95th percentile = 6, not 4. With zero correlation the stated premise is inconsistent; the solution's note presents 4 as a fact about 100 independent credits, which misteaches the binomial quantile.",
+   "evidence": "PDF p30 (Q15).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-16",
+   "field": "trap",
+   "severity": "wrong-content",
+   "current": "A candidate who reaches for a binomial distribution with n = 30 and p = 3% will find a 99th percentile of roughly 3 defaults and compute a credit VaR near USD 70,000",
+   "proposed": "... will find a 99th percentile of 4 defaults and compute a credit VaR near USD 103,000 (4 x 33,333 - 30,000)",
+   "source_says": "Same as JSON.",
+   "derivation": "Binomial(30, 0.03): P(<=2)=0.9399, P(<=3)=0.9881 (<0.99), P(<=4)=0.9982 -> 99th percentile = 4. Position size 1,000,000/30 = 33,333; 4 x 33,333 - 30,000 = 103,333. (3 defaults would give 70,000.) Key (a) USD 970,000 unaffected.",
+   "evidence": "PDF p31 (Q16 TRAP).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-27",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "a: '0.05796 results from omitting the subtraction ... 0.0002 / 0.0038575 = 0.05185'; b: '0.00262 is roughly the numerator 0.000185 divided by a denominator computed without the square root, that is, dividing by the product of variances'; c: similar; trap: 'square root omissions ... Both produce answers an order of magnitude too small.'",
+   "proposed": "a: 'Omitting the subtraction of pi1*pi2 gives 0.0002/0.0038575 = 0.0518, an overstatement; 0.05796 is a distractor near that dropped-term value.' b/c: remove the variance-product derivation (it gives 0.000185/0.00001488 = 12.4, not 0.00262) and state that these values are an order of magnitude too small and follow from no defined step. Trap: delete 'Both produce answers an order of magnitude too small' as an explanation of square-root omission (omitting the root makes the answer ~12, far too LARGE).",
+   "source_says": "Same as JSON (source also mis-cross-references 'Question 27 run in reverse' and 'bound from Question 28', which the JSON already removed).",
+   "derivation": "python: correct rho = 0.000185/sqrt(0.002991*0.004975) = 0.04796 (key d correct). No-subtraction = 0.05185 (not 0.05796). Divide by product of variances = 12.43; divide by pi1*pi2 = 12.33; divide by sqrt(pi1*pi2) = 0.0478. None reproduces 0.00262 or 0.00338.",
+   "evidence": "PDF p48 (Q27 OPTION ANALYSIS and TRAP).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-30",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "a: '7.83% is approximately N(-1.415), obtained by using the numerator -0.799 without dividing by sqrt(1-beta^2) ...'; d: '22.75% corresponds to a numerator computed with the wrong sign on the market factor term, or to using beta^2 in place of beta'",
+   "proposed": "a: '7.83% is approximately N(-1.415), which is what results from using beta^2 = 0.36 instead of beta in the numerator: (-1.645 + 0.36 x 1.41)/0.80 = -1.42.' d: '22.75% is approximately N(-0.75); it overstates the downturn effect and follows from no correct step (omitting the denominator entirely gives N(-0.799) = 21.2%).'",
+   "source_says": "Same as JSON.",
+   "derivation": "Key c: N((-1.645+0.846)/0.8) = N(-0.999) = 15.90% (correct). N(-0.799) (no denominator) = 21.2%, not 7.83%. Wrong sign: N((-1.645-0.846)/0.8) = N(-3.11) = 0.09%, not 22.75%. Beta^2 in numerator: N(-1.422) = 7.75% ~ option a, not d. 22.75% = N(-0.747).",
+   "evidence": "PDF p54 (Q30 OPTION ANALYSIS).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-07",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "a: '... A weighted average cannot fall below the value of the majority component when all other components are longer.'",
+   "proposed": "a: '145 days is well below the correct 187 days. The superstore pool (82 days) is the only shorter pool and carries under 20% of the balance, so it cannot pull the average below the 169-day office pool that makes up over half the balance.'",
+   "source_says": "Same as JSON.",
+   "derivation": "Superstore at 82 days is SHORTER than the 169-day office pool, so 'all other components are longer' is false. WAM = 24,733/132 = 187.4 (key c correct).",
+   "evidence": "PDF p15 (Q7 OPTION ANALYSIS a).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-03",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "d: '10.7% corresponds to including only the 91 to 120 day bucket plus part of another, and 3.84% has no derivation ... Neither figure follows from a defined step.'",
+   "proposed": "d: '10.7% is 130 / 1,210, the 91 to 120 day bucket alone, which omits the 121+ day bucket; 3.84% does not follow from the stated write-off.'",
+   "source_says": "Same as JSON.",
+   "derivation": "130/1,210 = 10.74% exactly, so 10.7% does follow from a defined (wrong) step: dropping the 121+ bucket. Key c (190/1,210 = 15.70%; 35/1,210 = 2.89%) correct.",
+   "evidence": "PDF p8 (Q3 OPTION ANALYSIS d).",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T2-26",
+   "field": "optionAnalysis",
+   "severity": "typo",
+   "current": "c: '0.812 ... results from arithmetic slips in the denominator, for example using sqrt(pi1 pi2) without the (1-pi) factors, which gives 0.002988 / 0.003464 = 0.862'",
+   "proposed": "c: '0.812 is close to the correct value but follows from no defined step; for example, dropping the (1-pi) factors gives 0.002988 / 0.003464 = 0.863, which is still not 0.812.'",
+   "source_says": "Same as JSON.",
+   "derivation": "rho_max = 0.002988/sqrt(0.002991 x 0.003984) = 0.8656 (key d correct). sqrt(p1p2) variant = 0.8626; the explanation says this yields option c (0.812) while computing 0.862, which is self-contradictory.",
+   "evidence": "PDF p47 (Q26 OPTION ANALYSIS c).",
+   "confidence": "medium"
+  },
+  {
+   "id": "CR-T2-36",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "a: 'True as a complete answer, but only one of three correct functions.'",
+   "proposed": "a: 'Incorrect as a complete answer. True, but only one of three correct functions.'",
+   "source_says": "(a) Incorrect as a complete answer. True, but only one of three correct functions.",
+   "derivation": "Normalisation merged the verdict wording so the reason now says option (a) is 'True as a complete answer', contradicting verdict 'incorrect' and key d.",
+   "evidence": "PDF p65 (Q36 OPTION ANALYSIS a).",
+   "confidence": "high"
+  }
+ ]
+}

@@ -1,0 +1,117 @@
+{
+ "slice": "CR-T3-1",
+ "checked": 26,
+ "notFound": [],
+ "flags": [
+  {
+   "id": "CR-T3-04",
+   "field": "options",
+   "severity": "source-error",
+   "current": "a 'Cumulative 2.05%; marginal 1.05%' (key a); b 'Cumulative 2.00%; marginal 1.00%'; c 'Cumulative 1.05%; marginal 2.05%'; d 'Cumulative 2.05%; marginal 2.05%'",
+   "proposed": "Replace options: a 'Cumulative 2.80%; marginal 1.80%' (keep key a); b 'Cumulative 2.00%; marginal 1.00%' (unchanged); c 'Cumulative 1.80%; marginal 2.80%'; d 'Cumulative 2.80%; marginal 2.80%'. As written, NO option is correct.",
+   "source_says": "Answer (a) 2.05% / 1.05%; path table lists A->B->D as '0.15% (rounded from 0.90%)' and the matrix line gives '0.0090 + 0.0090 + 0.0100 = 0.0205'",
+   "derivation": "Two-year PD from A = P(A->D) + P(A->A)P(A->D) + P(A->B)P(B->D) = 0.01 + 0.90*0.01 + 0.09*0.10 = 0.0100 + 0.0090 + 0.0090 = 0.0280 (checked by squaring the matrix in python: T^2[A,D] = 0.0280). Marginal year-2 PD = 2.80% - 1.00% = 1.80%. The source's own arithmetic line adds 0.0090+0.0090+0.0100 and writes 0.0205; the table fudges the 0.90% path into '0.15%'.",
+   "evidence": "PDF p.7 (options), p.8 (answer and solution: 'A->B->D 0.09x0.10 0.15% (rounded from 0.90%)', '= 0.0090 + 0.0090 + 0.0100 = 0.0205')",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-04",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "Path table row 'A -> B -> D | 0.09 x 0.10 | 0.15% (rounded from 0.90%)'; 'Cumulative PD(2 years) = 1.00% + 0.90% + 0.15% = 2.05%'; '= 0.0090 + 0.0090 + 0.0100 = 0.0205'; 'Marginal PD(year 2) = 2.05% - 1.00% = 1.05%'",
+   "proposed": "Row -> 'A -> B -> D | 0.09 x 0.10 | 0.90%'; 'Cumulative PD(2 years) = 1.00% + 0.90% + 0.90% = 2.80%'; '= 0.0090 + 0.0090 + 0.0100 = 0.0280'; 'Marginal PD(year 2) = 2.80% - 1.00% = 1.80%'. Also optionAnalysis a -> 'Correct. Cumulative 2.80% and marginal 1.80%.' (drop the 'before the rounding' sentence); optionAnalysis b 'which is where the extra 0.90% comes from' -> 'which contributes 0.90% (the stay-in-A path gives 0.90%, not 1.00%, so the net gap to 2.80% is 0.80%)'; optionAnalysis c -> '1.80% is the marginal and 2.80% the cumulative'; trap 'contributes nearly half the two-year risk' -> 'contributes about a third of the two-year risk (0.90% of 2.80%)'.",
+   "source_says": "Same erroneous 2.05%/1.05% derivation",
+   "derivation": "See options flag: 0.01 + 0.009 + 0.009 = 0.028.",
+   "evidence": "PDF p.8",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-21",
+   "field": "answer",
+   "severity": "source-error",
+   "current": "c (A surplus of USD 1,400,000); options c/d are +/- USD 1,400,000",
+   "proposed": "Key d with options c -> 'A surplus of USD 1,600,000' and d -> 'A shortfall of USD 1,600,000' (a and b unchanged). As written, no option is exactly correct; the nearest is d (shortfall), not c (surplus).",
+   "source_says": "(c) surplus of USD 1,400,000: '40,000,000 x 0.96 = 38,400,000; 25,000,000 x 0.88 = 22,000,000; Total 63,400,000'",
+   "derivation": "Credit given = 40,000,000 x 0.96 + 25,000,000 x 0.88 = 38,400,000 + 22,000,000 = 60,400,000 (source mis-adds to 63,400,000). Requirement = 62,000,000 (zero threshold, no IA). 60,400,000 - 62,000,000 = -1,600,000, a SHORTFALL of USD 1.6m, which exceeds the USD 500,000 MTA, so a further call is required. Ignoring haircuts would show a 3.0m surplus, so haircuts flip the sign - an even stronger teaching point.",
+   "evidence": "PDF p.39 (stem/options), p.40 (table total 'USD 63,400,000', 'surplus of USD 1,400,000')",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-21",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "'Total | USD 65,000,000 | | USD 63,400,000'; 'Total credit given = 38,400,000 + 22,000,000 = USD 63,400,000'; '63,400,000 - 62,000,000 = surplus of USD 1,400,000'; 'After haircuts the credit given is only USD 63,400,000, so the true surplus is less than half that. Applying haircuts in the wrong direction ... would give credit of USD 66,600,000 and a surplus of USD 4,600,000'",
+   "proposed": "Total -> 'USD 60,400,000'; 'Total credit given = 38,400,000 + 22,000,000 = USD 60,400,000'; '60,400,000 - 62,000,000 = shortfall of USD 1,600,000, above the USD 500,000 MTA, so the hedge fund must deliver further collateral'; 'After haircuts the credit given is only USD 60,400,000, so the apparent USD 3,000,000 surplus becomes a USD 1,600,000 shortfall. Applying haircuts in the wrong direction (grossing up by 1+h) would give credit of USD 69,600,000 and a surplus of USD 7,600,000.' optionAnalysis: a -> '...haircuts ignored: 65,000,000 - 62,000,000; ignoring haircuts turns a real shortfall into an apparent surplus'; b -> 'Right direction for the wrong reason: omits haircuts and reverses the sign of (a); the true shortfall is 1.6m'; c -> 'Magnitude right, sign reversed: 60.4m of haircut-adjusted collateral is below the 62m requirement'; d -> 'Correct. Shortfall of USD 1,600,000.' Remove 'There is no route to a shortfall on these figures'. Trap: swap roles of (c)/(d) in the sign-error sentence.",
+   "source_says": "Surplus of USD 1,400,000; grossed-up credit 66,600,000",
+   "derivation": "38.4m + 22.0m = 60.4m; 60.4m - 62m = -1.6m. Grossed up: 40x1.04 + 25x1.12 = 41.6 + 28.0 = 69.6m (source's 66.6m also wrong).",
+   "evidence": "PDF p.40",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-20",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains a 4-row table: 'Step | Operation | Result' ... 'USD 33,000,000' ... 'USD 3,500,000' ... '3.5m exceeds 1.0m, so transfer' ... 'Round to the agreed increment | USD 3,500,000'",
+   "proposed": "Remove the Step/Operation/Result table from the stem (it is the worked solution and gives away answer (a)); move it into the solution after 'The sequence matters and must be followed in order.' (where the source's solution text evidently intended it).",
+   "source_says": "Source PDF also prints this table on the question page (p.37) before 'What amount of collateral must...' - a compilation error in the source; the solution text on p.38 says 'The sequence matters and must be followed in order.' with no table after it.",
+   "derivation": "The answer USD 3,500,000 is stated verbatim in the stem table, so the item tests nothing. Key (a) itself is correct: max(0, 48m + 5m - 20m) = 33m; 33m - 29.5m = 3.5m >= 1m MTA; already a multiple of 100k.",
+   "evidence": "PDF p.37 table in stem; p.38 orphan sentence 'The sequence matters and must be followed in order.'",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-08",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains table 'Measure | Seven-year cumulative PD | Measure type | Correct use' with 'Spread implied | about 10% | Risk neutral | Valuation, CVA, credit derivative pricing'",
+   "proposed": "Remove this table from the stem (it states the answer, ~10%, and the interpretation that distinguishes b from c); move it into the solution, e.g. after Step 3 or under 'Which to use for what'.",
+   "source_says": "Source PDF also prints this table in the question block (p.13), a compilation error of the same kind as Q20.",
+   "derivation": "The table gives the numerical answer (about 10%) and the real-world vs risk-neutral usage that is the discriminator between (b) and (c), so the item is answered by reading the stem. Key (b) is correct: lambda = 0.009/0.6 = 1.5%; 1 - e^(-0.105) = 9.97%.",
+   "evidence": "PDF p.13",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-08",
+   "field": "options",
+   "severity": "typo",
+   "current": "b and c: '10.14%; ...'",
+   "proposed": "'9.97%; ...' in both b and c (or 'about 10%'), to match the solution's own derivation 1 - e^(-0.105) = 9.97%.",
+   "source_says": "Options show 10.14%; solution derives 9.97%",
+   "derivation": "1 - exp(-0.015*7) = 0.09968; discrete 1 - 0.985^7 = 10.04%; no convention gives 10.14%. Key (b) unaffected (nearest option).",
+   "evidence": "PDF p.13 options, p.14 'PD(7) = ... = 9.97%'",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-08",
+   "field": "optionAnalysis",
+   "severity": "typo",
+   "current": "d: '6.30% is close to the result of failing to divide by loss given default, giving lambda = 0.90% and PD(7) = 6.11%.'",
+   "proposed": "d: '6.30% is 7 x 0.90%, the result of failing to divide by loss given default and then compounding linearly (the exponential version would be 1 - e^(-0.063) = 6.11%).'",
+   "source_says": "Same text as JSON",
+   "derivation": "0.009 x 7 = 0.063 = 6.30% exactly; 1 - e^(-0.063) = 6.11%.",
+   "evidence": "PDF p.14",
+   "confidence": "medium"
+  },
+  {
+   "id": "CR-T3-02",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "current": "a: '8.42% is roughly 1 - e^{-0.088}, obtained by dividing the annual rate by 12 twice, or by using lambda = 6/12 = 0.5 and then dividing again by 12.' b: '17.00% is close to 1 - e^{-0.186}, consistent with using a two-month rather than one-month horizon...'",
+   "proposed": "a: '8.42% equals 1 - e^{-0.088}; it corresponds to no consistent time conversion and is a distractor that shrinks the exponent (e.g. a double monthly conversion, 6/144 = 0.042, gives 4.08%).' b: '17.00% equals roughly 1 - e^{-0.186}, a mis-scaled exponent; note a two-month horizon would give 1 - e^{-1} = 63.2%, not 17%.' (Or simply: 'Incorrect; results from a mis-scaled exponent.')",
+   "source_says": "Same text as JSON (source OA)",
+   "derivation": "Dividing by 12 twice: lambda*t = 6/144 = 0.0417 -> 1 - e^-0.0417 = 4.08%, not 8.42%. Two-month horizon: lambda*t = 1.0 -> 63.21%, not 17%. The stated error routes do not produce the distractor values. Key (c) 39.35% is correct.",
+   "evidence": "PDF p.4 option analysis",
+   "confidence": "high"
+  },
+  {
+   "id": "CR-T3-13",
+   "field": "optionAnalysis",
+   "severity": "typo",
+   "current": "c: 'The option's own wording says it reflects wrong-way risk, so it contradicts the question being asked.'",
+   "proposed": "c: 'The option's own wording ties the exposure to the sovereign's credit deterioration, which signals wrong-way risk, so it contradicts the question being asked.'",
+   "source_says": "Same text as JSON",
+   "derivation": "Option (c) reads 'since this would reflect the sovereign's credit deterioration' - it never says 'wrong-way risk'. Key (a) is correct.",
+   "evidence": "PDF p.23 option (c), p.24 OA (c)",
+   "confidence": "medium"
+  }
+ ]
+}

@@ -1,0 +1,2013 @@
+[
+ {
+  "id": "LTR-1-F01",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 31,
+  "objective": "LTR-1 a",
+  "name": "Dollar bid-offer spread",
+  "prompt": "What is the dollar bid-offer spread of an asset, from its quoted prices?",
+  "latex": "p = \\text{Offer price} - \\text{Bid price}",
+  "variables": [
+   {
+    "symbol": "p",
+    "meaning": "dollar bid-offer spread"
+   },
+   {
+    "symbol": "\\text{Offer price}",
+    "meaning": "the higher quote: the price at which a trader sells to you"
+   },
+   {
+    "symbol": "\\text{Bid price}",
+    "meaning": "the lower quote: the price at which a trader buys from you"
+   }
+  ],
+  "skeleton": "p = {{1}} - {{2}}",
+  "slots": [
+   "\\text{Offer price}",
+   "\\text{Bid price}"
+  ],
+  "decoys": [
+   "\\text{Mid-market price}",
+   "s",
+   "\\alpha"
+  ],
+  "corruptions": [
+   {
+    "latex": "p = \\text{Bid price} - \\text{Offer price}",
+    "kind": "sign",
+    "why": "The offer is the higher quote, so this gives a negative spread."
+   },
+   {
+    "latex": "p = \\frac{\\text{Offer price} - \\text{Bid price}}{2}",
+    "kind": "scaling",
+    "why": "That is the half-spread you pay on one side of the mid, not the spread itself."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Offer price}",
+    "direction": "up",
+    "why": "A higher offer with the bid fixed widens the spread."
+   },
+   {
+    "variable": "\\text{Bid price}",
+    "direction": "down",
+    "why": "A higher bid with the offer fixed narrows the spread."
+   }
+  ],
+  "intuition": "The spread is the round-trip toll the dealer charges: buy at the high quote, sell at the low one.",
+  "calc": {
+   "expr": "O - B",
+   "inputs": [
+    {
+     "name": "O",
+     "symbol": "\\text{Offer price}",
+     "min": 1,
+     "max": 200,
+     "step": 0.05,
+     "unit": "$"
+    },
+    {
+     "name": "B",
+     "symbol": "\\text{Bid price}",
+     "min": 1,
+     "max": 200,
+     "step": 0.05,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "p",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "O": 90.5,
+     "B": 89.5
+    },
+    "output": 1.0,
+    "source_line": 69
+   }
+  },
+  "tags": [
+   "liquidity",
+   "bid-offer spread"
+  ]
+ },
+ {
+  "id": "LTR-1-F02",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 31,
+  "objective": "LTR-1 a",
+  "name": "Proportional bid-offer spread",
+  "prompt": "How do you express the bid-offer spread as a pure number, relative to the fair price of the asset?",
+  "latex": "s = \\frac{\\text{Offer price} - \\text{Bid price}}{\\text{Mid-market price}}",
+  "variables": [
+   {
+    "symbol": "s",
+    "meaning": "proportional bid-offer spread, a pure number (decimal)"
+   },
+   {
+    "symbol": "\\text{Offer price}",
+    "meaning": "the higher quote: the price at which a trader sells to you"
+   },
+   {
+    "symbol": "\\text{Bid price}",
+    "meaning": "the lower quote: the price at which a trader buys from you"
+   },
+   {
+    "symbol": "\\text{Mid-market price}",
+    "meaning": "price halfway between bid and offer; regarded as the fair price"
+   }
+  ],
+  "skeleton": "s = \\frac{ {{1}} - {{2}} }{ {{3}} }",
+  "slots": [
+   "\\text{Offer price}",
+   "\\text{Bid price}",
+   "\\text{Mid-market price}"
+  ],
+  "decoys": [
+   "p",
+   "2",
+   "\\alpha"
+  ],
+  "corruptions": [
+   {
+    "latex": "s = \\frac{\\text{Offer price} - \\text{Bid price}}{\\text{Offer price}}",
+    "kind": "wrong-variable",
+    "why": "The spread is scaled by the mid-market (fair) price, not by the offer."
+   },
+   {
+    "latex": "s = \\frac{\\text{Offer price} - \\text{Bid price}}{2 \\times \\text{Mid-market price}}",
+    "kind": "scaling",
+    "why": "The halving belongs in the liquidation cost (s times alpha over 2), not in the definition of s."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Offer price}",
+    "direction": "up",
+    "why": "A higher offer with bid and mid fixed widens the spread."
+   },
+   {
+    "variable": "\\text{Bid price}",
+    "direction": "down",
+    "why": "A higher bid with offer and mid fixed narrows the spread."
+   },
+   {
+    "variable": "\\text{Mid-market price}",
+    "direction": "down",
+    "why": "The same dollar spread is a smaller fraction of a pricier asset."
+   }
+  ],
+  "intuition": "Put the dollar spread on a per-dollar basis so you can compare a $90 share with a $15 commodity.",
+  "calc": {
+   "expr": "(O - B) / M",
+   "inputs": [
+    {
+     "name": "O",
+     "symbol": "\\text{Offer price}",
+     "min": 1,
+     "max": 200,
+     "step": 0.05,
+     "unit": "$"
+    },
+    {
+     "name": "B",
+     "symbol": "\\text{Bid price}",
+     "min": 1,
+     "max": 200,
+     "step": 0.05,
+     "unit": "$"
+    },
+    {
+     "name": "M",
+     "symbol": "\\text{Mid-market price}",
+     "min": 1,
+     "max": 200,
+     "step": 0.025,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "s",
+    "unit": "decimal",
+    "decimals": 5
+   },
+   "example": {
+    "inputs": {
+     "O": 90.5,
+     "B": 89.5,
+     "M": 90
+    },
+    "output": 0.01111,
+    "source_line": 69
+   }
+  },
+  "tags": [
+   "liquidity",
+   "bid-offer spread"
+  ]
+ },
+ {
+  "id": "LTR-1-F03",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 41,
+  "objective": "LTR-1 a",
+  "name": "Cost of liquidation in a normal market",
+  "prompt": "What does it cost to liquidate a book of n positions in normal market conditions, from each position's value and its normal proportional spread?",
+  "latex": "\\text{Cost of liquidation (normal market)} = \\sum_{i=1}^{n} \\frac{s_i\\,\\alpha_i}{2}",
+  "variables": [
+   {
+    "symbol": "\\text{Cost of liquidation (normal market)}",
+    "meaning": "dollar cost of unwinding the whole book at normal spreads, prices unchanged"
+   },
+   {
+    "symbol": "s_i",
+    "meaning": "estimated proportional bid-offer spread of instrument i in normal conditions (decimal: dollar spread / mid-market price)"
+   },
+   {
+    "symbol": "\\alpha_i",
+    "meaning": "dollar (mid-market) value of the position in instrument i"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of positions (instruments) in the book"
+   }
+  ],
+  "skeleton": "\\text{Cost of liquidation (normal market)} = \\sum_{i=1}^{n} \\frac{ {{1}} \\, {{2}} }{ {{3}} }",
+  "slots": [
+   "s_i",
+   "\\alpha_i",
+   "2"
+  ],
+  "decoys": [
+   "\\mu_i + \\lambda\\sigma_i",
+   "\\lambda",
+   "\\sigma_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Cost of liquidation (normal market)} = \\sum_{i=1}^{n} s_i\\,\\alpha_i",
+    "kind": "missing-term",
+    "why": "Drops the halving: a sale happens at the bid, only half the spread away from the mid."
+   },
+   {
+    "latex": "\\text{Cost of liquidation (normal market)} = \\sqrt{\\sum_{i=1}^{n} \\left(\\frac{s_i\\,\\alpha_i}{2}\\right)^2}",
+    "kind": "exponent",
+    "why": "Spreads widen together, so the costs are simply added; there is no diversification across instruments."
+   },
+   {
+    "latex": "\\text{Cost of liquidation (normal market)} = \\sum_{i=1}^{n} \\frac{s_i}{2\\,\\alpha_i}",
+    "kind": "inverted",
+    "why": "The cost scales up with position size, it does not fall as the position grows."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "s_i",
+    "direction": "up",
+    "why": "A wider spread means a bigger haircut on every dollar sold."
+   },
+   {
+    "variable": "\\alpha_i",
+    "direction": "up",
+    "why": "A bigger position pays half the spread on more dollars."
+   }
+  ],
+  "intuition": "Each position pays half its spread on every dollar: you cross from the mid to one side only.",
+  "calc": {
+   "expr": "(s1*a1 + s2*a2) / 2",
+   "inputs": [
+    {
+     "name": "s1",
+     "symbol": "s_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a1",
+     "symbol": "\\alpha_1",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "s2",
+     "symbol": "s_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a2",
+     "symbol": "\\alpha_2",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Cost of liquidation (normal market)}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "s1": 0.01111,
+     "a1": 900,
+     "s2": 0.006645,
+     "a2": 752.5
+    },
+    "output": 7.5,
+    "source_line": 73
+   }
+  },
+  "tags": [
+   "liquidity",
+   "cost of liquidation"
+  ]
+ },
+ {
+  "id": "LTR-1-F04",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 42,
+  "objective": "LTR-1 a",
+  "name": "Cost of liquidation in a stressed market",
+  "prompt": "What is the worst-case (confidence-level) cost of liquidating a book, given the mean and volatility of each instrument's proportional spread?",
+  "latex": "\\text{Cost of liquidation (stressed market)} = \\sum_{i=1}^{n} \\frac{(\\mu_i + \\lambda\\sigma_i)\\,\\alpha_i}{2}",
+  "variables": [
+   {
+    "symbol": "\\text{Cost of liquidation (stressed market)}",
+    "meaning": "dollar cost of unwinding the book that will not be exceeded at the chosen confidence level, prices unchanged"
+   },
+   {
+    "symbol": "\\mu_i",
+    "meaning": "mean of the proportional bid-offer spread of instrument i (decimal, not dollars)"
+   },
+   {
+    "symbol": "\\lambda",
+    "meaning": "confidence parameter for the spread distribution (e.g. 2.326 for a 99% worst case with normal spreads)"
+   },
+   {
+    "symbol": "\\sigma_i",
+    "meaning": "standard deviation of the proportional bid-offer spread of instrument i (decimal, not dollars)"
+   },
+   {
+    "symbol": "\\alpha_i",
+    "meaning": "dollar (mid-market) value of the position in instrument i"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of positions (instruments) in the book"
+   }
+  ],
+  "skeleton": "\\text{Cost of liquidation (stressed market)} = \\sum_{i=1}^{n} \\frac{( {{1}} + {{2}}{{3}} )\\,\\alpha_i}{ {{4}} }",
+  "slots": [
+   "\\mu_i",
+   "\\lambda",
+   "\\sigma_i",
+   "2"
+  ],
+  "decoys": [
+   "s_i",
+   "\\sigma_i^2",
+   "\\sqrt{\\lambda}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Cost of liquidation (stressed market)} = \\sum_{i=1}^{n} \\frac{(\\mu_i - \\lambda\\sigma_i)\\,\\alpha_i}{2}",
+    "kind": "sign",
+    "why": "Stress widens the spread: the worst case is above the mean spread, not below it."
+   },
+   {
+    "latex": "\\text{Cost of liquidation (stressed market)} = \\sum_{i=1}^{n} \\frac{(\\mu_i + \\sigma_i)\\,\\alpha_i}{2}",
+    "kind": "missing-term",
+    "why": "Omits lambda, so the spread is only one standard deviation wide and ignores the confidence level."
+   },
+   {
+    "latex": "\\text{Cost of liquidation (stressed market)} = \\sum_{i=1}^{n} \\frac{(\\mu_i + \\lambda\\sigma_i^2)\\,\\alpha_i}{2}",
+    "kind": "exponent",
+    "why": "Lambda multiplies the standard deviation of the spread, not its variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu_i",
+    "direction": "up",
+    "why": "A wider average spread raises the stressed spread one-for-one."
+   },
+   {
+    "variable": "\\sigma_i",
+    "direction": "up",
+    "why": "More volatile spreads blow out further at the confidence level."
+   },
+   {
+    "variable": "\\lambda",
+    "direction": "up",
+    "why": "A higher confidence level pushes further into the spread's tail."
+   },
+   {
+    "variable": "\\alpha_i",
+    "direction": "up",
+    "why": "A bigger position pays the stressed half-spread on more dollars."
+   }
+  ],
+  "intuition": "Same half-spread cost, but the spread is stretched to its bad-day width: mean plus lambda standard deviations.",
+  "calc": {
+   "expr": "((mu1 + lam*sig1)*a1 + (mu2 + lam*sig2)*a2) / 2",
+   "inputs": [
+    {
+     "name": "mu1",
+     "symbol": "\\mu_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "sig1",
+     "symbol": "\\sigma_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a1",
+     "symbol": "\\alpha_1",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "mu2",
+     "symbol": "\\mu_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "sig2",
+     "symbol": "\\sigma_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a2",
+     "symbol": "\\alpha_2",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "lam",
+     "symbol": "\\lambda",
+     "min": 1.645,
+     "max": 3.09,
+     "step": 0.001,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Cost of liquidation (stressed market)}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "mu1": 0.01111,
+     "sig1": 0.02222,
+     "a1": 900,
+     "mu2": 0.006645,
+     "sig2": 0.006645,
+     "a2": 752.5,
+     "lam": 2.326
+    },
+    "output": 36.58,
+    "source_line": 93
+   }
+  },
+  "tags": [
+   "liquidity",
+   "cost of liquidation",
+   "stress"
+  ]
+ },
+ {
+  "id": "LTR-1-F05",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 130,
+  "objective": "LTR-1 a",
+  "name": "Liquidity-adjusted VaR (normal market)",
+  "prompt": "How do you adjust a book's VaR for the cost of unwinding it at normal bid-offer spreads?",
+  "latex": "\\text{LVaR (normal market)} = \\text{VaR} + \\sum_{i=1}^{n}\\frac{s_i\\,\\alpha_i}{2}",
+  "variables": [
+   {
+    "symbol": "\\text{LVaR (normal market)}",
+    "meaning": "liquidity-adjusted VaR using normal spreads"
+   },
+   {
+    "symbol": "\\text{VaR}",
+    "meaning": "regular value at risk of the book (worst-case mark-to-market change)"
+   },
+   {
+    "symbol": "s_i",
+    "meaning": "estimated proportional bid-offer spread of instrument i in normal conditions (decimal: dollar spread / mid-market price)"
+   },
+   {
+    "symbol": "\\alpha_i",
+    "meaning": "dollar (mid-market) value of the position in instrument i"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of positions (instruments) in the book"
+   }
+  ],
+  "skeleton": "\\text{LVaR (normal market)} = {{1}} + \\sum_{i=1}^{n}\\frac{ {{2}}\\,{{3}} }{2}",
+  "slots": [
+   "\\text{VaR}",
+   "s_i",
+   "\\alpha_i"
+  ],
+  "decoys": [
+   "\\sqrt{\\text{VaR}}",
+   "\\mu_i",
+   "\\lambda\\sigma_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{LVaR (normal market)} = \\sqrt{\\text{VaR}^2 + \\left(\\sum_{i=1}^{n}\\frac{s_i\\,\\alpha_i}{2}\\right)^2}",
+    "kind": "exponent",
+    "why": "LVaR adds the two terms outright; there is no diversification between price risk and liquidation cost."
+   },
+   {
+    "latex": "\\text{LVaR (normal market)} = \\text{VaR} - \\sum_{i=1}^{n}\\frac{s_i\\,\\alpha_i}{2}",
+    "kind": "sign",
+    "why": "The liquidation cost is an extra loss, so it increases the risk measure."
+   },
+   {
+    "latex": "\\text{LVaR (normal market)} = \\frac{1}{2}\\left(\\text{VaR} + \\sum_{i=1}^{n}\\frac{s_i\\,\\alpha_i}{2}\\right)",
+    "kind": "scaling",
+    "why": "The two are added, never averaged."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}",
+    "direction": "up",
+    "why": "LVaR rises one-for-one with VaR."
+   },
+   {
+    "variable": "s_i",
+    "direction": "up",
+    "why": "Wider spreads raise the liquidation cost added on top."
+   },
+   {
+    "variable": "\\alpha_i",
+    "direction": "up",
+    "why": "Bigger positions cost more to unwind."
+   }
+  ],
+  "intuition": "Price risk plus exit cost: what you can lose from the market moving, plus what you pay to get out.",
+  "calc": {
+   "expr": "VaR + (s1*a1 + s2*a2) / 2",
+   "inputs": [
+    {
+     "name": "VaR",
+     "symbol": "\\text{VaR}",
+     "min": 1,
+     "max": 500,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "s1",
+     "symbol": "s_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a1",
+     "symbol": "\\alpha_1",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "s2",
+     "symbol": "s_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a2",
+     "symbol": "\\alpha_2",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{LVaR (normal market)}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "liquidity",
+   "LVaR",
+   "VaR"
+  ]
+ },
+ {
+  "id": "LTR-1-F06",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 131,
+  "objective": "LTR-1 a",
+  "name": "Liquidity-adjusted VaR (stressed market)",
+  "prompt": "How do you adjust a book's VaR for the worst-case cost of unwinding it when spreads are stressed?",
+  "latex": "\\text{LVaR (stressed market)} = \\text{VaR} + \\sum_{i=1}^{n}\\frac{(\\mu_i + \\lambda\\sigma_i)\\,\\alpha_i}{2}",
+  "variables": [
+   {
+    "symbol": "\\text{LVaR (stressed market)}",
+    "meaning": "liquidity-adjusted VaR using stressed spreads"
+   },
+   {
+    "symbol": "\\text{VaR}",
+    "meaning": "regular value at risk of the book (worst-case mark-to-market change)"
+   },
+   {
+    "symbol": "\\mu_i",
+    "meaning": "mean of the proportional bid-offer spread of instrument i (decimal, not dollars)"
+   },
+   {
+    "symbol": "\\lambda",
+    "meaning": "confidence parameter for the spread distribution (e.g. 2.326 for a 99% worst case with normal spreads)"
+   },
+   {
+    "symbol": "\\sigma_i",
+    "meaning": "standard deviation of the proportional bid-offer spread of instrument i (decimal, not dollars)"
+   },
+   {
+    "symbol": "\\alpha_i",
+    "meaning": "dollar (mid-market) value of the position in instrument i"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of positions (instruments) in the book"
+   }
+  ],
+  "skeleton": "\\text{LVaR (stressed market)} = {{1}} + \\sum_{i=1}^{n}\\frac{( {{2}} + {{3}}{{4}} )\\,\\alpha_i}{2}",
+  "slots": [
+   "\\text{VaR}",
+   "\\mu_i",
+   "\\lambda",
+   "\\sigma_i"
+  ],
+  "decoys": [
+   "s_i",
+   "\\sigma_i^2",
+   "\\sqrt{\\text{VaR}}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{LVaR (stressed market)} = \\sqrt{\\text{VaR}^2 + \\left(\\sum_{i=1}^{n}\\frac{(\\mu_i + \\lambda\\sigma_i)\\,\\alpha_i}{2}\\right)^2}",
+    "kind": "exponent",
+    "why": "The addition is unconditional: no correlation adjustment between VaR and the liquidation cost."
+   },
+   {
+    "latex": "\\text{LVaR (stressed market)} = \\text{VaR} + \\sum_{i=1}^{n}\\frac{(\\mu_i - \\lambda\\sigma_i)\\,\\alpha_i}{2}",
+    "kind": "sign",
+    "why": "The stressed spread is the mean plus lambda standard deviations, not minus."
+   },
+   {
+    "latex": "\\text{LVaR (stressed market)} = \\text{VaR} + \\sum_{i=1}^{n}\\frac{s_i\\,\\alpha_i}{2}",
+    "kind": "sibling",
+    "why": "That is the normal-market LVaR; the stressed version uses the mean-plus-lambda-sigma spread."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}",
+    "direction": "up",
+    "why": "LVaR rises one-for-one with VaR."
+   },
+   {
+    "variable": "\\mu_i",
+    "direction": "up",
+    "why": "A wider average spread raises the stressed liquidation cost."
+   },
+   {
+    "variable": "\\sigma_i",
+    "direction": "up",
+    "why": "More volatile spreads blow out further at the confidence level."
+   },
+   {
+    "variable": "\\lambda",
+    "direction": "up",
+    "why": "A higher spread confidence level widens the stressed spread."
+   },
+   {
+    "variable": "\\alpha_i",
+    "direction": "up",
+    "why": "Bigger positions cost more to unwind."
+   }
+  ],
+  "intuition": "Bad-day price loss plus bad-day exit cost, stacked on top of each other.",
+  "calc": {
+   "expr": "VaR + ((mu1 + lam*sig1)*a1 + (mu2 + lam*sig2)*a2) / 2",
+   "inputs": [
+    {
+     "name": "VaR",
+     "symbol": "\\text{VaR}",
+     "min": 1,
+     "max": 500,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "mu1",
+     "symbol": "\\mu_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "sig1",
+     "symbol": "\\sigma_1",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a1",
+     "symbol": "\\alpha_1",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "mu2",
+     "symbol": "\\mu_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "sig2",
+     "symbol": "\\sigma_2",
+     "min": 0.001,
+     "max": 0.05,
+     "step": 0.0001,
+     "unit": "decimal"
+    },
+    {
+     "name": "a2",
+     "symbol": "\\alpha_2",
+     "min": 10,
+     "max": 1000,
+     "step": 2.5,
+     "unit": "$M"
+    },
+    {
+     "name": "lam",
+     "symbol": "\\lambda",
+     "min": 1.645,
+     "max": 3.09,
+     "step": 0.001,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{LVaR (stressed market)}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "liquidity",
+   "LVaR",
+   "stress"
+  ]
+ },
+ {
+  "id": "LTR-1-F07",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 201,
+  "objective": "LTR-1 c",
+  "name": "Liquidity coverage ratio (LCR)",
+  "prompt": "What Basel III ratio tests whether a bank can survive a 30-day acute stress, and what is its minimum?",
+  "latex": "\\text{LCR} = \\frac{\\text{High-quality liquid assets}}{\\text{Net cash outflows in a 30-day period}} \\geq 100\\%",
+  "variables": [
+   {
+    "symbol": "\\text{LCR}",
+    "meaning": "Basel III liquidity coverage ratio (percent)"
+   },
+   {
+    "symbol": "\\text{High-quality liquid assets}",
+    "meaning": "stock of high-quality liquid assets"
+   },
+   {
+    "symbol": "\\text{Net cash outflows in a 30-day period}",
+    "meaning": "net cash outflows over a 30-day period of acute stress (three-notch downgrade, deposit loss, wholesale funding loss, haircuts, credit-line drawdowns)"
+   }
+  ],
+  "skeleton": "\\text{LCR} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{High-quality liquid assets}",
+   "\\text{Net cash outflows in a 30-day period}",
+   "100\\%"
+  ],
+  "decoys": [
+   "\\text{Amount of stable funding}",
+   "\\text{Required amount of stable funding}",
+   "60\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{LCR} = \\frac{\\text{Net cash outflows in a 30-day period}}{\\text{High-quality liquid assets}} \\geq 100\\%",
+    "kind": "inverted",
+    "why": "Liquid assets must cover the outflows, so they sit in the numerator."
+   },
+   {
+    "latex": "\\text{LCR} = \\frac{\\text{High-quality liquid assets}}{\\text{Net cash outflows in a 12-month period}} \\geq 100\\%",
+    "kind": "wrong-variable",
+    "why": "The LCR horizon is a 30-day stress period, not a year."
+   },
+   {
+    "latex": "\\text{LCR} = \\frac{\\text{High-quality liquid assets}}{\\text{Net cash outflows in a 30-day period}} \\geq 60\\%",
+    "kind": "scaling",
+    "why": "60% was only the 2015 phase-in level; the full requirement (from 2019) is 100%."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{High-quality liquid assets}",
+    "direction": "up",
+    "why": "More liquid assets cover the same outflows more comfortably."
+   },
+   {
+    "variable": "\\text{Net cash outflows in a 30-day period}",
+    "direction": "down",
+    "why": "Larger stressed outflows in the denominator mean the same liquid assets cover a smaller share of them."
+   }
+  ],
+  "intuition": "Cash-like assets on hand must at least cover a month of stressed net outflows.",
+  "calc": {
+   "expr": "HQLA / NCO * 100",
+   "inputs": [
+    {
+     "name": "HQLA",
+     "symbol": "\\text{High-quality liquid assets}",
+     "min": 10,
+     "max": 500,
+     "step": 5,
+     "unit": "$bn"
+    },
+    {
+     "name": "NCO",
+     "symbol": "\\text{Net cash outflows in a 30-day period}",
+     "min": 10,
+     "max": 500,
+     "step": 5,
+     "unit": "$bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{LCR}",
+    "unit": "%",
+    "decimals": 1
+   },
+   "example": null
+  },
+  "tags": [
+   "Basel III",
+   "LCR",
+   "liquidity regulation"
+  ]
+ },
+ {
+  "id": "LTR-1-F08",
+  "reading_id": "LTR-1",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+  "source_line": 202,
+  "objective": "LTR-1 c",
+  "name": "Net stable funding ratio (NSFR)",
+  "prompt": "What Basel III ratio tests the long-term stability of a bank's funding against its assets, and what is its minimum?",
+  "latex": "\\text{NSFR} = \\frac{\\text{Amount of stable funding}}{\\text{Required amount of stable funding}} \\geq 100\\%",
+  "variables": [
+   {
+    "symbol": "\\text{NSFR}",
+    "meaning": "Basel III net stable funding ratio (percent)"
+   },
+   {
+    "symbol": "\\text{Amount of stable funding}",
+    "meaning": "each funding category (capital, wholesale deposits, retail deposits, ...) times its available stable funding (ASF) factor"
+   },
+   {
+    "symbol": "\\text{Required amount of stable funding}",
+    "meaning": "assets and off-balance-sheet items needing funding, each times its required stable funding (RSF) factor"
+   }
+  ],
+  "skeleton": "\\text{NSFR} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{Amount of stable funding}",
+   "\\text{Required amount of stable funding}",
+   "100\\%"
+  ],
+  "decoys": [
+   "\\text{High-quality liquid assets}",
+   "\\text{Net cash outflows in a 30-day period}",
+   "60\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{NSFR} = \\frac{\\text{Required amount of stable funding}}{\\text{Amount of stable funding}} \\geq 100\\%",
+    "kind": "inverted",
+    "why": "ASF-weighted funding is the numerator; RSF-weighted assets are the denominator."
+   },
+   {
+    "latex": "\\text{NSFR} = \\frac{\\text{High-quality liquid assets}}{\\text{Required amount of stable funding}} \\geq 100\\%",
+    "kind": "sibling",
+    "why": "High-quality liquid assets are the LCR numerator; the NSFR numerator is ASF-weighted funding."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Amount of stable funding}",
+    "direction": "up",
+    "why": "More stable (higher-ASF) funding raises the ratio."
+   },
+   {
+    "variable": "\\text{Required amount of stable funding}",
+    "direction": "down",
+    "why": "More hard-to-liquidate (high-RSF) assets raise the denominator, so the same stable funding covers less."
+   }
+  ],
+  "intuition": "Stable money in (liabilities weighted by ASF) must at least match the stable money the assets need (weighted by RSF).",
+  "calc": {
+   "expr": "ASF / RSF * 100",
+   "inputs": [
+    {
+     "name": "ASF",
+     "symbol": "\\text{Amount of stable funding}",
+     "min": 10,
+     "max": 1000,
+     "step": 5,
+     "unit": "$bn"
+    },
+    {
+     "name": "RSF",
+     "symbol": "\\text{Required amount of stable funding}",
+     "min": 10,
+     "max": 1000,
+     "step": 5,
+     "unit": "$bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{NSFR}",
+    "unit": "%",
+    "decimals": 1
+   },
+   "example": null
+  },
+  "tags": [
+   "Basel III",
+   "NSFR",
+   "liquidity regulation"
+  ]
+ },
+ {
+  "id": "MR-3-F01",
+  "reading_id": "MR-3",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+  "source_line": 83,
+  "objective": "MR-3 b",
+  "name": "GEV distribution, tail index not zero (Frechet/Weibull)",
+  "prompt": "By the Fisher-Tippett theorem, what distribution function do sample maxima converge to when the tail index is non-zero?",
+  "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\left( 1 + \\xi \\times \\frac{x-\\mu}{\\sigma} \\right)^{-1/\\xi} \\right]",
+  "variables": [
+   {
+    "symbol": "F(X \\mid \\xi, \\mu, \\sigma)",
+    "meaning": "GEV cumulative probability that the extreme (sample maximum M_n) is no greater than x"
+   },
+   {
+    "symbol": "x",
+    "meaning": "the extreme value being evaluated"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "location parameter (related to, but not the same as, the mean)"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "scale parameter (related to, but not the same as, the standard deviation)"
+   },
+   {
+    "symbol": "\\xi",
+    "meaning": "tail index: sets the shape (heaviness) of the tail; > 0 Frechet, = 0 Gumbel, < 0 Weibull"
+   }
+  ],
+  "skeleton": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\left( 1 + {{1}} \\times \\frac{x- {{2}} }{ {{3}} } \\right)^{ {{4}} } \\right]",
+  "slots": [
+   "\\xi",
+   "\\mu",
+   "\\sigma",
+   "-1/\\xi"
+  ],
+  "decoys": [
+   "1/\\xi",
+   "\\beta",
+   "\\sigma^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\left( 1 + \\xi \\times \\frac{x-\\mu}{\\sigma} \\right)^{1/\\xi} \\right]",
+    "kind": "exponent",
+    "why": "The exponent is minus one over the tail index."
+   },
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ \\left( 1 + \\xi \\times \\frac{x-\\mu}{\\sigma} \\right)^{-1/\\xi} \\right]",
+    "kind": "sign",
+    "why": "Without the leading minus inside the exp the value exceeds 1, so it cannot be a probability."
+   },
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\left( 1 + \\xi \\times \\frac{x-\\mu}{\\sigma^2} \\right)^{-1/\\xi} \\right]",
+    "kind": "exponent",
+    "why": "The standardisation divides by the scale parameter sigma, not by its square."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "x",
+    "direction": "up",
+    "why": "It is a cumulative distribution function, so it rises with x."
+   },
+   {
+    "variable": "\\mu",
+    "direction": "down",
+    "why": "A higher location shifts the distribution right, leaving less probability below a given x."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "depends",
+    "why": "Down if x is above mu (the standardised distance shrinks), up if x is below mu."
+   },
+   {
+    "variable": "\\xi",
+    "direction": "down",
+    "why": "With x, mu and sigma fixed (x not equal to mu), a larger tail index enlarges the power term inside the exp on both sides of mu, so F falls: more probability is pushed into the upper tail."
+   }
+  ],
+  "intuition": "Standardise x by location and scale, bend it through the tail index power, then double-negative-exponentiate: bigger xi, fatter tail.",
+  "calc": {
+   "expr": "Math.exp(-Math.pow(1 + xi*(x - mu)/sigma, -1/xi))",
+   "inputs": [
+    {
+     "name": "xi",
+     "symbol": "\\xi",
+     "min": 0.05,
+     "max": 0.5,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 1,
+     "max": 10,
+     "step": 0.5,
+     "unit": ""
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 1,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F(X \\mid \\xi, \\mu, \\sigma)",
+    "unit": "probability",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "EVT",
+   "GEV",
+   "Fisher-Tippett"
+  ]
+ },
+ {
+  "id": "MR-3-F02",
+  "reading_id": "MR-3",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+  "source_line": 86,
+  "objective": "MR-3 b",
+  "name": "GEV distribution, tail index zero (Gumbel)",
+  "prompt": "What form does the GEV distribution take in the light-tailed case where the tail index equals zero?",
+  "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\exp\\left( \\frac{x-\\mu}{\\sigma} \\right) \\right]",
+  "variables": [
+   {
+    "symbol": "F(X \\mid \\xi, \\mu, \\sigma)",
+    "meaning": "GEV cumulative probability that the extreme (sample maximum M_n) is no greater than x"
+   },
+   {
+    "symbol": "x",
+    "meaning": "the extreme value being evaluated"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "location parameter (related to, but not the same as, the mean)"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "scale parameter (related to, but not the same as, the standard deviation)"
+   },
+   {
+    "symbol": "\\xi",
+    "meaning": "tail index; equal to 0 in this (Gumbel) case"
+   }
+  ],
+  "skeleton": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\exp\\left( \\frac{ {{1}} - {{2}} }{ {{3}} } \\right) \\right]",
+  "slots": [
+   "x",
+   "\\mu",
+   "\\sigma"
+  ],
+  "decoys": [
+   "\\xi",
+   "\\beta",
+   "\\sigma^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\left( \\frac{x-\\mu}{\\sigma} \\right) \\right]",
+    "kind": "missing-term",
+    "why": "The Gumbel is a double exponential; this drops the inner exp."
+   },
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = \\exp\\left[ -\\exp\\left( \\frac{x-\\mu}{\\sigma^2} \\right) \\right]",
+    "kind": "exponent",
+    "why": "Standardise by the scale parameter sigma, not by sigma squared."
+   },
+   {
+    "latex": "F(X \\mid \\xi, \\mu, \\sigma) = 1 - \\exp\\left[ -\\frac{x-\\mu}{\\sigma} \\right]",
+    "kind": "sibling",
+    "why": "That single-exponential shape is the GP (POT) distribution at xi = 0, not the Gumbel GEV."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Tail index zero: the power law of the Frechet collapses into an exponential inside an exponential, so the tail is light.",
+  "calc": null,
+  "tags": [
+   "EVT",
+   "GEV",
+   "Gumbel"
+  ]
+ },
+ {
+  "id": "MR-3-F03",
+  "reading_id": "MR-3",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+  "source_line": 190,
+  "objective": "MR-3 c",
+  "name": "Distribution of excess losses over a threshold (POT)",
+  "prompt": "In the peaks-over-threshold approach, how is the distribution of the excess over a high threshold u written in terms of the loss distribution F?",
+  "latex": "F_u(x) = P\\{X - u \\le x \\mid X > u\\} = \\frac{F(x+u) - F(u)}{1 - F(u)}",
+  "variables": [
+   {
+    "symbol": "F_u(x)",
+    "meaning": "distribution of the excess over the threshold, conditional on the threshold having been breached"
+   },
+   {
+    "symbol": "X",
+    "meaning": "the loss (random variable)"
+   },
+   {
+    "symbol": "u",
+    "meaning": "the chosen high threshold"
+   },
+   {
+    "symbol": "x",
+    "meaning": "size of the excess above the threshold"
+   },
+   {
+    "symbol": "F(\\cdot)",
+    "meaning": "cumulative distribution function of the underlying losses"
+   }
+  ],
+  "skeleton": "F_u(x) = P\\{X - u \\le x \\mid X > u\\} = \\frac{F( {{1}} ) - F( {{2}} )}{ {{3}} }",
+  "slots": [
+   "x+u",
+   "u",
+   "1 - F(u)"
+  ],
+  "decoys": [
+   "x-u",
+   "F(u)",
+   "x"
+  ],
+  "corruptions": [
+   {
+    "latex": "F_u(x) = P\\{X - u \\le x \\mid X > u\\} = \\frac{F(x+u) - F(u)}{F(u)}",
+    "kind": "wrong-variable",
+    "why": "Condition on exceeding u, whose probability is 1 - F(u), not F(u)."
+   },
+   {
+    "latex": "F_u(x) = P\\{X - u \\le x \\mid X > u\\} = F(x+u) - F(u)",
+    "kind": "missing-term",
+    "why": "Without dividing by 1 - F(u) this is the unconditional probability, not the conditional excess distribution."
+   },
+   {
+    "latex": "F_u(x) = P\\{X - u \\le x \\mid X > u\\} = \\frac{F(x) - F(u)}{1 - F(u)}",
+    "kind": "wrong-variable",
+    "why": "x is the excess measured from u, so the loss level is x + u, not x."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "F(\\cdot)",
+    "direction": "depends",
+    "why": "Raising F at x + u raises the result; raising F(u) with F(x + u) fixed lowers it."
+   }
+  ],
+  "intuition": "Probability of landing between u and u + x, rescaled by the probability of getting past u at all.",
+  "calc": {
+   "expr": "(Fxu - Fu) / (1 - Fu)",
+   "inputs": [
+    {
+     "name": "Fxu",
+     "symbol": "F(x+u)",
+     "min": 0.95,
+     "max": 0.999,
+     "step": 0.001,
+     "unit": "probability"
+    },
+    {
+     "name": "Fu",
+     "symbol": "F(u)",
+     "min": 0.9,
+     "max": 0.95,
+     "step": 0.005,
+     "unit": "probability"
+    }
+   ],
+   "output": {
+    "symbol": "F_u(x)",
+    "unit": "probability",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "EVT",
+   "POT",
+   "conditional distribution"
+  ]
+ },
+ {
+  "id": "MR-3-F04",
+  "reading_id": "MR-3",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+  "source_line": 274,
+  "objective": "MR-3 e",
+  "name": "Generalized Pareto distribution, tail index not zero",
+  "prompt": "By the GPBdH theorem, what distribution does the excess-loss distribution converge to as the threshold rises, when the tail index is non-zero?",
+  "latex": "1 - \\left[ 1 + \\frac{\\xi x}{\\beta} \\right]^{-1/\\xi}",
+  "variables": [
+   {
+    "symbol": "\\xi",
+    "meaning": "tail (shape) index, the same as in GEV theory"
+   },
+   {
+    "symbol": "x",
+    "meaning": "excess loss over the threshold"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "scale parameter of the GP distribution"
+   }
+  ],
+  "skeleton": "1 - \\left[ 1 + \\frac{ {{1}} {{2}} }{ {{3}} } \\right]^{ {{4}} }",
+  "slots": [
+   "\\xi",
+   "x",
+   "\\beta",
+   "-1/\\xi"
+  ],
+  "decoys": [
+   "1/\\xi",
+   "\\sigma",
+   "\\mu"
+  ],
+  "corruptions": [
+   {
+    "latex": "1 - \\left[ 1 + \\frac{\\xi x}{\\beta} \\right]^{1/\\xi}",
+    "kind": "exponent",
+    "why": "The exponent is minus one over xi; with plus the bracket grows and the value goes negative."
+   },
+   {
+    "latex": "1 - \\left[ 1 + \\frac{\\xi \\beta}{x} \\right]^{-1/\\xi}",
+    "kind": "inverted",
+    "why": "The excess x is scaled by beta, so x is in the numerator."
+   },
+   {
+    "latex": "1 - \\left[ 1 - \\frac{\\xi x}{\\beta} \\right]^{-1/\\xi}",
+    "kind": "sign",
+    "why": "The bracket is one plus xi x over beta."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "x",
+    "direction": "up",
+    "why": "It is a cumulative distribution, so it rises with the excess."
+   },
+   {
+    "variable": "\\beta",
+    "direction": "down",
+    "why": "A larger scale spreads the excesses out, leaving less probability below a given x (for x > 0)."
+   },
+   {
+    "variable": "\\xi",
+    "direction": "down",
+    "why": "A larger tail index fattens the tail, so less probability sits below a given x (for x > 0)."
+   }
+  ],
+  "intuition": "One minus a power-law survival probability: the tail index sets how slowly big excesses die off.",
+  "calc": {
+   "expr": "1 - Math.pow(1 + xi*x/beta, -1/xi)",
+   "inputs": [
+    {
+     "name": "xi",
+     "symbol": "\\xi",
+     "min": 0.05,
+     "max": 0.5,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 0,
+     "max": 5,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "beta",
+     "symbol": "\\beta",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F_u(x)",
+    "unit": "probability",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "EVT",
+   "POT",
+   "generalized Pareto"
+  ]
+ },
+ {
+  "id": "MR-3-F05",
+  "reading_id": "MR-3",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/29_MR_MR3.tex",
+  "source_line": 276,
+  "objective": "MR-3 e",
+  "name": "Generalized Pareto distribution, tail index zero",
+  "prompt": "What form does the generalized Pareto distribution of excess losses take when the tail index equals zero?",
+  "latex": "1 - \\exp\\left[ -\\frac{x}{\\beta} \\right]",
+  "variables": [
+   {
+    "symbol": "x",
+    "meaning": "excess loss over the threshold"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "scale parameter of the GP distribution"
+   }
+  ],
+  "skeleton": "1 - \\exp\\left[ -\\frac{ {{1}} }{ {{2}} } \\right]",
+  "slots": [
+   "x",
+   "\\beta"
+  ],
+  "decoys": [
+   "\\xi",
+   "\\sigma",
+   "x-u"
+  ],
+  "corruptions": [
+   {
+    "latex": "1 - \\exp\\left[ -\\frac{\\beta}{x} \\right]",
+    "kind": "inverted",
+    "why": "The excess is scaled by beta, so x is the numerator."
+   },
+   {
+    "latex": "\\exp\\left[ -\\frac{x}{\\beta} \\right]",
+    "kind": "missing-term",
+    "why": "That is the survival probability; the distribution function is one minus it."
+   },
+   {
+    "latex": "1 - \\exp\\left[ \\frac{x}{\\beta} \\right]",
+    "kind": "sign",
+    "why": "Without the minus the exponential grows and the value goes negative."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "x",
+    "direction": "up",
+    "why": "It is a cumulative distribution, so it rises with the excess."
+   },
+   {
+    "variable": "\\beta",
+    "direction": "down",
+    "why": "A larger scale spreads the excesses out, leaving less probability below a given x."
+   }
+  ],
+  "intuition": "At xi = 0 the excesses are simply exponential with mean-like scale beta.",
+  "calc": {
+   "expr": "1 - Math.exp(-x/beta)",
+   "inputs": [
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 0,
+     "max": 5,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "beta",
+     "symbol": "\\beta",
+     "min": 0.5,
+     "max": 3,
+     "step": 0.1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F_u(x)",
+    "unit": "probability",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "EVT",
+   "POT",
+   "generalized Pareto"
+  ]
+ },
+ {
+  "id": "MR-17-F01",
+  "reading_id": "MR-17",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+  "source_line": 90,
+  "objective": "MR-17 b",
+  "name": "Put-call parity (present-value form)",
+  "prompt": "What links the prices of a European call and put with the same strike and maturity to the spot price and the strike?",
+  "latex": "c - p = S - PV(X)",
+  "variables": [
+   {
+    "symbol": "c",
+    "meaning": "European call price"
+   },
+   {
+    "symbol": "p",
+    "meaning": "European put price (same strike and maturity)"
+   },
+   {
+    "symbol": "S",
+    "meaning": "spot price of the underlying"
+   },
+   {
+    "symbol": "PV(X)",
+    "meaning": "present value of the strike price"
+   },
+   {
+    "symbol": "X",
+    "meaning": "strike price"
+   }
+  ],
+  "skeleton": "{{1}} - p = {{2}} - {{3}}",
+  "slots": [
+   "c",
+   "S",
+   "PV(X)"
+  ],
+  "decoys": [
+   "X",
+   "\\sigma",
+   "PV(S)"
+  ],
+  "corruptions": [
+   {
+    "latex": "c - p = PV(X) - S",
+    "kind": "sign",
+    "why": "A call is worth more relative to the put when the spot is high, so S enters with a plus."
+   },
+   {
+    "latex": "c - p = S - X",
+    "kind": "missing-term",
+    "why": "The strike is paid at maturity, so it must be discounted to present value."
+   },
+   {
+    "latex": "c + p = S - PV(X)",
+    "kind": "sign",
+    "why": "Parity is about the difference between call and put, not their sum."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "S",
+    "direction": "up",
+    "why": "A higher spot raises the call relative to the put."
+   },
+   {
+    "variable": "PV(X)",
+    "direction": "down",
+    "why": "A higher (present value of the) strike favours the put over the call."
+   }
+  ],
+  "intuition": "Long call plus short put is a synthetic forward: worth spot minus the discounted strike.",
+  "calc": {
+   "expr": "S - PVX",
+   "inputs": [
+    {
+     "name": "S",
+     "symbol": "S",
+     "min": 20,
+     "max": 200,
+     "step": 1,
+     "unit": "$"
+    },
+    {
+     "name": "PVX",
+     "symbol": "PV(X)",
+     "min": 20,
+     "max": 200,
+     "step": 0.5,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "c - p",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "put-call parity",
+   "options"
+  ]
+ },
+ {
+  "id": "MR-17-F02",
+  "reading_id": "MR-17",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+  "source_line": 90,
+  "objective": "MR-17 b",
+  "name": "Put-call parity with dividend yield (continuous compounding)",
+  "prompt": "Write put-call parity for a European option on an asset paying a continuous dividend yield, using continuously compounded discounting.",
+  "latex": "p + S_0 e^{-qT} = c + K e^{-rT}",
+  "variables": [
+   {
+    "symbol": "p",
+    "meaning": "European put price"
+   },
+   {
+    "symbol": "S_0",
+    "meaning": "spot price"
+   },
+   {
+    "symbol": "q",
+    "meaning": "dividend yield (decimal, continuous)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time to maturity (years)"
+   },
+   {
+    "symbol": "c",
+    "meaning": "European call price"
+   },
+   {
+    "symbol": "K",
+    "meaning": "strike price (also written X)"
+   },
+   {
+    "symbol": "r",
+    "meaning": "risk-free rate (decimal, continuous)"
+   }
+  ],
+  "skeleton": "p + {{1}} e^{ {{2}} } = c + {{3}} e^{ {{4}} }",
+  "slots": [
+   "S_0",
+   "-qT",
+   "K",
+   "-rT"
+  ],
+  "decoys": [
+   "qT",
+   "rT",
+   "\\sigma"
+  ],
+  "corruptions": [
+   {
+    "latex": "p + S_0 e^{-rT} = c + K e^{-qT}",
+    "kind": "sibling",
+    "why": "The spot is discounted at the dividend yield q; the strike at the risk-free rate r."
+   },
+   {
+    "latex": "p + S_0 = c + K e^{-rT}",
+    "kind": "missing-term",
+    "why": "Drops the dividend adjustment: the spot must be reduced by e to the minus qT."
+   },
+   {
+    "latex": "p + K e^{-rT} = c + S_0 e^{-qT}",
+    "kind": "inverted",
+    "why": "The put pairs with the (dividend-adjusted) spot, the call with the discounted strike."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "c",
+    "direction": "up",
+    "why": "With strike, rates and maturity fixed, a dearer call means the put side must be dearer too."
+   },
+   {
+    "variable": "K",
+    "direction": "up",
+    "why": "A higher strike raises the discounted strike on the call side, so the put side rises."
+   },
+   {
+    "variable": "r",
+    "direction": "down",
+    "why": "A higher rate shrinks the discounted strike, so the put side falls."
+   }
+  ],
+  "intuition": "Protective put (put plus dividend-adjusted stock) equals fiduciary call (call plus discounted strike).",
+  "calc": {
+   "expr": "c + K*Math.exp(-r*T)",
+   "inputs": [
+    {
+     "name": "c",
+     "symbol": "c",
+     "min": 0.5,
+     "max": 30,
+     "step": 0.25,
+     "unit": "$"
+    },
+    {
+     "name": "K",
+     "symbol": "K",
+     "min": 20,
+     "max": 200,
+     "step": 1,
+     "unit": "$"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "T",
+     "symbol": "T",
+     "min": 0.25,
+     "max": 2,
+     "step": 0.25,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "p + S_0 e^{-qT}",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "put-call parity",
+   "options",
+   "dividends"
+  ]
+ },
+ {
+  "id": "MR-17-F03",
+  "reading_id": "MR-17",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+  "source_line": 106,
+  "objective": "MR-17 b",
+  "name": "Market-minus-BSM pricing error is the same for puts and calls",
+  "prompt": "Subtracting put-call parity at BSM prices from parity at market prices, how does the put's pricing error relate to the call's?",
+  "latex": "p_{mkt} - p_{BSM} = c_{mkt} - c_{BSM}",
+  "variables": [
+   {
+    "symbol": "p_{mkt}",
+    "meaning": "market price of the European put"
+   },
+   {
+    "symbol": "p_{BSM}",
+    "meaning": "Black-Scholes-Merton price of the put"
+   },
+   {
+    "symbol": "c_{mkt}",
+    "meaning": "market price of the European call (same strike and maturity)"
+   },
+   {
+    "symbol": "c_{BSM}",
+    "meaning": "Black-Scholes-Merton price of the call"
+   }
+  ],
+  "skeleton": "p_{mkt} - {{1}} = {{2}} - {{3}}",
+  "slots": [
+   "p_{BSM}",
+   "c_{mkt}",
+   "c_{BSM}"
+  ],
+  "decoys": [
+   "p_{mkt}",
+   "PV(X)",
+   "S_0 e^{-qt}"
+  ],
+  "corruptions": [
+   {
+    "latex": "p_{mkt} - p_{BSM} = c_{BSM} - c_{mkt}",
+    "kind": "sign",
+    "why": "The deviations have the same sign: if the call is dear to BSM, so is the put."
+   },
+   {
+    "latex": "p_{mkt} - p_{BSM} = c_{mkt} - c_{BSM} + PV(X)",
+    "kind": "extra-term",
+    "why": "The PV(X) and S0 e^{-qt} terms cancel when the two parity equations are subtracted."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "c_{mkt}",
+    "direction": "up",
+    "why": "A dearer market call (BSM fixed) implies an equally dearer market put."
+   },
+   {
+    "variable": "c_{BSM}",
+    "direction": "down",
+    "why": "A higher BSM call value with market prices fixed shrinks the call's (and so the put's) deviation."
+   }
+  ],
+  "intuition": "Same strike, same maturity: the market over- or under-prices the call and the put by the same dollars, so they share one implied volatility.",
+  "calc": {
+   "expr": "cmkt - cbsm",
+   "inputs": [
+    {
+     "name": "cmkt",
+     "symbol": "c_{mkt}",
+     "min": 0.5,
+     "max": 20,
+     "step": 0.05,
+     "unit": "$"
+    },
+    {
+     "name": "cbsm",
+     "symbol": "c_{BSM}",
+     "min": 0.5,
+     "max": 20,
+     "step": 0.05,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "p_{mkt} - p_{BSM}",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "put-call parity",
+   "implied volatility"
+  ]
+ },
+ {
+  "id": "MR-17-F04",
+  "reading_id": "MR-17",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/09_MR_MR17.tex",
+  "source_line": 459,
+  "objective": "MR-17 h",
+  "name": "BSM delta versus minimum variance delta (equity skew)",
+  "prompt": "With a negative relation between equity prices and implied volatility, how does the BSM delta compare with the minimum variance delta?",
+  "latex": "\\Delta_{BSM} > \\Delta_{\\text{minimum variance}}",
+  "variables": [
+   {
+    "symbol": "\\Delta_{BSM}",
+    "meaning": "Black-Scholes-Merton delta (assumes implied volatility unchanged when the price moves)"
+   },
+   {
+    "symbol": "\\Delta_{\\text{minimum variance}}",
+    "meaning": "delta that accounts for the relationship between implied volatilities and equity prices"
+   }
+  ],
+  "skeleton": "{{1}} {{2}} \\Delta_{\\text{minimum variance}}",
+  "slots": [
+   "\\Delta_{BSM}",
+   ">"
+  ],
+  "decoys": [
+   "<",
+   "=",
+   "\\Gamma_{BSM}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\Delta_{BSM} < \\Delta_{\\text{minimum variance}}",
+    "kind": "inverted",
+    "why": "When equity rises, implied vol falls and cuts the option value, so the minimum variance delta is the smaller one."
+   },
+   {
+    "latex": "\\Delta_{BSM} = \\Delta_{\\text{minimum variance}}",
+    "kind": "sign",
+    "why": "Equality would only hold if implied volatility did not move with the equity price, which is what the skew says it does."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Price up means vol down, which drags the option value back, so the true hedge ratio is below the BSM one.",
+  "calc": null,
+  "tags": [
+   "Greeks",
+   "delta",
+   "volatility skew"
+  ]
+ },
+ {
+  "id": "LTR-9-F01",
+  "reading_id": "LTR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/14_LR_LTR9.tex",
+  "source_line": 62,
+  "objective": "LTR-9 b",
+  "name": "Stressed liquid asset buffer (contingent liquidity)",
+  "prompt": "How do you estimate the contingent liquidity left under a stress scenario, starting from the normal liquid asset buffer?",
+  "latex": "\\text{Stressed liquid asset buffer} = \\text{Normal liquid asset buffer} - \\text{Stressed cash outflows} + \\text{Stressed cash inflows}",
+  "variables": [
+   {
+    "symbol": "\\text{Stressed liquid asset buffer}",
+    "meaning": "contingent liquidity available under the stress scenario"
+   },
+   {
+    "symbol": "\\text{Normal liquid asset buffer}",
+    "meaning": "starting stock of liquid investments, liquidity facility availability and unrestricted deposits"
+   },
+   {
+    "symbol": "\\text{Stressed cash outflows}",
+    "meaning": "cash outflows under the stress scenario"
+   },
+   {
+    "symbol": "\\text{Stressed cash inflows}",
+    "meaning": "cash inflows under the stress scenario"
+   }
+  ],
+  "skeleton": "\\text{Stressed liquid asset buffer} = {{1}} - {{2}} + {{3}}",
+  "slots": [
+   "\\text{Normal liquid asset buffer}",
+   "\\text{Stressed cash outflows}",
+   "\\text{Stressed cash inflows}"
+  ],
+  "decoys": [
+   "\\text{Normal cash inflows}",
+   "\\text{Normal cash outflows}",
+   "\\text{Strategic liquidity}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Stressed liquid asset buffer} = \\text{Normal liquid asset buffer} + \\text{Stressed cash outflows} - \\text{Stressed cash inflows}",
+    "kind": "sign",
+    "why": "Outflows drain the buffer and inflows replenish it, not the reverse."
+   },
+   {
+    "latex": "\\text{Stressed liquid asset buffer} = \\text{Normal liquid asset buffer} - \\text{Stressed cash outflows} + \\text{Normal cash inflows}",
+    "kind": "wrong-variable",
+    "why": "Both legs must be stressed; using normal inflows against stressed outflows overstates the buffer."
+   },
+   {
+    "latex": "\\text{Stressed liquid asset buffer} = \\text{Normal liquid asset buffer} - \\text{Stressed cash outflows}",
+    "kind": "missing-term",
+    "why": "Stressed inflows are added back after the outflows are taken out."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Normal liquid asset buffer}",
+    "direction": "up",
+    "why": "A bigger starting buffer leaves more after the stress."
+   },
+   {
+    "variable": "\\text{Stressed cash outflows}",
+    "direction": "down",
+    "why": "Larger stressed outflows drain more of the buffer."
+   },
+   {
+    "variable": "\\text{Stressed cash inflows}",
+    "direction": "up",
+    "why": "Larger stressed inflows put more back."
+   }
+  ],
+  "intuition": "A waterfall: start with the normal buffer, take out stressed outflows, put back stressed inflows.",
+  "calc": {
+   "expr": "N - O + Inf",
+   "inputs": [
+    {
+     "name": "N",
+     "symbol": "\\text{Normal liquid asset buffer}",
+     "min": 10,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "O",
+     "symbol": "\\text{Stressed cash outflows}",
+     "min": 0,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "Inf",
+     "symbol": "\\text{Stressed cash inflows}",
+     "min": 0,
+     "max": 300,
+     "step": 5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Stressed liquid asset buffer}",
+    "unit": "$M",
+    "decimals": 1
+   },
+   "example": null
+  },
+  "tags": [
+   "liquidity",
+   "stress testing",
+   "liquid asset buffer"
+  ]
+ }
+]

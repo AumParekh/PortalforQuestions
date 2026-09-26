@@ -1,0 +1,3340 @@
+[
+  {
+    "id": "MR-14-F01",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 44,
+    "objective": "MR-14 a",
+    "name": "Model 1 (no drift): change in the short rate",
+    "prompt": "In Model 1 (normally distributed rates, no drift), what is the change in the short rate over a small interval?",
+    "latex": "dr = \\sigma\\, dw",
+    "variables": [
+      {
+        "symbol": "dr",
+        "meaning": "change in the short-term interest rate over the small interval dt (in %)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dw",
+        "meaning": "normally distributed random shock with mean 0 and standard deviation sqrt(dt) (0.2887 for one month)"
+      }
+    ],
+    "skeleton": "{{1}} = {{2}}\\, dw",
+    "slots": [
+      "dr",
+      "\\sigma"
+    ],
+    "decoys": [
+      "\\lambda\\, dt",
+      "dt",
+      "\\sigma^2"
+    ],
+    "corruptions": [
+      {
+        "latex": "dr = \\lambda\\, dt + \\sigma\\, dw",
+        "kind": "sibling",
+        "why": "That is Model 2: it adds a drift term. Model 1 has no drift, so its expected change is zero."
+      },
+      {
+        "latex": "dr = \\sigma\\, dt",
+        "kind": "wrong-variable",
+        "why": "The volatility multiplies the random shock dw, not the time step; sigma*dt would make the change deterministic."
+      },
+      {
+        "latex": "dr = \\sigma^2\\, dw",
+        "kind": "exponent",
+        "why": "sigma is the basis-point volatility and enters linearly; squaring it gives a variance, not a rate move."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "dw",
+        "direction": "up",
+        "why": "A larger positive shock moves the rate up by sigma times the shock."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility amplifies the move in whichever direction dw points: up if dw > 0, down if dw < 0."
+      }
+    ],
+    "intuition": "No drift: the rate only takes a random shock scaled by volatility, so on average it goes nowhere.",
+    "calc": {
+      "expr": "sigma * dw",
+      "inputs": [
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dw",
+          "symbol": "dw",
+          "min": -0.6,
+          "max": 0.6,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "dr",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "sigma": 1.2,
+          "dw": 0.2
+        },
+        "output": 0.24,
+        "source_line": 56
+      }
+    },
+    "tags": [
+      "term structure",
+      "Model 1"
+    ]
+  },
+  {
+    "id": "MR-14-F02",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 46,
+    "objective": "MR-14 a",
+    "name": "Model 1 tree: the two date-1 rates",
+    "prompt": "In a Model 1 (no-drift) binomial tree, what are the up and down rates one step after today's rate?",
+    "latex": "r_{\\text{up/down}} = r_0 \\pm \\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{up/down}}",
+        "meaning": "the up-node and down-node short rates at date 1 (each reached with probability 0.5)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      }
+    ],
+    "skeleton": "r_{\\text{up/down}} = {{1}} \\pm {{2}}\\sqrt{ {{3}} }",
+    "slots": [
+      "r_0",
+      "\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "\\sigma^2",
+      "\\lambda",
+      "dw"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{up/down}} = r_0 \\pm \\sigma\\, dt",
+        "kind": "exponent",
+        "why": "The one-step standard deviation scales with the square root of time: sigma*sqrt(dt), not sigma*dt."
+      },
+      {
+        "latex": "r_{\\text{up/down}} = r_0 + \\lambda dt \\pm \\sigma\\sqrt{dt}",
+        "kind": "sibling",
+        "why": "That is the Model 2 node; Model 1 has no drift, so the tree stays centred on r_0."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "Both nodes are centred on today's rate."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility pushes the up node higher and the down node lower (the nodes spread apart)."
+      }
+    ],
+    "intuition": "Each step is today's rate plus or minus one standard deviation of the per-step shock; with no drift the tree is centred on r_0 and recombines.",
+    "calc": {
+      "expr": "r0 + sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{up}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": {
+        "inputs": {
+          "r0": 6.18,
+          "sigma": 1.13,
+          "dt": 0.0833333
+        },
+        "output": 6.506,
+        "source_line": 104
+      }
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Model 1"
+    ]
+  },
+  {
+    "id": "MR-14-F03",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 74,
+    "objective": "MR-14 b",
+    "name": "Model 1 tree: the outer date-2 rates",
+    "prompt": "In a Model 1 (no-drift) tree, what are the highest and lowest short rates two steps out?",
+    "latex": "r_{\\text{uu/dd}} = r_0 \\pm 2\\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{uu/dd}}",
+        "meaning": "the up-up and down-down short rates at date 2 (the middle node is r_0 again)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      }
+    ],
+    "skeleton": "r_{\\text{uu/dd}} = {{1}} \\pm {{2}}\\sqrt{ {{3}} }",
+    "slots": [
+      "r_0",
+      "2\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "\\sigma",
+      "\\sqrt{2}\\,\\sigma",
+      "4\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 \\pm \\sqrt{2}\\,\\sigma\\sqrt{dt}",
+        "kind": "scaling",
+        "why": "sqrt(2)*sigma*sqrt(dt) is the standard deviation after two steps, but the outer node is reached by two full up (or down) moves, so it sits 2*sigma*sqrt(dt) away."
+      },
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 \\pm 2\\sigma\\, dt",
+        "kind": "exponent",
+        "why": "Each step moves the rate by sigma*sqrt(dt), not sigma*dt."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "The whole tree is centred on today's rate."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility raises the up-up node and lowers the down-down node."
+      }
+    ],
+    "intuition": "Two up moves stack linearly: 2 sigma sqrt(dt) above r_0, while up-then-down lands back exactly on r_0 (the tree recombines).",
+    "calc": {
+      "expr": "r0 + 2 * sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{uu}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Model 1"
+    ]
+  },
+  {
+    "id": "MR-14-F04",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 102,
+    "objective": "MR-14 b",
+    "name": "Standard deviation of the rate change per step",
+    "prompt": "In the normal (no-drift) model, what is the standard deviation of the short-rate change over one step of length dt?",
+    "latex": "\\text{SD}(dr) = \\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "\\text{SD}(dr)",
+        "meaning": "standard deviation of the rate change over one step (in %; e.g. 0.326% = 32.6 bp per month)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      }
+    ],
+    "skeleton": "\\text{SD}(dr) = {{1}}\\sqrt{ {{2}} }",
+    "slots": [
+      "\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "\\sigma^2",
+      "dw",
+      "12"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{SD}(dr) = \\sigma\\, dt",
+        "kind": "exponent",
+        "why": "Volatility scales with the square root of time; sigma*dt would shrink a monthly move to sigma/12 instead of sigma/sqrt(12)."
+      },
+      {
+        "latex": "\\text{SD}(dr) = \\sigma^2\\, dt",
+        "kind": "exponent",
+        "why": "That is the variance of the rate change, not its standard deviation."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\sigma",
+        "direction": "up",
+        "why": "Higher annual volatility means bigger per-step moves."
+      },
+      {
+        "variable": "dt",
+        "direction": "up",
+        "why": "A longer step accumulates more variance, growing with sqrt(dt)."
+      }
+    ],
+    "intuition": "Annual vol times square-root-of-time: for one month multiply by sqrt(1/12) = 0.2887.",
+    "calc": {
+      "expr": "sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{SD}(dr)",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": {
+        "inputs": {
+          "sigma": 1.13,
+          "dt": 0.0833333
+        },
+        "output": 0.326,
+        "source_line": 102
+      }
+    },
+    "tags": [
+      "term structure",
+      "volatility",
+      "Model 1"
+    ]
+  },
+  {
+    "id": "MR-14-F05",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 155,
+    "objective": "MR-14 d",
+    "name": "Model 2 (constant drift): change in the short rate",
+    "prompt": "In Model 2, which adds a constant drift to the normal model, what is the change in the short rate over a small interval?",
+    "latex": "dr = \\lambda\\, dt + \\sigma\\, dw",
+    "variables": [
+      {
+        "symbol": "dr",
+        "meaning": "change in the short-term interest rate over the small interval dt (in %)"
+      },
+      {
+        "symbol": "\\lambda",
+        "meaning": "positive constant drift (in % per year), capturing both a risk premium and expected return"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dw",
+        "meaning": "normally distributed random shock with mean 0 and standard deviation sqrt(dt) (0.2887 for one month)"
+      }
+    ],
+    "skeleton": "dr = {{1}}\\, dt + \\sigma\\, {{2}}",
+    "slots": [
+      "\\lambda",
+      "dw"
+    ],
+    "decoys": [
+      "\\lambda_t",
+      "dt",
+      "\\sqrt{dt}"
+    ],
+    "corruptions": [
+      {
+        "latex": "dr = \\lambda_t\\, dt + \\sigma\\, dw",
+        "kind": "sibling",
+        "why": "A time-dependent drift is the Ho-Lee model; Model 2's drift is the same constant every step."
+      },
+      {
+        "latex": "dr = \\lambda\\, dw + \\sigma\\, dt",
+        "kind": "wrong-variable",
+        "why": "The drift is deterministic and scales with time dt; the volatility scales the random shock dw."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\lambda",
+        "direction": "up",
+        "why": "A larger drift adds lambda*dt to every step."
+      },
+      {
+        "variable": "dw",
+        "direction": "up",
+        "why": "A larger positive shock raises the rate change."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Up if the shock dw is positive, down if it is negative."
+      }
+    ],
+    "intuition": "Model 1 plus a constant upward push each step: the tree shifts up by lambda*dt every period, giving an upward-sloping term structure.",
+    "calc": {
+      "expr": "lam * dt + sigma * dw",
+      "inputs": [
+        {
+          "name": "lam",
+          "symbol": "\\lambda",
+          "min": 0,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dw",
+          "symbol": "dw",
+          "min": -0.6,
+          "max": 0.6,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "dr",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "Model 2",
+      "drift"
+    ]
+  },
+  {
+    "id": "MR-14-F06",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 165,
+    "objective": "MR-14 d",
+    "name": "Model 2 tree: the two date-1 rates",
+    "prompt": "In a Model 2 (constant drift) tree, what are the up and down short rates one step after today?",
+    "latex": "r_{\\text{up/down}} = r_0 + \\lambda dt \\pm \\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{up/down}}",
+        "meaning": "the up-node and down-node short rates at date 1"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\lambda",
+        "meaning": "constant annual drift (in %)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      }
+    ],
+    "skeleton": "r_{\\text{up/down}} = {{1}} + {{2}} dt \\pm {{3}}\\sqrt{dt}",
+    "slots": [
+      "r_0",
+      "\\lambda",
+      "\\sigma"
+    ],
+    "decoys": [
+      "2\\lambda",
+      "\\lambda_2",
+      "\\sigma^2"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{up/down}} = r_0 + \\lambda\\sqrt{dt} \\pm \\sigma\\sqrt{dt}",
+        "kind": "exponent",
+        "why": "The drift accrues linearly with time (lambda*dt); only the volatility scales with sqrt(dt)."
+      },
+      {
+        "latex": "r_{\\text{up/down}} = r_0 \\pm \\sigma\\sqrt{dt}",
+        "kind": "missing-term",
+        "why": "Dropping the drift gives the Model 1 node; Model 2 shifts both nodes up by lambda*dt."
+      },
+      {
+        "latex": "r_{\\text{up/down}} = r_0 + \\lambda dt \\pm \\sigma\\, dt",
+        "kind": "exponent",
+        "why": "The volatility shock per step is sigma*sqrt(dt), not sigma*dt."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "Both nodes start from today's rate."
+      },
+      {
+        "variable": "\\lambda",
+        "direction": "up",
+        "why": "A larger drift lifts both nodes by lambda*dt."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility raises the up node and lowers the down node."
+      }
+    ],
+    "intuition": "Same fork as Model 1, but the whole fork is first lifted by the drift lambda*dt.",
+    "calc": {
+      "expr": "r0 + lam * dt + sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "lam",
+          "symbol": "\\lambda",
+          "min": 0,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{up}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Model 2"
+    ]
+  },
+  {
+    "id": "MR-14-F07",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 167,
+    "objective": "MR-14 d",
+    "name": "Model 2 tree: the outer date-2 rates",
+    "prompt": "In a Model 2 (constant drift) tree, what are the highest and lowest short rates two steps out?",
+    "latex": "r_{\\text{uu/dd}} = r_0 + 2\\lambda dt \\pm 2\\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{uu/dd}}",
+        "meaning": "the up-up and down-down short rates at date 2 (the middle node is r_0 + 2 lambda dt)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\lambda",
+        "meaning": "constant annual drift (in %)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      }
+    ],
+    "skeleton": "r_{\\text{uu/dd}} = r_0 + {{1}} dt \\pm {{2}}\\sqrt{ {{3}} }",
+    "slots": [
+      "2\\lambda",
+      "2\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "\\lambda",
+      "\\sigma",
+      "\\sqrt{2}\\,\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 + \\lambda dt \\pm 2\\sigma\\sqrt{dt}",
+        "kind": "missing-term",
+        "why": "The drift accrues every step, so after two steps the tree has shifted by 2*lambda*dt."
+      },
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 + 2\\lambda dt \\pm \\sqrt{2}\\,\\sigma\\sqrt{dt}",
+        "kind": "scaling",
+        "why": "Two full up moves put the outer node 2*sigma*sqrt(dt) away; sqrt(2) is the two-step standard deviation, not a node."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "The tree is built on today's rate."
+      },
+      {
+        "variable": "\\lambda",
+        "direction": "up",
+        "why": "Each of the two steps adds lambda*dt."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility raises the up-up node and lowers the down-down node."
+      }
+    ],
+    "intuition": "After two steps the whole tree has risen by 2 lambda dt; the middle node r_0 + 2 lambda dt is single-valued, so Model 2 recombines.",
+    "calc": {
+      "expr": "r0 + 2 * lam * dt + 2 * sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "lam",
+          "symbol": "\\lambda",
+          "min": 0,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{uu}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Model 2"
+    ]
+  },
+  {
+    "id": "MR-14-F08",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 204,
+    "objective": "MR-14 d",
+    "name": "Ho-Lee model: change in the short rate",
+    "prompt": "In the Ho-Lee model, with a drift that can differ each period, what is the change in the short rate over a small interval?",
+    "latex": "dr = \\lambda_t\\, dt + \\sigma\\, dw",
+    "variables": [
+      {
+        "symbol": "dr",
+        "meaning": "change in the short-term interest rate over the small interval dt (in %)"
+      },
+      {
+        "symbol": "\\lambda_t",
+        "meaning": "the drift for period t (in % per year): a different, calibrated value each period, which can be negative"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dw",
+        "meaning": "normally distributed random shock with mean 0 and standard deviation sqrt(dt) (0.2887 for one month)"
+      }
+    ],
+    "skeleton": "dr = {{1}}\\, dt + \\sigma\\, {{2}}",
+    "slots": [
+      "\\lambda_t",
+      "dw"
+    ],
+    "decoys": [
+      "\\lambda",
+      "k(\\theta - r)",
+      "dt"
+    ],
+    "corruptions": [
+      {
+        "latex": "dr = \\lambda\\, dt + \\sigma\\, dw",
+        "kind": "sibling",
+        "why": "A single constant drift is Model 2; Ho-Lee reduces to it only if every lambda_t is equal."
+      },
+      {
+        "latex": "dr = k(\\theta - r)\\, dt + \\sigma\\, dw",
+        "kind": "sibling",
+        "why": "A drift that depends on the current rate is Vasicek (mean reversion), not Ho-Lee."
+      },
+      {
+        "latex": "dr = \\lambda_t\\, dt + \\sigma_t\\, dw",
+        "kind": "wrong-variable",
+        "why": "Ho-Lee changes only the drift term; volatility sigma stays constant."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\lambda_t",
+        "direction": "up",
+        "why": "A higher drift for the period adds lambda_t*dt to the change."
+      },
+      {
+        "variable": "dw",
+        "direction": "up",
+        "why": "A larger positive shock raises the rate change."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Up if the shock dw is positive, down if it is negative."
+      }
+    ],
+    "intuition": "Model 2 with a different, market-calibrated drift each period, so the tree can fit any term-structure shape.",
+    "calc": {
+      "expr": "lamt * dt + sigma * dw",
+      "inputs": [
+        {
+          "name": "lamt",
+          "symbol": "\\lambda_t",
+          "min": -1,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dw",
+          "symbol": "dw",
+          "min": -0.6,
+          "max": 0.6,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "dr",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "Ho-Lee",
+      "drift"
+    ]
+  },
+  {
+    "id": "MR-14-F09",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 214,
+    "objective": "MR-14 d",
+    "name": "Ho-Lee tree: the two date-1 rates",
+    "prompt": "In a Ho-Lee tree, what are the up and down short rates one step after today?",
+    "latex": "r_{\\text{up/down}} = r_0 + \\lambda_1 dt \\pm \\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{up/down}}",
+        "meaning": "the up-node and down-node short rates at date 1"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\lambda_1",
+        "meaning": "the calibrated drift for the first period (in % per year)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      }
+    ],
+    "skeleton": "r_{\\text{up/down}} = r_0 + {{1}} dt \\pm {{2}}\\sqrt{ {{3}} }",
+    "slots": [
+      "\\lambda_1",
+      "\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "\\lambda_2",
+      "\\lambda_1+\\lambda_2",
+      "2\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{up/down}} = r_0 + \\lambda_2 dt \\pm \\sigma\\sqrt{dt}",
+        "kind": "wrong-variable",
+        "why": "The first step uses the first period's drift lambda_1; lambda_2 applies to the second step."
+      },
+      {
+        "latex": "r_{\\text{up/down}} = r_0 + \\lambda_1\\sqrt{dt} \\pm \\sigma\\sqrt{dt}",
+        "kind": "exponent",
+        "why": "Drift accrues linearly with time (lambda_1*dt); only the shock scales with sqrt(dt)."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "Both nodes start from today's rate."
+      },
+      {
+        "variable": "\\lambda_1",
+        "direction": "up",
+        "why": "A higher first-period drift lifts both date-1 nodes."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility raises the up node and lowers the down node."
+      }
+    ],
+    "intuition": "Like Model 2's first step, but the drift is this period's own calibrated lambda_1.",
+    "calc": {
+      "expr": "r0 + lam1 * dt + sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "lam1",
+          "symbol": "\\lambda_1",
+          "min": -1,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{up}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Ho-Lee"
+    ]
+  },
+  {
+    "id": "MR-14-F10",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 216,
+    "objective": "MR-14 d",
+    "name": "Ho-Lee tree: the outer date-2 rates",
+    "prompt": "In a Ho-Lee tree, what are the highest and lowest short rates two steps out?",
+    "latex": "r_{\\text{uu/dd}} = r_0 + (\\lambda_1+\\lambda_2) dt \\pm 2\\sigma\\sqrt{dt}",
+    "variables": [
+      {
+        "symbol": "r_{\\text{uu/dd}}",
+        "meaning": "the up-up and down-down short rates at date 2 (the middle node is r_0 + (lambda_1 + lambda_2) dt)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "current (date-0) short-term rate, in %"
+      },
+      {
+        "symbol": "\\lambda_1",
+        "meaning": "calibrated drift for period 1 (in % per year)"
+      },
+      {
+        "symbol": "\\lambda_2",
+        "meaning": "calibrated drift for period 2 (in % per year)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      }
+    ],
+    "skeleton": "r_{\\text{uu/dd}} = r_0 + {{1}} dt \\pm {{2}}\\sqrt{ {{3}} }",
+    "slots": [
+      "(\\lambda_1+\\lambda_2)",
+      "2\\sigma",
+      "dt"
+    ],
+    "decoys": [
+      "2\\lambda_1",
+      "2\\lambda_2",
+      "\\sqrt{2}\\,\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 + 2\\lambda_2 dt \\pm 2\\sigma\\sqrt{dt}",
+        "kind": "wrong-variable",
+        "why": "Each step uses its own drift, so the cumulative shift is (lambda_1 + lambda_2) dt, not twice the latest drift. (With lambda_1 = lambda_2 it reduces to Model 2.)"
+      },
+      {
+        "latex": "r_{\\text{uu/dd}} = r_0 + (\\lambda_1+\\lambda_2) dt \\pm \\sqrt{2}\\,\\sigma\\sqrt{dt}",
+        "kind": "scaling",
+        "why": "Two full up moves put the outer node 2*sigma*sqrt(dt) away."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\lambda_1",
+        "direction": "up",
+        "why": "The first-period drift is carried into every date-2 node."
+      },
+      {
+        "variable": "\\lambda_2",
+        "direction": "up",
+        "why": "The second-period drift lifts every date-2 node."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Higher volatility raises the up-up node and lowers the down-down node."
+      }
+    ],
+    "intuition": "Drifts accumulate period by period: after two steps the tree has shifted by (lambda_1 + lambda_2) dt, and it still recombines.",
+    "calc": {
+      "expr": "r0 + (lam1 + lam2) * dt + 2 * sigma * Math.sqrt(dt)",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "lam1",
+          "symbol": "\\lambda_1",
+          "min": -1,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "lam2",
+          "symbol": "\\lambda_2",
+          "min": -1,
+          "max": 1.5,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        }
+      ],
+      "output": {
+        "symbol": "r_{\\text{uu}}",
+        "unit": "%",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Ho-Lee"
+    ]
+  },
+  {
+    "id": "MR-14-F11",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 271,
+    "objective": "MR-14 f",
+    "name": "Vasicek model: change in the short rate",
+    "prompt": "In the mean-reverting Vasicek model, what is the change in the short rate over a small interval?",
+    "latex": "dr = k\\,(\\theta - r)\\,dt + \\sigma\\, dw",
+    "variables": [
+      {
+        "symbol": "dr",
+        "meaning": "change in the short-term interest rate over the small interval dt (in %)"
+      },
+      {
+        "symbol": "k",
+        "meaning": "speed of mean-reversion adjustment (per year); high k means faster mean reversion"
+      },
+      {
+        "symbol": "\\theta",
+        "meaning": "long-run value of the short-term rate assuming risk neutrality (in %)"
+      },
+      {
+        "symbol": "r",
+        "meaning": "current interest rate level (in %)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dw",
+        "meaning": "normally distributed random shock with mean 0 and standard deviation sqrt(dt) (0.2887 for one month)"
+      }
+    ],
+    "skeleton": "dr = {{1}}\\,({{2}} - {{3}})\\,dt + \\sigma\\, dw",
+    "slots": [
+      "k",
+      "\\theta",
+      "r"
+    ],
+    "decoys": [
+      "r_1",
+      "\\lambda",
+      "\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "dr = k\\,(r - \\theta)\\,dt + \\sigma\\, dw",
+        "kind": "sign",
+        "why": "The drift must be positive when the rate is below theta; (r - theta) would push rates away from their long-run level."
+      },
+      {
+        "latex": "dr = \\frac{\\theta - r}{k}\\,dt + \\sigma\\, dw",
+        "kind": "inverted",
+        "why": "k is the speed of reversion: a higher k must mean a faster pull, so it multiplies the gap."
+      },
+      {
+        "latex": "dr = (\\theta - r)\\,dt + \\sigma\\, dw",
+        "kind": "missing-term",
+        "why": "Dropping k removes the speed of reversion: the drift is the gap to theta scaled by k (0.03 in the notes' example), not the full gap."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\theta",
+        "direction": "up",
+        "why": "A higher long-run level increases the pull upward."
+      },
+      {
+        "variable": "r",
+        "direction": "down",
+        "why": "The further the rate rises toward (or above) theta, the smaller (or more negative) the drift."
+      },
+      {
+        "variable": "k",
+        "direction": "depends",
+        "why": "Raises dr when r is below theta, lowers it when r is above theta."
+      },
+      {
+        "variable": "dw",
+        "direction": "up",
+        "why": "A larger positive shock raises the rate change."
+      }
+    ],
+    "intuition": "The drift is a rubber band: k times the gap to theta pulls the rate back toward its long-run level.",
+    "calc": {
+      "expr": "k * (theta - r) * dt + sigma * dw",
+      "inputs": [
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0.01,
+          "max": 1,
+          "step": 0.01,
+          "unit": "per year"
+        },
+        {
+          "name": "theta",
+          "symbol": "\\theta",
+          "min": 1,
+          "max": 20,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "r",
+          "symbol": "r",
+          "min": 0,
+          "max": 20,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "dt",
+          "symbol": "dt",
+          "min": 0.083333,
+          "max": 1,
+          "step": 0.083333,
+          "unit": "years (1/12 = one month)"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 3,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "dw",
+          "symbol": "dw",
+          "min": -0.6,
+          "max": 0.6,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "dr",
+        "unit": "%",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "term structure",
+      "Vasicek",
+      "mean reversion"
+    ]
+  },
+  {
+    "id": "MR-14-F12",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 273,
+    "objective": "MR-14 f",
+    "name": "Vasicek: long-run risk-neutral level theta",
+    "prompt": "In the Vasicek model, how is the risk-neutral long-run rate theta approximated from the true long-run rate, the drift and the reversion speed?",
+    "latex": "\\theta \\approx r_1 + \\frac{\\lambda}{k}",
+    "variables": [
+      {
+        "symbol": "\\theta",
+        "meaning": "long-run value of the short-term rate assuming risk neutrality (in %)"
+      },
+      {
+        "symbol": "r_1",
+        "meaning": "the long-run true rate of interest (in %)"
+      },
+      {
+        "symbol": "\\lambda",
+        "meaning": "the annual drift (in %)"
+      },
+      {
+        "symbol": "k",
+        "meaning": "speed of mean-reversion adjustment (per year); high k means faster mean reversion"
+      }
+    ],
+    "skeleton": "\\theta \\approx {{1}} + \\frac{ {{2}} }{ {{3}} }",
+    "slots": [
+      "r_1",
+      "\\lambda",
+      "k"
+    ],
+    "decoys": [
+      "r",
+      "\\sigma",
+      "\\lambda k"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\theta \\approx r_1 + \\lambda k",
+        "kind": "inverted",
+        "why": "The drift is divided by k: slow reversion (small k) lets a small risk premium lift theta a long way (0.36%/0.03 = 12 points)."
+      },
+      {
+        "latex": "\\theta \\approx r + \\frac{\\lambda}{k}",
+        "kind": "wrong-variable",
+        "why": "Theta builds on the long-run true rate r_1, not the current rate r."
+      },
+      {
+        "latex": "\\theta \\approx r_1 - \\frac{\\lambda}{k}",
+        "kind": "sign",
+        "why": "A positive drift/risk premium raises the risk-neutral long-run level above the true rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_1",
+        "direction": "up",
+        "why": "Theta is the true long-run rate plus an add-on."
+      },
+      {
+        "variable": "\\lambda",
+        "direction": "up",
+        "why": "A larger drift raises the add-on lambda/k."
+      },
+      {
+        "variable": "k",
+        "direction": "down",
+        "why": "Faster reversion shrinks the add-on lambda/k (for positive lambda)."
+      }
+    ],
+    "intuition": "Risk-neutral long-run level = true long-run rate plus the drift grossed up by 1/k.",
+    "calc": {
+      "expr": "r1 + lam / k",
+      "inputs": [
+        {
+          "name": "r1",
+          "symbol": "r_1",
+          "min": 1,
+          "max": 10,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "lam",
+          "symbol": "\\lambda",
+          "min": 0,
+          "max": 1,
+          "step": 0.01,
+          "unit": "% per year"
+        },
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0.01,
+          "max": 1,
+          "step": 0.01,
+          "unit": "per year"
+        }
+      ],
+      "output": {
+        "symbol": "\\theta",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "r1": 6,
+          "lam": 0.36,
+          "k": 0.03
+        },
+        "output": 18,
+        "source_line": 288
+      }
+    },
+    "tags": [
+      "term structure",
+      "Vasicek",
+      "mean reversion"
+    ]
+  },
+  {
+    "id": "MR-14-F13",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 296,
+    "objective": "MR-14 f",
+    "name": "Vasicek tree: up and down moves",
+    "prompt": "When building a Vasicek interest rate tree, what rate change do you apply on an up move and on a down move?",
+    "latex": "dr = k(\\theta - r)dt \\pm \\sigma\\,dw",
+    "variables": [
+      {
+        "symbol": "dr",
+        "meaning": "change in the short-term interest rate over the small interval dt (in %)"
+      },
+      {
+        "symbol": "k",
+        "meaning": "speed of mean-reversion adjustment (per year); high k means faster mean reversion"
+      },
+      {
+        "symbol": "\\theta",
+        "meaning": "long-run value of the short-term rate assuming risk neutrality (in %)"
+      },
+      {
+        "symbol": "r",
+        "meaning": "the rate at the node you are stepping from (in %)"
+      },
+      {
+        "symbol": "dt",
+        "meaning": "small time interval, in years (one month = 1/12)"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "annual basis-point volatility of rate changes (in %, e.g. 1.20%)"
+      },
+      {
+        "symbol": "dw",
+        "meaning": "normally distributed random shock with mean 0 and standard deviation sqrt(dt) (0.2887 for one month)"
+      }
+    ],
+    "skeleton": "dr = k({{1}} - {{2}})dt \\pm {{3}}",
+    "slots": [
+      "\\theta",
+      "r",
+      "\\sigma\\,dw"
+    ],
+    "decoys": [
+      "r_1",
+      "\\lambda\\,dt",
+      "\\sigma\\,dt"
+    ],
+    "corruptions": [
+      {
+        "latex": "dr = \\pm\\left[k(\\theta - r)dt + \\sigma\\,dw\\right]",
+        "kind": "sign",
+        "why": "The drift is the same on both branches; only the volatility term is added for up moves and subtracted for down moves."
+      },
+      {
+        "latex": "dr = k(\\theta - r_0)dt \\pm \\sigma\\,dw",
+        "kind": "wrong-variable",
+        "why": "The drift is recomputed at each node's own rate, not frozen at r_0; that is exactly why the two middle nodes differ (6.258% vs 6.260%)."
+      },
+      {
+        "latex": "dr = k(\\theta - r)dt \\pm \\sigma\\,dt",
+        "kind": "wrong-variable",
+        "why": "The volatility multiplies the random shock dw (sqrt(dt) per step), not dt."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\theta",
+        "direction": "up",
+        "why": "A higher long-run level raises the drift on both branches."
+      },
+      {
+        "variable": "r",
+        "direction": "down",
+        "why": "A higher starting node shrinks the drift k(theta - r) on both branches."
+      }
+    ],
+    "intuition": "Add volatility for up, subtract for down, but keep the mean-reverting drift, recomputed at each node; that is why the tree does not recombine.",
+    "calc": null,
+    "tags": [
+      "term structure",
+      "rate tree",
+      "Vasicek"
+    ]
+  },
+  {
+    "id": "MR-14-F14",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 362,
+    "objective": "MR-14 g",
+    "name": "Vasicek: expected rate in T years (gap-decay form)",
+    "prompt": "Under Vasicek, what is the expected short rate T years ahead, written as the long-run level minus the decayed gap?",
+    "latex": "E[r_T] = \\theta - (\\theta - r_0)\\,e^{-kT}",
+    "variables": [
+      {
+        "symbol": "E[r_T]",
+        "meaning": "expected short rate in T years (in %)"
+      },
+      {
+        "symbol": "\\theta",
+        "meaning": "the long-run mean-reverting level (in %)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "the current short-term rate (in %)"
+      },
+      {
+        "symbol": "k",
+        "meaning": "the speed of mean reversion (per year)"
+      },
+      {
+        "symbol": "T",
+        "meaning": "the horizon, in years"
+      }
+    ],
+    "skeleton": "E[r_T] = \\theta - ({{1}} - {{2}})\\,e^{ {{3}} }",
+    "slots": [
+      "\\theta",
+      "r_0",
+      "-kT"
+    ],
+    "decoys": [
+      "kT",
+      "r_1",
+      "-T/k"
+    ],
+    "corruptions": [
+      {
+        "latex": "E[r_T] = \\theta - (\\theta - r_0)\\,e^{kT}",
+        "kind": "sign",
+        "why": "The gap must decay, so the exponent is negative; e^{kT} makes the gap grow."
+      },
+      {
+        "latex": "E[r_T] = (\\theta - r_0)\\,e^{-kT}",
+        "kind": "missing-term",
+        "why": "That is only the remaining gap (8.74% in the notes' example); the expected rate is theta minus that gap (9.26%)."
+      },
+      {
+        "latex": "E[r_T] = \\theta + (\\theta - r_0)\\,e^{-kT}",
+        "kind": "sign",
+        "why": "Starting below theta, the rate approaches theta from below; adding the gap would put it above theta."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\theta",
+        "direction": "up",
+        "why": "The expected rate is pulled toward theta, with weight 1 - e^{-kT}."
+      },
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "Today's rate still carries weight e^{-kT}."
+      },
+      {
+        "variable": "k",
+        "direction": "depends",
+        "why": "Faster reversion moves the expectation closer to theta: up if r_0 < theta, down if r_0 > theta."
+      },
+      {
+        "variable": "T",
+        "direction": "depends",
+        "why": "A longer horizon moves the expectation closer to theta: up if r_0 < theta, down if r_0 > theta."
+      }
+    ],
+    "intuition": "Take the gap to the long-run level, shrink it by e^{-kT}, and subtract what is left from theta.",
+    "calc": {
+      "expr": "theta - (theta - r0) * Math.exp(-k * T)",
+      "inputs": [
+        {
+          "name": "theta",
+          "symbol": "\\theta",
+          "min": 1,
+          "max": 20,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0.01,
+          "max": 1,
+          "step": 0.01,
+          "unit": "per year"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 1,
+          "max": 50,
+          "step": 1,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "E[r_T]",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "theta": 18,
+          "r0": 6.2,
+          "k": 0.03,
+          "T": 10
+        },
+        "output": 9.26,
+        "source_line": 389
+      }
+    },
+    "tags": [
+      "Vasicek",
+      "mean reversion",
+      "expected rate"
+    ]
+  },
+  {
+    "id": "MR-14-F15",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 364,
+    "objective": "MR-14 g",
+    "name": "Vasicek: expected rate in T years (weighted-average form)",
+    "prompt": "Under Vasicek, write the expected short rate T years ahead as a weighted average of today's rate and the long-run level.",
+    "latex": "E[r_T] = r_0\\,e^{-kT} + \\theta\\bigl(1 - e^{-kT}\\bigr)",
+    "variables": [
+      {
+        "symbol": "E[r_T]",
+        "meaning": "expected short rate in T years (in %)"
+      },
+      {
+        "symbol": "r_0",
+        "meaning": "the current short-term rate (in %)"
+      },
+      {
+        "symbol": "\\theta",
+        "meaning": "the long-run mean-reverting level (in %)"
+      },
+      {
+        "symbol": "k",
+        "meaning": "the speed of mean reversion (per year)"
+      },
+      {
+        "symbol": "T",
+        "meaning": "the horizon, in years"
+      }
+    ],
+    "skeleton": "E[r_T] = {{1}}\\,e^{-kT} + {{2}}\\bigl(1 - {{3}}\\bigr)",
+    "slots": [
+      "r_0",
+      "\\theta",
+      "e^{-kT}"
+    ],
+    "decoys": [
+      "e^{kT}",
+      "r_1",
+      "kT"
+    ],
+    "corruptions": [
+      {
+        "latex": "E[r_T] = \\theta\\,e^{-kT} + r_0\\bigl(1 - e^{-kT}\\bigr)",
+        "kind": "sibling",
+        "why": "The weights are swapped: as T grows the weight on today's rate (e^{-kT}) must vanish, leaving theta."
+      },
+      {
+        "latex": "E[r_T] = r_0\\,e^{kT} + \\theta\\bigl(1 - e^{kT}\\bigr)",
+        "kind": "sign",
+        "why": "The exponent must be negative so that today's rate's weight decays over time."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_0",
+        "direction": "up",
+        "why": "Today's rate carries weight e^{-kT} > 0."
+      },
+      {
+        "variable": "\\theta",
+        "direction": "up",
+        "why": "The long-run level carries weight 1 - e^{-kT} > 0."
+      },
+      {
+        "variable": "k",
+        "direction": "depends",
+        "why": "Shifts weight from r_0 to theta: up if r_0 < theta, down if r_0 > theta."
+      }
+    ],
+    "intuition": "A blend of today's rate and the long-run level; the weight on today decays as e^{-kT}.",
+    "calc": {
+      "expr": "r0 * Math.exp(-k * T) + theta * (1 - Math.exp(-k * T))",
+      "inputs": [
+        {
+          "name": "r0",
+          "symbol": "r_0",
+          "min": 0,
+          "max": 12,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "theta",
+          "symbol": "\\theta",
+          "min": 1,
+          "max": 20,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0.01,
+          "max": 1,
+          "step": 0.01,
+          "unit": "per year"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 1,
+          "max": 50,
+          "step": 1,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "E[r_T]",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "r0": 6.2,
+          "theta": 18,
+          "k": 0.03,
+          "T": 10
+        },
+        "output": 9.26,
+        "source_line": 389
+      }
+    },
+    "tags": [
+      "Vasicek",
+      "mean reversion",
+      "expected rate"
+    ]
+  },
+  {
+    "id": "MR-14-F16",
+    "reading_id": "MR-14",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/21_MR_MR14.tex",
+    "source_line": 371,
+    "objective": "MR-14 g",
+    "name": "Vasicek half-life",
+    "prompt": "Under Vasicek, how long does it take for the gap between the current rate and the long-run mean to halve?",
+    "latex": "\\tau = \\frac{\\ln(2)}{k}",
+    "variables": [
+      {
+        "symbol": "\\tau",
+        "meaning": "half-life, in years: the time for the gap between the current rate and the long-run mean to be halved"
+      },
+      {
+        "symbol": "k",
+        "meaning": "the speed of mean reversion (per year)"
+      }
+    ],
+    "skeleton": "\\tau = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "\\ln(2)",
+      "k"
+    ],
+    "decoys": [
+      "\\ln(0.5)",
+      "0.5",
+      "\\theta"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\tau = \\frac{k}{\\ln(2)}",
+        "kind": "inverted",
+        "why": "Faster reversion (higher k) must shorten the half-life, so k belongs in the denominator."
+      },
+      {
+        "latex": "\\tau = \\frac{0.5}{k}",
+        "kind": "wrong-variable",
+        "why": "The gap decays exponentially, e^{-k tau} = 1/2, so the constant is ln(2) = 0.6931, not 0.5."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "k",
+        "direction": "down",
+        "why": "A stronger pull toward theta halves the gap faster."
+      }
+    ],
+    "intuition": "0.693 divided by the reversion speed; it does not depend on how big the gap is (k = 0.03 gives about 23.1 years).",
+    "calc": {
+      "expr": "Math.log(2) / k",
+      "inputs": [
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0.01,
+          "max": 1,
+          "step": 0.01,
+          "unit": "per year"
+        }
+      ],
+      "output": {
+        "symbol": "\\tau",
+        "unit": "years",
+        "decimals": 1
+      },
+      "example": {
+        "inputs": {
+          "k": 0.03
+        },
+        "output": 23.1,
+        "source_line": 394
+      }
+    },
+    "tags": [
+      "Vasicek",
+      "mean reversion",
+      "half-life"
+    ]
+  },
+  {
+    "id": "MR-4-F01",
+    "reading_id": "MR-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+    "source_line": 98,
+    "objective": "MR-4 c",
+    "name": "Backtest failure rate",
+    "prompt": "What is the failure rate of a VaR model in a backtest?",
+    "latex": "\\text{Failure rate} = \\frac{N}{T}",
+    "variables": [
+      {
+        "symbol": "\\text{Failure rate}",
+        "meaning": "exceptions as a proportion of the number of samples (compare with 1 - confidence level)"
+      },
+      {
+        "symbol": "N",
+        "meaning": "number of exceptions"
+      },
+      {
+        "symbol": "T",
+        "meaning": "number of samples (observations in the backtest window)"
+      }
+    ],
+    "skeleton": "\\text{Failure rate} = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "N",
+      "T"
+    ],
+    "decoys": [
+      "pT",
+      "p",
+      "T - N"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Failure rate} = \\frac{T}{N}",
+        "kind": "inverted",
+        "why": "The failure rate is a proportion of the sample, so exceptions go on top."
+      },
+      {
+        "latex": "\\text{Failure rate} = \\frac{N}{pT}",
+        "kind": "scaling",
+        "why": "Dividing by pT gives observed versus expected exceptions, not the failure rate; the rate is compared with p separately."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "N",
+        "direction": "up",
+        "why": "More exceptions in the same window raise the rate."
+      },
+      {
+        "variable": "T",
+        "direction": "down",
+        "why": "The same exceptions over more days is a lower rate."
+      }
+    ],
+    "intuition": "Exceptions divided by days; if it is well above 1 - confidence (1% for 99% VaR), the model underestimates risk.",
+    "calc": {
+      "expr": "N / T * 100",
+      "inputs": [
+        {
+          "name": "N",
+          "symbol": "N",
+          "min": 0,
+          "max": 30,
+          "step": 1,
+          "unit": "exceptions"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 100,
+          "max": 1000,
+          "step": 1,
+          "unit": "days"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Failure rate}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "N": 6,
+          "T": 252
+        },
+        "output": 2.38,
+        "source_line": 108
+      }
+    },
+    "tags": [
+      "backtesting",
+      "VaR"
+    ]
+  },
+  {
+    "id": "MR-4-F02",
+    "reading_id": "MR-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+    "source_line": 116,
+    "objective": "MR-4 c",
+    "name": "Normal-approximation z-test on exceptions",
+    "prompt": "Using the normal approximation to the binomial, what z-statistic tests whether the number of VaR exceptions is consistent with the model?",
+    "latex": "z = \\frac{x - pT}{\\sqrt{p\\,(1-p)\\,T}}",
+    "variables": [
+      {
+        "symbol": "z",
+        "meaning": "test statistic; reject the model if |z| exceeds the critical value (1.96 at 95% two-tailed in the notes' example)"
+      },
+      {
+        "symbol": "x",
+        "meaning": "observed number of exceptions"
+      },
+      {
+        "symbol": "p",
+        "meaning": "tail probability implied by the confidence level (decimal, e.g. 0.05 for 95% VaR)"
+      },
+      {
+        "symbol": "T",
+        "meaning": "number of observations"
+      }
+    ],
+    "skeleton": "z = \\frac{ {{1}} - {{2}} }{\\sqrt{ {{3}} }}",
+    "slots": [
+      "x",
+      "pT",
+      "p\\,(1-p)\\,T"
+    ],
+    "decoys": [
+      "p\\,(1-p)",
+      "T",
+      "x/T"
+    ],
+    "corruptions": [
+      {
+        "latex": "z = \\frac{x - pT}{p\\,(1-p)\\,T}",
+        "kind": "exponent",
+        "why": "The denominator is the standard deviation of the count, sqrt(p(1-p)T), not its variance."
+      },
+      {
+        "latex": "z = \\frac{x - pT}{\\sqrt{p\\,(1-p)}}",
+        "kind": "missing-term",
+        "why": "The binomial count's variance is p(1-p)T; dropping T mis-scales the statistic."
+      },
+      {
+        "latex": "z = \\frac{x - p}{\\sqrt{p\\,(1-p)\\,T}}",
+        "kind": "wrong-variable",
+        "why": "Compare the observed count with the expected count pT, not with the probability p."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "x",
+        "direction": "up",
+        "why": "More observed exceptions push z further above zero."
+      },
+      {
+        "variable": "T",
+        "direction": "down",
+        "why": "For a fixed count, more days raise the expected count pT faster than the standard error grows."
+      }
+    ],
+    "intuition": "(Observed - expected exceptions) divided by the binomial standard deviation; beyond 1.96, reject the model.",
+    "calc": {
+      "expr": "(x - p * T) / Math.sqrt(p * (1 - p) * T)",
+      "inputs": [
+        {
+          "name": "x",
+          "symbol": "x",
+          "min": 0,
+          "max": 40,
+          "step": 1,
+          "unit": "exceptions"
+        },
+        {
+          "name": "p",
+          "symbol": "p",
+          "min": 0.01,
+          "max": 0.1,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 100,
+          "max": 1000,
+          "step": 1,
+          "unit": "days"
+        }
+      ],
+      "output": {
+        "symbol": "z",
+        "unit": "",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "x": 20,
+          "p": 0.05,
+          "T": 252
+        },
+        "output": 2.14,
+        "source_line": 128
+      }
+    },
+    "tags": [
+      "backtesting",
+      "hypothesis test"
+    ]
+  },
+  {
+    "id": "MR-4-F03",
+    "reading_id": "MR-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+    "source_line": 239,
+    "objective": "MR-4 d",
+    "name": "Kupiec unconditional coverage log-likelihood ratio",
+    "prompt": "What is Kupiec's unconditional coverage log-likelihood ratio statistic for a VaR backtest?",
+    "latex": "LR_{uc} = -2\\ln\\left[ (1-p)^{T-N} p^{N} \\right] + 2\\ln\\left\\{ \\left[ 1 - (N/T) \\right]^{T-N} (N/T)^{N} \\right\\}",
+    "variables": [
+      {
+        "symbol": "LR_{uc}",
+        "meaning": "unconditional coverage test statistic; reject the model if LR > 3.841"
+      },
+      {
+        "symbol": "p",
+        "meaning": "tail probability implied by the confidence level (decimal)"
+      },
+      {
+        "symbol": "N",
+        "meaning": "number of exceptions"
+      },
+      {
+        "symbol": "T",
+        "meaning": "number of observations"
+      },
+      {
+        "symbol": "N/T",
+        "meaning": "the observed failure rate"
+      }
+    ],
+    "skeleton": "LR_{uc} = {{1}}\\ln\\left[ (1-{{2}})^{T-N} p^{N} \\right] + 2\\ln\\left\\{ \\left[ 1 - (N/T) \\right]^{ {{3}} } ({{4}})^{N} \\right\\}",
+    "slots": [
+      "-2",
+      "p",
+      "T-N",
+      "N/T"
+    ],
+    "decoys": [
+      "2",
+      "N",
+      "T"
+    ],
+    "corruptions": [
+      {
+        "latex": "LR_{uc} = 2\\ln\\left[ (1-p)^{T-N} p^{N} \\right] - 2\\ln\\left\\{ \\left[ 1 - (N/T) \\right]^{T-N} (N/T)^{N} \\right\\}",
+        "kind": "sign",
+        "why": "The signs are flipped, which makes the statistic negative; the log-likelihood under the observed rate is the larger one, so -2 goes on the model's (p) term."
+      },
+      {
+        "latex": "LR_{uc} = -2\\ln\\left[ (1-p)^{N} p^{T-N} \\right] + 2\\ln\\left\\{ \\left[ 1 - (N/T) \\right]^{T-N} (N/T)^{N} \\right\\}",
+        "kind": "exponent",
+        "why": "p is the exception probability, so it is raised to the number of exceptions N and (1 - p) to the T - N non-exceptions."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "N",
+        "direction": "depends",
+        "why": "The statistic grows as the observed rate N/T moves away from p in either direction; it is zero when N/T = p."
+      }
+    ],
+    "intuition": "Compares the likelihood of the data at the model's p with that at the observed rate N/T; the further apart, the bigger LR, and above 3.841 reject.",
+    "calc": {
+      "expr": "-2 * Math.log((1 - p) ** (T - N) * p ** N) + 2 * Math.log((1 - N / T) ** (T - N) * (N / T) ** N)",
+      "inputs": [
+        {
+          "name": "p",
+          "symbol": "p",
+          "min": 0.01,
+          "max": 0.05,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 100,
+          "max": 500,
+          "step": 1,
+          "unit": "days"
+        },
+        {
+          "name": "N",
+          "symbol": "N",
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "unit": "exceptions"
+        }
+      ],
+      "output": {
+        "symbol": "LR_{uc}",
+        "unit": "",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "backtesting",
+      "Kupiec",
+      "coverage"
+    ]
+  },
+  {
+    "id": "MR-4-F04",
+    "reading_id": "MR-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+    "source_line": 263,
+    "objective": "MR-4 e",
+    "name": "Conditional coverage statistic",
+    "prompt": "How is the conditional coverage statistic built from the backtest's component tests?",
+    "latex": "LR_{cc} = LR_{uc} + LR_{ind}",
+    "variables": [
+      {
+        "symbol": "LR_{cc}",
+        "meaning": "combined conditional coverage statistic; reject the model if > 5.99"
+      },
+      {
+        "symbol": "LR_{uc}",
+        "meaning": "unconditional coverage statistic: is the number of exceptions right? (critical value 3.84)"
+      },
+      {
+        "symbol": "LR_{ind}",
+        "meaning": "independence statistic: are the exceptions spread out or clustered? (critical value 3.84)"
+      }
+    ],
+    "skeleton": "{{1}} = {{2}} + LR_{ind}",
+    "slots": [
+      "LR_{cc}",
+      "LR_{uc}"
+    ],
+    "decoys": [
+      "LR_{ind}",
+      "2LR_{uc}",
+      "LR_{uc} \\times LR_{ind}"
+    ],
+    "corruptions": [
+      {
+        "latex": "LR_{cc} = LR_{uc} - LR_{ind}",
+        "kind": "sign",
+        "why": "Clustering is an additional failure, so its statistic adds to the coverage statistic."
+      },
+      {
+        "latex": "LR_{cc} = LR_{ind}",
+        "kind": "missing-term",
+        "why": "Conditional coverage tests both the number of exceptions and their independence."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "LR_{uc}",
+        "direction": "up",
+        "why": "Wrong exception count adds to the combined statistic."
+      },
+      {
+        "variable": "LR_{ind}",
+        "direction": "up",
+        "why": "More clustering adds to the combined statistic."
+      }
+    ],
+    "intuition": "Right number of exceptions plus not clustered; the sum is judged against 5.99, each part against 3.84.",
+    "calc": {
+      "expr": "LRuc + LRind",
+      "inputs": [
+        {
+          "name": "LRuc",
+          "symbol": "LR_{uc}",
+          "min": 0,
+          "max": 15,
+          "step": 0.01,
+          "unit": ""
+        },
+        {
+          "name": "LRind",
+          "symbol": "LR_{ind}",
+          "min": 0,
+          "max": 15,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "LR_{cc}",
+        "unit": "",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "backtesting",
+      "conditional coverage"
+    ]
+  },
+  {
+    "id": "MR-4-F05",
+    "reading_id": "MR-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+    "source_line": 299,
+    "objective": "MR-4 f",
+    "name": "Basel market-risk capital with the plus factor",
+    "prompt": "Under the Basel backtesting rules, how is capital set from VaR and the zone-based plus factor?",
+    "latex": "\\text{Economic capital} = \\mathrm{VaR} \\times (3 + k)",
+    "variables": [
+      {
+        "symbol": "\\text{Economic capital}",
+        "meaning": "capital the bank must hold for market risk"
+      },
+      {
+        "symbol": "\\mathrm{VaR}",
+        "meaning": "the 99% market VaR"
+      },
+      {
+        "symbol": "k",
+        "meaning": "plus factor set by the backtesting zone: 0 in the green zone (0-4 exceptions), rising in yellow (5-9), 1 in red (10+), so the multiplier runs 3 to 4"
+      }
+    ],
+    "skeleton": "\\text{Economic capital} = {{1}} \\times ({{2}} + k)",
+    "slots": [
+      "\\mathrm{VaR}",
+      "3"
+    ],
+    "decoys": [
+      "4",
+      "2.5",
+      "\\mathrm{ES}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Economic capital} = \\mathrm{VaR} \\times (4 + k)",
+        "kind": "scaling",
+        "why": "The base multiplier is 3; 4 is the maximum total multiplier (red zone), not the base."
+      },
+      {
+        "latex": "\\text{Economic capital} = \\mathrm{VaR} \\times (3 - k)",
+        "kind": "sign",
+        "why": "More exceptions are penalised, so the plus factor increases the multiplier."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{VaR}",
+        "direction": "up",
+        "why": "Capital is proportional to VaR."
+      },
+      {
+        "variable": "k",
+        "direction": "up",
+        "why": "Moving into the yellow or red zone raises the multiplier."
+      }
+    ],
+    "intuition": "VaR times a multiplier of at least 3, raised toward 4 as backtesting exceptions pile up.",
+    "calc": {
+      "expr": "VaR * (3 + k)",
+      "inputs": [
+        {
+          "name": "VaR",
+          "symbol": "\\mathrm{VaR}",
+          "min": 1,
+          "max": 500,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "k",
+          "symbol": "k",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Economic capital}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "Basel",
+      "backtesting",
+      "capital"
+    ]
+  },
+  {
+    "id": "MR-18-F01",
+    "reading_id": "MR-18",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+    "source_line": 70,
+    "objective": "MR-18 a",
+    "name": "99% VaR under a normal loss distribution",
+    "prompt": "For a normal loss distribution with mean mu and standard deviation sigma, what is the 99% VaR?",
+    "latex": "\\mathrm{VaR}_{99\\%} = \\mu + 2.326\\,\\sigma",
+    "variables": [
+      {
+        "symbol": "\\mathrm{VaR}_{99\\%}",
+        "meaning": "99% value at risk"
+      },
+      {
+        "symbol": "\\mu",
+        "meaning": "mean of the (loss) distribution"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "standard deviation of the (loss) distribution"
+      }
+    ],
+    "skeleton": "\\mathrm{VaR}_{99\\%} = {{1}} + {{2}}\\,\\sigma",
+    "slots": [
+      "\\mu",
+      "2.326"
+    ],
+    "decoys": [
+      "2.338",
+      "1.96",
+      "\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{VaR}_{99\\%} = \\mu + 2.338\\,\\sigma",
+        "kind": "sibling",
+        "why": "2.338 sigma is the 97.5% expected shortfall; the 99% VaR is 2.326 sigma, slightly less."
+      },
+      {
+        "latex": "\\mathrm{VaR}_{99\\%} = \\mu + 1.96\\,\\sigma",
+        "kind": "scaling",
+        "why": "1.96 is a 97.5% one-tailed quantile; the 99% quantile is 2.326."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mu",
+        "direction": "up",
+        "why": "A higher mean loss shifts the whole distribution."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "up",
+        "why": "More dispersion pushes the 99th percentile out."
+      }
+    ],
+    "intuition": "Under normality 99% VaR (2.326 sigma) and 97.5% ES (2.338 sigma) nearly coincide; the switch only matters for fat tails.",
+    "calc": {
+      "expr": "mu + 2.326 * sigma",
+      "inputs": [
+        {
+          "name": "mu",
+          "symbol": "\\mu",
+          "min": -10,
+          "max": 10,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 1,
+          "max": 100,
+          "step": 0.5,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{VaR}_{99\\%}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "FRTB",
+      "VaR",
+      "expected shortfall"
+    ]
+  },
+  {
+    "id": "MR-18-F02",
+    "reading_id": "MR-18",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+    "source_line": 71,
+    "objective": "MR-18 a",
+    "name": "97.5% expected shortfall under a normal loss distribution",
+    "prompt": "For a normal loss distribution with mean mu and standard deviation sigma, what is the 97.5% expected shortfall used by FRTB?",
+    "latex": "\\mathrm{ES}_{97.5\\%} = \\mu + 2.338\\,\\sigma",
+    "variables": [
+      {
+        "symbol": "\\mathrm{ES}_{97.5\\%}",
+        "meaning": "97.5% expected shortfall"
+      },
+      {
+        "symbol": "\\mu",
+        "meaning": "mean of the (loss) distribution"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "standard deviation of the (loss) distribution"
+      }
+    ],
+    "skeleton": "\\mathrm{ES}_{97.5\\%} = {{1}} + {{2}}\\,\\sigma",
+    "slots": [
+      "\\mu",
+      "2.338"
+    ],
+    "decoys": [
+      "2.326",
+      "1.96",
+      "\\sigma"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{ES}_{97.5\\%} = \\mu + 2.326\\,\\sigma",
+        "kind": "sibling",
+        "why": "2.326 sigma is the 99% VaR; the 97.5% ES is 2.338 sigma, only 0.012 sigma further out."
+      },
+      {
+        "latex": "\\mathrm{ES}_{97.5\\%} = \\mu + 1.96\\,\\sigma",
+        "kind": "scaling",
+        "why": "1.96 sigma is the 97.5% VaR cut-off; ES averages the tail beyond it, so it is larger."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mu",
+        "direction": "up",
+        "why": "A higher mean loss shifts the whole distribution."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "up",
+        "why": "More dispersion makes the tail average worse."
+      }
+    ],
+    "intuition": "FRTB's 97.5% ES lands almost exactly on the old 99% VaR for a normal distribution: 2.338 vs 2.326 sigma.",
+    "calc": {
+      "expr": "mu + 2.338 * sigma",
+      "inputs": [
+        {
+          "name": "mu",
+          "symbol": "\\mu",
+          "min": -10,
+          "max": 10,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma",
+          "min": 1,
+          "max": 100,
+          "step": 0.5,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{ES}_{97.5\\%}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "FRTB",
+      "expected shortfall"
+    ]
+  },
+  {
+    "id": "MR-18-F03",
+    "reading_id": "MR-18",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+    "source_line": 255,
+    "objective": "MR-18 b",
+    "name": "FRTB liquidity-horizon-adjusted expected shortfall",
+    "prompt": "Under the FRTB internal models approach, how are the nested 10-day ES figures for the five liquidity-horizon categories combined into one ES?",
+    "latex": "ES = \\sqrt{ES_1^{2} + \\sum_{j=2}^{5}\\left( ES_j \\sqrt{\\frac{LH_j - LH_{j-1}}{10}} \\right)^{2}}",
+    "variables": [
+      {
+        "symbol": "ES",
+        "meaning": "liquidity-adjusted expected shortfall"
+      },
+      {
+        "symbol": "ES_1",
+        "meaning": "10-day ES with all categories shocked"
+      },
+      {
+        "symbol": "ES_j",
+        "meaning": "10-day ES with categories j to 5 shocked and the more liquid categories held constant"
+      },
+      {
+        "symbol": "LH_j",
+        "meaning": "liquidity horizon of category j, in days (10, 20, 60, 120, 250)"
+      },
+      {
+        "symbol": "LH_{j-1}",
+        "meaning": "liquidity horizon of the next more liquid category, in days"
+      }
+    ],
+    "skeleton": "ES = \\sqrt{ {{1}}^{2} + \\sum_{j=2}^{5}\\left( ES_j \\sqrt{\\frac{ {{2}} - {{3}} }{ {{4}} }} \\right)^{2}}",
+    "slots": [
+      "ES_1",
+      "LH_j",
+      "LH_{j-1}",
+      "10"
+    ],
+    "decoys": [
+      "LH_1",
+      "250",
+      "LH_{j+1}"
+    ],
+    "corruptions": [
+      {
+        "latex": "ES = ES_1 + \\sum_{j=2}^{5} ES_j \\sqrt{\\frac{LH_j - LH_{j-1}}{10}}",
+        "kind": "exponent",
+        "why": "The pieces are combined as a square root of a sum of squares, not added linearly; a simple sum overstates ES."
+      },
+      {
+        "latex": "ES = \\sqrt{ES_1^{2} + \\sum_{j=2}^{5}\\left( ES_j \\sqrt{\\frac{LH_j}{10}} \\right)^{2}}",
+        "kind": "missing-term",
+        "why": "Each nested ES is scaled by the incremental horizon LH_j - LH_{j-1}; the more liquid part of the horizon is already covered."
+      },
+      {
+        "latex": "ES = \\sqrt{ES_1^{2} + \\sum_{j=2}^{5}\\left( ES_j \\frac{LH_j - LH_{j-1}}{10} \\right)^{2}}",
+        "kind": "exponent",
+        "why": "Time scaling uses the square root of the horizon ratio, not the ratio itself."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "ES_1",
+        "direction": "up",
+        "why": "The base 10-day ES enters the sum of squares directly."
+      },
+      {
+        "variable": "ES_j",
+        "direction": "up",
+        "why": "Each nested ES adds a scaled, squared term."
+      }
+    ],
+    "intuition": "Root-sum-of-squares of nested 10-day ES figures, each stretched by sqrt(extra horizon / 10) for the less liquid exposures.",
+    "calc": {
+      "expr": "Math.sqrt(ES1 ** 2 + (ES2 * Math.sqrt((20 - 10) / 10)) ** 2 + (ES3 * Math.sqrt((60 - 20) / 10)) ** 2 + (ES4 * Math.sqrt((120 - 60) / 10)) ** 2 + (ES5 * Math.sqrt((250 - 120) / 10)) ** 2)",
+      "inputs": [
+        {
+          "name": "ES1",
+          "symbol": "ES_1",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "ES2",
+          "symbol": "ES_2",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "ES3",
+          "symbol": "ES_3",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "ES4",
+          "symbol": "ES_4",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "$M"
+        },
+        {
+          "name": "ES5",
+          "symbol": "ES_5",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "ES",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "FRTB",
+      "liquidity horizon",
+      "expected shortfall"
+    ]
+  },
+  {
+    "id": "MR-18-F04",
+    "reading_id": "MR-18",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+    "source_line": 390,
+    "objective": "MR-18 c",
+    "name": "P&L attribution Measure 1 (bias test)",
+    "prompt": "Under FRTB P&L attribution, what is Measure 1, the ratio that tests whether the model is systematically biased?",
+    "latex": "\\text{Measure 1} = \\frac{\\text{mean of } D}{\\text{standard deviation of } A}",
+    "variables": [
+      {
+        "symbol": "\\text{Measure 1}",
+        "meaning": "bias measure; must lie between -10% and +10%"
+      },
+      {
+        "symbol": "D",
+        "meaning": "difference between actual and model profit/loss for a day"
+      },
+      {
+        "symbol": "A",
+        "meaning": "actual profit/loss for a day"
+      }
+    ],
+    "skeleton": "\\text{Measure 1} = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "\\text{mean of } D",
+      "\\text{standard deviation of } A"
+    ],
+    "decoys": [
+      "\\text{variance of } D",
+      "\\text{mean of } A",
+      "\\text{standard deviation of } D"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Measure 1} = \\frac{\\text{mean of } D}{\\text{variance of } A}",
+        "kind": "wrong-variable",
+        "why": "The mean of D is scaled by the standard deviation of A, so the ratio is unit-free."
+      },
+      {
+        "latex": "\\text{Measure 1} = \\frac{\\text{standard deviation of } D}{\\text{standard deviation of } A}",
+        "kind": "sibling",
+        "why": "Measure 1 tests bias through the mean of D; the dispersion of D belongs to Measure 2 (as a variance ratio)."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "D",
+        "direction": "up",
+        "why": "A higher average P&L difference raises Measure 1."
+      },
+      {
+        "variable": "A",
+        "direction": "depends",
+        "why": "More volatile actual P&L shrinks the ratio toward zero: down if mean D is positive, up if it is negative."
+      }
+    ],
+    "intuition": "Bias test: the average model miss in units of actual P&L volatility, and it must stay within plus or minus 10%.",
+    "calc": {
+      "expr": "meanD / sdA * 100",
+      "inputs": [
+        {
+          "name": "meanD",
+          "symbol": "\\text{mean of } D",
+          "min": -5,
+          "max": 5,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "sdA",
+          "symbol": "\\text{standard deviation of } A",
+          "min": 1,
+          "max": 50,
+          "step": 0.5,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Measure 1}",
+        "unit": "%",
+        "decimals": 1
+      },
+      "example": null
+    },
+    "tags": [
+      "FRTB",
+      "P&L attribution"
+    ]
+  },
+  {
+    "id": "MR-18-F05",
+    "reading_id": "MR-18",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/11_MR_MR18.tex",
+    "source_line": 392,
+    "objective": "MR-18 c",
+    "name": "P&L attribution Measure 2 (noise test)",
+    "prompt": "Under FRTB P&L attribution, what is Measure 2, the ratio that tests how much of the P&L variation the model fails to explain?",
+    "latex": "\\text{Measure 2} = \\frac{\\text{variance of } D}{\\text{variance of } A}",
+    "variables": [
+      {
+        "symbol": "\\text{Measure 2}",
+        "meaning": "noise measure; must be under 20%"
+      },
+      {
+        "symbol": "D",
+        "meaning": "difference between actual and model profit/loss for a day"
+      },
+      {
+        "symbol": "A",
+        "meaning": "actual profit/loss for a day"
+      }
+    ],
+    "skeleton": "\\text{Measure 2} = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "\\text{variance of } D",
+      "\\text{variance of } A"
+    ],
+    "decoys": [
+      "\\text{mean of } D",
+      "\\text{standard deviation of } A",
+      "\\text{mean of } A"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Measure 2} = \\frac{\\text{variance of } A}{\\text{variance of } D}",
+        "kind": "inverted",
+        "why": "The unexplained variance (of D) is the numerator; the ratio should be small (under 20%) for a good model."
+      },
+      {
+        "latex": "\\text{Measure 2} = \\frac{\\text{variance of } D}{\\text{standard deviation of } A}",
+        "kind": "wrong-variable",
+        "why": "Measure 2 is a variance-to-variance ratio, so it is unit-free."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "D",
+        "direction": "up",
+        "why": "More variance in the model miss raises Measure 2."
+      },
+      {
+        "variable": "A",
+        "direction": "down",
+        "why": "The same miss is a smaller share of a more variable actual P&L."
+      }
+    ],
+    "intuition": "Noise test: the share of actual P&L variance the model leaves unexplained, and it must be under 20%.",
+    "calc": {
+      "expr": "varD / varA * 100",
+      "inputs": [
+        {
+          "name": "varD",
+          "symbol": "\\text{variance of } D",
+          "min": 0,
+          "max": 50,
+          "step": 0.5,
+          "unit": "$M^2"
+        },
+        {
+          "name": "varA",
+          "symbol": "\\text{variance of } A",
+          "min": 1,
+          "max": 500,
+          "step": 1,
+          "unit": "$M^2"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Measure 2}",
+        "unit": "%",
+        "decimals": 1
+      },
+      "example": null
+    },
+    "tags": [
+      "FRTB",
+      "P&L attribution"
+    ]
+  },
+  {
+    "id": "MR-6-F01",
+    "reading_id": "MR-6",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/34_MR_MR6.tex",
+    "source_line": 35,
+    "objective": null,
+    "name": "Parametric VaR from the P/L distribution",
+    "prompt": "What is VaR at confidence alpha% given the mean and standard deviation of the profit/loss distribution?",
+    "latex": "\\mathrm{VaR}(\\alpha\\%) = -\\mu_{P/L} + \\sigma_{P/L}\\, z_\\alpha",
+    "variables": [
+      {
+        "symbol": "\\mathrm{VaR}(\\alpha\\%)",
+        "meaning": "value at risk at confidence level alpha%"
+      },
+      {
+        "symbol": "\\mu_{P/L}",
+        "meaning": "mean of the profit/loss distribution"
+      },
+      {
+        "symbol": "\\sigma_{P/L}",
+        "meaning": "standard deviation of the profit/loss distribution (a single fixed number, so not dynamic)"
+      },
+      {
+        "symbol": "z_\\alpha",
+        "meaning": "the one-tailed standard normal deviate"
+      }
+    ],
+    "skeleton": "\\mathrm{VaR}(\\alpha\\%) = {{1}} + {{2}}\\, z_\\alpha",
+    "slots": [
+      "-\\mu_{P/L}",
+      "\\sigma_{P/L}"
+    ],
+    "decoys": [
+      "\\mu_{P/L}",
+      "\\sigma_{P/L}^2",
+      "-\\sigma_{P/L}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{VaR}(\\alpha\\%) = \\mu_{P/L} + \\sigma_{P/L}\\, z_\\alpha",
+        "kind": "sign",
+        "why": "A positive expected profit offsets potential losses, so the mean P/L is subtracted."
+      },
+      {
+        "latex": "\\mathrm{VaR}(\\alpha\\%) = -\\mu_{P/L} + \\sigma_{P/L}^2\\, z_\\alpha",
+        "kind": "exponent",
+        "why": "The z-deviate scales the standard deviation, not the variance."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mu_{P/L}",
+        "direction": "down",
+        "why": "Higher expected profit lowers the loss threshold."
+      },
+      {
+        "variable": "\\sigma_{P/L}",
+        "direction": "up",
+        "why": "More P/L volatility means larger potential losses."
+      },
+      {
+        "variable": "z_\\alpha",
+        "direction": "up",
+        "why": "Higher confidence means a larger deviate and a larger VaR."
+      }
+    ],
+    "intuition": "Minus the expected P/L plus z standard deviations; with a fixed sigma it cannot react to changing volatility (hence GARCH VaR).",
+    "calc": {
+      "expr": "-mu + sigma * z",
+      "inputs": [
+        {
+          "name": "mu",
+          "symbol": "\\mu_{P/L}",
+          "min": -5,
+          "max": 5,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "sigma",
+          "symbol": "\\sigma_{P/L}",
+          "min": 1,
+          "max": 50,
+          "step": 0.5,
+          "unit": "$M"
+        },
+        {
+          "name": "z",
+          "symbol": "z_\\alpha",
+          "min": 1.28,
+          "max": 3.09,
+          "step": 0.01,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{VaR}(\\alpha\\%)",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "VaR",
+      "validation"
+    ]
+  },
+  {
+    "id": "MR-6-F02",
+    "reading_id": "MR-6",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/34_MR_MR6.tex",
+    "source_line": 170,
+    "objective": "MR-6 b",
+    "name": "Marginal VaR regression",
+    "prompt": "Which regression estimates a position's marginal VaR in a VaR sensitivity analysis?",
+    "latex": "\\Delta V_{it} = \\alpha + \\beta_i\\, \\Delta V_{pt} + \\epsilon_t",
+    "variables": [
+      {
+        "symbol": "\\Delta V_{it}",
+        "meaning": "change in the value of position i at time t (dependent variable)"
+      },
+      {
+        "symbol": "\\Delta V_{pt}",
+        "meaning": "change in the value of the whole portfolio at time t (independent variable)"
+      },
+      {
+        "symbol": "\\beta_i",
+        "meaning": "slope coefficient: the marginal VaR estimate"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "intercept"
+      },
+      {
+        "symbol": "\\epsilon_t",
+        "meaning": "residual"
+      }
+    ],
+    "skeleton": "{{1}} = \\alpha + \\beta_i\\, {{2}} + \\epsilon_t",
+    "slots": [
+      "\\Delta V_{it}",
+      "\\Delta V_{pt}"
+    ],
+    "decoys": [
+      "\\beta_i",
+      "\\alpha",
+      "\\sigma_{P/L}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\Delta V_{pt} = \\alpha + \\beta_i\\, \\Delta V_{it} + \\epsilon_t",
+        "kind": "inverted",
+        "why": "The position's value change is regressed on the portfolio's, not the other way round."
+      },
+      {
+        "latex": "\\Delta V_{it} = \\beta_i + \\alpha\\, \\Delta V_{pt} + \\epsilon_t",
+        "kind": "wrong-variable",
+        "why": "The marginal VaR is the slope beta_i on the portfolio change, not the intercept."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\alpha",
+        "direction": "up",
+        "why": "The intercept shifts the fitted position change one-for-one."
+      },
+      {
+        "variable": "\\Delta V_{pt}",
+        "direction": "depends",
+        "why": "Up if beta_i is positive, down if negative."
+      },
+      {
+        "variable": "\\beta_i",
+        "direction": "depends",
+        "why": "Up if the portfolio change Delta V_pt is positive, down if it is negative."
+      }
+    ],
+    "intuition": "Marginal VaR is a beta: how much the position moves per unit move of the whole portfolio.",
+    "calc": {
+      "expr": "alpha + beta * dVp + eps",
+      "inputs": [
+        {
+          "name": "alpha",
+          "symbol": "\\alpha",
+          "min": -1,
+          "max": 1,
+          "step": 0.01,
+          "unit": "$M"
+        },
+        {
+          "name": "beta",
+          "symbol": "\\beta_i",
+          "min": -1,
+          "max": 2,
+          "step": 0.01,
+          "unit": ""
+        },
+        {
+          "name": "dVp",
+          "symbol": "\\Delta V_{pt}",
+          "min": -20,
+          "max": 20,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "eps",
+          "symbol": "\\epsilon_t",
+          "min": -2,
+          "max": 2,
+          "step": 0.01,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\Delta V_{it}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "VaR",
+      "sensitivity analysis",
+      "marginal VaR"
+    ]
+  },
+  {
+    "id": "IM-8-F01",
+    "reading_id": "IM-8",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/23_IM_IM8.tex",
+    "source_line": 330,
+    "objective": "IM-8 c",
+    "name": "Annualised expected return on a merger arbitrage",
+    "prompt": "What is the annualised expected return on a merger arbitrage position, given the deal's success probability, gain, loss, time to close and current price?",
+    "latex": "\\text{annualised expected return} = \\frac{(C \\times G) - \\left[(1-C) \\times L\\right]}{Y \\times P}",
+    "variables": [
+      {
+        "symbol": "\\text{annualised expected return}",
+        "meaning": "expected return on the position, annualised"
+      },
+      {
+        "symbol": "C",
+        "meaning": "probability of success (decimal)"
+      },
+      {
+        "symbol": "G",
+        "meaning": "expected gain if the deal succeeds (offer price minus current price, $ per share)"
+      },
+      {
+        "symbol": "L",
+        "meaning": "expected loss if the deal fails (current price minus the pre-announcement price, $ per share)"
+      },
+      {
+        "symbol": "Y",
+        "meaning": "expected time to closing, in years"
+      },
+      {
+        "symbol": "P",
+        "meaning": "current price of the security (not the offer or pre-announcement price)"
+      }
+    ],
+    "skeleton": "\\text{annualised expected return} = \\frac{(C \\times {{1}}) - \\left[( {{2}} ) \\times {{3}}\\right]}{ {{4}} }",
+    "slots": [
+      "G",
+      "1-C",
+      "L",
+      "Y \\times P"
+    ],
+    "decoys": [
+      "C",
+      "Y",
+      "P"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{annualised expected return} = \\frac{(C \\times G) - \\left[(1-C) \\times L\\right]}{P}",
+        "kind": "missing-term",
+        "why": "Without dividing by Y the return is for the deal horizon, not annualised (a six-month deal would be understated by half)."
+      },
+      {
+        "latex": "\\text{annualised expected return} = \\frac{(C \\times G) + \\left[(1-C) \\times L\\right]}{Y \\times P}",
+        "kind": "sign",
+        "why": "The loss if the deal fails reduces the expected payoff, so it is subtracted."
+      },
+      {
+        "latex": "\\text{annualised expected return} = \\frac{(C \\times G) - \\left[C \\times L\\right]}{Y \\times P}",
+        "kind": "wrong-variable",
+        "why": "The loss happens only if the deal fails, so it is weighted by 1 - C."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "C",
+        "direction": "up",
+        "why": "A likelier close shifts weight from the loss to the gain."
+      },
+      {
+        "variable": "G",
+        "direction": "up",
+        "why": "A wider spread to the offer price raises the payoff."
+      },
+      {
+        "variable": "L",
+        "direction": "down",
+        "why": "A bigger fall on failure reduces the expected payoff."
+      },
+      {
+        "variable": "Y",
+        "direction": "depends",
+        "why": "A longer time to close lowers the annualised return when the expected payoff is positive (raises it when negative)."
+      }
+    ],
+    "intuition": "Probability-weighted gain minus probability-weighted loss, per dollar invested today, per year to close.",
+    "calc": {
+      "expr": "((C * G) - ((1 - C) * L)) / (Y * P) * 100",
+      "inputs": [
+        {
+          "name": "C",
+          "symbol": "C",
+          "min": 0.5,
+          "max": 0.99,
+          "step": 0.01,
+          "unit": "probability"
+        },
+        {
+          "name": "G",
+          "symbol": "G",
+          "min": 0.1,
+          "max": 20,
+          "step": 0.1,
+          "unit": "$"
+        },
+        {
+          "name": "L",
+          "symbol": "L",
+          "min": 0.1,
+          "max": 30,
+          "step": 0.1,
+          "unit": "$"
+        },
+        {
+          "name": "Y",
+          "symbol": "Y",
+          "min": 0.1,
+          "max": 2,
+          "step": 0.05,
+          "unit": "years"
+        },
+        {
+          "name": "P",
+          "symbol": "P",
+          "min": 5,
+          "max": 150,
+          "step": 0.5,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{annualised expected return}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "C": 0.9,
+          "G": 1.5,
+          "L": 1.5,
+          "Y": 0.5,
+          "P": 10.5
+        },
+        "output": 22.86,
+        "source_line": 344
+      }
+    },
+    "tags": [
+      "merger arbitrage",
+      "hedge funds",
+      "event-driven"
+    ]
+  },
+  {
+    "id": "ORR-23-F01",
+    "reading_id": "ORR-23",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/11_OR_ORR23.tex",
+    "source_line": 78,
+    "objective": "ORR-23 c",
+    "name": "Basel III revised output floor",
+    "prompt": "Under the December 2017 Basel III reforms, how are a bank's risk-weighted assets floored relative to the standardised approach?",
+    "latex": "\\text{RWA} = \\max\\left(72.5\\% \\times \\text{RWA}_{\\text{SA}},\\ \\text{RWA}_{\\text{approved}}\\right)",
+    "variables": [
+      {
+        "symbol": "\\text{RWA}",
+        "meaning": "the bank's risk-weighted assets used for capital"
+      },
+      {
+        "symbol": "\\text{RWA}_{\\text{SA}}",
+        "meaning": "total risk-weighted assets calculated using the standardised approach"
+      },
+      {
+        "symbol": "\\text{RWA}_{\\text{approved}}",
+        "meaning": "RWAs from the bank's approved approach (internal models and the standardised approach)"
+      }
+    ],
+    "skeleton": "\\text{RWA} = {{1}}\\left({{2}} \\times \\text{RWA}_{\\text{SA}},\\ {{3}}\\right)",
+    "slots": [
+      "\\max",
+      "72.5\\%",
+      "\\text{RWA}_{\\text{approved}}"
+    ],
+    "decoys": [
+      "\\min",
+      "100\\%",
+      "27.5\\%"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{RWA} = \\min\\left(72.5\\% \\times \\text{RWA}_{\\text{SA}},\\ \\text{RWA}_{\\text{approved}}\\right)",
+        "kind": "inverted",
+        "why": "A floor takes the higher of the two, so internal models cannot push RWAs below 72.5% of the SA figure."
+      },
+      {
+        "latex": "\\text{RWA} = \\max\\left(27.5\\% \\times \\text{RWA}_{\\text{SA}},\\ \\text{RWA}_{\\text{approved}}\\right)",
+        "kind": "scaling",
+        "why": "The floor is 72.5% of standardised RWAs; 27.5% is the maximum saving internal models can deliver, not the floor."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{RWA}_{\\text{SA}}",
+        "direction": "depends",
+        "why": "Raises RWA only when the floor binds (72.5% of SA RWAs exceeds the approved-approach RWAs)."
+      },
+      {
+        "variable": "\\text{RWA}_{\\text{approved}}",
+        "direction": "depends",
+        "why": "Raises RWA only when it is above the floor; otherwise the floor binds and it has no effect."
+      }
+    ],
+    "intuition": "Internal models can cut RWAs by at most 27.5%: you hold the higher of your own number and 72.5% of the standardised one.",
+    "calc": {
+      "expr": "Math.max(0.725 * RWASA, RWAapp)",
+      "inputs": [
+        {
+          "name": "RWASA",
+          "symbol": "\\text{RWA}_{\\text{SA}}",
+          "min": 10,
+          "max": 1000,
+          "step": 10,
+          "unit": "$bn"
+        },
+        {
+          "name": "RWAapp",
+          "symbol": "\\text{RWA}_{\\text{approved}}",
+          "min": 10,
+          "max": 1000,
+          "step": 10,
+          "unit": "$bn"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{RWA}",
+        "unit": "$bn",
+        "decimals": 1
+      },
+      "example": null
+    },
+    "tags": [
+      "Basel III",
+      "output floor",
+      "RWA"
+    ]
+  }
+]

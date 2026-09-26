@@ -1,0 +1,1839 @@
+[
+  {
+    "id": "CR-9-F01",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 82,
+    "objective": "CR-9 b",
+    "name": "Altman's Z-score (original, public manufacturing firms)",
+    "prompt": "Which weighted sum of five accounting ratios gives Altman's Z-score for a publicly traded manufacturing company?",
+    "latex": "Z = 1.2X_1 + 1.4X_2 + 3.3X_3 + 0.6X_4 + 0.999X_5",
+    "variables": [
+      {
+        "symbol": "Z",
+        "meaning": "Altman Z-score; higher is more solvent (cut-off 2.675; above 3.0 unlikely to default, below 1.8 very high distress)"
+      },
+      {
+        "symbol": "X_1",
+        "meaning": "working capital / total assets"
+      },
+      {
+        "symbol": "X_2",
+        "meaning": "retained earnings / total assets"
+      },
+      {
+        "symbol": "X_3",
+        "meaning": "earnings before interest and taxes / total assets"
+      },
+      {
+        "symbol": "X_4",
+        "meaning": "market value of equity / book value of total liabilities (the only ratio not over total assets)"
+      },
+      {
+        "symbol": "X_5",
+        "meaning": "sales / total assets (asset turnover)"
+      }
+    ],
+    "skeleton": "Z = {{1}}X_1 + {{2}}X_2 + {{3}}X_3 + {{4}}X_4 + {{5}}X_5",
+    "slots": [
+      "1.2",
+      "1.4",
+      "3.3",
+      "0.6",
+      "0.999"
+    ],
+    "decoys": [
+      "2.675",
+      "1.8",
+      "3.0",
+      "0.3"
+    ],
+    "corruptions": [
+      {
+        "latex": "Z = 1.2X_1 + 1.4X_2 + 0.999X_3 + 0.6X_4 + 3.3X_5",
+        "kind": "sibling",
+        "why": "The 3.3 weight belongs to EBIT/total assets (X_3), not to sales/total assets; X_5 carries roughly 1."
+      },
+      {
+        "latex": "Z = 1.4X_1 + 1.2X_2 + 3.3X_3 + 0.6X_4 + 0.999X_5",
+        "kind": "sibling",
+        "why": "Working capital (X_1) takes 1.2 and retained earnings (X_2) takes 1.4, not the other way round."
+      },
+      {
+        "latex": "Z = 1.2X_1 + 1.4X_2 + 3.3X_3 - 0.6X_4 + 0.999X_5",
+        "kind": "sign",
+        "why": "Every weight is positive: more equity cushion relative to liabilities (X_4) raises the score."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "X_1",
+        "direction": "up",
+        "why": "More working capital per dollar of assets means more liquidity and a higher score."
+      },
+      {
+        "variable": "X_2",
+        "direction": "up",
+        "why": "More accumulated retained earnings signals cumulative profitability."
+      },
+      {
+        "variable": "X_3",
+        "direction": "up",
+        "why": "Higher operating return on assets carries the largest weight (3.3)."
+      },
+      {
+        "variable": "X_4",
+        "direction": "up",
+        "why": "A bigger market equity cushion over liabilities makes insolvency less likely."
+      },
+      {
+        "variable": "X_5",
+        "direction": "up",
+        "why": "Higher asset turnover adds almost one-for-one to Z."
+      }
+    ],
+    "intuition": "Liquidity, cumulative profit, operating profit, equity cushion and turnover: the recipe weights are 1.2, 1.4, 3.3, 0.6, ~1, and EBIT earns the biggest weight.",
+    "calc": {
+      "expr": "1.2*X1 + 1.4*X2 + 3.3*X3 + 0.6*X4 + 0.999*X5",
+      "inputs": [
+        {
+          "name": "X1",
+          "symbol": "X_1",
+          "min": -0.2,
+          "max": 0.6,
+          "step": 0.001,
+          "unit": "ratio"
+        },
+        {
+          "name": "X2",
+          "symbol": "X_2",
+          "min": -0.5,
+          "max": 0.8,
+          "step": 0.001,
+          "unit": "ratio"
+        },
+        {
+          "name": "X3",
+          "symbol": "X_3",
+          "min": -0.2,
+          "max": 0.4,
+          "step": 0.0001,
+          "unit": "ratio"
+        },
+        {
+          "name": "X4",
+          "symbol": "X_4",
+          "min": 0,
+          "max": 5,
+          "step": 0.001,
+          "unit": "ratio"
+        },
+        {
+          "name": "X5",
+          "symbol": "X_5",
+          "min": 0,
+          "max": 4,
+          "step": 0.001,
+          "unit": "ratio"
+        }
+      ],
+      "output": {
+        "symbol": "Z",
+        "unit": "score",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "X1": 0.254,
+          "X2": 0.448,
+          "X3": 0.0896,
+          "X4": 1.583,
+          "X5": 3.284
+        },
+        "output": 5.46,
+        "source_line": 121
+      }
+    },
+    "tags": [
+      "credit scoring",
+      "Altman Z"
+    ]
+  },
+  {
+    "id": "CR-9-F02",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 177,
+    "objective": "CR-9 d",
+    "name": "Marginal (unconditional) PD from a cumulative default table",
+    "prompt": "From a table of cumulative default rates, how do you get the unconditional probability of defaulting during year t?",
+    "latex": "\\text{Marginal (unconditional) PD}(t) = \\text{Cumulative PD}(t) - \\text{Cumulative PD}(t-1)",
+    "variables": [
+      {
+        "symbol": "\\text{Marginal (unconditional) PD}(t)",
+        "meaning": "probability, viewed from today, of defaulting during year t"
+      },
+      {
+        "symbol": "\\text{Cumulative PD}(t)",
+        "meaning": "probability of defaulting by the end of year t (read directly from the table)"
+      },
+      {
+        "symbol": "\\text{Cumulative PD}(t-1)",
+        "meaning": "probability of defaulting by the end of year t-1"
+      },
+      {
+        "symbol": "t",
+        "meaning": "year (time horizon) of interest"
+      }
+    ],
+    "skeleton": "\\text{Marginal (unconditional) PD}(t) = {{1}} - {{2}}",
+    "slots": [
+      "\\text{Cumulative PD}(t)",
+      "\\text{Cumulative PD}(t-1)"
+    ],
+    "decoys": [
+      "\\text{Cumulative PD}(t+1)",
+      "\\text{Survival probability}(t-1)",
+      "\\text{Conditional PD}(t)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Marginal (unconditional) PD}(t) = \\text{Cumulative PD}(t-1) - \\text{Cumulative PD}(t)",
+        "kind": "sign",
+        "why": "Cumulative PD only rises with t, so this order gives a negative probability."
+      },
+      {
+        "latex": "\\text{Marginal (unconditional) PD}(t) = \\frac{\\text{Cumulative PD}(t) - \\text{Cumulative PD}(t-1)}{1 - \\text{Cumulative PD}(t-1)}",
+        "kind": "sibling",
+        "why": "Dividing by survival gives the conditional PD, not the unconditional (marginal) one."
+      },
+      {
+        "latex": "\\text{Marginal (unconditional) PD}(t) = \\text{Cumulative PD}(t)",
+        "kind": "missing-term",
+        "why": "The table is cumulative; the year-t figure must have the previous year's cumulative stripped out."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{Cumulative PD}(t)",
+        "direction": "up",
+        "why": "More cumulative default by year-end, holding the prior year fixed, means more default inside year t."
+      },
+      {
+        "variable": "\\text{Cumulative PD}(t-1)",
+        "direction": "down",
+        "why": "More of the cumulative total already happened before year t, leaving less for year t itself."
+      }
+    ],
+    "intuition": "Everything in the table is cumulative; the marginal PD is just the step up from one column to the next.",
+    "calc": {
+      "expr": "CPDt - CPDprev",
+      "inputs": [
+        {
+          "name": "CPDt",
+          "symbol": "\\text{Cumulative PD}(t)",
+          "min": 0,
+          "max": 60,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "CPDprev",
+          "symbol": "\\text{Cumulative PD}(t-1)",
+          "min": 0,
+          "max": 60,
+          "step": 0.01,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Marginal PD}(t)",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "CPDt": 0.11,
+          "CPDprev": 0.06
+        },
+        "output": 0.05,
+        "source_line": 192
+      }
+    },
+    "tags": [
+      "default probability",
+      "rating tables"
+    ]
+  },
+  {
+    "id": "CR-9-F03",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 179,
+    "objective": "CR-9 d",
+    "name": "Conditional PD in year t given survival",
+    "prompt": "What is the probability of defaulting in year t given no default before year t, from the marginal PD and the survival probability?",
+    "latex": "\\text{Conditional PD}(t) = \\frac{\\text{Marginal PD}(t)}{\\text{Survival probability}(t-1)}",
+    "variables": [
+      {
+        "symbol": "\\text{Conditional PD}(t)",
+        "meaning": "probability of defaulting in year t given survival to the start of year t"
+      },
+      {
+        "symbol": "\\text{Marginal PD}(t)",
+        "meaning": "unconditional probability of defaulting during year t = Cumulative PD(t) - Cumulative PD(t-1)"
+      },
+      {
+        "symbol": "\\text{Survival probability}(t-1)",
+        "meaning": "probability of no default by end of year t-1 = 1 - Cumulative PD(t-1)"
+      },
+      {
+        "symbol": "t",
+        "meaning": "year of interest"
+      }
+    ],
+    "skeleton": "\\text{Conditional PD}(t) = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "\\text{Marginal PD}(t)",
+      "\\text{Survival probability}(t-1)"
+    ],
+    "decoys": [
+      "\\text{Survival probability}(t)",
+      "\\text{Cumulative PD}(t-1)",
+      "\\text{Cumulative PD}(t)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Conditional PD}(t) = \\frac{\\text{Survival probability}(t-1)}{\\text{Marginal PD}(t)}",
+        "kind": "inverted",
+        "why": "Upside down: this gives a number far above 1, not a probability."
+      },
+      {
+        "latex": "\\text{Conditional PD}(t) = \\frac{\\text{Marginal PD}(t)}{\\text{Cumulative PD}(t-1)}",
+        "kind": "wrong-variable",
+        "why": "You condition on having survived, so divide by 1 - Cumulative PD(t-1), not by the cumulative PD itself."
+      },
+      {
+        "latex": "\\text{Conditional PD}(t) = \\frac{\\text{Marginal PD}(t)}{\\text{Survival probability}(t)}",
+        "kind": "wrong-variable",
+        "why": "Survival is measured to the START of year t, i.e. to t-1, not to the end of year t."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{Marginal PD}(t)",
+        "direction": "up",
+        "why": "More unconditional default in year t means more default among survivors too."
+      },
+      {
+        "variable": "\\text{Survival probability}(t-1)",
+        "direction": "down",
+        "why": "The same marginal PD spread over a larger surviving population is a smaller conditional chance."
+      }
+    ],
+    "intuition": "Conditional PD rescales the marginal PD to the survivors only, so it is always at least as large as the marginal PD.",
+    "calc": {
+      "expr": "MPD / S",
+      "inputs": [
+        {
+          "name": "MPD",
+          "symbol": "\\text{Marginal PD}(t)",
+          "min": 0,
+          "max": 0.2,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "S",
+          "symbol": "\\text{Survival probability}(t-1)",
+          "min": 0.4,
+          "max": 1,
+          "step": 0.0001,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Conditional PD}(t)",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "MPD": 0.0142,
+          "S": 0.956
+        },
+        "output": 0.0149,
+        "source_line": 258
+      }
+    },
+    "tags": [
+      "default probability",
+      "conditional PD"
+    ]
+  },
+  {
+    "id": "CR-9-F04",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 238,
+    "objective": "CR-9 e",
+    "name": "Cumulative probability of default by time t from the hazard rate",
+    "prompt": "Given the average hazard rate (default intensity) from 0 to t, what is the cumulative probability of default by time t?",
+    "latex": "Q(t) = 1 - e^{-\\bar{\\lambda}(t)\\times t}",
+    "variables": [
+      {
+        "symbol": "Q(t)",
+        "meaning": "cumulative probability of default by time t"
+      },
+      {
+        "symbol": "\\bar{\\lambda}(t)",
+        "meaning": "average hazard rate (default intensity) between time 0 and t, per year, decimal"
+      },
+      {
+        "symbol": "t",
+        "meaning": "time horizon in years"
+      }
+    ],
+    "skeleton": "Q(t) = {{1}} - e^{ {{2}}{{3}}\\times t}",
+    "slots": [
+      "1",
+      "-",
+      "\\bar{\\lambda}(t)"
+    ],
+    "decoys": [
+      "0",
+      "+",
+      "\\bar{\\lambda}(t)^2",
+      "\\mathrm{RR}"
+    ],
+    "corruptions": [
+      {
+        "latex": "Q(t) = e^{-\\bar{\\lambda}(t)\\times t}",
+        "kind": "sibling",
+        "why": "That is the survival probability to t; the default probability is one minus it."
+      },
+      {
+        "latex": "Q(t) = 1 - e^{\\bar{\\lambda}(t)\\times t}",
+        "kind": "sign",
+        "why": "Without the minus in the exponent the result is negative; survival must decay with time."
+      },
+      {
+        "latex": "Q(t) = 1 - e^{-\\bar{\\lambda}(t)/t}",
+        "kind": "exponent",
+        "why": "The hazard rate is per year, so it is multiplied by the horizon, not divided by it."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\bar{\\lambda}(t)",
+        "direction": "up",
+        "why": "A higher default intensity makes survival decay faster."
+      },
+      {
+        "variable": "t",
+        "direction": "up",
+        "why": "Cumulative default can only grow with a longer horizon."
+      }
+    ],
+    "intuition": "Survival decays exponentially at the hazard rate; default is whatever has not survived.",
+    "calc": {
+      "expr": "1 - Math.exp(-lam * t)",
+      "inputs": [
+        {
+          "name": "lam",
+          "symbol": "\\bar{\\lambda}(t)",
+          "min": 0.001,
+          "max": 0.2,
+          "step": 0.001,
+          "unit": "per year, decimal"
+        },
+        {
+          "name": "t",
+          "symbol": "t",
+          "min": 1,
+          "max": 30,
+          "step": 1,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "Q(t)",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "lam": 0.015,
+          "t": 1
+        },
+        "output": 0.0149,
+        "source_line": 248
+      }
+    },
+    "tags": [
+      "hazard rate",
+      "default probability"
+    ]
+  },
+  {
+    "id": "CR-9-F05",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 315,
+    "objective": "CR-9 e",
+    "name": "Average hazard rate from a credit spread",
+    "prompt": "How do you back out the average hazard rate from a credit (CDS or bond yield) spread and the recovery rate?",
+    "latex": "\\bar{\\lambda} = \\frac{s(T)}{1-\\mathrm{RR}}",
+    "variables": [
+      {
+        "symbol": "\\bar{\\lambda}",
+        "meaning": "average hazard rate up to maturity T, per year, decimal"
+      },
+      {
+        "symbol": "s(T)",
+        "meaning": "credit spread for maturity T (a CDS spread or bond yield spread), decimal (210 bp = 0.021)"
+      },
+      {
+        "symbol": "\\mathrm{RR}",
+        "meaning": "recovery rate, decimal; 1 - RR is the loss given default"
+      }
+    ],
+    "skeleton": "\\bar{\\lambda} = \\frac{ {{1}} }{ {{2}} }",
+    "slots": [
+      "s(T)",
+      "1-\\mathrm{RR}"
+    ],
+    "decoys": [
+      "\\mathrm{RR}",
+      "1+\\mathrm{RR}",
+      "s(T)^2"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\bar{\\lambda} = \\frac{s(T)}{\\mathrm{RR}}",
+        "kind": "wrong-variable",
+        "why": "The spread compensates for what is LOST on default, so gross it up by 1 - RR, not by RR."
+      },
+      {
+        "latex": "\\bar{\\lambda} = s(T)\\times(1-\\mathrm{RR})",
+        "kind": "inverted",
+        "why": "Spread is roughly hazard rate times LGD, so the hazard rate is spread divided by LGD, not multiplied."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "s(T)",
+        "direction": "up",
+        "why": "A wider spread signals more default risk."
+      },
+      {
+        "variable": "\\mathrm{RR}",
+        "direction": "up",
+        "why": "With higher recovery each default costs less, so the same spread must imply more frequent default."
+      }
+    ],
+    "intuition": "Spread is roughly default frequency times loss per default, so divide the spread by the loss given default.",
+    "calc": {
+      "expr": "s / (1 - RR)",
+      "inputs": [
+        {
+          "name": "s",
+          "symbol": "s(T)",
+          "min": 0.0005,
+          "max": 0.1,
+          "step": 0.0005,
+          "unit": "decimal"
+        },
+        {
+          "name": "RR",
+          "symbol": "\\mathrm{RR}",
+          "min": 0,
+          "max": 0.9,
+          "step": 0.05,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\bar{\\lambda}",
+        "unit": "per year, decimal",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "s": 0.021,
+          "RR": 0.3
+        },
+        "output": 0.03,
+        "source_line": 326
+      }
+    },
+    "tags": [
+      "hazard rate",
+      "credit spread",
+      "CDS"
+    ]
+  },
+  {
+    "id": "CR-9-F06",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 346,
+    "objective": "CR-9 e",
+    "name": "Forward hazard rate between year 3 and year 5 (time-weighted blend)",
+    "prompt": "How does the 5-year average hazard rate relate to the 3-year average and the forward hazard rate for years 3 to 5?",
+    "latex": "\\bar{\\lambda}(5)\\times 5 = \\bar{\\lambda}(3)\\times 3 + \\lambda_{3\\to5}\\times 2",
+    "variables": [
+      {
+        "symbol": "\\bar{\\lambda}(5)",
+        "meaning": "average hazard rate from 0 to year 5, decimal"
+      },
+      {
+        "symbol": "\\bar{\\lambda}(3)",
+        "meaning": "average hazard rate from 0 to year 3, decimal"
+      },
+      {
+        "symbol": "\\lambda_{3\\to5}",
+        "meaning": "average (forward) hazard rate between year 3 and year 5, decimal"
+      }
+    ],
+    "skeleton": "\\bar{\\lambda}(5)\\times {{1}} = \\bar{\\lambda}(3)\\times {{2}} + \\lambda_{3\\to5}\\times {{3}}",
+    "slots": [
+      "5",
+      "3",
+      "2"
+    ],
+    "decoys": [
+      "1",
+      "8",
+      "\\frac{1}{2}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\bar{\\lambda}(5) = \\bar{\\lambda}(3) + \\lambda_{3\\to5}",
+        "kind": "scaling",
+        "why": "Average rates must be weighted by the years they cover before they can be added."
+      },
+      {
+        "latex": "\\bar{\\lambda}(5)\\times 5 = \\bar{\\lambda}(3)\\times 3 + \\lambda_{3\\to5}\\times 5",
+        "kind": "scaling",
+        "why": "The forward rate covers only the two years from 3 to 5, so its weight is 2."
+      },
+      {
+        "latex": "\\bar{\\lambda}(5)\\times 5 = \\bar{\\lambda}(3)\\times 3 - \\lambda_{3\\to5}\\times 2",
+        "kind": "sign",
+        "why": "The five-year total is the first three years PLUS the next two."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\bar{\\lambda}(3)",
+        "direction": "up",
+        "why": "A higher hazard over the first three years raises the cumulative five-year total."
+      },
+      {
+        "variable": "\\lambda_{3\\to5}",
+        "direction": "up",
+        "why": "A higher hazard in years 3 to 5 raises the cumulative five-year total."
+      }
+    ],
+    "intuition": "Hazard-rate-years add up: five years at the 5-year average equals three years at the 3-year average plus two years at the forward rate.",
+    "calc": {
+      "expr": "(5 * L5 - 3 * L3) / 2",
+      "inputs": [
+        {
+          "name": "L5",
+          "symbol": "\\bar{\\lambda}(5)",
+          "min": 0.001,
+          "max": 0.1,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "L3",
+          "symbol": "\\bar{\\lambda}(3)",
+          "min": 0.001,
+          "max": 0.1,
+          "step": 0.0001,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\lambda_{3\\to5}",
+        "unit": "decimal",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "L5": 0.0257,
+          "L3": 0.0229
+        },
+        "output": 0.0299,
+        "source_line": 348
+      }
+    },
+    "tags": [
+      "hazard rate",
+      "bootstrapping"
+    ]
+  },
+  {
+    "id": "CR-9-F07",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 533,
+    "objective": "CR-9 i",
+    "name": "CDS-bond basis",
+    "prompt": "How is the CDS-bond basis defined from the two measures of the same credit risk?",
+    "latex": "\\text{CDS-bond basis} = \\text{CDS spread} - \\text{bond yield spread}",
+    "variables": [
+      {
+        "symbol": "\\text{CDS-bond basis}",
+        "meaning": "gap between the two credit spreads; should be zero or near zero"
+      },
+      {
+        "symbol": "\\text{CDS spread}",
+        "meaning": "annual cost of CDS protection on the reference entity, in bp of notional"
+      },
+      {
+        "symbol": "\\text{bond yield spread}",
+        "meaning": "yield on the corporate bond minus yield on a comparable risk-free bond"
+      }
+    ],
+    "skeleton": "\\text{CDS-bond basis} = {{1}} - {{2}}",
+    "slots": [
+      "\\text{CDS spread}",
+      "\\text{bond yield spread}"
+    ],
+    "decoys": [
+      "\\text{risk-free rate}",
+      "\\text{fixed coupon}",
+      "\\text{recovery rate}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{CDS-bond basis} = \\text{bond yield spread} - \\text{CDS spread}",
+        "kind": "sign",
+        "why": "The basis is CDS minus bond; flipping it reverses every positive/negative-basis conclusion."
+      },
+      {
+        "latex": "\\text{CDS-bond basis} = \\text{CDS spread} - \\text{fixed coupon}",
+        "kind": "wrong-variable",
+        "why": "Spread minus fixed coupon drives the up-front premium, not the basis."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{CDS spread}",
+        "direction": "up",
+        "why": "Dearer protection pushes the basis positive."
+      },
+      {
+        "variable": "\\text{bond yield spread}",
+        "direction": "down",
+        "why": "A wider bond spread pushes the basis negative."
+      }
+    ],
+    "intuition": "Two prices for the same default risk; the basis is CDS minus bond, and anything that gives the protection buyer an extra option pushes it positive.",
+    "calc": {
+      "expr": "CDS - BYS",
+      "inputs": [
+        {
+          "name": "CDS",
+          "symbol": "\\text{CDS spread}",
+          "min": 0,
+          "max": 1000,
+          "step": 5,
+          "unit": "bp"
+        },
+        {
+          "name": "BYS",
+          "symbol": "\\text{bond yield spread}",
+          "min": 0,
+          "max": 1000,
+          "step": 5,
+          "unit": "bp"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{CDS-bond basis}",
+        "unit": "bp",
+        "decimals": 0
+      },
+      "example": null
+    },
+    "tags": [
+      "CDS",
+      "basis"
+    ]
+  },
+  {
+    "id": "CR-9-F08",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 613,
+    "objective": "CR-9 l",
+    "name": "Merton model: value of equity today",
+    "prompt": "In the Merton model, what is today's value of the firm's equity as a call on the firm's assets?",
+    "latex": "E_0 = V_0 N(d_1) - D e^{-rT} N(d_2)",
+    "variables": [
+      {
+        "symbol": "E_0",
+        "meaning": "market value of the firm's equity today"
+      },
+      {
+        "symbol": "V_0",
+        "meaning": "value of the firm's assets today (not directly observable)"
+      },
+      {
+        "symbol": "D",
+        "meaning": "face value of the debt due at T (the strike)"
+      },
+      {
+        "symbol": "r",
+        "meaning": "risk-free rate, continuously compounded, decimal"
+      },
+      {
+        "symbol": "T",
+        "meaning": "time to debt maturity in years"
+      },
+      {
+        "symbol": "N(\\cdot)",
+        "meaning": "cumulative standard normal distribution function"
+      },
+      {
+        "symbol": "d_1",
+        "meaning": "(ln(V_0/D) + (r + sigma_V^2/2)T) / (sigma_V sqrt(T))"
+      },
+      {
+        "symbol": "d_2",
+        "meaning": "d_1 - sigma_V sqrt(T)"
+      }
+    ],
+    "skeleton": "E_0 = V_0 N({{1}}) - D e^{ {{2}} } N({{3}})",
+    "slots": [
+      "d_1",
+      "-rT",
+      "d_2"
+    ],
+    "decoys": [
+      "-d_2",
+      "rT",
+      "-d_1"
+    ],
+    "corruptions": [
+      {
+        "latex": "E_0 = V_0 N(d_2) - D e^{-rT} N(d_1)",
+        "kind": "sibling",
+        "why": "N(d_1) is the delta that multiplies the asset value; N(d_2) goes with the discounted debt."
+      },
+      {
+        "latex": "E_0 = V_0 N(d_1) - D N(d_2)",
+        "kind": "missing-term",
+        "why": "The debt is paid at T, so it must be discounted by e^{-rT}."
+      },
+      {
+        "latex": "E_0 = V_0 N(d_1) + D e^{-rT} N(d_2)",
+        "kind": "sign",
+        "why": "Equity is a call: shareholders get assets MINUS the debt they must repay."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "V_0",
+        "direction": "up",
+        "why": "Higher asset value makes the call on the assets more valuable."
+      },
+      {
+        "variable": "D",
+        "direction": "down",
+        "why": "A higher strike (more debt to repay) lowers the call value."
+      },
+      {
+        "variable": "r",
+        "direction": "up",
+        "why": "A higher rate lowers the present value of the debt the shareholders owe."
+      },
+      {
+        "variable": "\\sigma_V",
+        "direction": "up",
+        "why": "Equity is a call on the assets, and a call gains value when the underlying is more volatile (limited downside, unlimited upside)."
+      }
+    ],
+    "intuition": "Equity is a Black-Scholes call on the firm's assets struck at the face value of the debt.",
+    "calc": null,
+    "tags": [
+      "Merton model",
+      "structural credit"
+    ]
+  },
+  {
+    "id": "CR-9-F09",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 614,
+    "objective": "CR-9 l",
+    "name": "Merton model: d1",
+    "prompt": "In the Merton equity formula, how is d1 computed from asset value, debt, the risk-free rate, asset volatility and maturity?",
+    "latex": "d_1 = \\frac{\\ln(V_0/D) + (r + \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+    "variables": [
+      {
+        "symbol": "d_1",
+        "meaning": "first Black-Scholes-Merton argument; N(d_1) is the equity's delta with respect to assets"
+      },
+      {
+        "symbol": "V_0",
+        "meaning": "value of the firm's assets today"
+      },
+      {
+        "symbol": "D",
+        "meaning": "face value of debt due at T"
+      },
+      {
+        "symbol": "r",
+        "meaning": "risk-free rate, decimal"
+      },
+      {
+        "symbol": "\\sigma_V",
+        "meaning": "volatility of the firm's asset value, decimal per year"
+      },
+      {
+        "symbol": "T",
+        "meaning": "time to debt maturity in years"
+      }
+    ],
+    "skeleton": "d_1 = \\frac{\\ln( {{1}} ) + (r {{2}} \\sigma_V^{2}/2)T}{ {{3}} }",
+    "slots": [
+      "V_0/D",
+      "+",
+      "\\sigma_V\\sqrt{T}"
+    ],
+    "decoys": [
+      "D/V_0",
+      "-",
+      "\\sigma_V T",
+      "\\sigma_E\\sqrt{T}"
+    ],
+    "corruptions": [
+      {
+        "latex": "d_1 = \\frac{\\ln(V_0/D) + (r - \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+        "kind": "sign",
+        "why": "With minus half the variance this is d_2, not d_1."
+      },
+      {
+        "latex": "d_1 = \\frac{\\ln(D/V_0) + (r + \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+        "kind": "inverted",
+        "why": "The log-moneyness is assets over debt; a firm with assets well above debt must have a large positive d_1."
+      },
+      {
+        "latex": "d_1 = \\frac{\\ln(V_0/D) + (r + \\sigma_V^{2}/2)T}{\\sigma_V T}",
+        "kind": "scaling",
+        "why": "Volatility scales with the square root of time, so the denominator is sigma_V times sqrt(T)."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "V_0",
+        "direction": "up",
+        "why": "More assets relative to debt pushes the option deeper in the money."
+      },
+      {
+        "variable": "D",
+        "direction": "down",
+        "why": "More debt raises the strike."
+      },
+      {
+        "variable": "r",
+        "direction": "up",
+        "why": "Assets drift up faster under the risk-neutral measure."
+      }
+    ],
+    "intuition": "Standardised log-distance of assets above the debt, with the drift at r plus half the variance.",
+    "calc": {
+      "expr": "(Math.log(V0 / D) + (r + s ** 2 / 2) * T) / (s * Math.sqrt(T))",
+      "inputs": [
+        {
+          "name": "V0",
+          "symbol": "V_0",
+          "min": 1,
+          "max": 200,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "D",
+          "symbol": "D",
+          "min": 1,
+          "max": 200,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "r",
+          "symbol": "r",
+          "min": 0,
+          "max": 0.1,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "s",
+          "symbol": "\\sigma_V",
+          "min": 0.05,
+          "max": 0.8,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.5,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "d_1",
+        "unit": "",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "Merton model",
+      "BSM"
+    ]
+  },
+  {
+    "id": "CR-9-F10",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 614,
+    "objective": "CR-9 l",
+    "name": "Merton model: d2 from d1",
+    "prompt": "In the Merton model, how is d2 obtained from d1?",
+    "latex": "d_2 = d_1 - \\sigma_V\\sqrt{T}",
+    "variables": [
+      {
+        "symbol": "d_2",
+        "meaning": "second BSM argument; the distance to default; N(-d_2) is the risk-neutral PD"
+      },
+      {
+        "symbol": "d_1",
+        "meaning": "first BSM argument"
+      },
+      {
+        "symbol": "\\sigma_V",
+        "meaning": "volatility of the firm's asset value, decimal"
+      },
+      {
+        "symbol": "T",
+        "meaning": "time to debt maturity in years"
+      }
+    ],
+    "skeleton": "d_2 = {{1}} - {{2}}",
+    "slots": [
+      "d_1",
+      "\\sigma_V\\sqrt{T}"
+    ],
+    "decoys": [
+      "\\sigma_V T",
+      "\\sigma_E\\sqrt{T}",
+      "\\sigma_V^{2}\\sqrt{T}"
+    ],
+    "corruptions": [
+      {
+        "latex": "d_2 = d_1 + \\sigma_V\\sqrt{T}",
+        "kind": "sign",
+        "why": "d_2 is always the smaller of the two: subtract one standard deviation over the horizon."
+      },
+      {
+        "latex": "d_2 = d_1 - \\sigma_V T",
+        "kind": "scaling",
+        "why": "The horizon enters through sqrt(T), not T."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "d_1",
+        "direction": "up",
+        "why": "d_2 moves one-for-one with d_1."
+      },
+      {
+        "variable": "\\sigma_V",
+        "direction": "down",
+        "why": "Holding d_1 fixed, a larger volatility gap is subtracted."
+      },
+      {
+        "variable": "T",
+        "direction": "down",
+        "why": "Holding d_1 fixed, a longer horizon subtracts more."
+      }
+    ],
+    "intuition": "d_2 sits exactly one horizon-standard-deviation below d_1.",
+    "calc": {
+      "expr": "d1 - s * Math.sqrt(T)",
+      "inputs": [
+        {
+          "name": "d1",
+          "symbol": "d_1",
+          "min": -3,
+          "max": 5,
+          "step": 0.0001,
+          "unit": ""
+        },
+        {
+          "name": "s",
+          "symbol": "\\sigma_V",
+          "min": 0.05,
+          "max": 0.8,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.5,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "d_2",
+        "unit": "",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "Merton model",
+      "BSM"
+    ]
+  },
+  {
+    "id": "CR-9-F11",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 635,
+    "objective": "CR-9 l",
+    "name": "Merton model: equity volatility vs asset volatility (Ito's lemma)",
+    "prompt": "What second equation (from Ito's lemma) links observable equity volatility to the unobservable asset volatility in the Merton model?",
+    "latex": "\\sigma_E E_0 = \\frac{\\partial E}{\\partial V}\\sigma_V V_0 = N(d_1)\\sigma_V V_0",
+    "variables": [
+      {
+        "symbol": "\\sigma_E",
+        "meaning": "volatility of the firm's equity (observable/estimable), decimal"
+      },
+      {
+        "symbol": "E_0",
+        "meaning": "market value of equity today (observable)"
+      },
+      {
+        "symbol": "\\frac{\\partial E}{\\partial V}",
+        "meaning": "delta of equity with respect to asset value, equal to N(d_1)"
+      },
+      {
+        "symbol": "N(d_1)",
+        "meaning": "cumulative standard normal at d_1"
+      },
+      {
+        "symbol": "\\sigma_V",
+        "meaning": "volatility of the firm's asset value (unobservable), decimal"
+      },
+      {
+        "symbol": "V_0",
+        "meaning": "value of the firm's assets today (unobservable)"
+      }
+    ],
+    "skeleton": "{{1}} E_0 = \\frac{\\partial E}{\\partial V}\\sigma_V V_0 = {{2}}\\sigma_V {{3}}",
+    "slots": [
+      "\\sigma_E",
+      "N(d_1)",
+      "V_0"
+    ],
+    "decoys": [
+      "N(d_2)",
+      "D",
+      "E_0",
+      "N(-d_2)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\sigma_E E_0 = N(d_2)\\sigma_V V_0",
+        "kind": "sibling",
+        "why": "The equity's delta with respect to assets is N(d_1), not N(d_2)."
+      },
+      {
+        "latex": "\\sigma_E V_0 = N(d_1)\\sigma_V E_0",
+        "kind": "wrong-variable",
+        "why": "Each volatility is paired with its own value: sigma_E with E_0 and sigma_V with V_0."
+      },
+      {
+        "latex": "\\sigma_E = N(d_1)\\sigma_V",
+        "kind": "missing-term",
+        "why": "Dropping the values ignores leverage; equity volatility is much larger than asset volatility because E_0 is small relative to V_0."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "N(d_1)",
+        "direction": "up",
+        "why": "A larger equity delta passes more of the asset volatility through to equity."
+      },
+      {
+        "variable": "\\sigma_V",
+        "direction": "up",
+        "why": "More volatile assets make a more volatile equity claim."
+      },
+      {
+        "variable": "V_0",
+        "direction": "up",
+        "why": "A bigger asset base behind each dollar of equity means more dollar volatility."
+      }
+    ],
+    "intuition": "Dollar volatility of equity = delta times dollar volatility of assets; leverage is why sigma_E far exceeds sigma_V.",
+    "calc": {
+      "expr": "Nd1 * s * V0",
+      "inputs": [
+        {
+          "name": "Nd1",
+          "symbol": "N(d_1)",
+          "min": 0.5,
+          "max": 1,
+          "step": 0.001,
+          "unit": ""
+        },
+        {
+          "name": "s",
+          "symbol": "\\sigma_V",
+          "min": 0.05,
+          "max": 0.8,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "V0",
+          "symbol": "V_0",
+          "min": 1,
+          "max": 200,
+          "step": 0.1,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\sigma_E E_0",
+        "unit": "$M",
+        "decimals": 4
+      },
+      "example": null
+    },
+    "tags": [
+      "Merton model",
+      "volatility"
+    ]
+  },
+  {
+    "id": "CR-9-F12",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 682,
+    "objective": "CR-9 m",
+    "name": "Merton distance to default (d2)",
+    "prompt": "How many standard deviations are the firm's assets from the default point? Give the Merton distance to default.",
+    "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + (r - \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{DtD}",
+        "meaning": "distance to default: standard deviations between asset value and the face value of debt"
+      },
+      {
+        "symbol": "d_2",
+        "meaning": "second BSM argument, equal to DtD"
+      },
+      {
+        "symbol": "V_0",
+        "meaning": "value of the firm's assets today"
+      },
+      {
+        "symbol": "D",
+        "meaning": "face value of debt (the default point)"
+      },
+      {
+        "symbol": "r",
+        "meaning": "risk-free rate, decimal (replace by expected asset return mu for the real-world version)"
+      },
+      {
+        "symbol": "\\sigma_V",
+        "meaning": "volatility of asset value, decimal"
+      },
+      {
+        "symbol": "T",
+        "meaning": "time horizon (debt maturity) in years"
+      }
+    ],
+    "skeleton": "\\mathrm{DtD} = d_2 = \\frac{\\ln( {{1}} ) - \\ln( {{2}} ) + (r {{3}} \\sigma_V^{2}/2)T}{ {{4}} }",
+    "slots": [
+      "V_0",
+      "D",
+      "-",
+      "\\sigma_V\\sqrt{T}"
+    ],
+    "decoys": [
+      "+",
+      "E_0",
+      "\\sigma_V T",
+      "\\sigma_E\\sqrt{T}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + (r + \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+        "kind": "sign",
+        "why": "Plus half the variance gives d_1; the distance to default is d_2, with minus."
+      },
+      {
+        "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(D) - \\ln(V_0) + (r - \\sigma_V^{2}/2)T}{\\sigma_V\\sqrt{T}}",
+        "kind": "inverted",
+        "why": "Distance is measured from the debt UP to the assets: ln V_0 minus ln D."
+      },
+      {
+        "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + (r - \\sigma_V^{2}/2)T}{\\sigma_V T}",
+        "kind": "scaling",
+        "why": "The standard deviation over the horizon is sigma_V times sqrt(T)."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "V_0",
+        "direction": "up",
+        "why": "More assets relative to debt puts the firm further from default."
+      },
+      {
+        "variable": "D",
+        "direction": "down",
+        "why": "More debt moves the default point closer."
+      },
+      {
+        "variable": "r",
+        "direction": "up",
+        "why": "Faster expected asset growth moves assets away from the default point."
+      },
+      {
+        "variable": "\\sigma_V",
+        "direction": "depends",
+        "why": "Falls with volatility whenever ln(V_0/D) + rT is positive (assets comfortably above the debt, the normal case); a deeply distressed firm can see it rise."
+      }
+    ],
+    "intuition": "The log-cushion of assets over debt, grown at the drift, measured in horizon standard deviations: the bigger it is, the smaller the PD.",
+    "calc": {
+      "expr": "(Math.log(V0) - Math.log(D) + (r - s ** 2 / 2) * T) / (s * Math.sqrt(T))",
+      "inputs": [
+        {
+          "name": "V0",
+          "symbol": "V_0",
+          "min": 1,
+          "max": 200,
+          "step": 0.01,
+          "unit": "$M"
+        },
+        {
+          "name": "D",
+          "symbol": "D",
+          "min": 1,
+          "max": 200,
+          "step": 0.1,
+          "unit": "$M"
+        },
+        {
+          "name": "r",
+          "symbol": "r",
+          "min": 0,
+          "max": 0.1,
+          "step": 0.005,
+          "unit": "decimal"
+        },
+        {
+          "name": "s",
+          "symbol": "\\sigma_V",
+          "min": 0.05,
+          "max": 0.8,
+          "step": 0.0001,
+          "unit": "decimal"
+        },
+        {
+          "name": "T",
+          "symbol": "T",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.5,
+          "unit": "years"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{DtD}",
+        "unit": "std devs",
+        "decimals": 4
+      },
+      "example": {
+        "inputs": {
+          "V0": 12.4,
+          "D": 10,
+          "r": 0.05,
+          "s": 0.2123,
+          "T": 1
+        },
+        "output": 1.1408,
+        "source_line": 658
+      }
+    },
+    "tags": [
+      "Merton model",
+      "distance to default"
+    ]
+  },
+  {
+    "id": "CR-9-F13",
+    "reading_id": "CR-9",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/15_CR_CR9.tex",
+    "source_line": 684,
+    "objective": "CR-9 m",
+    "name": "Merton risk-neutral probability of default",
+    "prompt": "In the Merton model, what is the risk-neutral probability that the firm defaults (shareholders do not exercise)?",
+    "latex": "\\text{Risk-neutral PD} = N(-d_2) = 1 - N(d_2)",
+    "variables": [
+      {
+        "symbol": "\\text{Risk-neutral PD}",
+        "meaning": "risk-neutral probability of default by T (assets end below the debt)"
+      },
+      {
+        "symbol": "N(\\cdot)",
+        "meaning": "cumulative standard normal distribution function"
+      },
+      {
+        "symbol": "d_2",
+        "meaning": "distance to default"
+      }
+    ],
+    "skeleton": "\\text{Risk-neutral PD} = N( {{1}} ) = {{2}} - N( {{3}} )",
+    "slots": [
+      "-d_2",
+      "1",
+      "d_2"
+    ],
+    "decoys": [
+      "-d_1",
+      "d_1",
+      "0"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Risk-neutral PD} = N(d_2)",
+        "kind": "sign",
+        "why": "N(d_2) is the risk-neutral probability the option IS exercised, i.e. of survival."
+      },
+      {
+        "latex": "\\text{Risk-neutral PD} = N(-d_1)",
+        "kind": "sibling",
+        "why": "The exercise probability uses d_2; d_1 belongs to the delta."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "d_2",
+        "direction": "down",
+        "why": "A greater distance to default means a lower probability of default."
+      }
+    ],
+    "intuition": "Default = the call finishes out of the money, which has probability N(-d_2).",
+    "calc": null,
+    "tags": [
+      "Merton model",
+      "default probability"
+    ]
+  },
+  {
+    "id": "MR-12-F01",
+    "reading_id": "MR-12",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+    "source_line": 123,
+    "objective": "MR-12 b",
+    "name": "Replicating portfolio: up-state condition",
+    "prompt": "In the six-month call on a zero example, what condition must the replicating portfolio of six-month and one-year zeros meet in the up state (rate 2.50%)?",
+    "latex": "F^5 + 0.987654\\,F^1 = \\$0",
+    "variables": [
+      {
+        "symbol": "F^5",
+        "meaning": "face value of six-month zeros bought on date 0 (negative = short); pays its face in the up state"
+      },
+      {
+        "symbol": "F^1",
+        "meaning": "face value of one-year zeros bought on date 0; worth 0.987654 per dollar of face in the up state"
+      }
+    ],
+    "skeleton": "{{1}} + {{2}}\\,{{3}} = {{4}}",
+    "slots": [
+      "F^5",
+      "0.987654",
+      "F^1",
+      "\\$0"
+    ],
+    "decoys": [
+      "0.992556",
+      "\\$2.556",
+      "0.990099"
+    ],
+    "corruptions": [
+      {
+        "latex": "F^5 + 0.992556\\,F^1 = \\$0",
+        "kind": "wrong-variable",
+        "why": "0.992556 is the six-month zero price in the DOWN state (rate 1.50%); the up state uses 0.987654."
+      },
+      {
+        "latex": "F^5 + 0.987654\\,F^1 = \\$2.556",
+        "kind": "sibling",
+        "why": "The call is worthless in the up state; $2.556 is the down-state payoff."
+      },
+      {
+        "latex": "0.990099\\,F^5 + 0.978842\\,F^1 = \\$0",
+        "kind": "wrong-variable",
+        "why": "Those are date-0 prices, used to price the portfolio, not its value on date 1."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "F^5",
+        "direction": "up",
+        "why": "Each extra dollar of six-month face adds a dollar in the up state."
+      },
+      {
+        "variable": "F^1",
+        "direction": "up",
+        "why": "Each dollar of one-year face is worth 0.987654 in the up state."
+      }
+    ],
+    "intuition": "Match the option state by state: in the up state the call is worthless, so the portfolio must be worth zero there.",
+    "calc": {
+      "expr": "F5 + 0.987654 * F1",
+      "inputs": [
+        {
+          "name": "F5",
+          "symbol": "F^5",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.01,
+          "unit": "$"
+        },
+        {
+          "name": "F1",
+          "symbol": "F^1",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.0001,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{up-state value}",
+        "unit": "$",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "replicating portfolio",
+      "arbitrage pricing"
+    ]
+  },
+  {
+    "id": "MR-12-F02",
+    "reading_id": "MR-12",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+    "source_line": 124,
+    "objective": "MR-12 b",
+    "name": "Replicating portfolio: down-state condition",
+    "prompt": "In the six-month call on a zero example, what condition must the replicating portfolio meet in the down state (rate 1.50%)?",
+    "latex": "F^5 + 0.992556\\,F^1 = \\$2.556",
+    "variables": [
+      {
+        "symbol": "F^5",
+        "meaning": "face value of six-month zeros bought on date 0 (negative = short); pays its face on date 1"
+      },
+      {
+        "symbol": "F^1",
+        "meaning": "face value of one-year zeros bought on date 0; worth 0.992556 per dollar of face in the down state"
+      }
+    ],
+    "skeleton": "{{1}} + {{2}}\\,{{3}} = {{4}}",
+    "slots": [
+      "F^5",
+      "0.992556",
+      "F^1",
+      "\\$2.556"
+    ],
+    "decoys": [
+      "0.987654",
+      "\\$0",
+      "0.978842"
+    ],
+    "corruptions": [
+      {
+        "latex": "F^5 + 0.987654\\,F^1 = \\$2.556",
+        "kind": "wrong-variable",
+        "why": "0.987654 is the up-state price (rate 2.50%); in the down state the zero is worth 0.992556."
+      },
+      {
+        "latex": "F^5 + 0.992556\\,F^1 = \\$0",
+        "kind": "sibling",
+        "why": "In the down state the call pays 992.556 - 990 = $2.556, not zero."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "F^5",
+        "direction": "up",
+        "why": "Each extra dollar of six-month face adds a dollar in the down state."
+      },
+      {
+        "variable": "F^1",
+        "direction": "up",
+        "why": "Each dollar of one-year face is worth 0.992556 in the down state."
+      }
+    ],
+    "intuition": "In the down state the zero is worth $992.556, so the call pays $2.556 and the portfolio must too.",
+    "calc": {
+      "expr": "F5 + 0.992556 * F1",
+      "inputs": [
+        {
+          "name": "F5",
+          "symbol": "F^5",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.01,
+          "unit": "$"
+        },
+        {
+          "name": "F1",
+          "symbol": "F^1",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.0001,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{down-state value}",
+        "unit": "$",
+        "decimals": 3
+      },
+      "example": {
+        "inputs": {
+          "F5": -515.0,
+          "F1": 521.4375
+        },
+        "output": 2.556,
+        "source_line": 132
+      }
+    },
+    "tags": [
+      "replicating portfolio",
+      "arbitrage pricing"
+    ]
+  },
+  {
+    "id": "MR-12-F03",
+    "reading_id": "MR-12",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+    "source_line": 138,
+    "objective": "MR-12 b",
+    "name": "Option price = date-0 cost of the replicating portfolio",
+    "prompt": "Once F^5 and F^1 are solved, how is the call priced by the law of one price from today's zero prices?",
+    "latex": "\\text{Option price} = 0.990099\\,F^5 + 0.978842\\,F^1",
+    "variables": [
+      {
+        "symbol": "\\text{Option price}",
+        "meaning": "date-0 price of the call on the zero ($0.504 in the example)"
+      },
+      {
+        "symbol": "F^5",
+        "meaning": "face of six-month zeros in the replicating portfolio (-$515.00: a short); today's price 0.990099 per dollar"
+      },
+      {
+        "symbol": "F^1",
+        "meaning": "face of one-year zeros in the replicating portfolio ($521.4375); today's price 0.978842 per dollar"
+      }
+    ],
+    "skeleton": "\\text{Option price} = {{1}}\\,{{2}} + {{3}}\\,{{4}}",
+    "slots": [
+      "0.990099",
+      "F^5",
+      "0.978842",
+      "F^1"
+    ],
+    "decoys": [
+      "0.987654",
+      "0.992556",
+      "\\$2.556"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Option price} = 0.978842\\,F^5 + 0.990099\\,F^1",
+        "kind": "sibling",
+        "why": "The six-month zero is the dearer one today (0.990099); the one-year zero is 0.978842."
+      },
+      {
+        "latex": "\\text{Option price} = 0.987654\\,F^5 + 0.992556\\,F^1",
+        "kind": "wrong-variable",
+        "why": "Those are date-1 state prices; the replicating portfolio is costed at today's prices."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "F^5",
+        "direction": "up",
+        "why": "More six-month face costs more today."
+      },
+      {
+        "variable": "F^1",
+        "direction": "up",
+        "why": "More one-year face costs more today."
+      }
+    ],
+    "intuition": "Same payoffs in every state means same price today: the option costs exactly what its replicating bonds cost.",
+    "calc": {
+      "expr": "0.990099 * F5 + 0.978842 * F1",
+      "inputs": [
+        {
+          "name": "F5",
+          "symbol": "F^5",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.01,
+          "unit": "$"
+        },
+        {
+          "name": "F1",
+          "symbol": "F^1",
+          "min": -1000,
+          "max": 1000,
+          "step": 0.0001,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Option price}",
+        "unit": "$",
+        "decimals": 3
+      },
+      "example": {
+        "inputs": {
+          "F5": -515.0,
+          "F1": 521.4375
+        },
+        "output": 0.504,
+        "source_line": 138
+      }
+    },
+    "tags": [
+      "replicating portfolio",
+      "law of one price"
+    ]
+  },
+  {
+    "id": "MR-12-F04",
+    "reading_id": "MR-12",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/44_MR_MR12.tex",
+    "source_line": 333,
+    "objective": "MR-12 h",
+    "name": "CMT swap payoff at a node ($1,000,000 notional, semiannual)",
+    "prompt": "What is the semiannual payoff of a $1,000,000-notional constant-maturity Treasury swap at a node, from the CMT yield and the fixed rate?",
+    "latex": "\\text{Payoff} = \\left( \\frac{\\$1{,}000{,}000}{2} \\right) \\times \\bigl( y_{CMT} - \\text{fixed rate} \\bigr)",
+    "variables": [
+      {
+        "symbol": "\\text{Payoff}",
+        "meaning": "swap payoff at that node, floating (CMT) minus fixed, $ (positive when the CMT yield is above the fixed rate)"
+      },
+      {
+        "symbol": "y_{CMT}",
+        "meaning": "semiannually compounded yield of a predetermined maturity observed on the payment date (the node's rate), decimal"
+      },
+      {
+        "symbol": "\\text{fixed rate}",
+        "meaning": "the swap's fixed rate, decimal (7.00% in the worked example)"
+      }
+    ],
+    "skeleton": "\\text{Payoff} = \\left( \\frac{\\$1{,}000{,}000}{ {{1}} } \\right) \\times \\bigl( {{2}} - {{3}} \\bigr)",
+    "slots": [
+      "2",
+      "y_{CMT}",
+      "\\text{fixed rate}"
+    ],
+    "decoys": [
+      "4",
+      "12",
+      "\\text{risk-free rate}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Payoff} = \\left( \\frac{\\$1{,}000{,}000}{2} \\right) \\times \\bigl( \\text{fixed rate} - y_{CMT} \\bigr)",
+        "kind": "sign",
+        "why": "The payoff is floating (CMT) minus fixed: a 7.25% node against a 7.00% fixed rate pays +$1,250."
+      },
+      {
+        "latex": "\\text{Payoff} = \\$1{,}000{,}000 \\times \\bigl( y_{CMT} - \\text{fixed rate} \\bigr)",
+        "kind": "scaling",
+        "why": "Payments are semiannual, so the annual rate difference accrues on half the notional."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "y_{CMT}",
+        "direction": "up",
+        "why": "A higher CMT yield at the node raises what the CMT receiver is paid."
+      },
+      {
+        "variable": "\\text{fixed rate}",
+        "direction": "down",
+        "why": "A higher fixed rate raises what the CMT receiver pays away."
+      }
+    ],
+    "intuition": "Half a year's worth of the rate gap on the notional: (notional / 2) times (CMT minus fixed).",
+    "calc": {
+      "expr": "1000000 / 2 * (y - K)",
+      "inputs": [
+        {
+          "name": "y",
+          "symbol": "y_{CMT}",
+          "min": 0.01,
+          "max": 0.12,
+          "step": 0.0025,
+          "unit": "decimal"
+        },
+        {
+          "name": "K",
+          "symbol": "\\text{fixed rate}",
+          "min": 0.01,
+          "max": 0.12,
+          "step": 0.0025,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Payoff}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "y": 0.0725,
+          "K": 0.07
+        },
+        "output": 1250,
+        "source_line": 366
+      }
+    },
+    "tags": [
+      "CMT swap",
+      "interest rate trees"
+    ]
+  }
+]

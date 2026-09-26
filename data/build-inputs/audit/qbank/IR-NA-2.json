@@ -1,0 +1,40 @@
+{
+ "slice": "IR-NA-2",
+ "checked": 39,
+ "notFound": [],
+ "flags": [
+  {
+   "id": "IR-NA-72",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "$$\\sigma_{true} = \\sigma_{observed} \\times \\sqrt{\\frac{1+\\varphi^2}{1-\\varphi^2}}$$ ... At $\\varphi = 0.50$ the multiplier is $\\sqrt{1.25/0.75} = 1.291$, so a reported 9% volatility becomes 11.62%.",
+   "proposed": "Replace the formula and worked number with: $$\\sigma_{true} = \\sigma_{observed} \\times \\sqrt{\\frac{1+\\varphi}{1-\\varphi}} \\;\\Big(= \\sigma_{observed}\\sqrt{\\tfrac{1-\\varphi^2}{(1-\\varphi)^2}}\\Big)$$ ... At $\\varphi = 0.50$ the multiplier is $\\sqrt{1.5/0.5} = \\sqrt{3} = 1.732$, so a reported 9% volatility becomes 15.59%. (The phi = 0 sanity check still holds.) The answer key (a) is unaffected.",
+   "source_says": "sigma_true = sigma_observed x sqrt[(1+phi^2)/(1-phi^2)]; at phi=0.50 multiplier sqrt(1.25/0.75)=1.291, 9% -> 11.62% (PDF p.56).",
+   "derivation": "GRZ filter: observed r*_t = (1-phi) r_t + phi r*_{t-1}, true returns r_t i.i.d. Then Var(r*) = (1-phi)^2 s^2 /(1-phi^2) = s^2 (1-phi)/(1+phi), so s_true/s_obs = sqrt((1+phi)/(1-phi)). Same result from the unsmoothing filter r_t = (r*_t - phi r*_{t-1})/(1-phi) with Corr(r*_t, r*_{t-1}) = phi: Var = Var(r*)(1+phi^2-2phi^2)/(1-phi)^2 = Var(r*)(1+phi)/(1-phi). Python Monte Carlo (400k draws, phi=0.5): true/observed sd = 1.730 vs sqrt(3)=1.732; the (1+phi^2)/(1-phi^2) form gives 1.291, which is wrong. 9% x 1.732 = 15.59%.",
+   "evidence": "PDF p.55-56, Q72 solution: 'σtrue = σobserved × √[ ( 1 + φ2 ) / ( 1 − φ2 ) ] ... At φ = 0.50 the multiplier is √(1.25/0.75) = 1.291, so a reported 9% volatility becomes 11.62%.' The same formula drives IR-FT-76 (outside this slice) whose keyed answer 11.62% would also be affected.",
+   "confidence": "medium"
+  },
+  {
+   "id": "IR-NA-48",
+   "field": "options",
+   "severity": "source-error",
+   "current": "(a) ... the principal risk is that the valuation of the enterprise proves lower than estimated, pushing the fulcrum lower in the structure and impairing the claim.",
+   "proposed": "(a) ... the principal risk is that the valuation of the enterprise proves lower than estimated, pushing the fulcrum higher (to a more senior claim) in the structure and impairing the claim.  [old→new: 'pushing the fulcrum lower in the structure' → 'pushing the fulcrum up the structure to a more senior claim']. Key (a) unchanged.",
+   "source_says": "Option (a) says the fulcrum is pushed 'lower in the structure'; the same source's solution says 'if value comes in lower, the fulcrum moves up the structure and the position is impaired' (PDF p.41).",
+   "derivation": "The fulcrum is where enterprise value runs out. If EV is lower, value runs out at a more senior claim, so the fulcrum migrates toward seniority (up the structure); the targeted security then falls below the fulcrum and is impaired. Moving the fulcrum 'lower' (more junior) would mean the targeted claim is better covered, not impaired, so option (a)'s clause is internally inconsistent and contradicts the solution text.",
+   "evidence": "PDF p.41, Q48 option (a) vs SOLUTION paragraph.",
+   "confidence": "medium"
+  },
+  {
+   "id": "IR-NA-70",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "Solution: 'Five named imperfections.'; optionAnalysis a: 'All five imperfections.'",
+   "proposed": "Solution: 'Five named imperfections.' → 'Ang names six imperfections: clientele effects and participation costs, transaction costs, search frictions, asymmetric information, price impact (imperfect competition), and funding constraints. Option (a) lists five of them (it omits price impact), and every clause it states is accurate.' optionAnalysis a: 'All five imperfections.' → 'Five of the six named imperfections, each stated correctly (price impact omitted).' Key (a) unchanged.",
+   "source_says": "'Five named imperfections' and OA (a) 'All five imperfections' (PDF p.54-55).",
+   "derivation": "Ang Ch.13 / GARP LR Ch.19 LO 99.b lists six market imperfections: clientele effects & participation costs, transaction costs, search frictions, asymmetric information, price impact, funding constraints (project notes FRM_Consolidated_Vol2/ch/33_IM_IM17.tex lines 53-66: 'Six imperfections'). Telling the candidate there are five drops price impact from the recall list.",
+   "evidence": "PDF p.54 Q70 SOLUTION 'Five named imperfections.'; notes 33_IM_IM17.tex table + caption 'Six imperfections, only one of which is a fee.'",
+   "confidence": "high"
+  }
+ ]
+}

@@ -1,0 +1,271 @@
+{
+ "slice": "CR-T1-1",
+ "decisions": [
+  {
+   "id": "CR-T1-19",
+   "field": "answer",
+   "verdict": "modify",
+   "final": {
+    "options": [
+     {
+      "key": "a",
+      "text": "18.75%"
+     },
+     {
+      "key": "b",
+      "text": "30%"
+     },
+     {
+      "key": "c",
+      "text": "19.7%"
+     },
+     {
+      "key": "d",
+      "text": "50.5%"
+     }
+    ],
+    "answer": "c"
+   },
+   "reason": "Confirmed: sigma_V = 0.30*150/(0.95*240) = 45/228 = 19.74% (python). The source (PDF p.30-31) keys (c) 19% and says 'nearest to 19%', but |19.74-20| = 0.26 < |19.74-19| = 0.74, so with the options as printed the nearest option is (a) 20% and the source key is wrong. The source and my derivation disagree; the derivation is unambiguous. Of the auditor's two fixes I choose the option rebuild. It keeps key c, keeps the solution and trap text valid ('Option (a) is the near miss produced by dropping N(d1)'), and turns (a) and (d) into the exact errors the analysis describes (45/240 = 18.75%; 0.30*240/(0.95*150) = 50.53%). Fallback if the options must stay as printed: set answer to 'a', change 'nearest to 19%' to 'nearest to 20%', and rewrite optionAnalysis so that c (19%) is the dropped-N(d1) value 18.75%."
+  },
+  {
+   "id": "CR-T1-19",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "18.75% is the value obtained by ignoring $N(d_{1})$: $\\sigma_{E} E_{0} / V_{0} = 45/240 = 18.75\\%$, which is equivalent to setting $N(d_{1}) = 1$. Omitting the delta is the standard dropped-term error here, and it is tempting because $N(d_{1}) = 0.95$ is close to one."
+    },
+    "c": {
+     "verdict": "correct",
+     "reason": "$\\sigma_{V} = 45/228 = 0.1974$, that is, approximately 19.7%."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "50.5% inverts the leverage ratio, computing $\\sigma_{E} V_{0} / (N(d_{1}) E_{0}) = 0.30 \\times 240 / (0.95 \\times 150) = 50.5\\%$. It also fails the sanity check, since asset volatility above equity volatility is impossible for a levered firm."
+    }
+   },
+   "reason": "Confirmed both errors: 0.95*0.30*240/150 = 45.6%, not 51%, and the inversion that gives about 51% is 0.30*240/(0.95*150) = 50.53%; 18.75% rounds to 19%, not 20%. The text given here goes with the option rebuild in the answer decision (b is unchanged). If the options are not rebuilt, use the auditor's text instead: a = 'nearest option to the correct 19.74%, correct', c = '19% is 45/240 = 18.75% from dropping N(d1)', d = '51% inverts the leverage ratio: 0.30*240/(0.95*150) = 50.5%'."
+  },
+  {
+   "id": "CR-T1-05",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "USD 2.250 million is a filler just below the correct value; no single named step gives it exactly. Dropping either variance term gives a figure in this region: keeping only the severity-uncertainty term gives $30 \\times \\sqrt{0.0064} = 30 \\times 0.08 = $ USD 2.40 million, and keeping only the default-uncertainty term gives $30 \\times \\sqrt{0.006144} = $ USD 2.35 million. It stands for the dropped-term error."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "USD 5.490 million matches no single named error. The nearest recognisable route is the trap described below: substituting $\\sigma_{LGD} = 40\\%$ for $\\sigma_{PD}$ gives $30 \\times \\sqrt{0.0064 + 0.16 \\times 0.16} = $ USD 5.37 million. By contrast, using $PD(1-PD) = 0.0384$ as though it were $\\sigma_{PD}$ (squaring it again) gives only USD 2.44 million. Both are failures to keep variance and standard deviation separate."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "USD 7.810 million matches no single named error. Adding the two component standard deviations linearly, $30 \\times (0.08 + 0.0784) = $ USD 4.75 million, or adding 0.08 and the unscaled $\\sigma_{PD} = 0.196$, $30 \\times 0.276 = $ USD 8.28 million, are the linear-addition mistakes it represents. Independent variance components add in quadrature, not linearly."
+    }
+   },
+   "reason": "Confirmed (python): no square root on sigma_PD -> 2.444; summing component SDs -> 4.752; 30*(0.08+0.196) -> 8.28; none equals 5.49 or 7.81 (a brute-force search over products of the given inputs finds no meaningful route to either). I also fixed (a): 30*0.08 = 2.40, not 2.25, so 'then mis-scaling' was also unsupported. The key (b) 3.36 is correct (30*sqrt(0.012544) = 3.360)."
+  },
+  {
+   "id": "CR-T1-05",
+   "field": "trap",
+   "verdict": "accept",
+   "final": {
+    "operators": [
+     "wrong-input-twin",
+     "dropped-term"
+    ],
+    "explanation": "The defining trap is the unstated $\\sigma_{PD}$. A candidate who looks for it in the stem, does not find it, and substitutes $\\sigma_{LGD} = 40\\%$ for it produces $\\sqrt{0.0064 + 0.16 \\times 0.16} = \\sqrt{0.032} = 0.1789$ and USD 5.37 million, close to option (c). The second trap is the deliberate coincidence that LGD and $\\sigma_{LGD}$ are both 40.0%, which invites a candidate to assume one of them is redundant."
+   },
+   "reason": "Confirmed: 0.0064+0.0256 = 0.032, sqrt = 0.17889, x30 = 5.367. The source (p.10) has 0.1697/5.09, which is arithmetically wrong. 5.37 is still 'close to option (c)' 5.49."
+  },
+  {
+   "id": "CR-T1-21",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "10.98% is a near-miss filler rather than the output of a single named step. Using the risk-free rate $r = 7\\%$ in place of $\\mu$ gives $d_{2} = 0.887$ and PD = 18.75%. Omitting the $-\\sigma^{2}/2$ adjustment gives $d_{2} = 1.446$ and PD = 7.41%. Making both errors gives $d_{2} = 1.222$ and PD = 11.08%, which is the closest recognisable route to this option."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "14.76% is a near-miss filler. It is not the time-scaling error: using $\\sigma T = 1.50$ in place of $\\sigma\\sqrt{T} = 0.6708$ gives $d_{2} = 0.745/1.50 = 0.497$ and PD = 31.0%. The drift term scales with $T$ and the volatility with $\\sqrt{T}$."
+    }
+   },
+   "reason": "Confirmed (python): correct d2 = 1.1106, N(-d2) = 13.34% (key c correct); no -s^2/2 -> 7.41%; r = 7% -> 18.75%; sigma*T -> 31.0%. The source (p.34) text for (a) is visibly an abandoned self-correction. The only combination near 10.98% is r with no variance adjustment (11.08%), so I added that to the auditor's wording."
+  },
+  {
+   "id": "CR-T1-43",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "Swapping the spreads gives $-0.06 \\times 110 + 0.042 \\times 250 = -6.60 + 10.50 = +3.90$ basis points, a benefit rather than a charge. 5.49 basis points matches no single named error; it is a filler near that mispairing. Pairing each exposure with the wrong party's spread is the defining role misassignment here."
+    }
+   },
+   "reason": "Confirmed: the rationale's own arithmetic gives +3.90, not 5.49, and a brute-force search over EPE/ENE/PFE x own/counterparty spreads with either sign finds no route to 5.49 (or to 23.00 or 42.58, whose rationales are already hedged as 'close to' or 'roughly'). The key (b) -10.38 bps is correct."
+  },
+  {
+   "id": "CR-T1-34",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "b": {
+     "verdict": "incorrect",
+     "reason": "33.3 bps is $0.05 \\times 400 / 0.60$, that is, EPE multiplied by the hazard rate $\\lambda = s/(1-R) = 400/0.60 = 667$ bps (the stated 6.7%) without the loss given default factor. It is the correct answer divided again by $(1-R)$: double counting of loss given default."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "50.0 bps is $0.05 \\times 400 / 0.40$: the spread divided by the recovery rate rather than by loss given default. A wrong-input twin: recovery and loss given default are complements, and here neither belongs in the running-spread shortcut."
+    }
+   },
+   "reason": "The auditor is right that the 'equivalently' clause is false with R = 50% (20/0.5 = 40, not 50). But the root cause is the stem, see the added question flag. The stated hazard rate 6.7% = 400/(1-0.40) implies R = 40%, not 50%; the source itself notes the mismatch (p.55: s/(1-R) = 8% vs 6.7%) and explains it away wrongly. With R = 40% both distractors become exact named errors: 20/0.6 = 33.3 (b: double counting LGD) and 400/0.4 -> 50 (c: dividing by R instead of LGD). The source's (b) text already describes the c-route, so the two rationales were swapped. The text given here assumes the stem is corrected to R = 40%. Fallback if the stem stays at 50%: use the auditor's text for (c) and rewrite (b) as '33.3 bps is 0.05 x 6.67%, EPE times the hazard rate without the LGD factor'. The key (a) 20 bps is correct in both cases."
+  },
+  {
+   "id": "CR-T1-03",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "Expected loss over a horizon shorter than one year requires the annual hazard rate to be converted to a term default probability before EL is computed.\n\n**Step 1. Convert each hazard rate to a default probability over the remaining term.** A hazard rate $\\lambda$ is a continuous conditional default intensity, so the cumulative default probability to time $T$ is the exponential CDF:\n\n$$PD(T) = 1 - e^{-\\lambda T}$$\n\n- Loan a: $PD = 1 - e^{-0.04 \\times 0.25} = 0.9950\\%$\n- Loan b: $PD = 1 - e^{-0.03 \\times 0.50} = 1.4888\\%$\n- Loan c: $PD = 1 - e^{-0.02 \\times 0.75} = 1.4888\\%$\n- Loan d: $PD = 1 - e^{-0.01 \\times 1.00} = 0.9950\\%$\n\n**Step 2. Apply $EL = EA \\times PD \\times LGD$.**\n\n| Loan | Exposure | Term PD | LGD | Expected loss |\n|---|---|---|---|---|\n| a | USD 100.0m | 0.9950% | 90.0% | USD 0.896m |\n| b | USD 120.0m | 1.4888% | 60.0% | USD 1.072m |\n| c | USD 150.0m | 1.4888% | 60.0% | USD 1.340m |\n| d | USD 200.0m | 0.9950% | 50.0% | USD 0.995m |\n\n**Step 3. Rank.** Loan (c) has the highest expected loss at approximately USD 1.34 million.\n\n**Shortcut worth finding.** Loans (a) and (d) share the same term PD of 0.995%, since 4% for three months and 1% for twelve months integrate to the same intensity. Their EL is therefore driven purely by $EA \\times LGD$: $100 \\times 0.9 = 90$ versus $200 \\times 0.5 = 100$, so (d) beats (a). Similarly (b) and (c) have identical term PDs of 1.4888% (since $0.03 \\times 0.50 = 0.02 \\times 0.75 = 0.015$), so the comparison reduces to $120 \\times 0.6 = 72$ versus $150 \\times 0.6 = 90$, and (c) beats (b). Only (c) versus (d) then needs computing.",
+    "optionAnalysis": {
+     "b": {
+      "verdict": "incorrect",
+      "reason": "USD 1.072 million. Loan (b) has the same term PD as loan (c) and the same LGD, but 20% less exposure."
+     },
+     "c": {
+      "verdict": "correct",
+      "reason": "USD 1.340 million, the highest of the four."
+     }
+    }
+   },
+   "reason": "Confirmed: 1-exp(-0.015) = 1.48881% for both b and c; EL_c = 150*0.0148881*0.6 = 1.3399. The auditor's fix is extended to the loan b PD (1.4889 -> 1.4888, correct rounding) and to optionAnalysis b ('almost the same term PD' -> 'the same'), since the two PDs are identical. The ranking and key (c) are unchanged; loan b's EL of 1.072 is correct."
+  },
+  {
+   "id": "CR-T1-20",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "Computing $d_{2}$ as the distance to default and converting it to a default probability via the standard normal distribution.\n\n**Step 1. Compute $d_{1}$.**\n\n$$d_{1} = \\frac{\\ln(V_{0}/F) + (r + \\sigma^{2}/2)T}{\\sigma\\sqrt{T}}$$\n\n$$\\ln(500/300) = \\ln(1.6667) = 0.51083$$\n$$(r + \\sigma^{2}/2)T = (0.03 + 0.03125) \\times 1 = 0.06125$$\n$$d_{1} = (0.51083 + 0.06125) \\div 0.25 = 0.57208 \\div 0.25 = 2.2883$$\n\n**Step 2. Compute $d_{2}$, which is the distance to default.**\n\n$$d_{2} = d_{1} - \\sigma\\sqrt{T} = 2.2883 - 0.25 = 2.0383$$\n\n**Step 3. Convert to a default probability.** Default occurs when asset value falls below the face value of debt at maturity, and that probability is:\n\n$$PD = N(-d_{2}) = N(-2.0383) = 2.08\\%$$\n\n**The distinction that generates every distractor.**\n\n| Quantity | Value | What it is |\n|---|---|---|\n| $d_{1}$ | 2.2883 | Option delta input, $N(d_{1})$ is the hedge ratio; not the distance to default |\n| $d_{2}$ | 2.0383 | Distance to default |\n| $N(-d_{2})$ | 2.08% | Risk-neutral probability of default |\n| $N(-d_{1})$ | 1.11% | No standalone default interpretation |\n| $N(d_{2})$ | 97.92% | Probability of survival, that is, of not defaulting |"
+   },
+   "reason": "The heading is not orphaned by accident. Its table (d1 2.2883 / d2 2.0383 distance to default / N(-d2) 2.08% risk-neutral PD / N(-d1) / N(d2) survival) was hoisted into the question stem, in the source PDF (p.32, before 'Calculate the distance to default...') and in the JSON alike. The right fix is to move that table back under the heading (final solution given here) and to remove it from the stem (added question flag). Key (a) re-verified: d1 = 2.2883, d2 = 2.0383, N(-d2) = 2.076%."
+  }
+ ],
+ "added": [
+  {
+   "id": "CR-T1-20",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains a table listing d2 = 2.0383 \"Distance to default\" and N(-d2) = 2.08% \"Risk-neutral probability of default\", plus labels for every distractor value",
+   "proposed": "An analyst is assessing the risk of default of FiberTech using the Merton model, with the following inputs.\n\n- Value of FiberTech's assets: USD 500 million\n- Total debt: USD 300 million, due in one year\n- Volatility of assets: 25%\n- Risk-free rate: 3% per annum\n\nCalculate the distance to default and the risk-neutral probability of default. Which of the following is correct?",
+   "source_says": "Same in PDF p.32: the table sits between the input bullets and the question sentence, while the solution on p.33 has the heading \"The distinction that generates every distractor.\" with nothing under it",
+   "derivation": "The table is the solution's summary table, displaced into the stem. As shipped, the stem states the answer (option a) outright. Remove it from the stem and place it under the solution heading (see the CR-T1-20 solution decision).",
+   "evidence": "PDF p.32-33",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-15",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains a table \"Statement | The specific error | Correct position\" that explains why each of the five statements is wrong",
+   "proposed": {
+    "question": "A junior credit risk analyst includes the following five statements in a credit risk assessment report. The credit risk manager reviews them.\n\n1. The probability of default for a loan is identical to its hazard rate, directly indicating the instantaneous rate at which borrowers default per year, regardless of the loan's term or the time already elapsed without default.\n2. LGD measures the total amount of credit extended to a borrower that is likely to be recovered immediately after a default event, indicating a direct recovery rate without considering the collateral's value or sale costs.\n3. EAD is the minimum amount a lender is guaranteed to recover when a borrower defaults, fixed at the initiation of the loan and unaffected by changes in credit line usage or market conditions.\n4. Expected loss is calculated solely on the historical default rate of similar loans and is a static measure that remains unchanged throughout the life of a loan.\n5. The time horizon for assessing credit risk is set to a standard one-year period for all types of loans and facilities, regardless of loan term or borrower risk profile.\n\nWhich of the statements are incorrect?",
+    "solution": "Precise definitions of the five quantitative credit risk inputs, and the specific way each is commonly misstated.\n\nEvery one of the five statements contains at least one definitional error.\n\n| Statement | The specific error | Correct position |\n|---|---|---|\n| 1. PD equals the hazard rate | Conflates a probability with an intensity, and denies conditioning | The hazard rate is an instantaneous conditional intensity; PD over horizon T is $1 - e^{-\\lambda T}$. PD depends on term and on survival so far |\n| 2. LGD is what is recovered | Reverses the quantity and ignores costs | LGD is the fraction not recovered, that is, 1 minus recovery, and is measured net of collateral value and realisation costs |\n| 3. EAD is a guaranteed minimum recovery | Confuses exposure with recovery, and freezes it at origination | EAD is the expected exposure at the moment of default, and it varies with drawdown on committed lines and with market conditions |\n| 4. EL is static and historical only | Denies forward-looking recalibration | EL is recomputed as PD, EAD and LGD are updated; it is not a fixed historical average |\n| 5. One year applies to everything | States a convention as a rule | One year is the common convention, following the annual review cycle, but the horizon should reflect the facility and the risk profile |\n\nThe unifying error across all five is the imposition of rigidity where the framework is conditional: PD depends on horizon and elapsed time, LGD depends on collateral and workout costs, EAD depends on facility usage, EL is recalculated as inputs move, and the horizon is a convention that can be varied.\n\n$$EL = PD \\times EAD \\times LGD, \\text{ with every input a function of horizon and current conditions}$$"
+   },
+   "source_says": "Same in PDF p.25 (the table sits between the statements and \"Which of the statements are incorrect?\"); the solution on p.26 has no table",
+   "derivation": "The table is solution content displaced into the stem, and it gives away the answer (d) All of them. Move it into the solution after \"Every one of the five statements contains at least one definitional error.\"",
+   "evidence": "PDF p.25-26",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-16",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains a worked table (Interest revenue 25.20, Cost of funding (2.10), EL (12.60), Opex (4.20), Transaction (1.00), Return on EC 0.42, EC 21.00)",
+   "proposed": {
+    "question": "A commercial bank is evaluating a one-year loan of EUR 420 million with the following terms and costs.\n\n- Interest rate on the loan: 6% per annum\n- Cost of funding (interest paid on deposits): 0.5% per annum\n- Expected loss: 3% of the loan's face value\n- Operating costs: 1% of face value\n- Economic capital held against the loan: 5% of the loan amount\n- Return earned on that economic capital, before tax: 2%\n- Tax rate: 35%\n- Transaction costs: EUR 1 million\n\nBased on the above, the after-tax risk-adjusted return on capital is closest to:",
+    "solution": "Constructing the RAROC numerator from all revenue and cost components including the return on economic capital, and dividing by economic capital rather than by the loan amount.\n\n$$RAROC = \\frac{(\\text{revenues} - \\text{funding cost} - \\text{expected loss} - \\text{operating cost} - \\text{transaction cost} + \\text{return on economic capital}) \\times (1 - \\text{tax})}{\\text{economic capital}}$$\n\n**Step 1.** Build each component from the EUR 420 million face value.\n\n| Component | Calculation | EUR millions |\n|---|---|---|\n| Interest revenue | 420 × 6% | 25.20 |\n| Cost of funding | 420 × 0.5% | (2.10) |\n| Expected loss | 420 × 3% | (12.60) |\n| Operating costs | 420 × 1% | (4.20) |\n| Transaction costs | given | (1.00) |\n| Return on economic capital | 21.00 × 2% | 0.42 |\n| Economic capital (denominator) | 420 × 5% | 21.00 |\n\n**Step 2. Pre-tax risk-adjusted income.**\n\n$$25.20 - 2.10 - 12.60 - 4.20 - 1.00 + 0.42 = \\text{EUR } 5.72 \\text{ million}$$\n\n**Step 3. Apply tax.**\n\n$$5.72 \\times (1 - 0.35) = 5.72 \\times 0.65 = \\text{EUR } 3.718 \\text{ million}$$\n\n**Step 4. Divide by economic capital.**\n\n$$RAROC = 3.718 \\div 21.00 = 17.7\\% \\approx 18\\%$$\n\n**Two structural points.** The denominator is economic capital, not the loan amount, which is what makes the measure risk-adjusted: two loans of equal size but different risk consume different capital and therefore produce different RAROC. And the return on economic capital is added, because the capital held against the loan is itself invested and earns a return; omitting it understates the numerator."
+   },
+   "source_says": "Same in PDF p.27 (the table sits before \"Based on the above...\"); the solution Step 1 on p.28 says \"Build each component\" but has no table",
+   "derivation": "The table is solution Step 1, displaced into the stem. It does most of the work: the candidate only has to sum, tax and divide, and it also removes the tested traps (EC as denominator, adding the return on EC). Key (c) verified: (25.20-2.10-12.60-4.20-1.00+0.42)*0.65/21 = 17.7%. Move the table under Step 1.",
+   "evidence": "PDF p.27-28",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-28",
+   "field": "question",
+   "severity": "wrong-content",
+   "current": "Stem contains an evaluation table (Model | Type | Dynamic adaptability | Default probability accuracy) rating KMV \"High, continuous market updating\" and \"Empirical EDF calibrated to observed defaults\"",
+   "proposed": {
+    "question": "Sam is evaluating a portfolio of corporate bonds, loans and structured credit products. The firm wants a credit risk model offering dynamic adaptability to market conditions, accurate default probability estimation, and consideration of the firm's specific portfolio characteristics. Sam reviews four models.\n\n- The Merton model uses the firm's equity volatility to estimate default probability, treating equity as a call option on the firm's assets.\n- CreditRisk+ is an actuarial model focusing on default probability based on debt rating and sensitivity to risk factors, employing a Poisson framework to model credit events.\n- CreditMetrics employs a mark-to-market approach emphasising credit rating transitions and the valuation impact of credit events on the portfolio.\n- The Moody's KMV model, an evolution of the Merton model, uses market data to estimate default probabilities through its expected default frequency measure, updating continuously with market conditions.\n\nConsidering the need for dynamic adaptability, accurate default probability estimation, and suitability for a diversified portfolio, which model should Sam recommend?",
+    "solution": "Selecting among the four principal credit risk modelling frameworks against stated requirements, and understanding how KMV extends Merton.\n\nTest each model against the three stated requirements.\n\n| Model | Type | Dynamic adaptability | Default probability accuracy |\n|---|---|---|---|\n| Merton | Structural, option-theoretic | High, market driven | Good at rank ordering, poor at matching realised default rates |\n| CreditRisk+ | Actuarial, reduced form | Low, driven by rating and static factor sensitivities | Models default counts, not firm-specific market-updated PDs |\n| CreditMetrics | Mark to market, rating migration | Moderate, driven by transition matrices updated periodically | Good for migration and portfolio value, less so for firm-specific PD timing |\n| Moody's KMV | Structural, empirically calibrated | High, continuous market updating | Empirical EDF calibrated to observed defaults |\n\n**Why KMV wins on this specification.** It inherits Merton's market-driven structure, so it updates continuously as equity prices move, satisfying dynamic adaptability. But it improves on raw Merton in the step that matters for accuracy: instead of reading default probability directly off the normal distribution as $N(-d_{2})$, it maps distance to default onto an empirical default database to produce the expected default frequency. That mapping repairs Merton's known weakness, which is that its theoretical probabilities rank firms sensibly but do not correspond to observed default rates.\n\nKMV also uses a more realistic default point, typically short-term debt plus a fraction of long-term debt, rather than a single zero-coupon face value."
+   },
+   "source_says": "Same in PDF p.46: table between the model bullets and the question sentence",
+   "derivation": "The table is the solution's \"test each model against the requirements\" grid, and in the stem it answers the question (d) outright. Move it into the solution after \"Test each model against the three stated requirements.\"",
+   "evidence": "PDF p.46 (question page; answer on p.47)",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-34",
+   "field": "question",
+   "severity": "source-error",
+   "current": "- Recovery rate of 50.0%",
+   "proposed": "A risk analyst is producing a quick estimate of the CVA charge on an uncollateralised swap with a single counterparty, using the following simplifying assumptions.\n\n- Expected exposure is constant at 5.0% of notional, so expected positive exposure is also 5.0% of notional\n- Counterparty credit spread of 400 basis points\n- Recovery rate of 40.0%\n- Constant hazard rate of 6.7%\n- Approximate maturity of 5.0 years\n\nWhich of the following is nearest to the correct estimate of the CVA charge, expressed as a running spread?",
+   "source_says": "Recovery rate of 50.0% (PDF p.54); p.55 notes lambda = s/(1-R) = 8.0% vs the stated 6.7% and calls it rounding",
+   "derivation": "400 bps/(1-0.40) = 666.7 bps = 6.7%, so the stated hazard rate implies R = 40%; with R = 50% it would be 8.0% (not a rounding difference). With R = 40%, (b) 33.3 = 20/0.60 and (c) 50 = 0.05*400/0.40 become exact named errors; with R = 50% neither is. The answer (a) 20 bps is unaffected. Optional: add to the solution \"Consistency check: lambda = 0.04/(1-0.40) = 6.67%, the stated hazard rate.\"",
+   "evidence": "PDF p.54-55",
+   "confidence": "medium",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-38",
+   "field": "solution",
+   "severity": "wrong-content",
+   "current": "Netting benefit = sum standalone CVA - netting set CVA = -1.320 - (-0.930) = 0.390 (also optionAnalysis a: \"-1.320 - (-0.930) = 0.390\")",
+   "proposed": {
+    "solution": "Computing incremental CVA from the order of execution, and quantifying the netting benefit as the gap between the sum of standalone CVAs and the netting set total.\n\n**Step 1. The first trade's incremental CVA equals its standalone CVA.** The cross-currency swap was executed first, so it had nothing to net against:\n\n$$\\text{Incremental CVA}_{CCS} = \\text{Standalone CVA}_{CCS} = -0.700$$\n\n**Step 2. Incremental CVAs sum to the netting set total.**\n\n$$\\text{Incremental CVA}_{IRS} = \\text{Total CVA} - \\text{Incremental CVA}_{CCS} = -0.930 - (-0.700) = -0.230$$\n\n**Step 3. Netting benefit.**\n\n$$\\text{Netting benefit} = \\text{netting set CVA} - \\sum \\text{standalone CVA} = -0.930 - (-1.320) = 0.390$$\n\nThe two trades partially offset, so the counterparty charge is 0.390 smaller than the sum of the parts.\n\n**The relationships to hold.**\n\n| Property | Incremental CVA | Marginal CVA |\n|---|---|---|\n| Sums to netting set total | Yes | Yes |\n| Depends on execution order | Yes | No |\n| First trade equals standalone | Yes | No |\n| Used for | Pricing a new trade | Attributing existing CVA at a point in time |\n\nNote the order dependence: had the interest rate swap been executed first, its incremental CVA would have been its standalone -0.620 and the cross-currency swap's would have been -0.310. The total is -0.930 either way, but the allocation between trades is entirely different. Marginal CVA removes that dependence and is therefore the measure used for ongoing attribution rather than pricing.",
+    "optionAnalysis": {
+     "a": {
+      "verdict": "correct",
+      "reason": "-0.930 - (-0.700) = -0.230, and -0.930 - (-1.320) = 0.390."
+     }
+    }
+   },
+   "source_says": "Same equation in PDF (Q38 solution Step 3 and option analysis a)",
+   "derivation": "-1.320 - (-0.930) = -0.390, not +0.390. With CVA expressed as negative numbers, the benefit (the reduction in charge) is netting-set CVA minus the sum of standalone CVAs = -0.930 + 1.320 = +0.390. The key (a) is correct: incremental IRS = -0.930 - (-0.700) = -0.230.",
+   "evidence": "PDF Q38 (p.59-60)",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "CR-T1-45",
+   "field": "solution",
+   "severity": "typo",
+   "current": "\\frac{0.5413 + 0.1108}{0.28} = 2.33",
+   "proposed": "Economic capital as the distance from asset value to the default threshold, read off a lognormal asset distribution.\n\n**Step 1. Total asset value.** All accounts are at market value, so assets equal the sum of the right hand side:\n\n$$V_{0} = 29.0 + 17.0 + 20.0 + 13.0 = \\text{USD } 79.0 \\text{ billion}$$\n\n**Step 2. The default threshold.** Solvency is judged from the senior debt perspective. Default occurs when asset value falls to the level of the claims ranking at or above senior debt, that is, insured deposits plus senior debt:\n\n$$F = 29.0 (\\text{deposits}) + 17.0 (\\text{senior debt}) = \\text{USD } 46.0 \\text{ billion}$$\n\n**Step 3. Economic capital is the buffer between the two.**\n\n$$EC = V_{0} - F = 79.0 - 46.0 = \\text{USD } 33.0 \\text{ billion}$$\n\nEquivalently, EC is the sum of the tranches that can be wiped out before senior debt is impaired: equity (13.0) plus junior debt (20.0) = USD 33.0 billion.\n\n**Step 4. Confirm the confidence level.** The bracketed expression is the Merton-style distance to default, $d_{2}$, under a lognormal asset value:\n\n$$d_{2} = \\frac{\\ln(V_{0}/F) + (\\mu - \\sigma^{2}/2)T}{\\sigma\\sqrt{T}}$$\n\nSubstituting $V_{0} = 79.0$, $F = 46.0$, $\\mu = 0.150$, $\\sigma = 0.280$, $T = 1$:\n\n$$d_{2} = \\frac{\\ln(79.0/46.0) + 0.150 - 0.280^{2}/2}{0.28} = \\frac{0.5408 + 0.1108}{0.28} = 2.33$$\n\n$N(2.33) = 0.990$, so a USD 33.0 billion cushion is exactly the 99.0% one-year standard. The arithmetic and the confidence level agree, which confirms the pairing in option (b).",
+   "source_says": "0.5413 (source Q45 solution)",
+   "derivation": "ln(79/46) = 0.54081; (0.5408 + 0.1108)/0.28 = 2.327, which rounds to 2.33, N = 0.990. The result and key (b) are unchanged. (optionAnalysis d's \"29 + 17 + 20 = 66 vs threshold 67.0\" is loose wording but harmless.)",
+   "evidence": "PDF Q45 solution",
+   "confidence": "high",
+   "addedByVerifier": true
+  }
+ ],
+ "spotChecked": [
+  "CR-T1-08",
+  "CR-T1-15",
+  "CR-T1-18",
+  "CR-T1-37",
+  "CR-T1-45",
+  "CR-T1-16",
+  "CR-T1-22",
+  "CR-T1-38"
+ ],
+ "notes": "Source text was extracted with qaudit/work_crt11/pipe.py (PDF rendering tools were unavailable). Spot-checked keys all confirmed: 08 a, 15 d, 16 c (17.7%), 18 a (1.0567%), 22 a (DD A 8.52 > C 8.36 > B 4.90), 37 b, 38 a, 45 b (d2 2.327)."
+}

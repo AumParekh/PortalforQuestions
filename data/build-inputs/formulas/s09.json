@@ -1,0 +1,3131 @@
+[
+ {
+  "id": "MR-8-F01",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 156,
+  "objective": "MR-8 a",
+  "name": "Two-asset portfolio expected return",
+  "prompt": "What is the mean return of a two-asset portfolio, given the weights and each asset's mean return?",
+  "latex": "\\mu_P = w_X \\mu_X + w_Y \\mu_Y",
+  "variables": [
+   {
+    "symbol": "\\mu_P",
+    "meaning": "mean (expected) return of the portfolio"
+   },
+   {
+    "symbol": "w_X",
+    "meaning": "portfolio weight of asset X"
+   },
+   {
+    "symbol": "w_Y",
+    "meaning": "portfolio weight of asset Y"
+   },
+   {
+    "symbol": "\\mu_X",
+    "meaning": "mean return of asset X"
+   },
+   {
+    "symbol": "\\mu_Y",
+    "meaning": "mean return of asset Y"
+   }
+  ],
+  "skeleton": "\\mu_P = {{1}} \\mu_X + {{2}} {{3}}",
+  "slots": [
+   "w_X",
+   "w_Y",
+   "\\mu_Y"
+  ],
+  "decoys": [
+   "\\sigma_Y",
+   "w_Y^2",
+   "\\rho_{XY}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mu_P = w_X^2 \\mu_X + w_Y^2 \\mu_Y",
+    "kind": "exponent",
+    "why": "Squared weights belong in the portfolio variance, not the mean; the mean is a plain weighted average."
+   },
+   {
+    "latex": "\\mu_P = w_X \\mu_Y + w_Y \\mu_X",
+    "kind": "wrong-variable",
+    "why": "Each weight must multiply its own asset's mean return."
+   },
+   {
+    "latex": "\\mu_P = w_X \\mu_X + w_Y \\mu_Y + 2 w_X w_Y \\rho_{XY}",
+    "kind": "extra-term",
+    "why": "Correlation does not affect the portfolio mean; it only enters the risk (standard deviation)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu_X",
+    "direction": "up",
+    "why": "With a positive weight on X, a higher mean return on X lifts the portfolio mean."
+   },
+   {
+    "variable": "\\mu_Y",
+    "direction": "up",
+    "why": "With a positive weight on Y, a higher mean return on Y lifts the portfolio mean."
+   }
+  ],
+  "intuition": "The return is just the weighted average; correlation never touches it, only the risk.",
+  "calc": {
+   "expr": "wX*muX + wY*muY",
+   "inputs": [
+    {
+     "name": "wX",
+     "symbol": "w_X",
+     "min": 0,
+     "max": 1,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "wY",
+     "symbol": "w_Y",
+     "min": 0,
+     "max": 1,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "muX",
+     "symbol": "\\mu_X",
+     "min": -0.1,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "muY",
+     "symbol": "\\mu_Y",
+     "min": -0.1,
+     "max": 0.4,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\mu_P",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "portfolio",
+   "diversification"
+  ]
+ },
+ {
+  "id": "MR-8-F02",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 156,
+  "objective": "MR-8 a",
+  "name": "Two-asset portfolio standard deviation",
+  "prompt": "What is the standard deviation of a two-asset portfolio, given the weights, each asset's volatility and their covariance?",
+  "latex": "\\sigma_P = \\sqrt{ w_X^2 \\sigma_X^2 + w_Y^2 \\sigma_Y^2 + 2 w_X w_Y \\mathrm{cov}_{XY} }",
+  "variables": [
+   {
+    "symbol": "\\sigma_P",
+    "meaning": "standard deviation (risk) of the portfolio"
+   },
+   {
+    "symbol": "w_X",
+    "meaning": "portfolio weight of asset X"
+   },
+   {
+    "symbol": "w_Y",
+    "meaning": "portfolio weight of asset Y"
+   },
+   {
+    "symbol": "\\sigma_X",
+    "meaning": "standard deviation of asset X's returns"
+   },
+   {
+    "symbol": "\\sigma_Y",
+    "meaning": "standard deviation of asset Y's returns"
+   },
+   {
+    "symbol": "\\mathrm{cov}_{XY}",
+    "meaning": "covariance between the two assets' returns; the only term that carries correlation and the only one that can be negative"
+   }
+  ],
+  "skeleton": "\\sigma_P = \\sqrt{ {{1}} \\sigma_X^2 + w_Y^2 {{2}} + {{3}} w_X w_Y {{4}} }",
+  "slots": [
+   "w_X^2",
+   "\\sigma_Y^2",
+   "2",
+   "\\mathrm{cov}_{XY}"
+  ],
+  "decoys": [
+   "w_X",
+   "\\sigma_Y",
+   "\\rho_{XY}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\sigma_P = \\sqrt{ w_X^2 \\sigma_X^2 + w_Y^2 \\sigma_Y^2 + w_X w_Y \\mathrm{cov}_{XY} }",
+    "kind": "scaling",
+    "why": "The cross term is counted twice (XY and YX), so it needs the factor 2."
+   },
+   {
+    "latex": "\\sigma_P = \\sqrt{ w_X^2 \\sigma_X^2 + w_Y^2 \\sigma_Y^2 - 2 w_X w_Y \\mathrm{cov}_{XY} }",
+    "kind": "sign",
+    "why": "The covariance term is added; a negative covariance lowers risk by itself, the formula does not flip its sign."
+   },
+   {
+    "latex": "\\sigma_P = \\sqrt{ w_X \\sigma_X^2 + w_Y \\sigma_Y^2 + 2 w_X w_Y \\mathrm{cov}_{XY} }",
+    "kind": "exponent",
+    "why": "Variance scales with the square of the weight, so the own-variance terms need w squared."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{cov}_{XY}",
+    "direction": "up",
+    "why": "Higher covariance (higher correlation) means less diversification and more portfolio risk."
+   },
+   {
+    "variable": "\\sigma_X",
+    "direction": "up",
+    "why": "With a positive weight and the covariance held fixed, a more volatile asset X raises portfolio variance."
+   }
+  ],
+  "intuition": "Only the covariance term can go negative, so correlation is the one lever that makes diversification work.",
+  "calc": {
+   "expr": "Math.sqrt(wX**2*sX**2 + wY**2*sY**2 + 2*wX*wY*cov)",
+   "inputs": [
+    {
+     "name": "wX",
+     "symbol": "w_X",
+     "min": 0.2,
+     "max": 0.8,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "wY",
+     "symbol": "w_Y",
+     "min": 0.2,
+     "max": 0.8,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "sX",
+     "symbol": "\\sigma_X",
+     "min": 0.2,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "sY",
+     "symbol": "\\sigma_Y",
+     "min": 0.2,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "cov",
+     "symbol": "\\mathrm{cov}_{XY}",
+     "min": -0.02,
+     "max": 0.04,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\sigma_P",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "portfolio",
+   "diversification",
+   "correlation"
+  ]
+ },
+ {
+  "id": "MR-8-F03",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 165,
+  "objective": "MR-8 a",
+  "name": "Sample covariance of two return series",
+  "prompt": "How is the covariance between two assets estimated from n paired return observations?",
+  "latex": "\\mathrm{cov}_{XY} = \\frac{\\sum_{t=1}^{n} (X_t - \\mu_X)(Y_t - \\mu_Y)}{n-1}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{cov}_{XY}",
+    "meaning": "sample covariance between the returns of X and Y"
+   },
+   {
+    "symbol": "X_t",
+    "meaning": "return of asset X in period t"
+   },
+   {
+    "symbol": "Y_t",
+    "meaning": "return of asset Y in period t"
+   },
+   {
+    "symbol": "\\mu_X",
+    "meaning": "mean return of asset X"
+   },
+   {
+    "symbol": "\\mu_Y",
+    "meaning": "mean return of asset Y"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of return observations"
+   }
+  ],
+  "skeleton": "\\mathrm{cov}_{XY} = \\frac{\\sum_{t=1}^{n} ({{1}} - \\mu_X)({{2}} - {{3}})}{ {{4}} }",
+  "slots": [
+   "X_t",
+   "Y_t",
+   "\\mu_Y",
+   "n-1"
+  ],
+  "decoys": [
+   "n",
+   "\\sigma_X \\sigma_Y",
+   "(n-1)^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{cov}_{XY} = \\frac{\\sum_{t=1}^{n} (X_t - \\mu_X)(Y_t - \\mu_Y)}{n}",
+    "kind": "scaling",
+    "why": "The notes use the sample estimator, dividing by n - 1, not n."
+   },
+   {
+    "latex": "\\mathrm{cov}_{XY} = \\frac{\\sum_{t=1}^{n} (X_t - \\mu_Y)(Y_t - \\mu_X)}{n-1}",
+    "kind": "wrong-variable",
+    "why": "Each return must be demeaned by its own asset's mean."
+   },
+   {
+    "latex": "\\mathrm{cov}_{XY} = \\frac{\\sum_{t=1}^{n} (X_t - \\mu_X)^2}{n-1}",
+    "kind": "sibling",
+    "why": "That is the variance of X; covariance multiplies the X deviation by the Y deviation."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Average the cross products of the two deviations: same-side moves add, opposite-side moves subtract.",
+  "tags": [
+   "covariance",
+   "statistics"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-8-F04",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 165,
+  "objective": "MR-8 a",
+  "name": "Correlation coefficient from covariance",
+  "prompt": "How do you turn the covariance of two assets into their correlation coefficient?",
+  "latex": "\\rho_{XY} = \\frac{\\mathrm{cov}_{XY}}{\\sigma_X \\sigma_Y}",
+  "variables": [
+   {
+    "symbol": "\\rho_{XY}",
+    "meaning": "correlation coefficient between X and Y, between -1 and +1"
+   },
+   {
+    "symbol": "\\mathrm{cov}_{XY}",
+    "meaning": "covariance between X and Y"
+   },
+   {
+    "symbol": "\\sigma_X",
+    "meaning": "standard deviation of X"
+   },
+   {
+    "symbol": "\\sigma_Y",
+    "meaning": "standard deviation of Y"
+   }
+  ],
+  "skeleton": "\\rho_{XY} = \\frac{ {{1}} }{ {{2}} {{3}} }",
+  "slots": [
+   "\\mathrm{cov}_{XY}",
+   "\\sigma_X",
+   "\\sigma_Y"
+  ],
+  "decoys": [
+   "\\sigma_X^2",
+   "\\sigma_Y^2",
+   "n-1"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\rho_{XY} = \\frac{\\sigma_X \\sigma_Y}{\\mathrm{cov}_{XY}}",
+    "kind": "inverted",
+    "why": "Upside down: covariance goes on top, the product of standard deviations rescales it."
+   },
+   {
+    "latex": "\\rho_{XY} = \\frac{\\mathrm{cov}_{XY}}{\\sigma_X^2 \\sigma_Y^2}",
+    "kind": "exponent",
+    "why": "Divide by the standard deviations, not the variances, to land on the [-1, +1] range."
+   },
+   {
+    "latex": "\\rho_{XY} = \\mathrm{cov}_{XY} \\, \\sigma_X \\sigma_Y",
+    "kind": "inverted",
+    "why": "Multiplying is the reverse step (building covariance from correlation); here you divide."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{cov}_{XY}",
+    "direction": "up",
+    "why": "With volatilities fixed, a larger covariance means a higher correlation."
+   },
+   {
+    "variable": "\\sigma_X",
+    "direction": "depends",
+    "why": "Depends on the sign of the covariance: a larger sigma_X pulls rho toward zero from either side."
+   }
+  ],
+  "intuition": "Covariance in units nobody understands, divided by both volatilities, becomes a clean number between -1 and +1.",
+  "calc": {
+   "expr": "cov/(sX*sY)",
+   "inputs": [
+    {
+     "name": "cov",
+     "symbol": "\\mathrm{cov}_{XY}",
+     "min": -0.13,
+     "max": 0.13,
+     "step": 0.001,
+     "unit": "decimal"
+    },
+    {
+     "name": "sX",
+     "symbol": "\\sigma_X",
+     "min": 0.36,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "sY",
+     "symbol": "\\sigma_Y",
+     "min": 0.36,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\rho_{XY}",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "cov": -0.1284,
+     "sX": 0.4207,
+     "sY": 0.4068
+    },
+    "output": -0.7501,
+    "source_line": 210
+   }
+  },
+  "tags": [
+   "correlation",
+   "statistics"
+  ]
+ },
+ {
+  "id": "MR-8-F05",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 343,
+  "objective": "MR-8 d",
+  "name": "Realized correlation for a correlation swap",
+  "prompt": "How is the realized correlation of an n-asset portfolio computed from its pairwise correlations for a correlation swap?",
+  "latex": "\\rho_{\\text{realized}} = \\frac{2}{n^2 - n} \\sum_{i>j} \\rho_{i,j}",
+  "variables": [
+   {
+    "symbol": "\\rho_{\\text{realized}}",
+    "meaning": "realized (average pairwise) correlation of the portfolio"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of assets in the portfolio"
+   },
+   {
+    "symbol": "\\rho_{i,j}",
+    "meaning": "realized pairwise correlation between assets i and j, counted once per pair (i > j)"
+   }
+  ],
+  "skeleton": "\\rho_{\\text{realized}} = \\frac{ {{1}} }{ {{2}} } \\sum_{ {{3}} } \\rho_{i,j}",
+  "slots": [
+   "2",
+   "n^2 - n",
+   "i>j"
+  ],
+  "decoys": [
+   "n^2",
+   "n-1",
+   "n(n+1)"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\rho_{\\text{realized}} = \\frac{1}{n^2 - n} \\sum_{i>j} \\rho_{i,j}",
+    "kind": "scaling",
+    "why": "There are (n^2 - n)/2 distinct pairs, so the averaging factor is 2/(n^2 - n); without the 2 you halve the answer."
+   },
+   {
+    "latex": "\\rho_{\\text{realized}} = \\frac{2}{n^2} \\sum_{i>j} \\rho_{i,j}",
+    "kind": "missing-term",
+    "why": "The n diagonal (self) correlations are excluded, so the pair count uses n^2 - n."
+   },
+   {
+    "latex": "\\rho_{\\text{realized}} = \\frac{2}{n^2 + n} \\sum_{i>j} \\rho_{i,j}",
+    "kind": "sign",
+    "why": "The pair count is (n^2 - n)/2, not (n^2 + n)/2."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\rho_{i,j}",
+    "direction": "up",
+    "why": "Higher pairwise correlations raise the average realized correlation."
+   },
+   {
+    "variable": "n",
+    "direction": "down",
+    "why": "With the sum of pairwise correlations fixed, more assets means more pairs to average over, so the average falls."
+   }
+  ],
+  "intuition": "It is simply the average correlation across the n(n-1)/2 distinct pairs.",
+  "calc": {
+   "expr": "2/(n*n - n)*S",
+   "inputs": [
+    {
+     "name": "n",
+     "symbol": "n",
+     "min": 2,
+     "max": 10,
+     "step": 1,
+     "unit": "assets"
+    },
+    {
+     "name": "S",
+     "symbol": "\\sum_{i>j}\\rho_{i,j}",
+     "min": 0,
+     "max": 3,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\rho_{\\text{realized}}",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "n": 3,
+     "S": 0.84
+    },
+    "output": 0.28,
+    "source_line": 361
+   }
+  },
+  "tags": [
+   "correlation swap",
+   "exotics"
+  ]
+ },
+ {
+  "id": "MR-8-F06",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 345,
+  "objective": "MR-8 d",
+  "name": "Correlation swap payoff to the buyer",
+  "prompt": "What does the buyer of a correlation swap (fixed-correlation payer) receive at maturity?",
+  "latex": "\\text{Payoff} = \\text{notional} \\times ( \\rho_{\\text{realized}} - \\rho_{\\text{fixed}} )",
+  "variables": [
+   {
+    "symbol": "\\text{Payoff}",
+    "meaning": "payoff to the correlation buyer (fixed-rate payer)"
+   },
+   {
+    "symbol": "\\text{notional}",
+    "meaning": "notional amount of the swap"
+   },
+   {
+    "symbol": "\\rho_{\\text{realized}}",
+    "meaning": "realized (average pairwise) correlation at maturity"
+   },
+   {
+    "symbol": "\\rho_{\\text{fixed}}",
+    "meaning": "fixed correlation rate agreed at inception (decimal)"
+   }
+  ],
+  "skeleton": "\\text{Payoff} = {{1}} \\times ( {{2}} - {{3}} )",
+  "slots": [
+   "\\text{notional}",
+   "\\rho_{\\text{realized}}",
+   "\\rho_{\\text{fixed}}"
+  ],
+  "decoys": [
+   "\\rho_{i,j}",
+   "n",
+   "\\sigma_P"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Payoff} = \\text{notional} \\times ( \\rho_{\\text{fixed}} - \\rho_{\\text{realized}} )",
+    "kind": "sign",
+    "why": "That is the seller's payoff; the buyer pays fixed and receives realized, so profits when correlation rises."
+   },
+   {
+    "latex": "\\text{Payoff} = \\text{notional} \\times \\rho_{\\text{realized}}",
+    "kind": "missing-term",
+    "why": "The fixed leg must be netted off: the payoff is the difference between realized and fixed."
+   },
+   {
+    "latex": "\\text{Payoff} = \\text{notional} \\times ( \\rho_{\\text{realized}} + \\rho_{\\text{fixed}} )",
+    "kind": "sign",
+    "why": "The buyer pays the fixed rate, so it is subtracted."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\rho_{\\text{realized}}",
+    "direction": "up",
+    "why": "The buyer receives realized correlation, so higher realized correlation raises the payoff."
+   },
+   {
+    "variable": "\\rho_{\\text{fixed}}",
+    "direction": "down",
+    "why": "The buyer pays the fixed correlation, so a higher fixed rate cuts the payoff."
+   },
+   {
+    "variable": "\\text{notional}",
+    "direction": "depends",
+    "why": "Depends on the sign of (realized - fixed): notional scales a gain or a loss."
+   }
+  ],
+  "intuition": "Just a fixed-for-floating swap with correlation in place of an interest rate: buyer wins if correlation rises.",
+  "calc": {
+   "expr": "N*(rr - rf)",
+   "inputs": [
+    {
+     "name": "N",
+     "symbol": "\\text{notional}",
+     "min": 1000000,
+     "max": 20000000,
+     "step": 1000000,
+     "unit": "$"
+    },
+    {
+     "name": "rr",
+     "symbol": "\\rho_{\\text{realized}}",
+     "min": -0.2,
+     "max": 0.9,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "rf",
+     "symbol": "\\rho_{\\text{fixed}}",
+     "min": 0,
+     "max": 0.6,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Payoff}",
+    "unit": "$",
+    "decimals": 0
+   },
+   "example": {
+    "inputs": {
+     "N": 1000000,
+     "rr": 0.28,
+     "rf": 0.2
+    },
+    "output": 80000,
+    "source_line": 363
+   }
+  },
+  "tags": [
+   "correlation swap",
+   "payoff"
+  ]
+ },
+ {
+  "id": "MR-8-F07",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 383,
+  "objective": "MR-8 e",
+  "name": "Portfolio VaR from portfolio volatility",
+  "prompt": "How is an x-day portfolio VaR obtained from the daily portfolio volatility and the confidence level?",
+  "latex": "\\mathrm{VaR}_P = \\sigma_P \\times \\alpha \\times \\sqrt{x}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{VaR}_P",
+    "meaning": "value at risk of the portfolio over x days"
+   },
+   {
+    "symbol": "\\sigma_P",
+    "meaning": "(daily) volatility of the portfolio in money terms, where correlation enters"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "standard normal deviate for the confidence level (2.3264 at 99%)"
+   },
+   {
+    "symbol": "x",
+    "meaning": "time horizon in days"
+   }
+  ],
+  "skeleton": "\\mathrm{VaR}_P = {{1}} \\times {{2}} \\times \\sqrt{ {{3}} }",
+  "slots": [
+   "\\sigma_P",
+   "\\alpha",
+   "x"
+  ],
+  "decoys": [
+   "\\sigma_P^2",
+   "C",
+   "252"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{VaR}_P = \\sigma_P \\times \\alpha \\times x",
+    "kind": "exponent",
+    "why": "Volatility scales with the square root of time, not linearly."
+   },
+   {
+    "latex": "\\mathrm{VaR}_P = \\sigma_P^2 \\times \\alpha \\times \\sqrt{x}",
+    "kind": "exponent",
+    "why": "Use the portfolio volatility (square root of beta_h C beta_v), not the variance."
+   },
+   {
+    "latex": "\\mathrm{VaR}_P = \\frac{\\sigma_P \\times \\alpha}{\\sqrt{x}}",
+    "kind": "inverted",
+    "why": "A longer horizon raises VaR, so sqrt(x) multiplies."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma_P",
+    "direction": "up",
+    "why": "More portfolio volatility (e.g. from higher correlation) means more VaR."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "up",
+    "why": "A higher confidence level means a larger deviate and a larger VaR."
+   },
+   {
+    "variable": "x",
+    "direction": "up",
+    "why": "A longer horizon scales VaR up by the square root of time."
+   }
+  ],
+  "intuition": "Volatility times the z-score times root-time; correlation hides inside sigma_P.",
+  "calc": {
+   "expr": "sP*a*Math.sqrt(x)",
+   "inputs": [
+    {
+     "name": "sP",
+     "symbol": "\\sigma_P",
+     "min": 0.05,
+     "max": 1,
+     "step": 0.01,
+     "unit": "USD m"
+    },
+    {
+     "name": "a",
+     "symbol": "\\alpha",
+     "min": 1.645,
+     "max": 2.3264,
+     "step": 0.6814,
+     "unit": ""
+    },
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 1,
+     "max": 20,
+     "step": 1,
+     "unit": "days"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{VaR}_P",
+    "unit": "USD m",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "sP": 0.2377,
+     "a": 2.3264,
+     "x": 10
+    },
+    "output": 1.7486,
+    "source_line": 424
+   }
+  },
+  "tags": [
+   "VaR",
+   "correlation"
+  ]
+ },
+ {
+  "id": "MR-8-F08",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 385,
+  "objective": "MR-8 e",
+  "name": "Portfolio volatility from the covariance matrix",
+  "prompt": "How is portfolio volatility computed in matrix form from the position vector and the covariance matrix?",
+  "latex": "\\sigma_P = \\sqrt{ \\beta_h \\, C \\, \\beta_v }",
+  "variables": [
+   {
+    "symbol": "\\sigma_P",
+    "meaning": "volatility of the portfolio"
+   },
+   {
+    "symbol": "\\beta_h",
+    "meaning": "horizontal (row) vector of invested amounts (price x quantity)"
+   },
+   {
+    "symbol": "C",
+    "meaning": "covariance matrix of the asset returns"
+   },
+   {
+    "symbol": "\\beta_v",
+    "meaning": "the same vector of invested amounts written vertically (column)"
+   }
+  ],
+  "skeleton": "\\sigma_P = \\sqrt{ {{1}} \\, {{2}} \\, {{3}} }",
+  "slots": [
+   "\\beta_h",
+   "C",
+   "\\beta_v"
+  ],
+  "decoys": [
+   "\\alpha",
+   "C^2",
+   "\\rho_{ij}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\sigma_P = \\beta_h \\, C \\, \\beta_v",
+    "kind": "exponent",
+    "why": "beta_h C beta_v is the portfolio variance; take the square root to get volatility."
+   },
+   {
+    "latex": "\\sigma_P = \\sqrt{ \\beta_h \\, \\beta_v }",
+    "kind": "missing-term",
+    "why": "Without the covariance matrix there is no volatility or correlation in the result at all."
+   },
+   {
+    "latex": "\\sigma_P = \\sqrt{ \\beta_h \\, C^2 \\, \\beta_v }",
+    "kind": "exponent",
+    "why": "The covariance matrix already holds variances; it is not squared again."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Row of dollars, times covariance matrix, times column of dollars = variance; root it for volatility.",
+  "tags": [
+   "VaR",
+   "covariance matrix"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-8-F09",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 395,
+  "objective": "MR-8 e",
+  "name": "Covariance matrix entry from correlation and volatilities",
+  "prompt": "How is each entry of the covariance matrix built from the pairwise correlation and the two volatilities?",
+  "latex": "\\mathrm{Cov}_{ij} = \\rho_{ij}\\, \\sigma_i\\, \\sigma_j",
+  "variables": [
+   {
+    "symbol": "\\mathrm{Cov}_{ij}",
+    "meaning": "covariance between assets i and j (entry i, j of the covariance matrix)"
+   },
+   {
+    "symbol": "\\rho_{ij}",
+    "meaning": "correlation between assets i and j (1 on the diagonal)"
+   },
+   {
+    "symbol": "\\sigma_i",
+    "meaning": "volatility (standard deviation of returns) of asset i"
+   },
+   {
+    "symbol": "\\sigma_j",
+    "meaning": "volatility of asset j"
+   }
+  ],
+  "skeleton": "\\mathrm{Cov}_{ij} = {{1}}\\, {{2}}\\, {{3}}",
+  "slots": [
+   "\\rho_{ij}",
+   "\\sigma_i",
+   "\\sigma_j"
+  ],
+  "decoys": [
+   "\\sigma_i^2",
+   "\\rho_{ij}^2",
+   "\\frac{1}{\\rho_{ij}}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{Cov}_{ij} = \\frac{\\rho_{ij}}{\\sigma_i\\, \\sigma_j}",
+    "kind": "inverted",
+    "why": "Dividing is the step from covariance to correlation; to build covariance you multiply."
+   },
+   {
+    "latex": "\\mathrm{Cov}_{ij} = \\rho_{ij}\\, \\sigma_i^2\\, \\sigma_j^2",
+    "kind": "exponent",
+    "why": "Covariance uses the standard deviations, not the variances."
+   },
+   {
+    "latex": "\\mathrm{Cov}_{ij} = \\rho_{ij}\\, (\\sigma_i + \\sigma_j)",
+    "kind": "wrong-variable",
+    "why": "The volatilities are multiplied, not added."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\rho_{ij}",
+    "direction": "up",
+    "why": "Higher correlation, same volatilities, means higher covariance."
+   },
+   {
+    "variable": "\\sigma_i",
+    "direction": "depends",
+    "why": "Depends on the sign of rho_ij: larger sigma_i magnifies the covariance in whichever direction rho points."
+   }
+  ],
+  "intuition": "Correlation times both volatilities; on the diagonal rho = 1 so you get the variance.",
+  "calc": {
+   "expr": "rho*si*sj",
+   "inputs": [
+    {
+     "name": "rho",
+     "symbol": "\\rho_{ij}",
+     "min": -1,
+     "max": 1,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "si",
+     "symbol": "\\sigma_i",
+     "min": 0.005,
+     "max": 0.05,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "sj",
+     "symbol": "\\sigma_j",
+     "min": 0.005,
+     "max": 0.05,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{Cov}_{ij}",
+    "unit": "",
+    "decimals": 6
+   },
+   "example": {
+    "inputs": {
+     "rho": 0.7,
+     "si": 0.02,
+     "sj": 0.01
+    },
+    "output": 0.00014,
+    "source_line": 406
+   }
+  },
+  "tags": [
+   "covariance matrix",
+   "correlation"
+  ]
+ },
+ {
+  "id": "MR-8-F10",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 533,
+  "objective": "MR-8 g",
+  "name": "Joint default probability of two borrowers",
+  "prompt": "What is the probability that both A and B default, given their individual default probabilities and their default correlation?",
+  "latex": "P(AB) = \\rho_{AB} \\sqrt{ PD_A (1 - PD_A) \\times PD_B (1 - PD_B) } + PD_A \\times PD_B",
+  "variables": [
+   {
+    "symbol": "P(AB)",
+    "meaning": "joint probability that both A and B default"
+   },
+   {
+    "symbol": "\\rho_{AB}",
+    "meaning": "default correlation between A and B"
+   },
+   {
+    "symbol": "PD_A",
+    "meaning": "default probability of A (decimal)"
+   },
+   {
+    "symbol": "PD_B",
+    "meaning": "default probability of B (decimal)"
+   }
+  ],
+  "skeleton": "P(AB) = {{1}} \\sqrt{ {{2}} \\times PD_B (1 - PD_B) } + {{3}}",
+  "slots": [
+   "\\rho_{AB}",
+   "PD_A (1 - PD_A)",
+   "PD_A \\times PD_B"
+  ],
+  "decoys": [
+   "PD_A^2",
+   "PD_A + PD_B",
+   "\\rho_{AB}^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "P(AB) = \\rho_{AB} \\sqrt{ PD_A (1 - PD_A) \\times PD_B (1 - PD_B) } - PD_A \\times PD_B",
+    "kind": "sign",
+    "why": "The independent-case product PD_A x PD_B is added: at zero correlation the joint PD collapses to it."
+   },
+   {
+    "latex": "P(AB) = \\rho_{AB} \\sqrt{ PD_A (1 - PD_A) \\times PD_B (1 - PD_B) }",
+    "kind": "missing-term",
+    "why": "Dropping PD_A x PD_B would make the joint PD zero at zero correlation, which is wrong."
+   },
+   {
+    "latex": "P(AB) = \\rho_{AB} \\, PD_A (1 - PD_A) \\times PD_B (1 - PD_B) + PD_A \\times PD_B",
+    "kind": "exponent",
+    "why": "The correlation multiplies the product of the two Bernoulli standard deviations, so the square root is needed."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\rho_{AB}",
+    "direction": "up",
+    "why": "Higher default correlation makes joint default more likely, raising expected loss."
+   }
+  ],
+  "intuition": "Independent product PD_A x PD_B, plus a correlation kicker; at rho = 0 it is just the product.",
+  "calc": {
+   "expr": "rho*Math.sqrt(pa*(1-pa)*pb*(1-pb)) + pa*pb",
+   "inputs": [
+    {
+     "name": "rho",
+     "symbol": "\\rho_{AB}",
+     "min": 0,
+     "max": 1,
+     "step": 0.1,
+     "unit": ""
+    },
+    {
+     "name": "pa",
+     "symbol": "PD_A",
+     "min": 0.01,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "pb",
+     "symbol": "PD_B",
+     "min": 0.01,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "P(AB)",
+    "unit": "decimal",
+    "decimals": 5
+   },
+   "example": {
+    "inputs": {
+     "rho": 0.5,
+     "pa": 0.05,
+     "pb": 0.05
+    },
+    "output": 0.02627,
+    "source_line": 557
+   }
+  },
+  "tags": [
+   "default correlation",
+   "concentration risk"
+  ]
+ },
+ {
+  "id": "MR-8-F11",
+  "reading_id": "MR-8",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+  "source_line": 554,
+  "objective": "MR-8 g",
+  "name": "Expected loss from the joint default probability",
+  "prompt": "In the two-loan concentration example, how is the expected loss computed from the joint default probability?",
+  "latex": "EL = P(AB) \\times LGD \\times EAD",
+  "variables": [
+   {
+    "symbol": "EL",
+    "meaning": "expected loss"
+   },
+   {
+    "symbol": "P(AB)",
+    "meaning": "joint probability that both borrowers default"
+   },
+   {
+    "symbol": "LGD",
+    "meaning": "loss given default (decimal; 100% in the example)"
+   },
+   {
+    "symbol": "EAD",
+    "meaning": "exposure at default (total of both loans in the example)"
+   }
+  ],
+  "skeleton": "EL = {{1}} \\times {{2}} \\times {{3}}",
+  "slots": [
+   "P(AB)",
+   "LGD",
+   "EAD"
+  ],
+  "decoys": [
+   "PD_A",
+   "\\rho_{AB}",
+   "1 - LGD"
+  ],
+  "corruptions": [
+   {
+    "latex": "EL = PD_A \\times PD_B \\times LGD \\times EAD",
+    "kind": "wrong-variable",
+    "why": "That only holds at zero correlation; the joint PD must include the correlation term."
+   },
+   {
+    "latex": "EL = P(AB) \\times (1 - LGD) \\times EAD",
+    "kind": "wrong-variable",
+    "why": "1 - LGD is the recovery rate; the loss uses LGD."
+   },
+   {
+    "latex": "EL = \\frac{P(AB) \\times EAD}{LGD}",
+    "kind": "inverted",
+    "why": "LGD scales the loss up, it does not divide it."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "P(AB)",
+    "direction": "up",
+    "why": "More likely joint default means larger expected loss."
+   },
+   {
+    "variable": "LGD",
+    "direction": "up",
+    "why": "Losing more per default raises expected loss."
+   },
+   {
+    "variable": "EAD",
+    "direction": "up",
+    "why": "Larger exposure means larger expected loss."
+   }
+  ],
+  "intuition": "Standard PD x LGD x EAD, with the joint PD as the PD, so correlation drives EL linearly.",
+  "calc": {
+   "expr": "pab*lgd*ead",
+   "inputs": [
+    {
+     "name": "pab",
+     "symbol": "P(AB)",
+     "min": 0.001,
+     "max": 0.1,
+     "step": 0.001,
+     "unit": "decimal"
+    },
+    {
+     "name": "lgd",
+     "symbol": "LGD",
+     "min": 0.2,
+     "max": 1,
+     "step": 0.1,
+     "unit": "decimal"
+    },
+    {
+     "name": "ead",
+     "symbol": "EAD",
+     "min": 1000000,
+     "max": 10000000,
+     "step": 500000,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "EL",
+    "unit": "$",
+    "decimals": 0
+   },
+   "example": {
+    "inputs": {
+     "pab": 0.02627,
+     "lgd": 1,
+     "ead": 5000000
+    },
+    "output": 131350,
+    "source_line": 557
+   }
+  },
+  "tags": [
+   "expected loss",
+   "default correlation"
+  ]
+ },
+ {
+  "id": "MR-11-F01",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 80,
+  "objective": "MR-11 b",
+  "name": "DV01-neutral hedge: face amount of the real bond",
+  "prompt": "How much face value of TIPS hedges a nominal T-bond position so the package is DV01-neutral?",
+  "latex": "F^R = F^N \\times \\left( \\frac{DV01^N}{DV01^R} \\right)",
+  "variables": [
+   {
+    "symbol": "F^R",
+    "meaning": "face amount of the real bond (TIPS) to buy"
+   },
+   {
+    "symbol": "F^N",
+    "meaning": "face amount of the nominal bond (T-bond) being hedged"
+   },
+   {
+    "symbol": "DV01^N",
+    "meaning": "DV01 of the nominal bond"
+   },
+   {
+    "symbol": "DV01^R",
+    "meaning": "DV01 of the real bond"
+   }
+  ],
+  "skeleton": "F^R = {{1}} \\times \\left( \\frac{ {{2}} }{ {{3}} } \\right)",
+  "slots": [
+   "F^N",
+   "DV01^N",
+   "DV01^R"
+  ],
+  "decoys": [
+   "F^R",
+   "\\beta",
+   "DV01^{10}"
+  ],
+  "corruptions": [
+   {
+    "latex": "F^R = F^N \\times \\left( \\frac{DV01^R}{DV01^N} \\right)",
+    "kind": "inverted",
+    "why": "The DV01 ratio is upside down: you need more real bonds when the nominal bond's DV01 is larger."
+   },
+   {
+    "latex": "F^R = F^N \\times \\left( \\frac{DV01^N}{DV01^R} \\right) \\times \\beta",
+    "kind": "sibling",
+    "why": "That is the regression hedge; the plain DV01-neutral hedge has no beta (it implicitly assumes beta = 1)."
+   },
+   {
+    "latex": "F^R = F^N \\times DV01^N \\times DV01^R",
+    "kind": "inverted",
+    "why": "The hedge equates DV01 exposures, so the hedge's DV01 divides."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "F^N",
+    "direction": "up",
+    "why": "A bigger position to hedge needs more TIPS face."
+   },
+   {
+    "variable": "DV01^N",
+    "direction": "up",
+    "why": "A larger nominal DV01 is more rate risk to offset, so more TIPS face is needed."
+   },
+   {
+    "variable": "DV01^R",
+    "direction": "down",
+    "why": "Each TIPS dollar hedges more when its DV01 is larger, so less face is needed."
+   }
+  ],
+  "intuition": "Match dollar rate risk: position face scaled by how much more rate risk per dollar it has than the hedge.",
+  "calc": {
+   "expr": "FN*DN/DR",
+   "inputs": [
+    {
+     "name": "FN",
+     "symbol": "F^N",
+     "min": 10,
+     "max": 500,
+     "step": 10,
+     "unit": "$M"
+    },
+    {
+     "name": "DN",
+     "symbol": "DV01^N",
+     "min": 0.02,
+     "max": 0.15,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "DR",
+     "symbol": "DV01^R",
+     "min": 0.02,
+     "max": 0.15,
+     "step": 0.001,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F^R",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "FN": 100,
+     "DN": 0.068,
+     "DR": 0.084
+    },
+    "output": 80.95,
+    "source_line": 86
+   }
+  },
+  "tags": [
+   "hedging",
+   "DV01"
+  ]
+ },
+ {
+  "id": "MR-11-F02",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 111,
+  "objective": "MR-11 c",
+  "name": "Single-variable yield regression (nominal on real)",
+  "prompt": "What regression is estimated to get the yield beta for hedging a nominal bond with TIPS?",
+  "latex": "\\Delta y_t^{\\,N} = \\alpha + \\beta\\, \\Delta y_t^{\\,R} + \\epsilon_t",
+  "variables": [
+   {
+    "symbol": "\\Delta y_t^{\\,N}",
+    "meaning": "change in the nominal yield (dependent variable)"
+   },
+   {
+    "symbol": "\\Delta y_t^{\\,R}",
+    "meaning": "change in the real yield (independent variable)"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "intercept"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "slope = the hedge adjustment factor (yield beta)"
+   },
+   {
+    "symbol": "\\epsilon_t",
+    "meaning": "error term"
+   }
+  ],
+  "skeleton": "{{1}} = \\alpha + \\beta\\, {{2}} + {{3}}",
+  "slots": [
+   "\\Delta y_t^{\\,N}",
+   "\\Delta y_t^{\\,R}",
+   "\\epsilon_t"
+  ],
+  "decoys": [
+   "\\Delta y_t^{\\,20}",
+   "y_t^{\\,N}",
+   "v_t"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\Delta y_t^{\\,R} = \\alpha + \\beta\\, \\Delta y_t^{\\,N} + \\epsilon_t",
+    "kind": "sibling",
+    "why": "That is the reverse regression; the hedge regresses the nominal (position) yield change on the real (hedge) yield change."
+   },
+   {
+    "latex": "y_t^{\\,N} = \\alpha + \\beta\\, y_t^{\\,R} + \\epsilon_t",
+    "kind": "sibling",
+    "why": "That is a level-on-level regression; the hedge regression uses yield changes."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Regress what you own on what you hedge with: the slope says how many bp the nominal yield moves per bp of real yield.",
+  "tags": [
+   "regression hedge",
+   "beta"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F03",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 123,
+  "objective": "MR-11 c",
+  "name": "Regression hedge: beta-adjusted face amount of the real bond",
+  "prompt": "How much face value of TIPS hedges a T-bond position once the DV01 hedge is adjusted by the regression yield beta?",
+  "latex": "F^R = F^N \\times \\left( \\frac{DV01^N}{DV01^R} \\right) \\times \\beta",
+  "variables": [
+   {
+    "symbol": "F^R",
+    "meaning": "face amount of the real bond (TIPS) to buy"
+   },
+   {
+    "symbol": "F^N",
+    "meaning": "face amount of the nominal bond being hedged"
+   },
+   {
+    "symbol": "DV01^N",
+    "meaning": "DV01 of the nominal bond"
+   },
+   {
+    "symbol": "DV01^R",
+    "meaning": "DV01 of the real bond"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "yield beta from regressing nominal yield changes on real yield changes"
+   }
+  ],
+  "skeleton": "F^R = {{1}} \\times \\left( \\frac{ {{2}} }{ {{3}} } \\right) \\times {{4}}",
+  "slots": [
+   "F^N",
+   "DV01^N",
+   "DV01^R",
+   "\\beta"
+  ],
+  "decoys": [
+   "\\alpha",
+   "\\frac{1}{\\beta}",
+   "R^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "F^R = F^N \\times \\left( \\frac{DV01^N}{DV01^R} \\right) \\div \\beta",
+    "kind": "inverted",
+    "why": "A beta above 1 means nominal yields move more, so MORE real bond is needed: multiply by beta."
+   },
+   {
+    "latex": "F^R = F^N \\times \\left( \\frac{DV01^R}{DV01^N} \\right) \\times \\beta",
+    "kind": "inverted",
+    "why": "The DV01 ratio is upside down; the nominal DV01 goes on top."
+   },
+   {
+    "latex": "F^R = F^N \\times \\left( \\frac{DV01^N}{DV01^R} \\right) \\times \\beta^2",
+    "kind": "exponent",
+    "why": "The yield beta enters once, not squared."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "F^N",
+    "direction": "up",
+    "why": "A bigger nominal position to hedge needs proportionally more TIPS face."
+   },
+   {
+    "variable": "\\beta",
+    "direction": "up",
+    "why": "A higher beta means nominal yields move more per bp of real yield, so more TIPS are needed."
+   },
+   {
+    "variable": "DV01^N",
+    "direction": "up",
+    "why": "More nominal rate risk to offset means more TIPS face."
+   },
+   {
+    "variable": "DV01^R",
+    "direction": "down",
+    "why": "A higher-DV01 hedge does more work per dollar, so less face is needed."
+   }
+  ],
+  "intuition": "Two corrections in sequence: the DV01 ratio fixes size, beta fixes the fact that yields do not move one-for-one.",
+  "calc": {
+   "expr": "FN*DN/DR*b",
+   "inputs": [
+    {
+     "name": "FN",
+     "symbol": "F^N",
+     "min": 10,
+     "max": 500,
+     "step": 10,
+     "unit": "$M"
+    },
+    {
+     "name": "DN",
+     "symbol": "DV01^N",
+     "min": 0.02,
+     "max": 0.15,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "DR",
+     "symbol": "DV01^R",
+     "min": 0.02,
+     "max": 0.15,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "b",
+     "symbol": "\\beta",
+     "min": 0.5,
+     "max": 1.5,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F^R",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "FN": 100,
+     "DN": 0.068,
+     "DR": 0.084,
+     "b": 1.0198
+    },
+    "output": 82.55,
+    "source_line": 161
+   }
+  },
+  "tags": [
+   "regression hedge",
+   "DV01",
+   "beta"
+  ]
+ },
+ {
+  "id": "MR-11-F04",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 191,
+  "objective": "MR-11 e",
+  "name": "Two-variable regression (20y swap on 10y and 30y)",
+  "prompt": "What regression gives the risk weights for hedging a 20-year swap with 10- and 30-year swaps?",
+  "latex": "\\Delta y_t^{\\,20} = \\alpha + \\beta^{10}\\, \\Delta y_t^{\\,10} + \\beta^{30}\\, \\Delta y_t^{\\,30} + \\epsilon_t",
+  "variables": [
+   {
+    "symbol": "\\Delta y_t^{\\,20}",
+    "meaning": "change in the 20-year swap rate (the position being hedged)"
+   },
+   {
+    "symbol": "\\Delta y_t^{\\,10}",
+    "meaning": "change in the 10-year swap rate"
+   },
+   {
+    "symbol": "\\Delta y_t^{\\,30}",
+    "meaning": "change in the 30-year swap rate"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "intercept"
+   },
+   {
+    "symbol": "\\beta^{10}",
+    "meaning": "risk weight on the 10-year swap"
+   },
+   {
+    "symbol": "\\beta^{30}",
+    "meaning": "risk weight on the 30-year swap"
+   },
+   {
+    "symbol": "\\epsilon_t",
+    "meaning": "error term"
+   }
+  ],
+  "skeleton": "\\Delta y_t^{\\,20} = \\alpha + {{1}}\\, {{2}} + \\beta^{30}\\, {{3}} + \\epsilon_t",
+  "slots": [
+   "\\beta^{10}",
+   "\\Delta y_t^{\\,10}",
+   "\\Delta y_t^{\\,30}"
+  ],
+  "decoys": [
+   "\\beta",
+   "\\Delta y_t^{\\,20}",
+   "DV01^{10}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\Delta y_t^{\\,20} = \\alpha + \\beta^{10}\\, \\Delta y_t^{\\,30} + \\beta^{30}\\, \\Delta y_t^{\\,10} + \\epsilon_t",
+    "kind": "wrong-variable",
+    "why": "Each beta belongs to its own tenor's rate change."
+   },
+   {
+    "latex": "\\Delta y_t^{\\,10} = \\alpha + \\beta^{20}\\, \\Delta y_t^{\\,20} + \\beta^{30}\\, \\Delta y_t^{\\,30} + \\epsilon_t",
+    "kind": "sibling",
+    "why": "The dependent variable is the position being hedged (the 20-year), regressed on the two hedging tenors."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "The illiquid 20y is explained by its two liquid neighbours; the betas are the DV01 shares each neighbour hedges.",
+  "tags": [
+   "regression hedge",
+   "swaps"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F05",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 202,
+  "objective": "MR-11 e",
+  "name": "Two-variable hedge: 10-year risk weight as a DV01 ratio",
+  "prompt": "How is the regression risk weight on the 10-year swap related to the face amounts and DV01s of the hedge leg and the 20-year position?",
+  "latex": "\\frac{-\\bigl(F^{10} \\times DV01^{10}\\bigr)}{F^{20} \\times DV01^{20}} = \\beta^{10}",
+  "variables": [
+   {
+    "symbol": "F^{10}",
+    "meaning": "face amount of the 10-year swap hedge (negative = sold)"
+   },
+   {
+    "symbol": "DV01^{10}",
+    "meaning": "DV01 of the 10-year swap"
+   },
+   {
+    "symbol": "F^{20}",
+    "meaning": "face amount of the 20-year swap position being hedged"
+   },
+   {
+    "symbol": "DV01^{20}",
+    "meaning": "DV01 of the 20-year swap"
+   },
+   {
+    "symbol": "\\beta^{10}",
+    "meaning": "regression risk weight on the 10-year rate change"
+   }
+  ],
+  "skeleton": "\\frac{-\\bigl({{1}} \\times {{2}}\\bigr)}{F^{20} \\times {{3}}} = \\beta^{10}",
+  "slots": [
+   "F^{10}",
+   "DV01^{10}",
+   "DV01^{20}"
+  ],
+  "decoys": [
+   "DV01^{30}",
+   "F^{30}",
+   "F^{20}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\frac{F^{10} \\times DV01^{10}}{F^{20} \\times DV01^{20}} = \\beta^{10}",
+    "kind": "sign",
+    "why": "The minus sign carries the short position: the hedge leg is sold against the long 20-year swap."
+   },
+   {
+    "latex": "\\frac{-\\bigl(F^{20} \\times DV01^{20}\\bigr)}{F^{10} \\times DV01^{10}} = \\beta^{10}",
+    "kind": "inverted",
+    "why": "The beta is the hedge leg's DV01 as a share of the position's DV01, so the 10-year leg goes on top."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Beta is the fraction of the 20-year position's dollar DV01 that the 10-year leg must offset.",
+  "tags": [
+   "regression hedge",
+   "risk weights"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F06",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 202,
+  "objective": "MR-11 e",
+  "name": "Two-variable hedge: 30-year risk weight as a DV01 ratio",
+  "prompt": "How is the regression risk weight on the 30-year swap related to the face amounts and DV01s of the hedge leg and the 20-year position?",
+  "latex": "\\frac{-\\bigl(F^{30} \\times DV01^{30}\\bigr)}{F^{20} \\times DV01^{20}} = \\beta^{30}",
+  "variables": [
+   {
+    "symbol": "F^{30}",
+    "meaning": "face amount of the 30-year swap hedge (negative = sold)"
+   },
+   {
+    "symbol": "DV01^{30}",
+    "meaning": "DV01 of the 30-year swap"
+   },
+   {
+    "symbol": "F^{20}",
+    "meaning": "face amount of the 20-year swap position being hedged"
+   },
+   {
+    "symbol": "DV01^{20}",
+    "meaning": "DV01 of the 20-year swap"
+   },
+   {
+    "symbol": "\\beta^{30}",
+    "meaning": "regression risk weight on the 30-year rate change"
+   }
+  ],
+  "skeleton": "\\frac{-\\bigl({{1}} \\times {{2}}\\bigr)}{F^{20} \\times {{3}}} = \\beta^{30}",
+  "slots": [
+   "F^{30}",
+   "DV01^{30}",
+   "DV01^{20}"
+  ],
+  "decoys": [
+   "DV01^{10}",
+   "F^{10}",
+   "F^{20}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\frac{F^{30} \\times DV01^{30}}{F^{20} \\times DV01^{20}} = \\beta^{30}",
+    "kind": "sign",
+    "why": "The minus sign carries the short position: the hedge leg is sold against the long 20-year swap."
+   },
+   {
+    "latex": "\\frac{-\\bigl(F^{20} \\times DV01^{20}\\bigr)}{F^{30} \\times DV01^{30}} = \\beta^{30}",
+    "kind": "inverted",
+    "why": "The beta is the hedge leg's DV01 as a share of the position's DV01, so the 30-year leg goes on top."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Beta is the fraction of the 20-year position's dollar DV01 that the 30-year leg must offset.",
+  "tags": [
+   "regression hedge",
+   "risk weights"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F07",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 206,
+  "objective": "MR-11 e",
+  "name": "Two-variable hedge: face amount of the 10-year swap",
+  "prompt": "What face amount of 10-year swaps is needed to hedge a 20-year swap in a two-variable regression hedge?",
+  "latex": "F^{10} = -\\,\\frac{F^{20} \\times DV01^{20}}{DV01^{10}} \\times \\beta^{10}",
+  "variables": [
+   {
+    "symbol": "F^{10}",
+    "meaning": "face amount of the 10-year swap (negative = sold/pay fixed against the long 20-year)"
+   },
+   {
+    "symbol": "F^{20}",
+    "meaning": "face amount of the 20-year swap position being hedged"
+   },
+   {
+    "symbol": "DV01^{20}",
+    "meaning": "DV01 of the 20-year swap"
+   },
+   {
+    "symbol": "DV01^{10}",
+    "meaning": "DV01 of the 10-year swap"
+   },
+   {
+    "symbol": "\\beta^{10}",
+    "meaning": "regression risk weight on the 10-year rate change"
+   }
+  ],
+  "skeleton": "F^{10} = -\\,\\frac{ {{1}} \\times {{2}} }{ {{3}} } \\times {{4}}",
+  "slots": [
+   "F^{20}",
+   "DV01^{20}",
+   "DV01^{10}",
+   "\\beta^{10}"
+  ],
+  "decoys": [
+   "DV01^{30}",
+   "\\beta^{30}",
+   "F^{30}"
+  ],
+  "corruptions": [
+   {
+    "latex": "F^{10} = \\frac{F^{20} \\times DV01^{20}}{DV01^{10}} \\times \\beta^{10}",
+    "kind": "sign",
+    "why": "The hedge leg is a short position against the long 20-year swap, so the face value carries a minus sign."
+   },
+   {
+    "latex": "F^{10} = -\\,\\frac{F^{20} \\times DV01^{10}}{DV01^{20}} \\times \\beta^{10}",
+    "kind": "inverted",
+    "why": "Each face value divides by its OWN DV01, not the 20-year DV01."
+   },
+   {
+    "latex": "F^{10} = -\\,\\frac{F^{20} \\times DV01^{20}}{DV01^{10}} \\times \\beta^{30}",
+    "kind": "sibling",
+    "why": "Use the 10-year leg's own risk weight."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\beta^{10}",
+    "direction": "down",
+    "why": "A larger risk weight means a larger short 10-year position (F more negative)."
+   },
+   {
+    "variable": "DV01^{10}",
+    "direction": "up",
+    "why": "A higher-DV01 10-year swap needs less face, so the short position shrinks toward zero."
+   },
+   {
+    "variable": "F^{20}",
+    "direction": "down",
+    "why": "A larger 20-year position needs a larger short 10-year leg, so F^{10} becomes more negative."
+   },
+   {
+    "variable": "DV01^{20}",
+    "direction": "down",
+    "why": "More 20-year rate risk to offset means a larger short 10-year leg (more negative face)."
+   }
+  ],
+  "intuition": "Position dollar DV01 times its beta share, converted into 10-year face by dividing by that swap's own DV01; negative because you sell it.",
+  "calc": {
+   "expr": "-(F20*D20/D10)*b10",
+   "inputs": [
+    {
+     "name": "F20",
+     "symbol": "F^{20}",
+     "min": 10,
+     "max": 500,
+     "step": 10,
+     "unit": "EUR m"
+    },
+    {
+     "name": "D20",
+     "symbol": "DV01^{20}",
+     "min": 0.05,
+     "max": 0.25,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "D10",
+     "symbol": "DV01^{10}",
+     "min": 0.05,
+     "max": 0.25,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "b10",
+     "symbol": "\\beta^{10}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F^{10}",
+    "unit": "EUR m",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "regression hedge",
+   "swaps",
+   "DV01"
+  ]
+ },
+ {
+  "id": "MR-11-F08",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 206,
+  "objective": "MR-11 e",
+  "name": "Two-variable hedge: face amount of the 30-year swap",
+  "prompt": "What face amount of 30-year swaps is needed to hedge a 20-year swap in a two-variable regression hedge?",
+  "latex": "F^{30} = -\\,\\frac{F^{20} \\times DV01^{20}}{DV01^{30}} \\times \\beta^{30}",
+  "variables": [
+   {
+    "symbol": "F^{30}",
+    "meaning": "face amount of the 30-year swap (negative = sold/pay fixed against the long 20-year)"
+   },
+   {
+    "symbol": "F^{20}",
+    "meaning": "face amount of the 20-year swap position being hedged"
+   },
+   {
+    "symbol": "DV01^{20}",
+    "meaning": "DV01 of the 20-year swap"
+   },
+   {
+    "symbol": "DV01^{30}",
+    "meaning": "DV01 of the 30-year swap"
+   },
+   {
+    "symbol": "\\beta^{30}",
+    "meaning": "regression risk weight on the 30-year rate change"
+   }
+  ],
+  "skeleton": "F^{30} = -\\,\\frac{ {{1}} \\times {{2}} }{ {{3}} } \\times {{4}}",
+  "slots": [
+   "F^{20}",
+   "DV01^{20}",
+   "DV01^{30}",
+   "\\beta^{30}"
+  ],
+  "decoys": [
+   "DV01^{10}",
+   "\\beta^{10}",
+   "F^{10}"
+  ],
+  "corruptions": [
+   {
+    "latex": "F^{30} = \\frac{F^{20} \\times DV01^{20}}{DV01^{30}} \\times \\beta^{30}",
+    "kind": "sign",
+    "why": "The hedge leg is a short position against the long 20-year swap, so the face value carries a minus sign."
+   },
+   {
+    "latex": "F^{30} = -\\,\\frac{F^{20} \\times DV01^{30}}{DV01^{20}} \\times \\beta^{30}",
+    "kind": "inverted",
+    "why": "Each face value divides by its OWN DV01, not the 20-year DV01."
+   },
+   {
+    "latex": "F^{30} = -\\,\\frac{F^{20} \\times DV01^{20}}{DV01^{30}} \\times \\beta^{10}",
+    "kind": "sibling",
+    "why": "Use the 30-year leg's own risk weight."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\beta^{30}",
+    "direction": "down",
+    "why": "A larger risk weight means a larger short 30-year position (F more negative)."
+   },
+   {
+    "variable": "DV01^{30}",
+    "direction": "up",
+    "why": "A higher-DV01 30-year swap needs less face, so the short position shrinks toward zero."
+   },
+   {
+    "variable": "F^{20}",
+    "direction": "down",
+    "why": "A larger 20-year position needs a larger short 30-year leg, so F^{30} becomes more negative."
+   },
+   {
+    "variable": "DV01^{20}",
+    "direction": "down",
+    "why": "More 20-year rate risk to offset means a larger short 30-year leg (more negative face)."
+   }
+  ],
+  "intuition": "Position dollar DV01 times its beta share, converted into 30-year face by dividing by that swap's own DV01; negative because you sell it.",
+  "calc": {
+   "expr": "-(F20*D20/D30)*b30",
+   "inputs": [
+    {
+     "name": "F20",
+     "symbol": "F^{20}",
+     "min": 10,
+     "max": 500,
+     "step": 10,
+     "unit": "EUR m"
+    },
+    {
+     "name": "D20",
+     "symbol": "DV01^{20}",
+     "min": 0.05,
+     "max": 0.25,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "D30",
+     "symbol": "DV01^{30}",
+     "min": 0.05,
+     "max": 0.25,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "b30",
+     "symbol": "\\beta^{30}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "F^{30}",
+    "unit": "EUR m",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "regression hedge",
+   "swaps",
+   "DV01"
+  ]
+ },
+ {
+  "id": "MR-11-F09",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 269,
+  "objective": "MR-11 f",
+  "name": "Change-on-change regression",
+  "prompt": "How is a change-on-change regression between two bond yields specified?",
+  "latex": "\\Delta y_t = \\alpha + \\beta\\,\\Delta x_t + \\Delta \\epsilon_t",
+  "variables": [
+   {
+    "symbol": "\\Delta y_t",
+    "meaning": "change in the dependent yield, y_t - y_{t-1}"
+   },
+   {
+    "symbol": "\\Delta x_t",
+    "meaning": "change in the independent yield, x_t - x_{t-1}"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "intercept"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "slope coefficient"
+   },
+   {
+    "symbol": "\\Delta \\epsilon_t",
+    "meaning": "error term of the change regression"
+   }
+  ],
+  "skeleton": "{{1}} = \\alpha + \\beta\\,{{2}} + {{3}}",
+  "slots": [
+   "\\Delta y_t",
+   "\\Delta x_t",
+   "\\Delta \\epsilon_t"
+  ],
+  "decoys": [
+   "y_t",
+   "x_t",
+   "\\epsilon_{t-1}"
+  ],
+  "corruptions": [
+   {
+    "latex": "y_t = \\alpha + \\beta\\,x_t + \\Delta \\epsilon_t",
+    "kind": "sibling",
+    "why": "Regressing levels on levels is the level-on-level regression; change-on-change uses differences."
+   },
+   {
+    "latex": "\\Delta y_t = \\alpha + \\beta\\,x_t + \\Delta \\epsilon_t",
+    "kind": "wrong-variable",
+    "why": "Both sides must be changes; mixing a change with a level is neither regression."
+   },
+   {
+    "latex": "\\Delta x_t = \\alpha + \\beta\\,\\Delta y_t + \\Delta \\epsilon_t",
+    "kind": "sibling",
+    "why": "Swapping dependent and independent variables gives the reverse regression, with a different beta."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Differences on differences: today's move explained by the other yield's move.",
+  "tags": [
+   "regression",
+   "level vs change"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F10",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 274,
+  "objective": "MR-11 f",
+  "name": "Level-on-level regression",
+  "prompt": "How is a level-on-level regression between two bond yields specified?",
+  "latex": "y_t = \\alpha + \\beta x_t + \\epsilon_t",
+  "variables": [
+   {
+    "symbol": "y_t",
+    "meaning": "level of the dependent bond yield at t"
+   },
+   {
+    "symbol": "x_t",
+    "meaning": "level of the independent bond yield at t"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "intercept"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "slope coefficient"
+   },
+   {
+    "symbol": "\\epsilon_t",
+    "meaning": "error term (likely correlated over time)"
+   }
+  ],
+  "skeleton": "{{1}} = \\alpha + \\beta {{2}} + {{3}}",
+  "slots": [
+   "y_t",
+   "x_t",
+   "\\epsilon_t"
+  ],
+  "decoys": [
+   "\\Delta y_t",
+   "\\Delta x_t",
+   "v_t"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\Delta y_t = \\alpha + \\beta\\,\\Delta x_t + \\Delta \\epsilon_t",
+    "kind": "sibling",
+    "why": "That is the change-on-change regression; level-on-level regresses yields on yields."
+   },
+   {
+    "latex": "y_t = \\alpha + \\beta x_{t-1} + \\epsilon_t",
+    "kind": "wrong-variable",
+    "why": "Level-on-level regresses same-date yields; a lagged regressor is a different model."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Yields on yields, same date, no differencing.",
+  "tags": [
+   "regression",
+   "level vs change"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F11",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 277,
+  "objective": "MR-11 f",
+  "name": "Autoregressive (AR(1)) error term",
+  "prompt": "How does the autoregressive model describe today's regression error in terms of yesterday's?",
+  "latex": "\\epsilon_t = \\rho\\,\\epsilon_{t-1} + v_t",
+  "variables": [
+   {
+    "symbol": "\\epsilon_t",
+    "meaning": "today's error term"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "autocorrelation coefficient of the errors"
+   },
+   {
+    "symbol": "\\epsilon_{t-1}",
+    "meaning": "yesterday's error term"
+   },
+   {
+    "symbol": "v_t",
+    "meaning": "new random fluctuation"
+   }
+  ],
+  "skeleton": "{{1}} = {{2}}\\,{{3}} + {{4}}",
+  "slots": [
+   "\\epsilon_t",
+   "\\rho",
+   "\\epsilon_{t-1}",
+   "v_t"
+  ],
+  "decoys": [
+   "\\beta",
+   "\\epsilon_{t+1}",
+   "\\Delta x_t"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\epsilon_t = \\rho\\,\\epsilon_{t+1} + v_t",
+    "kind": "wrong-variable",
+    "why": "Today's error depends on yesterday's (t-1), not tomorrow's."
+   },
+   {
+    "latex": "\\epsilon_t = \\rho\\,v_t + \\epsilon_{t-1}",
+    "kind": "wrong-variable",
+    "why": "rho scales the carried-over part (yesterday's error); the new shock v_t enters unscaled."
+   },
+   {
+    "latex": "\\epsilon_t = \\rho^2\\,\\epsilon_{t-1} + v_t",
+    "kind": "exponent",
+    "why": "The persistence coefficient enters once per period, not squared."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Some of yesterday's error sticks around (rho), plus a fresh shock.",
+  "tags": [
+   "regression",
+   "autocorrelation"
+  ],
+  "calc": null
+ },
+ {
+  "id": "MR-11-F12",
+  "reading_id": "MR-11",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/30_MR_MR11.tex",
+  "source_line": 321,
+  "objective": "MR-11 g",
+  "name": "Reverse regression: implied risk weight",
+  "prompt": "Given the beta from a reverse regression (hedge yield changes on position yield changes), what risk weight does it imply?",
+  "latex": "\\text{Implied risk weight (reverse)} = \\frac{1}{\\beta}",
+  "variables": [
+   {
+    "symbol": "\\text{Implied risk weight (reverse)}",
+    "meaning": "hedge risk weight implied by the reverse regression (84.2% vs 108.6% in the notes' example)"
+   },
+   {
+    "symbol": "\\beta",
+    "meaning": "slope of the reverse regression (Treasury yield changes on corporate yield changes)"
+   }
+  ],
+  "skeleton": "\\text{Implied risk weight (reverse)} = \\frac{ {{1}} }{ {{2}} }",
+  "slots": [
+   "1",
+   "\\beta"
+  ],
+  "decoys": [
+   "\\beta^2",
+   "1-\\beta",
+   "\\sqrt{\\beta}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Implied risk weight (reverse)} = \\beta",
+    "kind": "sibling",
+    "why": "Only the original regression's beta is itself the risk weight; the reverse regression's weight is its reciprocal."
+   },
+   {
+    "latex": "\\text{Implied risk weight (reverse)} = 1 - \\beta",
+    "kind": "wrong-variable",
+    "why": "The weight is the reciprocal of beta, not its complement."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\beta",
+    "direction": "down",
+    "why": "A larger reverse-regression beta implies a smaller risk weight, since the weight is 1/beta."
+   }
+  ],
+  "intuition": "The reverse regression has the axes swapped, so flip its slope: 1/0.921 = 108.6%, not 92.1%.",
+  "calc": {
+   "expr": "100/b",
+   "inputs": [
+    {
+     "name": "b",
+     "symbol": "\\beta",
+     "min": 0.5,
+     "max": 1.5,
+     "step": 0.001,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Implied risk weight (reverse)}",
+    "unit": "%",
+    "decimals": 1
+   },
+   "example": {
+    "inputs": {
+     "b": 0.921
+    },
+    "output": 108.6,
+    "source_line": 321
+   }
+  },
+  "tags": [
+   "reverse regression",
+   "risk weights"
+  ]
+ },
+ {
+  "id": "CR-19-F01",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 92,
+  "objective": "CR-19 a",
+  "name": "DVA from expected negative exposure",
+  "prompt": "How is DVA computed from the exposure profile and default probabilities over the life of the trade?",
+  "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_I(t_{i-1}, t_i)",
+  "variables": [
+   {
+    "symbol": "\\mathrm{DVA}",
+    "meaning": "debit value adjustment"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_I",
+    "meaning": "loss given default of the institution making the calculation"
+   },
+   {
+    "symbol": "\\mathrm{ENE}(t_i)",
+    "meaning": "expected negative exposure at time t_i"
+   },
+   {
+    "symbol": "\\mathrm{PD}_I(t_{i-1}, t_i)",
+    "meaning": "the institution's own probability of default between t_{i-1} and t_i"
+   },
+   {
+    "symbol": "m",
+    "meaning": "number of time buckets"
+   },
+   {
+    "symbol": "t_i",
+    "meaning": "i-th future time point"
+   }
+  ],
+  "skeleton": "\\mathrm{DVA} = {{1}} \\sum_{i=1}^{m} {{2}}\\times {{3}}",
+  "slots": [
+   "-\\mathrm{LGD}_I",
+   "\\mathrm{ENE}(t_i)",
+   "\\mathrm{PD}_I(t_{i-1}, t_i)"
+  ],
+  "decoys": [
+   "\\mathrm{EPE}(t_i)",
+   "\\mathrm{PD}_C(t_{i-1}, t_i)",
+   "-\\mathrm{LGD}_C"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_I(t_{i-1}, t_i)",
+    "kind": "sibling",
+    "why": "DVA uses the negative exposure (what you owe); positive exposure feeds CVA."
+   },
+   {
+    "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_C(t_{i-1}, t_i)",
+    "kind": "wrong-variable",
+    "why": "DVA is driven by the institution's OWN default probability, not the counterparty's."
+   },
+   {
+    "latex": "\\mathrm{DVA} = \\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_I(t_{i-1}, t_i)",
+    "kind": "sign",
+    "why": "The notes carry a leading minus sign; CVA and DVA have opposite signs because they sit on opposite tails."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Left tail, your own default: ENE weighted by YOUR marginal PD, scaled by your LGD.",
+  "tags": [
+   "DVA",
+   "exposure"
+  ],
+  "calc": null
+ },
+ {
+  "id": "CR-19-F02",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 94,
+  "objective": "CR-19 a",
+  "name": "CVA from expected positive exposure",
+  "prompt": "How is CVA computed from the exposure profile and default probabilities over the life of the trade?",
+  "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_C(t_{i-1}, t_i)",
+  "variables": [
+   {
+    "symbol": "\\mathrm{CVA}",
+    "meaning": "credit value adjustment"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_C",
+    "meaning": "loss given default of the counterparty"
+   },
+   {
+    "symbol": "\\mathrm{EPE}(t_i)",
+    "meaning": "expected positive exposure at time t_i"
+   },
+   {
+    "symbol": "\\mathrm{PD}_C(t_{i-1}, t_i)",
+    "meaning": "the counterparty's probability of default between t_{i-1} and t_i"
+   },
+   {
+    "symbol": "m",
+    "meaning": "number of time buckets"
+   },
+   {
+    "symbol": "t_i",
+    "meaning": "i-th future time point"
+   }
+  ],
+  "skeleton": "\\mathrm{CVA} = {{1}} \\sum_{i=1}^{m} {{2}}\\times {{3}}",
+  "slots": [
+   "-\\mathrm{LGD}_C",
+   "\\mathrm{EPE}(t_i)",
+   "\\mathrm{PD}_C(t_{i-1}, t_i)"
+  ],
+  "decoys": [
+   "\\mathrm{ENE}(t_i)",
+   "\\mathrm{PD}_I(t_{i-1}, t_i)",
+   "-\\mathrm{LGD}_I"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_C(t_{i-1}, t_i)",
+    "kind": "sibling",
+    "why": "CVA uses the positive exposure (what the counterparty owes you); ENE feeds DVA."
+   },
+   {
+    "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_I(t_{i-1}, t_i)",
+    "kind": "wrong-variable",
+    "why": "CVA is driven by the COUNTERPARTY's default probability, not your own."
+   },
+   {
+    "latex": "\\mathrm{CVA} = \\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_C(t_{i-1}, t_i)",
+    "kind": "sign",
+    "why": "The notes carry a leading minus sign: CVA is a charge against value."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Right tail, their default: EPE weighted by the COUNTERPARTY's marginal PD, scaled by its LGD.",
+  "tags": [
+   "CVA",
+   "exposure"
+  ],
+  "calc": null
+ },
+ {
+  "id": "CR-19-F03",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 296,
+  "objective": "CR-19 f",
+  "name": "Netting factor",
+  "prompt": "What fraction of the sum of individual exposures remains after netting n exposures with average correlation rho-bar?",
+  "latex": "\\text{netting factor} = \\frac{\\sqrt{n + n(n-1)\\bar{\\rho}}}{n}",
+  "variables": [
+   {
+    "symbol": "\\text{netting factor}",
+    "meaning": "ratio of net exposure to the sum of individual exposures (lower is better)"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of exposures"
+   },
+   {
+    "symbol": "\\bar{\\rho}",
+    "meaning": "average correlation between the exposures"
+   }
+  ],
+  "skeleton": "\\text{netting factor} = \\frac{\\sqrt{ n + n( {{1}} ) {{2}} }}{ {{3}} }",
+  "slots": [
+   "n-1",
+   "\\bar{\\rho}",
+   "n"
+  ],
+  "decoys": [
+   "n+1",
+   "\\bar{\\rho}^2",
+   "n^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{netting factor} = \\frac{n + n(n-1)\\bar{\\rho}}{n}",
+    "kind": "exponent",
+    "why": "Without the square root the factor is not a volatility-style ratio; at rho = 0 it should fall as 1/sqrt(n)."
+   },
+   {
+    "latex": "\\text{netting factor} = \\frac{\\sqrt{n - n(n-1)\\bar{\\rho}}}{n}",
+    "kind": "sign",
+    "why": "Positive correlation must RAISE the netting factor (less benefit); the correlation term is added."
+   },
+   {
+    "latex": "\\text{netting factor} = \\frac{\\sqrt{n + n(n-1)\\bar{\\rho}}}{n^2}",
+    "kind": "scaling",
+    "why": "Dividing by n^2 would give a factor below 100% even at perfect correlation; at rho = 1 it must equal 1."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\bar{\\rho}",
+    "direction": "up",
+    "why": "Higher average correlation means similarly directed trades and less netting benefit."
+   },
+   {
+    "variable": "n",
+    "direction": "depends",
+    "why": "Depends on rho-bar: it falls with n when rho-bar < 1 (to 1/sqrt(n) at rho-bar = 0) and stays at 100% when rho-bar = 1."
+   }
+  ],
+  "intuition": "rho = 1 gives 100% (no benefit), rho = 0 gives 1/sqrt(n); lower is better.",
+  "calc": {
+   "expr": "Math.sqrt(n + n*(n-1)*rho)/n",
+   "inputs": [
+    {
+     "name": "n",
+     "symbol": "n",
+     "min": 2,
+     "max": 50,
+     "step": 1,
+     "unit": "exposures"
+    },
+    {
+     "name": "rho",
+     "symbol": "\\bar{\\rho}",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{netting factor}",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "netting",
+   "aggregation",
+   "correlation"
+  ]
+ },
+ {
+  "id": "CR-19-F04",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 325,
+  "objective": "CR-19 f",
+  "name": "Lowest attainable average correlation (netting factor reaches zero)",
+  "prompt": "At what average correlation does the netting factor reach zero for n exposures?",
+  "latex": "\\bar{\\rho} = -\\frac{1}{n-1}",
+  "variables": [
+   {
+    "symbol": "\\bar{\\rho}",
+    "meaning": "average pairwise correlation at which the netting factor is zero; the lowest attainable for n exposures"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of exposures"
+   }
+  ],
+  "skeleton": "\\bar{\\rho} = -\\frac{ {{1}} }{ {{2}} }",
+  "slots": [
+   "1",
+   "n-1"
+  ],
+  "decoys": [
+   "n",
+   "n+1",
+   "\\sqrt{n}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\bar{\\rho} = -1",
+    "kind": "sibling",
+    "why": "rho-bar = -1 only works for n = 2; for more exposures an average correlation of -1 is not attainable."
+   },
+   {
+    "latex": "\\bar{\\rho} = -\\frac{1}{n}",
+    "kind": "wrong-variable",
+    "why": "Setting n + n(n-1)rho = 0 gives rho = -1/(n-1), not -1/n."
+   },
+   {
+    "latex": "\\bar{\\rho} = -\\frac{1}{n+1}",
+    "kind": "sign",
+    "why": "The denominator is n - 1 (the number of other exposures each one pairs with)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "n",
+    "direction": "up",
+    "why": "With more exposures the attainable floor moves up toward zero (n = 10 gives only -0.111)."
+   }
+  ],
+  "intuition": "Solve the root to zero: n + n(n-1)rho = 0 gives -1/(n-1); only for two trades is that -1.",
+  "calc": {
+   "expr": "-1/(n-1)",
+   "inputs": [
+    {
+     "name": "n",
+     "symbol": "n",
+     "min": 2,
+     "max": 50,
+     "step": 1,
+     "unit": "exposures"
+    }
+   ],
+   "output": {
+    "symbol": "\\bar{\\rho}",
+    "unit": "",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "n": 10
+    },
+    "output": -0.111,
+    "source_line": 327
+   }
+  },
+  "tags": [
+   "netting",
+   "correlation"
+  ]
+ },
+ {
+  "id": "CR-19-F05",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 406,
+  "objective": "CR-19 h",
+  "name": "Expected exposure over the margin period of risk",
+  "prompt": "What is the expected exposure of a collateralized position over the remargin period, given the exposure volatility?",
+  "latex": "\\mathrm{EE} = 0.4 \\times \\sigma_E \\times \\sqrt{T_M}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{EE}",
+    "meaning": "expected exposure over the margin period of risk"
+   },
+   {
+    "symbol": "\\sigma_E",
+    "meaning": "annual volatility of the exposure"
+   },
+   {
+    "symbol": "T_M",
+    "meaning": "remargin period in years (10 days = 10/252)"
+   }
+  ],
+  "skeleton": "\\mathrm{EE} = {{1}} \\times {{2}} \\times \\sqrt{ {{3}} }",
+  "slots": [
+   "0.4",
+   "\\sigma_E",
+   "T_M"
+  ],
+  "decoys": [
+   "k",
+   "\\sigma_E^2",
+   "252"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{EE} = k \\times \\sigma_E \\times \\sqrt{T_M}",
+    "kind": "sibling",
+    "why": "k (a quantile) gives PFE; EE uses 0.4, the mean of the positive part of a normal."
+   },
+   {
+    "latex": "\\mathrm{EE} = 0.4 \\times \\sigma_E \\times T_M",
+    "kind": "exponent",
+    "why": "Exposure volatility scales with the square root of the remargin period."
+   },
+   {
+    "latex": "\\mathrm{EE} = 0.4 \\times \\sigma_E^2 \\times \\sqrt{T_M}",
+    "kind": "exponent",
+    "why": "Uses volatility, not variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma_E",
+    "direction": "up",
+    "why": "More volatile exposure means more can build up before collateral arrives."
+   },
+   {
+    "variable": "T_M",
+    "direction": "up",
+    "why": "A longer margin period of risk leaves more time for exposure to grow (lower MPoR is better)."
+   }
+  ],
+  "intuition": "The average of the positive half of a normal is 0.4 sigma; scale by root of the remargin time.",
+  "calc": {
+   "expr": "0.4*s*Math.sqrt(T)",
+   "inputs": [
+    {
+     "name": "s",
+     "symbol": "\\sigma_E",
+     "min": 1,
+     "max": 50,
+     "step": 1,
+     "unit": "$m p.a."
+    },
+    {
+     "name": "T",
+     "symbol": "T_M",
+     "min": 0.02,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{EE}",
+    "unit": "$m",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "collateral",
+   "MPoR",
+   "exposure"
+  ]
+ },
+ {
+  "id": "CR-19-F06",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 406,
+  "objective": "CR-19 h",
+  "name": "Potential future exposure over the margin period of risk",
+  "prompt": "What is the PFE of a collateralized position over the remargin period, given the exposure volatility and confidence level?",
+  "latex": "\\mathrm{PFE} = k \\times \\sigma_E \\times \\sqrt{T_M}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{PFE}",
+    "meaning": "potential future exposure over the margin period of risk"
+   },
+   {
+    "symbol": "k",
+    "meaning": "quantile multiplier for the chosen confidence level"
+   },
+   {
+    "symbol": "\\sigma_E",
+    "meaning": "annual volatility of the exposure"
+   },
+   {
+    "symbol": "T_M",
+    "meaning": "remargin period in years (10 days = 10/252)"
+   }
+  ],
+  "skeleton": "\\mathrm{PFE} = {{1}} \\times {{2}} \\times \\sqrt{ {{3}} }",
+  "slots": [
+   "k",
+   "\\sigma_E",
+   "T_M"
+  ],
+  "decoys": [
+   "0.4",
+   "\\sigma_E^2",
+   "252"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{PFE} = 0.4 \\times \\sigma_E \\times \\sqrt{T_M}",
+    "kind": "sibling",
+    "why": "0.4 gives EE, the mean positive exposure; PFE is read at the k-th quantile."
+   },
+   {
+    "latex": "\\mathrm{PFE} = k \\times \\sigma_E \\times T_M",
+    "kind": "exponent",
+    "why": "Scale with the square root of the remargin period."
+   },
+   {
+    "latex": "\\mathrm{PFE} = \\frac{k \\times \\sigma_E}{\\sqrt{T_M}}",
+    "kind": "inverted",
+    "why": "A longer margin period increases PFE."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "k",
+    "direction": "up",
+    "why": "A higher confidence level means a larger quantile multiplier."
+   },
+   {
+    "variable": "\\sigma_E",
+    "direction": "up",
+    "why": "More volatile exposure means a larger worst case."
+   },
+   {
+    "variable": "T_M",
+    "direction": "up",
+    "why": "A longer margin period of risk raises the worst-case exposure."
+   }
+  ],
+  "intuition": "Same distribution as EE, just read at the k-th quantile instead of the positive mean.",
+  "calc": {
+   "expr": "k*s*Math.sqrt(T)",
+   "inputs": [
+    {
+     "name": "k",
+     "symbol": "k",
+     "min": 1.65,
+     "max": 2.33,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "s",
+     "symbol": "\\sigma_E",
+     "min": 1,
+     "max": 50,
+     "step": 1,
+     "unit": "$m p.a."
+    },
+    {
+     "name": "T",
+     "symbol": "T_M",
+     "min": 0.02,
+     "max": 0.2,
+     "step": 0.01,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{PFE}",
+    "unit": "$m",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "collateral",
+   "MPoR",
+   "PFE"
+  ]
+ },
+ {
+  "id": "CR-19-F07",
+  "reading_id": "CR-19",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/41_CR_CR19.tex",
+  "source_line": 415,
+  "objective": "CR-19 h",
+  "name": "Mean positive part of a zero-mean normal (the 0.4 in EE)",
+  "prompt": "For a zero-mean normal variable with standard deviation sigma, what is the expected value of its positive part?",
+  "latex": "E[\\max(X,0)] = \\frac{\\sigma}{\\sqrt{2\\pi}}",
+  "variables": [
+   {
+    "symbol": "E[\\max(X,0)]",
+    "meaning": "expected positive part of X (the expected exposure)"
+   },
+   {
+    "symbol": "X",
+    "meaning": "zero-mean normally distributed exposure value"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "standard deviation of X"
+   }
+  ],
+  "skeleton": "E[\\max( {{1}} ,0)] = \\frac{ {{2}} }{\\sqrt{ {{3}} }}",
+  "slots": [
+   "X",
+   "\\sigma",
+   "2\\pi"
+  ],
+  "decoys": [
+   "\\sigma^2",
+   "\\pi",
+   "2"
+  ],
+  "corruptions": [
+   {
+    "latex": "E[\\max(X,0)] = \\frac{\\sigma}{2\\pi}",
+    "kind": "exponent",
+    "why": "The square root is needed: sigma/sqrt(2 pi) = 0.3989 sigma; sigma/(2 pi) would be only 0.16 sigma."
+   },
+   {
+    "latex": "E[\\max(X,0)] = \\frac{\\sigma}{\\sqrt{\\pi}}",
+    "kind": "missing-term",
+    "why": "It is sqrt(2 pi), giving 0.3989 sigma; sqrt(pi) would give 0.56 sigma."
+   },
+   {
+    "latex": "E[\\max(X,0)] = \\frac{\\sigma^2}{\\sqrt{2\\pi}}",
+    "kind": "exponent",
+    "why": "It scales with the standard deviation, not the variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "A wider distribution has a larger positive tail on average."
+   }
+  ],
+  "intuition": "sigma/sqrt(2 pi) = 0.3989 sigma, which is why EE uses 0.4.",
+  "calc": {
+   "expr": "s/Math.sqrt(2*3.141592653589793)",
+   "inputs": [
+    {
+     "name": "s",
+     "symbol": "\\sigma",
+     "min": 0.1,
+     "max": 10,
+     "step": 0.1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "E[\\max(X,0)]",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "s": 1
+    },
+    "output": 0.3989,
+    "source_line": 415
+   }
+  },
+  "tags": [
+   "EE",
+   "normal distribution"
+  ]
+ },
+ {
+  "id": "LTR-14-F01",
+  "reading_id": "LTR-14",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/18_LR_LTR14.tex",
+  "source_line": 102,
+  "objective": "LTR-14 d",
+  "name": "Funds transfer price (FTP) components",
+  "prompt": "What three components make up the funds transfer price charged to an asset?",
+  "latex": "\\text{FTP} = \\text{base rate} + \\text{term liquidity premium} + \\text{liquidity premium}",
+  "variables": [
+   {
+    "symbol": "\\text{FTP}",
+    "meaning": "funds transfer price"
+   },
+   {
+    "symbol": "\\text{base rate}",
+    "meaning": "swap-curve rate at the asset's contractual or behavioural maturity (or repricing term, whichever is less)"
+   },
+   {
+    "symbol": "\\text{term liquidity premium}",
+    "meaning": "spread between the swap curve and the bank's marginal cost of funds curve at that maturity"
+   },
+   {
+    "symbol": "\\text{liquidity premium}",
+    "meaning": "cost of carrying the liquidity cushion, averaged over the bank's total assets"
+   }
+  ],
+  "skeleton": "\\text{FTP} = {{1}} + {{2}} + {{3}}",
+  "slots": [
+   "\\text{base rate}",
+   "\\text{term liquidity premium}",
+   "\\text{liquidity premium}"
+  ],
+  "decoys": [
+   "\\text{Likelihood of drawdown}",
+   "\\text{pooled average cost of funds}",
+   "\\text{credit spread}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{FTP} = \\text{base rate} + \\text{term liquidity premium}",
+    "kind": "missing-term",
+    "why": "Leaves out the cost of carrying the liquidity cushion (the liquidity premium averaged over total assets)."
+   },
+   {
+    "latex": "\\text{FTP} = \\text{pooled average cost of funds} + \\text{term liquidity premium} + \\text{liquidity premium}",
+    "kind": "wrong-variable",
+    "why": "The base rate comes from the swap curve at the asset's maturity, not a pooled average cost."
+   },
+   {
+    "latex": "\\text{FTP} = \\text{base rate} - \\text{term liquidity premium} + \\text{liquidity premium}",
+    "kind": "sign",
+    "why": "The term liquidity premium is a charge added on top of the base rate."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{base rate}",
+    "direction": "up",
+    "why": "Higher swap rate at that maturity raises the transfer price."
+   },
+   {
+    "variable": "\\text{term liquidity premium}",
+    "direction": "up",
+    "why": "A wider marginal funding spread raises the transfer price."
+   },
+   {
+    "variable": "\\text{liquidity premium}",
+    "direction": "up",
+    "why": "A costlier liquidity cushion raises the transfer price."
+   }
+  ],
+  "intuition": "Swap rate for the term, plus your own term funding spread, plus your share of the cushion's carry.",
+  "calc": {
+   "expr": "b + tlp + lp",
+   "inputs": [
+    {
+     "name": "b",
+     "symbol": "\\text{base rate}",
+     "min": 0.5,
+     "max": 6,
+     "step": 0.05,
+     "unit": "%"
+    },
+    {
+     "name": "tlp",
+     "symbol": "\\text{term liquidity premium}",
+     "min": 0.05,
+     "max": 1.5,
+     "step": 0.01,
+     "unit": "%"
+    },
+    {
+     "name": "lp",
+     "symbol": "\\text{liquidity premium}",
+     "min": 0.01,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{FTP}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "LTP",
+   "FTP"
+  ]
+ },
+ {
+  "id": "LTR-14-F02",
+  "reading_id": "LTR-14",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/18_LR_LTR14.tex",
+  "source_line": 105,
+  "objective": "LTR-14 d",
+  "name": "Cost of contingent liquidity risk",
+  "prompt": "What charge should be made for the contingent liquidity risk of an undrawn credit line?",
+  "latex": "\\text{Cost of contingent liquidity risk} = \\frac{\\text{Limit} - \\text{Drawn amount}}{\\text{Limit}} \\times \\text{Likelihood of drawdown} \\times \\text{Cost of funding the liquidity cushion}",
+  "variables": [
+   {
+    "symbol": "\\text{Cost of contingent liquidity risk}",
+    "meaning": "charge for contingent liquidity risk (a rate, e.g. in basis points)"
+   },
+   {
+    "symbol": "\\text{Limit}",
+    "meaning": "total limit of the facility"
+   },
+   {
+    "symbol": "\\text{Drawn amount}",
+    "meaning": "amount already drawn (already on balance sheet with its own FTP charge)"
+   },
+   {
+    "symbol": "\\text{Likelihood of drawdown}",
+    "meaning": "drawdown factor from behavioural modelling (decimal)"
+   },
+   {
+    "symbol": "\\text{Cost of funding the liquidity cushion}",
+    "meaning": "cost of term funding the liquid assets held in the cushion (rate)"
+   }
+  ],
+  "skeleton": "\\text{Cost of contingent liquidity risk} = \\frac{ {{1}} - {{2}} }{ {{3}} } \\times {{4}} \\times {{5}}",
+  "slots": [
+   "\\text{Limit}",
+   "\\text{Drawn amount}",
+   "\\text{Limit}",
+   "\\text{Likelihood of drawdown}",
+   "\\text{Cost of funding the liquidity cushion}"
+  ],
+  "decoys": [
+   "\\text{liquidity premium}",
+   "\\text{base rate}",
+   "\\text{Undrawn amount}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Cost of contingent liquidity risk} = \\frac{\\text{Drawn amount}}{\\text{Limit}} \\times \\text{Likelihood of drawdown} \\times \\text{Cost of funding the liquidity cushion}",
+    "kind": "wrong-variable",
+    "why": "Charges the drawn portion (4.32 bp in the example) instead of the undrawn, contingent portion."
+   },
+   {
+    "latex": "\\text{Cost of contingent liquidity risk} = \\frac{\\text{Limit} - \\text{Drawn amount}}{\\text{Limit}} \\times \\text{Cost of funding the liquidity cushion}",
+    "kind": "missing-term",
+    "why": "Drops the drawdown factor (10.8 bp in the example instead of 6.48 bp)."
+   },
+   {
+    "latex": "\\text{Cost of contingent liquidity risk} = \\text{Likelihood of drawdown} \\times \\text{Cost of funding the liquidity cushion}",
+    "kind": "missing-term",
+    "why": "Charges the whole limit; only the undrawn proportion is contingent (also 10.8 bp in the example)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Drawn amount}",
+    "direction": "down",
+    "why": "More already drawn leaves less contingent (undrawn) exposure to charge."
+   },
+   {
+    "variable": "\\text{Likelihood of drawdown}",
+    "direction": "up",
+    "why": "A customer more likely to draw needs more cushion held against it."
+   },
+   {
+    "variable": "\\text{Cost of funding the liquidity cushion}",
+    "direction": "up",
+    "why": "A dearer cushion costs more to carry."
+   },
+   {
+    "variable": "\\text{Limit}",
+    "direction": "up",
+    "why": "With the drawn amount fixed, a bigger limit means a larger undrawn proportion."
+   }
+  ],
+  "intuition": "Undrawn share x chance they draw it x carry cost of the cushion; the drawn part already pays its own FTP.",
+  "calc": {
+   "expr": "(L - D)/L*p*c",
+   "inputs": [
+    {
+     "name": "L",
+     "symbol": "\\text{Limit}",
+     "min": 10,
+     "max": 100,
+     "step": 1,
+     "unit": "$m"
+    },
+    {
+     "name": "D",
+     "symbol": "\\text{Drawn amount}",
+     "min": 0,
+     "max": 10,
+     "step": 0.5,
+     "unit": "$m"
+    },
+    {
+     "name": "p",
+     "symbol": "\\text{Likelihood of drawdown}",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": "decimal"
+    },
+    {
+     "name": "c",
+     "symbol": "\\text{Cost of funding the liquidity cushion}",
+     "min": 5,
+     "max": 50,
+     "step": 1,
+     "unit": "bp"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Cost of contingent liquidity risk}",
+    "unit": "bp",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "L": 10,
+     "D": 4,
+     "p": 0.6,
+     "c": 18
+    },
+    "output": 6.48,
+    "source_line": 124
+   }
+  },
+  "tags": [
+   "LTP",
+   "contingent liquidity"
+  ]
+ }
+]

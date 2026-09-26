@@ -1,0 +1,73 @@
+{
+ "slice": "IR-T2-1",
+ "checked": 45,
+ "notFound": [],
+ "flags": [
+  {
+   "id": "IR-T2-11",
+   "field": "optionAnalysis",
+   "severity": "source-error",
+   "current": "d: \"USD 128 million is roughly $2.33 \\times 0.16 \\times 0.40 \\times 800$, applying the weight twice, once to obtain the principal and again to the principal. USD 291 million does not correspond to a named route.\"",
+   "proposed": "d: \"USD 128 million is $0.16 \\times 800$, the domestic equity sleeve's one-standard-deviation dollar move with the 2.33 deviate omitted. USD 291 million is the fund VaR of 419.40 less that 128, pairing two errors.\" Also patch trap.explanation: \"DROPPED TERM at (d), where the weight is applied twice\" -> \"DROPPED TERM at (d), where the confidence deviate is omitted\".",
+   "source_says": "PDF p.10 option analysis (d): same text as JSON ('roughly 2.33 x 0.16 x 0.40 x 800, applying the weight twice'); trap: 'DROPPED TERM at (d), where the weight is applied twice'.",
+   "derivation": "2.33*0.16*0.40*800 = 119.30, not 128, so the stated route does not produce the distractor. 0.16*800 = 128.00 exactly (z dropped). 419.40 - 128.00 = 291.40 ~ 291. Key (a) unaffected: 2.33*0.16*800 = 298.24; sum of budgets 591.82; fund VaR 2.33*0.09*2000 = 419.40; benefit 172.42.",
+   "evidence": "PDF p.10, Q11 OPTION ANALYSIS row d and TRAP",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-T2-11",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "Sanity check on the volatilities: a weighted average of the four volatilities is $0.40(16) + 0.15(18) + 0.30(6) + 0.15(12) = 12.1\\%$, well above the stated portfolio volatility of 9.0%.",
+   "proposed": "Replace \"= 12.1\\%\" with \"= 12.7\\%\" (the rest of the sentence stands).",
+   "source_says": "PDF p.10: '0.40(16) + 0.15(18) + 0.30(6) + 0.15(12) = 12.1%'",
+   "derivation": "6.4 + 2.7 + 1.8 + 1.8 = 12.7%. Cross-check: undiversified VaR / (z*W) = 591.82 / (2.33*2000) = 0.127.",
+   "evidence": "PDF p.10, Q11 solution sanity-check line",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-T2-23",
+   "field": "solution",
+   "severity": "source-error",
+   "current": "The source describes it exactly this way: changes in the stock price affect the hedge asymmetrically, and the gain or loss on the short stock position tends to exceed the corresponding loss or gain on the convertible bond.",
+   "proposed": "The source describes the effect as an asymmetry: changes in the stock price affect the hedge asymmetrically. When the stock falls, the gain on the short stock exceeds the loss on the convertible; when it rises, the gain on the convertible exceeds the loss on the short stock.",
+   "source_says": "PDF p.19 has the same sentence as the JSON. The Schweser-based notes (notes/FRM_Consolidated_Vol2/ch/23_IM_IM8.tex l.163) say it too: 'Whether the stock rises or falls, the gain or loss on the short stock position tends to exceed the corresponding loss or gain on the convertible.'",
+   "derivation": "Read literally, the quoted sentence says that on a rise the short-stock loss exceeds the convertible gain, so the hedged book loses. That contradicts the row just before it ('In both directions the convex leg outperforms the linear leg') and the bank's own numbers in IR-T2-44: stock +5% gives a convertible gain of 1038.07-1013.75 = +24.32 against a short-stock loss of 11.238*2.077 = -23.34, net +0.98. Stock -5% gives a short-stock gain of +23.34 against a convertible loss of -21.97, net +1.37. So the convertible leg dominates on the upside and the stock leg dominates on the downside. Key (a) is unaffected.",
+   "evidence": "PDF p.19 Q23 solution paragraph after the table; PDF p.35 S3 Step 3 table (Up 5%: +0.98)",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-T2-05",
+   "field": "solution",
+   "severity": "wrong-content",
+   "current": "$$R_{asset} = R_{policy\\,mix} + R_{active\\,mgt} = \\sum_i w_i R_i^B + \\sum_i (w_i R_i - w_i R_i^B)$$",
+   "proposed": "$$R_{asset} = R_{policy\\,mix} + R_{active\\,mgt} = \\sum_i w_i^B R_i^B + \\sum_i (w_i R_i - w_i^B R_i^B)$$",
+   "source_says": "PDF p.5: 'Rasset = Rpolicy mix + Ractive mgt = Σi wB i R B i + Σi ( wiRi − wBiR B i )', where the policy weights carry superscript B.",
+   "derivation": "In the Jorion decomposition the policy mix uses the policy (benchmark) weights w_i^B, and active management uses the actual weights w_i. With the B dropped from the weights, the active term reduces to pure within-sleeve benchmark deviations, and the asset-allocation deviation from the policy mix disappears. The solution's own next paragraph relies on that deviation ('the current asset-allocation mix may deviate temporarily from the policy mix').",
+   "evidence": "PDF p.5 Q5 solution formula; PDF p.4 LO2 reference table",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-T2-04",
+   "field": "solution",
+   "severity": "wrong-content",
+   "current": "Policy-mix row: \"$R_{policy\\,mix} = \\sum_i w_i R_i^B$\"; Active-management row: \"$R_{active} = \\sum_i (w_i R_i - w_i R_i^B)$\"",
+   "proposed": "\"$R_{policy\\,mix} = \\sum_i w_i^B R_i^B$\" and \"$R_{active} = \\sum_i (w_i R_i - w_i^B R_i^B)$\"",
+   "source_says": "PDF p.4 LO2 six-definition table: 'Rpolicy mix = Σ wB i RB i' and 'Ractive = Σ (wiRi − wB iRB i)'.",
+   "derivation": "Same extraction slip as IR-T2-05: the superscript B on the policy weights was lost, so policy weights and actual weights are no longer distinguished.",
+   "evidence": "PDF p.4 reference table (the 'Relevant return' column)",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-T2-20",
+   "field": "solution",
+   "severity": "wrong-content",
+   "current": "| Upside in both bull and bear markets | Convertible arbitrage | Convertible arbitrage requires continuous delta hedging, which is itself a hedging skill, and it depends on leverage to make small spreads economic. |",
+   "proposed": "Change the 'Eliminates' cell of that row to 'Does not discriminate on its own; convertible arbitrage is removed by the two rejections', or move the convertible-arbitrage reason onto the leverage and hedging rows. For example: '| Upside in both bull and bear markets | None on its own | A weak clue. Convertible arbitrage is struck by the leverage and hedging rejections: continuous delta hedging is a hedging skill, and leverage is needed to make small spreads economic. |'",
+   "source_says": "PDF p.17 has the same table. The same PDF's trap text says the bull/bear phrase 'is the weakest clue ... the two rejections do the actual eliminating'.",
+   "derivation": "The row says the bull/bear constraint eliminates convertible arbitrage, but its reason cites only hedging skill and leverage, which are the other two constraints. A roughly market-neutral convertible arbitrage book is not ruled out by 'upside in both bull and bear markets'. The trap text and option (d)'s analysis ('Violates both rejections') also contradict the row. Key (c), distressed securities, is unaffected.",
+   "evidence": "PDF p.17 Q20 constraint table and TRAP",
+   "confidence": "medium"
+  }
+ ]
+}

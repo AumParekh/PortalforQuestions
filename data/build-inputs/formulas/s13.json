@@ -1,0 +1,2988 @@
+[
+  {
+    "id": "CR-20-F01",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 73,
+    "objective": "CR-20 c",
+    "name": "Unilateral CVA (no wrong-way risk, netting or collateral)",
+    "prompt": "How is unilateral CVA computed from the counterparty's loss severity, the discounted exposure profile and the default probabilities over each future interval?",
+    "latex": "\\mathrm{UCVA} = -\\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}(t_i) \\times \\mathrm{PD}(t_{i-1},t_i)",
+    "variables": [
+      {
+        "symbol": "\\mathrm{UCVA}",
+        "meaning": "unilateral credit value adjustment; a negative number (a reduction in portfolio value)"
+      },
+      {
+        "symbol": "\\mathrm{LGD}",
+        "meaning": "loss given default of the counterparty (decimal)"
+      },
+      {
+        "symbol": "m",
+        "meaning": "number of future time intervals"
+      },
+      {
+        "symbol": "\\mathrm{EPE}(t_i)",
+        "meaning": "discounted expected positive exposure at future date t_i"
+      },
+      {
+        "symbol": "\\mathrm{PD}(t_{i-1},t_i)",
+        "meaning": "marginal default probability of the counterparty over the interval from t_{i-1} to t_i (decimal)"
+      }
+    ],
+    "skeleton": "\\mathrm{UCVA} = {{1}}\\sum_{i=1}^{m} {{2}} \\times {{3}}",
+    "slots": [
+      "-\\mathrm{LGD}",
+      "\\mathrm{EPE}(t_i)",
+      "\\mathrm{PD}(t_{i-1},t_i)"
+    ],
+    "decoys": [
+      "\\mathrm{ENE}(t_i)",
+      "-\\mathrm{RR}",
+      "\\mathrm{PD}(0,t_i)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{UCVA} = \\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}(t_i) \\times \\mathrm{PD}(t_{i-1},t_i)",
+        "kind": "sign",
+        "why": "The leading minus sign is dropped; in the notes CVA is a negative number, a reduction in the value of the portfolio."
+      },
+      {
+        "latex": "\\mathrm{UCVA} = -\\mathrm{RR}\\sum_{i=1}^{m} \\mathrm{EPE}(t_i) \\times \\mathrm{PD}(t_{i-1},t_i)",
+        "kind": "wrong-variable",
+        "why": "Loss severity is LGD = 1 - RR, not the recovery rate; a higher recovery must reduce CVA."
+      },
+      {
+        "latex": "\\mathrm{UCVA} = -\\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}(t_i) \\times \\mathrm{PD}(0,t_i)",
+        "kind": "wrong-variable",
+        "why": "Each interval must use the marginal default probability over that interval, not the cumulative probability from today."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{LGD}",
+        "direction": "down",
+        "why": "A larger loss severity makes CVA more negative, i.e. a bigger charge."
+      },
+      {
+        "variable": "\\mathrm{EPE}(t_i)",
+        "direction": "down",
+        "why": "More exposure at risk at each date makes CVA more negative."
+      },
+      {
+        "variable": "\\mathrm{PD}(t_{i-1},t_i)",
+        "direction": "down",
+        "why": "A higher chance of default in any interval makes CVA more negative."
+      }
+    ],
+    "intuition": "Loss severity times, date by date, what they would owe you times the chance they default right then, booked as a cost.",
+    "calc": {
+      "expr": "-LGD * EPE * PD",
+      "inputs": [
+        {
+          "name": "LGD",
+          "symbol": "\\mathrm{LGD}",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "EPE",
+          "symbol": "\\mathrm{EPE}(t_1)",
+          "min": 10,
+          "max": 500,
+          "step": 10,
+          "unit": "$ (single interval, m = 1)"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}(t_0,t_1)",
+          "min": 0.0025,
+          "max": 0.1,
+          "step": 0.0025,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{UCVA}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "CVA",
+      "counterparty risk"
+    ]
+  },
+  {
+    "id": "CR-20-F02",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 88,
+    "objective": "CR-20 c",
+    "name": "Unilateral CVA as a running spread (constant EPE)",
+    "prompt": "Under a constant-EPE assumption, how is CVA expressed as a per annum running spread using only the counterparty's credit spread and the exposure?",
+    "latex": "\\frac{\\mathrm{CVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}} \\times \\text{average EPE}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{CVA}(t,T)",
+        "meaning": "CVA of the position over t to T; dividing by the CDS premium term turns it into a running (per annum) spread"
+      },
+      {
+        "symbol": "\\mathrm{CDS}_{\\text{premium}}(t,T)",
+        "meaning": "CDS premium term over t to T; dividing CVA(t,T) by it expresses CVA as a per annum running spread"
+      },
+      {
+        "symbol": "X^{\\mathrm{CDS}}",
+        "meaning": "the counterparty's CDS spread"
+      },
+      {
+        "symbol": "\\text{average EPE}",
+        "meaning": "average expected positive exposure, assumed constant over time"
+      }
+    ],
+    "skeleton": "\\frac{\\mathrm{CVA}(t,T)}{ {{1}} } = {{2}} \\times {{3}}",
+    "slots": [
+      "\\mathrm{CDS}_{\\text{premium}}(t,T)",
+      "-X^{\\mathrm{CDS}}",
+      "\\text{average EPE}"
+    ],
+    "decoys": [
+      "\\text{average ENE}",
+      "-X^{\\mathrm{CDS}}_{I}",
+      "\\mathrm{LGD}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\frac{\\mathrm{CVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = X^{\\mathrm{CDS}} \\times \\text{average EPE}",
+        "kind": "sign",
+        "why": "CVA is a negative number (a charge), so the running spread carries a minus sign."
+      },
+      {
+        "latex": "\\frac{\\mathrm{CVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}} \\times \\mathrm{LGD} \\times \\text{average EPE}",
+        "kind": "extra-term",
+        "why": "The LGD-and-default-probability apparatus already collapses into the credit spread; multiplying by LGD again double counts."
+      },
+      {
+        "latex": "\\frac{\\mathrm{CVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}} \\times \\text{average ENE}",
+        "kind": "wrong-variable",
+        "why": "CVA is driven by positive exposure (what the counterparty owes you); ENE belongs to DVA."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "X^{\\mathrm{CDS}}",
+        "direction": "down",
+        "why": "A wider counterparty spread makes the running CVA charge more negative."
+      },
+      {
+        "variable": "\\text{average EPE}",
+        "direction": "down",
+        "why": "More average exposure makes the running CVA charge more negative."
+      }
+    ],
+    "intuition": "Per year, CVA is just the counterparty's credit spread charged on the average amount they owe you.",
+    "calc": {
+      "expr": "-X * EPE / 100",
+      "inputs": [
+        {
+          "name": "X",
+          "symbol": "X^{\\mathrm{CDS}}",
+          "min": 25,
+          "max": 1000,
+          "step": 25,
+          "unit": "bps"
+        },
+        {
+          "name": "EPE",
+          "symbol": "\\text{average EPE}",
+          "min": 1,
+          "max": 20,
+          "step": 1,
+          "unit": "% of notional"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{CVA}\\ \\text{spread}",
+        "unit": "bps p.a.",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "CVA",
+      "running spread"
+    ]
+  },
+  {
+    "id": "CR-20-F03",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 163,
+    "objective": "CR-20 d",
+    "name": "Implied hazard rate from the credit spread and recovery rate",
+    "prompt": "What default intensity is implied by a counterparty's credit spread once you allow for its recovery rate?",
+    "latex": "\\lambda = \\frac{s}{1-\\mathrm{RR}}",
+    "variables": [
+      {
+        "symbol": "\\lambda",
+        "meaning": "implied hazard rate (default intensity) of the counterparty"
+      },
+      {
+        "symbol": "s",
+        "meaning": "credit spread of the counterparty"
+      },
+      {
+        "symbol": "\\mathrm{RR}",
+        "meaning": "recovery rate (decimal); 1 - RR is the LGD"
+      }
+    ],
+    "skeleton": "\\lambda = \\frac{ {{1}} }{1-{{2}}}",
+    "slots": [
+      "s",
+      "\\mathrm{RR}"
+    ],
+    "decoys": [
+      "\\mathrm{LGD}",
+      "\\mathrm{PD}",
+      "\\lambda"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\lambda = \\frac{s}{\\mathrm{RR}}",
+        "kind": "wrong-variable",
+        "why": "The spread compensates for the loss given default, 1 - RR, not for the recovery."
+      },
+      {
+        "latex": "\\lambda = s \\times (1-\\mathrm{RR})",
+        "kind": "inverted",
+        "why": "The spread is divided by LGD, not multiplied: s = lambda x LGD, so lambda = s / LGD."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "s",
+        "direction": "up",
+        "why": "A wider spread implies a higher default intensity."
+      },
+      {
+        "variable": "\\mathrm{RR}",
+        "direction": "up",
+        "why": "A higher recovery shrinks the denominator 1 - RR and raises the implied PD (even though CVA itself falls, because LGD falls faster)."
+      }
+    ],
+    "intuition": "Spread pays for expected loss, so strip out the loss severity to get the default rate: more recovery means more defaults are needed to justify the same spread.",
+    "calc": {
+      "expr": "S / (1 - RR / 100)",
+      "inputs": [
+        {
+          "name": "S",
+          "symbol": "s",
+          "min": 0.25,
+          "max": 10,
+          "step": 0.25,
+          "unit": "%"
+        },
+        {
+          "name": "RR",
+          "symbol": "\\mathrm{RR}",
+          "min": 0,
+          "max": 80,
+          "step": 5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\lambda",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "S": 2,
+          "RR": 40
+        },
+        "output": 3.33,
+        "source_line": 166
+      }
+    },
+    "tags": [
+      "hazard rate",
+      "recovery rate",
+      "CVA"
+    ]
+  },
+  {
+    "id": "CR-20-F04",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 184,
+    "objective": "CR-20 e",
+    "name": "Bilateral CVA (BCVA) as CVA plus DVA",
+    "prompt": "How is bilateral CVA assembled from its two components?",
+    "latex": "\\mathrm{BCVA} = \\mathrm{CVA} + \\mathrm{DVA}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{BCVA}",
+        "meaning": "bilateral CVA, admitting both parties' defaults"
+      },
+      {
+        "symbol": "\\mathrm{CVA}",
+        "meaning": "counterparty-default component (negative: a cost)"
+      },
+      {
+        "symbol": "\\mathrm{DVA}",
+        "meaning": "debt value adjustment, own-default component (positive: a benefit)"
+      }
+    ],
+    "skeleton": "\\mathrm{BCVA} = {{1}} + {{2}}",
+    "slots": [
+      "\\mathrm{CVA}",
+      "\\mathrm{DVA}"
+    ],
+    "decoys": [
+      "-\\mathrm{DVA}",
+      "\\mathrm{EPE}",
+      "\\mathrm{ENE}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{BCVA} = \\mathrm{CVA} - \\mathrm{DVA}",
+        "kind": "sign",
+        "why": "In this reading's convention CVA is already negative and DVA already positive, so the two are simply added."
+      },
+      {
+        "latex": "\\mathrm{BCVA} = \\mathrm{CVA}",
+        "kind": "missing-term",
+        "why": "Dropping DVA gives unilateral CVA; BCVA is UCVA plus the DVA term."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{CVA}",
+        "direction": "up",
+        "why": "BCVA moves one-for-one with the CVA term."
+      },
+      {
+        "variable": "\\mathrm{DVA}",
+        "direction": "up",
+        "why": "A larger DVA benefit makes BCVA less negative."
+      }
+    ],
+    "intuition": "Your cost from their default plus your benefit from your own default.",
+    "calc": {
+      "expr": "CVA + DVA",
+      "inputs": [
+        {
+          "name": "CVA",
+          "symbol": "\\mathrm{CVA}",
+          "min": -10,
+          "max": 0,
+          "step": 0.01,
+          "unit": "$"
+        },
+        {
+          "name": "DVA",
+          "symbol": "\\mathrm{DVA}",
+          "min": 0,
+          "max": 10,
+          "step": 0.01,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{BCVA}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "CVA": -1.2,
+          "DVA": 0.72
+        },
+        "output": -0.48,
+        "source_line": 205
+      }
+    },
+    "tags": [
+      "BCVA",
+      "DVA"
+    ]
+  },
+  {
+    "id": "CR-20-F05",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 185,
+    "objective": "CR-20 e",
+    "name": "BCVA component: CVA (counterparty-default term)",
+    "prompt": "Within bilateral CVA, how is the counterparty-default (CVA) term computed from the counterparty's loss severity, your positive exposure and its default probabilities?",
+    "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_C(t_{i-1},t_i)",
+    "variables": [
+      {
+        "symbol": "\\mathrm{CVA}",
+        "meaning": "counterparty-default component of BCVA (negative)"
+      },
+      {
+        "symbol": "\\mathrm{LGD}_C",
+        "meaning": "loss given default of the counterparty (decimal)"
+      },
+      {
+        "symbol": "m",
+        "meaning": "number of future time intervals"
+      },
+      {
+        "symbol": "\\mathrm{EPE}(t_i)",
+        "meaning": "discounted expected positive exposure at date t_i"
+      },
+      {
+        "symbol": "\\mathrm{PD}_C(t_{i-1},t_i)",
+        "meaning": "marginal default probability of the counterparty over the interval (decimal)"
+      }
+    ],
+    "skeleton": "\\mathrm{CVA} = {{1}} \\sum_{i=1}^{m} {{2}}\\times {{3}}",
+    "slots": [
+      "-\\mathrm{LGD}_C",
+      "\\mathrm{EPE}(t_i)",
+      "\\mathrm{PD}_C(t_{i-1},t_i)"
+    ],
+    "decoys": [
+      "-\\mathrm{LGD}_I",
+      "\\mathrm{ENE}(t_i)",
+      "\\mathrm{PD}_I(t_{i-1},t_i)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_I(t_{i-1},t_i)",
+        "kind": "sibling",
+        "why": "The CVA term uses the counterparty's default probability; the institution's own PD belongs in DVA."
+      },
+      {
+        "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_C \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_C(t_{i-1},t_i)",
+        "kind": "wrong-variable",
+        "why": "The counterparty's default hurts you through positive exposure (EPE); ENE is the exposure relevant to your own default."
+      },
+      {
+        "latex": "\\mathrm{CVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_C(t_{i-1},t_i)",
+        "kind": "sibling",
+        "why": "Loss severity must be the counterparty's LGD, since it is the counterparty's default being priced."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{LGD}_C",
+        "direction": "down",
+        "why": "Higher counterparty loss severity makes CVA more negative."
+      },
+      {
+        "variable": "\\mathrm{EPE}(t_i)",
+        "direction": "down",
+        "why": "More positive exposure makes CVA more negative."
+      },
+      {
+        "variable": "\\mathrm{PD}_C(t_{i-1},t_i)",
+        "direction": "down",
+        "why": "A riskier counterparty makes CVA more negative."
+      }
+    ],
+    "intuition": "Subscript C everywhere: their severity, their default probability, on what they owe you.",
+    "calc": {
+      "expr": "-LGD * EPE * PD",
+      "inputs": [
+        {
+          "name": "LGD",
+          "symbol": "\\mathrm{LGD}_C",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "EPE",
+          "symbol": "\\mathrm{EPE}(t_1)",
+          "min": 10,
+          "max": 500,
+          "step": 10,
+          "unit": "$ (single interval, m = 1)"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}_C(t_0,t_1)",
+          "min": 0.0025,
+          "max": 0.1,
+          "step": 0.0025,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{CVA}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "LGD": 0.6,
+          "EPE": 100,
+          "PD": 0.02
+        },
+        "output": -1.2,
+        "source_line": 203
+      }
+    },
+    "tags": [
+      "CVA",
+      "BCVA"
+    ]
+  },
+  {
+    "id": "CR-20-F06",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 187,
+    "objective": "CR-20 e",
+    "name": "BCVA component: DVA (own-default term)",
+    "prompt": "How is DVA computed from the institution's own loss severity, its negative exposure and its own default probabilities?",
+    "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_I(t_{i-1},t_i)",
+    "variables": [
+      {
+        "symbol": "\\mathrm{DVA}",
+        "meaning": "debt value adjustment (positive, because ENE is negative)"
+      },
+      {
+        "symbol": "\\mathrm{LGD}_I",
+        "meaning": "loss given default of the institution itself (decimal)"
+      },
+      {
+        "symbol": "m",
+        "meaning": "number of future time intervals"
+      },
+      {
+        "symbol": "\\mathrm{ENE}(t_i)",
+        "meaning": "expected negative exposure at date t_i (the EPE from the counterparty's perspective); negative by construction"
+      },
+      {
+        "symbol": "\\mathrm{PD}_I(t_{i-1},t_i)",
+        "meaning": "marginal default probability of the institution itself over the interval (decimal)"
+      }
+    ],
+    "skeleton": "\\mathrm{DVA} = {{1}} \\sum_{i=1}^{m} {{2}}\\times {{3}}",
+    "slots": [
+      "-\\mathrm{LGD}_I",
+      "\\mathrm{ENE}(t_i)",
+      "\\mathrm{PD}_I(t_{i-1},t_i)"
+    ],
+    "decoys": [
+      "-\\mathrm{LGD}_C",
+      "\\mathrm{EPE}(t_i)",
+      "\\mathrm{PD}_C(t_{i-1},t_i)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_C(t_{i-1},t_i)",
+        "kind": "sibling",
+        "why": "DVA prices your own default, so it needs your own PD, not the counterparty's."
+      },
+      {
+        "latex": "\\mathrm{DVA} = -\\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{EPE}(t_i)\\times \\mathrm{PD}_I(t_{i-1},t_i)",
+        "kind": "wrong-variable",
+        "why": "Your default matters through what you owe them, the negative exposure ENE, not EPE."
+      },
+      {
+        "latex": "\\mathrm{DVA} = \\mathrm{LGD}_I \\sum_{i=1}^{m} \\mathrm{ENE}(t_i)\\times \\mathrm{PD}_I(t_{i-1},t_i)",
+        "kind": "sign",
+        "why": "Without the leading minus, a negative ENE would make DVA negative; the notes' DVA is a positive benefit."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{LGD}_I",
+        "direction": "up",
+        "why": "Because ENE is negative, a higher own loss severity makes DVA more positive."
+      },
+      {
+        "variable": "\\mathrm{ENE}(t_i)",
+        "direction": "down",
+        "why": "ENE rising toward zero (owing the counterparty less) shrinks the DVA benefit."
+      },
+      {
+        "variable": "\\mathrm{PD}_I(t_{i-1},t_i)",
+        "direction": "up",
+        "why": "A riskier institution books a larger DVA benefit."
+      }
+    ],
+    "intuition": "Mirror image of CVA with subscript I: your severity and your default probability on what you owe them; minus times negative ENE makes it a gain.",
+    "calc": {
+      "expr": "-LGD * ENE * PD",
+      "inputs": [
+        {
+          "name": "LGD",
+          "symbol": "\\mathrm{LGD}_I",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "ENE",
+          "symbol": "\\mathrm{ENE}(t_1)",
+          "min": -500,
+          "max": -10,
+          "step": 10,
+          "unit": "$ (negative; single interval, m = 1)"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}_I(t_0,t_1)",
+          "min": 0.0025,
+          "max": 0.1,
+          "step": 0.0025,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{DVA}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "LGD": 0.6,
+          "ENE": -80,
+          "PD": 0.015
+        },
+        "output": 0.72,
+        "source_line": 204
+      }
+    },
+    "tags": [
+      "DVA",
+      "BCVA"
+    ]
+  },
+  {
+    "id": "CR-20-F07",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 242,
+    "objective": "CR-20 g",
+    "name": "BCVA as a running spread",
+    "prompt": "How is bilateral CVA expressed as a running spread using both parties' CDS spreads and the average exposures?",
+    "latex": "\\frac{\\mathrm{BCVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}}_{C}\\times \\text{average EPE} - X^{\\mathrm{CDS}}_{I}\\times \\text{average ENE}",
+    "variables": [
+      {
+        "symbol": "\\mathrm{BCVA}(t,T)",
+        "meaning": "bilateral CVA over t to T; dividing by the CDS premium term gives a running spread"
+      },
+      {
+        "symbol": "\\mathrm{CDS}_{\\text{premium}}(t,T)",
+        "meaning": "CDS premium term over t to T; dividing BCVA(t,T) by it expresses BCVA as a per annum running spread"
+      },
+      {
+        "symbol": "X^{\\mathrm{CDS}}_{C}",
+        "meaning": "CDS spread of the counterparty"
+      },
+      {
+        "symbol": "X^{\\mathrm{CDS}}_{I}",
+        "meaning": "CDS spread of the institution itself"
+      },
+      {
+        "symbol": "\\text{average EPE}",
+        "meaning": "average expected positive exposure (assumed constant)"
+      },
+      {
+        "symbol": "\\text{average ENE}",
+        "meaning": "average expected negative exposure (negative)"
+      }
+    ],
+    "skeleton": "\\frac{\\mathrm{BCVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -{{1}}\\times {{2}} - {{3}}\\times {{4}}",
+    "slots": [
+      "X^{\\mathrm{CDS}}_{C}",
+      "\\text{average EPE}",
+      "X^{\\mathrm{CDS}}_{I}",
+      "\\text{average ENE}"
+    ],
+    "decoys": [
+      "\\mathrm{LGD}_C",
+      "\\mathrm{LGD}_I",
+      "\\mathrm{PD}_C"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\frac{\\mathrm{BCVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}}_{I}\\times \\text{average EPE} - X^{\\mathrm{CDS}}_{C}\\times \\text{average ENE}",
+        "kind": "sibling",
+        "why": "Spreads swapped: each party's own spread multiplies the other side's exposure, so the counterparty's spread goes with your EPE."
+      },
+      {
+        "latex": "\\frac{\\mathrm{BCVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}}_{C}\\times \\text{average EPE} + X^{\\mathrm{CDS}}_{I}\\times \\text{average ENE}",
+        "kind": "sign",
+        "why": "With a plus sign the negative average ENE would make the DVA term a cost; it must be a benefit."
+      },
+      {
+        "latex": "\\frac{\\mathrm{BCVA}(t,T)}{\\mathrm{CDS}_{\\text{premium}}(t,T)} = -X^{\\mathrm{CDS}}_{C}\\times \\text{average EPE}",
+        "kind": "missing-term",
+        "why": "That is only the unilateral CVA spread; BCVA adds the own-default (DVA) term."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "X^{\\mathrm{CDS}}_{C}",
+        "direction": "down",
+        "why": "A riskier counterparty increases the CVA charge."
+      },
+      {
+        "variable": "\\text{average EPE}",
+        "direction": "down",
+        "why": "More positive exposure increases the CVA charge."
+      },
+      {
+        "variable": "X^{\\mathrm{CDS}}_{I}",
+        "direction": "up",
+        "why": "Because average ENE is negative, a wider own spread increases the DVA benefit."
+      },
+      {
+        "variable": "\\text{average ENE}",
+        "direction": "down",
+        "why": "ENE rising toward zero shrinks the DVA benefit."
+      }
+    ],
+    "intuition": "Their spread on what they owe you, minus your spread on what you owe them.",
+    "calc": {
+      "expr": "-XC * EPE / 100 - XI * ENE / 100",
+      "inputs": [
+        {
+          "name": "XC",
+          "symbol": "X^{\\mathrm{CDS}}_{C}",
+          "min": 25,
+          "max": 1000,
+          "step": 25,
+          "unit": "bps"
+        },
+        {
+          "name": "EPE",
+          "symbol": "\\text{average EPE}",
+          "min": 1,
+          "max": 20,
+          "step": 1,
+          "unit": "% of notional"
+        },
+        {
+          "name": "XI",
+          "symbol": "X^{\\mathrm{CDS}}_{I}",
+          "min": 25,
+          "max": 1000,
+          "step": 25,
+          "unit": "bps"
+        },
+        {
+          "name": "ENE",
+          "symbol": "\\text{average ENE}",
+          "min": -20,
+          "max": -1,
+          "step": 1,
+          "unit": "% of notional (negative)"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{BCVA}\\ \\text{spread}",
+        "unit": "bps p.a.",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "BCVA",
+      "running spread"
+    ]
+  },
+  {
+    "id": "CR-20-F08",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 274,
+    "objective": "CR-20 i",
+    "name": "Incremental CVA: portfolio CVA after less before",
+    "prompt": "How is the incremental CVA of a new trade (or other change to the netting set) defined in terms of portfolio CVAs?",
+    "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = \\mathrm{CVA}_{NS'} - \\mathrm{CVA}_{NS}",
+    "variables": [
+      {
+        "symbol": "\\Delta\\mathrm{CVA}_{NS \\to NS'}",
+        "meaning": "incremental CVA from moving netting set NS to NS'"
+      },
+      {
+        "symbol": "\\mathrm{CVA}_{NS'}",
+        "meaning": "portfolio CVA after the change"
+      },
+      {
+        "symbol": "\\mathrm{CVA}_{NS}",
+        "meaning": "portfolio CVA before the change"
+      }
+    ],
+    "skeleton": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = {{1}} - {{2}}",
+    "slots": [
+      "\\mathrm{CVA}_{NS'}",
+      "\\mathrm{CVA}_{NS}"
+    ],
+    "decoys": [
+      "V(i)",
+      "\\mathrm{DVA}_{NS'}",
+      "\\mathrm{CVA}_{\\text{new trade}}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = \\mathrm{CVA}_{NS} - \\mathrm{CVA}_{NS'}",
+        "kind": "sign",
+        "why": "Order reversed: incremental CVA is after minus before."
+      },
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = \\mathrm{CVA}_{NS'} - \\mathrm{CVA}_{NS} + V(i)",
+        "kind": "extra-term",
+        "why": "The GARP form carries no V(i) term; the risk-free value of the new trade is not part of its incremental CVA."
+      },
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = \\mathrm{CVA}_{\\text{new trade}}",
+        "kind": "wrong-variable",
+        "why": "The standalone CVA of the new trade ignores netting with existing trades, which is the whole point of incremental CVA."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{CVA}_{NS'}",
+        "direction": "up",
+        "why": "A less negative post-trade CVA gives a less negative (smaller) incremental charge."
+      },
+      {
+        "variable": "\\mathrm{CVA}_{NS}",
+        "direction": "down",
+        "why": "The pre-change CVA is subtracted, so a higher (less negative) starting CVA lowers the incremental CVA."
+      }
+    ],
+    "intuition": "Charge the trade exactly what it does to the netted portfolio: CVA with it minus CVA without it.",
+    "calc": {
+      "expr": "CVANEW - CVAOLD",
+      "inputs": [
+        {
+          "name": "CVANEW",
+          "symbol": "\\mathrm{CVA}_{NS'}",
+          "min": -50,
+          "max": 0,
+          "step": 0.5,
+          "unit": "$M"
+        },
+        {
+          "name": "CVAOLD",
+          "symbol": "\\mathrm{CVA}_{NS}",
+          "min": -50,
+          "max": 0,
+          "step": 0.5,
+          "unit": "$M"
+        }
+      ],
+      "output": {
+        "symbol": "\\Delta\\mathrm{CVA}_{NS \\to NS'}",
+        "unit": "$M",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "incremental CVA",
+      "netting"
+    ]
+  },
+  {
+    "id": "CR-20-F09",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 275,
+    "objective": "CR-20 i",
+    "name": "Incremental CVA from incremental EPE",
+    "prompt": "How can incremental CVA be computed directly with the standalone CVA formula, and which exposure is substituted in?",
+    "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = -\\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}_{NS \\to NS'}(t_i)\\times \\mathrm{PD}(t_{i-1},t_i)",
+    "variables": [
+      {
+        "symbol": "\\Delta\\mathrm{CVA}_{NS \\to NS'}",
+        "meaning": "incremental CVA from moving netting set NS to NS'"
+      },
+      {
+        "symbol": "\\mathrm{LGD}",
+        "meaning": "loss given default of the counterparty (decimal); assumed unchanged by the trade"
+      },
+      {
+        "symbol": "m",
+        "meaning": "number of future time intervals"
+      },
+      {
+        "symbol": "\\mathrm{EPE}_{NS \\to NS'}(t_i)",
+        "meaning": "incremental EPE at date t_i: the change in the netting set's EPE caused by the change"
+      },
+      {
+        "symbol": "\\mathrm{PD}(t_{i-1},t_i)",
+        "meaning": "marginal default probability of the counterparty over the interval; assumed unchanged"
+      }
+    ],
+    "skeleton": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = {{1}}\\sum_{i=1}^{m} {{2}}\\times {{3}}",
+    "slots": [
+      "-\\mathrm{LGD}",
+      "\\mathrm{EPE}_{NS \\to NS'}(t_i)",
+      "\\mathrm{PD}(t_{i-1},t_i)"
+    ],
+    "decoys": [
+      "\\mathrm{EPE}_{NS'}(t_i)",
+      "\\text{marginal EPE}(t_i)",
+      "\\mathrm{ENE}(t_i)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = -\\mathrm{LGD}\\sum_{i=1}^{m} \\text{marginal EPE}(t_i)\\times \\mathrm{PD}(t_{i-1},t_i)",
+        "kind": "sibling",
+        "why": "Marginal EPE gives marginal CVA (attribution of an existing book); incremental CVA uses the change in EPE."
+      },
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = -\\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}_{NS'}(t_i)\\times \\mathrm{PD}(t_{i-1},t_i)",
+        "kind": "wrong-variable",
+        "why": "Using the whole post-trade EPE gives the portfolio CVA after the change, not the increment."
+      },
+      {
+        "latex": "\\Delta\\mathrm{CVA}_{NS \\to NS'} = \\mathrm{LGD}\\sum_{i=1}^{m} \\mathrm{EPE}_{NS \\to NS'}(t_i)\\times \\mathrm{PD}(t_{i-1},t_i)",
+        "kind": "sign",
+        "why": "The leading minus sign is lost; an exposure-increasing trade must make CVA more negative."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{EPE}_{NS \\to NS'}(t_i)",
+        "direction": "down",
+        "why": "The more the trade adds to netted exposure, the more negative its incremental CVA."
+      },
+      {
+        "variable": "\\mathrm{LGD}",
+        "direction": "depends",
+        "why": "Makes the increment more negative if the trade adds exposure, more positive if it reduces exposure (negative incremental EPE)."
+      },
+      {
+        "variable": "\\mathrm{PD}(t_{i-1},t_i)",
+        "direction": "depends",
+        "why": "Scales the increment: more negative for an exposure-adding trade, more positive for a risk-reducing one."
+      }
+    ],
+    "intuition": "Same CVA machine, but feed it only the exposure the new trade adds after netting.",
+    "calc": {
+      "expr": "-LGD * DEPE * PD",
+      "inputs": [
+        {
+          "name": "LGD",
+          "symbol": "\\mathrm{LGD}",
+          "min": 0.1,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal"
+        },
+        {
+          "name": "DEPE",
+          "symbol": "\\mathrm{EPE}_{NS \\to NS'}(t_1)",
+          "min": -100,
+          "max": 100,
+          "step": 5,
+          "unit": "$ (single interval, m = 1)"
+        },
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}(t_0,t_1)",
+          "min": 0.0025,
+          "max": 0.1,
+          "step": 0.0025,
+          "unit": "decimal"
+        }
+      ],
+      "output": {
+        "symbol": "\\Delta\\mathrm{CVA}_{NS \\to NS'}",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "incremental CVA",
+      "netting"
+    ]
+  },
+  {
+    "id": "CR-20-F10",
+    "reading_id": "CR-20",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/17_CR_CR20.tex",
+    "source_line": 335,
+    "objective": "CR-20 i",
+    "name": "Converting standalone CVA into a running spread on a swap",
+    "prompt": "To build CVA into a swap's pricing as a per annum spread, what do you divide the standalone CVA by?",
+    "latex": "\\text{running spread} = \\frac{\\mathrm{CVA}}{\\text{risky duration} \\times \\text{notional}}",
+    "variables": [
+      {
+        "symbol": "\\text{running spread}",
+        "meaning": "CVA expressed as a per annum spread (decimal; x 10,000 for basis points)"
+      },
+      {
+        "symbol": "\\mathrm{CVA}",
+        "meaning": "standalone CVA in currency (negative)"
+      },
+      {
+        "symbol": "\\text{risky duration}",
+        "meaning": "risky duration of the swap (years)"
+      },
+      {
+        "symbol": "\\text{notional}",
+        "meaning": "notional amount of the swap"
+      }
+    ],
+    "skeleton": "\\text{running spread} = \\frac{ {{1}} }{ {{2}} \\times {{3}} }",
+    "slots": [
+      "\\mathrm{CVA}",
+      "\\text{risky duration}",
+      "\\text{notional}"
+    ],
+    "decoys": [
+      "\\mathrm{DVA}",
+      "\\mathrm{LGD}",
+      "X^{\\mathrm{CDS}}"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{running spread} = \\frac{\\text{risky duration} \\times \\text{notional}}{\\mathrm{CVA}}",
+        "kind": "inverted",
+        "why": "Upside down: the spread is CVA per unit of risky-duration-weighted notional."
+      },
+      {
+        "latex": "\\text{running spread} = \\frac{\\mathrm{CVA}}{\\text{notional}}",
+        "kind": "missing-term",
+        "why": "Dividing by notional only gives CVA as an upfront fraction; the risky duration spreads it over the life of the swap."
+      },
+      {
+        "latex": "\\text{running spread} = \\frac{\\mathrm{CVA} \\times \\text{risky duration}}{\\text{notional}}",
+        "kind": "inverted",
+        "why": "Risky duration belongs in the denominator: a longer-lived swap spreads the same CVA over more years."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{CVA}",
+        "direction": "up",
+        "why": "A less negative CVA gives a less negative running spread."
+      },
+      {
+        "variable": "\\text{risky duration}",
+        "direction": "up",
+        "why": "CVA is negative in the notes, so a longer risky duration spreads it over more years and pulls the spread up toward zero (a smaller charge)."
+      },
+      {
+        "variable": "\\text{notional}",
+        "direction": "up",
+        "why": "CVA is negative in the notes, so spreading it over a larger notional pulls the spread up toward zero (a smaller charge)."
+      }
+    ],
+    "intuition": "Spread the one-off CVA over every dollar-year of the swap.",
+    "calc": {
+      "expr": "CVA / (D * N) * 10000",
+      "inputs": [
+        {
+          "name": "CVA",
+          "symbol": "\\mathrm{CVA}",
+          "min": -1000000,
+          "max": 0,
+          "step": 5000,
+          "unit": "$"
+        },
+        {
+          "name": "D",
+          "symbol": "\\text{risky duration}",
+          "min": 0.5,
+          "max": 10,
+          "step": 0.25,
+          "unit": "years"
+        },
+        {
+          "name": "N",
+          "symbol": "\\text{notional}",
+          "min": 1000000,
+          "max": 1000000000,
+          "step": 1000000,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{running spread}",
+        "unit": "bps",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "CVA": -90000,
+          "D": 3.75,
+          "N": 100000000
+        },
+        "output": -2.4,
+        "source_line": 342
+      }
+    },
+    "tags": [
+      "CVA",
+      "running spread",
+      "swaps"
+    ]
+  },
+  {
+    "id": "IM-7-F01",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 33,
+    "objective": "IM-7 a",
+    "name": "Single-period holding-period return",
+    "prompt": "What is a single period's return in terms of the money received and the money put in?",
+    "latex": "r_t = \\frac{\\text{total proceeds}}{\\text{initial investment}} = \\frac{\\text{income} + \\text{capital gain}}{\\text{initial investment}}",
+    "variables": [
+      {
+        "symbol": "r_t",
+        "meaning": "return for period t (decimal; x 100 for %)"
+      },
+      {
+        "symbol": "\\text{total proceeds}",
+        "meaning": "income plus capital gain over the period"
+      },
+      {
+        "symbol": "\\text{income}",
+        "meaning": "income received in the period (e.g. dividend)"
+      },
+      {
+        "symbol": "\\text{capital gain}",
+        "meaning": "change in price over the period"
+      },
+      {
+        "symbol": "\\text{initial investment}",
+        "meaning": "amount invested at the start of the period"
+      }
+    ],
+    "skeleton": "r_t = \\frac{ {{1}} }{ {{2}} } = \\frac{ {{3}} + {{4}} }{\\text{initial investment}}",
+    "slots": [
+      "\\text{total proceeds}",
+      "\\text{initial investment}",
+      "\\text{income}",
+      "\\text{capital gain}"
+    ],
+    "decoys": [
+      "\\text{ending value}",
+      "\\text{average investment}",
+      "\\text{capital loss}"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_t = \\frac{\\text{income} + \\text{capital gain}}{\\text{ending value}}",
+        "kind": "wrong-variable",
+        "why": "Return is measured against the initial investment, not the end-of-period value."
+      },
+      {
+        "latex": "r_t = \\frac{\\text{capital gain}}{\\text{initial investment}}",
+        "kind": "missing-term",
+        "why": "Ignoring the income (dividend) understates the return: 3/50 = 6% instead of (2 + 3)/50 = 10%."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{income}",
+        "direction": "up",
+        "why": "More income raises the return."
+      },
+      {
+        "variable": "\\text{capital gain}",
+        "direction": "up",
+        "why": "A bigger price gain raises the return."
+      },
+      {
+        "variable": "\\text{initial investment}",
+        "direction": "depends",
+        "why": "Depends on the sign of income plus capital gain: a larger outlay lowers a positive return and pulls a negative return up toward zero."
+      }
+    ],
+    "intuition": "What you got back (dividend plus price change) per dollar you put in.",
+    "calc": {
+      "expr": "(INC + CG) / P0 * 100",
+      "inputs": [
+        {
+          "name": "INC",
+          "symbol": "\\text{income}",
+          "min": 0,
+          "max": 10,
+          "step": 0.5,
+          "unit": "$"
+        },
+        {
+          "name": "CG",
+          "symbol": "\\text{capital gain}",
+          "min": -20,
+          "max": 20,
+          "step": 0.5,
+          "unit": "$"
+        },
+        {
+          "name": "P0",
+          "symbol": "\\text{initial investment}",
+          "min": 10,
+          "max": 200,
+          "step": 1,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "r_t",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "INC": 2,
+          "CG": 3,
+          "P0": 50
+        },
+        "output": 10.0,
+        "source_line": 57
+      }
+    },
+    "tags": [
+      "returns",
+      "time-weighted"
+    ]
+  },
+  {
+    "id": "IM-7-F02",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 59,
+    "objective": "IM-7 a",
+    "name": "Time-weighted (geometric average) return over two periods",
+    "prompt": "How do you turn two single-period returns into the time-weighted average return?",
+    "latex": "r_G = \\left[(1+r_1)(1+r_2)\\right]^{1/2} - 1",
+    "variables": [
+      {
+        "symbol": "r_G",
+        "meaning": "time-weighted (geometric average) return per period (decimal)"
+      },
+      {
+        "symbol": "r_1",
+        "meaning": "return in period 1 (decimal)"
+      },
+      {
+        "symbol": "r_2",
+        "meaning": "return in period 2 (decimal)"
+      }
+    ],
+    "skeleton": "r_G = \\left[(1+{{1}})(1+{{2}})\\right]^{ {{3}} } - 1",
+    "slots": [
+      "r_1",
+      "r_2",
+      "1/2"
+    ],
+    "decoys": [
+      "2",
+      "\\text{IRR}",
+      "r_G"
+    ],
+    "corruptions": [
+      {
+        "latex": "r_G = \\frac{r_1 + r_2}{2}",
+        "kind": "sibling",
+        "why": "That is the arithmetic average (7.83% in the notes' case), not the geometric average (7.81%)."
+      },
+      {
+        "latex": "r_G = (1+r_1)(1+r_2) - 1",
+        "kind": "exponent",
+        "why": "Without the 1/2 root this is the cumulative two-period return, not an average per period."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "r_1",
+        "direction": "up",
+        "why": "A better first period raises the compounded average."
+      },
+      {
+        "variable": "r_2",
+        "direction": "up",
+        "why": "A better second period raises the compounded average."
+      }
+    ],
+    "intuition": "Compound the period returns, then take the root: every period counts equally, however much money was in it.",
+    "calc": {
+      "expr": "(((1 + R1 / 100) * (1 + R2 / 100)) ** 0.5 - 1) * 100",
+      "inputs": [
+        {
+          "name": "R1",
+          "symbol": "r_1",
+          "min": -20,
+          "max": 30,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "R2",
+          "symbol": "r_2",
+          "min": -20,
+          "max": 30,
+          "step": 0.01,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "r_G",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "R1": 10,
+          "R2": 5.66
+        },
+        "output": 7.81,
+        "source_line": 59
+      }
+    },
+    "tags": [
+      "returns",
+      "time-weighted"
+    ]
+  },
+  {
+    "id": "IM-7-F03",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 96,
+    "objective": "IM-7 b",
+    "name": "Sharpe ratio",
+    "prompt": "Which measure divides a portfolio's average excess return over the risk-free rate by its total risk?",
+    "latex": "S_A = \\frac{\\overline{R_A} - \\overline{R_F}}{\\sigma_A}",
+    "variables": [
+      {
+        "symbol": "S_A",
+        "meaning": "Sharpe ratio of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_A}",
+        "meaning": "average return of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_F}",
+        "meaning": "average risk-free rate"
+      },
+      {
+        "symbol": "\\sigma_A",
+        "meaning": "standard deviation of portfolio A's returns (total risk)"
+      }
+    ],
+    "skeleton": "S_A = \\frac{ {{1}} - {{2}} }{ {{3}} }",
+    "slots": [
+      "\\overline{R_A}",
+      "\\overline{R_F}",
+      "\\sigma_A"
+    ],
+    "decoys": [
+      "\\beta_A",
+      "\\overline{R_B}",
+      "\\sigma_{A-B}"
+    ],
+    "corruptions": [
+      {
+        "latex": "S_A = \\frac{\\overline{R_A} - \\overline{R_F}}{\\beta_A}",
+        "kind": "sibling",
+        "why": "Dividing by beta gives the Treynor measure (systematic risk), not Sharpe (total risk)."
+      },
+      {
+        "latex": "S_A = \\frac{\\overline{R_A} - \\overline{R_B}}{\\sigma_A}",
+        "kind": "sibling",
+        "why": "Sharpe measures excess return over the risk-free rate; a benchmark belongs in the information ratio."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\overline{R_A}",
+        "direction": "up",
+        "why": "Higher return for the same risk raises the ratio."
+      },
+      {
+        "variable": "\\overline{R_F}",
+        "direction": "down",
+        "why": "A higher risk-free rate shrinks the excess return."
+      },
+      {
+        "variable": "\\sigma_A",
+        "direction": "depends",
+        "why": "Lowers the ratio when the excess return is positive; raises it (toward zero) when negative."
+      }
+    ],
+    "intuition": "Excess return per unit of total volatility: the measure for a portfolio held on its own.",
+    "calc": {
+      "expr": "(RA - RF) / SA",
+      "inputs": [
+        {
+          "name": "RA",
+          "symbol": "\\overline{R_A}",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "RF",
+          "symbol": "\\overline{R_F}",
+          "min": 0,
+          "max": 8,
+          "step": 0.25,
+          "unit": "%"
+        },
+        {
+          "name": "SA",
+          "symbol": "\\sigma_A",
+          "min": 1,
+          "max": 40,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "S_A",
+        "unit": "",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "performance measures",
+      "Sharpe"
+    ]
+  },
+  {
+    "id": "IM-7-F04",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 99,
+    "objective": "IM-7 b",
+    "name": "Treynor measure",
+    "prompt": "Which measure divides a portfolio's average excess return over the risk-free rate by its systematic risk?",
+    "latex": "T_A = \\frac{\\overline{R_A} - \\overline{R_F}}{\\beta_A}",
+    "variables": [
+      {
+        "symbol": "T_A",
+        "meaning": "Treynor measure of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_A}",
+        "meaning": "average return of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_F}",
+        "meaning": "average risk-free rate"
+      },
+      {
+        "symbol": "\\beta_A",
+        "meaning": "beta of portfolio A (systematic risk)"
+      }
+    ],
+    "skeleton": "T_A = \\frac{ {{1}} - {{2}} }{ {{3}} }",
+    "slots": [
+      "\\overline{R_A}",
+      "\\overline{R_F}",
+      "\\beta_A"
+    ],
+    "decoys": [
+      "\\sigma_A",
+      "\\overline{R_B}",
+      "\\sigma_{A-B}"
+    ],
+    "corruptions": [
+      {
+        "latex": "T_A = \\frac{\\overline{R_A} - \\overline{R_F}}{\\sigma_A}",
+        "kind": "sibling",
+        "why": "Dividing by standard deviation gives the Sharpe ratio; Treynor uses beta, systematic risk only."
+      },
+      {
+        "latex": "T_A = \\frac{\\beta_A}{\\overline{R_A} - \\overline{R_F}}",
+        "kind": "inverted",
+        "why": "Upside down: Treynor is excess return per unit of beta."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\overline{R_A}",
+        "direction": "up",
+        "why": "Higher return for the same beta raises the measure."
+      },
+      {
+        "variable": "\\overline{R_F}",
+        "direction": "down",
+        "why": "A higher risk-free rate shrinks the excess return."
+      },
+      {
+        "variable": "\\beta_A",
+        "direction": "depends",
+        "why": "Lowers the measure when the excess return is positive; raises it (toward zero) when negative."
+      }
+    ],
+    "intuition": "Excess return per unit of beta: fair for well-diversified portfolios where only systematic risk is left.",
+    "calc": {
+      "expr": "(RA - RF) / B",
+      "inputs": [
+        {
+          "name": "RA",
+          "symbol": "\\overline{R_A}",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "RF",
+          "symbol": "\\overline{R_F}",
+          "min": 0,
+          "max": 8,
+          "step": 0.25,
+          "unit": "%"
+        },
+        {
+          "name": "B",
+          "symbol": "\\beta_A",
+          "min": 0.2,
+          "max": 2,
+          "step": 0.05,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "T_A",
+        "unit": "% per unit of beta",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance measures",
+      "Treynor"
+    ]
+  },
+  {
+    "id": "IM-7-F05",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 103,
+    "objective": "IM-7 b",
+    "name": "Jensen's alpha",
+    "prompt": "How is Jensen's alpha defined from a portfolio's actual return and the return expected for its systematic risk?",
+    "latex": "\\alpha_A = R_A - E(R_A)",
+    "variables": [
+      {
+        "symbol": "\\alpha_A",
+        "meaning": "Jensen's alpha of portfolio A"
+      },
+      {
+        "symbol": "R_A",
+        "meaning": "actual return of portfolio A"
+      },
+      {
+        "symbol": "E(R_A)",
+        "meaning": "return expected from A's systematic risk under the CAPM"
+      }
+    ],
+    "skeleton": "\\alpha_A = {{1}} - {{2}}",
+    "slots": [
+      "R_A",
+      "E(R_A)"
+    ],
+    "decoys": [
+      "R_F",
+      "\\overline{R_B}",
+      "\\beta_A"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\alpha_A = E(R_A) - R_A",
+        "kind": "sign",
+        "why": "Reversed: a portfolio beating its CAPM-required return must have a positive alpha."
+      },
+      {
+        "latex": "\\alpha_A = R_A - R_F",
+        "kind": "wrong-variable",
+        "why": "That is the raw excess return; alpha subtracts the CAPM return for the portfolio's beta, not just the risk-free rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "R_A",
+        "direction": "up",
+        "why": "Higher actual return raises alpha."
+      },
+      {
+        "variable": "E(R_A)",
+        "direction": "down",
+        "why": "A higher required (CAPM) return lowers alpha."
+      }
+    ],
+    "intuition": "What you earned minus what your beta alone should have earned; a difference, not a ratio.",
+    "calc": {
+      "expr": "RA - ERA",
+      "inputs": [
+        {
+          "name": "RA",
+          "symbol": "R_A",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "ERA",
+          "symbol": "E(R_A)",
+          "min": -5,
+          "max": 20,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\alpha_A",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance measures",
+      "alpha"
+    ]
+  },
+  {
+    "id": "IM-7-F06",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 107,
+    "objective": "IM-7 b",
+    "name": "Information ratio",
+    "prompt": "Which measure divides a portfolio's average return over its benchmark by the tracking error?",
+    "latex": "\\text{IR}_A = \\frac{\\overline{R_A} - \\overline{R_B}}{\\sigma_{A-B}}",
+    "variables": [
+      {
+        "symbol": "\\text{IR}_A",
+        "meaning": "information ratio of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_A}",
+        "meaning": "average return of portfolio A"
+      },
+      {
+        "symbol": "\\overline{R_B}",
+        "meaning": "average return of the benchmark"
+      },
+      {
+        "symbol": "\\sigma_{A-B}",
+        "meaning": "tracking error: standard deviation of A's return minus the benchmark's"
+      }
+    ],
+    "skeleton": "\\text{IR}_A = \\frac{ {{1}} - {{2}} }{ {{3}} }",
+    "slots": [
+      "\\overline{R_A}",
+      "\\overline{R_B}",
+      "\\sigma_{A-B}"
+    ],
+    "decoys": [
+      "\\overline{R_F}",
+      "\\sigma_A",
+      "\\beta_A"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{IR}_A = \\frac{\\overline{R_A} - \\overline{R_B}}{\\sigma_A}",
+        "kind": "wrong-variable",
+        "why": "The IR divides by tracking error (volatility of the active return), not the portfolio's total volatility."
+      },
+      {
+        "latex": "\\text{IR}_A = \\frac{\\overline{R_A} - \\overline{R_F}}{\\sigma_{A-B}}",
+        "kind": "sibling",
+        "why": "The IR measures return relative to the benchmark, not the risk-free rate."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\overline{R_A}",
+        "direction": "up",
+        "why": "More return over the benchmark raises the IR."
+      },
+      {
+        "variable": "\\overline{R_B}",
+        "direction": "down",
+        "why": "A stronger benchmark shrinks the active return."
+      },
+      {
+        "variable": "\\sigma_{A-B}",
+        "direction": "depends",
+        "why": "Lowers the IR when active return is positive; raises it (toward zero) when negative."
+      }
+    ],
+    "intuition": "Sharpe's shape, but against a benchmark: active return per unit of active risk.",
+    "calc": {
+      "expr": "(RA - RB) / TE",
+      "inputs": [
+        {
+          "name": "RA",
+          "symbol": "\\overline{R_A}",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "RB",
+          "symbol": "\\overline{R_B}",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "TE",
+          "symbol": "\\sigma_{A-B}",
+          "min": 0.5,
+          "max": 15,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{IR}_A",
+        "unit": "",
+        "decimals": 3
+      },
+      "example": null
+    },
+    "tags": [
+      "performance measures",
+      "information ratio"
+    ]
+  },
+  {
+    "id": "IM-7-F07",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 123,
+    "objective": "IM-7 c",
+    "name": "Modigliani-squared (M^2)",
+    "prompt": "How is M-squared computed by levering the portfolio to the market's volatility and comparing with the market?",
+    "latex": "M^2 = R_F + \\left(\\frac{R_P - R_F}{\\sigma_P}\\right)\\sigma_M - \\text{market return}",
+    "variables": [
+      {
+        "symbol": "M^2",
+        "meaning": "Modigliani-squared: risk-adjusted outperformance over the market (positive = outperformed)"
+      },
+      {
+        "symbol": "R_F",
+        "meaning": "risk-free rate"
+      },
+      {
+        "symbol": "R_P",
+        "meaning": "portfolio return"
+      },
+      {
+        "symbol": "\\sigma_P",
+        "meaning": "standard deviation of the portfolio"
+      },
+      {
+        "symbol": "\\sigma_M",
+        "meaning": "standard deviation of the market"
+      },
+      {
+        "symbol": "\\text{market return}",
+        "meaning": "return on the market portfolio"
+      }
+    ],
+    "skeleton": "M^2 = {{1}} + \\left(\\frac{R_P - R_F}{ {{2}} }\\right){{3}} - {{4}}",
+    "slots": [
+      "R_F",
+      "\\sigma_P",
+      "\\sigma_M",
+      "\\text{market return}"
+    ],
+    "decoys": [
+      "\\beta_P",
+      "R_P",
+      "\\sigma_P^2"
+    ],
+    "corruptions": [
+      {
+        "latex": "M^2 = R_F + \\left(\\frac{R_P - R_F}{\\sigma_P}\\right)\\sigma_M",
+        "kind": "missing-term",
+        "why": "Forgetting to subtract the market return leaves the risk-adjusted portfolio return, a real but different number."
+      },
+      {
+        "latex": "M^2 = R_F + \\left(\\frac{R_P - R_F}{\\sigma_P}\\right)\\sigma_M - R_F",
+        "kind": "wrong-variable",
+        "why": "M^2 subtracts the market return, not the risk-free rate."
+      },
+      {
+        "latex": "M^2 = R_F + \\left(\\frac{R_P - R_F}{\\sigma_M}\\right)\\sigma_P - \\text{market return}",
+        "kind": "inverted",
+        "why": "Volatilities swapped: you divide by the portfolio's own sigma (its Sharpe ratio) and rescale to the market's sigma."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "R_P",
+        "direction": "up",
+        "why": "Higher portfolio return raises the levered return and M^2."
+      },
+      {
+        "variable": "\\sigma_P",
+        "direction": "depends",
+        "why": "Lowers M^2 when the portfolio's excess return is positive (a lower Sharpe ratio); raises it when negative."
+      },
+      {
+        "variable": "\\sigma_M",
+        "direction": "depends",
+        "why": "Raises M^2 when the portfolio's Sharpe ratio is positive; lowers it when negative."
+      },
+      {
+        "variable": "\\text{market return}",
+        "direction": "down",
+        "why": "A better market is a harder bar to beat."
+      }
+    ],
+    "intuition": "Scale the portfolio to the market's risk along its own Sharpe line, then see by how many percent it beats the market.",
+    "calc": {
+      "expr": "RF + (RP - RF) / SP * SM - RM",
+      "inputs": [
+        {
+          "name": "RF",
+          "symbol": "R_F",
+          "min": 0,
+          "max": 8,
+          "step": 0.25,
+          "unit": "%"
+        },
+        {
+          "name": "RP",
+          "symbol": "R_P",
+          "min": -10,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "SP",
+          "symbol": "\\sigma_P",
+          "min": 1,
+          "max": 40,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "SM",
+          "symbol": "\\sigma_M",
+          "min": 5,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "RM",
+          "symbol": "\\text{market return}",
+          "min": -10,
+          "max": 25,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "M^2",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance measures",
+      "M-squared",
+      "Sharpe"
+    ]
+  },
+  {
+    "id": "IM-7-F08",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 193,
+    "objective": "IM-7 d",
+    "name": "t-statistic for alpha",
+    "prompt": "How do you test whether a manager's alpha is statistically different from zero, given the residual volatility and the number of observations?",
+    "latex": "t = \\frac{\\alpha - 0}{\\text{standard error}(\\alpha)} = \\frac{\\alpha}{\\sigma/\\sqrt{N}}",
+    "variables": [
+      {
+        "symbol": "t",
+        "meaning": "t-statistic for H0: true alpha is zero"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "estimated alpha"
+      },
+      {
+        "symbol": "\\text{standard error}(\\alpha)",
+        "meaning": "standard error of the alpha estimate"
+      },
+      {
+        "symbol": "\\sigma",
+        "meaning": "standard deviation of the regression residuals (tracking error), not the portfolio's total volatility"
+      },
+      {
+        "symbol": "N",
+        "meaning": "number of observations"
+      }
+    ],
+    "skeleton": "t = \\frac{\\alpha - 0}{\\text{standard error}(\\alpha)} = \\frac{ {{1}} }{ {{2}}/\\sqrt{ {{3}} } }",
+    "slots": [
+      "\\alpha",
+      "\\sigma",
+      "N"
+    ],
+    "decoys": [
+      "\\sigma_P",
+      "N-1",
+      "\\beta"
+    ],
+    "corruptions": [
+      {
+        "latex": "t = \\frac{\\alpha}{\\sigma/N}",
+        "kind": "exponent",
+        "why": "The standard error shrinks with the square root of N, not N; quadrupling the sample only doubles t."
+      },
+      {
+        "latex": "t = \\frac{\\alpha}{\\sigma\\sqrt{N}}",
+        "kind": "inverted",
+        "why": "The standard error is sigma divided by root N; multiplying would make larger samples less significant."
+      },
+      {
+        "latex": "t = \\frac{\\alpha}{\\sigma_P/\\sqrt{N}}",
+        "kind": "wrong-variable",
+        "why": "Using the portfolio's total volatility instead of residual volatility makes t too small."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\alpha",
+        "direction": "up",
+        "why": "A bigger alpha is more significant."
+      },
+      {
+        "variable": "\\sigma",
+        "direction": "depends",
+        "why": "Pulls t toward zero: down for a positive alpha, up for a negative alpha."
+      },
+      {
+        "variable": "N",
+        "direction": "depends",
+        "why": "Pushes t away from zero: up for a positive alpha, down for a negative alpha."
+      }
+    ],
+    "intuition": "Alpha measured in standard errors; significance only grows with the square root of the sample, which is why alpha is hard to prove.",
+    "calc": {
+      "expr": "A / (S / Math.sqrt(N))",
+      "inputs": [
+        {
+          "name": "A",
+          "symbol": "\\alpha",
+          "min": -5,
+          "max": 5,
+          "step": 0.1,
+          "unit": "% per period"
+        },
+        {
+          "name": "S",
+          "symbol": "\\sigma",
+          "min": 0.5,
+          "max": 20,
+          "step": 0.5,
+          "unit": "% per period"
+        },
+        {
+          "name": "N",
+          "symbol": "N",
+          "min": 12,
+          "max": 240,
+          "step": 12,
+          "unit": "observations"
+        }
+      ],
+      "output": {
+        "symbol": "t",
+        "unit": "",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "alpha",
+      "hypothesis test"
+    ]
+  },
+  {
+    "id": "IM-7-F09",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 279,
+    "objective": "IM-7 h",
+    "name": "Market-timing regression with a bull-market dummy",
+    "prompt": "How does the regression approach detect market timing by letting the portfolio's beta differ in up and down markets?",
+    "latex": "R_P - R_F = \\alpha + \\beta_P (R_M - R_F) + M_P (R_M - R_F)D + \\varepsilon_P",
+    "variables": [
+      {
+        "symbol": "R_P",
+        "meaning": "portfolio return"
+      },
+      {
+        "symbol": "R_F",
+        "meaning": "risk-free rate"
+      },
+      {
+        "symbol": "\\alpha",
+        "meaning": "intercept (alpha)"
+      },
+      {
+        "symbol": "\\beta_P",
+        "meaning": "portfolio beta in a bear market (R_M < R_F)"
+      },
+      {
+        "symbol": "R_M",
+        "meaning": "market return"
+      },
+      {
+        "symbol": "M_P",
+        "meaning": "extra beta in a bull market; positive M_P indicates timing ability"
+      },
+      {
+        "symbol": "D",
+        "meaning": "dummy: 1 when r_M > r_f, otherwise 0"
+      },
+      {
+        "symbol": "\\varepsilon_P",
+        "meaning": "regression residual"
+      }
+    ],
+    "skeleton": "R_P - R_F = \\alpha + {{1}} (R_M - R_F) + {{2}} (R_M - R_F){{3}} + \\varepsilon_P",
+    "slots": [
+      "\\beta_P",
+      "M_P",
+      "D"
+    ],
+    "decoys": [
+      "(1-D)",
+      "\\beta_P^2",
+      "\\sigma_M"
+    ],
+    "corruptions": [
+      {
+        "latex": "R_P - R_F = \\alpha + \\beta_P (R_M - R_F) + M_P (R_M - R_F)(1-D) + \\varepsilon_P",
+        "kind": "wrong-variable",
+        "why": "The extra beta must switch on when the market beats the risk-free rate (D = 1); reversing the dummy reverses the conclusion."
+      },
+      {
+        "latex": "R_P - R_F = \\alpha + \\beta_P (R_M - R_F) + M_P (R_M - R_F) + \\varepsilon_P",
+        "kind": "missing-term",
+        "why": "Without the dummy the beta is just beta_P + M_P in all states: a straight line that cannot capture timing."
+      },
+      {
+        "latex": "R_P - R_F = \\alpha + \\beta_P (R_M - R_F) + \\varepsilon_P",
+        "kind": "missing-term",
+        "why": "This is the ordinary security characteristic line with constant beta, which assumes no market timing."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\alpha",
+        "direction": "up",
+        "why": "The intercept adds directly to the excess return."
+      },
+      {
+        "variable": "M_P",
+        "direction": "depends",
+        "why": "Raises the excess return only in bull markets (D = 1, R_M > R_F); no effect when D = 0."
+      },
+      {
+        "variable": "\\beta_P",
+        "direction": "depends",
+        "why": "Raises the excess return when R_M - R_F is positive, lowers it when negative."
+      }
+    ],
+    "intuition": "A good timer has a steeper line when the market is up than when it is down: the kink at zero is the skill, and it looks like a long call.",
+    "calc": {
+      "expr": "ALPHA + B * XM + MP * Math.max(XM, 0)",
+      "inputs": [
+        {
+          "name": "ALPHA",
+          "symbol": "\\alpha",
+          "min": -2,
+          "max": 2,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "B",
+          "symbol": "\\beta_P",
+          "min": 0,
+          "max": 2,
+          "step": 0.05,
+          "unit": ""
+        },
+        {
+          "name": "MP",
+          "symbol": "M_P",
+          "min": -1,
+          "max": 1,
+          "step": 0.05,
+          "unit": ""
+        },
+        {
+          "name": "XM",
+          "symbol": "R_M - R_F",
+          "min": -20,
+          "max": 20,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "R_P - R_F",
+        "unit": "% (fitted, residual = 0; D = 1 when R_M - R_F > 0)",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "market timing",
+      "regression"
+    ]
+  },
+  {
+    "id": "IM-7-F10",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 347,
+    "objective": "IM-7 i",
+    "name": "Performance attribution: contribution from asset allocation",
+    "prompt": "In performance attribution, how much of an asset class's contribution comes from over- or under-weighting it relative to the benchmark?",
+    "latex": "\\text{Contribution from asset allocation} = (w_P - w_B) \\times R_B",
+    "variables": [
+      {
+        "symbol": "\\text{Contribution from asset allocation}",
+        "meaning": "value added from the weighting decision in the asset class"
+      },
+      {
+        "symbol": "w_P",
+        "meaning": "portfolio's weight in the asset class"
+      },
+      {
+        "symbol": "w_B",
+        "meaning": "benchmark's weight in the asset class"
+      },
+      {
+        "symbol": "R_B",
+        "meaning": "benchmark's return in the asset class"
+      }
+    ],
+    "skeleton": "\\text{Contribution from asset allocation} = ({{1}} - {{2}}) \\times {{3}}",
+    "slots": [
+      "w_P",
+      "w_B",
+      "R_B"
+    ],
+    "decoys": [
+      "R_P",
+      "R_F",
+      "R_P - R_B"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Contribution from asset allocation} = (w_P - w_B) \\times R_P",
+        "kind": "wrong-variable",
+        "why": "Allocation uses the benchmark's return R_B; using R_P mixes in selection and fails the sum check."
+      },
+      {
+        "latex": "\\text{Contribution from asset allocation} = (w_B - w_P) \\times R_B",
+        "kind": "sign",
+        "why": "Overweighting a class with positive benchmark return must add value, so it is portfolio weight minus benchmark weight."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "w_P",
+        "direction": "depends",
+        "why": "Adds value if the asset class's benchmark return is positive, subtracts if negative."
+      },
+      {
+        "variable": "R_B",
+        "direction": "depends",
+        "why": "Helps if the portfolio is overweight (w_P > w_B), hurts if underweight."
+      }
+    ],
+    "intuition": "Weight bet times how the class did in the benchmark: did you tilt toward the right asset class?",
+    "calc": {
+      "expr": "(WP - WB) * RB",
+      "inputs": [
+        {
+          "name": "WP",
+          "symbol": "w_P",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal weight"
+        },
+        {
+          "name": "WB",
+          "symbol": "w_B",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal weight"
+        },
+        {
+          "name": "RB",
+          "symbol": "R_B",
+          "min": -20,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Contribution from asset allocation}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance attribution"
+    ]
+  },
+  {
+    "id": "IM-7-F11",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 348,
+    "objective": "IM-7 i",
+    "name": "Performance attribution: contribution from security selection",
+    "prompt": "In performance attribution, how much of an asset class's contribution comes from picking better securities than the benchmark within it?",
+    "latex": "\\text{Contribution from security selection} = w_P \\times (R_P - R_B)",
+    "variables": [
+      {
+        "symbol": "\\text{Contribution from security selection}",
+        "meaning": "value added from selection within the asset class"
+      },
+      {
+        "symbol": "w_P",
+        "meaning": "portfolio's weight in the asset class"
+      },
+      {
+        "symbol": "R_P",
+        "meaning": "portfolio's return in the asset class"
+      },
+      {
+        "symbol": "R_B",
+        "meaning": "benchmark's return in the asset class"
+      }
+    ],
+    "skeleton": "\\text{Contribution from security selection} = {{1}} \\times ({{2}} - {{3}})",
+    "slots": [
+      "w_P",
+      "R_P",
+      "R_B"
+    ],
+    "decoys": [
+      "w_B",
+      "w_P - w_B",
+      "R_F"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Contribution from security selection} = w_B \\times (R_P - R_B)",
+        "kind": "wrong-variable",
+        "why": "Selection uses the portfolio's weight w_P; with w_B the two contributions no longer add to the total."
+      },
+      {
+        "latex": "\\text{Contribution from security selection} = w_P \\times (R_B - R_P)",
+        "kind": "sign",
+        "why": "Beating the benchmark within the class must add value: R_P minus R_B."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "R_P",
+        "direction": "up",
+        "why": "Better returns within the class increase the selection contribution (w_P >= 0)."
+      },
+      {
+        "variable": "R_B",
+        "direction": "down",
+        "why": "A stronger benchmark return within the class reduces the selection contribution."
+      },
+      {
+        "variable": "w_P",
+        "direction": "depends",
+        "why": "Magnifies the selection result: adds if R_P > R_B, subtracts if R_P < R_B."
+      }
+    ],
+    "intuition": "Your weight times how much better your picks did than the benchmark's in that class.",
+    "calc": {
+      "expr": "WP * (RP - RB)",
+      "inputs": [
+        {
+          "name": "WP",
+          "symbol": "w_P",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal weight"
+        },
+        {
+          "name": "RP",
+          "symbol": "R_P",
+          "min": -20,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "RB",
+          "symbol": "R_B",
+          "min": -20,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Contribution from security selection}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance attribution"
+    ]
+  },
+  {
+    "id": "IM-7-F12",
+    "reading_id": "IM-7",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/08_IM_IM7.tex",
+    "source_line": 349,
+    "objective": "IM-7 i",
+    "name": "Performance attribution: total contribution of an asset class",
+    "prompt": "What is an asset class's total contribution to performance relative to the benchmark (the sum of allocation and selection)?",
+    "latex": "\\text{Total contribution} = w_P R_P - w_B R_B",
+    "variables": [
+      {
+        "symbol": "\\text{Total contribution}",
+        "meaning": "total value added in the asset class (allocation + selection)"
+      },
+      {
+        "symbol": "w_P",
+        "meaning": "portfolio's weight in the asset class"
+      },
+      {
+        "symbol": "R_P",
+        "meaning": "portfolio's return in the asset class"
+      },
+      {
+        "symbol": "w_B",
+        "meaning": "benchmark's weight in the asset class"
+      },
+      {
+        "symbol": "R_B",
+        "meaning": "benchmark's return in the asset class"
+      }
+    ],
+    "skeleton": "\\text{Total contribution} = {{1}} {{2}} - {{3}} {{4}}",
+    "slots": [
+      "w_P",
+      "R_P",
+      "w_B",
+      "R_B"
+    ],
+    "decoys": [
+      "R_F",
+      "w_P - w_B",
+      "R_P - R_B"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{Total contribution} = w_P R_B - w_B R_P",
+        "kind": "sibling",
+        "why": "Returns swapped: each weight must go with its own return (portfolio with portfolio, benchmark with benchmark)."
+      },
+      {
+        "latex": "\\text{Total contribution} = (w_P - w_B)(R_P - R_B)",
+        "kind": "wrong-variable",
+        "why": "That is only a cross term; the total is w_P R_P - w_B R_B, which allocation plus selection sum to exactly."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "R_P",
+        "direction": "up",
+        "why": "Higher portfolio return in the class raises the total (w_P >= 0)."
+      },
+      {
+        "variable": "R_B",
+        "direction": "down",
+        "why": "Higher benchmark return in the class lowers the total (w_B >= 0)."
+      },
+      {
+        "variable": "w_P",
+        "direction": "depends",
+        "why": "Adds if R_P is positive, subtracts if negative."
+      },
+      {
+        "variable": "w_B",
+        "direction": "depends",
+        "why": "Lowers the total if R_B is positive, raises it if negative."
+      }
+    ],
+    "intuition": "Your weighted return minus the benchmark's weighted return; allocation plus selection must add up to it.",
+    "calc": {
+      "expr": "WP * RP - WB * RB",
+      "inputs": [
+        {
+          "name": "WP",
+          "symbol": "w_P",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal weight"
+        },
+        {
+          "name": "RP",
+          "symbol": "R_P",
+          "min": -20,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "WB",
+          "symbol": "w_B",
+          "min": 0,
+          "max": 1,
+          "step": 0.05,
+          "unit": "decimal weight"
+        },
+        {
+          "name": "RB",
+          "symbol": "R_B",
+          "min": -20,
+          "max": 30,
+          "step": 0.5,
+          "unit": "%"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{Total contribution}",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "performance attribution"
+    ]
+  },
+  {
+    "id": "IM-4-F01",
+    "reading_id": "IM-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/46_IM_IM4.tex",
+    "source_line": 156,
+    "objective": "IM-4 e",
+    "name": "Active risk aversion backed out from IR and target active risk",
+    "prompt": "Given your information ratio and desired level of active risk, what active risk aversion should the optimizer use?",
+    "latex": "\\lambda_A = \\frac{\\text{IR}}{2\\sigma_A}",
+    "variables": [
+      {
+        "symbol": "\\lambda_A",
+        "meaning": "active risk aversion"
+      },
+      {
+        "symbol": "\\text{IR}",
+        "meaning": "information ratio"
+      },
+      {
+        "symbol": "\\sigma_A",
+        "meaning": "desired active risk, in percent (not decimal)"
+      }
+    ],
+    "skeleton": "\\lambda_A = \\frac{ {{1}} }{ {{2}}{{3}} }",
+    "slots": [
+      "\\text{IR}",
+      "2",
+      "\\sigma_A"
+    ],
+    "decoys": [
+      "\\sigma_A^2",
+      "\\psi",
+      "\\alpha_n"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\lambda_A = \\frac{2\\sigma_A}{\\text{IR}}",
+        "kind": "inverted",
+        "why": "Upside down: a higher information ratio supports a higher risk aversion for a given active risk target."
+      },
+      {
+        "latex": "\\lambda_A = \\frac{\\text{IR}}{\\sigma_A}",
+        "kind": "scaling",
+        "why": "Missing the factor 2: IR 0.5 and 5% active risk would give 0.10 instead of 0.05."
+      },
+      {
+        "latex": "\\lambda_A = \\frac{\\text{IR}}{2\\sigma_A^2}",
+        "kind": "exponent",
+        "why": "Active risk enters linearly, not squared."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\text{IR}",
+        "direction": "up",
+        "why": "More skill per unit of active risk supports a higher risk aversion."
+      },
+      {
+        "variable": "\\sigma_A",
+        "direction": "down",
+        "why": "Wanting more active risk means you must be less averse to it."
+      }
+    ],
+    "intuition": "Half the IR per percent of active risk you want to run; enter risk in percent, so IR 0.5 at 5% gives 0.05.",
+    "calc": {
+      "expr": "IR / (2 * SA)",
+      "inputs": [
+        {
+          "name": "IR",
+          "symbol": "\\text{IR}",
+          "min": 0.1,
+          "max": 1.5,
+          "step": 0.05,
+          "unit": ""
+        },
+        {
+          "name": "SA",
+          "symbol": "\\sigma_A",
+          "min": 1,
+          "max": 10,
+          "step": 0.5,
+          "unit": "% (enter as percent, e.g. 5)"
+        }
+      ],
+      "output": {
+        "symbol": "\\lambda_A",
+        "unit": "",
+        "decimals": 3
+      },
+      "example": {
+        "inputs": {
+          "IR": 0.5,
+          "SA": 5
+        },
+        "output": 0.05,
+        "source_line": 164
+      }
+    },
+    "tags": [
+      "risk aversion",
+      "information ratio"
+    ]
+  },
+  {
+    "id": "IM-4-F02",
+    "reading_id": "IM-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/46_IM_IM4.tex",
+    "source_line": 200,
+    "objective": "IM-4 g",
+    "name": "Marginal contribution to value added (MCVA)",
+    "prompt": "How does stock n's marginal contribution to value added depend on its alpha and its marginal contribution to active risk?",
+    "latex": "\\text{MCVA}_n = \\alpha_n - 2 \\times \\lambda_A \\times \\psi \\times \\text{MCAR}_n",
+    "variables": [
+      {
+        "symbol": "\\text{MCVA}_n",
+        "meaning": "marginal contribution to value added of stock n: change in risk-adjusted alpha as its holding rises (funded from cash)"
+      },
+      {
+        "symbol": "\\alpha_n",
+        "meaning": "alpha of stock n"
+      },
+      {
+        "symbol": "\\lambda_A",
+        "meaning": "active risk aversion"
+      },
+      {
+        "symbol": "\\psi",
+        "meaning": "active risk"
+      },
+      {
+        "symbol": "\\text{MCAR}_n",
+        "meaning": "marginal contribution to active risk of stock n"
+      }
+    ],
+    "skeleton": "\\text{MCVA}_n = {{1}} - {{2}} \\times {{3}} \\times {{4}} \\times {{5}}",
+    "slots": [
+      "\\alpha_n",
+      "2",
+      "\\lambda_A",
+      "\\psi",
+      "\\text{MCAR}_n"
+    ],
+    "decoys": [
+      "\\text{PC}_n",
+      "\\text{SC}_n",
+      "\\psi^2"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{MCVA}_n = \\alpha_n + 2 \\times \\lambda_A \\times \\psi \\times \\text{MCAR}_n",
+        "kind": "sign",
+        "why": "Added active risk is a penalty, so the risk term is subtracted from alpha."
+      },
+      {
+        "latex": "\\text{MCVA}_n = \\alpha_n - \\lambda_A \\times \\psi \\times \\text{MCAR}_n",
+        "kind": "scaling",
+        "why": "The risk penalty carries a factor of 2; dropping it halves the charge for the active risk the stock adds."
+      },
+      {
+        "latex": "\\text{MCVA}_n = \\alpha_n - 2 \\times \\lambda_A \\times \\psi^2 \\times \\text{MCAR}_n",
+        "kind": "exponent",
+        "why": "Active risk psi enters linearly in the MCVA formula; squaring it overstates the risk penalty."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\alpha_n",
+        "direction": "up",
+        "why": "A higher alpha raises the value added by holding more of the stock."
+      },
+      {
+        "variable": "\\text{MCAR}_n",
+        "direction": "down",
+        "why": "The more the stock adds to active risk, the larger the risk penalty."
+      },
+      {
+        "variable": "\\lambda_A",
+        "direction": "depends",
+        "why": "Lowers MCVA when MCAR_n is positive (adding the stock raises active risk); raises it when MCAR_n is negative."
+      },
+      {
+        "variable": "\\psi",
+        "direction": "depends",
+        "why": "Lowers MCVA when MCAR_n is positive; raises it when MCAR_n is negative."
+      }
+    ],
+    "intuition": "Extra alpha from one more unit of the stock, less the risk-aversion charge on the active risk it adds.",
+    "calc": {
+      "expr": "ALPHA - 2 * LAM * PSI * MCAR",
+      "inputs": [
+        {
+          "name": "ALPHA",
+          "symbol": "\\alpha_n",
+          "min": -3,
+          "max": 3,
+          "step": 0.1,
+          "unit": "%"
+        },
+        {
+          "name": "LAM",
+          "symbol": "\\lambda_A",
+          "min": 0.01,
+          "max": 0.2,
+          "step": 0.01,
+          "unit": ""
+        },
+        {
+          "name": "PSI",
+          "symbol": "\\psi",
+          "min": 1,
+          "max": 10,
+          "step": 0.5,
+          "unit": "%"
+        },
+        {
+          "name": "MCAR",
+          "symbol": "\\text{MCAR}_n",
+          "min": -1,
+          "max": 1,
+          "step": 0.05,
+          "unit": ""
+        }
+      ],
+      "output": {
+        "symbol": "\\text{MCVA}_n",
+        "unit": "%",
+        "decimals": 2
+      },
+      "example": null
+    },
+    "tags": [
+      "rebalancing",
+      "MCVA"
+    ]
+  },
+  {
+    "id": "IM-4-F03",
+    "reading_id": "IM-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/46_IM_IM4.tex",
+    "source_line": 214,
+    "objective": "IM-4 g",
+    "name": "No-trade region for rebalancing",
+    "prompt": "Between which bounds must a stock's MCVA lie for the portfolio to stay optimal, so that new information should not trigger a trade?",
+    "latex": "-\\text{SC}_n \\le \\text{MCVA}_n \\le \\text{PC}_n \\Longrightarrow \\text{do not trade}",
+    "variables": [
+      {
+        "symbol": "\\text{SC}_n",
+        "meaning": "sales cost for stock n"
+      },
+      {
+        "symbol": "\\text{MCVA}_n",
+        "meaning": "marginal contribution to value added of stock n"
+      },
+      {
+        "symbol": "\\text{PC}_n",
+        "meaning": "purchase cost for stock n"
+      }
+    ],
+    "skeleton": "-{{1}} \\le {{2}} \\le {{3}} \\Longrightarrow \\text{do not trade}",
+    "slots": [
+      "\\text{SC}_n",
+      "\\text{MCVA}_n",
+      "\\text{PC}_n"
+    ],
+    "decoys": [
+      "\\text{MCAR}_n",
+      "\\alpha_n",
+      "\\lambda_A"
+    ],
+    "corruptions": [
+      {
+        "latex": "-\\text{PC}_n \\le \\text{MCVA}_n \\le \\text{SC}_n \\Longrightarrow \\text{do not trade}",
+        "kind": "sibling",
+        "why": "Ends swapped: the purchase cost caps the upper end (buy when MCVA exceeds it); the sales cost enters negatively at the lower end."
+      },
+      {
+        "latex": "-\\text{PC}_n \\le \\text{MCVA}_n \\le \\text{PC}_n \\Longrightarrow \\text{do not trade}",
+        "kind": "wrong-variable",
+        "why": "The band is asymmetric whenever the costs differ; the lower bound is the negative sales cost."
+      },
+      {
+        "latex": "\\text{SC}_n \\le \\text{MCVA}_n \\le \\text{PC}_n \\Longrightarrow \\text{do not trade}",
+        "kind": "sign",
+        "why": "The sales cost enters negatively: the band runs from -SC_n to +PC_n."
+      }
+    ],
+    "sensitivities": [],
+    "intuition": "Only trade when the marginal benefit clears the cost: buy above +PC, sell below -SC, otherwise ignore the news.",
+    "calc": null,
+    "tags": [
+      "rebalancing",
+      "transaction costs"
+    ]
+  },
+  {
+    "id": "IM-4-F04",
+    "reading_id": "IM-4",
+    "source_file": "notes/FRM_Consolidated_Vol2/ch/46_IM_IM4.tex",
+    "source_line": 292,
+    "objective": "IM-4 h",
+    "name": "Number of distinct pairwise covariances for N assets",
+    "prompt": "How many distinct pairwise covariances must quadratic programming estimate for a universe of N assets?",
+    "latex": "\\text{number of pairwise covariances} = \\frac{N(N-1)}{2}",
+    "variables": [
+      {
+        "symbol": "\\text{number of pairwise covariances}",
+        "meaning": "distinct off-diagonal entries of the covariance matrix (excludes the N variances)"
+      },
+      {
+        "symbol": "N",
+        "meaning": "number of assets"
+      }
+    ],
+    "skeleton": "\\text{number of pairwise covariances} = \\frac{ {{1}}({{2}}) }{ {{3}} }",
+    "slots": [
+      "N",
+      "N-1",
+      "2"
+    ],
+    "decoys": [
+      "N+1",
+      "N^2",
+      "4"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\text{number of pairwise covariances} = \\frac{N(N+1)}{2}",
+        "kind": "extra-term",
+        "why": "N(N+1)/2 counts the variances too (80,200 for 400 stocks); pairwise covariances alone are 79,800."
+      },
+      {
+        "latex": "\\text{number of pairwise covariances} = N(N-1)",
+        "kind": "scaling",
+        "why": "Each pair is counted twice without dividing by 2; the covariance matrix is symmetric."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "N",
+        "direction": "up",
+        "why": "Covariance estimates grow roughly with the square of the number of assets."
+      }
+    ],
+    "intuition": "Every asset pairs with every other once: N times N-1, halved because cov(i,j) = cov(j,i).",
+    "calc": {
+      "expr": "N * (N - 1) / 2",
+      "inputs": [
+        {
+          "name": "N",
+          "symbol": "N",
+          "min": 2,
+          "max": 1000,
+          "step": 1,
+          "unit": "assets"
+        }
+      ],
+      "output": {
+        "symbol": "\\text{number of pairwise covariances}",
+        "unit": "",
+        "decimals": 0
+      },
+      "example": {
+        "inputs": {
+          "N": 400
+        },
+        "output": 79800,
+        "source_line": 294
+      }
+    },
+    "tags": [
+      "quadratic programming",
+      "estimation error"
+    ]
+  },
+  {
+    "id": "CR-3-F01",
+    "reading_id": "CR-3",
+    "source_file": "notes/FRM_Consolidated_Vol1/ch/49_CR_CR3.tex",
+    "source_line": 234,
+    "objective": "CR-3 f",
+    "name": "Expected loss",
+    "prompt": "How is a loan's expected dollar loss built from its three components?",
+    "latex": "\\mathrm{EL}(\\$) = \\mathrm{PD}(\\%) \\times \\mathrm{LGD}(\\%) \\times \\mathrm{EAD}(\\$)",
+    "variables": [
+      {
+        "symbol": "\\mathrm{EL}(\\$)",
+        "meaning": "expected loss, a currency amount"
+      },
+      {
+        "symbol": "\\mathrm{PD}(\\%)",
+        "meaning": "probability of default, a percentage"
+      },
+      {
+        "symbol": "\\mathrm{LGD}(\\%)",
+        "meaning": "loss given default, a percentage of the amount borrowed"
+      },
+      {
+        "symbol": "\\mathrm{EAD}(\\$)",
+        "meaning": "exposure at default, a currency amount"
+      }
+    ],
+    "skeleton": "\\mathrm{EL}(\\$) = {{1}} \\times {{2}} \\times {{3}}",
+    "slots": [
+      "\\mathrm{PD}(\\%)",
+      "\\mathrm{LGD}(\\%)",
+      "\\mathrm{EAD}(\\$)"
+    ],
+    "decoys": [
+      "\\text{Loan}(\\$)",
+      "\\mathrm{RR}(\\%)",
+      "\\mathrm{UL}(\\$)"
+    ],
+    "corruptions": [
+      {
+        "latex": "\\mathrm{EL}(\\$) = \\mathrm{PD}(\\%) \\times \\mathrm{LGD}(\\%) \\times \\text{Loan}(\\$)",
+        "kind": "wrong-variable",
+        "why": "The loan amount plays no part: EL is driven by exposure at default, which can differ from the loan."
+      },
+      {
+        "latex": "\\mathrm{EL}(\\$) = \\mathrm{PD}(\\%) \\times \\mathrm{RR}(\\%) \\times \\mathrm{EAD}(\\$)",
+        "kind": "wrong-variable",
+        "why": "The loss share is LGD, not the recovery rate; higher recovery should lower expected loss."
+      }
+    ],
+    "sensitivities": [
+      {
+        "variable": "\\mathrm{PD}(\\%)",
+        "direction": "up",
+        "why": "A likelier default raises expected loss."
+      },
+      {
+        "variable": "\\mathrm{LGD}(\\%)",
+        "direction": "up",
+        "why": "A larger loss share in default raises expected loss."
+      },
+      {
+        "variable": "\\mathrm{EAD}(\\$)",
+        "direction": "up",
+        "why": "More exposure at default raises expected loss."
+      }
+    ],
+    "intuition": "Who you lent to (PD) times what product (LGD) times how much is out when they default (EAD).",
+    "calc": {
+      "expr": "PD / 100 * LGD / 100 * EAD",
+      "inputs": [
+        {
+          "name": "PD",
+          "symbol": "\\mathrm{PD}(\\%)",
+          "min": 0.01,
+          "max": 100,
+          "step": 0.01,
+          "unit": "%"
+        },
+        {
+          "name": "LGD",
+          "symbol": "\\mathrm{LGD}(\\%)",
+          "min": 5,
+          "max": 100,
+          "step": 5,
+          "unit": "%"
+        },
+        {
+          "name": "EAD",
+          "symbol": "\\mathrm{EAD}(\\$)",
+          "min": 10000,
+          "max": 10000000,
+          "step": 5000,
+          "unit": "$"
+        }
+      ],
+      "output": {
+        "symbol": "\\mathrm{EL}(\\$)",
+        "unit": "$",
+        "decimals": 2
+      },
+      "example": {
+        "inputs": {
+          "PD": 3.78,
+          "LGD": 45,
+          "EAD": 785000
+        },
+        "output": 13352.85,
+        "source_line": 249
+      }
+    },
+    "tags": [
+      "expected loss",
+      "PD LGD EAD"
+    ]
+  }
+]

@@ -1,0 +1,2269 @@
+[
+ {
+  "id": "MR-7-F01",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 64,
+  "objective": "MR-7 a",
+  "name": "Binomial probability of exactly x VaR exceedances",
+  "prompt": "What is the probability of observing exactly x VaR exceedances in n days, given the per-day exceedance probability?",
+  "latex": "p(x) = \\frac{n!}{(n-x)!\\,x!}\\,(1-p)^{n-x}\\,p^{x}",
+  "variables": [
+   {
+    "symbol": "p(x)",
+    "meaning": "probability of observing exactly x exceedances"
+   },
+   {
+    "symbol": "n",
+    "meaning": "total number of observations (days)"
+   },
+   {
+    "symbol": "x",
+    "meaning": "number of exceedances"
+   },
+   {
+    "symbol": "p",
+    "meaning": "per-day exceedance probability, 1 minus the VaR confidence level (decimal, e.g. 0.05 for 95% VaR)"
+   }
+  ],
+  "skeleton": "p(x) = \\frac{n!}{ {{1}} }\\,{{2}}^{ {{3}} }\\,p^{ {{4}} }",
+  "slots": [
+   "(n-x)!\\,x!",
+   "(1-p)",
+   "n-x",
+   "x"
+  ],
+  "decoys": [
+   "(n-x)!",
+   "p",
+   "n"
+  ],
+  "corruptions": [
+   {
+    "latex": "p(x) = \\frac{n!}{(n-x)!\\,x!}\\,(1-p)^{x}\\,p^{n-x}",
+    "kind": "exponent",
+    "why": "The exponents are swapped: p is raised to the number of exceedances x, and (1-p) to the n-x clean days."
+   },
+   {
+    "latex": "p(x) = \\frac{n!}{(n-x)!}\\,(1-p)^{n-x}\\,p^{x}",
+    "kind": "missing-term",
+    "why": "Without x! in the denominator you count ordered arrangements, not combinations, and overstate the probability."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "p",
+    "direction": "depends",
+    "why": "p(x) rises with p while np is below x and falls once np passes x; it peaks at p = x/n."
+   }
+  ],
+  "intuition": "Number of ways to place x bad days among n, times the chance of any one such pattern.",
+  "calc": null,
+  "tags": [
+   "backtesting",
+   "binomial",
+   "exceedances"
+  ]
+ },
+ {
+  "id": "MR-7-F02",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 121,
+  "objective": "MR-7 a",
+  "name": "Kupiec unconditional coverage likelihood ratio (LR_uc)",
+  "prompt": "What likelihood-ratio statistic tests whether the observed number of VaR exceedances matches the model's claimed exceedance probability?",
+  "latex": "LR_{uc} = -2\\ln\\!\\left[(1-p)^{n-x}p^{x}\\right] + 2\\ln\\!\\left\\{\\left[1-(x/n)\\right]^{n-x}(x/n)^{x}\\right\\}",
+  "variables": [
+   {
+    "symbol": "LR_{uc}",
+    "meaning": "unconditional coverage test statistic; chi-squared with 1 degree of freedom, reject the model above 3.84 at 95%"
+   },
+   {
+    "symbol": "p",
+    "meaning": "exceedance probability the model claims, 1 minus the VaR confidence level (decimal)"
+   },
+   {
+    "symbol": "n",
+    "meaning": "total number of observations (days)"
+   },
+   {
+    "symbol": "x",
+    "meaning": "number of exceedances observed"
+   },
+   {
+    "symbol": "x/n",
+    "meaning": "exceedance rate actually observed"
+   }
+  ],
+  "skeleton": "LR_{uc} = {{1}}\\ln\\!\\left[(1-p)^{n-x}{{2}}^{x}\\right] + {{3}}\\ln\\!\\left\\{\\left[1-(x/n)\\right]^{n-x}{{4}}^{x}\\right\\}",
+  "slots": [
+   "-2",
+   "p",
+   "2",
+   "(x/n)"
+  ],
+  "decoys": [
+   "(1-p)",
+   "(n/x)",
+   "1"
+  ],
+  "corruptions": [
+   {
+    "latex": "LR_{uc} = 2\\ln\\!\\left[(1-p)^{n-x}p^{x}\\right] - 2\\ln\\!\\left\\{\\left[1-(x/n)\\right]^{n-x}(x/n)^{x}\\right\\}",
+    "kind": "sign",
+    "why": "Signs reversed: the statistic would be negative, because the likelihood at the observed rate x/n is always at least the likelihood at p."
+   },
+   {
+    "latex": "LR_{uc} = -2\\ln\\!\\left[(1-p)^{x}p^{n-x}\\right] + 2\\ln\\!\\left\\{\\left[1-(x/n)\\right]^{n-x}(x/n)^{x}\\right\\}",
+    "kind": "exponent",
+    "why": "In the model term p must be raised to the number of exceedances x, and (1-p) to the n-x non-exceedance days."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "x",
+    "direction": "depends",
+    "why": "LR_uc is zero when x/n equals p and grows as the exceedance count moves away from np in either direction (too many or too few)."
+   }
+  ],
+  "intuition": "Minus two log of (likelihood under the model's p over likelihood under the observed rate): the further apart, the bigger the statistic.",
+  "calc": {
+   "expr": "-2*((n-x)*Math.log(1-p) + x*Math.log(p)) + 2*((n-x)*Math.log(1-x/n) + x*Math.log(x/n))",
+   "inputs": [
+    {
+     "name": "n",
+     "symbol": "n",
+     "min": 250,
+     "max": 1000,
+     "step": 10,
+     "unit": "days"
+    },
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 1,
+     "max": 50,
+     "step": 1,
+     "unit": "exceedances"
+    },
+    {
+     "name": "p",
+     "symbol": "p",
+     "min": 0.01,
+     "max": 0.1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "LR_{uc}",
+    "unit": "",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "backtesting",
+   "Kupiec",
+   "likelihood ratio"
+  ]
+ },
+ {
+  "id": "MR-7-F03",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 179,
+  "objective": "MR-7 a",
+  "name": "Conditional coverage statistic (LR_cc)",
+  "prompt": "How is the conditional coverage test statistic built from the two single-property tests?",
+  "latex": "LR_{cc} = LR_{uc} + LR_{ind}",
+  "variables": [
+   {
+    "symbol": "LR_{cc}",
+    "meaning": "conditional coverage statistic; chi-squared with 2 degrees of freedom, reject above 5.99 at 95%"
+   },
+   {
+    "symbol": "LR_{uc}",
+    "meaning": "unconditional coverage statistic (chi-squared, 1 degree of freedom)"
+   },
+   {
+    "symbol": "LR_{ind}",
+    "meaning": "independence statistic (chi-squared, 1 degree of freedom; reject independence above 3.84 at 95%)"
+   }
+  ],
+  "skeleton": "{{1}} = LR_{uc} {{2}} {{3}}",
+  "slots": [
+   "LR_{cc}",
+   "+",
+   "LR_{ind}"
+  ],
+  "decoys": [
+   "-",
+   "\\times",
+   "\\chi^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "LR_{cc} = LR_{uc} - LR_{ind}",
+    "kind": "sign",
+    "why": "The two chi-squared components add; subtracting would let clustering hide a coverage failure."
+   },
+   {
+    "latex": "LR_{cc} = LR_{uc}",
+    "kind": "missing-term",
+    "why": "Without LR_ind the test ignores clustering and is just the unconditional coverage test."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "LR_{uc}",
+    "direction": "up",
+    "why": "A worse exceedance count raises the joint statistic one-for-one."
+   },
+   {
+    "variable": "LR_{ind}",
+    "direction": "up",
+    "why": "More evidence of clustering raises the joint statistic one-for-one."
+   }
+  ],
+  "intuition": "Coverage plus independence: two one-degree-of-freedom chi-squares make one with two (critical value 5.99).",
+  "calc": {
+   "expr": "LRuc + LRind",
+   "inputs": [
+    {
+     "name": "LRuc",
+     "symbol": "LR_{uc}",
+     "min": 0,
+     "max": 15,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "LRind",
+     "symbol": "LR_{ind}",
+     "min": 0,
+     "max": 15,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "LR_{cc}",
+    "unit": "",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "backtesting",
+   "conditional coverage",
+   "Christoffersen"
+  ]
+ },
+ {
+  "id": "MR-7-F04",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 424,
+  "objective": "MR-7 d",
+  "name": "Kolmogorov-Smirnov statistic D for PITs",
+  "prompt": "What statistic does the Kolmogorov-Smirnov test compute when comparing the empirical PIT distribution with the uniform?",
+  "latex": "D = \\max_j \\left| z_j - A_j \\right|",
+  "variables": [
+   {
+    "symbol": "D",
+    "meaning": "KS statistic: the maximum distance between the two distributions; smaller means a better fit"
+   },
+   {
+    "symbol": "j",
+    "meaning": "ranked observation, out of n total observations"
+   },
+   {
+    "symbol": "z_j",
+    "meaning": "theoretical (perfect) distribution value at rank j"
+   },
+   {
+    "symbol": "A_j",
+    "meaning": "actual CDF distribution value at rank j"
+   }
+  ],
+  "skeleton": "D = {{1}} {{2}}",
+  "slots": [
+   "\\max_j",
+   "\\left| z_j - A_j \\right|"
+  ],
+  "decoys": [
+   "\\sum_j",
+   "\\min_j",
+   "\\left( z_j - A_j \\right)^{2}"
+  ],
+  "corruptions": [
+   {
+    "latex": "D = \\sum_j \\left| z_j - A_j \\right|",
+    "kind": "sibling",
+    "why": "KS takes only the single largest gap, not the sum of all gaps (summing squared gaps is the CvM idea)."
+   },
+   {
+    "latex": "D = \\max_j \\left( z_j - A_j \\right)",
+    "kind": "missing-term",
+    "why": "Without the absolute value a gap in the other direction would be missed; KS measures distance either way."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "KS = the single widest vertical gap between the actual EDF and the perfect uniform line, which is why it can miss tail problems.",
+  "calc": null,
+  "tags": [
+   "PIT",
+   "goodness of fit",
+   "KS test"
+  ]
+ },
+ {
+  "id": "MR-7-F05",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 465,
+  "objective": "MR-7 d",
+  "name": "Anderson-Darling statistic A^2 for PITs",
+  "prompt": "What tail-weighted goodness-of-fit statistic is computed from the ordered PIT values?",
+  "latex": "A^{2} = -n - \\frac{1}{n}\\sum_{j=1}^{n} (2j-1)\\Bigl[ \\ln(z_j) + \\ln(1 - z_{n+1-j}) \\Bigr]",
+  "variables": [
+   {
+    "symbol": "A^{2}",
+    "meaning": "Anderson-Darling statistic"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of observations"
+   },
+   {
+    "symbol": "j",
+    "meaning": "rank of the observation"
+   },
+   {
+    "symbol": "z_j",
+    "meaning": "the jth ordered PIT value"
+   },
+   {
+    "symbol": "z_{n+1-j}",
+    "meaning": "the ordered PIT value at the mirror-image rank n+1-j"
+   }
+  ],
+  "skeleton": "A^{2} = {{1}} - \\frac{1}{n}\\sum_{j=1}^{n} {{2}}\\Bigl[ \\ln({{3}}) + \\ln(1 - {{4}}) \\Bigr]",
+  "slots": [
+   "-n",
+   "(2j-1)",
+   "z_j",
+   "z_{n+1-j}"
+  ],
+  "decoys": [
+   "n",
+   "(2j+1)",
+   "z_{n-j}",
+   "\\frac{1}{12n}"
+  ],
+  "corruptions": [
+   {
+    "latex": "A^{2} = n - \\frac{1}{n}\\sum_{j=1}^{n} (2j-1)\\Bigl[ \\ln(z_j) + \\ln(1 - z_{n+1-j}) \\Bigr]",
+    "kind": "sign",
+    "why": "The leading term is -n; the log terms are negative so the sum term is positive and offsets it."
+   },
+   {
+    "latex": "A^{2} = -n - \\frac{1}{n}\\sum_{j=1}^{n} (2j-1)\\Bigl[ \\ln(z_j) + \\ln(1 - z_j) \\Bigr]",
+    "kind": "wrong-variable",
+    "why": "The second log uses the mirror-image observation z_{n+1-j}, pairing the lower tail with the upper tail."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "The ln terms explode as a PIT nears 0 or 1, so AD shouts about tail misfits that KS shrugs off.",
+  "calc": null,
+  "tags": [
+   "PIT",
+   "goodness of fit",
+   "Anderson-Darling"
+  ]
+ },
+ {
+  "id": "MR-7-F06",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 477,
+  "objective": "MR-7 d",
+  "name": "Cramer-von Mises statistic W^2 for PITs",
+  "prompt": "What goodness-of-fit statistic sums the squared deviations of the ordered PITs from where a perfect uniform would put them?",
+  "latex": "W^{2} = \\sum_{j=1}^{n} \\left[ z_j - \\frac{(2j-1)}{2n} \\right]^{2} + \\frac{1}{12n}",
+  "variables": [
+   {
+    "symbol": "W^{2}",
+    "meaning": "Cramer-von Mises statistic"
+   },
+   {
+    "symbol": "z_j",
+    "meaning": "the jth ordered PIT value"
+   },
+   {
+    "symbol": "j",
+    "meaning": "rank of the observation"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of observations"
+   },
+   {
+    "symbol": "(2j-1)/2n",
+    "meaning": "where the jth observation would sit under a perfect uniform"
+   }
+  ],
+  "skeleton": "W^{2} = \\sum_{j=1}^{n} \\left[ {{1}} - \\frac{ {{2}} }{ {{3}} } \\right]^{2} + \\frac{1}{ {{4}} }",
+  "slots": [
+   "z_j",
+   "(2j-1)",
+   "2n",
+   "12n"
+  ],
+  "decoys": [
+   "A_j",
+   "n",
+   "(2j+1)"
+  ],
+  "corruptions": [
+   {
+    "latex": "W^{2} = \\sum_{j=1}^{n} \\left| z_j - \\frac{(2j-1)}{2n} \\right| + \\frac{1}{12n}",
+    "kind": "exponent",
+    "why": "CvM uses squared deviations, not absolute ones."
+   },
+   {
+    "latex": "W^{2} = \\sum_{j=1}^{n} \\left[ z_j - \\frac{(2j-1)}{2n} \\right]^{2} - \\frac{1}{12n}",
+    "kind": "sign",
+    "why": "The small-sample correction 1/(12n) is added, not subtracted."
+   },
+   {
+    "latex": "W^{2} = \\sum_{j=1}^{n} \\left[ z_j - \\frac{(2j-1)}{n} \\right]^{2} + \\frac{1}{12n}",
+    "kind": "scaling",
+    "why": "The uniform plotting position is (2j-1)/(2n), the midpoint of each 1/n band; dividing by n alone runs past 1."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "CvM = every ordered PIT compared with its ideal slot (2j-1)/2n, squared and summed, so many small misfits add up.",
+  "calc": null,
+  "tags": [
+   "PIT",
+   "goodness of fit",
+   "Cramer-von Mises"
+  ]
+ },
+ {
+  "id": "MR-7-F07",
+  "reading_id": "MR-7",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+  "source_line": 98,
+  "objective": "MR-7 a",
+  "name": "Expected number of VaR exceedances (binomial mean)",
+  "prompt": "How many exceedances should a correctly calibrated VaR model produce over n days?",
+  "latex": "\\text{expected} = np",
+  "variables": [
+   {
+    "symbol": "\\text{expected}",
+    "meaning": "expected number of VaR exceedances over the n days"
+   },
+   {
+    "symbol": "n",
+    "meaning": "total number of observations (days)"
+   },
+   {
+    "symbol": "p",
+    "meaning": "per-day exceedance probability, 1 minus the VaR confidence level (decimal, e.g. 0.05 for 95% VaR)"
+   }
+  ],
+  "skeleton": "{{1}} = n{{2}}",
+  "slots": [
+   "\\text{expected}",
+   "p"
+  ],
+  "decoys": [
+   "x",
+   "(1-p)",
+   "x/n"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{expected} = n(1-p)",
+    "kind": "wrong-variable",
+    "why": "n(1-p) counts the days WITHOUT an exceedance; exceedances happen with probability p."
+   },
+   {
+    "latex": "\\text{expected} = p",
+    "kind": "missing-term",
+    "why": "p is the per-day probability; the expected count over the window is p times the number of days."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "n",
+    "direction": "up",
+    "why": "A longer window gives more days on which an exceedance can occur."
+   },
+   {
+    "variable": "p",
+    "direction": "up",
+    "why": "A lower VaR confidence level (higher p) means more expected exceedances."
+   }
+  ],
+  "intuition": "100 days at a 95% VaR: expect 5 bad days; counts of roughly 2 to 8 are unremarkable.",
+  "calc": {
+   "expr": "n*p",
+   "inputs": [
+    {
+     "name": "n",
+     "symbol": "n",
+     "min": 100,
+     "max": 1000,
+     "step": 10,
+     "unit": "days"
+    },
+    {
+     "name": "p",
+     "symbol": "p",
+     "min": 0.01,
+     "max": 0.1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{expected}",
+    "unit": "exceedances",
+    "decimals": 1
+   },
+   "example": {
+    "inputs": {
+     "n": 100,
+     "p": 0.05
+    },
+    "output": 5,
+    "source_line": 98
+   }
+  },
+  "tags": [
+   "backtesting",
+   "binomial",
+   "exceedances"
+  ]
+ },
+ {
+  "id": "MR-13-F01",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 24,
+  "objective": "MR-13 a",
+  "name": "Implied 2-year spot rate from a zero-coupon price",
+  "prompt": "How does the price of a $1-face 2-year zero-coupon bond relate to the implied 2-year spot rate?",
+  "latex": "P = \\frac{\\$1}{\\bigl(1 + \\hat{r}(2)\\bigr)^{2}}",
+  "variables": [
+   {
+    "symbol": "P",
+    "meaning": "price today of the 2-year zero-coupon bond with $1 face value"
+   },
+   {
+    "symbol": "\\hat{r}(2)",
+    "meaning": "implied 2-year spot rate (decimal, annual compounding)"
+   }
+  ],
+  "skeleton": "P = \\frac{ {{1}} }{\\bigl(1 + {{2}}\\bigr)^{ {{3}} }}",
+  "slots": [
+   "\\$1",
+   "\\hat{r}(2)",
+   "2"
+  ],
+  "decoys": [
+   "\\hat{r}(1)",
+   "\\frac{1}{2}",
+   "P"
+  ],
+  "corruptions": [
+   {
+    "latex": "P = \\frac{\\$1}{1 + \\hat{r}(2)}",
+    "kind": "exponent",
+    "why": "A 2-year zero is discounted for two years, so the factor is squared."
+   },
+   {
+    "latex": "P = \\frac{\\$1}{1 + 2\\hat{r}(2)}",
+    "kind": "scaling",
+    "why": "That is simple interest; the spot rate compounds annually."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\hat{r}(2)",
+    "direction": "down",
+    "why": "A higher spot rate discounts the $1 more heavily, so the price falls."
+   }
+  ],
+  "intuition": "Price and spot rate are one number in two costumes: solve the price for the rate (or use the TVM keys, N = 2).",
+  "calc": {
+   "expr": "((1/P)**(1/2) - 1)*100",
+   "inputs": [
+    {
+     "name": "P",
+     "symbol": "P",
+     "min": 0.7,
+     "max": 0.99,
+     "step": 1e-05,
+     "unit": "$ per $1 face"
+    }
+   ],
+   "output": {
+    "symbol": "\\hat{r}(2)",
+    "unit": "%",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "P": 0.85763
+    },
+    "output": 7.9816,
+    "source_line": 26
+   }
+  },
+  "tags": [
+   "spot rate",
+   "zero-coupon bond"
+  ]
+ },
+ {
+  "id": "MR-13-F02",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 34,
+  "objective": "MR-13 a",
+  "name": "2-year spot rate from expected one-year rates (pure expectations)",
+  "prompt": "Under pure expectations with no volatility and no risk premium, what is the 2-year spot rate given today's 1-year rate and the expected 1-year rate next year?",
+  "latex": "\\hat{r}(2) = \\sqrt{(1+r_1)(1+r_2)} - 1",
+  "variables": [
+   {
+    "symbol": "\\hat{r}(2)",
+    "meaning": "2-year spot rate (decimal)"
+   },
+   {
+    "symbol": "r_1",
+    "meaning": "today's 1-year rate (decimal)"
+   },
+   {
+    "symbol": "r_2",
+    "meaning": "expected 1-year rate one year from now (decimal)"
+   }
+  ],
+  "skeleton": "{{1}} = \\sqrt{(1+r_1)(1+{{2}})} - {{3}}",
+  "slots": [
+   "\\hat{r}(2)",
+   "r_2",
+   "1"
+  ],
+  "decoys": [
+   "r_1",
+   "\\hat{r}(1)",
+   "2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\hat{r}(2) = \\frac{r_1 + r_2}{2}",
+    "kind": "sibling",
+    "why": "The arithmetic average ignores compounding; the spot rate is the geometric average of the one-year rates."
+   },
+   {
+    "latex": "\\hat{r}(2) = (1+r_1)(1+r_2) - 1",
+    "kind": "exponent",
+    "why": "That is the two-year cumulative return; take the square root to annualise it."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_1",
+    "direction": "up",
+    "why": "A higher current 1-year rate raises the geometric average."
+   },
+   {
+    "variable": "r_2",
+    "direction": "up",
+    "why": "Higher expected future rates raise the 2-year spot rate: that is what makes the curve slope up."
+   }
+  ],
+  "intuition": "Chain the one-year rates, then take the nth root: the long rate is the geometric average of expected short rates.",
+  "calc": {
+   "expr": "(Math.sqrt((1 + r1/100)*(1 + r2/100)) - 1)*100",
+   "inputs": [
+    {
+     "name": "r1",
+     "symbol": "r_1",
+     "min": 0,
+     "max": 15,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "r2",
+     "symbol": "r_2",
+     "min": 0,
+     "max": 15,
+     "step": 0.25,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "\\hat{r}(2)",
+    "unit": "%",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "r1": 8,
+     "r2": 10
+    },
+    "output": 8.995,
+    "source_line": 36
+   }
+  },
+  "tags": [
+   "pure expectations",
+   "spot rate",
+   "term structure"
+  ]
+ },
+ {
+  "id": "MR-13-F03",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 187,
+  "objective": "MR-13 c",
+  "name": "Jensen's inequality for discount factors (convexity effect)",
+  "prompt": "How does the expected discount factor under an uncertain rate compare with the discount factor at the expected rate?",
+  "latex": "E\\!\\left[ \\frac{1}{1+r} \\right] > \\frac{1}{E(1+r)}",
+  "variables": [
+   {
+    "symbol": "r",
+    "meaning": "the uncertain future (one-year) rate"
+   },
+   {
+    "symbol": "E[\\cdot]",
+    "meaning": "expected value"
+   }
+  ],
+  "skeleton": "E\\!\\left[ {{1}} \\right] {{2}} \\frac{1}{ {{3}} }",
+  "slots": [
+   "\\frac{1}{1+r}",
+   ">",
+   "E(1+r)"
+  ],
+  "decoys": [
+   "<",
+   "=",
+   "E(r)"
+  ],
+  "corruptions": [
+   {
+    "latex": "E\\!\\left[ \\frac{1}{1+r} \\right] < \\frac{1}{E(1+r)}",
+    "kind": "sign",
+    "why": "1/(1+r) is convex, so averaging the discount factors gives the larger number, not the smaller."
+   },
+   {
+    "latex": "E\\!\\left[ \\frac{1}{1+r} \\right] = \\frac{1}{E(1+r)}",
+    "kind": "sign",
+    "why": "Equality holds only with no volatility; rate uncertainty creates the convexity gap."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Averaging discount factors beats discounting at the average rate, so volatility pushes bond prices up and spot rates down.",
+  "calc": null,
+  "tags": [
+   "convexity",
+   "Jensen's inequality"
+  ]
+ },
+ {
+  "id": "MR-13-F04",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 305,
+  "objective": "MR-13 d",
+  "name": "Decomposition of instantaneous zero-coupon bond return",
+  "prompt": "Into which three pieces does the instantaneous return on a zero-coupon bond decompose?",
+  "latex": "\\frac{dP}{P} = f(T)\\,dt - D\\,dr + \\tfrac{1}{2}\\,C\\,\\sigma^{2}\\,dt",
+  "variables": [
+   {
+    "symbol": "dP/P",
+    "meaning": "instantaneous return on the zero-coupon bond"
+   },
+   {
+    "symbol": "f(T)",
+    "meaning": "forward rate corresponding to the bond's term (decimal); earned through passage of time"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "small time increment (years)"
+   },
+   {
+    "symbol": "D",
+    "meaning": "duration of the bond"
+   },
+   {
+    "symbol": "dr",
+    "meaning": "change in the interest rate (decimal)"
+   },
+   {
+    "symbol": "C",
+    "meaning": "convexity of the bond"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "volatility of rates (decimal)"
+   }
+  ],
+  "skeleton": "\\frac{dP}{P} = {{1}}\\,dt - {{2}}\\,dr + \\tfrac{1}{2}\\,{{3}}\\,{{4}}\\,dt",
+  "slots": [
+   "f(T)",
+   "D",
+   "C",
+   "\\sigma^{2}"
+  ],
+  "decoys": [
+   "\\sigma",
+   "r_0",
+   "\\lambda"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\frac{dP}{P} = f(T)\\,dt + D\\,dr + \\tfrac{1}{2}\\,C\\,\\sigma^{2}\\,dt",
+    "kind": "sign",
+    "why": "Rising rates reduce the bond's return, so the duration term is subtracted."
+   },
+   {
+    "latex": "\\frac{dP}{P} = f(T)\\,dt - D\\,dr - \\tfrac{1}{2}\\,C\\,\\sigma^{2}\\,dt",
+    "kind": "sign",
+    "why": "Rate volatility in either direction increases return for a convex bond; the convexity term is added."
+   },
+   {
+    "latex": "\\frac{dP}{P} = f(T)\\,dt - D\\,dr + \\tfrac{1}{2}\\,C\\,\\sigma\\,dt",
+    "kind": "exponent",
+    "why": "The convexity payoff scales with the variance of rates, sigma squared."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "f(T)",
+    "direction": "up",
+    "why": "A higher forward rate means more return from the passage of time."
+   },
+   {
+    "variable": "dr",
+    "direction": "down",
+    "why": "A rate rise lowers the return in proportion to duration."
+   },
+   {
+    "variable": "D",
+    "direction": "depends",
+    "why": "Depends on the sign of dr: more duration hurts when rates rise and helps when they fall."
+   },
+   {
+    "variable": "C",
+    "direction": "up",
+    "why": "More convexity earns more from rate volatility, whichever way rates move."
+   },
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "Higher rate volatility increases the convexity gain."
+   }
+  ],
+  "intuition": "Time (earn the forward), minus duration times the rate move, plus half convexity times variance.",
+  "calc": {
+   "expr": "f*dt - D*dr + 0.5*C*sig**2*dt",
+   "inputs": [
+    {
+     "name": "f",
+     "symbol": "f(T)",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.001,
+     "unit": "decimal"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.25,
+     "max": 1,
+     "step": 0.25,
+     "unit": "years"
+    },
+    {
+     "name": "D",
+     "symbol": "D",
+     "min": 1,
+     "max": 30,
+     "step": 0.5,
+     "unit": "years"
+    },
+    {
+     "name": "dr",
+     "symbol": "dr",
+     "min": -0.02,
+     "max": 0.02,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "C",
+     "symbol": "C",
+     "min": 0,
+     "max": 500,
+     "step": 5,
+     "unit": ""
+    },
+    {
+     "name": "sig",
+     "symbol": "\\sigma",
+     "min": 0.005,
+     "max": 0.03,
+     "step": 0.001,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "dP/P",
+    "unit": "decimal",
+    "decimals": 5
+   },
+   "example": null
+  },
+  "tags": [
+   "bond return",
+   "duration",
+   "convexity"
+  ]
+ },
+ {
+  "id": "MR-13-F05",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 330,
+  "objective": "MR-13 d",
+  "name": "Expected bond return for a risk-averse investor (duration-based premium)",
+  "prompt": "What expected return does a risk-averse investor require on a bond, given the short rate, the premium per unit of duration risk and the bond's duration?",
+  "latex": "E\\!\\left[\\frac{dP}{P}\\right] = r_0\\,dt + \\lambda\\,D\\,dt",
+  "variables": [
+   {
+    "symbol": "E[dP/P]",
+    "meaning": "expected return on the bond"
+   },
+   {
+    "symbol": "r_0",
+    "meaning": "the short-term rate"
+   },
+   {
+    "symbol": "\\lambda",
+    "meaning": "risk premium per year of duration risk"
+   },
+   {
+    "symbol": "D",
+    "meaning": "the bond's duration"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time increment (years)"
+   }
+  ],
+  "skeleton": "E\\!\\left[\\frac{dP}{P}\\right] = {{1}}\\,dt {{2}} \\lambda\\,{{3}}\\,dt",
+  "slots": [
+   "r_0",
+   "+",
+   "D"
+  ],
+  "decoys": [
+   "-",
+   "C",
+   "f(T)",
+   "\\sigma^{2}"
+  ],
+  "corruptions": [
+   {
+    "latex": "E\\!\\left[\\frac{dP}{P}\\right] = r_0\\,dt + \\lambda\\,C\\,dt",
+    "kind": "wrong-variable",
+    "why": "Interest rate risk is measured by duration, so the premium scales with D, not convexity."
+   },
+   {
+    "latex": "E\\!\\left[\\frac{dP}{P}\\right] = r_0\\,dt + \\lambda\\,dt",
+    "kind": "missing-term",
+    "why": "The premium is per unit of duration; a longer bond earns more of it."
+   },
+   {
+    "latex": "E\\!\\left[\\frac{dP}{P}\\right] = r_0\\,dt",
+    "kind": "missing-term",
+    "why": "That is the risk-neutral expected return; risk-averse investors add a duration-based premium."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_0",
+    "direction": "up",
+    "why": "Every bond's expected return starts from the short rate."
+   },
+   {
+    "variable": "\\lambda",
+    "direction": "up",
+    "why": "A higher price of duration risk raises the required return."
+   },
+   {
+    "variable": "D",
+    "direction": "up",
+    "why": "More duration means more rate risk and a larger premium."
+   }
+  ],
+  "intuition": "Short rate plus (premium per year of duration x duration): 1% + 5 x 0.1% = 1.5%.",
+  "calc": {
+   "expr": "(r0 + lam*D)*dt",
+   "inputs": [
+    {
+     "name": "r0",
+     "symbol": "r_0",
+     "min": 0,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "lam",
+     "symbol": "\\lambda",
+     "min": 0,
+     "max": 0.5,
+     "step": 0.05,
+     "unit": "% per year of duration"
+    },
+    {
+     "name": "D",
+     "symbol": "D",
+     "min": 0.5,
+     "max": 30,
+     "step": 0.5,
+     "unit": "years"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.25,
+     "max": 1,
+     "step": 0.25,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "E[dP/P]",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "r0": 1,
+     "lam": 0.1,
+     "D": 5,
+     "dt": 1
+    },
+    "output": 1.5,
+    "source_line": 342
+   }
+  },
+  "tags": [
+   "risk premium",
+   "duration",
+   "expected return"
+  ]
+ },
+ {
+  "id": "MR-13-F06",
+  "reading_id": "MR-13",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/50_MR_MR13.tex",
+  "source_line": 43,
+  "objective": "MR-13 a",
+  "name": "Price of a 2-year zero from chained one-year rates",
+  "prompt": "Under pure expectations, what is today's price of a $1-face 2-year zero given today's 1-year rate and the expected 1-year rate next year?",
+  "latex": "P = \\frac{\\$1}{(1+r_1)(1+r_2)}",
+  "variables": [
+   {
+    "symbol": "P",
+    "meaning": "price today of the 2-year zero-coupon bond with $1 face value"
+   },
+   {
+    "symbol": "r_1",
+    "meaning": "today's 1-year rate (decimal)"
+   },
+   {
+    "symbol": "r_2",
+    "meaning": "expected 1-year rate one year from now (decimal)"
+   }
+  ],
+  "skeleton": "{{1}} = \\frac{ {{2}} }{ {{3}}(1+r_2)}",
+  "slots": [
+   "P",
+   "\\$1",
+   "(1+r_1)"
+  ],
+  "decoys": [
+   "(1+r_1)^{2}",
+   "\\hat{r}(2)",
+   "r_1"
+  ],
+  "corruptions": [
+   {
+    "latex": "P = \\frac{\\$1}{1+r_1+r_2}",
+    "kind": "missing-term",
+    "why": "Adding the rates ignores compounding; the one-year discount factors multiply."
+   },
+   {
+    "latex": "P = \\frac{\\$1}{(1+r_1)^{2}}",
+    "kind": "wrong-variable",
+    "why": "Discounting both years at today's rate ignores the expected rate for year two (it only works when the curve is flat)."
+   },
+   {
+    "latex": "P = \\$1\\times(1+r_1)(1+r_2)",
+    "kind": "inverted",
+    "why": "That compounds $1 forward to a future value; a price discounts it back."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "r_1",
+    "direction": "down",
+    "why": "A higher current 1-year rate discounts the $1 more heavily."
+   },
+   {
+    "variable": "r_2",
+    "direction": "down",
+    "why": "A higher expected future rate also discounts the $1 more heavily."
+   }
+  ],
+  "intuition": "Walk the $1 back one year at a time, each year at its own one-year rate.",
+  "calc": {
+   "expr": "1/((1 + r1/100)*(1 + r2/100))",
+   "inputs": [
+    {
+     "name": "r1",
+     "symbol": "r_1",
+     "min": 0,
+     "max": 15,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "r2",
+     "symbol": "r_2",
+     "min": 0,
+     "max": 15,
+     "step": 0.25,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "P",
+    "unit": "$ per $1 face",
+    "decimals": 5
+   },
+   "example": {
+    "inputs": {
+     "r1": 8,
+     "r2": 8
+    },
+    "output": 0.85734,
+    "source_line": 45
+   }
+  },
+  "tags": [
+   "zero-coupon bond",
+   "pure expectations"
+  ]
+ },
+ {
+  "id": "CR-21-F01",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 106,
+  "objective": "CR-21 d",
+  "name": "Stressed expected loss on a loan portfolio",
+  "prompt": "How is the stressed expected loss of a loan portfolio computed when EAD and LGD are deterministic?",
+  "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i^{S}\\times \\mathrm{EAD}_i \\times \\mathrm{LGD}_i",
+  "variables": [
+   {
+    "symbol": "\\mathrm{EL}_S",
+    "meaning": "stressed expected loss (a level)"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of loans (obligors)"
+   },
+   {
+    "symbol": "\\mathrm{PD}_i^{S}",
+    "meaning": "stressed probability of default of loan i (decimal); the only stressed input"
+   },
+   {
+    "symbol": "\\mathrm{EAD}_i",
+    "meaning": "exposure at default of loan i (deterministic)"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_i",
+    "meaning": "loss given default of loan i (decimal, deterministic)"
+   }
+  ],
+  "skeleton": "{{1}} = {{2}} {{3}}\\times \\mathrm{EAD}_i \\times \\mathrm{LGD}_i",
+  "slots": [
+   "\\mathrm{EL}_S",
+   "\\sum_{i=1}^{N}",
+   "\\mathrm{PD}_i^{S}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}_i",
+   "\\mathrm{EL}",
+   "\\mathrm{EAD}_i^{S}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i\\times \\mathrm{EAD}_i \\times \\mathrm{LGD}_i",
+    "kind": "wrong-variable",
+    "why": "With the unstressed PD this is just current expected loss, EL."
+   },
+   {
+    "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i^{S}\\times \\mathrm{EAD}_i^{S} \\times \\mathrm{LGD}_i",
+    "kind": "sibling",
+    "why": "For a loan portfolio EAD is deterministic; stressing exposure as well is the derivative-portfolio treatment (via EPE)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}_i^{S}",
+    "direction": "up",
+    "why": "A harsher PD stress raises stressed expected loss."
+   },
+   {
+    "variable": "\\mathrm{EAD}_i",
+    "direction": "up",
+    "why": "More exposure raises expected loss."
+   },
+   {
+    "variable": "\\mathrm{LGD}_i",
+    "direction": "up",
+    "why": "A larger loss severity raises expected loss."
+   }
+  ],
+  "intuition": "Loans: only PD gets the S superscript; EAD and LGD stay put.",
+  "calc": null,
+  "tags": [
+   "stress testing",
+   "expected loss",
+   "loan portfolio"
+  ]
+ },
+ {
+  "id": "CR-21-F02",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 108,
+  "objective": "CR-21 d",
+  "name": "Stress loss of a credit portfolio",
+  "prompt": "How is the stress loss of a credit portfolio obtained from its stressed and current expected losses?",
+  "latex": "\\text{stress loss} = \\mathrm{EL}_S - \\mathrm{EL}",
+  "variables": [
+   {
+    "symbol": "\\text{stress loss}",
+    "meaning": "how much worse the stressed world is than the current one (a change)"
+   },
+   {
+    "symbol": "\\mathrm{EL}_S",
+    "meaning": "stressed expected loss (a level)"
+   },
+   {
+    "symbol": "\\mathrm{EL}",
+    "meaning": "current (unstressed) expected loss"
+   }
+  ],
+  "skeleton": "\\text{stress loss} = {{1}} - {{2}}",
+  "slots": [
+   "\\mathrm{EL}_S",
+   "\\mathrm{EL}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}_i^{S}",
+   "\\mathrm{EPE}_i^{S}",
+   "\\mathrm{LGD}_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{stress loss} = \\mathrm{EL} - \\mathrm{EL}_S",
+    "kind": "sign",
+    "why": "Reversed: a harsher stress would show up as a negative stress loss."
+   },
+   {
+    "latex": "\\text{stress loss} = \\mathrm{EL}_S",
+    "kind": "missing-term",
+    "why": "That is stressed expected loss, a level; stress loss is the change relative to current EL."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{EL}_S",
+    "direction": "up",
+    "why": "A worse stressed expected loss raises the stress loss."
+   },
+   {
+    "variable": "\\mathrm{EL}",
+    "direction": "down",
+    "why": "A higher starting expected loss leaves less incremental loss from the stress."
+   }
+  ],
+  "intuition": "Stressed EL is a level; stress loss is the change: stressed minus current.",
+  "calc": {
+   "expr": "ELS - EL",
+   "inputs": [
+    {
+     "name": "ELS",
+     "symbol": "\\mathrm{EL}_S",
+     "min": 0,
+     "max": 500,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "EL",
+     "symbol": "\\mathrm{EL}",
+     "min": 0,
+     "max": 300,
+     "step": 0.5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{stress loss}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "stress testing",
+   "stress loss"
+  ]
+ },
+ {
+  "id": "CR-21-F03",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 121,
+  "objective": "CR-21 d",
+  "name": "Expected loss on a derivative portfolio (EPE x alpha as EAD)",
+  "prompt": "How is the (unstressed) expected loss of a derivative portfolio built when exposure at default is stochastic?",
+  "latex": "\\mathrm{EL} = \\sum_{i=1}^{N} \\mathrm{PD}_i \\times \\bigl(\\mathrm{EPE}_i \\times \\alpha\\bigr)\\times \\mathrm{LGD}_i",
+  "variables": [
+   {
+    "symbol": "\\mathrm{EL}",
+    "meaning": "expected loss of the derivative portfolio"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of counterparties"
+   },
+   {
+    "symbol": "\\mathrm{PD}_i",
+    "meaning": "probability of default of counterparty i (decimal)"
+   },
+   {
+    "symbol": "\\mathrm{EPE}_i",
+    "meaning": "(effective) expected positive exposure to counterparty i"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "alpha factor: multiplier that converts effective EPE into an exposure at default"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_i",
+    "meaning": "loss given default of counterparty i (decimal)"
+   }
+  ],
+  "skeleton": "\\mathrm{EL} = \\sum_{i=1}^{N} {{1}} \\times \\bigl({{2}}\\bigr)\\times \\mathrm{LGD}_i",
+  "slots": [
+   "\\mathrm{PD}_i",
+   "\\mathrm{EPE}_i \\times \\alpha"
+  ],
+  "decoys": [
+   "\\mathrm{PD}_i^{S}",
+   "\\mathrm{EPE}_i^{S} \\times \\alpha",
+   "\\mathrm{EPE}_i / \\alpha"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{EL} = \\sum_{i=1}^{N} \\mathrm{PD}_i \\times \\mathrm{EPE}_i \\times \\mathrm{LGD}_i",
+    "kind": "missing-term",
+    "why": "EPE must be scaled up by alpha to serve as the exposure at default."
+   },
+   {
+    "latex": "\\mathrm{EL} = \\sum_{i=1}^{N} \\mathrm{PD}_i \\times \\bigl(\\mathrm{EPE}_i / \\alpha\\bigr)\\times \\mathrm{LGD}_i",
+    "kind": "inverted",
+    "why": "Alpha is a multiplier on EPE, not a divisor."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}_i",
+    "direction": "up",
+    "why": "Likelier default raises expected loss."
+   },
+   {
+    "variable": "\\mathrm{EPE}_i",
+    "direction": "up",
+    "why": "More expected exposure raises expected loss."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "up",
+    "why": "A larger alpha scales up the exposure at default."
+   },
+   {
+    "variable": "\\mathrm{LGD}_i",
+    "direction": "up",
+    "why": "A larger loss severity raises expected loss."
+   }
+  ],
+  "intuition": "Same PD x EAD x LGD recipe, but for derivatives EAD is EPE times alpha.",
+  "calc": null,
+  "tags": [
+   "stress testing",
+   "expected loss",
+   "derivatives"
+  ]
+ },
+ {
+  "id": "CR-21-F04",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 123,
+  "objective": "CR-21 d",
+  "name": "Stressed expected loss on a derivative portfolio",
+  "prompt": "How is the stressed expected loss of a derivative portfolio computed, and which inputs carry the stress?",
+  "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i^{S} \\times \\bigl(\\mathrm{EPE}_i^{S} \\times \\alpha\\bigr)\\times \\mathrm{LGD}_i",
+  "variables": [
+   {
+    "symbol": "\\mathrm{EL}_S",
+    "meaning": "stressed expected loss of the derivative portfolio"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of counterparties"
+   },
+   {
+    "symbol": "\\mathrm{PD}_i^{S}",
+    "meaning": "stressed probability of default of counterparty i (decimal)"
+   },
+   {
+    "symbol": "\\mathrm{EPE}_i^{S}",
+    "meaning": "stressed expected positive exposure to counterparty i"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "alpha factor converting effective EPE into exposure at default"
+   },
+   {
+    "symbol": "\\mathrm{LGD}_i",
+    "meaning": "loss given default of counterparty i (decimal)"
+   }
+  ],
+  "skeleton": "{{1}} = \\sum_{i=1}^{N} {{2}} \\times \\bigl({{3}} \\times \\alpha\\bigr)\\times \\mathrm{LGD}_i",
+  "slots": [
+   "\\mathrm{EL}_S",
+   "\\mathrm{PD}_i^{S}",
+   "\\mathrm{EPE}_i^{S}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}_i",
+   "\\mathrm{EPE}_i",
+   "\\mathrm{EAD}_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i^{S} \\times \\bigl(\\mathrm{EPE}_i \\times \\alpha\\bigr)\\times \\mathrm{LGD}_i",
+    "kind": "wrong-variable",
+    "why": "Stressing PD only is the loan treatment; for derivatives exposure is stochastic, so EPE is stressed too."
+   },
+   {
+    "latex": "\\mathrm{EL}_S = \\sum_{i=1}^{N} \\mathrm{PD}_i^{S} \\times \\mathrm{EPE}_i^{S} \\times \\mathrm{LGD}_i",
+    "kind": "missing-term",
+    "why": "The alpha multiplier is still needed to turn EPE into an exposure at default."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}_i^{S}",
+    "direction": "up",
+    "why": "A harsher PD stress raises stressed expected loss."
+   },
+   {
+    "variable": "\\mathrm{EPE}_i^{S}",
+    "direction": "up",
+    "why": "A larger stressed exposure raises stressed expected loss."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "up",
+    "why": "A larger alpha scales up exposure at default."
+   },
+   {
+    "variable": "\\mathrm{LGD}_i",
+    "direction": "up",
+    "why": "A larger loss severity raises expected loss."
+   }
+  ],
+  "intuition": "Derivatives get two S superscripts, PD and EPE, because exposure itself moves with the market.",
+  "calc": null,
+  "tags": [
+   "stress testing",
+   "expected loss",
+   "derivatives"
+  ]
+ },
+ {
+  "id": "CR-21-F05",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 155,
+  "objective": "CR-21 f",
+  "name": "Stressed CVA aggregated across counterparties",
+  "prompt": "How is stressed CVA computed across N counterparties and T time buckets after an instantaneous market shock?",
+  "latex": "\\mathrm{CVA}_S = -\\sum_{n=1}^{N} \\mathrm{LGD}^{*}_{n}\\times \\sum_{j=1}^{T} \\mathrm{EPE}^{S}_{n}(t_j)\\times \\mathrm{PD}^{S}_{n}(t_{j-1},t_j)",
+  "variables": [
+   {
+    "symbol": "\\mathrm{CVA}_S",
+    "meaning": "stressed CVA (negative by the notes' sign convention)"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of counterparties"
+   },
+   {
+    "symbol": "n",
+    "meaning": "counterparty index (outer sum)"
+   },
+   {
+    "symbol": "\\mathrm{LGD}^{*}_{n}",
+    "meaning": "loss given default for counterparty n (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "number of time buckets"
+   },
+   {
+    "symbol": "j",
+    "meaning": "time bucket index (inner sum)"
+   },
+   {
+    "symbol": "\\mathrm{EPE}^{S}_{n}(t_j)",
+    "meaning": "stressed expected positive exposure to counterparty n at time t_j"
+   },
+   {
+    "symbol": "\\mathrm{PD}^{S}_{n}(t_{j-1},t_j)",
+    "meaning": "stressed probability that counterparty n defaults between t_{j-1} and t_j (decimal)"
+   }
+  ],
+  "skeleton": "\\mathrm{CVA}_S = {{1}}\\sum_{n=1}^{N} {{2}}\\times \\sum_{j=1}^{T} {{3}}\\times \\mathrm{PD}^{S}_{n}({{4}})",
+  "slots": [
+   "-",
+   "\\mathrm{LGD}^{*}_{n}",
+   "\\mathrm{EPE}^{S}_{n}(t_j)",
+   "t_{j-1},t_j"
+  ],
+  "decoys": [
+   "+",
+   "\\mathrm{EPE}_{n}(t_j)",
+   "\\mathrm{ENE}_{n}(t_j)",
+   "0,t_j"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{CVA}_S = \\sum_{n=1}^{N} \\mathrm{LGD}^{*}_{n}\\times \\sum_{j=1}^{T} \\mathrm{EPE}^{S}_{n}(t_j)\\times \\mathrm{PD}^{S}_{n}(t_{j-1},t_j)",
+    "kind": "sign",
+    "why": "The notes keep the leading minus sign, the same convention as unstressed CVA: CVA is a charge."
+   },
+   {
+    "latex": "\\mathrm{CVA}_S = -\\sum_{n=1}^{N} \\mathrm{LGD}^{*}_{n}\\times \\sum_{j=1}^{T} \\mathrm{EPE}_{n}(t_j)\\times \\mathrm{PD}^{S}_{n}(t_{j-1},t_j)",
+    "kind": "wrong-variable",
+    "why": "The shock hits exposure as well as default probability, so EPE carries the stress superscript too."
+   },
+   {
+    "latex": "\\mathrm{CVA}_S = -\\sum_{n=1}^{N} \\mathrm{LGD}^{*}_{n}\\times \\sum_{j=1}^{T} \\mathrm{EPE}^{S}_{n}(t_j)\\times \\mathrm{PD}^{S}_{n}(0,t_j)",
+    "kind": "wrong-variable",
+    "why": "Each bucket needs the marginal default probability over (t_{j-1}, t_j), not the cumulative one from 0."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{LGD}^{*}_{n}",
+    "direction": "down",
+    "why": "A larger loss severity makes the (negative) stressed CVA more negative."
+   },
+   {
+    "variable": "\\mathrm{EPE}^{S}_{n}(t_j)",
+    "direction": "down",
+    "why": "More stressed exposure makes stressed CVA more negative."
+   },
+   {
+    "variable": "\\mathrm{PD}^{S}_{n}(t_{j-1},t_j)",
+    "direction": "down",
+    "why": "Higher stressed default probabilities make stressed CVA more negative."
+   }
+  ],
+  "intuition": "Ordinary CVA summed over counterparties, with the shock applied to both EPE and PD.",
+  "calc": null,
+  "tags": [
+   "CVA",
+   "stress testing"
+  ]
+ },
+ {
+  "id": "CR-21-F06",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 158,
+  "objective": "CR-21 f",
+  "name": "Stress loss on CVA",
+  "prompt": "How is the stress loss on CVA computed from stressed and current CVA?",
+  "latex": "\\text{stress loss on CVA} = \\mathrm{CVA}_S - \\mathrm{CVA}",
+  "variables": [
+   {
+    "symbol": "\\text{stress loss on CVA}",
+    "meaning": "change in CVA caused by the stress"
+   },
+   {
+    "symbol": "\\mathrm{CVA}_S",
+    "meaning": "stressed CVA (negative by convention)"
+   },
+   {
+    "symbol": "\\mathrm{CVA}",
+    "meaning": "current (unstressed) CVA (negative by convention)"
+   }
+  ],
+  "skeleton": "\\text{stress loss on CVA} = {{1}} - {{2}}",
+  "slots": [
+   "\\mathrm{CVA}_S",
+   "\\mathrm{CVA}"
+  ],
+  "decoys": [
+   "\\mathrm{EL}_S",
+   "\\mathrm{BCVA}_S",
+   "\\mathrm{DVA}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{stress loss on CVA} = \\mathrm{CVA} - \\mathrm{CVA}_S",
+    "kind": "sign",
+    "why": "The notes define it as stressed minus current, the same order as the credit portfolio stress loss."
+   },
+   {
+    "latex": "\\text{stress loss on CVA} = \\mathrm{CVA}_S",
+    "kind": "missing-term",
+    "why": "Stressed CVA is a level; the stress loss is the change from current CVA."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{CVA}_S",
+    "direction": "up",
+    "why": "The difference moves one-for-one with stressed CVA."
+   },
+   {
+    "variable": "\\mathrm{CVA}",
+    "direction": "down",
+    "why": "A larger current CVA reduces the difference."
+   }
+  ],
+  "intuition": "Same recipe as the loan stress loss: stressed minus current, this time on CVA.",
+  "calc": {
+   "expr": "CVAS - CVA",
+   "inputs": [
+    {
+     "name": "CVAS",
+     "symbol": "\\mathrm{CVA}_S",
+     "min": -100,
+     "max": 0,
+     "step": 0.1,
+     "unit": "$M"
+    },
+    {
+     "name": "CVA",
+     "symbol": "\\mathrm{CVA}",
+     "min": -100,
+     "max": 0,
+     "step": 0.1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{stress loss on CVA}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "CVA",
+   "stress loss"
+  ]
+ },
+ {
+  "id": "CR-21-F07",
+  "reading_id": "CR-21",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/42_CR_CR21.tex",
+  "source_line": 178,
+  "objective": "CR-21 g",
+  "name": "Stress loss on BCVA (captures stressed DVA)",
+  "prompt": "How is the stress loss on bilateral CVA computed, so that stressed DVA enters the aggregation?",
+  "latex": "\\text{stress loss on BCVA} = \\mathrm{BCVA}_S - \\mathrm{BCVA}",
+  "variables": [
+   {
+    "symbol": "\\text{stress loss on BCVA}",
+    "meaning": "change in bilateral CVA caused by the stress"
+   },
+   {
+    "symbol": "\\mathrm{BCVA}_S",
+    "meaning": "stressed bilateral CVA (stressed CVA plus stressed DVA)"
+   },
+   {
+    "symbol": "\\mathrm{BCVA}",
+    "meaning": "current bilateral CVA, CVA + DVA"
+   }
+  ],
+  "skeleton": "\\text{stress loss on BCVA} = {{1}} - {{2}}",
+  "slots": [
+   "\\mathrm{BCVA}_S",
+   "\\mathrm{BCVA}"
+  ],
+  "decoys": [
+   "\\mathrm{CVA}_S",
+   "\\mathrm{DVA}",
+   "\\mathrm{EL}_S"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{stress loss on BCVA} = \\mathrm{CVA}_S - \\mathrm{CVA}",
+    "kind": "missing-term",
+    "why": "Dropping DVA ignores the offset from the institution's own spread widening and overstates the stress loss."
+   },
+   {
+    "latex": "\\text{stress loss on BCVA} = \\mathrm{BCVA} - \\mathrm{BCVA}_S",
+    "kind": "sign",
+    "why": "The order is stressed minus current, as for CVA."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{BCVA}_S",
+    "direction": "up",
+    "why": "The difference moves one-for-one with stressed BCVA."
+   },
+   {
+    "variable": "\\mathrm{BCVA}",
+    "direction": "down",
+    "why": "A larger current BCVA reduces the difference."
+   }
+  ],
+  "intuition": "Stress CVA and DVA together: own-spread widening (DVA) partly offsets the counterparty-spread hit (CVA).",
+  "calc": {
+   "expr": "BCVAS - BCVA",
+   "inputs": [
+    {
+     "name": "BCVAS",
+     "symbol": "\\mathrm{BCVA}_S",
+     "min": -100,
+     "max": 20,
+     "step": 0.1,
+     "unit": "$M"
+    },
+    {
+     "name": "BCVA",
+     "symbol": "\\mathrm{BCVA}",
+     "min": -100,
+     "max": 20,
+     "step": 0.1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{stress loss on BCVA}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "BCVA",
+   "DVA",
+   "stress loss"
+  ]
+ },
+ {
+  "id": "ORR-24-F01",
+  "reading_id": "ORR-24",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/12_OR_ORR24.tex",
+  "source_line": 28,
+  "objective": "ORR-24 a",
+  "name": "Business indicator (BI)",
+  "prompt": "Which three averaged components add up to the business indicator in the standardised approach for operational risk?",
+  "latex": "\\mathrm{BI}=\\mathrm{ILDC}_{avg}+\\mathrm{SC}_{avg}+\\mathrm{FC}_{avg}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{BI}",
+    "meaning": "business indicator: the financial-statement proxy for operational risk exposure (EUR)"
+   },
+   {
+    "symbol": "\\mathrm{ILDC}_{avg}",
+    "meaning": "average interest, lease, dividend component (three-year average)"
+   },
+   {
+    "symbol": "\\mathrm{SC}_{avg}",
+    "meaning": "average services component"
+   },
+   {
+    "symbol": "\\mathrm{FC}_{avg}",
+    "meaning": "average financial component"
+   }
+  ],
+  "skeleton": "{{1}}=\\mathrm{ILDC}_{avg}+{{2}}+\\mathrm{FC}_{avg}",
+  "slots": [
+   "\\mathrm{BI}",
+   "\\mathrm{SC}_{avg}"
+  ],
+  "decoys": [
+   "\\mathrm{BIC}",
+   "\\mathrm{ILM}",
+   "\\text{loss component}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{BI}=\\mathrm{ILDC}_{avg}+\\mathrm{FC}_{avg}",
+    "kind": "missing-term",
+    "why": "BI has three components; the services component cannot be dropped."
+   },
+   {
+    "latex": "\\mathrm{BIC}=\\mathrm{ILDC}_{avg}+\\mathrm{SC}_{avg}+\\mathrm{FC}_{avg}",
+    "kind": "sibling",
+    "why": "The sum is BI; BIC is BI run through the bucket marginal coefficients."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{ILDC}_{avg}",
+    "direction": "up",
+    "why": "BI is a straight sum of its components."
+   },
+   {
+    "variable": "\\mathrm{SC}_{avg}",
+    "direction": "up",
+    "why": "BI is a straight sum of its components."
+   },
+   {
+    "variable": "\\mathrm{FC}_{avg}",
+    "direction": "up",
+    "why": "BI is a straight sum of its components."
+   }
+  ],
+  "intuition": "BI = interest-lease-dividend + services + financial, each averaged: a size proxy built from the income statement.",
+  "calc": {
+   "expr": "ILDC + SC + FC",
+   "inputs": [
+    {
+     "name": "ILDC",
+     "symbol": "\\mathrm{ILDC}_{avg}",
+     "min": 0,
+     "max": 30,
+     "step": 0.1,
+     "unit": "EUR bn"
+    },
+    {
+     "name": "SC",
+     "symbol": "\\mathrm{SC}_{avg}",
+     "min": 0,
+     "max": 20,
+     "step": 0.1,
+     "unit": "EUR bn"
+    },
+    {
+     "name": "FC",
+     "symbol": "\\mathrm{FC}_{avg}",
+     "min": 0,
+     "max": 10,
+     "step": 0.1,
+     "unit": "EUR bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{BI}",
+    "unit": "EUR bn",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "operational risk",
+   "SMA",
+   "business indicator"
+  ]
+ },
+ {
+  "id": "ORR-24-F02",
+  "reading_id": "ORR-24",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/12_OR_ORR24.tex",
+  "source_line": 47,
+  "objective": "ORR-24 a",
+  "name": "Business indicator component (BIC) for a bucket 3 bank",
+  "prompt": "How is the BIC computed for a bank whose BI exceeds EUR 30 billion, using the bucket marginal coefficients?",
+  "latex": "\\mathrm{BIC} = (0.12\\times1)+\\bigl[0.15\\times(30-1)\\bigr]+\\bigl[0.18\\times(\\mathrm{BI}-30)\\bigr]",
+  "variables": [
+   {
+    "symbol": "\\mathrm{BIC}",
+    "meaning": "business indicator component (EUR billion)"
+   },
+   {
+    "symbol": "\\mathrm{BI}",
+    "meaning": "business indicator (EUR billion); bucket 1 up to 1, bucket 2 from 1 to 30, bucket 3 above 30"
+   }
+  ],
+  "skeleton": "\\mathrm{BIC} = ({{1}}\\times1)+\\bigl[{{2}}\\times(30-1)\\bigr]+\\bigl[{{3}}\\times({{4}})\\bigr]",
+  "slots": [
+   "0.12",
+   "0.15",
+   "0.18",
+   "\\mathrm{BI}-30"
+  ],
+  "decoys": [
+   "0.10",
+   "0.20",
+   "\\mathrm{BI}-1",
+   "\\mathrm{BI}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{BIC} = 0.18\\times\\mathrm{BI}",
+    "kind": "scaling",
+    "why": "The coefficients are marginal: 0.18 applies only to the slice of BI above EUR 30 billion (40 bn gives 6.27 bn, not 7.2 bn)."
+   },
+   {
+    "latex": "\\mathrm{BIC} = (0.18\\times1)+\\bigl[0.15\\times(30-1)\\bigr]+\\bigl[0.12\\times(\\mathrm{BI}-30)\\bigr]",
+    "kind": "inverted",
+    "why": "The coefficients rise with bucket: 12% on the first billion, 15% up to 30, 18% above."
+   },
+   {
+    "latex": "\\mathrm{BIC} = (0.12\\times1)+\\bigl[0.15\\times(30-1)\\bigr]+\\bigl[0.18\\times(\\mathrm{BI}-1)\\bigr]",
+    "kind": "wrong-variable",
+    "why": "The top coefficient applies only above EUR 30 billion; using BI - 1 double counts the bucket 2 slice."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{BI}",
+    "direction": "up",
+    "why": "Every extra euro of BI above 30 billion adds 0.18 to BIC."
+   }
+  ],
+  "intuition": "Tax brackets for op risk: 12% on the first billion, 15% on the next 29, 18% on everything above 30.",
+  "calc": {
+   "expr": "0.12*1 + 0.15*(30-1) + 0.18*(BI-30)",
+   "inputs": [
+    {
+     "name": "BI",
+     "symbol": "\\mathrm{BI}",
+     "min": 30,
+     "max": 200,
+     "step": 1,
+     "unit": "EUR bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{BIC}",
+    "unit": "EUR bn",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "BI": 40
+    },
+    "output": 6.27,
+    "source_line": 61
+   }
+  },
+  "tags": [
+   "operational risk",
+   "SMA",
+   "BIC"
+  ]
+ },
+ {
+  "id": "ORR-24-F03",
+  "reading_id": "ORR-24",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/12_OR_ORR24.tex",
+  "source_line": 72,
+  "objective": "ORR-24 a",
+  "name": "Internal loss multiplier (ILM)",
+  "prompt": "How is the internal loss multiplier computed from the loss component and the BIC?",
+  "latex": "\\text{internal loss multiplier}=\\ln\\!\\left[e^{1}-1+\\left(\\frac{\\text{loss component}}{\\mathrm{BIC}}\\right)^{\\!0.8}\\right]",
+  "variables": [
+   {
+    "symbol": "\\text{internal loss multiplier}",
+    "meaning": "ILM: scales BIC up or down for the bank's own loss history"
+   },
+   {
+    "symbol": "\\text{loss component}",
+    "meaning": "15 x average annual operational risk loss over the last 10 years"
+   },
+   {
+    "symbol": "\\mathrm{BIC}",
+    "meaning": "business indicator component"
+   }
+  ],
+  "skeleton": "\\text{internal loss multiplier}=\\ln\\!\\left[{{1}}-1+\\left(\\frac{ {{2}} }{ {{3}} }\\right)^{\\!{{4}}}\\right]",
+  "slots": [
+   "e^{1}",
+   "\\text{loss component}",
+   "\\mathrm{BIC}",
+   "0.8"
+  ],
+  "decoys": [
+   "\\mathrm{BI}",
+   "1.2",
+   "e^{0.8}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{internal loss multiplier}=\\ln\\!\\left[e^{1}-1+\\left(\\frac{\\mathrm{BIC}}{\\text{loss component}}\\right)^{\\!0.8}\\right]",
+    "kind": "inverted",
+    "why": "Upside down: higher historical losses must raise the multiplier, so the loss component goes on top."
+   },
+   {
+    "latex": "\\text{internal loss multiplier}=\\ln\\!\\left[e^{1}-1+\\frac{\\text{loss component}}{\\mathrm{BIC}}\\right]",
+    "kind": "exponent",
+    "why": "The ratio is dampened by the 0.8 exponent before it enters the log."
+   },
+   {
+    "latex": "\\text{internal loss multiplier}=\\ln\\!\\left[e^{1}+\\left(\\frac{\\text{loss component}}{\\mathrm{BIC}}\\right)^{\\!0.8}\\right]",
+    "kind": "missing-term",
+    "why": "Without the -1 an average-loss bank (ratio 1) would get ln(e + 1), about 1.31, instead of exactly 1."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{loss component}",
+    "direction": "up",
+    "why": "Higher historical losses raise the multiplier."
+   },
+   {
+    "variable": "\\mathrm{BIC}",
+    "direction": "down",
+    "why": "A larger BIC makes the same losses look smaller relative to size."
+   }
+  ],
+  "intuition": "When the loss component equals BIC, ILM = ln(e) = 1: worse-than-average losses push it above 1, better ones below.",
+  "calc": {
+   "expr": "Math.log(Math.exp(1) - 1 + (LC/BIC)**0.8)",
+   "inputs": [
+    {
+     "name": "LC",
+     "symbol": "\\text{loss component}",
+     "min": 0.1,
+     "max": 50,
+     "step": 0.1,
+     "unit": "EUR bn"
+    },
+    {
+     "name": "BIC",
+     "symbol": "\\mathrm{BIC}",
+     "min": 0.1,
+     "max": 30,
+     "step": 0.01,
+     "unit": "EUR bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{ILM}",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "operational risk",
+   "SMA",
+   "ILM"
+  ]
+ },
+ {
+  "id": "ORR-24-F04",
+  "reading_id": "ORR-24",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/12_OR_ORR24.tex",
+  "source_line": 77,
+  "objective": "ORR-24 a",
+  "name": "Loss component (LC)",
+  "prompt": "How is the loss component computed from the bank's own operational loss history?",
+  "latex": "\\text{loss component}=15\\times\\text{average annual operational risk loss over the last }10\\text{ years}",
+  "variables": [
+   {
+    "symbol": "\\text{loss component}",
+    "meaning": "reflects the bank's operational loss exposure from its internal loss experience"
+   },
+   {
+    "symbol": "\\text{average annual operational risk loss over the last }10\\text{ years}",
+    "meaning": "mean yearly operational loss from the bank's internal data (at least 5 years of data required)"
+   }
+  ],
+  "skeleton": "\\text{loss component}={{1}}\\times\\text{average annual operational risk loss over the last }{{2}}\\text{ years}",
+  "slots": [
+   "15",
+   "10"
+  ],
+  "decoys": [
+   "12",
+   "5",
+   "0.8"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{loss component}=12\\times\\text{average annual operational risk loss over the last }10\\text{ years}",
+    "kind": "scaling",
+    "why": "The multiplier is 15."
+   },
+   {
+    "latex": "\\text{loss component}=15\\times\\text{average annual operational risk loss over the last }5\\text{ years}",
+    "kind": "sibling",
+    "why": "Five years is the minimum data requirement; the average is taken over the last 10 years."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{average annual operational risk loss over the last }10\\text{ years}",
+    "direction": "up",
+    "why": "LC is 15 times the average annual loss."
+   }
+  ],
+  "intuition": "Fifteen years' worth of your average annual op-risk loss, averaged over the last decade.",
+  "calc": {
+   "expr": "15*L",
+   "inputs": [
+    {
+     "name": "L",
+     "symbol": "\\text{average annual loss}",
+     "min": 0.01,
+     "max": 5,
+     "step": 0.01,
+     "unit": "EUR bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{loss component}",
+    "unit": "EUR bn",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "operational risk",
+   "SMA",
+   "loss component"
+  ]
+ },
+ {
+  "id": "ORR-24-F05",
+  "reading_id": "ORR-24",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/12_OR_ORR24.tex",
+  "source_line": 102,
+  "objective": "ORR-24 a",
+  "name": "Operational risk capital for bucket 2 and 3 banks",
+  "prompt": "Under the standardised approach, how is operational risk capital computed for a bank in BI bucket 2 or 3?",
+  "latex": "\\text{operational risk capital}=\\mathrm{BIC}\\times \\mathrm{ILM}",
+  "variables": [
+   {
+    "symbol": "\\text{operational risk capital}",
+    "meaning": "standardised approach operational risk capital requirement (bucket 1 banks hold just BIC)"
+   },
+   {
+    "symbol": "\\mathrm{BIC}",
+    "meaning": "business indicator component"
+   },
+   {
+    "symbol": "\\mathrm{ILM}",
+    "meaning": "internal loss multiplier"
+   }
+  ],
+  "skeleton": "{{1}}={{2}}\\times \\mathrm{ILM}",
+  "slots": [
+   "\\text{operational risk capital}",
+   "\\mathrm{BIC}"
+  ],
+  "decoys": [
+   "\\mathrm{BI}",
+   "\\text{loss component}",
+   "\\mathrm{ILDC}_{avg}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{operational risk capital}=\\mathrm{BIC}",
+    "kind": "missing-term",
+    "why": "Capital = BIC alone applies only to bucket 1 banks; buckets 2 and 3 scale it by ILM."
+   },
+   {
+    "latex": "\\text{operational risk capital}=\\mathrm{BI}\\times \\mathrm{ILM}",
+    "kind": "wrong-variable",
+    "why": "ILM scales the BIC (BI after marginal coefficients), not the raw BI."
+   },
+   {
+    "latex": "\\text{operational risk capital}=\\frac{\\mathrm{BIC}}{\\mathrm{ILM}}",
+    "kind": "inverted",
+    "why": "A bank with worse-than-average losses (ILM above 1) must hold more capital, so ILM multiplies."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{BIC}",
+    "direction": "up",
+    "why": "Capital scales with the size proxy."
+   },
+   {
+    "variable": "\\mathrm{ILM}",
+    "direction": "up",
+    "why": "Worse loss history raises capital."
+   }
+  ],
+  "intuition": "Size-based charge (BIC) adjusted by your own loss record (ILM); tiny bucket 1 banks skip the adjustment.",
+  "calc": {
+   "expr": "BIC*ILM",
+   "inputs": [
+    {
+     "name": "BIC",
+     "symbol": "\\mathrm{BIC}",
+     "min": 0.1,
+     "max": 30,
+     "step": 0.01,
+     "unit": "EUR bn"
+    },
+    {
+     "name": "ILM",
+     "symbol": "\\mathrm{ILM}",
+     "min": 0.5,
+     "max": 2,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{operational risk capital}",
+    "unit": "EUR bn",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "operational risk",
+   "SMA",
+   "capital"
+  ]
+ }
+]

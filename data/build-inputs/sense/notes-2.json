@@ -1,0 +1,2663 @@
+[
+  {
+    "id": "SC-notes-2-01",
+    "mode": "magnitude",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 117
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A portfolio holds five positions of USD 2 million each. Every position has return volatility $\\sigma = 30\\%$ and every pair is correlated at $\\rho = 0.2$. Use $z = 2.33$ and $\\sigma_P = \\sigma\\sqrt{1/N + (1 - 1/N)\\rho}$.",
+    "ask": "Portfolio VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.84m",
+        "correct": false,
+        "why": "Used one USD 2m position as the portfolio value. Five positions of USD 2m is a USD 10m portfolio."
+      },
+      {
+        "label": "≈ USD 4.2m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 13m",
+        "correct": false,
+        "why": "Scale slip (3×). Even with no diversification at all ($\\sigma_P = 30\\%$) VaR is only $2.33 \\times 0.30 \\times 10 = \\text{USD } 7.0\\text{m}$, so the answer must sit below that."
+      },
+      {
+        "label": "≈ USD 42m",
+        "correct": false,
+        "why": "Scale slip (10×). The undiversified ceiling is USD 7.0m; nothing with $\\rho < 1$ can exceed it."
+      }
+    ],
+    "working": [
+      {
+        "label": "Portfolio value",
+        "display": "$5 \\times 2 = \\text{USD } 10\\text{m}$",
+        "value": 10
+      },
+      {
+        "label": "Portfolio volatility",
+        "display": "$\\sigma_P = 0.30\\sqrt{0.2 + 0.8 \\times 0.2} = 0.30\\sqrt{0.36} = 18\\%$",
+        "value": 0.18
+      },
+      {
+        "label": "Portfolio VaR",
+        "display": "$2.33 \\times 0.18 \\times 10 = \\text{USD } 4.19\\text{m}$",
+        "value": 4.194
+      }
+    ],
+    "takeaway": "Equal-weight VaR sits between the large-$N$ floor $z\\sigma\\sqrt{\\rho}\\,P$ and the undiversified ceiling $z\\sigma P$, and $P$ is the whole portfolio, not one position.",
+    "check": {
+      "inputs": {
+        "N": 5,
+        "pos": 2,
+        "sig": 0.3,
+        "rho": 0.2,
+        "z": 2.33
+      },
+      "steps": [
+        {
+          "name": "P",
+          "expr": "N*pos",
+          "value": 10.0
+        },
+        {
+          "name": "sp",
+          "expr": "sig*sqrt(1/N+(1-1/N)*rho)",
+          "value": 0.18
+        },
+        {
+          "name": "VaR",
+          "expr": "z*sp*P",
+          "value": 4.194
+        },
+        {
+          "name": "slip_pos",
+          "expr": "z*sp*pos",
+          "value": 0.8388
+        },
+        {
+          "name": "ceiling",
+          "expr": "z*sig*P",
+          "value": 6.99
+        },
+        {
+          "name": "slip_3x",
+          "expr": "3*VaR",
+          "value": 12.582
+        },
+        {
+          "name": "slip_10x",
+          "expr": "10*VaR",
+          "value": 41.94
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-02",
+    "mode": "magnitude",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 155
+    },
+    "trap_category": "Formula",
+    "setup": "Portfolio X has a VaR of EUR 400,000 and holds four equally weighted assets of EUR 1,000,000 each. Asset A has a beta of 1.2 against the portfolio.",
+    "ask": "Asset A's marginal VaR (change in portfolio VaR per extra euro in A) is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.03",
+        "correct": false,
+        "why": "Also multiplied by A's 25% weight. $\\text{MVaR}_A \\times w_A$ is A's component VaR per euro of portfolio, not the per-euro marginal VaR."
+      },
+      {
+        "label": "≈ 0.12",
+        "correct": true
+      },
+      {
+        "label": "≈ 0.48",
+        "correct": false,
+        "why": "Divided by one asset's EUR 1m instead of the EUR 4m portfolio."
+      },
+      {
+        "label": "≈ 480,000",
+        "correct": false,
+        "why": "Never divided by portfolio value. $400{,}000 \\times 1.2$ is a euro amount, not a per-euro sensitivity."
+      }
+    ],
+    "working": [
+      {
+        "label": "VaR per euro of portfolio",
+        "display": "$400{,}000 / 4{,}000{,}000 = 0.10$",
+        "value": 0.1
+      },
+      {
+        "label": "Marginal VaR of A",
+        "display": "$0.10 \\times 1.2 = 0.12$",
+        "value": 0.12
+      }
+    ],
+    "takeaway": "Marginal VaR is a per-dollar number, $(\\text{VaR}_P / P) \\times \\beta_i$. It sits near 0.1, not in the thousands.",
+    "check": {
+      "inputs": {
+        "VaR": 400000,
+        "P": 4000000,
+        "beta": 1.2,
+        "w": 0.25
+      },
+      "steps": [
+        {
+          "name": "r",
+          "expr": "VaR/P",
+          "value": 0.1
+        },
+        {
+          "name": "mvar",
+          "expr": "r*beta",
+          "value": 0.12
+        },
+        {
+          "name": "slip_asset",
+          "expr": "VaR/1000000*beta",
+          "value": 0.48
+        },
+        {
+          "name": "slip_nodiv",
+          "expr": "VaR*beta",
+          "value": 480000.0
+        },
+        {
+          "name": "slip_w",
+          "expr": "mvar*w",
+          "value": 0.03
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-03",
+    "mode": "magnitude",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 187
+    },
+    "trap_category": "Sibling",
+    "setup": "Assets A and B are uncorrelated: volatilities 6% and 14%, positions USD 4m and USD 2m. Per-dollar covariances with the portfolio are $\\text{cov}(R_A, R_P) = 0.0144$ and $\\text{cov}(R_B, R_P) = 0.0392$, and the portfolio's dollar variance is $0.136$ (in USD m$^2$). Use $z = 1.65$.",
+    "ask": "The rise in VaR from adding USD 10,000 to asset A is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 190",
+        "correct": false,
+        "why": "Scale slip (0.3×). $\\text{MVaR}_A \\approx 0.064$ per dollar, so a USD 10,000 add moves VaR by several hundred dollars."
+      },
+      {
+        "label": "≈ USD 640",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 1,800",
+        "correct": false,
+        "why": "Used asset B's marginal VaR (0.175). The trade size is right but the asset is wrong."
+      },
+      {
+        "label": "≈ USD 260,000",
+        "correct": false,
+        "why": "Multiplied A's marginal VaR by its whole USD 4m position. That is A's component VaR, not the effect of a USD 10,000 add."
+      }
+    ],
+    "working": [
+      {
+        "label": "Portfolio dollar σ",
+        "display": "$\\sqrt{0.136} = 0.3688$",
+        "value": 0.3688
+      },
+      {
+        "label": "Marginal VaR of A",
+        "display": "$1.65 \\times 0.0144 / 0.3688 = 0.0644$",
+        "value": 0.0644
+      },
+      {
+        "label": "Incremental VaR",
+        "display": "$10{,}000 \\times 0.0644 = \\text{USD } 644$",
+        "value": 644.28
+      }
+    ],
+    "takeaway": "For a small trade, incremental VaR ≈ marginal VaR × trade size. On a USD 10k add that is hundreds of dollars, not the whole position.",
+    "check": {
+      "inputs": {
+        "z": 1.65,
+        "sA": 0.06,
+        "sB": 0.14,
+        "xA": 4,
+        "xB": 2,
+        "dx": 10000,
+        "PA": 4000000
+      },
+      "steps": [
+        {
+          "name": "covA",
+          "expr": "sA**2*xA",
+          "value": 0.0144
+        },
+        {
+          "name": "covB",
+          "expr": "sB**2*xB",
+          "value": 0.0392
+        },
+        {
+          "name": "var",
+          "expr": "xA*covA+xB*covB",
+          "value": 0.136
+        },
+        {
+          "name": "sp",
+          "expr": "sqrt(var)",
+          "value": 0.368782
+        },
+        {
+          "name": "mA",
+          "expr": "z*covA/sp",
+          "value": 0.0644283
+        },
+        {
+          "name": "inc",
+          "expr": "dx*mA",
+          "value": 644.283
+        },
+        {
+          "name": "mB",
+          "expr": "z*covB/sp",
+          "value": 0.175388
+        },
+        {
+          "name": "slip_B",
+          "expr": "dx*mB",
+          "value": 1753.88
+        },
+        {
+          "name": "slip_comp",
+          "expr": "PA*mA",
+          "value": 257713.0
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*inc",
+          "value": 193.285
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-04",
+    "mode": "intermediate",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 187
+    },
+    "trap_category": "Polarity",
+    "setup": "Assets A and B are uncorrelated: A (6% vol, USD 4m) and B (14% vol, USD 2m). You have the per-dollar covariances with the portfolio, $\\text{cov}(R_A, R_P) = 0.0144$ and $\\text{cov}(R_B, R_P) = 0.0392$. Both marginal VaRs share the same factor $z / \\sigma_P$.",
+    "ask": "Which asset has the larger marginal VaR, and so is the one to trim to cut VaR fastest?",
+    "options": [
+      {
+        "label": "B",
+        "correct": true
+      },
+      {
+        "label": "A, because its position is twice as large",
+        "correct": false,
+        "why": "Position size does not decide it. MVaR is proportional to $\\text{cov}(R_i, R_P)$, and B's 0.0392 is 2.7× A's 0.0144 despite the smaller position."
+      },
+      {
+        "label": "Neither: uncorrelated assets have equal marginal VaRs",
+        "correct": false,
+        "why": "Zero correlation between A and B does not equalise their covariance with the portfolio. Each still covaries with the portfolio through its own $\\sigma_i^2 x_i$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Marginal VaR of A",
+        "display": "$1.65 \\times 0.0144 / 0.3688 = 0.0644$",
+        "value": 0.0644
+      },
+      {
+        "label": "Marginal VaR of B",
+        "display": "$1.65 \\times 0.0392 / 0.3688 = 0.1754$",
+        "value": 0.1754
+      },
+      {
+        "label": "Ratio B / A",
+        "display": "$0.0392 / 0.0144 = 2.72$",
+        "value": 2.72
+      }
+    ],
+    "takeaway": "To cut VaR fastest, trim the position with the highest marginal VaR. Here that is the smaller but more volatile B.",
+    "check": {
+      "inputs": {
+        "z": 1.65,
+        "covA": 0.0144,
+        "covB": 0.0392,
+        "var": 0.136
+      },
+      "steps": [
+        {
+          "name": "sp",
+          "expr": "sqrt(var)",
+          "value": 0.368782
+        },
+        {
+          "name": "mA",
+          "expr": "z*covA/sp",
+          "value": 0.0644283
+        },
+        {
+          "name": "mB",
+          "expr": "z*covB/sp",
+          "value": 0.175388
+        },
+        {
+          "name": "ratio",
+          "expr": "mB/mA",
+          "value": 2.72222
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-05",
+    "mode": "magnitude",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 225
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A CAD 248m portfolio (volatility 16%) holds CAD 15m of stock T (volatility 13%). The correlation between T and the portfolio is 0.45. Use a 1-year 95% VaR with $z = 1.645$.",
+    "ask": "The component VaR of stock T is closest to:",
+    "options": [
+      {
+        "label": "≈ CAD 0.096m",
+        "correct": false,
+        "why": "Dropped the position size. $1.645 \\times 0.13 \\times 0.45$ is per CAD 1 of T, not for the CAD 15m holding."
+      },
+      {
+        "label": "≈ CAD 1.4m",
+        "correct": true
+      },
+      {
+        "label": "≈ CAD 3.9m",
+        "correct": false,
+        "why": "Two slips: T's individual VaR computed with the portfolio's 16% volatility instead of T's 13%, and never multiplied by the correlation."
+      },
+      {
+        "label": "≈ CAD 29m",
+        "correct": false,
+        "why": "Applied the correlation to the whole portfolio's VaR, $1.645 \\times 0.16 \\times 248 \\times 0.45$. The CAD 248m is a red herring."
+      }
+    ],
+    "working": [
+      {
+        "label": "Individual VaR of T",
+        "display": "$15 \\times 0.13 \\times 1.645 = \\text{CAD } 3.208\\text{m}$",
+        "value": 3.208
+      },
+      {
+        "label": "Component VaR of T",
+        "display": "$0.45 \\times 3.208 = \\text{CAD } 1.444\\text{m}$",
+        "value": 1.444
+      }
+    ],
+    "takeaway": "Component VaR = individual VaR × correlation with the portfolio. The portfolio's size never enters.",
+    "check": {
+      "inputs": {
+        "P": 248,
+        "sp": 0.16,
+        "x": 15,
+        "s": 0.13,
+        "rho": 0.45,
+        "z": 1.645
+      },
+      "steps": [
+        {
+          "name": "VaRT",
+          "expr": "x*s*z",
+          "value": 3.20775
+        },
+        {
+          "name": "CVaR",
+          "expr": "rho*VaRT",
+          "value": 1.44349
+        },
+        {
+          "name": "slip_per",
+          "expr": "z*s*rho",
+          "value": 0.0962325
+        },
+        {
+          "name": "slip_pvol",
+          "expr": "x*sp*z",
+          "value": 3.948
+        },
+        {
+          "name": "slip_port",
+          "expr": "z*sp*P*rho",
+          "value": 29.3731
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-06",
+    "mode": "intermediate",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 245
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Stock T is a CAD 15m holding (volatility 13%) in a larger portfolio. You've computed its 95% individual VaR: $\\text{VaR}_T = 15 \\times 0.13 \\times 1.645 = \\text{CAD } 3.21\\text{m}$. T's correlation with the portfolio is 0.45.",
+    "ask": "T's component VaR is above CAD 3.21m, below it, or equal to it?",
+    "options": [
+      {
+        "label": "Below CAD 3.21m",
+        "correct": true
+      },
+      {
+        "label": "Above CAD 3.21m",
+        "correct": false,
+        "why": "Component VaR is $\\text{VaR}_T \\times \\rho$ and $\\rho \\le 1$, so it can never exceed the stand-alone figure."
+      },
+      {
+        "label": "Equal to CAD 3.21m",
+        "correct": false,
+        "why": "This is the classic intermediate-result slip: stopping at the individual VaR. The two are equal only at ρ = 1."
+      }
+    ],
+    "working": [
+      {
+        "label": "Individual VaR of T",
+        "display": "$\\text{CAD } 3.208\\text{m}$",
+        "value": 3.208
+      },
+      {
+        "label": "Component VaR of T",
+        "display": "$0.45 \\times 3.208 = \\text{CAD } 1.444\\text{m}$",
+        "value": 1.444
+      },
+      {
+        "label": "Gap",
+        "display": "$3.208 - 1.444 = +1.764$ (component is below)",
+        "value": 1.764
+      }
+    ],
+    "takeaway": "Component VaR ≤ individual VaR. With ρ = 0.45 it is under half.",
+    "check": {
+      "inputs": {
+        "x": 15,
+        "s": 0.13,
+        "z": 1.645,
+        "rho": 0.45
+      },
+      "steps": [
+        {
+          "name": "VaRT",
+          "expr": "x*s*z",
+          "value": 3.20775
+        },
+        {
+          "name": "CVaR",
+          "expr": "rho*VaRT",
+          "value": 1.44349
+        },
+        {
+          "name": "gap",
+          "expr": "VaRT-CVaR",
+          "value": 1.76426
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-07",
+    "mode": "magnitude",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 294
+    },
+    "trap_category": "Formula",
+    "setup": "A portfolio holds USD 8m in asset A and USD 4m in asset B. Daily volatilities are 1.5% and 2.0%, and the correlation is 0.6. Use $z = 2.33$ (99%) and a 10-day horizon.",
+    "ask": "The 10-day 99% VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.42m",
+        "correct": false,
+        "why": "Forgot the $\\sqrt{10}$. That is the 1-day VaR."
+      },
+      {
+        "label": "≈ USD 1.3m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 4.2m",
+        "correct": false,
+        "why": "Scaled by 10 instead of $\\sqrt{10}$. Variance scales with time; volatility scales with its square root."
+      },
+      {
+        "label": "≈ USD 16m",
+        "correct": false,
+        "why": "Multiplied the dollar σ, which is already in USD m, by the USD 12m portfolio value again."
+      }
+    ],
+    "working": [
+      {
+        "label": "Covariance",
+        "display": "$0.6 \\times 0.015 \\times 0.02 = 0.00018$",
+        "value": 0.00018
+      },
+      {
+        "label": "Dollar variance",
+        "display": "$64(0.000225) + 16(0.0004) + 2(8)(4)(0.00018) = 0.03232$",
+        "value": 0.03232
+      },
+      {
+        "label": "Dollar σ (1-day)",
+        "display": "$\\sqrt{0.03232} = 0.1798$ (USD m)",
+        "value": 0.1798
+      },
+      {
+        "label": "1-day VaR",
+        "display": "$2.33 \\times 0.1798 = \\text{USD } 0.419\\text{m}$",
+        "value": 0.4189
+      },
+      {
+        "label": "10-day VaR",
+        "display": "$0.419 \\times \\sqrt{10} = \\text{USD } 1.32\\text{m}$",
+        "value": 1.3246
+      }
+    ],
+    "takeaway": "Scale VaR by $\\sqrt{t}$. A σ built from dollar positions is already in dollars, so don't multiply by portfolio value again.",
+    "check": {
+      "inputs": {
+        "xA": 8,
+        "xB": 4,
+        "sA": 0.015,
+        "sB": 0.02,
+        "rho": 0.6,
+        "z": 2.33,
+        "t": 10
+      },
+      "steps": [
+        {
+          "name": "cov",
+          "expr": "rho*sA*sB",
+          "value": 0.00018
+        },
+        {
+          "name": "var",
+          "expr": "xA**2*sA**2+xB**2*sB**2+2*xA*xB*cov",
+          "value": 0.03232
+        },
+        {
+          "name": "sd",
+          "expr": "sqrt(var)",
+          "value": 0.179778
+        },
+        {
+          "name": "VaR1",
+          "expr": "z*sd",
+          "value": 0.418882
+        },
+        {
+          "name": "VaR10",
+          "expr": "VaR1*sqrt(t)",
+          "value": 1.32462
+        },
+        {
+          "name": "slip_10",
+          "expr": "VaR1*t",
+          "value": 4.18882
+        },
+        {
+          "name": "slip_x12",
+          "expr": "VaR10*(xA+xB)",
+          "value": 15.8955
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-08",
+    "mode": "direction",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 329
+    },
+    "trap_category": "Polarity",
+    "setup": "A portfolio holds two long positions: USD 8m in A (1.5% daily vol) and USD 4m in B (2.0% daily vol), correlated at 0.6, with a 10-day 99% VaR of USD 1.32m. The correlation rises to 0.9. Positions and volatilities are unchanged.",
+    "ask": "The 10-day VaR:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Higher correlation means less diversification. The cross term $2x_Ax_B\\rho\\sigma_A\\sigma_B$ grows with ρ when both positions are long."
+      },
+      {
+        "label": "Stays roughly the same",
+        "correct": false,
+        "why": "The cross term rises from 0.0115 to 0.0173, lifting VaR from USD 1.32m to about USD 1.44m, a rise of roughly 9%."
+      }
+    ],
+    "working": [
+      {
+        "label": "New cross term",
+        "display": "$2(8)(4)(0.9)(0.015)(0.02) = 0.01728$",
+        "value": 0.01728
+      },
+      {
+        "label": "New dollar variance",
+        "display": "$0.0144 + 0.0064 + 0.01728 = 0.03808$",
+        "value": 0.03808
+      },
+      {
+        "label": "New 10-day VaR",
+        "display": "$2.33 \\times \\sqrt{0.03808} \\times \\sqrt{10} = \\text{USD } 1.44\\text{m}$",
+        "value": 1.4378
+      }
+    ],
+    "takeaway": "With both positions long, correlation up → diversification down → VaR up.",
+    "check": {
+      "inputs": {
+        "xA": 8,
+        "xB": 4,
+        "sA": 0.015,
+        "sB": 0.02,
+        "r0": 0.6,
+        "r1": 0.9,
+        "z": 2.33,
+        "t": 10
+      },
+      "steps": [
+        {
+          "name": "var0",
+          "expr": "xA**2*sA**2+xB**2*sB**2+2*xA*xB*r0*sA*sB",
+          "value": 0.03232
+        },
+        {
+          "name": "VaR0",
+          "expr": "z*sqrt(var0)*sqrt(t)",
+          "value": 1.32462
+        },
+        {
+          "name": "cross1",
+          "expr": "2*xA*xB*r1*sA*sB",
+          "value": 0.01728
+        },
+        {
+          "name": "var1",
+          "expr": "xA**2*sA**2+xB**2*sB**2+cross1",
+          "value": 0.03808
+        },
+        {
+          "name": "VaR1",
+          "expr": "z*sqrt(var1)*sqrt(t)",
+          "value": 1.43782
+        },
+        {
+          "name": "dVaR",
+          "expr": "VaR1-VaR0",
+          "value": 0.113199
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-09",
+    "mode": "direction",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 493
+    },
+    "trap_category": "Polarity",
+    "setup": "A USD 3m portfolio holds CAD (66.67%) and EUR (33.33%) currency positions. Marginal VaRs are 0.0528 for CAD and 0.1521 for EUR. You want the lowest possible VaR with the full USD 3m still invested.",
+    "ask": "Which way should the mix shift?",
+    "options": [
+      {
+        "label": "Cut EUR, add CAD",
+        "correct": true
+      },
+      {
+        "label": "Cut CAD, add EUR",
+        "correct": false,
+        "why": "Backwards. Cut the position with the highest marginal VaR (EUR, 0.1521) and add to the one with the lowest (CAD, 0.0528)."
+      },
+      {
+        "label": "Leave it: the mix is already minimum-risk",
+        "correct": false,
+        "why": "At the global minimum all marginal VaRs are equal. 0.0528 and 0.1521 are far apart."
+      }
+    ],
+    "working": [
+      {
+        "label": "Marginal VaR gap (EUR − CAD)",
+        "display": "$0.1521 - 0.0528 = +0.0993$",
+        "value": 0.0993
+      },
+      {
+        "label": "At the minimum",
+        "display": "EUR weight $33.33\\% \\to 14.79\\%$; both MVaRs $= 0.0762$",
+        "value": 0.0762
+      }
+    ],
+    "takeaway": "Minimum risk means all marginal VaRs are equal, so move money from the high-MVaR position to the low-MVaR one.",
+    "check": {
+      "inputs": {
+        "mC": 0.0528,
+        "mE": 0.1521,
+        "VaRmin": 228462,
+        "P": 3000000
+      },
+      "steps": [
+        {
+          "name": "gap",
+          "expr": "mE-mC",
+          "value": 0.0993
+        },
+        {
+          "name": "m_min",
+          "expr": "VaRmin/P*1.0",
+          "value": 0.076154
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-10",
+    "mode": "intermediate",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 545
+    },
+    "trap_category": "Polarity",
+    "setup": "A USD 3m portfolio holds CAD (66.67%) and EUR (33.33%). Excess expected returns are 8% for CAD and 5% for EUR. Betas against the portfolio are 0.615 for CAD and 1.770 for EUR. The return-optimal portfolio equalises $E_i / \\beta_i$ across assets.",
+    "ask": "Right now, which ratio $E_i / \\beta_i$ is larger?",
+    "options": [
+      {
+        "label": "CAD's, by a wide margin",
+        "correct": true
+      },
+      {
+        "label": "EUR's",
+        "correct": false,
+        "why": "EUR has the lower return and the higher beta, and both push its ratio down: 0.05 / 1.770 = 0.028 against CAD's 0.130."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "0.130 against 0.028 is more than four times apart."
+      }
+    ],
+    "working": [
+      {
+        "label": "CAD ratio",
+        "display": "$0.08 / 0.615 = 0.1301$",
+        "value": 0.1301
+      },
+      {
+        "label": "EUR ratio",
+        "display": "$0.05 / 1.770 = 0.0282$",
+        "value": 0.0282
+      },
+      {
+        "label": "Action",
+        "display": "Add to CAD: the optimum is at 90.21% CAD, where both ratios equal 0.0771",
+        "value": null
+      }
+    ],
+    "takeaway": "For the optimal portfolio, add to the asset with the highest excess return per unit of beta (or marginal VaR). Here that is CAD.",
+    "check": {
+      "inputs": {
+        "EC": 0.08,
+        "EE": 0.05,
+        "bC": 0.615,
+        "bE": 1.77
+      },
+      "steps": [
+        {
+          "name": "rC",
+          "expr": "EC/bC",
+          "value": 0.130081
+        },
+        {
+          "name": "rE",
+          "expr": "EE/bE",
+          "value": 0.0282486
+        },
+        {
+          "name": "ratio",
+          "expr": "rC/rE",
+          "value": 4.60488
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-11",
+    "mode": "direction",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 614
+    },
+    "trap_category": "Sibling",
+    "setup": "Two managers start from the same CAD/EUR portfolio (volatility 15.62%; excess returns 8% CAD, 5% EUR). Manager 1 rebalances to the minimum-risk mix. Manager 2 rebalances to the mix that maximises excess return per unit of VaR.",
+    "ask": "Compared with Manager 1's portfolio, Manager 2's volatility is:",
+    "options": [
+      {
+        "label": "Slightly higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "Nothing can have lower volatility than the minimum-risk portfolio. That is its definition."
+      },
+      {
+        "label": "Identical: both equalise marginal VaRs",
+        "correct": false,
+        "why": "Only the minimum-risk portfolio equalises marginal VaRs. The optimum equalises $E_i / \\text{MVaR}_i$, which tilts further into CAD (90.21% against 85.21%) and lands at 13.98% against 13.85%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Minimum-risk volatility",
+        "display": "$13.85\\%$ (CAD 85.21%)",
+        "value": 13.85
+      },
+      {
+        "label": "Optimal volatility",
+        "display": "$13.98\\%$ (CAD 90.21%)",
+        "value": 13.98
+      },
+      {
+        "label": "Difference",
+        "display": "$13.98 - 13.85 = +0.13$ pts, bought with a Sharpe ratio of 0.551 against 0.546",
+        "value": 0.13
+      }
+    ],
+    "takeaway": "Minimum-risk is not optimal. Adding return to the objective accepts a little more risk.",
+    "check": {
+      "inputs": {
+        "vmin": 13.85,
+        "vopt": 13.98,
+        "wmin": 0.8521,
+        "wopt": 0.9021
+      },
+      "steps": [
+        {
+          "name": "dvol",
+          "expr": "vopt-vmin",
+          "value": 0.13
+        },
+        {
+          "name": "Emin",
+          "expr": "wmin*8+(1-wmin)*5",
+          "value": 7.5563
+        },
+        {
+          "name": "Eopt",
+          "expr": "wopt*8+(1-wopt)*5",
+          "value": 7.7063
+        },
+        {
+          "name": "SRmin",
+          "expr": "Emin/vmin",
+          "value": 0.545581
+        },
+        {
+          "name": "SRopt",
+          "expr": "Eopt/vopt",
+          "value": 0.551237
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-12",
+    "mode": "intermediate",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 459
+    },
+    "trap_category": "Sibling",
+    "setup": "Two-currency portfolio: USD 2m CAD and USD 1m EUR, VaR USD 257.7k. EUR's marginal VaR is 0.1521, so its component VaR is $0.1521 \\times 1{,}000{,}000 = \\text{USD } 152.1\\text{k}$. A full revaluation with the EUR position removed gives a VaR of USD 165.0k.",
+    "ask": "The actual VaR reduction from dropping EUR, compared with EUR's component VaR, is:",
+    "options": [
+      {
+        "label": "Smaller",
+        "correct": true
+      },
+      {
+        "label": "Larger",
+        "correct": false,
+        "why": "257.7 − 165.0 = 92.7k, well under 152.1k. VaR is convex in the position, so the curve stays above its tangent and the tangent overstates the drop."
+      },
+      {
+        "label": "About the same, since component VaR measures exactly this",
+        "correct": false,
+        "why": "Component VaR is only a linear approximation. It works for small positions and poorly for one that is a third of the portfolio: here the gap is about USD 60k."
+      }
+    ],
+    "working": [
+      {
+        "label": "Incremental VaR (down the curve)",
+        "display": "$257.7 - 165.0 = \\text{USD } 92.7\\text{k}$",
+        "value": 92.74
+      },
+      {
+        "label": "Component VaR (down the tangent)",
+        "display": "$0.1521 \\times 1{,}000 = \\text{USD } 152.1\\text{k}$",
+        "value": 152.1
+      },
+      {
+        "label": "Gap",
+        "display": "$152.1 - 92.7 = \\text{USD } 59.4\\text{k}$",
+        "value": 59.36
+      }
+    ],
+    "takeaway": "Component VaR travels down the tangent and incremental VaR down the curve. For a large position they differ a lot.",
+    "check": {
+      "inputs": {
+        "a": 27225,
+        "b": 3.9,
+        "c": 39200,
+        "x": 1
+      },
+      "steps": [
+        {
+          "name": "VaR1",
+          "expr": "sqrt(a+b*x+c*x**2)",
+          "value": 257.738
+        },
+        {
+          "name": "VaR0",
+          "expr": "sqrt(a)",
+          "value": 165.0
+        },
+        {
+          "name": "slope",
+          "expr": "(b+2*c*x)/(2*VaR1)",
+          "value": 152.1
+        },
+        {
+          "name": "comp",
+          "expr": "slope*x",
+          "value": 152.1
+        },
+        {
+          "name": "inc",
+          "expr": "VaR1-VaR0",
+          "value": 92.738
+        },
+        {
+          "name": "gap",
+          "expr": "comp-inc",
+          "value": 59.3619
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-13",
+    "mode": "intermediate",
+    "area": "IM",
+    "reading": "IM-5",
+    "reading_id": "IM-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+      "line": 575
+    },
+    "trap_category": "Formula",
+    "setup": "A candidate answer for the return-optimal CAD/EUR portfolio quotes weights of 90.21% CAD and 9.79% EUR, with betas against the portfolio of 1.038 (CAD) and 0.649 (EUR).",
+    "ask": "Its weighted-average beta is above 1, below 1, or equal to 1 (to rounding)?",
+    "options": [
+      {
+        "label": "Equal to 1, to rounding",
+        "correct": true
+      },
+      {
+        "label": "Above 1: CAD's beta exceeds 1 and CAD dominates",
+        "correct": false,
+        "why": "$0.9021 \\times 1.038 = 0.936$ and $0.0979 \\times 0.649 = 0.064$. They add to 1.000."
+      },
+      {
+        "label": "Below 1: EUR's beta has dropped to 0.649",
+        "correct": false,
+        "why": "EUR's low beta carries only a 9.79% weight. The total is $0.936 + 0.064 = 1.000$."
+      }
+    ],
+    "working": [
+      {
+        "label": "CAD contribution",
+        "display": "$0.9021 \\times 1.038 = 0.9364$",
+        "value": 0.9364
+      },
+      {
+        "label": "EUR contribution",
+        "display": "$0.0979 \\times 0.649 = 0.0635$",
+        "value": 0.0635
+      },
+      {
+        "label": "Weighted beta",
+        "display": "$0.9364 + 0.0635 = 1.000$",
+        "value": 1.0
+      }
+    ],
+    "takeaway": "Betas measured against the portfolio itself always average to exactly 1. That gives a free check on any candidate answer.",
+    "check": {
+      "inputs": {
+        "wC": 0.9021,
+        "wE": 0.0979,
+        "bC": 1.038,
+        "bE": 0.649
+      },
+      "steps": [
+        {
+          "name": "cC",
+          "expr": "wC*bC",
+          "value": 0.93638
+        },
+        {
+          "name": "cE",
+          "expr": "wE*bE",
+          "value": 0.0635371
+        },
+        {
+          "name": "bw",
+          "expr": "cC+cE",
+          "value": 0.999917
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-14",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-9",
+    "reading_id": "MR-9",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+      "line": 266
+    },
+    "trap_category": "Sign",
+    "setup": "The average Dow stock correlation this month is 30%; its long-run mean is 35%. A regression of the monthly change in correlation on its level gives $Y = 0.273 - 0.78X$.",
+    "ask": "Next month's expected correlation is:",
+    "options": [
+      {
+        "label": "Between 30% and 35%",
+        "correct": true
+      },
+      {
+        "label": "Below 30%",
+        "correct": false,
+        "why": "Took the slope's sign at face value (a = −0.78). The mean-reversion rate is minus the slope, a = +0.78, which pulls correlation up toward 35%."
+      },
+      {
+        "label": "Above 35%",
+        "correct": false,
+        "why": "With 0 < a < 1 the variable closes only part of the gap (78% of 5 points). It would overshoot the mean only if a > 1."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mean-reversion rate",
+        "display": "$a = -(-0.78) = 0.78$",
+        "value": 0.78
+      },
+      {
+        "label": "Expected change",
+        "display": "$0.78 \\times (0.35 - 0.30) = +0.039$",
+        "value": 0.039
+      },
+      {
+        "label": "Expected correlation",
+        "display": "$0.30 + 0.039 = 33.9\\%$",
+        "value": 0.339
+      }
+    ],
+    "takeaway": "Regression slope = −a. With 0 < a < 1, the next value lands between today's level and the mean.",
+    "check": {
+      "inputs": {
+        "S0": 0.3,
+        "mu": 0.35,
+        "slope": -0.78
+      },
+      "steps": [
+        {
+          "name": "a",
+          "expr": "-slope",
+          "value": 0.78
+        },
+        {
+          "name": "dS",
+          "expr": "a*(mu-S0)",
+          "value": 0.039
+        },
+        {
+          "name": "S1",
+          "expr": "S0+dS",
+          "value": 0.339
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-15",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-9",
+    "reading_id": "MR-9",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+      "line": 280
+    },
+    "trap_category": "Formula",
+    "setup": "Correlation was 0.22 a year ago and is 0.35 now; its long-run mean is 0.45. The implied mean-reversion rate is $a = (S_t - S_{t-1}) / (\\mu - S_{t-1})$.",
+    "ask": "Is the implied mean-reversion rate above 50%, below 50%, or too close to call?",
+    "options": [
+      {
+        "label": "Above 50%",
+        "correct": true
+      },
+      {
+        "label": "Below 50%",
+        "correct": false,
+        "why": "Divided the move by the mean (0.13 / 0.45 = 0.29) instead of by the starting gap $\\mu - S_{t-1} = 0.23$."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "Half the starting gap is 0.115 and the move is 0.13, clearly more than half (a ≈ 56.5%)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Move",
+        "display": "$0.35 - 0.22 = 0.13$",
+        "value": 0.13
+      },
+      {
+        "label": "Starting gap",
+        "display": "$0.45 - 0.22 = 0.23$",
+        "value": 0.23
+      },
+      {
+        "label": "Half the gap",
+        "display": "$0.23 / 2 = 0.115 < 0.13$",
+        "value": 0.115
+      },
+      {
+        "label": "Mean-reversion rate",
+        "display": "$0.13 / 0.23 = 56.5\\%$",
+        "value": 0.5652
+      }
+    ],
+    "takeaway": "a is the fraction of the gap closed. Compare the move with half of $\\mu - S_{t-1}$.",
+    "check": {
+      "inputs": {
+        "S0": 0.22,
+        "S1": 0.35,
+        "mu": 0.45
+      },
+      "steps": [
+        {
+          "name": "move",
+          "expr": "S1-S0",
+          "value": 0.13
+        },
+        {
+          "name": "gap",
+          "expr": "mu-S0",
+          "value": 0.23
+        },
+        {
+          "name": "half",
+          "expr": "gap/2",
+          "value": 0.115
+        },
+        {
+          "name": "a",
+          "expr": "move/gap",
+          "value": 0.565217
+        },
+        {
+          "name": "slip_mu",
+          "expr": "move/mu",
+          "value": 0.288889
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-16",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-9",
+    "reading_id": "MR-9",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+      "line": 295
+    },
+    "trap_category": "Polarity",
+    "setup": "Dow stock correlations show a one-period mean-reversion rate of 78%. A later sample shows the mean-reversion rate rising to 90%.",
+    "ask": "The one-period-lag autocorrelation of those correlations:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "The reverse property: autocorrelation = 1 − mean-reversion rate, so it goes from 0.22 to 0.10."
+      },
+      {
+        "label": "Is unchanged, because they measure different things",
+        "correct": false,
+        "why": "For the one-period lag they are complements that always sum to 1."
+      }
+    ],
+    "working": [
+      {
+        "label": "Autocorrelation before",
+        "display": "$1 - 0.78 = 0.22$",
+        "value": 0.22
+      },
+      {
+        "label": "Autocorrelation after",
+        "display": "$1 - 0.90 = 0.10$",
+        "value": 0.1
+      }
+    ],
+    "takeaway": "Mean reversion and one-lag autocorrelation sum to 1: more of one means less of the other.",
+    "check": {
+      "inputs": {
+        "a0": 0.78,
+        "a1": 0.9
+      },
+      "steps": [
+        {
+          "name": "ac0",
+          "expr": "1-a0",
+          "value": 0.22
+        },
+        {
+          "name": "ac1",
+          "expr": "1-a1",
+          "value": 0.1
+        },
+        {
+          "name": "dac",
+          "expr": "ac1-ac0",
+          "value": -0.12
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-17",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-9",
+    "reading_id": "MR-9",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+      "line": 40
+    },
+    "trap_category": "Sibling",
+    "setup": "In the 1972–2012 Dow study, the average equity correlation rises steadily from expansion (27%) to normal periods (33%) to recessions (37%).",
+    "ask": "Moving from a normal period into recession, correlation volatility:",
+    "options": [
+      {
+        "label": "Falls slightly, staying above its expansion level",
+        "correct": true
+      },
+      {
+        "label": "Rises to its highest level",
+        "correct": false,
+        "why": "Tempting because the correlation level rises, but correlation volatility peaked in the normal period (83.06%) and dipped to 80.48% in recession."
+      },
+      {
+        "label": "Falls to its lowest level of the three states",
+        "correct": false,
+        "why": "The lowest volatility (71.17%) is in expansions. Recession's 80.48% is only a little below the normal period's 83.06%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Normal period",
+        "display": "$83.06\\%$ (the peak)",
+        "value": 83.06
+      },
+      {
+        "label": "Recession",
+        "display": "$80.48\\%$",
+        "value": 80.48
+      },
+      {
+        "label": "Change",
+        "display": "$80.48 - 83.06 = -2.58$ pts; expansion is lower still at $71.17\\%$",
+        "value": -2.58
+      }
+    ],
+    "takeaway": "Correlation level peaks in recessions; correlation volatility peaks in normal times.",
+    "check": {
+      "inputs": {
+        "exp": 71.17,
+        "norm": 83.06,
+        "rec": 80.48
+      },
+      "steps": [
+        {
+          "name": "d",
+          "expr": "rec-norm",
+          "value": -2.58
+        },
+        {
+          "name": "above_exp",
+          "expr": "rec-exp",
+          "value": 9.31
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-18",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-4",
+    "reading_id": "MR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+      "line": 103
+    },
+    "trap_category": "Polarity",
+    "setup": "A 99% one-day VaR model is backtested over 252 trading days and records 6 exceptions.",
+    "ask": "Relative to its target, the model is:",
+    "options": [
+      {
+        "label": "Underestimating risk",
+        "correct": true
+      },
+      {
+        "label": "Overestimating risk",
+        "correct": false,
+        "why": "The failure rate, 6/252 = 2.38%, is above the 1% target. Too many exceptions means VaR is set too low, so risk is understated."
+      },
+      {
+        "label": "About right",
+        "correct": false,
+        "why": "About 2.5 exceptions are expected; 6 is more than double that."
+      }
+    ],
+    "working": [
+      {
+        "label": "Failure rate",
+        "display": "$6 / 252 = 2.38\\%$",
+        "value": 0.0238
+      },
+      {
+        "label": "Expected exceptions",
+        "display": "$0.01 \\times 252 = 2.52$",
+        "value": 2.52
+      }
+    ],
+    "takeaway": "Too many exceptions means VaR is too low and risk is underestimated. Too few means capital is over-allocated.",
+    "check": {
+      "inputs": {
+        "N": 6,
+        "T": 252,
+        "p": 0.01
+      },
+      "steps": [
+        {
+          "name": "fr",
+          "expr": "N/T",
+          "value": 0.0238095
+        },
+        {
+          "name": "expN",
+          "expr": "p*T",
+          "value": 2.52
+        },
+        {
+          "name": "excess",
+          "expr": "fr-p",
+          "value": 0.0138095
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-19",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-4",
+    "reading_id": "MR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+      "line": 122
+    },
+    "trap_category": "Formula",
+    "setup": "A 95% daily VaR is backtested over $T = 252$ days and breached on 20 of them. Use the normal approximation $z = (x - pT)/\\sqrt{p(1-p)T}$.",
+    "ask": "The test statistic z is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.62",
+        "correct": false,
+        "why": "Divided by the variance $p(1-p)T = 11.97$ instead of its square root."
+      },
+      {
+        "label": "≈ 2.1",
+        "correct": true
+      },
+      {
+        "label": "≈ 7.4",
+        "correct": false,
+        "why": "Stopped at the excess count $x - pT$ and never standardised it."
+      },
+      {
+        "label": "≈ 21",
+        "correct": false,
+        "why": "Scale slip (10×). The excess is 7.4 exceptions and the standard error about 3.5, so z is a single digit."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expected exceptions",
+        "display": "$0.05 \\times 252 = 12.6$",
+        "value": 12.6
+      },
+      {
+        "label": "Excess",
+        "display": "$20 - 12.6 = 7.4$",
+        "value": 7.4
+      },
+      {
+        "label": "Standard error",
+        "display": "$\\sqrt{0.05 \\times 0.95 \\times 252} = 3.46$",
+        "value": 3.4598
+      },
+      {
+        "label": "z",
+        "display": "$7.4 / 3.46 = 2.14$",
+        "value": 2.1389
+      }
+    ],
+    "takeaway": "z is excess exceptions divided by their standard error, so it comes out in single digits. Compare it with 1.96.",
+    "check": {
+      "inputs": {
+        "x": 20,
+        "T": 252,
+        "p": 0.05
+      },
+      "steps": [
+        {
+          "name": "pT",
+          "expr": "p*T",
+          "value": 12.6
+        },
+        {
+          "name": "ex",
+          "expr": "x-pT",
+          "value": 7.4
+        },
+        {
+          "name": "v",
+          "expr": "p*(1-p)*T",
+          "value": 11.97
+        },
+        {
+          "name": "se",
+          "expr": "sqrt(v)",
+          "value": 3.45977
+        },
+        {
+          "name": "zz",
+          "expr": "ex/se",
+          "value": 2.13887
+        },
+        {
+          "name": "slip_var",
+          "expr": "ex/v",
+          "value": 0.618212
+        },
+        {
+          "name": "slip_10x",
+          "expr": "10*zz",
+          "value": 21.3887
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-20",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-4",
+    "reading_id": "MR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+      "line": 122
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A 95% daily VaR backtest shows 20 exceptions in 252 days at $p = 0.05$. You have the excess $x - pT = 7.4$ and the standard error $\\sqrt{0.05 \\times 0.95 \\times 252} = 3.46$. The two-tailed 5% critical value is 1.96.",
+    "ask": "Is $7.4 - 1.96 \\times 3.46$ positive, negative, or too close to call?",
+    "options": [
+      {
+        "label": "Positive, so reject the model",
+        "correct": true
+      },
+      {
+        "label": "Negative, so accept the model",
+        "correct": false,
+        "why": "1.96 × 3.46 = 6.78, which is below 7.4. Equivalently z = 2.14 > 1.96."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The margin is about 0.6 exceptions, and z = 2.14 against 1.96 is a clear, if modest, rejection."
+      }
+    ],
+    "working": [
+      {
+        "label": "Rejection threshold",
+        "display": "$1.96 \\times 3.460 = 6.78$",
+        "value": 6.781
+      },
+      {
+        "label": "Residual",
+        "display": "$7.4 - 6.78 = +0.62$",
+        "value": 0.619
+      },
+      {
+        "label": "Decision",
+        "display": "$z = 2.14 > 1.96$: reject the unbiased-model hypothesis",
+        "value": null
+      }
+    ],
+    "takeaway": "Rejection needs more than about 2 standard errors of excess exceptions. Here 7.4 > 6.8, so reject.",
+    "check": {
+      "inputs": {
+        "x": 20,
+        "T": 252,
+        "p": 0.05,
+        "zc": 1.96
+      },
+      "steps": [
+        {
+          "name": "ex",
+          "expr": "x-p*T",
+          "value": 7.4
+        },
+        {
+          "name": "se",
+          "expr": "sqrt(p*(1-p)*T)",
+          "value": 3.45977
+        },
+        {
+          "name": "thr",
+          "expr": "zc*se",
+          "value": 6.78115
+        },
+        {
+          "name": "resid",
+          "expr": "ex-thr",
+          "value": 0.618853
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-21",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-4",
+    "reading_id": "MR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/35_MR_MR4.tex",
+      "line": 292
+    },
+    "trap_category": "Scope",
+    "setup": "Basel backtest: a 99% VaR model checked over the last 250 trading days records 7 exceptions. The base capital multiplier is 3.",
+    "ask": "The capital multiplier:",
+    "options": [
+      {
+        "label": "Rises above 3 but stays below 4",
+        "correct": true
+      },
+      {
+        "label": "Stays at 3",
+        "correct": false,
+        "why": "The green zone is 0 to 4 exceptions; 7 falls in the yellow zone."
+      },
+      {
+        "label": "Jumps to 4",
+        "correct": false,
+        "why": "The red zone, with multiplier 4, starts at 10 exceptions."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expected exceptions",
+        "display": "$250 \\times 0.01 = 2.5$",
+        "value": 2.5
+      },
+      {
+        "label": "Zone",
+        "display": "7 exceptions → yellow (5 to 9): multiplier between 3 and 4",
+        "value": null
+      }
+    ],
+    "takeaway": "Basel zones: 0 to 4 green (multiplier 3), 5 to 9 yellow (3 to 4), 10 or more red (4). Expected is 2.5.",
+    "check": {
+      "inputs": {
+        "T": 250,
+        "p": 0.01,
+        "N": 7
+      },
+      "steps": [
+        {
+          "name": "expN",
+          "expr": "T*p",
+          "value": 2.5
+        },
+        {
+          "name": "ratio",
+          "expr": "N/expN",
+          "value": 2.8
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-22",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-14",
+    "reading_id": "LTR-14",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/18_LR_LTR14.tex",
+      "line": 112
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A credit line has a USD 10m limit with USD 4m drawn. Behavioural modelling puts the chance the rest is drawn at 60%. Funding the liquidity cushion costs 18 bp.",
+    "ask": "The charge for contingent liquidity risk is closest to:",
+    "options": [
+      {
+        "label": "≈ 1.9 bp",
+        "correct": false,
+        "why": "Scale slip (0.3×). The charge is 36% of the 18 bp cushion cost, so it is about 6 to 7 bp."
+      },
+      {
+        "label": "≈ 6.5 bp",
+        "correct": true
+      },
+      {
+        "label": "≈ 18 bp",
+        "correct": false,
+        "why": "Charged the full cushion cost, skipping both the undrawn proportion (0.60) and the drawdown likelihood (0.60)."
+      },
+      {
+        "label": "≈ 650 bp",
+        "correct": false,
+        "why": "Decimal slip: treated 18 bp as 0.18 (18%) instead of 0.0018."
+      }
+    ],
+    "working": [
+      {
+        "label": "Undrawn proportion",
+        "display": "$(10 - 4)/10 = 0.60$",
+        "value": 0.6
+      },
+      {
+        "label": "× drawdown likelihood",
+        "display": "$0.60 \\times 0.60 = 0.36$",
+        "value": 0.36
+      },
+      {
+        "label": "× cushion cost",
+        "display": "$0.36 \\times 18\\text{ bp} = 6.48\\text{ bp}$",
+        "value": 6.48
+      }
+    ],
+    "takeaway": "Contingent charge = undrawn share × drawdown likelihood × cushion cost, which is always a fraction of the cushion cost.",
+    "check": {
+      "inputs": {
+        "L": 10,
+        "D": 4,
+        "lik": 0.6,
+        "c": 18
+      },
+      "steps": [
+        {
+          "name": "und",
+          "expr": "(L-D)/L",
+          "value": 0.6
+        },
+        {
+          "name": "frac",
+          "expr": "und*lik",
+          "value": 0.36
+        },
+        {
+          "name": "cost",
+          "expr": "frac*c",
+          "value": 6.48
+        },
+        {
+          "name": "slip_pct",
+          "expr": "frac*0.18*10000",
+          "value": 648.0
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*cost",
+          "value": 1.944
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-23",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-14",
+    "reading_id": "LTR-14",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/18_LR_LTR14.tex",
+      "line": 117
+    },
+    "trap_category": "Scope",
+    "setup": "A credit line has a USD 10m limit, 60% drawdown likelihood, 18 bp cushion cost. The customer draws a further USD 2m, taking the drawn amount from USD 4m to USD 6m.",
+    "ask": "The contingent liquidity charge on the line:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Only the undrawn part is contingent. The drawn USD 6m carries its own on-balance-sheet FTP charge. The undrawn share falls from 0.60 to 0.40, so the charge goes from 6.48 to 4.32 bp."
+      },
+      {
+        "label": "Is unchanged, since the limit is the same",
+        "correct": false,
+        "why": "The charge scales with the undrawn proportion of the limit, not with the limit itself."
+      }
+    ],
+    "working": [
+      {
+        "label": "Undrawn share before",
+        "display": "$(10 - 4)/10 = 0.60$ → $6.48$ bp",
+        "value": 6.48
+      },
+      {
+        "label": "Undrawn share after",
+        "display": "$(10 - 6)/10 = 0.40$",
+        "value": 0.4
+      },
+      {
+        "label": "New charge",
+        "display": "$0.40 \\times 0.60 \\times 18 = 4.32$ bp",
+        "value": 4.32
+      }
+    ],
+    "takeaway": "A drawdown moves exposure from contingent to funded: the contingent charge falls while the loan picks up its own FTP charge.",
+    "check": {
+      "inputs": {
+        "L": 10,
+        "D0": 4,
+        "D1": 6,
+        "lik": 0.6,
+        "c": 18
+      },
+      "steps": [
+        {
+          "name": "c0",
+          "expr": "(L-D0)/L*lik*c",
+          "value": 6.48
+        },
+        {
+          "name": "und1",
+          "expr": "(L-D1)/L",
+          "value": 0.4
+        },
+        {
+          "name": "c1",
+          "expr": "und1*lik*c",
+          "value": 4.32
+        },
+        {
+          "name": "dc",
+          "expr": "c1-c0",
+          "value": -2.16
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-24",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-14",
+    "reading_id": "LTR-14",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/18_LR_LTR14.tex",
+      "line": 83
+    },
+    "trap_category": "Polarity",
+    "setup": "A bank prices liquidity with a single pooled average cost of funds across all funding sources and maturities. A business unit books a 10-year fixed-rate loan.",
+    "ask": "Relative to its true liquidity cost, the 10-year loan is charged:",
+    "options": [
+      {
+        "label": "Too little",
+        "correct": true
+      },
+      {
+        "label": "Too much",
+        "correct": false,
+        "why": "The pooled average sits below the true cost of long-term funding, so long assets are undercharged and short assets overcharged."
+      },
+      {
+        "label": "About right, since averaging is unbiased",
+        "correct": false,
+        "why": "Averaging ignores maturity. It is only right for an asset whose maturity happens to match the average; a 10-year loan is at the long end."
+      }
+    ],
+    "working": [
+      {
+        "label": "Pooled average vs long funding",
+        "display": "The single average cost < the marginal cost of 10-year funding",
+        "value": null
+      },
+      {
+        "label": "Result",
+        "display": "10-year loan undercharged; short-term assets overcharged",
+        "value": null
+      }
+    ],
+    "takeaway": "Pooled average cost undercharges long-term assets and overcharges short-term ones."
+  },
+  {
+    "id": "SC-notes-2-25",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-13",
+    "reading_id": "CR-13",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/46_CR_CR13.tex",
+      "line": 128
+    },
+    "trap_category": "Formula",
+    "setup": "A 3-year CDS on a reference entity with a hazard rate of 3% per year and a recovery rate of 35%. The risk-free rate is 4% (continuous). Premiums are paid annually; defaults are assumed mid-year, with accrued premium paid on default.",
+    "ask": "The breakeven CDS spread is closest to:",
+    "options": [
+      {
+        "label": "≈ 2 bp",
+        "correct": false,
+        "why": "Units slip: 0.0199 is 1.99%, which is 199 bp, not 1.99 bp."
+      },
+      {
+        "label": "≈ 60 bp",
+        "correct": false,
+        "why": "Scale slip (0.3×). Sanity anchor: spread ≈ hazard × (1 − R) = 3% × 0.65 ≈ 195 bp."
+      },
+      {
+        "label": "≈ 200 bp",
+        "correct": true
+      },
+      {
+        "label": "≈ 530 bp",
+        "correct": false,
+        "why": "Took the PV of the payoff leg (0.0528) as the spread and never divided by the premium annuity $A + B = 2.65$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Default probabilities",
+        "display": "$e^{-0.03(t-1)} - e^{-0.03t}$: $0.0296,\\ 0.0287,\\ 0.0278$",
+        "value": null
+      },
+      {
+        "label": "Premium annuity A",
+        "display": "$\\sum \\text{PS}_t e^{-0.04t} = 2.6123$",
+        "value": 2.6123
+      },
+      {
+        "label": "Accrual B",
+        "display": "$\\sum \\tfrac12 \\text{PD}_t e^{-0.04(t-0.5)} = 0.0406$",
+        "value": 0.0406
+      },
+      {
+        "label": "Payoff C",
+        "display": "$0.65 \\sum \\text{PD}_t e^{-0.04(t-0.5)} = 0.0528$",
+        "value": 0.0528
+      },
+      {
+        "label": "Spread",
+        "display": "$s = 0.0528 / 2.6529 = 1.99\\% = 199\\text{ bp}$",
+        "value": 0.0199
+      }
+    ],
+    "takeaway": "Sanity anchor for any CDS spread: $s \\approx \\lambda(1 - R)$, here about 195 bp.",
+    "check": {
+      "inputs": {
+        "lam": 0.03,
+        "r": 0.04,
+        "R": 0.35
+      },
+      "steps": [
+        {
+          "name": "PS1",
+          "expr": "exp(-lam*1)",
+          "value": 0.970446
+        },
+        {
+          "name": "PS2",
+          "expr": "exp(-lam*2)",
+          "value": 0.941765
+        },
+        {
+          "name": "PS3",
+          "expr": "exp(-lam*3)",
+          "value": 0.913931
+        },
+        {
+          "name": "PD1",
+          "expr": "1-PS1",
+          "value": 0.0295545
+        },
+        {
+          "name": "PD2",
+          "expr": "PS1-PS2",
+          "value": 0.028681
+        },
+        {
+          "name": "PD3",
+          "expr": "PS2-PS3",
+          "value": 0.0278333
+        },
+        {
+          "name": "A",
+          "expr": "PS1*exp(-r*1)+PS2*exp(-r*2)+PS3*exp(-r*3)",
+          "value": 2.61234
+        },
+        {
+          "name": "PDdisc",
+          "expr": "PD1*exp(-r*0.5)+PD2*exp(-r*1.5)+PD3*exp(-r*2.5)",
+          "value": 0.0811647
+        },
+        {
+          "name": "B",
+          "expr": "0.5*PDdisc",
+          "value": 0.0405823
+        },
+        {
+          "name": "C",
+          "expr": "(1-R)*PDdisc",
+          "value": 0.052757
+        },
+        {
+          "name": "s",
+          "expr": "C/(A+B)",
+          "value": 0.0198864
+        },
+        {
+          "name": "anchor",
+          "expr": "lam*(1-R)",
+          "value": 0.0195
+        },
+        {
+          "name": "slip_C",
+          "expr": "C",
+          "value": 0.052757
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*s",
+          "value": 0.00596592
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-26",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-13",
+    "reading_id": "CR-13",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/46_CR_CR13.tex",
+      "line": 209
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A 3-year CDS (hazard 3%, recovery 35%, risk-free 4%). Per unit of spread, the PV of expected premium payments is $A = 2.6123$ and the PV of accrued premium on default is $B = 0.0406$. The PV of the expected payoff is $C = 0.0528$, and $s = C/(A + B)$.",
+    "ask": "If you forget $B$, the spread you compute is higher, lower, or the same to the nearest bp?",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "Dropping B shrinks the denominator, so s rises: 0.0528 / 2.6123 = 202 bp against 199 bp."
+      },
+      {
+        "label": "The same to the nearest bp",
+        "correct": false,
+        "why": "B is small but not negligible. It moves the spread by about 3 bp."
+      }
+    ],
+    "working": [
+      {
+        "label": "With accrual",
+        "display": "$0.0528 / 2.6529 = 199.0\\text{ bp}$",
+        "value": 199.03
+      },
+      {
+        "label": "Without accrual",
+        "display": "$0.0528 / 2.6123 = 202.1\\text{ bp}$",
+        "value": 202.12
+      },
+      {
+        "label": "Difference",
+        "display": "$+3.1\\text{ bp}$",
+        "value": 3.09
+      }
+    ],
+    "takeaway": "Forgetting the accrual leg credits the buyer with less value paid in, so the breakeven spread comes out too high.",
+    "check": {
+      "inputs": {
+        "A": 2.6123,
+        "B": 0.0406,
+        "C": 0.0528
+      },
+      "steps": [
+        {
+          "name": "s",
+          "expr": "C/(A+B)*10000",
+          "value": 199.027
+        },
+        {
+          "name": "s_noB",
+          "expr": "C/A*10000",
+          "value": 202.121
+        },
+        {
+          "name": "d",
+          "expr": "s_noB-s",
+          "value": 3.09326
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-27",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-13",
+    "reading_id": "CR-13",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/46_CR_CR13.tex",
+      "line": 228
+    },
+    "trap_category": "Scope",
+    "setup": "A reference entity (hazard 3%, recovery 35%, 3 years), where a regular CDS breaks even at about 199 bp. A binary CDS on it pays the full notional on default, whatever the recovery.",
+    "ask": "The binary CDS's breakeven spread, compared with the regular one, is:",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "The payoff per default rises from $1 - R = 0.65$ to 1, so C and the spread both rise by a factor of 1/0.65, to about 306 bp."
+      },
+      {
+        "label": "The same, because default probabilities haven't changed",
+        "correct": false,
+        "why": "The premium leg is unchanged but the payoff leg is bigger, and spread = PV of payoff / annuity."
+      }
+    ],
+    "working": [
+      {
+        "label": "Regular spread",
+        "display": "$199\\text{ bp}$",
+        "value": 0.0199
+      },
+      {
+        "label": "Binary payoff scaling",
+        "display": "$1 / (1 - 0.35) = 1.538$",
+        "value": 1.538
+      },
+      {
+        "label": "Binary spread",
+        "display": "$199 \\times 1.538 \\approx 306\\text{ bp}$",
+        "value": 0.0306
+      }
+    ],
+    "takeaway": "A binary CDS's payoff is not reduced by recovery, so its protection costs more.",
+    "check": {
+      "inputs": {
+        "s": 0.0199,
+        "R": 0.35
+      },
+      "steps": [
+        {
+          "name": "k",
+          "expr": "1/(1-R)",
+          "value": 1.53846
+        },
+        {
+          "name": "s_bin",
+          "expr": "s*k",
+          "value": 0.0306154
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-28",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-13",
+    "reading_id": "CR-13",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/46_CR_CR13.tex",
+      "line": 258
+    },
+    "trap_category": "Formula",
+    "setup": "The 5-year CDX NA IG index (125 names) is quoted at 66 bp. A trader buys USD 800,000 of protection on each name.",
+    "ask": "The annual protection cost is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 5,300",
+        "correct": false,
+        "why": "Priced one name only and forgot the ×125. (This is also how much the annual payment drops after one default.)"
+      },
+      {
+        "label": "≈ USD 660,000",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 6.6m",
+        "correct": false,
+        "why": "Read 66 bp as 0.066 (6.6%) instead of 0.0066."
+      },
+      {
+        "label": "≈ USD 66m",
+        "correct": false,
+        "why": "Read 66 bp as 0.66."
+      }
+    ],
+    "working": [
+      {
+        "label": "Per name",
+        "display": "$0.0066 \\times 800{,}000 = \\text{USD } 5{,}280$",
+        "value": 5280
+      },
+      {
+        "label": "Whole index",
+        "display": "$5{,}280 \\times 125 = \\text{USD } 660{,}000$",
+        "value": 660000
+      }
+    ],
+    "takeaway": "Index cost = spread × notional per name × 125, and 1 bp is 1/10,000.",
+    "check": {
+      "inputs": {
+        "s": 0.0066,
+        "n": 800000,
+        "k": 125
+      },
+      "steps": [
+        {
+          "name": "per",
+          "expr": "s*n",
+          "value": 5280.0
+        },
+        {
+          "name": "cost",
+          "expr": "per*k",
+          "value": 660000.0
+        },
+        {
+          "name": "slip_pct",
+          "expr": "0.066*n*k",
+          "value": 6600000.0
+        },
+        {
+          "name": "slip_pct2",
+          "expr": "0.66*n*k",
+          "value": 66000000.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-29",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-13",
+    "reading_id": "CR-13",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/46_CR_CR13.tex",
+      "line": 219
+    },
+    "trap_category": "Role",
+    "setup": "You bought 5-year CDS protection a year ago. Since then the reference entity's CDS spread has narrowed substantially, and no credit event has occurred.",
+    "ask": "The mark-to-market value of your position as protection buyer:",
+    "options": [
+      {
+        "label": "Is negative: you have lost",
+        "correct": true
+      },
+      {
+        "label": "Is positive: you have gained",
+        "correct": false,
+        "why": "Narrower spreads mean protection is now cheaper than the rate you locked in. The seller's MtM (PV of premiums − PV of payoff) is positive, so the buyer's is negative."
+      },
+      {
+        "label": "Is zero until a credit event occurs",
+        "correct": false,
+        "why": "A CDS is marked to market as spreads move, not only on default."
+      }
+    ],
+    "working": [
+      {
+        "label": "Seller's MtM",
+        "display": "$\\text{PV}[E(\\text{payments})] - \\text{PV}[E(\\text{payoff})] > 0$ after narrowing",
+        "value": null
+      },
+      {
+        "label": "Buyer's MtM",
+        "display": "The negative of the seller's: a loss",
+        "value": null
+      }
+    ],
+    "takeaway": "When spreads narrow, the protection seller gains and the buyer loses. When they widen, the reverse."
+  },
+  {
+    "id": "SC-notes-2-30",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-12",
+    "reading_id": "CR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+      "line": 197
+    },
+    "trap_category": "Formula",
+    "setup": "A bank has USD 100m of retail exposures, 1-year PD 2%, recovery 60%, copula correlation 0.1. Use $N^{-1}(0.02) = -2.054$ and $N^{-1}(0.999) = 3.090$, with $\\text{WCDR} = N\\!\\left[\\dfrac{N^{-1}(\\text{PD}) + \\sqrt{\\rho}\\,N^{-1}(0.999)}{\\sqrt{1-\\rho}}\\right]$.",
+    "ask": "The one-year 99.9% credit VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.028m",
+        "correct": false,
+        "why": "Sign slip: subtracted the factor term $\\sqrt{\\rho}\\,N^{-1}(0.999)$, which gives a WCDR (about 0.07%) below the PD itself."
+      },
+      {
+        "label": "≈ USD 0.80m",
+        "correct": false,
+        "why": "Used the average PD (2%) instead of the worst-case default rate. That is expected loss, not VaR."
+      },
+      {
+        "label": "≈ USD 5.1m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 15m",
+        "correct": false,
+        "why": "Scale slip (3×). Even with zero recovery the loss would be 100 × 0.128 = USD 12.8m, so the VaR can't exceed that."
+      }
+    ],
+    "working": [
+      {
+        "label": "Numerator",
+        "display": "$-2.0537 + 0.3162 \\times 3.0902 = -1.0766$",
+        "value": -1.0766
+      },
+      {
+        "label": "Standardised",
+        "display": "$-1.0766 / \\sqrt{0.9} = -1.1348$",
+        "value": -1.1348
+      },
+      {
+        "label": "WCDR",
+        "display": "$N(-1.1348) = 0.1282$",
+        "value": 0.1282
+      },
+      {
+        "label": "Credit VaR",
+        "display": "$100 \\times 0.1282 \\times (1 - 0.6) = \\text{USD } 5.13\\text{m}$",
+        "value": 5.13
+      }
+    ],
+    "takeaway": "Credit VaR uses the worst-case default rate, not the PD. Here the WCDR is about 12.8% against a PD of 2%.",
+    "check": {
+      "inputs": {
+        "L": 100,
+        "R": 0.6,
+        "PD": 0.02,
+        "rho": 0.1,
+        "qPD": -2.0537,
+        "qX": 3.0902,
+        "WCDR": 0.12824,
+        "WCDR_neg": 0.000699
+      },
+      "steps": [
+        {
+          "name": "num",
+          "expr": "qPD+sqrt(rho)*qX",
+          "value": -1.07649
+        },
+        {
+          "name": "arg",
+          "expr": "num/sqrt(1-rho)",
+          "value": -1.13472
+        },
+        {
+          "name": "VaR",
+          "expr": "L*WCDR*(1-R)",
+          "value": 5.1296
+        },
+        {
+          "name": "arg_neg",
+          "expr": "(qPD-sqrt(rho)*qX)/sqrt(1-rho)",
+          "value": -3.19486
+        },
+        {
+          "name": "slip_neg",
+          "expr": "L*WCDR_neg*(1-R)",
+          "value": 0.02796
+        },
+        {
+          "name": "slip_EL",
+          "expr": "L*PD*(1-R)",
+          "value": 0.8
+        },
+        {
+          "name": "cap",
+          "expr": "L*WCDR",
+          "value": 12.824
+        },
+        {
+          "name": "slip_3x",
+          "expr": "3*VaR",
+          "value": 15.3888
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-31",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-12",
+    "reading_id": "CR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+      "line": 203
+    },
+    "trap_category": "Sign",
+    "setup": "A retail book: PD 2%, $\\rho = 0.1$, 99.9% confidence. You have $N^{-1}(0.02) = -2.0537$ and $\\sqrt{0.1} \\times N^{-1}(0.999) = 0.3162 \\times 3.0902$.",
+    "ask": "The WCDR numerator $N^{-1}(\\text{PD}) + \\sqrt{\\rho}\\,N^{-1}(0.999)$ is positive, negative, or near zero?",
+    "options": [
+      {
+        "label": "Negative",
+        "correct": true
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "The factor term is only 0.977, not enough to offset −2.054. The numerator is −1.077."
+      },
+      {
+        "label": "Near zero",
+        "correct": false,
+        "why": "−1.08 is not near zero. It maps to a WCDR of about 12.8%, well below 50%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Factor term",
+        "display": "$0.3162 \\times 3.0902 = 0.9772$",
+        "value": 0.9772
+      },
+      {
+        "label": "Numerator",
+        "display": "$-2.0537 + 0.9772 = -1.0766$",
+        "value": -1.0766
+      },
+      {
+        "label": "Implication",
+        "display": "$N(-1.0766/0.9487) = N(-1.13) \\approx 12.8\\% < 50\\%$",
+        "value": 0.1282
+      }
+    ],
+    "takeaway": "A negative numerator means a WCDR below 50%. The stress lifts a 2% PD to about 13%, not to a coin flip.",
+    "check": {
+      "inputs": {
+        "qPD": -2.0537,
+        "qX": 3.0902,
+        "rho": 0.1
+      },
+      "steps": [
+        {
+          "name": "fac",
+          "expr": "sqrt(rho)*qX",
+          "value": 0.977207
+        },
+        {
+          "name": "num",
+          "expr": "qPD+fac",
+          "value": -1.07649
+        },
+        {
+          "name": "arg",
+          "expr": "num/sqrt(1-rho)",
+          "value": -1.13472
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-32",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-12",
+    "reading_id": "CR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+      "line": 169
+    },
+    "trap_category": "Sign",
+    "setup": "One-factor Gaussian copula: $Q(T \\mid F) = N\\!\\left(\\dfrac{N^{-1}[Q(T)] - \\sqrt{\\rho}\\,F}{\\sqrt{1-\\rho}}\\right)$ with $Q(T) = 2\\%$ ($N^{-1} = -2.054$) and $\\rho = 0.1$. The common factor realisation $F$ moves from 0 to −2.",
+    "ask": "The conditional default probability $Q(T \\mid F)$:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "F enters with a minus sign. A lower F raises the argument of N, so the conditional PD rises. Low F is the bad state of the world."
+      },
+      {
+        "label": "Is unchanged, because only ρ matters",
+        "correct": false,
+        "why": "F enters the formula directly. ρ sets how strongly it bites."
+      }
+    ],
+    "working": [
+      {
+        "label": "Argument at F = 0",
+        "display": "$-2.054 / 0.9487 = -2.165$ (≈ 1.5%)",
+        "value": -2.1648
+      },
+      {
+        "label": "Argument at F = −2",
+        "display": "$(-2.054 + 0.3162 \\times 2) / 0.9487 = -1.498$ (≈ 6.7%)",
+        "value": -1.4981
+      },
+      {
+        "label": "Direction",
+        "display": "Argument rises, so $N(\\cdot)$ rises",
+        "value": null
+      }
+    ],
+    "takeaway": "In $Q(T \\mid F)$, F enters negatively: bad factor draws (low F) raise conditional PDs.",
+    "check": {
+      "inputs": {
+        "q": -2.0537,
+        "rho": 0.1,
+        "F0": 0,
+        "F1": -2
+      },
+      "steps": [
+        {
+          "name": "a0",
+          "expr": "(q-sqrt(rho)*F0)/sqrt(1-rho)",
+          "value": -2.16479
+        },
+        {
+          "name": "a1",
+          "expr": "(q-sqrt(rho)*F1)/sqrt(1-rho)",
+          "value": -1.49812
+        },
+        {
+          "name": "da",
+          "expr": "a1-a0",
+          "value": 0.666667
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-2-33",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-12",
+    "reading_id": "CR-12",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+      "line": 45
+    },
+    "trap_category": "Sign",
+    "setup": "A bank has a derivatives book with one counterparty. The bank's own credit quality deteriorates; the counterparty's is unchanged, and so is the no-default value of the trades. Some of the trades could end up with the bank owing money to the counterparty.",
+    "ask": "The credit-adjusted value of the book to the bank:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "The bank's own default risk feeds DVA, which is added: a higher bank PD means a higher DVA and a higher value to the bank."
+      },
+      {
+        "label": "Is unchanged, because only counterparty risk (CVA) matters",
+        "correct": false,
+        "why": "DVA captures the bank's own default and is added to the no-default value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Credit-adjusted value",
+        "display": "$f_{nd} - \\text{CVA} + \\text{DVA}$",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "Bank PD up → $q_i^*$ up → DVA up → value up",
+        "value": null
+      }
+    ],
+    "takeaway": "CVA (counterparty default) is subtracted and DVA (own default) is added, so a worsening in your own credit raises the book's value to you."
+  }
+]

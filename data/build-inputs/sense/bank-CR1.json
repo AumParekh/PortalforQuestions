@@ -1,0 +1,3066 @@
+[
+  {
+    "id": "SC-bank-CR1-01",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-01"
+    },
+    "trap_category": "Scope",
+    "setup": "A two-bond portfolio. Bond 1: USD 500,000, $PD = 5\\%$, recovery 50%. Bond 2: USD 300,000, $PD = 3\\%$, recovery 30%. Joint default probability 2%, default correlation 25%, credit VaR defined at 99% over one year.",
+    "ask": "Portfolio expected credit loss is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 19,000",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 6,300",
+        "correct": false,
+        "why": "That is bond 2's EL alone: a whole leg was dropped. Portfolio EL is the sum of both bonds' EL."
+      },
+      {
+        "label": "≈ USD 460,000",
+        "correct": false,
+        "why": "Forgot PD: $500{,}000 \\times 0.5 + 300{,}000 \\times 0.7$ is the loss if both bonds default for certain, not an expectation."
+      },
+      {
+        "label": "≈ USD 1,900",
+        "correct": false,
+        "why": "Scale slip (0.1×), e.g. a percent/decimal slip on PD."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss rates",
+        "display": "$LR_1 = 1 - 0.50 = 0.50,\\; LR_2 = 1 - 0.30 = 0.70$",
+        "value": null
+      },
+      {
+        "label": "Bond 1 EL",
+        "display": "$EL_1 = 500{,}000 \\times 0.05 \\times 0.50 = 12{,}500$",
+        "value": 12500
+      },
+      {
+        "label": "Bond 2 EL",
+        "display": "$EL_2 = 300{,}000 \\times 0.03 \\times 0.70 = 6{,}300$",
+        "value": 6300
+      },
+      {
+        "label": "Portfolio EL",
+        "display": "$EL_P = 12{,}500 + 6{,}300 = \\text{USD } 18{,}800$ (correlation, joint PD and 99% never enter)",
+        "value": 18800
+      }
+    ],
+    "takeaway": "EL = Σ exposure × PD × (1 − recovery); correlation, joint PD and the confidence level belong to UL/VaR.",
+    "check": {
+      "inputs": {
+        "V1": 500000,
+        "PD1": 0.05,
+        "R1": 0.5,
+        "V2": 300000,
+        "PD2": 0.03,
+        "R2": 0.3
+      },
+      "steps": [
+        {
+          "name": "EL1",
+          "expr": "V1*PD1*(1-R1)",
+          "value": 12500
+        },
+        {
+          "name": "EL2",
+          "expr": "V2*PD2*(1-R2)",
+          "value": 6300
+        },
+        {
+          "name": "EL",
+          "expr": "EL1+EL2",
+          "value": 18800
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-02",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-01"
+    },
+    "trap_category": "Formula",
+    "setup": "Building portfolio EL bond by bond. Bond 1: USD 500,000, $PD = 5\\%$, recovery 50%. Bond 2: USD 300,000, $PD = 3\\%$, recovery 30%.",
+    "ask": "Which bond contributes more expected loss?",
+    "options": [
+      {
+        "label": "Bond 1, clearly",
+        "correct": true
+      },
+      {
+        "label": "Bond 2, clearly",
+        "correct": false,
+        "why": "Bond 2's higher loss rate (70%) does not make up for its smaller size and lower PD: 6,300 vs 12,500."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "Roughly 2:1: $EL_1 = 12{,}500$ vs $EL_2 = 6{,}300$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss rates",
+        "display": "$LR_1 = 1 - 0.50 = 0.50,\\; LR_2 = 1 - 0.30 = 0.70$",
+        "value": null
+      },
+      {
+        "label": "Bond 1 EL",
+        "display": "$EL_1 = 500{,}000 \\times 0.05 \\times 0.50 = 12{,}500$",
+        "value": 12500
+      },
+      {
+        "label": "Bond 2 EL",
+        "display": "$EL_2 = 300{,}000 \\times 0.03 \\times 0.70 = 6{,}300$",
+        "value": 6300
+      }
+    ],
+    "takeaway": "Size each EL leg as exposure × PD × (1 − recovery); convert recovery to loss rate first.",
+    "check": {
+      "inputs": {
+        "V1": 500000,
+        "PD1": 0.05,
+        "R1": 0.5,
+        "V2": 300000,
+        "PD2": 0.03,
+        "R2": 0.3
+      },
+      "steps": [
+        {
+          "name": "EL1",
+          "expr": "V1*PD1*(1-R1)",
+          "value": 12500
+        },
+        {
+          "name": "EL2",
+          "expr": "V2*PD2*(1-R2)",
+          "value": 6300
+        },
+        {
+          "name": "diff",
+          "expr": "EL1-EL2",
+          "value": 6200
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-03",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-01"
+    },
+    "trap_category": "Scope",
+    "setup": "Two-bond portfolio with expected loss USD 18,800 at a default correlation of 25%. Bond 1: USD 500,000, $PD = 5\\%$, recovery 50%. Bond 2: USD 300,000, $PD = 3\\%$, recovery 30%. The desk re-estimates default correlation at 50%; individual PDs and recoveries are unchanged.",
+    "ask": "Portfolio expected loss: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Unchanged",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Higher correlation widens the loss distribution (UL, credit VaR), not its mean."
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Correlation never enters EL at all; EL is the sum of the individual ELs."
+      }
+    ],
+    "working": [
+      {
+        "label": "EL is additive",
+        "display": "$EL_P = \\sum_i EAD_i \\times PD_i \\times LGD_i$ with no $\\rho$ term",
+        "value": null
+      },
+      {
+        "label": "Portfolio EL",
+        "display": "$12{,}500 + 6{,}300 = \\text{USD } 18{,}800$ at any correlation",
+        "value": 18800
+      }
+    ],
+    "takeaway": "Correlation moves UL and credit VaR, never EL.",
+    "check": {
+      "inputs": {
+        "V1": 500000,
+        "PD1": 0.05,
+        "R1": 0.5,
+        "V2": 300000,
+        "PD2": 0.03,
+        "R2": 0.3
+      },
+      "steps": [
+        {
+          "name": "EL1",
+          "expr": "V1*PD1*(1-R1)",
+          "value": 12500
+        },
+        {
+          "name": "EL2",
+          "expr": "V2*PD2*(1-R2)",
+          "value": 6300
+        },
+        {
+          "name": "EL",
+          "expr": "EL1+EL2",
+          "value": 18800
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-04",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-02"
+    },
+    "trap_category": "Role",
+    "setup": "A loan has a total commitment of USD 100,000, of which 80% is drawn. Drawdown on default (usage given default) is 70% of the undrawn amount. $PD = 2\\%$, $LGD = 40\\%$.",
+    "ask": "Before computing EL, where must the adjusted exposure land?",
+    "options": [
+      {
+        "label": "Between USD 80,000 and USD 100,000",
+        "correct": true
+      },
+      {
+        "label": "Below USD 80,000",
+        "correct": false,
+        "why": "Drawdown before default adds to the balance already drawn; exposure cannot fall below the 80,000 outstanding."
+      },
+      {
+        "label": "Above USD 100,000",
+        "correct": false,
+        "why": "That comes from adding 70% of the full commitment instead of the undrawn part: $80{,}000 + 0.70 \\times 100{,}000 = 150{,}000$. Only the undrawn 20,000 is drawn down, and exposure cannot exceed the commitment."
+      }
+    ],
+    "working": [
+      {
+        "label": "Outstanding",
+        "display": "$OS = 0.80 \\times 100{,}000 = 80{,}000$",
+        "value": 80000
+      },
+      {
+        "label": "Undrawn",
+        "display": "$COMU = 100{,}000 - 80{,}000 = 20{,}000$",
+        "value": 20000
+      },
+      {
+        "label": "Adjusted exposure",
+        "display": "$AE = OS + COMU \\times UGD = 80{,}000 + 20{,}000 \\times 0.70 = 94{,}000$",
+        "value": 94000
+      },
+      {
+        "label": "Expected loss",
+        "display": "$EL = 94{,}000 \\times 0.02 \\times 0.40 = \\text{USD } 752$",
+        "value": 752
+      }
+    ],
+    "takeaway": "Adjusted exposure = outstanding + UGD × undrawn; it always sits between outstanding and commitment.",
+    "check": {
+      "inputs": {
+        "C": 100000,
+        "u": 0.8,
+        "UGD": 0.7,
+        "PD": 0.02,
+        "LGD": 0.4
+      },
+      "steps": [
+        {
+          "name": "OS",
+          "expr": "C*u",
+          "value": 80000
+        },
+        {
+          "name": "COMU",
+          "expr": "C-OS",
+          "value": 20000
+        },
+        {
+          "name": "AE",
+          "expr": "OS+COMU*UGD",
+          "value": 94000
+        },
+        {
+          "name": "EL",
+          "expr": "AE*PD*LGD",
+          "value": 752
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-05",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-04"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A loan with a USD 120m commitment has USD 80m outstanding; no drawdown factor is given. $PD = 2\\%$, loss rate $LR = 25\\%$, $\\sigma_{PD} = 14\\%$, $\\sigma_{LR} = 15\\%$.",
+    "ask": "Unexpected loss on this loan today is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 3.3m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 0.40m",
+        "correct": false,
+        "why": "That is EL, $80 \\times 2\\% \\times 25\\%$: the mean loss, not its dispersion."
+      },
+      {
+        "label": "≈ USD 0.13m",
+        "correct": false,
+        "why": "Forgot the square root: $80 \\times 0.001675$ is exposure times a variance."
+      },
+      {
+        "label": "≈ USD 0.041m",
+        "correct": false,
+        "why": "Stopped at the per-unit UL (0.0409) and never scaled by the USD 80m exposure."
+      }
+    ],
+    "working": [
+      {
+        "label": "Adjusted exposure",
+        "display": "$AE = OS = 80$ (no drawdown factor, so the USD 120m commitment is a red herring)",
+        "value": 80
+      },
+      {
+        "label": "Severity term",
+        "display": "$PD\\,\\sigma^2_{LR} = 0.02 \\times 0.15^2 = 0.00045$",
+        "value": 0.00045
+      },
+      {
+        "label": "Default term",
+        "display": "$LR^2\\,\\sigma^2_{PD} = 0.25^2 \\times 0.14^2 = 0.001225$",
+        "value": 0.001225
+      },
+      {
+        "label": "Per-unit UL",
+        "display": "$\\sqrt{0.00045 + 0.001225} = 0.0409$",
+        "value": 0.0409
+      },
+      {
+        "label": "Unexpected loss",
+        "display": "$UL = 80 \\times 0.0409 = \\text{USD } 3.27\\text{m}$",
+        "value": 3.274
+      }
+    ],
+    "takeaway": "UL = AE × √(PD·σ²_LR + LR²·σ²_PD); finish by multiplying by exposure.",
+    "check": {
+      "inputs": {
+        "AE": 80,
+        "PD": 0.02,
+        "LR": 0.25,
+        "sPD": 0.14,
+        "sLR": 0.15
+      },
+      "steps": [
+        {
+          "name": "t1",
+          "expr": "PD*sLR**2",
+          "value": 0.00045
+        },
+        {
+          "name": "t2",
+          "expr": "LR**2*sPD**2",
+          "value": 0.001225
+        },
+        {
+          "name": "ulu",
+          "expr": "sqrt(t1+t2)",
+          "value": 0.0409267
+        },
+        {
+          "name": "EL",
+          "expr": "AE*PD*LR",
+          "value": 0.4
+        },
+        {
+          "name": "UL",
+          "expr": "AE*ulu",
+          "value": 3.274
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-06",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-04"
+    },
+    "trap_category": null,
+    "setup": "Same loan: exposure USD 80m, $PD = 2\\%$, $LR = 25\\%$, $\\sigma_{PD} = 14\\%$, $\\sigma_{LR} = 15\\%$. You have the per-unit UL: $\\sqrt{PD\\,\\sigma^2_{LR} + LR^2\\sigma^2_{PD}} = 0.0409$.",
+    "ask": "Which is bigger for this loan: UL or EL?",
+    "options": [
+      {
+        "label": "UL, by several times",
+        "correct": true
+      },
+      {
+        "label": "EL",
+        "correct": false,
+        "why": "Per unit, EL is $PD \\times LR = 0.005$, far below 0.0409."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "0.0409 vs 0.005: UL is roughly 8× EL."
+      }
+    ],
+    "working": [
+      {
+        "label": "Per-unit UL",
+        "display": "$\\sqrt{0.00045 + 0.001225} = 0.0409$",
+        "value": 0.0409
+      },
+      {
+        "label": "Expected loss",
+        "display": "$EL = 80 \\times 0.02 \\times 0.25 = 0.40$",
+        "value": 0.4
+      },
+      {
+        "label": "Unexpected loss",
+        "display": "$UL = 80 \\times 0.0409 = \\text{USD } 3.27\\text{m}$",
+        "value": 3.274
+      },
+      {
+        "label": "Ratio",
+        "display": "$UL / EL = 3.27 / 0.40 \\approx 8.2$",
+        "value": 8.18
+      }
+    ],
+    "takeaway": "For a single loan, UL is typically a multiple of EL: compare √(variance) with PD × LR.",
+    "check": {
+      "inputs": {
+        "AE": 80,
+        "PD": 0.02,
+        "LR": 0.25,
+        "sPD": 0.14,
+        "sLR": 0.15
+      },
+      "steps": [
+        {
+          "name": "t1",
+          "expr": "PD*sLR**2",
+          "value": 0.00045
+        },
+        {
+          "name": "t2",
+          "expr": "LR**2*sPD**2",
+          "value": 0.001225
+        },
+        {
+          "name": "ulu",
+          "expr": "sqrt(t1+t2)",
+          "value": 0.0409267
+        },
+        {
+          "name": "EL",
+          "expr": "AE*PD*LR",
+          "value": 0.4
+        },
+        {
+          "name": "UL",
+          "expr": "AE*ulu",
+          "value": 3.274
+        },
+        {
+          "name": "ratio",
+          "expr": "UL/EL",
+          "value": 8.185
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-07",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-05"
+    },
+    "trap_category": null,
+    "setup": "Adjusted exposure USD 30m, $PD = 4\\%$, $LGD = 40\\%$, $\\sigma_{LGD} = 40\\%$. No $\\sigma_{PD}$ is given, so use the binomial $\\sigma^2_{PD} = PD(1-PD)$. $UL = AE\\sqrt{PD\\,\\sigma^2_{LGD} + LGD^2\\,\\sigma^2_{PD}}$.",
+    "ask": "Inside the root, which term is bigger: $PD\\,\\sigma^2_{LGD}$ or $LGD^2\\,\\sigma^2_{PD}$?",
+    "options": [
+      {
+        "label": "Roughly equal (within about 5%)",
+        "correct": true
+      },
+      {
+        "label": "$PD\\,\\sigma^2_{LGD}$, clearly",
+        "correct": false,
+        "why": "It is bigger, but only by 4%: 0.0064 vs 0.006144."
+      },
+      {
+        "label": "$LGD^2\\,\\sigma^2_{PD}$, clearly",
+        "correct": false,
+        "why": "0.006144 is slightly below 0.0064, not above it."
+      }
+    ],
+    "working": [
+      {
+        "label": "Binomial variance",
+        "display": "$\\sigma^2_{PD} = 0.04 \\times 0.96 = 0.0384$",
+        "value": 0.0384
+      },
+      {
+        "label": "Severity term",
+        "display": "$PD\\,\\sigma^2_{LGD} = 0.04 \\times 0.16 = 0.0064$",
+        "value": 0.0064
+      },
+      {
+        "label": "Default term",
+        "display": "$LGD^2\\,\\sigma^2_{PD} = 0.16 \\times 0.0384 = 0.006144$",
+        "value": 0.006144
+      },
+      {
+        "label": "Per-unit UL",
+        "display": "$\\sqrt{0.012544} = 0.112$",
+        "value": 0.112
+      },
+      {
+        "label": "Unexpected loss",
+        "display": "$UL = 30 \\times 0.112 = \\text{USD } 3.36\\text{m}$",
+        "value": 3.36
+      }
+    ],
+    "takeaway": "When σ_PD is missing, derive it as √(PD(1−PD)); here both variance terms pull equally.",
+    "check": {
+      "inputs": {
+        "AE": 30,
+        "PD": 0.04,
+        "LGD": 0.4,
+        "sLGD": 0.4
+      },
+      "steps": [
+        {
+          "name": "vPD",
+          "expr": "PD*(1-PD)",
+          "value": 0.0384
+        },
+        {
+          "name": "sPD",
+          "expr": "sqrt(vPD)",
+          "value": 0.19596
+        },
+        {
+          "name": "sev",
+          "expr": "PD*sLGD**2",
+          "value": 0.0064
+        },
+        {
+          "name": "dft",
+          "expr": "LGD**2*vPD",
+          "value": 0.006144
+        },
+        {
+          "name": "ulu",
+          "expr": "sqrt(sev+dft)",
+          "value": 0.112
+        },
+        {
+          "name": "UL",
+          "expr": "AE*ulu",
+          "value": 3.36
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-08",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-05"
+    },
+    "trap_category": "Sibling",
+    "setup": "Adjusted exposure USD 30m, $PD = 4\\%$, $LGD = 40\\%$, $\\sigma_{LGD} = 40\\%$; no $\\sigma_{PD}$ is given. The correct UL uses the binomial $\\sigma_{PD} = \\sqrt{PD(1-PD)}$. An analyst instead plugs $\\sigma_{LGD} = 40\\%$ in as $\\sigma_{PD}$.",
+    "ask": "Compared with the correct UL, the analyst's UL is: higher, lower, or the same?",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "The binomial $\\sigma_{PD} = \\sqrt{0.04 \\times 0.96} \\approx 19.6\\%$ is well below 40%, so the swap inflates the default term."
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "$\\sigma_{PD}$ enters squared: going from 19.6% to 40% roughly quadruples the default term."
+      }
+    ],
+    "working": [
+      {
+        "label": "Binomial σ_PD",
+        "display": "$\\sigma_{PD} = \\sqrt{0.0384} = 19.6\\%$",
+        "value": 0.196
+      },
+      {
+        "label": "Correct UL",
+        "display": "$30 \\times \\sqrt{0.0064 + 0.16 \\times 0.0384} = \\text{USD } 3.36\\text{m}$",
+        "value": 3.36
+      },
+      {
+        "label": "Analyst's UL",
+        "display": "$30 \\times \\sqrt{0.0064 + 0.16 \\times 0.16} = \\text{USD } 5.37\\text{m}$",
+        "value": 5.37
+      }
+    ],
+    "takeaway": "Binomial σ_PD = √(PD(1−PD)) is small for low PD; borrowing σ_LGD overstates UL.",
+    "check": {
+      "inputs": {
+        "AE": 30,
+        "PD": 0.04,
+        "LGD": 0.4,
+        "sLGD": 0.4
+      },
+      "steps": [
+        {
+          "name": "sPD",
+          "expr": "sqrt(PD*(1-PD))",
+          "value": 0.19596
+        },
+        {
+          "name": "ULok",
+          "expr": "AE*sqrt(PD*sLGD**2+LGD**2*sPD**2)",
+          "value": 3.36
+        },
+        {
+          "name": "ULbad",
+          "expr": "AE*sqrt(PD*sLGD**2+LGD**2*sLGD**2)",
+          "value": 5.367
+        },
+        {
+          "name": "diff",
+          "expr": "ULbad-ULok",
+          "value": 2.007
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-09",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-06"
+    },
+    "trap_category": "Sibling",
+    "setup": "A homogeneous book of 500 small-business loans, each with one-year $PD = 1.5\\%$; defaults are independent, so the number of defaults is binomial.",
+    "ask": "The variance of the number of defaults is closest to?",
+    "options": [
+      {
+        "label": "≈ 7.4",
+        "correct": true
+      },
+      {
+        "label": "≈ 2.7",
+        "correct": false,
+        "why": "That is the standard deviation, $\\sqrt{7.39}$."
+      },
+      {
+        "label": "≈ 0.015",
+        "correct": false,
+        "why": "That is $p(1-p)$, the variance of one loan's default indicator, not of the count across 500 loans."
+      },
+      {
+        "label": "≈ 0.00003",
+        "correct": false,
+        "why": "That is $p(1-p)/n$, the variance of the default rate (share of the book), not the count."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mean count",
+        "display": "$np = 500 \\times 0.015 = 7.5$",
+        "value": 7.5
+      },
+      {
+        "label": "Variance of count",
+        "display": "$np(1-p) = 7.5 \\times 0.985 = 7.39$",
+        "value": 7.3875
+      }
+    ],
+    "takeaway": "Count variance np(1−p); single-loan p(1−p); default-rate p(1−p)/n. Read the units of the options.",
+    "check": {
+      "inputs": {
+        "n": 500,
+        "p": 0.015
+      },
+      "steps": [
+        {
+          "name": "mean",
+          "expr": "n*p",
+          "value": 7.5
+        },
+        {
+          "name": "var",
+          "expr": "n*p*(1-p)",
+          "value": 7.3875
+        },
+        {
+          "name": "sd",
+          "expr": "sqrt(var)",
+          "value": 2.718
+        },
+        {
+          "name": "var1",
+          "expr": "p*(1-p)",
+          "value": 0.014775
+        },
+        {
+          "name": "varrate",
+          "expr": "p*(1-p)/n",
+          "value": 2.955e-05
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-10",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-06"
+    },
+    "trap_category": null,
+    "setup": "Same 500 independent loans, $p = 1.5\\%$ each. The expected number of defaults is $np = 7.5$.",
+    "ask": "The binomial variance of the default count is: below 7.5, above 7.5, or exactly 7.5?",
+    "options": [
+      {
+        "label": "Slightly below 7.5",
+        "correct": true
+      },
+      {
+        "label": "Above 7.5",
+        "correct": false,
+        "why": "Variance is $np(1-p)$, and $1 - p = 0.985 < 1$ pulls it under the mean."
+      },
+      {
+        "label": "Exactly 7.5",
+        "correct": false,
+        "why": "Variance equal to the mean is Poisson; the binomial carries the extra $(1-p)$ factor."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mean",
+        "display": "$np = 7.5$",
+        "value": 7.5
+      },
+      {
+        "label": "Variance",
+        "display": "$np(1-p) = 7.5 \\times 0.985 = 7.39$",
+        "value": 7.3875
+      }
+    ],
+    "takeaway": "Rare-event binomial: variance sits just below the mean.",
+    "check": {
+      "inputs": {
+        "n": 500,
+        "p": 0.015
+      },
+      "steps": [
+        {
+          "name": "mean",
+          "expr": "n*p",
+          "value": 7.5
+        },
+        {
+          "name": "var",
+          "expr": "n*p*(1-p)",
+          "value": 7.3875
+        },
+        {
+          "name": "gap",
+          "expr": "mean-var",
+          "value": 0.1125
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-11",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-07"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Two credit assets: $UL_X$ = USD 556,417, $UL_Y$ = USD 387,732, default correlation $\\rho = 0.4$. Risk contribution $RC_X = UL_X\\,(UL_X + \\rho\\,UL_Y)/UL_P$.",
+    "ask": "Is $X$'s risk contribution below, equal to, or above its standalone UL of USD 556,417?",
+    "options": [
+      {
+        "label": "Below",
+        "correct": true
+      },
+      {
+        "label": "Equal",
+        "correct": false,
+        "why": "Only at $\\rho = 1$ does a contribution equal standalone UL."
+      },
+      {
+        "label": "Above",
+        "correct": false,
+        "why": "With $\\rho < 1$, diversification pulls every contribution below standalone UL."
+      }
+    ],
+    "working": [
+      {
+        "label": "Portfolio UL",
+        "display": "$UL_P = \\sqrt{UL_X^2 + UL_Y^2 + 2\\rho UL_X UL_Y} = 795{,}317$",
+        "value": 795317
+      },
+      {
+        "label": "Numerator",
+        "display": "$UL_X + \\rho UL_Y = 556{,}417 + 155{,}093 = 711{,}510$",
+        "value": 711510
+      },
+      {
+        "label": "Scaling factor",
+        "display": "$711{,}510 / 795{,}317 = 0.895 < 1$",
+        "value": 0.8946
+      },
+      {
+        "label": "Risk contribution",
+        "display": "$RC_X = 556{,}417 \\times 0.895 = \\text{USD } 497{,}784$",
+        "value": 497784
+      }
+    ],
+    "takeaway": "ρ < 1 ⇒ each risk contribution < standalone UL, and contributions sum to UL_P.",
+    "check": {
+      "inputs": {
+        "ULX": 556417,
+        "ULY": 387732,
+        "rho": 0.4
+      },
+      "steps": [
+        {
+          "name": "ULP",
+          "expr": "sqrt(ULX**2+ULY**2+2*rho*ULX*ULY)",
+          "value": 795317
+        },
+        {
+          "name": "num",
+          "expr": "ULX+rho*ULY",
+          "value": 711510
+        },
+        {
+          "name": "f",
+          "expr": "num/ULP",
+          "value": 0.89463
+        },
+        {
+          "name": "RCX",
+          "expr": "ULX*f",
+          "value": 497784
+        },
+        {
+          "name": "gap",
+          "expr": "ULX-RCX",
+          "value": 58633
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-12",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-09"
+    },
+    "trap_category": "Polarity",
+    "setup": "Two assets, each with standalone UL of USD 8.0m. At $\\rho = 0$, portfolio UL is USD 11.31m and each asset's UL contribution (ULC) is USD 5.66m. The board asks what happens as default correlation rises toward 1.",
+    "ask": "Each asset's ULC: rises, falls, or stays unchanged?",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Higher correlation removes diversification; at $\\rho = 1$ each ULC climbs to its standalone 8.0m."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "$ULC = UL\\,(1+\\rho)/\\sqrt{2+2\\rho} = UL\\sqrt{(1+\\rho)/2}$, which increases with $\\rho$."
+      }
+    ],
+    "working": [
+      {
+        "label": "ULC formula",
+        "display": "$ULC_i = UL \\times \\dfrac{UL(1+\\rho)}{UL\\sqrt{2+2\\rho}} = UL\\sqrt{\\tfrac{1+\\rho}{2}}$",
+        "value": null
+      },
+      {
+        "label": "Portfolio UL at ρ = 1",
+        "display": "$UL_P = 8.0 \\times \\sqrt{4} = 16.0$",
+        "value": 16.0
+      },
+      {
+        "label": "ULC at ρ = 1",
+        "display": "$8.0 \\times 16.0 / 16.0 = 8.0$, up from 5.66",
+        "value": 8.0
+      }
+    ],
+    "takeaway": "More correlation ⇒ larger UL_P and larger ULCs; at ρ = 1 ULC = standalone UL.",
+    "check": {
+      "inputs": {
+        "UL": 8.0,
+        "rho0": 0.0,
+        "rho1": 1.0
+      },
+      "steps": [
+        {
+          "name": "ULP0",
+          "expr": "UL*sqrt(2+2*rho0)",
+          "value": 11.3137
+        },
+        {
+          "name": "ULC0",
+          "expr": "UL*(UL+rho0*UL)/ULP0",
+          "value": 5.65685
+        },
+        {
+          "name": "ULP1",
+          "expr": "UL*sqrt(2+2*rho1)",
+          "value": 16.0
+        },
+        {
+          "name": "ULC1",
+          "expr": "UL*(UL+rho1*UL)/ULP1",
+          "value": 8.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-13",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-11"
+    },
+    "trap_category": "Polarity",
+    "setup": "A bank targets a 99.97% confidence level, consistent with a AA senior-debt rating. Economic capital is $EC = CM \\times UL_P$, with the capital multiplier $CM$ read off the fitted loss distribution at the target confidence level. The board considers targeting a lower rating, say A.",
+    "ask": "The capital multiplier: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "A lower rating means a lower confidence level, a less extreme quantile, and so a smaller CM. A weaker rating needs less cushion, not more."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "CM is not a fixed Basel constant; it depends on the confidence level and on portfolio quality."
+      }
+    ],
+    "working": [
+      {
+        "label": "Rating → confidence",
+        "display": "Lower target rating → lower confidence level",
+        "value": null
+      },
+      {
+        "label": "Confidence → CM",
+        "display": "Lower confidence → quantile closer to the body of the loss distribution → smaller CM → less EC",
+        "value": null
+      }
+    ],
+    "takeaway": "Higher target rating → higher confidence → higher CM → more economic capital.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-14",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 83: Doumpos, Fundamentals of Credit Risk",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-16"
+    },
+    "trap_category": "Formula",
+    "setup": "One-year loan of EUR 420m at 6%. Funding cost 0.5%, expected loss 3%, operating costs 1% (all of face), transaction costs EUR 1m. Economic capital is 5% of the loan and earns 2% pre-tax. Tax rate 35%.",
+    "ask": "After-tax RAROC is closest to?",
+    "options": [
+      {
+        "label": "≈ 18%",
+        "correct": true
+      },
+      {
+        "label": "≈ 57%",
+        "correct": false,
+        "why": "Forgot to deduct expected loss (EUR 12.6m); EL is a cost line in the numerator."
+      },
+      {
+        "label": "≈ 0.89%",
+        "correct": false,
+        "why": "Divided by the loan (EUR 420m) instead of economic capital (EUR 21m); that is a return on assets."
+      },
+      {
+        "label": "≈ 5.3%",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Revenue",
+        "display": "$420 \\times 6\\% = 25.20$",
+        "value": 25.2
+      },
+      {
+        "label": "Costs",
+        "display": "$2.10 + 12.60 + 4.20 + 1.00 = 19.90$",
+        "value": 19.9
+      },
+      {
+        "label": "Return on EC",
+        "display": "$21.00 \\times 2\\% = 0.42$",
+        "value": 0.42
+      },
+      {
+        "label": "Pre-tax income",
+        "display": "$25.20 - 19.90 + 0.42 = 5.72$",
+        "value": 5.72
+      },
+      {
+        "label": "After tax",
+        "display": "$5.72 \\times 0.65 = 3.718$",
+        "value": 3.718
+      },
+      {
+        "label": "RAROC",
+        "display": "$3.718 / 21.00 = 17.7\\%$",
+        "value": 0.177
+      }
+    ],
+    "takeaway": "RAROC = (revenue − funding − EL − opex − transaction + return on EC)(1 − t) / economic capital.",
+    "check": {
+      "inputs": {
+        "L": 420,
+        "i": 0.06,
+        "f": 0.005,
+        "el": 0.03,
+        "oc": 0.01,
+        "tc": 1.0,
+        "ec": 0.05,
+        "rec": 0.02,
+        "t": 0.35
+      },
+      "steps": [
+        {
+          "name": "EC",
+          "expr": "L*ec",
+          "value": 21.0
+        },
+        {
+          "name": "pre",
+          "expr": "L*i-L*f-L*el-L*oc-tc+EC*rec",
+          "value": 5.72
+        },
+        {
+          "name": "post",
+          "expr": "pre*(1-t)",
+          "value": 3.718
+        },
+        {
+          "name": "RAROC",
+          "expr": "post/EC",
+          "value": 0.17705
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-15",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 87: Rating Migration Matrices and Default Probability Measures",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-17"
+    },
+    "trap_category": "Sign",
+    "setup": "Merton set-up: a firm's only debt is a zero-coupon bond with face value USD 60m due at $T$. At $T$ its assets are worth USD 50m. You have computed $V_T - F = -10$.",
+    "ask": "The value of equity at $T$ is: negative, zero, or positive?",
+    "options": [
+      {
+        "label": "Zero",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "Limited liability: $E_T = \\max(V_T - F, 0)$ is floored at zero; shareholders do not owe the shortfall."
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "A USD 10m positive figure is the creditors' loss (the put they wrote finishing in the money), not an equity value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Asset shortfall",
+        "display": "$V_T - F = 50 - 60 = -10$",
+        "value": -10
+      },
+      {
+        "label": "Equity (long call)",
+        "display": "$E_T = \\max(-10, 0) = 0$",
+        "value": 0
+      },
+      {
+        "label": "Debt",
+        "display": "$D_T = \\min(V_T, F) = 50$",
+        "value": 50
+      }
+    ],
+    "takeaway": "Equity = max(V − F, 0): a call, floored at zero; debt = F − put.",
+    "check": {
+      "inputs": {
+        "V": 50,
+        "F": 60
+      },
+      "steps": [
+        {
+          "name": "gap",
+          "expr": "V-F",
+          "value": -10
+        },
+        {
+          "name": "E",
+          "expr": "max(V-F,0)",
+          "value": 0
+        },
+        {
+          "name": "D",
+          "expr": "min(V,F)",
+          "value": 50
+        },
+        {
+          "name": "tot",
+          "expr": "E+D",
+          "value": 50
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-16",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 87: Rating Migration Matrices and Default Probability Measures",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-18"
+    },
+    "trap_category": "Formula",
+    "setup": "A 5-year zero-coupon bond with face value USD 100m trades at USD 88m. The continuously compounded risk-free rate is 1.5%.",
+    "ask": "The credit spread is closest to?",
+    "options": [
+      {
+        "label": "≈ 1.1%",
+        "correct": true
+      },
+      {
+        "label": "≈ 11%",
+        "correct": false,
+        "why": "Did not divide $\\ln(0.88)$ by $T = 5$: 12.8% − 1.5% is a five-year total, not a per-annum spread."
+      },
+      {
+        "label": "≈ 0.35%",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      },
+      {
+        "label": "≈ 0.026%",
+        "correct": false,
+        "why": "Forgot to subtract $r$ and then read the decimal yield 0.0256 as a percent."
+      }
+    ],
+    "working": [
+      {
+        "label": "Risky yield",
+        "display": "$y = -\\tfrac{1}{5}\\ln(0.88) = 2.557\\%$",
+        "value": 0.02557
+      },
+      {
+        "label": "Credit spread",
+        "display": "$y - r = 2.557\\% - 1.5\\% = 1.06\\%$",
+        "value": 0.01057
+      }
+    ],
+    "takeaway": "Spread = −ln(D/F)/T − r; divide by T, then subtract the risk-free rate.",
+    "check": {
+      "inputs": {
+        "D": 88,
+        "F": 100,
+        "T": 5,
+        "r": 0.015
+      },
+      "steps": [
+        {
+          "name": "y",
+          "expr": "-log(D/F)/T",
+          "value": 0.025567
+        },
+        {
+          "name": "s",
+          "expr": "y-r",
+          "value": 0.010567
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-17",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-19"
+    },
+    "trap_category": "Polarity",
+    "setup": "Merton: assets $V_0$ = USD 240m, equity $E_0$ = USD 150m, equity volatility $\\sigma_E = 30\\%$, $N(d_1) = 0.95$. The link is $\\sigma_E E_0 = N(d_1)\\,\\sigma_V V_0$.",
+    "ask": "Before solving: is asset volatility $\\sigma_V$ above, below, or equal to 30%?",
+    "options": [
+      {
+        "label": "Below",
+        "correct": true
+      },
+      {
+        "label": "Above",
+        "correct": false,
+        "why": "That reverses leverage: equity is the levered claim on the assets, so equity is the more volatile one."
+      },
+      {
+        "label": "Equal",
+        "correct": false,
+        "why": "Only for an unlevered firm with $N(d_1) = 1$; here $V/E = 1.6$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Leverage factor",
+        "display": "$N(d_1)\\,V_0/E_0 = 0.95 \\times 1.6 = 1.52$",
+        "value": 1.52
+      },
+      {
+        "label": "Asset volatility",
+        "display": "$\\sigma_V = \\dfrac{0.30 \\times 150}{0.95 \\times 240} = \\dfrac{45}{228} = 19.7\\%$",
+        "value": 0.1974
+      }
+    ],
+    "takeaway": "Levered firm: σ_V < σ_E, scaled down by N(d1)·V/E.",
+    "check": {
+      "inputs": {
+        "V": 240,
+        "E": 150,
+        "sE": 0.3,
+        "Nd1": 0.95
+      },
+      "steps": [
+        {
+          "name": "lev",
+          "expr": "Nd1*V/E",
+          "value": 1.52
+        },
+        {
+          "name": "sV",
+          "expr": "sE*E/(Nd1*V)",
+          "value": 0.19737
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-18",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-19"
+    },
+    "trap_category": null,
+    "setup": "Merton: $V_0$ = USD 240m, $E_0$ = USD 150m, $\\sigma_E = 30\\%$, with $\\sigma_E E_0 = N(d_1)\\,\\sigma_V V_0$. At $N(d_1) = 0.95$ the implied $\\sigma_V$ is about 19.7%. The model is re-run with $N(d_1) = 0.80$; the equity inputs do not change.",
+    "ask": "The implied asset volatility: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "$N(d_1)$ sits in the denominator of $\\sigma_V = \\sigma_E E_0 / (N(d_1) V_0)$; a smaller delta needs more asset volatility to produce the same equity volatility."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "$N(d_1)$ enters directly: $45/(0.80 \\times 240) = 23.4\\%$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Numerator",
+        "display": "$\\sigma_E E_0 = 0.30 \\times 150 = 45$",
+        "value": 45
+      },
+      {
+        "label": "Old σ_V",
+        "display": "$45 / (0.95 \\times 240) = 19.7\\%$",
+        "value": 0.1974
+      },
+      {
+        "label": "New σ_V",
+        "display": "$45 / (0.80 \\times 240) = 23.4\\%$",
+        "value": 0.2344
+      }
+    ],
+    "takeaway": "σ_V = σ_E·E / (N(d1)·V): lower delta ⇒ higher implied asset volatility.",
+    "check": {
+      "inputs": {
+        "V": 240,
+        "E": 150,
+        "sE": 0.3,
+        "N0": 0.95,
+        "N1": 0.8
+      },
+      "steps": [
+        {
+          "name": "num",
+          "expr": "sE*E",
+          "value": 45
+        },
+        {
+          "name": "sV0",
+          "expr": "num/(N0*V)",
+          "value": 0.19737
+        },
+        {
+          "name": "sV1",
+          "expr": "num/(N1*V)",
+          "value": 0.234375
+        },
+        {
+          "name": "chg",
+          "expr": "sV1-sV0",
+          "value": 0.037
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-19",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-20"
+    },
+    "trap_category": "Sibling",
+    "setup": "Merton, FiberTech: assets USD 500m, debt USD 300m due in 1 year, $\\sigma = 25\\%$, $r = 3\\%$. You have $d_1 = 2.29$, and $d_2 = d_1 - \\sigma\\sqrt{T}$.",
+    "ask": "Which is larger: $N(-d_1)$ or $N(-d_2)$?",
+    "options": [
+      {
+        "label": "$N(-d_2)$",
+        "correct": true
+      },
+      {
+        "label": "$N(-d_1)$",
+        "correct": false,
+        "why": "$d_2 < d_1$, so $-d_2 > -d_1$ and $N(-d_2)$ is the bigger tail: 2.08% vs 1.11%."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "The arguments differ by $\\sigma\\sqrt{T} = 0.25$, which nearly doubles the tail probability here."
+      }
+    ],
+    "working": [
+      {
+        "label": "d1",
+        "display": "$d_1 = \\dfrac{\\ln(500/300) + (0.03 + 0.03125)}{0.25} = 2.288$",
+        "value": 2.2883
+      },
+      {
+        "label": "d2 (distance to default)",
+        "display": "$d_2 = 2.288 - 0.25 = 2.038$",
+        "value": 2.0383
+      },
+      {
+        "label": "Tails",
+        "display": "$N(-d_1) = 1.11\\%,\\; N(-d_2) = 2.08\\%$",
+        "value": 0.0208
+      }
+    ],
+    "takeaway": "d2 = d1 − σ√T is the distance to default; PD = N(−d2), always above N(−d1).",
+    "check": {
+      "inputs": {
+        "V": 500,
+        "F": 300,
+        "s": 0.25,
+        "r": 0.03,
+        "T": 1
+      },
+      "steps": [
+        {
+          "name": "d1",
+          "expr": "(log(V/F)+(r+s**2/2)*T)/(s*sqrt(T))",
+          "value": 2.28833
+        },
+        {
+          "name": "d2",
+          "expr": "d1-s*sqrt(T)",
+          "value": 2.03833
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-20",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-20"
+    },
+    "trap_category": null,
+    "setup": "Merton, FiberTech: assets USD 500m, debt USD 300m due in 1 year, $r = 3\\%$. At $\\sigma = 25\\%$, $d_2 = 2.04$ and the risk-neutral $PD = N(-d_2) = 2.08\\%$. Asset volatility is re-estimated at 35%.",
+    "ask": "Risk-neutral PD: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Higher $\\sigma$ shrinks $d_2$ (larger $\\sigma\\sqrt{T}$ below and larger $-\\sigma^2/2$ drag above): $d_2$ drops to about 1.37, PD rises to about 8.5%."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "$\\sigma$ enters $d_2$ twice; the distance to default is very sensitive to it."
+      }
+    ],
+    "working": [
+      {
+        "label": "New d2",
+        "display": "$d_2 = \\dfrac{\\ln(5/3) + (0.03 - 0.35^2/2)}{0.35} = 1.37$",
+        "value": 1.3702
+      },
+      {
+        "label": "New PD",
+        "display": "$N(-1.37) \\approx 8.5\\%$, up from 2.08%",
+        "value": 0.0853
+      }
+    ],
+    "takeaway": "More asset volatility ⇒ shorter distance to default ⇒ higher PD.",
+    "check": {
+      "inputs": {
+        "V": 500,
+        "F": 300,
+        "r": 0.03,
+        "T": 1,
+        "s0": 0.25,
+        "s1": 0.35
+      },
+      "steps": [
+        {
+          "name": "d2old",
+          "expr": "(log(V/F)+(r-s0**2/2)*T)/(s0*sqrt(T))",
+          "value": 2.03833
+        },
+        {
+          "name": "d2new",
+          "expr": "(log(V/F)+(r-s1**2/2)*T)/(s1*sqrt(T))",
+          "value": 1.37022
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-21",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 87: Rating Migration Matrices and Default Probability Measures",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-21"
+    },
+    "trap_category": "Sibling",
+    "setup": "Merton: $V_0$ = USD 40m, face value $F$ = USD 25m due in 5 years, $\\sigma = 30\\%$, risk-free $r = 7\\%$, expected asset return $\\mu = 10\\%$. A colleague computed PD with $r$ as the drift; you switch to $\\mu$ for a real-world PD.",
+    "ask": "Switching the drift from $r$ to $\\mu$ makes the PD: rise, fall, or stay unchanged?",
+    "options": [
+      {
+        "label": "Fall",
+        "correct": true
+      },
+      {
+        "label": "Rise",
+        "correct": false,
+        "why": "A higher drift moves expected log asset value further above the default point: $d_2$ rises from 0.89 to 1.11, and PD falls from about 19% to about 13%."
+      },
+      {
+        "label": "Stay unchanged",
+        "correct": false,
+        "why": "Drift enters the numerator of $d_2$ as $(\\text{drift} - \\sigma^2/2)T$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Leverage term",
+        "display": "$\\ln(40/25) = 0.470$",
+        "value": 0.47
+      },
+      {
+        "label": "σ√T",
+        "display": "$0.30\\sqrt{5} = 0.671$",
+        "value": 0.6708
+      },
+      {
+        "label": "d2 with r",
+        "display": "$[0.470 + (0.07 - 0.045) \\times 5]/0.671 = 0.887 \\Rightarrow PD \\approx 18.8\\%$",
+        "value": 0.887
+      },
+      {
+        "label": "d2 with μ",
+        "display": "$[0.470 + (0.10 - 0.045) \\times 5]/0.671 = 1.111 \\Rightarrow PD \\approx 13.3\\%$",
+        "value": 1.1106
+      }
+    ],
+    "takeaway": "Real-world PD uses μ; since μ > r, real-world PD < risk-neutral PD.",
+    "check": {
+      "inputs": {
+        "V": 40,
+        "F": 25,
+        "s": 0.3,
+        "r": 0.07,
+        "mu": 0.1,
+        "T": 5
+      },
+      "steps": [
+        {
+          "name": "lev",
+          "expr": "log(V/F)",
+          "value": 0.47
+        },
+        {
+          "name": "den",
+          "expr": "s*sqrt(T)",
+          "value": 0.67082
+        },
+        {
+          "name": "d2r",
+          "expr": "(lev+(r-s**2/2)*T)/den",
+          "value": 0.88698
+        },
+        {
+          "name": "d2m",
+          "expr": "(lev+(mu-s**2/2)*T)/den",
+          "value": 1.11059
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-22",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 87: Rating Migration Matrices and Default Probability Measures",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-21"
+    },
+    "trap_category": "Formula",
+    "setup": "Merton real-world PD: $d_2 = [\\ln(V_0/F) + (\\mu - \\sigma^2/2)T]/(\\sigma\\sqrt{T})$ with $V_0 = 40$, $F = 25$, $\\mu = 10\\%$, $\\sigma = 30\\%$, $T = 5$ years.",
+    "ask": "In the numerator, which is bigger: the leverage term $\\ln(V_0/F)$ or the drift term $(\\mu - \\sigma^2/2)T$?",
+    "options": [
+      {
+        "label": "The leverage term",
+        "correct": true
+      },
+      {
+        "label": "The drift term",
+        "correct": false,
+        "why": "$(0.10 - 0.045) \\times 5 = 0.275$ vs $\\ln 1.6 = 0.470$. Forgetting $\\sigma^2/2$ gives 0.50 and flips the ranking."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "0.470 vs 0.275: not close."
+      }
+    ],
+    "working": [
+      {
+        "label": "Leverage term",
+        "display": "$\\ln(1.6) = 0.470$",
+        "value": 0.47
+      },
+      {
+        "label": "Drift term",
+        "display": "$(0.10 - 0.09/2) \\times 5 = 0.275$",
+        "value": 0.275
+      },
+      {
+        "label": "Numerator",
+        "display": "$0.470 + 0.275 = 0.745$",
+        "value": 0.745
+      },
+      {
+        "label": "d2",
+        "display": "$0.745 / (0.30\\sqrt{5}) = 1.11 \\Rightarrow PD = N(-1.11) = 13.3\\%$",
+        "value": 1.1106
+      }
+    ],
+    "takeaway": "Drift scales with T but carries the −σ²/2 drag; volatility scales with √T.",
+    "check": {
+      "inputs": {
+        "V": 40,
+        "F": 25,
+        "s": 0.3,
+        "mu": 0.1,
+        "T": 5
+      },
+      "steps": [
+        {
+          "name": "lev",
+          "expr": "log(V/F)",
+          "value": 0.47
+        },
+        {
+          "name": "drift",
+          "expr": "(mu-s**2/2)*T",
+          "value": 0.275
+        },
+        {
+          "name": "num",
+          "expr": "lev+drift",
+          "value": 0.745
+        },
+        {
+          "name": "d2",
+          "expr": "num/(s*sqrt(T))",
+          "value": 1.11059
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-23",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-34"
+    },
+    "trap_category": "Scope",
+    "setup": "Uncollateralised swap. Expected positive exposure is constant at 5% of notional; counterparty credit spread 400 bps; recovery 50%; hazard rate 6.7%; maturity about 5 years.",
+    "ask": "The CVA as a running spread is closest to?",
+    "options": [
+      {
+        "label": "≈ 20 bps per annum",
+        "correct": true
+      },
+      {
+        "label": "≈ 100 bps per annum",
+        "correct": false,
+        "why": "Multiplied by the 5-year maturity: that points toward an upfront CVA, not a per-annum spread."
+      },
+      {
+        "label": "≈ 400 bps per annum",
+        "correct": false,
+        "why": "That is the counterparty spread itself; EPE (5%) scales it down."
+      },
+      {
+        "label": "≈ 2 bps per annum",
+        "correct": false,
+        "why": "Decimal slip: EPE taken as 0.5% instead of 5%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Shortcut",
+        "display": "$CVA_{spread} \\approx EPE \\times s$ (recovery and hazard rate are already inside $s$)",
+        "value": null
+      },
+      {
+        "label": "CVA spread",
+        "display": "$0.05 \\times 400 = 20$ bps p.a.",
+        "value": 20
+      }
+    ],
+    "takeaway": "CVA running spread ≈ EPE × counterparty spread; nothing else.",
+    "check": {
+      "inputs": {
+        "EPE": 0.05,
+        "s": 400,
+        "R": 0.5,
+        "lam": 0.067
+      },
+      "steps": [
+        {
+          "name": "cva",
+          "expr": "EPE*s",
+          "value": 20.0
+        },
+        {
+          "name": "longhand",
+          "expr": "(1-R)*(s/(1-R))*EPE",
+          "value": 20.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-24",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-35"
+    },
+    "trap_category": "Formula",
+    "setup": "A trader wants a quick CVA estimate. Expected positive exposure is 13%; the counterparty's credit spread is about 225 bps per annum.",
+    "ask": "The CVA as a running spread, in percent (ignoring sign), is closest to?",
+    "options": [
+      {
+        "label": "≈ 0.29%",
+        "correct": true
+      },
+      {
+        "label": "≈ 29%",
+        "correct": false,
+        "why": "29.25 is in basis points; divide by 100 to get percent."
+      },
+      {
+        "label": "≈ 5.8%",
+        "correct": false,
+        "why": "Divided EPE by the spread (13 / 2.25) instead of multiplying."
+      },
+      {
+        "label": "≈ 0.029%",
+        "correct": false,
+        "why": "Scale slip (0.1×): divided by 1,000 instead of 100."
+      }
+    ],
+    "working": [
+      {
+        "label": "CVA in bps",
+        "display": "$0.13 \\times 225 = 29.25$ bps",
+        "value": 29.25
+      },
+      {
+        "label": "CVA in percent",
+        "display": "$29.25 / 100 = 0.29\\%$ (quoted as −0.29% when written as a value adjustment)",
+        "value": 0.2925
+      }
+    ],
+    "takeaway": "1 bp = 0.01%; carry units at every step.",
+    "check": {
+      "inputs": {
+        "EPE": 0.13,
+        "s": 225
+      },
+      "steps": [
+        {
+          "name": "bps",
+          "expr": "EPE*s",
+          "value": 29.25
+        },
+        {
+          "name": "pct",
+          "expr": "bps/100",
+          "value": 0.2925
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-25",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-35"
+    },
+    "trap_category": null,
+    "setup": "CVA running spread ≈ −EPE × counterparty spread. Today EPE is 13% and the spread 225 bps, so CVA ≈ −29 bps. The counterparty's spread widens to 450 bps; EPE is unchanged.",
+    "ask": "The CVA charge: roughly doubles, rises by much less than double, or is unchanged?",
+    "options": [
+      {
+        "label": "Roughly doubles",
+        "correct": true
+      },
+      {
+        "label": "Rises by much less than double",
+        "correct": false,
+        "why": "The approximation is linear in the spread: $0.13 \\times 450 = 58.5$ bps."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The spread is a direct multiplier; fixed EPE does not freeze CVA."
+      }
+    ],
+    "working": [
+      {
+        "label": "Old charge",
+        "display": "$0.13 \\times 225 = 29.25$ bps",
+        "value": 29.25
+      },
+      {
+        "label": "New charge",
+        "display": "$0.13 \\times 450 = 58.5$ bps",
+        "value": 58.5
+      }
+    ],
+    "takeaway": "CVA scales linearly in both EPE and the counterparty spread.",
+    "check": {
+      "inputs": {
+        "EPE": 0.13,
+        "s0": 225,
+        "s1": 450
+      },
+      "steps": [
+        {
+          "name": "c0",
+          "expr": "EPE*s0",
+          "value": 29.25
+        },
+        {
+          "name": "c1",
+          "expr": "EPE*s1",
+          "value": 58.5
+        },
+        {
+          "name": "ratio",
+          "expr": "c1/c0",
+          "value": 2.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-26",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-36"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "An interest rate swap on USD 10m notional has a risky duration of 3 years. The upfront CVA is 0.75% of notional.",
+    "ask": "The CVA as a running spread is closest to?",
+    "options": [
+      {
+        "label": "≈ 25 bps",
+        "correct": true
+      },
+      {
+        "label": "≈ 75 bps",
+        "correct": false,
+        "why": "Stopped at the upfront CVA in bps; it still has to be divided by the risky duration."
+      },
+      {
+        "label": "≈ 225 bps",
+        "correct": false,
+        "why": "Multiplied by the duration instead of dividing."
+      },
+      {
+        "label": "≈ 2.5 bps",
+        "correct": false,
+        "why": "Read 0.75% as 7.5 bps (it is 75 bps), then divided by 3."
+      }
+    ],
+    "working": [
+      {
+        "label": "Upfront in bps",
+        "display": "$0.75\\% = 75$ bps",
+        "value": 75
+      },
+      {
+        "label": "Running spread",
+        "display": "$75 / 3 = 25$ bps p.a.",
+        "value": 25
+      }
+    ],
+    "takeaway": "Running spread ≈ upfront CVA ÷ risky duration.",
+    "check": {
+      "inputs": {
+        "up": 0.0075,
+        "dur": 3
+      },
+      "steps": [
+        {
+          "name": "upbps",
+          "expr": "up*10000",
+          "value": 75.0
+        },
+        {
+          "name": "run",
+          "expr": "upbps/dur",
+          "value": 25.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-27",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-36"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Same swap: upfront CVA is 0.75% of notional, which is 75 bps, and the risky duration is 3 years.",
+    "ask": "The equivalent running spread must be: below 75 bps, above 75 bps, or equal to 75 bps?",
+    "options": [
+      {
+        "label": "Below 75 bps",
+        "correct": true
+      },
+      {
+        "label": "Above 75 bps",
+        "correct": false,
+        "why": "An annual charge paid for about 3 years must be smaller than the one-off equivalent: 75 / 3 = 25."
+      },
+      {
+        "label": "Equal to 75 bps",
+        "correct": false,
+        "why": "Only if the risky duration were 1 year."
+      }
+    ],
+    "working": [
+      {
+        "label": "Upfront",
+        "display": "$0.75\\% = 75$ bps",
+        "value": 75
+      },
+      {
+        "label": "Running",
+        "display": "$75 / 3 = 25$ bps $< 75$",
+        "value": 25
+      }
+    ],
+    "takeaway": "A running spread over several years is always smaller than the upfront charge.",
+    "check": {
+      "inputs": {
+        "up": 75,
+        "dur": 3
+      },
+      "steps": [
+        {
+          "name": "run",
+          "expr": "up/dur",
+          "value": 25.0
+        },
+        {
+          "name": "gap",
+          "expr": "up-run",
+          "value": 50.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-28",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-43"
+    },
+    "trap_category": "Sign",
+    "setup": "From CityBank's side of a swap: EPE 6.00%, ENE 4.20%. The counterparty FinCorp's spread is 250 bps; CityBank's own spread is 110 bps. You have the CVA leg: $-0.06 \\times 250 = -15.00$ bps. The DVA leg (ENE × own spread) pulls the other way.",
+    "ask": "The net bilateral CVA spread is: negative (a charge), positive (a benefit), or too close to call?",
+    "options": [
+      {
+        "label": "Negative (a charge)",
+        "correct": true
+      },
+      {
+        "label": "Positive (a benefit)",
+        "correct": false,
+        "why": "DVA is $0.042 \\times 110 = +4.62$ bps, less than a third of the 15 bp CVA leg."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "$-15.00 + 4.62 = -10.38$ bps: not close."
+      }
+    ],
+    "working": [
+      {
+        "label": "CVA leg",
+        "display": "$-EPE \\times s_{FinCorp} = -0.06 \\times 250 = -15.00$ bps",
+        "value": -15.0
+      },
+      {
+        "label": "DVA leg",
+        "display": "$+ENE \\times s_{own} = 0.042 \\times 110 = +4.62$ bps",
+        "value": 4.62
+      },
+      {
+        "label": "BCVA",
+        "display": "$-15.00 + 4.62 = -10.38$ bps (a charge)",
+        "value": -10.38
+      }
+    ],
+    "takeaway": "BCVA ≈ −EPE × counterparty spread + ENE × own spread; size each leg before netting.",
+    "check": {
+      "inputs": {
+        "EPE": 0.06,
+        "ENE": 0.042,
+        "sC": 250,
+        "sO": 110
+      },
+      "steps": [
+        {
+          "name": "cva",
+          "expr": "-EPE*sC",
+          "value": -15.0
+        },
+        {
+          "name": "dva",
+          "expr": "ENE*sO",
+          "value": 4.62
+        },
+        {
+          "name": "bcva",
+          "expr": "cva+dva",
+          "value": -10.38
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-29",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-43"
+    },
+    "trap_category": "Role",
+    "setup": "CityBank vs FinCorp swap, from CityBank's side: EPE 6.00%, ENE 4.20%, FinCorp spread 250 bps, CityBank's own spread 110 bps, maximum PFE 18.0%.",
+    "ask": "The bilateral CVA, as a charge in bps per annum, is closest to?",
+    "options": [
+      {
+        "label": "≈ 10 bps",
+        "correct": true
+      },
+      {
+        "label": "≈ 40 bps",
+        "correct": false,
+        "why": "Used the maximum PFE (18%) in place of EPE. PFE is a tail measure for limits; valuation uses expected exposure."
+      },
+      {
+        "label": "≈ 3.9 bps",
+        "correct": false,
+        "why": "Swapped the spread pairing (EPE × own, ENE × counterparty); done that way it even flips to a benefit."
+      },
+      {
+        "label": "≈ 1.0 bps",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "CVA leg",
+        "display": "$-EPE \\times s_{FinCorp} = -0.06 \\times 250 = -15.00$ bps",
+        "value": -15.0
+      },
+      {
+        "label": "DVA leg",
+        "display": "$+ENE \\times s_{own} = 0.042 \\times 110 = +4.62$ bps",
+        "value": 4.62
+      },
+      {
+        "label": "BCVA",
+        "display": "$-15.00 + 4.62 = -10.38$ bps (a charge)",
+        "value": -10.38
+      }
+    ],
+    "takeaway": "EPE pairs with the counterparty's spread, ENE with your own; PFE never enters CVA.",
+    "check": {
+      "inputs": {
+        "EPE": 0.06,
+        "ENE": 0.042,
+        "sC": 250,
+        "sO": 110,
+        "PFE": 0.18
+      },
+      "steps": [
+        {
+          "name": "cva",
+          "expr": "-EPE*sC",
+          "value": -15.0
+        },
+        {
+          "name": "dva",
+          "expr": "ENE*sO",
+          "value": 4.62
+        },
+        {
+          "name": "bcva",
+          "expr": "cva+dva",
+          "value": -10.38
+        },
+        {
+          "name": "pfeslip",
+          "expr": "PFE*sC-ENE*sO",
+          "value": 40.38
+        },
+        {
+          "name": "swapslip",
+          "expr": "EPE*sO-ENE*sC",
+          "value": -3.9
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-30",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-43"
+    },
+    "trap_category": "Sign",
+    "setup": "CityBank vs FinCorp, from CityBank's side: EPE 6.00%, ENE 4.20%, FinCorp spread 250 bps. With CityBank's own spread at 110 bps, BCVA is about −10.4 bps. CityBank's own spread then widens to 200 bps; nothing else changes.",
+    "ask": "CityBank's BCVA charge becomes: larger, smaller, or unchanged?",
+    "options": [
+      {
+        "label": "Smaller",
+        "correct": true
+      },
+      {
+        "label": "Larger",
+        "correct": false,
+        "why": "The own spread drives DVA, which is a benefit. DVA rises to $0.042 \\times 200 = 8.4$ bps and the net charge shrinks to 6.6 bps."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The own spread enters through the DVA leg."
+      }
+    ],
+    "working": [
+      {
+        "label": "CVA leg",
+        "display": "$-0.06 \\times 250 = -15.0$ bps (unchanged)",
+        "value": -15.0
+      },
+      {
+        "label": "New DVA leg",
+        "display": "$0.042 \\times 200 = +8.4$ bps",
+        "value": 8.4
+      },
+      {
+        "label": "New BCVA",
+        "display": "$-15.0 + 8.4 = -6.6$ bps, vs $-10.38$ before",
+        "value": -6.6
+      }
+    ],
+    "takeaway": "Own spread widening ⇒ bigger DVA ⇒ smaller BCVA charge (the DVA paradox).",
+    "check": {
+      "inputs": {
+        "EPE": 0.06,
+        "ENE": 0.042,
+        "sC": 250,
+        "sO0": 110,
+        "sO1": 200
+      },
+      "steps": [
+        {
+          "name": "b0",
+          "expr": "-EPE*sC+ENE*sO0",
+          "value": -10.38
+        },
+        {
+          "name": "b1",
+          "expr": "-EPE*sC+ENE*sO1",
+          "value": -6.6
+        },
+        {
+          "name": "chg",
+          "expr": "b1-b0",
+          "value": 3.78
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-31",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-44"
+    },
+    "trap_category": "Sign",
+    "setup": "Bilateral CVA from VXR's side, with EPE = ENE, both unchanged. VXR's own spread widens from 74 to 154 bps; counterparty Excellence Bank's spread widens from 128 to 176 bps.",
+    "ask": "VXR's BCVA: improves (moves in VXR's favour), deteriorates, or unchanged?",
+    "options": [
+      {
+        "label": "Improves",
+        "correct": true
+      },
+      {
+        "label": "Deteriorates",
+        "correct": false,
+        "why": "Only the counterparty widening is adverse (CVA leg, −48 bps). VXR's own widening feeds DVA, a benefit of +80 bps. Net +32."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The two widenings are different sizes (80 vs 48), so they do not cancel."
+      }
+    ],
+    "working": [
+      {
+        "label": "CVA leg change",
+        "display": "$-(176 - 128) = -48$ bps",
+        "value": -48
+      },
+      {
+        "label": "DVA leg change",
+        "display": "$+(154 - 74) = +80$ bps",
+        "value": 80
+      },
+      {
+        "label": "Net ΔBCVA",
+        "display": "$-48 + 80 = +32$ bps in VXR's favour",
+        "value": 32
+      }
+    ],
+    "takeaway": "Own spread and counterparty spread move BCVA in opposite directions; net the changes.",
+    "check": {
+      "inputs": {
+        "o0": 74,
+        "o1": 154,
+        "c0": 128,
+        "c1": 176
+      },
+      "steps": [
+        {
+          "name": "dcva",
+          "expr": "-(c1-c0)",
+          "value": -48
+        },
+        {
+          "name": "ddva",
+          "expr": "o1-o0",
+          "value": 80
+        },
+        {
+          "name": "net",
+          "expr": "dcva+ddva",
+          "value": 32
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-32",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-46"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Three exposures with UL of USD 597,000, 840,000 and 1,023,500; pairwise default correlation 0.40; portfolio UL USD 1,920,250; capital multiplier 5.50. Exposure 1's risk contribution is USD 417,348, giving EC of about USD 2.30m.",
+    "ask": "Economic capital for Exposure 2 is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 3.6m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 0.65m",
+        "correct": false,
+        "why": "That is Exposure 2's risk contribution; the multiplication by CM = 5.5 is missing."
+      },
+      {
+        "label": "≈ USD 11m",
+        "correct": false,
+        "why": "That is $UL_P \\times CM$, the whole portfolio's economic capital."
+      },
+      {
+        "label": "≈ USD 0.12m",
+        "correct": false,
+        "why": "Divided the risk contribution by CM instead of multiplying."
+      }
+    ],
+    "working": [
+      {
+        "label": "Numerator",
+        "display": "$840{,}000 + 0.4 \\times 597{,}000 + 0.4 \\times 1{,}023{,}500 = 1{,}488{,}200$",
+        "value": 1488200
+      },
+      {
+        "label": "Risk contribution",
+        "display": "$ULC_2 = 840{,}000 \\times 1{,}488{,}200 / 1{,}920{,}250 = 651{,}000$",
+        "value": 651000
+      },
+      {
+        "label": "Economic capital",
+        "display": "$EC_2 = 651{,}000 \\times 5.5 = \\text{USD } 3.58\\text{m}$",
+        "value": 3580500
+      }
+    ],
+    "takeaway": "EC_i = CM × ULC_i; finish the chain the worked example shows.",
+    "check": {
+      "inputs": {
+        "U1": 597000,
+        "U2": 840000,
+        "U3": 1023500,
+        "rho": 0.4,
+        "ULP": 1920250,
+        "CM": 5.5
+      },
+      "steps": [
+        {
+          "name": "ULC1",
+          "expr": "U1*(U1+rho*U2+rho*U3)/ULP",
+          "value": 417348
+        },
+        {
+          "name": "ULC2",
+          "expr": "U2*(U2+rho*U1+rho*U3)/ULP",
+          "value": 650989
+        },
+        {
+          "name": "ULC3",
+          "expr": "U3*(U3+rho*U1+rho*U2)/ULP",
+          "value": 851880
+        },
+        {
+          "name": "EC2",
+          "expr": "ULC2*CM",
+          "value": 3580440
+        },
+        {
+          "name": "ECtot",
+          "expr": "(ULC1+ULC2+ULC3)*CM",
+          "value": 10561375
+        },
+        {
+          "name": "ECP",
+          "expr": "ULP*CM",
+          "value": 10561375
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-33",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-46"
+    },
+    "trap_category": null,
+    "setup": "Three exposures with UL of USD 597,000, 840,000 and 1,023,500; pairwise correlation 0.40; $UL_P$ = USD 1,920,250; CM = 5.50, so $CM \\times UL_P$ = USD 10.56m. Each exposure gets $EC_i = CM \\times ULC_i$, with $ULC_i = UL_i(UL_i + \\rho\\sum_{j \\ne i} UL_j)/UL_P$.",
+    "ask": "Before adding up: $EC_1 + EC_2 + EC_3$ comes in below, equal to, or above USD 10.56m?",
+    "options": [
+      {
+        "label": "Equal",
+        "correct": true
+      },
+      {
+        "label": "Above",
+        "correct": false,
+        "why": "That happens if you sum standalone UL × CM ($2{,}460{,}500 \\times 5.5 \\approx 13.5$m). Risk contributions sum exactly to $UL_P$."
+      },
+      {
+        "label": "Below",
+        "correct": false,
+        "why": "The allocation leaves no residual: $\\sum ULC_i = UL_P$ by construction."
+      }
+    ],
+    "working": [
+      {
+        "label": "Contributions",
+        "display": "$417{,}348 + 651{,}000 + 851{,}900 \\approx 1{,}920{,}250 = UL_P$",
+        "value": 1920248
+      },
+      {
+        "label": "Total EC",
+        "display": "$1{,}920{,}250 \\times 5.5 = \\text{USD } 10.56\\text{m}$",
+        "value": 10561375
+      }
+    ],
+    "takeaway": "Risk contributions are additive to UL_P, so allocated EC sums to portfolio EC with no residue.",
+    "check": {
+      "inputs": {
+        "U1": 597000,
+        "U2": 840000,
+        "U3": 1023500,
+        "rho": 0.4,
+        "ULP": 1920250,
+        "CM": 5.5
+      },
+      "steps": [
+        {
+          "name": "ULC1",
+          "expr": "U1*(U1+rho*U2+rho*U3)/ULP",
+          "value": 417348
+        },
+        {
+          "name": "ULC2",
+          "expr": "U2*(U2+rho*U1+rho*U3)/ULP",
+          "value": 650989
+        },
+        {
+          "name": "ULC3",
+          "expr": "U3*(U3+rho*U1+rho*U2)/ULP",
+          "value": 851880
+        },
+        {
+          "name": "EC2",
+          "expr": "ULC2*CM",
+          "value": 3580440
+        },
+        {
+          "name": "ECtot",
+          "expr": "(ULC1+ULC2+ULC3)*CM",
+          "value": 10561375
+        },
+        {
+          "name": "ECP",
+          "expr": "ULP*CM",
+          "value": 10561375
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-34",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T2-03"
+    },
+    "trap_category": "Scope",
+    "setup": "Credit card receivables aging (USD m): 0–30 days 600; 31–60 days 250; 61–90 days 170; 91–120 days 130; 121+ days 60; total 1,210. Written off this period: 35.",
+    "ask": "The delinquency ratio is closest to?",
+    "options": [
+      {
+        "label": "≈ 16%",
+        "correct": true
+      },
+      {
+        "label": "≈ 5.0%",
+        "correct": false,
+        "why": "Only the 121+ bucket; delinquency counts everything more than 90 days past due."
+      },
+      {
+        "label": "≈ 50%",
+        "correct": false,
+        "why": "Counted everything more than 30 days past due; the cut-off is 90 days."
+      },
+      {
+        "label": "≈ 1.6%",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "More than 90 days",
+        "display": "$130 + 60 = 190$",
+        "value": 190
+      },
+      {
+        "label": "Delinquency ratio",
+        "display": "$190 / 1{,}210 = 15.7\\%$",
+        "value": 0.157
+      }
+    ],
+    "takeaway": "Delinquency = >90 days past due / pool; default = written off / pool.",
+    "check": {
+      "inputs": {
+        "b1": 600,
+        "b2": 250,
+        "b3": 170,
+        "b4": 130,
+        "b5": 60,
+        "wo": 35
+      },
+      "steps": [
+        {
+          "name": "tot",
+          "expr": "b1+b2+b3+b4+b5",
+          "value": 1210
+        },
+        {
+          "name": "delq",
+          "expr": "(b4+b5)/tot",
+          "value": 0.15702
+        },
+        {
+          "name": "dflt",
+          "expr": "wo/tot",
+          "value": 0.028926
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-35",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T2-03"
+    },
+    "trap_category": "Role",
+    "setup": "Credit card receivables aging (USD m): 0–30 days 600; 31–60 days 250; 61–90 days 170; 91–120 days 130; 121+ days 60; total 1,210. Written off this period: 35.",
+    "ask": "Which is larger for this pool: the delinquency ratio (>90 days past due ÷ pool) or the default ratio (written off ÷ pool)?",
+    "options": [
+      {
+        "label": "Delinquency ratio",
+        "correct": true
+      },
+      {
+        "label": "Default ratio",
+        "correct": false,
+        "why": "Write-offs are 35 vs 190 more than 90 days late; not every seriously late balance gets charged off."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "15.7% vs 2.9%: more than five times apart."
+      }
+    ],
+    "working": [
+      {
+        "label": "Delinquency ratio",
+        "display": "$(130 + 60)/1{,}210 = 15.7\\%$",
+        "value": 0.157
+      },
+      {
+        "label": "Default ratio",
+        "display": "$35 / 1{,}210 = 2.9\\%$",
+        "value": 0.0289
+      }
+    ],
+    "takeaway": "Delinquency leads defaults; in a working pool it is the larger ratio.",
+    "check": {
+      "inputs": {
+        "b1": 600,
+        "b2": 250,
+        "b3": 170,
+        "b4": 130,
+        "b5": 60,
+        "wo": 35
+      },
+      "steps": [
+        {
+          "name": "tot",
+          "expr": "b1+b2+b3+b4+b5",
+          "value": 1210
+        },
+        {
+          "name": "delq",
+          "expr": "(b4+b5)/tot",
+          "value": 0.15702
+        },
+        {
+          "name": "dflt",
+          "expr": "wo/tot",
+          "value": 0.028926
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-CR1-36",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T2-09"
+    },
+    "trap_category": "Polarity",
+    "setup": "A securitisation's collateral pool: each asset's default probability is held fixed. The structurer considers a rise in default correlation across the pool.",
+    "ask": "The risk of the equity (first-loss) tranche: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Pool EL is unchanged. Higher correlation makes the 'almost nothing defaults' outcome more likely, and that is the equity tranche's only good state. Risk shifts up to the senior tranche."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "Pool EL is fixed, but correlation reshapes the loss distribution and so moves risk between tranches."
+      }
+    ],
+    "working": [
+      {
+        "label": "Pool EL",
+        "display": "Linear in the PDs: unaffected by correlation",
+        "value": null
+      },
+      {
+        "label": "Distribution shape",
+        "display": "Higher ρ fattens both tails: more zero-default outcomes and more mass-default outcomes",
+        "value": null
+      },
+      {
+        "label": "Tranches",
+        "display": "Equity gains from the zero-default tail (safer); senior is hit by the mass-default tail (riskier)",
+        "value": null
+      }
+    ],
+    "takeaway": "Higher correlation: senior tranche riskier, equity tranche safer, pool EL unchanged.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-37",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 89: Malz, Default Correlation and Portfolio Credit Risk",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T2-31"
+    },
+    "trap_category": "Scope",
+    "setup": "Portfolios A and B hold the same number of bonds with the same individual PDs and the same total notional. A's bonds are uncorrelated; B's are highly correlated.",
+    "ask": "B's credit VaR relative to A's is: higher, lower, or the same?",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "Correlated names default together, which fattens the loss tail; correlation removes diversification rather than adding it."
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "EL is the same, but dispersion (UL, credit VaR) is not; the tail is what VaR reads."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expected loss",
+        "display": "Identical: n × PD × EAD × LGD for both",
+        "value": null
+      },
+      {
+        "label": "Dispersion",
+        "display": "Loss variance rises with every pairwise ρ, so B's distribution is much wider",
+        "value": null
+      },
+      {
+        "label": "Credit VaR",
+        "display": "Higher for B",
+        "value": null
+      }
+    ],
+    "takeaway": "Same EL, more correlation ⇒ wider loss distribution ⇒ higher credit VaR and capital.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-38",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 97: Gregory, Credit Exposure and Funding",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T4-09"
+    },
+    "trap_category": "Polarity",
+    "setup": "Under a CSA, exposure below the threshold is not collateralised: collateral required $= \\max(0, \\text{Exposure} + IA - \\text{Threshold})$. A firm lowers the threshold it grants a counterparty.",
+    "ask": "The firm's credit risk to that counterparty: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "A lower threshold means collateral is called sooner, so less exposure is left uncollateralised. It is the operational burden that rises, not credit risk."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The threshold moves uncollateralised exposure one for one."
+      }
+    ],
+    "working": [
+      {
+        "label": "Threshold's role",
+        "display": "An unsecured credit line: exposure up to it is uncollateralised",
+        "value": null
+      },
+      {
+        "label": "Lower threshold",
+        "display": "More collateral called, less uncollateralised exposure → lower credit risk (more margin calls)",
+        "value": null
+      }
+    ],
+    "takeaway": "Lower threshold ⇒ more collateral ⇒ less credit risk, more operational work.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-39",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-FT-13"
+    },
+    "trap_category": "Polarity",
+    "setup": "An economic downturn pushes corporate bond default rates sharply higher.",
+    "ask": "Average recovery rates on defaulted bonds: rise, fall, or unchanged?",
+    "options": [
+      {
+        "label": "Fall",
+        "correct": true
+      },
+      {
+        "label": "Rise",
+        "correct": false,
+        "why": "Many simultaneous defaults flood the distressed-debt market while collateral values are depressed; recovery and default rates are negatively correlated."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "Hull documents a strong negative relationship, which is why regulators require a downturn LGD."
+      }
+    ],
+    "working": [
+      {
+        "label": "Supply effect",
+        "display": "Many defaulted securities hit a thin buyer base → prices fall",
+        "value": null
+      },
+      {
+        "label": "Valuation effect",
+        "display": "The same macro shock depresses collateral and going-concern values",
+        "value": null
+      }
+    ],
+    "takeaway": "Downturn: PD up and recovery down together, so EL rises more than proportionally.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-40",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 88: Hull, Estimating Default Probabilities",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T3-09"
+    },
+    "trap_category": "Polarity",
+    "setup": "For one rating category you estimate default probability two ways: from bond credit spreads via $\\lambda \\approx s/(1-R)$, and from historical default data.",
+    "ask": "The spread-implied PD relative to the historical PD is: higher, lower, or about the same?",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "Spreads also pay for illiquidity and systematic (non-diversifiable) default risk; the conversion treats those premia as default."
+      },
+      {
+        "label": "About the same",
+        "correct": false,
+        "why": "The gap is systematic and large, often several times, and widest for high grades."
+      }
+    ],
+    "working": [
+      {
+        "label": "Spread decomposition",
+        "display": "Spread = expected default loss + liquidity premium + systematic risk premium + frictions",
+        "value": null
+      },
+      {
+        "label": "Implication",
+        "display": "λ = s/(1−R) attributes the whole spread to default → risk-neutral PD > real-world PD",
+        "value": null
+      }
+    ],
+    "takeaway": "Risk-neutral (spread-implied) PD > historical PD: use it for valuation, not loss forecasting.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-41",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-FT-01"
+    },
+    "trap_category": "Polarity",
+    "setup": "Economic capital is read from the tail of a beta distribution fitted to two moments, $EL_P$ and $UL_P$. A large, high-quality, well-diversified portfolio has $EL_P > UL_P$.",
+    "ask": "For this portfolio, beta-based economic capital is likely: overstated, understated, or about right?",
+    "options": [
+      {
+        "label": "Overstated",
+        "correct": true
+      },
+      {
+        "label": "Understated",
+        "correct": false,
+        "why": "That is the low-quality case ($EL_P < UL_P$, tail too thin). Here the fitted beta tail is too fat."
+      },
+      {
+        "label": "About right",
+        "correct": false,
+        "why": "A two-moment fit calibrates the body, not the tail; the direction of the misfit depends on $EL_P / UL_P$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Fit",
+        "display": "Beta matched on mean = EL_P and standard deviation = UL_P",
+        "value": null
+      },
+      {
+        "label": "High quality (EL_P > UL_P)",
+        "display": "Tail too fat → EC overestimated",
+        "value": null
+      },
+      {
+        "label": "Low quality (EL_P < UL_P)",
+        "display": "Tail too thin → EC underestimated",
+        "value": null
+      }
+    ],
+    "takeaway": "Beta fit: high quality ⇒ tail too fat ⇒ EC overstated; low quality ⇒ the reverse.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-42",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 97: Gregory, Credit Exposure and Funding",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T4-05"
+    },
+    "trap_category": null,
+    "setup": "A 10-year uncollateralised interest rate swap. Two effects drive its expected exposure over time: diffusion (uncertainty about rates grows with the horizon) and amortisation (fewer cash flows remain as maturity approaches).",
+    "ask": "Over the final few years before maturity, expected exposure: rises, falls, or stays flat?",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Diffusion dominates early; amortisation wins late. At maturity no cash flows remain, so exposure goes to zero however far rates have moved."
+      },
+      {
+        "label": "Stays flat",
+        "correct": false,
+        "why": "The two effects do not balance late in the life; amortisation takes exposure to zero at maturity."
+      }
+    ],
+    "working": [
+      {
+        "label": "Early life",
+        "display": "Diffusion dominates → exposure rises",
+        "value": null
+      },
+      {
+        "label": "Late life",
+        "display": "Amortisation dominates → exposure falls to zero at maturity",
+        "value": null
+      },
+      {
+        "label": "Shape",
+        "display": "Hump, peaking roughly a third of the way through",
+        "value": null
+      }
+    ],
+    "takeaway": "Swap exposure is hump-shaped: diffusion up, amortisation down, zero at maturity.",
+    "check": null
+  },
+  {
+    "id": "SC-bank-CR1-43",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "CR-T1-41"
+    },
+    "trap_category": "Sign",
+    "setup": "A dealer values an OTC position with a unilateral CVA only, a charge for counterparty default. It then adds DVA, the term for its own default against its expected negative exposure.",
+    "ask": "The risky value of the position: rises, falls, or unchanged?",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "DVA ≈ ENE × own spread is a benefit, so bilateral CVA is a smaller deduction than CVA alone."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "DVA is non-zero whenever ENE > 0 and the dealer's own spread > 0."
+      }
+    ],
+    "working": [
+      {
+        "label": "Unilateral",
+        "display": "Value = risk-free value − CVA",
+        "value": null
+      },
+      {
+        "label": "Bilateral",
+        "display": "Value = risk-free value − CVA + DVA → higher",
+        "value": null
+      }
+    ],
+    "takeaway": "DVA is a benefit from your own default risk on negative exposure; adding it raises value.",
+    "check": null
+  }
+]

@@ -1,0 +1,76 @@
+{
+ "slice": "CR-T4-1",
+ "decisions": [
+  {
+   "id": "CR-T4-18",
+   "field": "solution",
+   "verdict": "modify",
+   "final": [
+    {
+     "field": "solution",
+     "find": "The two exposures move in opposite directions with respect to posted initial margin, which is the entire point of the question.",
+     "replace": "Bilateral posting means each party posts 6 of segregated initial margin, so two different amounts are involved. The initial margin received (6) reduces counterparty credit exposure; the initial margin posted (6) increases funding exposure. Each affects only one of the two measures, which is the entire point of the question."
+    },
+    {
+     "field": "solution",
+     "find": "| Segregated initial margin posted of 6 | Reduces (as a buffer held against the exposure) | Increases, since it must be funded and cannot be reused |",
+     "replace": "| Segregated initial margin received of 6 | Reduces (a buffer held against the exposure) | No effect, since segregated margin received cannot be rehypothecated or reused |\n| Segregated initial margin posted of 6 | No effect, since it is segregated and so not at risk if the counterparty defaults | Increases, since it must be funded and cannot be reused |"
+    },
+    {
+     "field": "trap.explanation",
+     "find": "The defining trap is the sign of initial margin, which enters the two calculations with opposite signs. Treating it as a reduction in both, or as an increase in both, produces every wrong option.",
+     "replace": "The defining trap is which initial margin enters which calculation: the initial margin received reduces the credit exposure, while the initial margin posted increases the funding exposure. Treating initial margin as a reduction in both measures, or dropping it, produces the wrong options."
+    }
+   ],
+   "reason": "Confirmed against PDF p.33: the table row says segregated IM POSTED 'Reduces' CCR exposure, which is false (posted segregated IM is bankruptcy-remote; it is the IM RECEIVED that reduces CCR exposure). The page's own CONCEPT TESTED line says 'initial margin received reduce[s] counterparty credit exposure, whereas initial margin posted is a funding cost'. Re-solved: CCR = max(0,15-10-6)=0 using IM received; funding = 15-10+6 = 11 using IM posted; key (d) correct. Auditor's fix direction accepted; modified only to give exact find/replace patches and to also fix the trap's follow-on sentence ('Treating it as a reduction in both, or as an increase in both, produces every wrong option' - 'increase in both' gives CCR 11/funding 11, which is not an option)."
+  },
+  {
+   "id": "CR-T4-04",
+   "field": "solution",
+   "verdict": "modify",
+   "final": [
+    {
+     "field": "solution",
+     "find": "A symmetric distribution about zero gives expected MtM of zero and expected exposure equal to the mean of the positive half, which is strictly positive.",
+     "replace": "A symmetric distribution about zero gives expected MtM of zero and expected exposure equal to $P(V>0) \\times E[V \\mid V>0]$, which for a continuous symmetric distribution is half the average of the positive outcomes and is strictly positive (for a normal distribution, $EE = \\sigma\\,\\phi(0) \\approx 0.399\\sigma$)."
+    }
+   ],
+   "reason": "Confirmed (PDF p.8 same text). EE = E[max(V,0)] = P(V>0)E[V|V>0]; for a continuous symmetric distribution this is half the conditional mean of the positive half, not equal to it (normal: 0.399 sigma vs 0.798 sigma). The auditor's 'half the average of the positive outcomes' is not exact for the discrete illustration in the same solution (+12,0,-12: P(V>0)=1/3, EE=4), so the fix is qualified to continuous distributions. Key (a) unaffected."
+  },
+  {
+   "id": "CR-T4-08",
+   "field": "solution",
+   "verdict": "accept",
+   "final": [
+    {
+     "field": "solution",
+     "find": "Shortening $\\tau$ from three days to one therefore reduces the residual exposure by a factor of roughly $\\sqrt{3}$, or about 42%.",
+     "replace": "If the whole window $\\tau$ were cut from three days to one, the margin-period component of exposure would fall by a factor of $\\sqrt{3}$, about 42%. Shortening only the remargining period gives a smaller proportional reduction, because the notice, settlement and close-out days in the margin period of risk are unchanged, and the threshold and minimum transfer amount components are unaffected."
+    }
+   ],
+   "reason": "Confirmed (PDF p.15 same text). The solution defines MPoR = remargining period + notice/settlement + close-out, so cutting the remargining period from 3 to 1 day does not cut the window by a factor of 3 (e.g. 5->3 days gives 1-sqrt(3/5)=22.5%), and the sqrt(3) scaling applies only to the margin-period term, not the whole residual (threshold + MTA unchanged). 1-1/sqrt(3)=42.3% checked. Direction and key (c) correct. Auditor's fix adopted verbatim in substance, written as an exact patch."
+  },
+  {
+   "id": "CR-T4-16",
+   "field": "solution",
+   "verdict": "accept",
+   "final": [
+    {
+     "field": "solution",
+     "find": "| Total capital ratio | 14.75% | 14.84% | 15.52% | Declining |",
+     "replace": "| Total capital ratio | 14.75% | 14.84% | 15.53% | Declining |"
+    }
+   ],
+   "reason": "PDF p.29 shows 15.52%, but 192,900/1,242,500 = 15.5252% -> 15.53%. All other ratios and component sums verified (CET1 11.27/11.10/11.03; T1 13.02/12.69/12.45; total 14.75/14.84). Key (a) Mixed unaffected."
+  }
+ ],
+ "added": [],
+ "spotChecked": [
+  "CR-T4-01",
+  "CR-T4-06",
+  "CR-T4-10",
+  "CR-T4-13",
+  "CR-T4-15"
+ ],
+ "spotCheckNote": "All five re-solved end to end: T4-01 EPE 5.25/EEPE 6.25/max 19 (a); T4-06 strong negative correlation (d), netting factor sqrt(2)/2=0.707 correct; T4-10 MTA additive to residual (a); T4-13 dual nature (a); T4-15 CAR 300/2000=15% (b). No problems found."
+}

@@ -1,0 +1,2916 @@
+[
+ {
+  "id": "CR-5-F01",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 64,
+  "objective": "CR-5 b",
+  "name": "Expected loss (PD x LGD x EAD)",
+  "prompt": "What is the dollar expected loss on a loan, built from the borrower's default risk and the facility's loss severity and exposure?",
+  "latex": "\\mathrm{EL} = \\mathrm{PD} \\times \\mathrm{LGD} \\times \\mathrm{EAD}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{EL}",
+    "meaning": "expected loss, in dollars"
+   },
+   {
+    "symbol": "\\mathrm{PD}",
+    "meaning": "probability of default (percentage/decimal), a property of the borrower"
+   },
+   {
+    "symbol": "\\mathrm{LGD}",
+    "meaning": "loss given default: percentage of the loan expected to be unrecoverable (= 100% minus recovery rate), a property of the facility"
+   },
+   {
+    "symbol": "\\mathrm{EAD}",
+    "meaning": "exposure at default: amount outstanding at the time of default, in dollars, a property of the facility"
+   }
+  ],
+  "skeleton": "\\mathrm{EL} = {{1}} \\times {{2}} \\times {{3}}",
+  "slots": [
+   "\\mathrm{PD}",
+   "\\mathrm{LGD}",
+   "\\mathrm{EAD}"
+  ],
+  "decoys": [
+   "\\mathrm{RR}",
+   "\\mathrm{RWA}",
+   "\\mathrm{CAR}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{EL} = \\mathrm{PD} \\times \\mathrm{RR} \\times \\mathrm{EAD}",
+    "kind": "wrong-variable",
+    "why": "The recovery rate is what you get back; the loss uses LGD = 1 - RR."
+   },
+   {
+    "latex": "\\mathrm{EL} = \\mathrm{PD} \\times \\mathrm{LGD}",
+    "kind": "missing-term",
+    "why": "Without EAD this is a loss rate, not a dollar loss."
+   },
+   {
+    "latex": "\\mathrm{EL} = \\frac{\\mathrm{PD} \\times \\mathrm{EAD}}{\\mathrm{LGD}}",
+    "kind": "inverted",
+    "why": "Higher loss severity must raise expected loss, so LGD multiplies rather than divides."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}",
+    "direction": "up",
+    "why": "A borrower more likely to default raises the expected loss proportionally."
+   },
+   {
+    "variable": "\\mathrm{LGD}",
+    "direction": "up",
+    "why": "Less recovered after default means more lost."
+   },
+   {
+    "variable": "\\mathrm{EAD}",
+    "direction": "up",
+    "why": "More owed at default means more dollars at stake."
+   }
+  ],
+  "intuition": "Will they default (borrower), how much is lost if they do and how much is owed (facility): multiply the three.",
+  "calc": {
+   "expr": "PD * LGD * EAD",
+   "inputs": [
+    {
+     "name": "PD",
+     "symbol": "\\mathrm{PD}",
+     "min": 0,
+     "max": 0.2,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "LGD",
+     "symbol": "\\mathrm{LGD}",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": "decimal"
+    },
+    {
+     "name": "EAD",
+     "symbol": "\\mathrm{EAD}",
+     "min": 1,
+     "max": 500,
+     "step": 1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{EL}",
+    "unit": "$M",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "expected loss",
+   "PD/LGD/EAD"
+  ]
+ },
+ {
+  "id": "CR-5-F02",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 123,
+  "objective": "CR-5 c",
+  "name": "Capital adequacy ratio (CAR)",
+  "prompt": "How is a bank's capital adequacy ratio defined, and what must it be at least?",
+  "latex": "\\mathrm{CAR} = \\frac{\\text{capital}}{\\text{risk-weighted assets}} \\geq \\alpha",
+  "variables": [
+   {
+    "symbol": "\\mathrm{CAR}",
+    "meaning": "capital adequacy ratio; higher means a larger buffer to absorb losses"
+   },
+   {
+    "symbol": "\\text{capital}",
+    "meaning": "Tier 1 plus Tier 2 capital"
+   },
+   {
+    "symbol": "\\text{risk-weighted assets}",
+    "meaning": "RWA: assets weighted by riskiness (standardized weights or IRB)"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "regulatory minimum: 8% under Basel II, 10.5% under Basel III"
+   }
+  ],
+  "skeleton": "\\mathrm{CAR} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{capital}",
+   "\\text{risk-weighted assets}",
+   "\\alpha"
+  ],
+  "decoys": [
+   "\\text{total assets}",
+   "\\mathrm{EL}",
+   "\\text{total exposure}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{CAR} = \\frac{\\text{risk-weighted assets}}{\\text{capital}} \\geq \\alpha",
+    "kind": "inverted",
+    "why": "Capital is the buffer, so it goes on top; RWA is what it has to cover."
+   },
+   {
+    "latex": "\\mathrm{CAR} = \\frac{\\text{capital}}{\\text{total assets}} \\geq \\alpha",
+    "kind": "wrong-variable",
+    "why": "CAR uses risk-weighted assets, not unweighted total assets."
+   },
+   {
+    "latex": "\\mathrm{CAR} = \\frac{\\text{capital}}{\\text{risk-weighted assets}} \\leq \\alpha",
+    "kind": "sign",
+    "why": "The regulator sets a floor, not a cap: CAR must be at least the minimum."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{capital}",
+    "direction": "up",
+    "why": "More Tier 1 and Tier 2 capital raises the buffer against the same risk."
+   },
+   {
+    "variable": "\\text{risk-weighted assets}",
+    "direction": "down",
+    "why": "Riskier assets need more capital, so the same capital covers a smaller share."
+   }
+  ],
+  "intuition": "Capital over risk-adjusted assets: the buffer measured against how risky the balance sheet is, floored at 8% (Basel II) or 10.5% (Basel III).",
+  "calc": {
+   "expr": "100 * CAP / RWA",
+   "inputs": [
+    {
+     "name": "CAP",
+     "symbol": "\\text{capital}",
+     "min": 1,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$bn"
+    },
+    {
+     "name": "RWA",
+     "symbol": "\\text{risk-weighted assets}",
+     "min": 10,
+     "max": 1000,
+     "step": 5,
+     "unit": "$bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{CAR}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "capital adequacy",
+   "RWA",
+   "Basel"
+  ]
+ },
+ {
+  "id": "CR-5-F03",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 310,
+  "objective": "CR-5 e",
+  "name": "Merton: equity payoff at T (long call on firm assets)",
+  "prompt": "In the Merton model, what are shareholders worth at the debt's maturity, given the firm's asset value and the debt's face value?",
+  "latex": "S_T = \\max(V_T - F, 0)",
+  "variables": [
+   {
+    "symbol": "S_T",
+    "meaning": "value of equity at T"
+   },
+   {
+    "symbol": "V_T",
+    "meaning": "value of the firm's assets at time T"
+   },
+   {
+    "symbol": "F",
+    "meaning": "principal amount due on the zero-coupon bond (face value of debt; the strike)"
+   }
+  ],
+  "skeleton": "S_T = \\max( {{1}} - {{2}}, {{3}} )",
+  "slots": [
+   "V_T",
+   "F",
+   "0"
+  ],
+  "decoys": [
+   "V_0",
+   "D_T",
+   "E_0"
+  ],
+  "corruptions": [
+   {
+    "latex": "S_T = \\max(F - V_T, 0)",
+    "kind": "inverted",
+    "why": "That is a put payoff; equity is a call that pays when assets exceed the debt."
+   },
+   {
+    "latex": "S_T = V_T - F",
+    "kind": "missing-term",
+    "why": "Without the floor at zero, equity could be negative; limited liability means shareholders just walk away."
+   },
+   {
+    "latex": "S_T = \\min(V_T - F, 0)",
+    "kind": "wrong-variable",
+    "why": "min would make equity never positive; it is the max that caps the downside at zero."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "V_T",
+    "direction": "depends",
+    "why": "Rises one-for-one with V_T when V_T exceeds F; flat at zero when V_T is below F."
+   },
+   {
+    "variable": "F",
+    "direction": "depends",
+    "why": "Falls one-for-one with F while V_T exceeds F; no effect once equity is already worthless."
+   }
+  ],
+  "intuition": "Equity is a call struck at the debt: shareholders keep everything above F and walk away with zero below it.",
+  "calc": {
+   "expr": "Math.max(VT - F, 0)",
+   "inputs": [
+    {
+     "name": "VT",
+     "symbol": "V_T",
+     "min": 0,
+     "max": 200,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "F",
+     "symbol": "F",
+     "min": 10,
+     "max": 150,
+     "step": 5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "S_T",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "VT": 60,
+     "F": 50
+    },
+    "output": 10,
+    "source_line": 360
+   }
+  },
+  "tags": [
+   "Merton model",
+   "structural",
+   "option payoff"
+  ]
+ },
+ {
+  "id": "CR-5-F04",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 310,
+  "objective": "CR-5 e",
+  "name": "Merton: debt payoff at T (face less a short put)",
+  "prompt": "In the Merton model, what do debtholders receive at maturity, written as the face value adjusted by an option payoff?",
+  "latex": "D_T = F - \\max(F - V_T, 0)",
+  "variables": [
+   {
+    "symbol": "D_T",
+    "meaning": "value of debt at T"
+   },
+   {
+    "symbol": "F",
+    "meaning": "principal amount due on the zero-coupon bond (face value of debt; the strike)"
+   },
+   {
+    "symbol": "V_T",
+    "meaning": "value of the firm's assets at time T"
+   }
+  ],
+  "skeleton": "D_T = {{1}} - {{2}}(F - {{3}}, 0)",
+  "slots": [
+   "F",
+   "\\max",
+   "V_T"
+  ],
+  "decoys": [
+   "\\min",
+   "S_T",
+   "V_0"
+  ],
+  "corruptions": [
+   {
+    "latex": "D_T = F + \\max(F - V_T, 0)",
+    "kind": "sign",
+    "why": "Debtholders are short the put: the shortfall is deducted from the face value, not added."
+   },
+   {
+    "latex": "D_T = F - \\max(V_T - F, 0)",
+    "kind": "inverted",
+    "why": "Subtracting a call would penalise debtholders when the firm does well; it is the put (shortfall) that is deducted."
+   },
+   {
+    "latex": "D_T = \\max(F - V_T, 0)",
+    "kind": "missing-term",
+    "why": "That is only the put payoff; debt is the face value minus it."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "V_T",
+    "direction": "depends",
+    "why": "Rises one-for-one with V_T while V_T is below F; capped at F once V_T exceeds F."
+   },
+   {
+    "variable": "F",
+    "direction": "depends",
+    "why": "Rises with F while V_T exceeds F; once V_T is below F, debtholders get V_T regardless of F."
+   }
+  ],
+  "intuition": "Debtholders are promised F but are short a put struck at F: below F they take the whole firm, above F they are capped at F.",
+  "calc": {
+   "expr": "F - Math.max(F - VT, 0)",
+   "inputs": [
+    {
+     "name": "F",
+     "symbol": "F",
+     "min": 10,
+     "max": 150,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "VT",
+     "symbol": "V_T",
+     "min": 0,
+     "max": 200,
+     "step": 5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "D_T",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "F": 50,
+     "VT": 40
+    },
+    "output": 40,
+    "source_line": 370
+   }
+  },
+  "tags": [
+   "Merton model",
+   "structural",
+   "option payoff"
+  ]
+ },
+ {
+  "id": "CR-5-F05",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 380,
+  "objective": "CR-5 e",
+  "name": "Merton: equity value today as a BSM call on firm assets",
+  "prompt": "Using Black-Scholes-Merton with no dividends, what is the firm's equity worth today in terms of asset value and debt?",
+  "latex": "E_0 = V_0 N(d_1) - D e^{-rT} N(d_2)",
+  "variables": [
+   {
+    "symbol": "E_0",
+    "meaning": "current value of the firm's equity"
+   },
+   {
+    "symbol": "V_0",
+    "meaning": "current value of the firm's assets"
+   },
+   {
+    "symbol": "D",
+    "meaning": "total debt to be repaid at time T (face value; the strike)"
+   },
+   {
+    "symbol": "r",
+    "meaning": "risk-free rate (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time to repayment in years"
+   },
+   {
+    "symbol": "N(\\cdot)",
+    "meaning": "cumulative standard normal distribution function"
+   },
+   {
+    "symbol": "d_1",
+    "meaning": "BSM d_1 = [ln(V_0/D) + (r + sigma_V^2/2)T] / (sigma_V root T), with sigma_V the asset volatility"
+   },
+   {
+    "symbol": "d_2",
+    "meaning": "BSM d_2 = d_1 - sigma_V root T; equals the distance to default"
+   }
+  ],
+  "skeleton": "E_0 = {{1}} N(d_1) - {{2}} e^{ {{3}} } N( {{4}} )",
+  "slots": [
+   "V_0",
+   "D",
+   "-rT",
+   "d_2"
+  ],
+  "decoys": [
+   "rT",
+   "V_T",
+   "-d_2"
+  ],
+  "corruptions": [
+   {
+    "latex": "E_0 = V_0 N(d_2) - D e^{-rT} N(d_1)",
+    "kind": "sibling",
+    "why": "N(d_1) goes with the asset value and N(d_2) with the discounted strike, not the other way round."
+   },
+   {
+    "latex": "E_0 = V_0 N(d_1) + D e^{-rT} N(d_2)",
+    "kind": "sign",
+    "why": "Equity is a call: the discounted debt is paid out, so it is subtracted."
+   },
+   {
+    "latex": "E_0 = V_0 N(d_1) - D e^{rT} N(d_2)",
+    "kind": "sign",
+    "why": "The debt is repaid at T, so it is discounted with e^{-rT}, not compounded."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "V_0",
+    "direction": "up",
+    "why": "A call is worth more when the underlying (firm assets) is worth more."
+   },
+   {
+    "variable": "D",
+    "direction": "down",
+    "why": "A higher strike (more debt ahead of equity) lowers the call value."
+   },
+   {
+    "variable": "r",
+    "direction": "up",
+    "why": "A higher rate lowers the present value of the debt to be repaid, raising the call value."
+   }
+  ],
+  "intuition": "Equity is a call on the firm: asset value weighted by N(d_1) minus the present value of the debt weighted by N(d_2).",
+  "calc": null,
+  "tags": [
+   "Merton model",
+   "BSM",
+   "equity as call"
+  ]
+ },
+ {
+  "id": "CR-5-F06",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 381,
+  "objective": "CR-5 e",
+  "name": "Merton: d1",
+  "prompt": "In the Merton equity-as-a-call formula, how is d_1 computed from assets, debt, the risk-free rate, asset volatility and time?",
+  "latex": "d_1 = \\frac{\\ln(V_0/D) + \\bigl(r + \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+  "variables": [
+   {
+    "symbol": "d_1",
+    "meaning": "BSM d_1 for equity as a call on firm assets"
+   },
+   {
+    "symbol": "V_0",
+    "meaning": "current value of the firm's assets"
+   },
+   {
+    "symbol": "D",
+    "meaning": "total debt to be repaid at time T"
+   },
+   {
+    "symbol": "r",
+    "meaning": "risk-free rate (decimal)"
+   },
+   {
+    "symbol": "\\sigma_V",
+    "meaning": "asset volatility (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time to repayment in years"
+   }
+  ],
+  "skeleton": "d_1 = \\frac{\\ln( {{1}} ) + \\bigl(r {{2}} \\sigma_V^{2}/2\\bigr)T}{ {{3}} }",
+  "slots": [
+   "V_0/D",
+   "+",
+   "\\sigma_V\\sqrt{T}"
+  ],
+  "decoys": [
+   "-",
+   "D/V_0",
+   "\\sigma_V T",
+   "\\sigma_E\\sqrt{T}"
+  ],
+  "corruptions": [
+   {
+    "latex": "d_1 = \\frac{\\ln(V_0/D) + \\bigl(r - \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+    "kind": "sibling",
+    "why": "With minus sigma-squared-over-two this is d_2 (the distance to default), not d_1."
+   },
+   {
+    "latex": "d_1 = \\frac{\\ln(D/V_0) + \\bigl(r + \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+    "kind": "inverted",
+    "why": "The log ratio is assets over debt: more assets relative to debt must raise d_1."
+   },
+   {
+    "latex": "d_1 = \\frac{\\ln(V_0/D) + \\bigl(r + \\sigma_V^{2}/2\\bigr)T}{\\sigma_V T}",
+    "kind": "exponent",
+    "why": "Volatility scales with the square root of time, so the denominator is sigma times root T."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "V_0",
+    "direction": "up",
+    "why": "More assets relative to debt pushes the call deeper in the money."
+   },
+   {
+    "variable": "D",
+    "direction": "down",
+    "why": "More debt moves the strike up and the call out of the money."
+   },
+   {
+    "variable": "r",
+    "direction": "up",
+    "why": "A higher drift increases the numerator."
+   }
+  ],
+  "intuition": "Log-moneyness of assets over debt plus drift (with +half variance), measured in units of asset volatility over the horizon.",
+  "calc": {
+   "expr": "(Math.log(V0 / D) + (r + sV ** 2 / 2) * T) / (sV * Math.sqrt(T))",
+   "inputs": [
+    {
+     "name": "V0",
+     "symbol": "V_0",
+     "min": 50,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "D",
+     "symbol": "D",
+     "min": 10,
+     "max": 400,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "sV",
+     "symbol": "\\sigma_V",
+     "min": 0.05,
+     "max": 0.8,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "T",
+     "symbol": "T",
+     "min": 0.5,
+     "max": 10,
+     "step": 0.5,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "d_1",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "Merton model",
+   "BSM"
+  ]
+ },
+ {
+  "id": "CR-5-F07",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 383,
+  "objective": "CR-5 e",
+  "name": "Merton: d2 from d1",
+  "prompt": "How is d_2 obtained from d_1 in the Merton/BSM equity formula?",
+  "latex": "d_2 = d_1 - \\sigma_V\\sqrt{T}",
+  "variables": [
+   {
+    "symbol": "d_2",
+    "meaning": "BSM d_2; equals the distance to default"
+   },
+   {
+    "symbol": "d_1",
+    "meaning": "BSM d_1"
+   },
+   {
+    "symbol": "\\sigma_V",
+    "meaning": "asset volatility (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time to repayment in years"
+   }
+  ],
+  "skeleton": "d_2 = {{1}} - {{2}}\\sqrt{ {{3}} }",
+  "slots": [
+   "d_1",
+   "\\sigma_V",
+   "T"
+  ],
+  "decoys": [
+   "\\sigma_V^2",
+   "\\sigma_E",
+   "r"
+  ],
+  "corruptions": [
+   {
+    "latex": "d_2 = d_1 + \\sigma_V\\sqrt{T}",
+    "kind": "sign",
+    "why": "d_2 is always below d_1: one volatility-over-the-horizon is subtracted."
+   },
+   {
+    "latex": "d_2 = d_1 - \\sigma_V T",
+    "kind": "exponent",
+    "why": "Volatility scales with root T, not T."
+   },
+   {
+    "latex": "d_2 = d_1 - \\sigma_E\\sqrt{T}",
+    "kind": "wrong-variable",
+    "why": "The Merton model is on firm assets, so asset volatility, not equity volatility, is used."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "d_1",
+    "direction": "up",
+    "why": "d_2 moves one-for-one with d_1."
+   },
+   {
+    "variable": "\\sigma_V",
+    "direction": "down",
+    "why": "A larger volatility gap is subtracted."
+   },
+   {
+    "variable": "T",
+    "direction": "down",
+    "why": "Holding d_1 fixed, a longer horizon subtracts more."
+   }
+  ],
+  "intuition": "d_2 sits exactly one horizon-volatility below d_1.",
+  "calc": {
+   "expr": "d1 - sV * Math.sqrt(T)",
+   "inputs": [
+    {
+     "name": "d1",
+     "symbol": "d_1",
+     "min": -2,
+     "max": 4,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "sV",
+     "symbol": "\\sigma_V",
+     "min": 0.05,
+     "max": 0.8,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "T",
+     "symbol": "T",
+     "min": 0.5,
+     "max": 10,
+     "step": 0.5,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "d_2",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "Merton model",
+   "BSM"
+  ]
+ },
+ {
+  "id": "CR-5-F08",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 397,
+  "objective": "CR-5 e",
+  "name": "Merton: distance to default (DtD = d2)",
+  "prompt": "How many standard deviations are the firm's assets away from the face value of its debt in the Merton model?",
+  "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + \\bigl(r - \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{DtD}",
+    "meaning": "distance to default: number of standard deviations assets are from the default point; higher DtD means lower PD"
+   },
+   {
+    "symbol": "d_2",
+    "meaning": "BSM d_2"
+   },
+   {
+    "symbol": "V_0",
+    "meaning": "current value of the firm's assets"
+   },
+   {
+    "symbol": "D",
+    "meaning": "total debt to be repaid at time T (the default point)"
+   },
+   {
+    "symbol": "r",
+    "meaning": "risk-free rate (decimal)"
+   },
+   {
+    "symbol": "\\sigma_V",
+    "meaning": "asset volatility (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time to repayment in years"
+   }
+  ],
+  "skeleton": "\\mathrm{DtD} = d_2 = \\frac{\\ln( {{1}} ) - \\ln( {{2}} ) + \\bigl(r {{3}} \\sigma_V^{2}/2\\bigr)T}{ {{4}} }",
+  "slots": [
+   "V_0",
+   "D",
+   "-",
+   "\\sigma_V\\sqrt{T}"
+  ],
+  "decoys": [
+   "+",
+   "\\sigma_V T",
+   "E_0"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + \\bigl(r + \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+    "kind": "sibling",
+    "why": "Plus half the variance gives d_1; the distance to default is d_2, with minus."
+   },
+   {
+    "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(D) - \\ln(V_0) + \\bigl(r - \\sigma_V^{2}/2\\bigr)T}{\\sigma_V\\sqrt{T}}",
+    "kind": "inverted",
+    "why": "Assets minus debt in logs: a firm with more assets must be further from default."
+   },
+   {
+    "latex": "\\mathrm{DtD} = d_2 = \\frac{\\ln(V_0) - \\ln(D) + \\bigl(r - \\sigma_V^{2}/2\\bigr)T}{\\sigma_V}",
+    "kind": "missing-term",
+    "why": "The standard deviation over the horizon is sigma times root T; dropping root T mis-scales the distance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "V_0",
+    "direction": "up",
+    "why": "More assets relative to debt moves the firm further from default."
+   },
+   {
+    "variable": "D",
+    "direction": "down",
+    "why": "A higher default point brings the firm closer to it."
+   },
+   {
+    "variable": "r",
+    "direction": "up",
+    "why": "A higher drift raises expected terminal assets."
+   },
+   {
+    "variable": "\\sigma_V",
+    "direction": "depends",
+    "why": "For a solvent firm (V_0 e^{rT} above D) higher volatility lowers DtD; for a deeply distressed firm it can raise it."
+   }
+  ],
+  "intuition": "Log-distance from assets to the debt, plus drift, in units of asset volatility: more sigmas away means less likely to default.",
+  "calc": {
+   "expr": "(Math.log(V0) - Math.log(D) + (r - sV ** 2 / 2) * T) / (sV * Math.sqrt(T))",
+   "inputs": [
+    {
+     "name": "V0",
+     "symbol": "V_0",
+     "min": 50,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "D",
+     "symbol": "D",
+     "min": 10,
+     "max": 400,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "r",
+     "symbol": "r",
+     "min": 0,
+     "max": 0.1,
+     "step": 0.005,
+     "unit": "decimal"
+    },
+    {
+     "name": "sV",
+     "symbol": "\\sigma_V",
+     "min": 0.05,
+     "max": 0.8,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "T",
+     "symbol": "T",
+     "min": 0.5,
+     "max": 10,
+     "step": 0.5,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{DtD}",
+    "unit": "std devs",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "Merton model",
+   "distance to default"
+  ]
+ },
+ {
+  "id": "CR-5-F09",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 417,
+  "objective": "CR-5 e",
+  "name": "Merton: risk-neutral probability of default",
+  "prompt": "In the Merton model, what is the risk-neutral probability that the firm defaults, in terms of d_2?",
+  "latex": "\\text{Risk-neutral PD} = N(-d_2) = 1 - N(d_2)",
+  "variables": [
+   {
+    "symbol": "\\text{Risk-neutral PD}",
+    "meaning": "probability shareholders do not exercise their option to repay (assets grow at the risk-free rate)"
+   },
+   {
+    "symbol": "N(\\cdot)",
+    "meaning": "cumulative standard normal distribution function"
+   },
+   {
+    "symbol": "d_2",
+    "meaning": "BSM d_2 = distance to default"
+   }
+  ],
+  "skeleton": "\\text{Risk-neutral PD} = N( {{1}} ) = {{2}} - N( {{3}} )",
+  "slots": [
+   "-d_2",
+   "1",
+   "d_2"
+  ],
+  "decoys": [
+   "-d_1",
+   "d_1",
+   "0"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Risk-neutral PD} = N(d_2) = 1 - N(-d_2)",
+    "kind": "sign",
+    "why": "N(d_2) is the probability the call is exercised (no default); PD is its complement."
+   },
+   {
+    "latex": "\\text{Risk-neutral PD} = N(-d_1) = 1 - N(d_1)",
+    "kind": "sibling",
+    "why": "The exercise probability of the call uses d_2, not d_1."
+   },
+   {
+    "latex": "\\text{Risk-neutral PD} = N(-d_2) = 1 + N(d_2)",
+    "kind": "sign",
+    "why": "A probability cannot exceed one; the complement is 1 minus N(d_2)."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "d_2",
+    "direction": "down",
+    "why": "A larger distance to default means a lower probability of default."
+   }
+  ],
+  "intuition": "Default is the call finishing out of the money: the left tail beyond minus the distance to default.",
+  "calc": null,
+  "tags": [
+   "Merton model",
+   "probability of default"
+  ]
+ },
+ {
+  "id": "CR-5-F10",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 418,
+  "objective": "CR-5 e",
+  "name": "Merton: real-world probability of default",
+  "prompt": "How does the Merton PD change when you use the firm's expected asset return instead of the risk-free rate?",
+  "latex": "\\text{Real-world PD} = N\\left[-\\frac{\\ln\\left(\\dfrac{A}{L}\\right) + \\left(\\mu - \\dfrac{\\sigma_A^{2}}{2}\\right)T}{\\sigma_A\\sqrt{T}}\\right]",
+  "variables": [
+   {
+    "symbol": "\\text{Real-world PD}",
+    "meaning": "probability of default under real-world (physical) dynamics"
+   },
+   {
+    "symbol": "N(\\cdot)",
+    "meaning": "cumulative standard normal distribution function"
+   },
+   {
+    "symbol": "A",
+    "meaning": "current market value of the firm's assets"
+   },
+   {
+    "symbol": "L",
+    "meaning": "face value of the debt (the default point)"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "expected return on the firm's assets (decimal)"
+   },
+   {
+    "symbol": "\\sigma_A",
+    "meaning": "asset volatility (decimal)"
+   },
+   {
+    "symbol": "T",
+    "meaning": "time horizon in years"
+   }
+  ],
+  "skeleton": "\\text{Real-world PD} = N\\left[-\\frac{\\ln\\left(\\dfrac{ {{1}} }{ {{2}} }\\right) + \\left( {{3}} - \\dfrac{\\sigma_A^{2}}{2}\\right)T}{ {{4}} }\\right]",
+  "slots": [
+   "A",
+   "L",
+   "\\mu",
+   "\\sigma_A\\sqrt{T}"
+  ],
+  "decoys": [
+   "r",
+   "\\sigma_E\\sqrt{T}",
+   "E_0"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Real-world PD} = N\\left[-\\frac{\\ln\\left(\\dfrac{A}{L}\\right) + \\left(r - \\dfrac{\\sigma_A^{2}}{2}\\right)T}{\\sigma_A\\sqrt{T}}\\right]",
+    "kind": "sibling",
+    "why": "With r this is the risk-neutral PD; the real-world version swaps r for the expected asset return mu."
+   },
+   {
+    "latex": "\\text{Real-world PD} = N\\left[\\frac{\\ln\\left(\\dfrac{A}{L}\\right) + \\left(\\mu - \\dfrac{\\sigma_A^{2}}{2}\\right)T}{\\sigma_A\\sqrt{T}}\\right]",
+    "kind": "sign",
+    "why": "Without the leading minus this is the survival probability N(d_2), not the PD."
+   },
+   {
+    "latex": "\\text{Real-world PD} = N\\left[-\\frac{\\ln\\left(\\dfrac{A}{L}\\right) + \\left(\\mu + \\dfrac{\\sigma_A^{2}}{2}\\right)T}{\\sigma_A\\sqrt{T}}\\right]",
+    "kind": "sign",
+    "why": "The drift term in d_2 carries minus half the variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "A",
+    "direction": "down",
+    "why": "More assets relative to the default point lowers the default probability."
+   },
+   {
+    "variable": "L",
+    "direction": "up",
+    "why": "A higher default point makes default more likely."
+   },
+   {
+    "variable": "\\mu",
+    "direction": "down",
+    "why": "Faster expected asset growth moves the firm away from default."
+   },
+   {
+    "variable": "\\sigma_A",
+    "direction": "depends",
+    "why": "Higher volatility raises PD for a firm whose expected assets exceed L (the usual case); it can lower it for a firm already expected to be below L."
+   }
+  ],
+  "intuition": "Same N(-d_2), but the assets drift at the expected return mu instead of the risk-free rate.",
+  "calc": null,
+  "tags": [
+   "Merton model",
+   "probability of default",
+   "real-world"
+  ]
+ },
+ {
+  "id": "CR-5-F11",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 494,
+  "objective": "CR-5 f",
+  "name": "CreditRisk+: Poisson probability of m defaults",
+  "prompt": "In CreditRisk+, with n loans each with small default probability q, what is the probability of exactly m defaults in a year?",
+  "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{-qn}(qn)^{m}}{m!}",
+  "variables": [
+   {
+    "symbol": "\\text{Prob}(m \\text{ defaults})",
+    "meaning": "probability of exactly m defaults over the year"
+   },
+   {
+    "symbol": "q",
+    "meaning": "(average) probability of default of each loan during the year (decimal, small)"
+   },
+   {
+    "symbol": "n",
+    "meaning": "number of loans (large)"
+   },
+   {
+    "symbol": "m",
+    "meaning": "number of defaults"
+   },
+   {
+    "symbol": "qn",
+    "meaning": "expected number of defaults"
+   }
+  ],
+  "skeleton": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{ {{1}} }( {{2}} )^{ {{3}} }}{ {{4}} }",
+  "slots": [
+   "-qn",
+   "qn",
+   "m",
+   "m!"
+  ],
+  "decoys": [
+   "n!",
+   "q",
+   "-m",
+   "(qn)!"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{qn}(qn)^{m}}{m!}",
+    "kind": "sign",
+    "why": "The Poisson weight is e to the minus the mean; e^{+qn} would give probabilities above one."
+   },
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = \\frac{e^{-qn}(qn)^{m}}{n!}",
+    "kind": "wrong-variable",
+    "why": "The factorial is of the number of defaults m, not the number of loans n."
+   },
+   {
+    "latex": "\\text{Prob}(m \\text{ defaults}) = e^{-qn}(qn)^{m}",
+    "kind": "missing-term",
+    "why": "Without dividing by m! the probabilities do not sum to one."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "q",
+    "direction": "depends",
+    "why": "Raising q raises the probability of many defaults (m above qn) and lowers the probability of few defaults (m below qn)."
+   }
+  ],
+  "intuition": "Insurance maths for loans: Poisson with mean qn, the expected number of defaults.",
+  "calc": null,
+  "tags": [
+   "CreditRisk+",
+   "Poisson",
+   "default count"
+  ]
+ },
+ {
+  "id": "CR-5-F12",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 551,
+  "objective": "CR-5 g",
+  "name": "RAROC (loan revenues over capital at risk)",
+  "prompt": "How is the risk-adjusted return on capital of a loan defined?",
+  "latex": "\\mathrm{RAROC} = \\frac{\\text{loan revenues}}{\\text{capital at risk}}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{RAROC}",
+    "meaning": "risk-adjusted return on capital; the loan is profitable if it exceeds the bank's cost of capital"
+   },
+   {
+    "symbol": "\\text{loan revenues}",
+    "meaning": "after-tax income from the loan: loan value x (s + f - l - c)(1 - x)"
+   },
+   {
+    "symbol": "\\text{capital at risk}",
+    "meaning": "capital needed to cover the risk: |Delta L| from duration, or the unexpected loan loss"
+   }
+  ],
+  "skeleton": "\\mathrm{RAROC} = \\frac{ {{1}} }{ {{2}} }",
+  "slots": [
+   "\\text{loan revenues}",
+   "\\text{capital at risk}"
+  ],
+  "decoys": [
+   "\\text{loan value}",
+   "\\text{expected loss}",
+   "\\text{risk-weighted assets}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{RAROC} = \\frac{\\text{capital at risk}}{\\text{loan revenues}}",
+    "kind": "inverted",
+    "why": "RAROC is a return: income on top, capital underneath."
+   },
+   {
+    "latex": "\\mathrm{RAROC} = \\frac{\\text{loan revenues}}{\\text{loan value}}",
+    "kind": "wrong-variable",
+    "why": "Dividing by loan value gives a plain return on the loan; RAROC divides by the capital at risk."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{loan revenues}",
+    "direction": "up",
+    "why": "More after-tax income on the same capital."
+   },
+   {
+    "variable": "\\text{capital at risk}",
+    "direction": "down",
+    "why": "More capital tied up for the same income."
+   }
+  ],
+  "intuition": "Return per dollar of risk capital: compare it with the bank's cost of capital to decide whether the loan pays.",
+  "calc": {
+   "expr": "100 * REV / CAR",
+   "inputs": [
+    {
+     "name": "REV",
+     "symbol": "\\text{loan revenues}",
+     "min": 100,
+     "max": 100000,
+     "step": 0.5,
+     "unit": "$"
+    },
+    {
+     "name": "CAR",
+     "symbol": "\\text{capital at risk}",
+     "min": 1000,
+     "max": 500000,
+     "step": 0.01,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{RAROC}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "REV": 4889.5,
+     "CAR": 50904.98
+    },
+    "output": 9.61,
+    "source_line": 580
+   }
+  },
+  "tags": [
+   "RAROC",
+   "loan performance"
+  ]
+ },
+ {
+  "id": "CR-5-F13",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 552,
+  "objective": "CR-5 g",
+  "name": "RAROC numerator: after-tax loan revenues",
+  "prompt": "What after-tax revenue does a loan generate from its spread, fees, expected losses, operating costs and tax rate?",
+  "latex": "\\text{loan revenues} = \\text{loan value} \\times (s + f - l - c)(1-x)",
+  "variables": [
+   {
+    "symbol": "\\text{loan revenues}",
+    "meaning": "after-tax loan revenue, in dollars"
+   },
+   {
+    "symbol": "\\text{loan value}",
+    "meaning": "value of the loan L, in dollars"
+   },
+   {
+    "symbol": "s",
+    "meaning": "spread between the loan rate and the bank's cost of capital (decimal)"
+   },
+   {
+    "symbol": "f",
+    "meaning": "fees attributable to the loan (decimal)"
+   },
+   {
+    "symbol": "l",
+    "meaning": "expected loan losses (decimal)"
+   },
+   {
+    "symbol": "c",
+    "meaning": "operating costs (decimal)"
+   },
+   {
+    "symbol": "x",
+    "meaning": "tax rate (decimal)"
+   }
+  ],
+  "skeleton": "\\text{loan revenues} = {{1}} \\times (s + {{2}} - {{3}} - c){{4}}",
+  "slots": [
+   "\\text{loan value}",
+   "f",
+   "l",
+   "(1-x)"
+  ],
+  "decoys": [
+   "x",
+   "(1+x)",
+   "\\Delta i",
+   "D"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{loan revenues} = \\text{loan value} \\times (s + f + l - c)(1-x)",
+    "kind": "sign",
+    "why": "Expected loan losses reduce revenue, so l is subtracted."
+   },
+   {
+    "latex": "\\text{loan revenues} = \\text{loan value} \\times (s + f - l - c)(1+x)",
+    "kind": "sign",
+    "why": "Tax takes a share away: the after-tax factor is 1 - x."
+   },
+   {
+    "latex": "\\text{loan revenues} = \\text{loan value} \\times (s + f - l - c)",
+    "kind": "missing-term",
+    "why": "The (1 - x) tax factor multiplies the whole bracket; leaving it out gives pre-tax revenue."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{loan value}",
+    "direction": "up",
+    "why": "A bigger loan earns the same margin on more dollars."
+   },
+   {
+    "variable": "s",
+    "direction": "up",
+    "why": "A wider spread is more income."
+   },
+   {
+    "variable": "f",
+    "direction": "up",
+    "why": "More fees add to income."
+   },
+   {
+    "variable": "l",
+    "direction": "down",
+    "why": "Higher expected losses eat into revenue."
+   },
+   {
+    "variable": "c",
+    "direction": "down",
+    "why": "Higher operating costs eat into revenue."
+   },
+   {
+    "variable": "x",
+    "direction": "down",
+    "why": "A higher tax rate leaves less after tax."
+   }
+  ],
+  "intuition": "Spread plus fees, minus losses and costs, after tax, on the loan amount: add the two S/F earners, subtract the two L/C drains, then tax the lot.",
+  "calc": {
+   "expr": "L * (s + f - l - c) * (1 - x)",
+   "inputs": [
+    {
+     "name": "L",
+     "symbol": "\\text{loan value}",
+     "min": 100000,
+     "max": 10000000,
+     "step": 100000,
+     "unit": "$"
+    },
+    {
+     "name": "s",
+     "symbol": "s",
+     "min": 0,
+     "max": 0.03,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "f",
+     "symbol": "f",
+     "min": 0,
+     "max": 0.01,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "l",
+     "symbol": "l",
+     "min": 0,
+     "max": 0.02,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "c",
+     "symbol": "c",
+     "min": 0,
+     "max": 0.01,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "x",
+     "symbol": "x",
+     "min": 0,
+     "max": 0.4,
+     "step": 0.001,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{loan revenues}",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "L": 1000000,
+     "s": 0.0065,
+     "f": 0.001,
+     "l": 0,
+     "c": 0.002,
+     "x": 0.111
+    },
+    "output": 4889.5,
+    "source_line": 570
+   }
+  },
+  "tags": [
+   "RAROC",
+   "loan revenues"
+  ]
+ },
+ {
+  "id": "CR-5-F14",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 553,
+  "objective": "CR-5 g",
+  "name": "RAROC denominator: capital at risk via duration (Delta L)",
+  "prompt": "Using the loan's duration, how much could the loan's value change for an expected change in interest rates (the market-based capital at risk)?",
+  "latex": "\\Delta L \\approx -L \\times D \\times \\frac{\\Delta i}{1+i}",
+  "variables": [
+   {
+    "symbol": "\\Delta L",
+    "meaning": "change in loan value; its magnitude is the capital at risk"
+   },
+   {
+    "symbol": "L",
+    "meaning": "loan value, in dollars"
+   },
+   {
+    "symbol": "D",
+    "meaning": "duration of the loan"
+   },
+   {
+    "symbol": "\\Delta i",
+    "meaning": "expected change in interest rates (decimal)"
+   },
+   {
+    "symbol": "i",
+    "meaning": "current interest rate (decimal)"
+   }
+  ],
+  "skeleton": "\\Delta L \\approx -{{1}} \\times {{2}} \\times \\frac{ {{3}} }{ {{4}} }",
+  "slots": [
+   "L",
+   "D",
+   "\\Delta i",
+   "1+i"
+  ],
+  "decoys": [
+   "i",
+   "1+\\Delta i",
+   "x"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\Delta L \\approx -L \\times D \\times \\frac{\\Delta i}{i}",
+    "kind": "wrong-variable",
+    "why": "The rate change is divided by 1 + i, not by i."
+   },
+   {
+    "latex": "\\Delta L \\approx L \\times D \\times \\frac{\\Delta i}{1+i}",
+    "kind": "sign",
+    "why": "A rise in rates lowers the loan's value, so the change is negative."
+   },
+   {
+    "latex": "\\Delta L \\approx -L \\times D \\times \\frac{1+i}{\\Delta i}",
+    "kind": "inverted",
+    "why": "Modified-duration scaling is Delta i over 1 + i."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "L",
+    "direction": "depends",
+    "why": "On the sign of the rate change: for a rate rise (Delta i > 0) a larger loan makes Delta L more negative; for a rate fall it makes the gain larger."
+   },
+   {
+    "variable": "D",
+    "direction": "depends",
+    "why": "On the sign of the rate change: for a rate rise longer duration means a bigger fall in value (Delta L more negative); for a rate fall a bigger gain."
+   },
+   {
+    "variable": "\\Delta i",
+    "direction": "down",
+    "why": "The coefficient -L x D/(1+i) is negative, so a larger expected rate increase means a larger fall in the loan's value."
+   },
+   {
+    "variable": "i",
+    "direction": "depends",
+    "why": "A higher current rate enlarges 1 + i and shrinks the size of Delta L toward zero: Delta L rises for a rate rise, falls for a rate fall."
+   }
+  ],
+  "intuition": "Duration times the rate shock (scaled by 1 + i) times the loan: the value you could lose if rates rise.",
+  "calc": {
+   "expr": "-L * D * di / (1 + i)",
+   "inputs": [
+    {
+     "name": "L",
+     "symbol": "L",
+     "min": 100000,
+     "max": 10000000,
+     "step": 100000,
+     "unit": "$"
+    },
+    {
+     "name": "D",
+     "symbol": "D",
+     "min": 0.25,
+     "max": 10,
+     "step": 0.25,
+     "unit": "years"
+    },
+    {
+     "name": "di",
+     "symbol": "\\Delta i",
+     "min": -0.03,
+     "max": 0.03,
+     "step": 0.0025,
+     "unit": "decimal"
+    },
+    {
+     "name": "i",
+     "symbol": "i",
+     "min": 0,
+     "max": 0.15,
+     "step": 0.005,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\Delta L",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "L": 1000000,
+     "D": 3.75,
+     "di": 0.015,
+     "i": 0.105
+    },
+    "output": -50904.98,
+    "source_line": 576
+   }
+  },
+  "tags": [
+   "RAROC",
+   "duration",
+   "capital at risk"
+  ]
+ },
+ {
+  "id": "CR-5-F15",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 594,
+  "objective": "CR-5 g",
+  "name": "RAROC alternative denominator: unexpected loan loss",
+  "prompt": "Using historical default-rate data instead of market rates, what is the loan's capital at risk (unexpected loan loss)?",
+  "latex": "\\text{unexpected loan loss} = \\alpha \\times \\mathrm{LGD} \\times \\mathrm{EAD}",
+  "variables": [
+   {
+    "symbol": "\\text{unexpected loan loss}",
+    "meaning": "capital at risk used in the RAROC denominator, in dollars"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "adjustment for unexpected default rates from the distribution of historical default rates (2.6 sigma at 99.5% if normal; higher, e.g. 5 or 6, for skewed loan distributions)"
+   },
+   {
+    "symbol": "\\mathrm{LGD}",
+    "meaning": "loss given default (decimal)"
+   },
+   {
+    "symbol": "\\mathrm{EAD}",
+    "meaning": "exposure at default, in dollars"
+   }
+  ],
+  "skeleton": "\\text{unexpected loan loss} = {{1}} \\times {{2}} \\times {{3}}",
+  "slots": [
+   "\\alpha",
+   "\\mathrm{LGD}",
+   "\\mathrm{EAD}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}",
+   "\\mathrm{RR}",
+   "\\Delta i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{unexpected loan loss} = \\mathrm{PD} \\times \\mathrm{LGD} \\times \\mathrm{EAD}",
+    "kind": "sibling",
+    "why": "With PD this is the expected loss; the unexpected loss uses the tail adjustment alpha."
+   },
+   {
+    "latex": "\\text{unexpected loan loss} = \\alpha \\times \\mathrm{RR} \\times \\mathrm{EAD}",
+    "kind": "wrong-variable",
+    "why": "Losses scale with LGD, not the recovery rate."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\alpha",
+    "direction": "up",
+    "why": "A fatter tail of default rates needs more capital."
+   },
+   {
+    "variable": "\\mathrm{LGD}",
+    "direction": "up",
+    "why": "More lost per default means more capital at risk."
+   },
+   {
+    "variable": "\\mathrm{EAD}",
+    "direction": "up",
+    "why": "More exposure means more capital at risk."
+   }
+  ],
+  "intuition": "Expected-loss shape, but with a tail multiplier alpha in place of PD: the loss in a bad year, not an average one.",
+  "calc": null,
+  "tags": [
+   "RAROC",
+   "unexpected loss"
+  ]
+ },
+ {
+  "id": "CR-5-F16",
+  "reading_id": "CR-5",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+  "source_line": 58,
+  "objective": "CR-5 b",
+  "name": "Recovery rate from loss given default",
+  "prompt": "How is the recovery rate on a defaulted loan obtained from its loss given default?",
+  "latex": "\\mathrm{RR} = 100\\% - \\mathrm{LGD}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{RR}",
+    "meaning": "recovery rate: percentage of the loan amount recovered after default"
+   },
+   {
+    "symbol": "\\mathrm{LGD}",
+    "meaning": "loss given default: percentage of the loan amount expected to be unrecoverable after default"
+   }
+  ],
+  "skeleton": "\\mathrm{RR} = {{1}} - {{2}}",
+  "slots": [
+   "100\\%",
+   "\\mathrm{LGD}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}",
+   "\\mathrm{EAD}",
+   "0\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{RR} = 100\\% + \\mathrm{LGD}",
+    "kind": "sign",
+    "why": "Recovery and loss split the loan amount between them, so LGD is subtracted from 100%."
+   },
+   {
+    "latex": "\\mathrm{RR} = 100\\% - \\mathrm{PD}",
+    "kind": "wrong-variable",
+    "why": "100% minus PD is the survival probability; recovery is the complement of the loss severity LGD."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{LGD}",
+    "direction": "down",
+    "why": "Every extra point lost after default is a point not recovered."
+   }
+  ],
+  "intuition": "What you recover and what you lose after default add up to the whole loan.",
+  "calc": {
+   "expr": "100 - LGD",
+   "inputs": [
+    {
+     "name": "LGD",
+     "symbol": "\\mathrm{LGD}",
+     "min": 0,
+     "max": 100,
+     "step": 5,
+     "unit": "%"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{RR}",
+    "unit": "%",
+    "decimals": 0
+   },
+   "example": null
+  },
+  "tags": [
+   "LGD",
+   "recovery rate"
+  ]
+ },
+ {
+  "id": "CR-12-F01",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 65,
+  "objective": "CR-12 b",
+  "name": "Credit-adjusted value of derivatives (no-default value less CVA plus DVA)",
+  "prompt": "What is the value of a derivatives portfolio once possible defaults of both the counterparty and the bank are taken into account?",
+  "latex": "\\text{credit-adjusted value} = f_{nd} - \\mathrm{CVA} + \\mathrm{DVA}",
+  "variables": [
+   {
+    "symbol": "\\text{credit-adjusted value}",
+    "meaning": "value of outstanding transactions allowing for possible defaults"
+   },
+   {
+    "symbol": "f_{nd}",
+    "meaning": "no-default value (e.g. from Black-Scholes-Merton), assuming neither side defaults"
+   },
+   {
+    "symbol": "\\mathrm{CVA}",
+    "meaning": "credit valuation adjustment: PV of the expected cost to the bank of a counterparty default"
+   },
+   {
+    "symbol": "\\mathrm{DVA}",
+    "meaning": "debt valuation adjustment: PV of the expected cost to the counterparty of a bank default"
+   }
+  ],
+  "skeleton": "\\text{credit-adjusted value} = {{1}} {{2}} \\mathrm{CVA} {{3}} \\mathrm{DVA}",
+  "slots": [
+   "f_{nd}",
+   "-",
+   "+"
+  ],
+  "decoys": [
+   "\\times",
+   "\\mathrm{EL}",
+   "\\mathrm{WCDR}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{credit-adjusted value} = f_{nd} + \\mathrm{CVA} - \\mathrm{DVA}",
+    "kind": "sign",
+    "why": "Both signs flipped: the counterparty's default risk costs the bank (minus CVA) and the bank's own default risk benefits it (plus DVA)."
+   },
+   {
+    "latex": "\\text{credit-adjusted value} = f_{nd} - \\mathrm{CVA} - \\mathrm{DVA}",
+    "kind": "sign",
+    "why": "DVA is a cost to the counterparty, which increases the value to the bank, so it is added."
+   },
+   {
+    "latex": "\\text{credit-adjusted value} = f_{nd} - \\mathrm{CVA}",
+    "kind": "missing-term",
+    "why": "The bank's own default (DVA) also enters the credit-adjusted value."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "f_{nd}",
+    "direction": "up",
+    "why": "A higher no-default value passes straight through."
+   },
+   {
+    "variable": "\\mathrm{CVA}",
+    "direction": "down",
+    "why": "More expected cost from the counterparty defaulting lowers the value."
+   },
+   {
+    "variable": "\\mathrm{DVA}",
+    "direction": "up",
+    "why": "The bank's own possible default is a benefit to the bank."
+   }
+  ],
+  "intuition": "Start with the default-free price, pay for their default (minus CVA), get credit for your own (plus DVA).",
+  "calc": {
+   "expr": "fnd - CVA + DVA",
+   "inputs": [
+    {
+     "name": "fnd",
+     "symbol": "f_{nd}",
+     "min": -100,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "CVA",
+     "symbol": "\\mathrm{CVA}",
+     "min": 0,
+     "max": 20,
+     "step": 0.1,
+     "unit": "$M"
+    },
+    {
+     "name": "DVA",
+     "symbol": "\\mathrm{DVA}",
+     "min": 0,
+     "max": 20,
+     "step": 0.1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{credit-adjusted value}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "CVA",
+   "DVA",
+   "counterparty risk"
+  ]
+ },
+ {
+  "id": "CR-12-F02",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 95,
+  "objective": "CR-12 b",
+  "name": "CVA as a discounted sum over subintervals",
+  "prompt": "How is CVA computed by splitting the life of the longest derivative into N subintervals?",
+  "latex": "\\mathrm{CVA} = \\sum_{i=1}^{N} q_i v_i",
+  "variables": [
+   {
+    "symbol": "\\mathrm{CVA}",
+    "meaning": "credit valuation adjustment"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of subintervals the life T of the longest outstanding derivative is divided into"
+   },
+   {
+    "symbol": "q_i",
+    "meaning": "probability of a counterparty default in subinterval i"
+   },
+   {
+    "symbol": "v_i",
+    "meaning": "present value of the loss from a counterparty default in subinterval i"
+   }
+  ],
+  "skeleton": "\\mathrm{CVA} = \\sum_{i=1}^{ {{1}} } {{2}} {{3}}",
+  "slots": [
+   "N",
+   "q_i",
+   "v_i"
+  ],
+  "decoys": [
+   "q_i^{*}",
+   "v_i^{*}",
+   "T"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{CVA} = \\sum_{i=1}^{N} q_i^{*} v_i^{*}",
+    "kind": "sibling",
+    "why": "The starred quantities are for a bank default: that sum is DVA, not CVA."
+   },
+   {
+    "latex": "\\mathrm{CVA} = \\sum_{i=1}^{N} (1-q_i) v_i",
+    "kind": "wrong-variable",
+    "why": "The loss is weighted by the probability of default, not survival."
+   },
+   {
+    "latex": "\\mathrm{CVA} = \\sum_{i=1}^{N} q_i",
+    "kind": "missing-term",
+    "why": "Summing probabilities alone gives a cumulative PD, not a dollar cost; each must be multiplied by the PV of the loss."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "q_i",
+    "direction": "up",
+    "why": "A more likely counterparty default in any subinterval raises CVA."
+   },
+   {
+    "variable": "v_i",
+    "direction": "up",
+    "why": "A larger PV of loss if the counterparty defaults raises CVA."
+   }
+  ],
+  "intuition": "Probability they default in each slice times what you'd lose in that slice, added up.",
+  "calc": null,
+  "tags": [
+   "CVA",
+   "counterparty risk"
+  ]
+ },
+ {
+  "id": "CR-12-F03",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 95,
+  "objective": "CR-12 b",
+  "name": "DVA as a discounted sum over subintervals",
+  "prompt": "How is DVA computed across the N subintervals, using the bank's own default probabilities?",
+  "latex": "\\mathrm{DVA} = \\sum_{i=1}^{N} q_i^{*} v_i^{*}",
+  "variables": [
+   {
+    "symbol": "\\mathrm{DVA}",
+    "meaning": "debt valuation adjustment"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of subintervals the life T of the longest outstanding derivative is divided into"
+   },
+   {
+    "symbol": "q_i^{*}",
+    "meaning": "probability of a bank default in subinterval i"
+   },
+   {
+    "symbol": "v_i^{*}",
+    "meaning": "present value of the resulting loss to the counterparty from a bank default in subinterval i"
+   }
+  ],
+  "skeleton": "\\mathrm{DVA} = \\sum_{i=1}^{ {{1}} } {{2}} {{3}}",
+  "slots": [
+   "N",
+   "q_i^{*}",
+   "v_i^{*}"
+  ],
+  "decoys": [
+   "q_i",
+   "v_i",
+   "T"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{DVA} = \\sum_{i=1}^{N} q_i v_i",
+    "kind": "sibling",
+    "why": "Unstarred q_i and v_i refer to a counterparty default: that sum is CVA."
+   },
+   {
+    "latex": "\\mathrm{DVA} = \\sum_{i=1}^{N} q_i^{*} v_i",
+    "kind": "wrong-variable",
+    "why": "Mixes the bank's default probability with the loss from the counterparty's default."
+   },
+   {
+    "latex": "\\mathrm{DVA} = \\sum_{i=1}^{N} v_i^{*}",
+    "kind": "missing-term",
+    "why": "Each PV of loss must be weighted by the probability of the bank defaulting in that subinterval."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "q_i^{*}",
+    "direction": "up",
+    "why": "A more likely bank default raises DVA (a benefit to the bank)."
+   },
+   {
+    "variable": "v_i^{*}",
+    "direction": "up",
+    "why": "A larger PV of loss to the counterparty from a bank default raises DVA."
+   }
+  ],
+  "intuition": "The mirror image of CVA: the same sum, starred, for your own default.",
+  "calc": null,
+  "tags": [
+   "DVA",
+   "counterparty risk"
+  ]
+ },
+ {
+  "id": "CR-12-F04",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 107,
+  "objective": "CR-12 c",
+  "name": "Hazard rate from the credit spread",
+  "prompt": "How do you back out an average default intensity from a bond's credit spread and the recovery rate?",
+  "latex": "\\bar{\\lambda} = s(T)/(1-\\mathrm{RR})",
+  "variables": [
+   {
+    "symbol": "\\bar{\\lambda}",
+    "meaning": "average hazard rate (default intensity) per year up to T"
+   },
+   {
+    "symbol": "s(T)",
+    "meaning": "credit spread for maturity T (decimal, per year)"
+   },
+   {
+    "symbol": "\\mathrm{RR}",
+    "meaning": "recovery rate (decimal)"
+   }
+  ],
+  "skeleton": "\\bar{\\lambda} = {{1}}/(1- {{2}})",
+  "slots": [
+   "s(T)",
+   "\\mathrm{RR}"
+  ],
+  "decoys": [
+   "\\mathrm{LGD}",
+   "\\mathrm{PD}",
+   "T"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\bar{\\lambda} = s(T)/\\mathrm{RR}",
+    "kind": "wrong-variable",
+    "why": "The spread compensates for the loss, so divide by the loss rate 1 - RR, not the recovery rate."
+   },
+   {
+    "latex": "\\bar{\\lambda} = s(T)\\times(1-\\mathrm{RR})",
+    "kind": "inverted",
+    "why": "Spread = hazard x loss rate, so the hazard is the spread divided by (1 - RR)."
+   },
+   {
+    "latex": "\\bar{\\lambda} = s(T)/(1+\\mathrm{RR})",
+    "kind": "sign",
+    "why": "The loss rate is 1 minus the recovery rate."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "s(T)",
+    "direction": "up",
+    "why": "A wider spread implies a higher default intensity."
+   },
+   {
+    "variable": "\\mathrm{RR}",
+    "direction": "up",
+    "why": "If more is recovered, a given spread must be compensating for more frequent defaults."
+   }
+  ],
+  "intuition": "Spread = default intensity x loss rate, so default intensity = spread / (1 - RR).",
+  "calc": {
+   "expr": "s / (1 - RR)",
+   "inputs": [
+    {
+     "name": "s",
+     "symbol": "s(T)",
+     "min": 0.001,
+     "max": 0.1,
+     "step": 0.0005,
+     "unit": "decimal"
+    },
+    {
+     "name": "RR",
+     "symbol": "\\mathrm{RR}",
+     "min": 0,
+     "max": 0.8,
+     "step": 0.05,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\bar{\\lambda}",
+    "unit": "per year (decimal)",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "hazard rate",
+   "credit spread"
+  ]
+ },
+ {
+  "id": "CR-12-F05",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 170,
+  "objective": "CR-12 f",
+  "name": "One-factor Gaussian copula: default probability conditional on the factor",
+  "prompt": "In the one-factor Gaussian copula, what is the probability of default by T given a realization of the common factor?",
+  "latex": "Q(T \\mid F) = N\\left(\\frac{N^{-1}\\bigl[Q(T)\\bigr] - \\sqrt{\\rho}F}{\\sqrt{1-\\rho}}\\right)",
+  "variables": [
+   {
+    "symbol": "Q(T \\mid F)",
+    "meaning": "cumulative default probability by T conditional on the factor value F"
+   },
+   {
+    "symbol": "Q(T)",
+    "meaning": "unconditional cumulative default probability by time T"
+   },
+   {
+    "symbol": "F",
+    "meaning": "realization of the common factor (low F = bad state of the world)"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "copula correlation parameter"
+   },
+   {
+    "symbol": "N(\\cdot)",
+    "meaning": "cumulative standard normal distribution function; N^{-1} its inverse"
+   }
+  ],
+  "skeleton": "Q(T \\mid F) = N\\left(\\frac{N^{-1}\\bigl[ {{1}} \\bigr] {{2}} \\sqrt{\\rho}F}{\\sqrt{ {{3}} }}\\right)",
+  "slots": [
+   "Q(T)",
+   "-",
+   "1-\\rho"
+  ],
+  "decoys": [
+   "+",
+   "\\rho",
+   "1+\\rho"
+  ],
+  "corruptions": [
+   {
+    "latex": "Q(T \\mid F) = N\\left(\\frac{N^{-1}\\bigl[Q(T)\\bigr] + \\sqrt{\\rho}F}{\\sqrt{1-\\rho}}\\right)",
+    "kind": "sign",
+    "why": "F enters negatively: a low (bad) factor value must raise the conditional default probability."
+   },
+   {
+    "latex": "Q(T \\mid F) = N\\left(\\frac{N^{-1}\\bigl[Q(T)\\bigr] - \\sqrt{\\rho}F}{\\sqrt{\\rho}}\\right)",
+    "kind": "sibling",
+    "why": "The denominator is the idiosyncratic weight root(1 - rho), not root(rho)."
+   },
+   {
+    "latex": "Q(T \\mid F) = N\\left(\\frac{Q(T) - \\sqrt{\\rho}F}{\\sqrt{1-\\rho}}\\right)",
+    "kind": "missing-term",
+    "why": "The unconditional probability must first be mapped to a normal quantile with N^{-1}."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "Q(T)",
+    "direction": "up",
+    "why": "A higher unconditional PD raises the conditional PD in every state."
+   },
+   {
+    "variable": "F",
+    "direction": "down",
+    "why": "A better state of the world (higher F) lowers the conditional default probability."
+   },
+   {
+    "variable": "\\rho",
+    "direction": "depends",
+    "why": "On the factor F (and Q(T)): more correlation raises the conditional PD when F is low enough (a bad state) and lowers it when F is high (a good state)."
+   }
+  ],
+  "intuition": "Shift the PD's normal quantile down by root-rho times the factor, rescale by root(1 - rho): bad F, more defaults.",
+  "calc": null,
+  "tags": [
+   "Gaussian copula",
+   "default correlation"
+  ]
+ },
+ {
+  "id": "CR-12-F06",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 180,
+  "objective": "CR-12 f",
+  "name": "Worst case default rate (WCDR) at confidence X",
+  "prompt": "What default rate will not be exceeded with confidence X under the one-factor Gaussian copula?",
+  "latex": "\\mathrm{WCDR} = N\\bigl[(N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}N^{-1}(X))/\\sqrt{1-\\rho}\\bigr]",
+  "variables": [
+   {
+    "symbol": "\\mathrm{WCDR}",
+    "meaning": "worst case default rate at confidence level X"
+   },
+   {
+    "symbol": "\\mathrm{PD}",
+    "meaning": "unconditional probability of default over the horizon"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "copula correlation parameter"
+   },
+   {
+    "symbol": "X",
+    "meaning": "confidence level (e.g. 0.999)"
+   },
+   {
+    "symbol": "N(\\cdot)",
+    "meaning": "cumulative standard normal distribution function; N^{-1} its inverse"
+   }
+  ],
+  "skeleton": "\\mathrm{WCDR} = N\\bigl[(N^{-1}( {{1}} ) {{2}} \\sqrt{\\rho}N^{-1}( {{3}} ))/\\sqrt{ {{4}} }\\bigr]",
+  "slots": [
+   "\\mathrm{PD}",
+   "+",
+   "X",
+   "1-\\rho"
+  ],
+  "decoys": [
+   "-",
+   "1-X",
+   "\\rho"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{WCDR} = N\\bigl[(N^{-1}(\\mathrm{PD}) - \\sqrt{\\rho}N^{-1}(X))/\\sqrt{1-\\rho}\\bigr]",
+    "kind": "sign",
+    "why": "In the WCDR form the percentile X enters positively (it is the conditional formula with F = -N^{-1}(X))."
+   },
+   {
+    "latex": "\\mathrm{WCDR} = N\\bigl[(N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}N^{-1}(X))/\\sqrt{\\rho}\\bigr]",
+    "kind": "sibling",
+    "why": "The denominator is root(1 - rho)."
+   },
+   {
+    "latex": "\\mathrm{WCDR} = N\\bigl[(\\mathrm{PD} + \\sqrt{\\rho}N^{-1}(X))/\\sqrt{1-\\rho}\\bigr]",
+    "kind": "missing-term",
+    "why": "PD must be converted to a normal quantile with N^{-1} before adding."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{PD}",
+    "direction": "up",
+    "why": "A higher average PD raises the worst case too."
+   },
+   {
+    "variable": "X",
+    "direction": "up",
+    "why": "A higher confidence level looks further into the bad tail."
+   },
+   {
+    "variable": "\\rho",
+    "direction": "depends",
+    "why": "At high confidence levels and small PDs (the usual case) more correlation raises WCDR; it can lower it otherwise."
+   }
+  ],
+  "intuition": "Same as the conditional-PD formula with the worst factor F = -N^{-1}(X) plugged in: F enters negatively, X positively.",
+  "calc": null,
+  "tags": [
+   "WCDR",
+   "Gaussian copula",
+   "credit VaR"
+  ]
+ },
+ {
+  "id": "CR-12-F07",
+  "reading_id": "CR-12",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/16_CR_CR12.tex",
+  "source_line": 192,
+  "objective": "CR-12 g",
+  "name": "Credit VaR from the one-factor Gaussian copula",
+  "prompt": "What is the credit VaR of a loan portfolio given its size, recovery rate and worst case default rate?",
+  "latex": "\\text{Credit VaR} = L(1-R)\\mathrm{WCDR}",
+  "variables": [
+   {
+    "symbol": "\\text{Credit VaR}",
+    "meaning": "credit VaR at the chosen confidence level"
+   },
+   {
+    "symbol": "L",
+    "meaning": "size of the loan portfolio"
+   },
+   {
+    "symbol": "R",
+    "meaning": "recovery rate (decimal)"
+   },
+   {
+    "symbol": "\\mathrm{WCDR}",
+    "meaning": "worst case default rate at the chosen confidence level"
+   }
+  ],
+  "skeleton": "\\text{Credit VaR} = {{1}}(1- {{2}}){{3}}",
+  "slots": [
+   "L",
+   "R",
+   "\\mathrm{WCDR}"
+  ],
+  "decoys": [
+   "\\mathrm{PD}",
+   "\\rho",
+   "X"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Credit VaR} = L(1-R)\\mathrm{PD}",
+    "kind": "sibling",
+    "why": "With the average PD this is the expected loss; VaR needs the worst case default rate."
+   },
+   {
+    "latex": "\\text{Credit VaR} = L \\times R \\times \\mathrm{WCDR}",
+    "kind": "wrong-variable",
+    "why": "The loss is the unrecovered share 1 - R, not the recovery rate."
+   },
+   {
+    "latex": "\\text{Credit VaR} = L(1+R)\\mathrm{WCDR}",
+    "kind": "sign",
+    "why": "Recoveries reduce the loss, so the factor is 1 - R."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "L",
+    "direction": "up",
+    "why": "A bigger portfolio has more at risk."
+   },
+   {
+    "variable": "R",
+    "direction": "down",
+    "why": "Higher recoveries mean smaller losses."
+   },
+   {
+    "variable": "\\mathrm{WCDR}",
+    "direction": "up",
+    "why": "A higher worst case default rate means larger tail losses."
+   }
+  ],
+  "intuition": "Expected-loss shape with the worst case default rate in place of PD: portfolio x loss rate x WCDR.",
+  "calc": {
+   "expr": "L * (1 - R) * W",
+   "inputs": [
+    {
+     "name": "L",
+     "symbol": "L",
+     "min": 10,
+     "max": 1000,
+     "step": 10,
+     "unit": "$M"
+    },
+    {
+     "name": "R",
+     "symbol": "R",
+     "min": 0,
+     "max": 0.9,
+     "step": 0.05,
+     "unit": "decimal"
+    },
+    {
+     "name": "W",
+     "symbol": "\\mathrm{WCDR}",
+     "min": 0,
+     "max": 0.5,
+     "step": 1e-05,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Credit VaR}",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "L": 100,
+     "R": 0.6,
+     "W": 0.12824
+    },
+    "output": 5.13,
+    "source_line": 211
+   }
+  },
+  "tags": [
+   "credit VaR",
+   "WCDR"
+  ]
+ },
+ {
+  "id": "ORR-22-F01",
+  "reading_id": "ORR-22",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/55_OR_ORR22.tex",
+  "source_line": 129,
+  "objective": "ORR-22 d",
+  "name": "Basel III total Tier 1 capital (CET1 + AT1) minimum",
+  "prompt": "Which two layers make up total Tier 1 capital under Basel III, and what minimum share of RWA must they reach?",
+  "latex": "\\text{Total Tier 1} = \\text{CET1} + \\text{AT1} \\geq 6\\% \\times \\text{RWA}",
+  "variables": [
+   {
+    "symbol": "\\text{Total Tier 1}",
+    "meaning": "total Tier 1 capital"
+   },
+   {
+    "symbol": "\\text{CET1}",
+    "meaning": "Common Equity Tier 1: common equity, retained earnings, unrealised gain/loss, minority interest (minimum 4.5% of RWA)"
+   },
+   {
+    "symbol": "\\text{AT1}",
+    "meaning": "Additional Tier 1: non-cumulative perpetual preferred stock, CoCos, other minority interest (1.5% of RWA)"
+   },
+   {
+    "symbol": "\\text{RWA}",
+    "meaning": "risk-weighted assets"
+   }
+  ],
+  "skeleton": "\\text{Total Tier 1} = {{1}} + {{2}} \\geq {{3}} \\times \\text{RWA}",
+  "slots": [
+   "\\text{CET1}",
+   "\\text{AT1}",
+   "6\\%"
+  ],
+  "decoys": [
+   "\\text{Tier 2}",
+   "4.5\\%",
+   "8\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Total Tier 1} = \\text{CET1} + \\text{AT1} + \\text{Tier 2} \\geq 6\\% \\times \\text{RWA}",
+    "kind": "extra-term",
+    "why": "Tier 2 is a separate layer; Tier 1 plus Tier 2 is total capital."
+   },
+   {
+    "latex": "\\text{Total Tier 1} = \\text{CET1} + \\text{AT1} \\geq 8\\% \\times \\text{RWA}",
+    "kind": "scaling",
+    "why": "8% is the total-capital minimum; total Tier 1 must be at least 6%."
+   },
+   {
+    "latex": "\\text{Total Tier 1} = \\text{CET1} + \\text{AT1} \\geq 4.5\\% \\times \\text{RWA}",
+    "kind": "sibling",
+    "why": "4.5% is the CET1 minimum alone; with AT1's 1.5% total Tier 1 is 6%."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{CET1}",
+    "direction": "up",
+    "why": "More common equity adds directly to Tier 1."
+   },
+   {
+    "variable": "\\text{AT1}",
+    "direction": "up",
+    "why": "More additional Tier 1 instruments add to Tier 1."
+   }
+  ],
+  "intuition": "4.5 + 1.5 = 6: core equity plus additional Tier 1 makes total Tier 1.",
+  "calc": null,
+  "tags": [
+   "Basel III",
+   "Tier 1 capital"
+  ]
+ },
+ {
+  "id": "ORR-22-F02",
+  "reading_id": "ORR-22",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/55_OR_ORR22.tex",
+  "source_line": 166,
+  "objective": "ORR-22 d",
+  "name": "Basel III total capital (Tier 1 + Tier 2) minimum",
+  "prompt": "What makes up total capital under Basel III, and what minimum share of RWA must it reach (before buffers)?",
+  "latex": "\\text{Total capital} = \\text{Tier 1} + \\text{Tier 2} \\geq 8\\% \\times \\text{RWA}",
+  "variables": [
+   {
+    "symbol": "\\text{Total capital}",
+    "meaning": "total regulatory capital"
+   },
+   {
+    "symbol": "\\text{Tier 1}",
+    "meaning": "total Tier 1 capital (CET1 + AT1), at least 6% of RWA"
+   },
+   {
+    "symbol": "\\text{Tier 2}",
+    "meaning": "subordinated debt over 5 years, preferred stock, general loan loss reserves (2% of RWA)"
+   },
+   {
+    "symbol": "\\text{RWA}",
+    "meaning": "risk-weighted assets"
+   }
+  ],
+  "skeleton": "\\text{Total capital} = {{1}} + {{2}} \\geq {{3}} \\times \\text{RWA}",
+  "slots": [
+   "\\text{Tier 1}",
+   "\\text{Tier 2}",
+   "8\\%"
+  ],
+  "decoys": [
+   "\\text{Tier 3}",
+   "6\\%",
+   "4.5\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Total capital} = \\text{Tier 1} + \\text{Tier 2} + \\text{Tier 3} \\geq 8\\% \\times \\text{RWA}",
+    "kind": "extra-term",
+    "why": "Basel III eliminated Tier 3 capital."
+   },
+   {
+    "latex": "\\text{Total capital} = \\text{Tier 1} + \\text{Tier 2} \\geq 6\\% \\times \\text{RWA}",
+    "kind": "scaling",
+    "why": "6% is the total Tier 1 minimum; total capital must be at least 8%."
+   },
+   {
+    "latex": "\\text{Total capital} = \\text{Tier 1} + \\text{Tier 2} \\geq 8\\% \\times \\text{total assets}",
+    "kind": "wrong-variable",
+    "why": "The ratio is to risk-weighted assets; capital over total exposure is the separate 3% leverage ratio."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{Tier 1}",
+    "direction": "up",
+    "why": "More Tier 1 capital adds to total capital."
+   },
+   {
+    "variable": "\\text{Tier 2}",
+    "direction": "up",
+    "why": "More Tier 2 capital adds to total capital."
+   }
+  ],
+  "intuition": "6 + 2 = 8: Tier 1 plus Tier 2, at least 8% of RWA (10.5% once the conservation buffer is added in normal times).",
+  "calc": null,
+  "tags": [
+   "Basel III",
+   "total capital"
+  ]
+ },
+ {
+  "id": "ORR-22-F03",
+  "reading_id": "ORR-22",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/55_OR_ORR22.tex",
+  "source_line": 215,
+  "objective": "ORR-22 f",
+  "name": "Basel III leverage ratio",
+  "prompt": "Which non-risk-weighted ratio of capital must a bank hold under Basel III, and what is the minimum?",
+  "latex": "\\text{Leverage ratio} = \\frac{\\text{capital}}{\\text{total exposure}} \\geq 3\\%",
+  "variables": [
+   {
+    "symbol": "\\text{Leverage ratio}",
+    "meaning": "Basel III leverage ratio"
+   },
+   {
+    "symbol": "\\text{capital}",
+    "meaning": "capital"
+   },
+   {
+    "symbol": "\\text{total exposure}",
+    "meaning": "all balance sheet items plus off-balance-sheet items such as loan commitments (not risk-weighted)"
+   }
+  ],
+  "skeleton": "\\text{Leverage ratio} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{capital}",
+   "\\text{total exposure}",
+   "3\\%"
+  ],
+  "decoys": [
+   "\\text{risk-weighted assets}",
+   "8\\%",
+   "100\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Leverage ratio} = \\frac{\\text{capital}}{\\text{risk-weighted assets}} \\geq 3\\%",
+    "kind": "sibling",
+    "why": "Dividing by RWA gives a capital adequacy ratio; the leverage ratio uses unweighted total exposure."
+   },
+   {
+    "latex": "\\text{Leverage ratio} = \\frac{\\text{total exposure}}{\\text{capital}} \\geq 3\\%",
+    "kind": "inverted",
+    "why": "Capital is on top: the ratio is the capital cushion per dollar of exposure."
+   },
+   {
+    "latex": "\\text{Leverage ratio} = \\frac{\\text{capital}}{\\text{total exposure}} \\geq 8\\%",
+    "kind": "scaling",
+    "why": "8% is the total-capital-to-RWA minimum; the leverage ratio minimum is 3%."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{capital}",
+    "direction": "up",
+    "why": "More capital raises the ratio."
+   },
+   {
+    "variable": "\\text{total exposure}",
+    "direction": "down",
+    "why": "More on- and off-balance-sheet exposure lowers the ratio."
+   }
+  ],
+  "intuition": "A crude, un-risk-weighted backstop: capital over everything you are exposed to, at least 3%.",
+  "calc": {
+   "expr": "100 * CAP / EXP",
+   "inputs": [
+    {
+     "name": "CAP",
+     "symbol": "\\text{capital}",
+     "min": 1,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$bn"
+    },
+    {
+     "name": "EXP",
+     "symbol": "\\text{total exposure}",
+     "min": 50,
+     "max": 3000,
+     "step": 10,
+     "unit": "$bn"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Leverage ratio}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "Basel III",
+   "leverage ratio"
+  ]
+ },
+ {
+  "id": "ORR-22-F04",
+  "reading_id": "ORR-22",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/55_OR_ORR22.tex",
+  "source_line": 220,
+  "objective": "ORR-22 f",
+  "name": "Liquidity coverage ratio (LCR)",
+  "prompt": "Which ratio checks that a bank can survive 30 days of stressed cash outflows, and what is the minimum?",
+  "latex": "\\mathrm{LCR} = \\frac{\\text{high-quality liquid assets}}{\\text{net cash outflows in a 30-day period}} \\geq 100\\%",
+  "variables": [
+   {
+    "symbol": "\\mathrm{LCR}",
+    "meaning": "liquidity coverage ratio"
+   },
+   {
+    "symbol": "\\text{high-quality liquid assets}",
+    "meaning": "HQLA after factors/haircuts (e.g. 100% for cash, central bank reserves, Treasuries; 0% for loans and fixed assets)"
+   },
+   {
+    "symbol": "\\text{net cash outflows in a 30-day period}",
+    "meaning": "stressed outflows over 30 days: liability balances times run-off rates"
+   }
+  ],
+  "skeleton": "\\mathrm{LCR} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{high-quality liquid assets}",
+   "\\text{net cash outflows in a 30-day period}",
+   "100\\%"
+  ],
+  "decoys": [
+   "\\text{amount of available stable funding}",
+   "\\text{net cash outflows in a one-year period}",
+   "3\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{LCR} = \\frac{\\text{net cash outflows in a 30-day period}}{\\text{high-quality liquid assets}} \\geq 100\\%",
+    "kind": "inverted",
+    "why": "Liquid assets must cover the outflows, so HQLA goes on top."
+   },
+   {
+    "latex": "\\mathrm{LCR} = \\frac{\\text{amount of available stable funding}}{\\text{net cash outflows in a 30-day period}} \\geq 100\\%",
+    "kind": "sibling",
+    "why": "Available stable funding is the NSFR numerator; the LCR uses high-quality liquid assets."
+   },
+   {
+    "latex": "\\mathrm{LCR} = \\frac{\\text{high-quality liquid assets}}{\\text{net cash outflows in a one-year period}} \\geq 100\\%",
+    "kind": "wrong-variable",
+    "why": "The LCR horizon is 30 days of stress; one year is the NSFR horizon."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{high-quality liquid assets}",
+    "direction": "up",
+    "why": "More liquid assets cover the same outflows more comfortably."
+   },
+   {
+    "variable": "\\text{net cash outflows in a 30-day period}",
+    "direction": "down",
+    "why": "Larger stressed outflows need more cover."
+   }
+  ],
+  "intuition": "Cash you can raise now over cash that could run in a month of stress: at least 100%.",
+  "calc": {
+   "expr": "100 * HQLA / NCO",
+   "inputs": [
+    {
+     "name": "HQLA",
+     "symbol": "\\text{high-quality liquid assets}",
+     "min": 1,
+     "max": 500,
+     "step": 1,
+     "unit": "$"
+    },
+    {
+     "name": "NCO",
+     "symbol": "\\text{net cash outflows in a 30-day period}",
+     "min": 1,
+     "max": 500,
+     "step": 1,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{LCR}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "HQLA": 30,
+     "NCO": 20
+    },
+    "output": 150,
+    "source_line": 275
+   }
+  },
+  "tags": [
+   "Basel III",
+   "liquidity",
+   "LCR"
+  ]
+ },
+ {
+  "id": "ORR-22-F05",
+  "reading_id": "ORR-22",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/55_OR_ORR22.tex",
+  "source_line": 228,
+  "objective": "ORR-22 f",
+  "name": "Net stable funding ratio (NSFR)",
+  "prompt": "Which ratio checks that a bank has enough stable funding over a one-year horizon, and what is the minimum?",
+  "latex": "\\mathrm{NSFR} = \\frac{\\text{amount of available stable funding}}{\\text{amount of required stable funding}} \\geq 100\\%",
+  "variables": [
+   {
+    "symbol": "\\mathrm{NSFR}",
+    "meaning": "net stable funding ratio"
+   },
+   {
+    "symbol": "\\text{amount of available stable funding}",
+    "meaning": "ASF: liabilities and capital times ASF factors (e.g. 100% capital, 90% less stable retail deposits, 50% wholesale deposits)"
+   },
+   {
+    "symbol": "\\text{amount of required stable funding}",
+    "meaning": "RSF: assets times RSF factors (e.g. 0% cash, 65% mortgages, 85% short loans, 100% fixed assets)"
+   }
+  ],
+  "skeleton": "\\mathrm{NSFR} = \\frac{ {{1}} }{ {{2}} } \\geq {{3}}",
+  "slots": [
+   "\\text{amount of available stable funding}",
+   "\\text{amount of required stable funding}",
+   "100\\%"
+  ],
+  "decoys": [
+   "\\text{high-quality liquid assets}",
+   "\\text{net cash outflows in a 30-day period}",
+   "3\\%"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\mathrm{NSFR} = \\frac{\\text{amount of required stable funding}}{\\text{amount of available stable funding}} \\geq 100\\%",
+    "kind": "inverted",
+    "why": "Available funding must cover the requirement, so ASF goes on top."
+   },
+   {
+    "latex": "\\mathrm{NSFR} = \\frac{\\text{high-quality liquid assets}}{\\text{amount of required stable funding}} \\geq 100\\%",
+    "kind": "sibling",
+    "why": "HQLA is the LCR numerator; the NSFR compares available with required stable funding."
+   },
+   {
+    "latex": "\\mathrm{NSFR} = \\frac{\\text{amount of available stable funding}}{\\text{amount of required stable funding}} \\geq 3\\%",
+    "kind": "scaling",
+    "why": "3% is the leverage-ratio minimum; the NSFR must be at least 100%."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{amount of available stable funding}",
+    "direction": "up",
+    "why": "More stable funding (capital, sticky deposits) raises the ratio."
+   },
+   {
+    "variable": "\\text{amount of required stable funding}",
+    "direction": "down",
+    "why": "More illiquid, long-term assets need more stable funding."
+   }
+  ],
+  "intuition": "Stable money you have over stable money your assets need, over a year: at least 100%.",
+  "calc": {
+   "expr": "100 * ASF / RSF",
+   "inputs": [
+    {
+     "name": "ASF",
+     "symbol": "\\text{amount of available stable funding}",
+     "min": 1,
+     "max": 500,
+     "step": 0.5,
+     "unit": "$"
+    },
+    {
+     "name": "RSF",
+     "symbol": "\\text{amount of required stable funding}",
+     "min": 1,
+     "max": 500,
+     "step": 0.5,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "\\mathrm{NSFR}",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "ASF": 147.5,
+     "RSF": 137.0
+    },
+    "output": 107.66,
+    "source_line": 284
+   }
+  },
+  "tags": [
+   "Basel III",
+   "liquidity",
+   "NSFR"
+  ]
+ },
+ {
+  "id": "CR-16-F01",
+  "reading_id": "CR-16",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/37_CR_CR16.tex",
+  "source_line": 252,
+  "objective": "CR-16 e",
+  "name": "Trade compression: net notional exposure",
+  "prompt": "After compressing offsetting positions on the same reference entity, maturity and coupon, what net notional remains?",
+  "latex": "\\text{Net notional} = \\text{long notional} - \\text{short notional}",
+  "variables": [
+   {
+    "symbol": "\\text{Net notional}",
+    "meaning": "net notional of the single consolidated contract; its sign gives the net position (long if positive)"
+   },
+   {
+    "symbol": "\\text{long notional}",
+    "meaning": "total notional of the long positions"
+   },
+   {
+    "symbol": "\\text{short notional}",
+    "meaning": "total notional of the short positions"
+   }
+  ],
+  "skeleton": "\\text{Net notional} = {{1}} {{2}} {{3}}",
+  "slots": [
+   "\\text{long notional}",
+   "-",
+   "\\text{short notional}"
+  ],
+  "decoys": [
+   "+",
+   "\\text{gross notional}",
+   "\\text{coupon}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Net notional} = \\text{long notional} + \\text{short notional}",
+    "kind": "sign",
+    "why": "Adding long and short gives the gross notional that compression reduces, not the net."
+   },
+   {
+    "latex": "\\text{Net notional} = \\text{short notional} - \\text{long notional}",
+    "kind": "inverted",
+    "why": "Long less short: a positive result is a net long held against the long-side counterparty."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{long notional}",
+    "direction": "up",
+    "why": "More long notional increases the net long position."
+   },
+   {
+    "variable": "\\text{short notional}",
+    "direction": "down",
+    "why": "More short notional offsets more of the longs."
+   }
+  ],
+  "intuition": "Compression keeps the net and throws away the gross: longs minus shorts, one contract, same risk.",
+  "calc": {
+   "expr": "LONG - SHORT",
+   "inputs": [
+    {
+     "name": "LONG",
+     "symbol": "\\text{long notional}",
+     "min": 0,
+     "max": 1000,
+     "step": 5,
+     "unit": ""
+    },
+    {
+     "name": "SHORT",
+     "symbol": "\\text{short notional}",
+     "min": 0,
+     "max": 1000,
+     "step": 5,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Net notional}",
+    "unit": "",
+    "decimals": 0
+   },
+   "example": {
+    "inputs": {
+     "LONG": 200,
+     "SHORT": 175
+    },
+    "output": 25,
+    "source_line": 252
+   }
+  },
+  "tags": [
+   "trade compression",
+   "netting"
+  ]
+ }
+]

@@ -1,0 +1,2436 @@
+[
+  {
+    "id": "SC-notes-6-01",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 137
+    },
+    "trap_category": "Formula",
+    "setup": "A loan has a USD 2,000,000 commitment, of which USD 1,800,000 is drawn. $PD = 1\\%$, loss rate $LR = 40\\%$, $\\sigma_{PD} = 10\\%$, $\\sigma_{LR} = 30\\%$.",
+    "ask": "Unexpected loss on the loan is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 90,000",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 250,000",
+        "correct": false,
+        "why": "Used $\\sigma$ instead of $\\sigma^2$ inside the root: $1.8\\text{m} \\times \\sqrt{0.01 \\times 0.3 + 0.16 \\times 0.1} \\approx 248{,}000$."
+      },
+      {
+        "label": "≈ USD 7,200",
+        "correct": false,
+        "why": "That is expected loss, $EA \\times PD \\times LR$. UL is the standard deviation of loss, not its mean."
+      },
+      {
+        "label": "≈ USD 900,000",
+        "correct": false,
+        "why": "Scale slip (10×): 1.8m × 0.5 instead of 1.8m × 0.05, i.e. a misplaced decimal in the square root."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss-rate-uncertainty term",
+        "display": "$PD \\times \\sigma_{LR}^2 = 0.01 \\times 0.3^2 = 0.0009$",
+        "value": 0.0009
+      },
+      {
+        "label": "Default-uncertainty term",
+        "display": "$LR^2 \\times \\sigma_{PD}^2 = 0.4^2 \\times 0.1^2 = 0.0016$",
+        "value": 0.0016
+      },
+      {
+        "label": "Square root of the sum",
+        "display": "$\\sqrt{0.0009 + 0.0016} = \\sqrt{0.0025} = 0.05$",
+        "value": 0.05
+      },
+      {
+        "label": "Unexpected loss",
+        "display": "$UL = 1{,}800{,}000 \\times 0.05 = \\text{USD } 90{,}000$ (outstanding, not the 2m commitment)",
+        "value": 90000
+      }
+    ],
+    "takeaway": "UL = EA × √(PD·σ²_LR + LR²·σ²_PD) on the drawn amount; it dwarfs EL for a low-PD loan.",
+    "check": {
+      "inputs": {
+        "EA": 1800000,
+        "PD": 0.01,
+        "LR": 0.4,
+        "sPD": 0.1,
+        "sLR": 0.3
+      },
+      "steps": [
+        {
+          "name": "t_LR",
+          "expr": "PD*sLR**2",
+          "value": 0.0009
+        },
+        {
+          "name": "t_PD",
+          "expr": "LR**2*sPD**2",
+          "value": 0.0016
+        },
+        {
+          "name": "root",
+          "expr": "sqrt(t_LR+t_PD)",
+          "value": 0.05
+        },
+        {
+          "name": "UL",
+          "expr": "EA*root",
+          "value": 90000
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-02",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 114
+    },
+    "trap_category": "Formula",
+    "setup": "Same loan: drawn USD 1,800,000, $PD = 1\\%$, $LR = 40\\%$, $\\sigma_{PD} = 10\\%$, $\\sigma_{LR} = 30\\%$. You are filling in $UL = EA\\sqrt{PD \\cdot \\sigma_{LR}^2 + LR^2 \\cdot \\sigma_{PD}^2}$.",
+    "ask": "Which term under the root is bigger?",
+    "options": [
+      {
+        "label": "The default-uncertainty term, $LR^2\\sigma_{PD}^2$",
+        "correct": true
+      },
+      {
+        "label": "The loss-rate-uncertainty term, $PD\\,\\sigma_{LR}^2$",
+        "correct": false,
+        "why": "$\\sigma_{LR} = 30\\%$ looks big, but it is multiplied by $PD = 0.01$ (unsquared): $0.0009$ against $0.0016$."
+      },
+      {
+        "label": "Roughly equal",
+        "correct": false,
+        "why": "$0.0016$ is about $1.8\\times$ $0.0009$; the default-uncertainty term clearly leads."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss-rate-uncertainty term",
+        "display": "$PD \\times \\sigma_{LR}^2 = 0.01 \\times 0.3^2 = 0.0009$",
+        "value": 0.0009
+      },
+      {
+        "label": "Default-uncertainty term",
+        "display": "$LR^2 \\times \\sigma_{PD}^2 = 0.4^2 \\times 0.1^2 = 0.0016$",
+        "value": 0.0016
+      },
+      {
+        "label": "Compare",
+        "display": "$0.0016 > 0.0009$, so default uncertainty dominates",
+        "value": null
+      }
+    ],
+    "takeaway": "PD enters the first UL term unsquared; LR enters the second squared. A small PD shrinks the recovery-uncertainty term.",
+    "check": {
+      "inputs": {
+        "EA": 1800000,
+        "PD": 0.01,
+        "LR": 0.4,
+        "sPD": 0.1,
+        "sLR": 0.3
+      },
+      "steps": [
+        {
+          "name": "t_LR",
+          "expr": "PD*sLR**2",
+          "value": 0.0009
+        },
+        {
+          "name": "t_PD",
+          "expr": "LR**2*sPD**2",
+          "value": 0.0016
+        },
+        {
+          "name": "diff",
+          "expr": "t_PD - t_LR",
+          "value": 0.0007
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-03",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 236
+    },
+    "trap_category": "Scope",
+    "setup": "Two loans. A: USD 8.25m, $PD = 0.5\\%$, $LR = 50\\%$, $\\sigma_{PD} = 7.05\\%$, $\\sigma_{LR} = 25\\%$. B: USD 1.8m, $PD = 1\\%$, $LR = 40\\%$, $\\sigma_{PD} = 10\\%$, $\\sigma_{LR} = 30\\%$. Default correlation $\\rho = 0.3$.",
+    "ask": "Portfolio expected loss $EL_P$ is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 28,000",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 7,200",
+        "correct": false,
+        "why": "That is asset B's EL alone: a whole leg was dropped. Portfolio EL is the sum of both."
+      },
+      {
+        "label": "≈ USD 360,000",
+        "correct": false,
+        "why": "That is portfolio UL ($\\approx 362{,}642$). EL is the mean loss; the σs and ρ never enter it."
+      },
+      {
+        "label": "≈ USD 2,800",
+        "correct": false,
+        "why": "Scale slip (0.1×), e.g. a percent/decimal slip on one PD."
+      }
+    ],
+    "working": [
+      {
+        "label": "Asset A EL",
+        "display": "$EL_A = 8{,}250{,}000 \\times 0.005 \\times 0.50 = 20{,}625$",
+        "value": 20625
+      },
+      {
+        "label": "Asset B EL",
+        "display": "$EL_B = 1{,}800{,}000 \\times 0.01 \\times 0.40 = 7{,}200$",
+        "value": 7200
+      },
+      {
+        "label": "Portfolio EL",
+        "display": "$EL_P = 20{,}625 + 7{,}200 = \\text{USD } 27{,}825$ (no correlation term)",
+        "value": 27825
+      }
+    ],
+    "takeaway": "EL_P is a plain sum of EA × PD × LR; σs and correlation belong to UL_P only.",
+    "check": {
+      "inputs": {
+        "EAA": 8250000,
+        "PDA": 0.005,
+        "LRA": 0.5,
+        "EAB": 1800000,
+        "PDB": 0.01,
+        "LRB": 0.4
+      },
+      "steps": [
+        {
+          "name": "ELA",
+          "expr": "EAA*PDA*LRA",
+          "value": 20625
+        },
+        {
+          "name": "ELB",
+          "expr": "EAB*PDB*LRB",
+          "value": 7200
+        },
+        {
+          "name": "ELP",
+          "expr": "ELA+ELB",
+          "value": 27825
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-04",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 285
+    },
+    "trap_category": "Scope",
+    "setup": "Two loans. A: USD 8.25m, $PD = 0.5\\%$, $LR = 50\\%$, $\\sigma_{PD} = 7.05\\%$, $\\sigma_{LR} = 25\\%$. B: USD 1.8m, $PD = 1\\%$, $LR = 40\\%$, $\\sigma_{PD} = 10\\%$, $\\sigma_{LR} = 30\\%$. Default correlation $\\rho = 0.3$. At $\\rho = 0.3$, $EL_P = 27{,}825$ and $UL_P = 362{,}642$. The correlation now drops to $0.1$.",
+    "ask": "What happens to portfolio expected loss $EL_P$?",
+    "options": [
+      {
+        "label": "Unchanged",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "That is $UL_P$ (to $346{,}118$). EL is a sum of stand-alone expected losses; correlation never enters it."
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Lower correlation cuts concentration risk; it cannot raise any loss measure here, and EL does not move at all."
+      }
+    ],
+    "working": [
+      {
+        "label": "Asset A EL",
+        "display": "$EL_A = 8{,}250{,}000 \\times 0.005 \\times 0.50 = 20{,}625$",
+        "value": 20625
+      },
+      {
+        "label": "Asset B EL",
+        "display": "$EL_B = 1{,}800{,}000 \\times 0.01 \\times 0.40 = 7{,}200$",
+        "value": 7200
+      },
+      {
+        "label": "Portfolio EL",
+        "display": "$EL_P = 20{,}625 + 7{,}200 = \\text{USD } 27{,}825$ (no correlation term)",
+        "value": 27825
+      },
+      {
+        "label": "Effect of ρ",
+        "display": "$EL_P$ has no $\\rho$ term, so it stays $27{,}825$; only $UL_P$ falls ($362{,}642 \\to 346{,}118$)",
+        "value": null
+      }
+    ],
+    "takeaway": "Correlation moves UL_P, never EL_P.",
+    "check": {
+      "inputs": {
+        "EAA": 8250000,
+        "PDA": 0.005,
+        "LRA": 0.5,
+        "EAB": 1800000,
+        "PDB": 0.01,
+        "LRB": 0.4
+      },
+      "steps": [
+        {
+          "name": "ELA",
+          "expr": "EAA*PDA*LRA",
+          "value": 20625
+        },
+        {
+          "name": "ELB",
+          "expr": "EAB*PDB*LRB",
+          "value": 7200
+        },
+        {
+          "name": "ELP",
+          "expr": "ELA+ELB",
+          "value": 27825
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-05",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 273
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Bigger Bank has $UL_A = \\text{USD } 325{,}333$ and $UL_B = \\text{USD } 90{,}000$ with default correlation $\\rho = 0.3$. You are about to take $UL_P = \\sqrt{UL_A^2 + UL_B^2 + 2\\rho\\,UL_A UL_B}$.",
+    "ask": "Where will $UL_P$ land?",
+    "options": [
+      {
+        "label": "Between $UL_A$ (325k) and $UL_A + UL_B$ (415k)",
+        "correct": true
+      },
+      {
+        "label": "Above $UL_A + UL_B$",
+        "correct": false,
+        "why": "The simple sum is the $\\rho = 1$ ceiling; any $\\rho < 1$ lands below it."
+      },
+      {
+        "label": "Below $UL_A$",
+        "correct": false,
+        "why": "With $\\rho \\ge 0$, $UL_P \\ge \\sqrt{UL_A^2 + UL_B^2} \\approx 337{,}600 > UL_A$; adding a risky asset cannot cut UL below the larger stand-alone UL here."
+      }
+    ],
+    "working": [
+      {
+        "label": "Squares",
+        "display": "$325{,}333^2 + 90{,}000^2 = 1.139 \\times 10^{11}$",
+        "value": 113940000000.0
+      },
+      {
+        "label": "Cross term",
+        "display": "$2 \\times 0.3 \\times 325{,}333 \\times 90{,}000 = 1.757 \\times 10^{10}$",
+        "value": 17568000000.0
+      },
+      {
+        "label": "Portfolio UL",
+        "display": "$UL_P = \\sqrt{1.315 \\times 10^{11}} = 362{,}642$",
+        "value": 362642
+      },
+      {
+        "label": "Bracket",
+        "display": "$325{,}333 < 362{,}642 < 415{,}333$",
+        "value": null
+      }
+    ],
+    "takeaway": "0 < ρ < 1 puts UL_P between the root-sum-of-squares and the simple sum of stand-alone ULs.",
+    "check": {
+      "inputs": {
+        "ULA": 325333,
+        "ULB": 90000,
+        "rho": 0.3
+      },
+      "steps": [
+        {
+          "name": "sq",
+          "expr": "ULA**2+ULB**2",
+          "value": 113940000000.0
+        },
+        {
+          "name": "cross",
+          "expr": "2*rho*ULA*ULB",
+          "value": 17568000000.0
+        },
+        {
+          "name": "ULP",
+          "expr": "sqrt(sq+cross)",
+          "value": 362642
+        },
+        {
+          "name": "sumUL",
+          "expr": "ULA+ULB",
+          "value": 415333
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-06",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 438
+    },
+    "trap_category": "Formula",
+    "setup": "A large portfolio of loans with roughly the same size and characteristics. Each loan's stand-alone UL is USD 10,500; constant pairwise default correlation $\\rho = 0.32$.",
+    "ask": "Each loan's UL contribution to portfolio UL is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 5,900",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 1,100",
+        "correct": false,
+        "why": "Squared the correlation: $10{,}500 \\times 0.32^2 \\approx 1{,}075$. The shortcut uses $\\sqrt{\\rho}$."
+      },
+      {
+        "label": "≈ USD 19,000",
+        "correct": false,
+        "why": "Divided by $\\sqrt{\\rho}$ instead of multiplying: $10{,}500 / 0.566 \\approx 18{,}560$. A contribution cannot exceed the stand-alone UL."
+      },
+      {
+        "label": "≈ USD 60,000",
+        "correct": false,
+        "why": "Scale slip (10×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Root of correlation",
+        "display": "$\\sqrt{0.32} = 0.566$",
+        "value": 0.5657
+      },
+      {
+        "label": "UL contribution",
+        "display": "$ULC_i = UL_i\\sqrt{\\rho} = 10{,}500 \\times 0.566 = \\text{USD } 5{,}940$",
+        "value": 5940
+      }
+    ],
+    "takeaway": "Large homogeneous book: ULC_i = UL_i × √ρ, always less than UL_i.",
+    "check": {
+      "inputs": {
+        "UL": 10500,
+        "rho": 0.32
+      },
+      "steps": [
+        {
+          "name": "r",
+          "expr": "sqrt(rho)",
+          "value": 0.5657
+        },
+        {
+          "name": "ULC",
+          "expr": "UL*r",
+          "value": 5939.7
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-07",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-4: Capital Structure in Banks",
+    "reading_id": "CR-4",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/06_CR_CR4.tex",
+      "line": 408
+    },
+    "trap_category": "Polarity",
+    "setup": "Banks ABC and XYZ have the same exposure, duration, rating and expected loss. ABC's average pairwise default correlation is lower than XYZ's. Both raise the confidence level used to set economic capital.",
+    "ask": "Economic capital needed:",
+    "options": [
+      {
+        "label": "Rises at both banks",
+        "correct": true
+      },
+      {
+        "label": "Rises at XYZ, falls at ABC",
+        "correct": false,
+        "why": "Correlation sets the level of $UL_P$, not the direction of the change. A higher confidence level raises the capital multiplier for both."
+      },
+      {
+        "label": "Unchanged at both",
+        "correct": false,
+        "why": "Economic capital $= UL_P \\times CM$. $UL_P$ is unchanged, but $CM$ rises with the confidence level."
+      }
+    ],
+    "working": [
+      {
+        "label": "Economic capital",
+        "display": "$EC = UL_P \\times CM$",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "Higher confidence level $\\Rightarrow$ larger $CM$ $\\Rightarrow$ higher $EC$ at both banks (ABC's is lower in level because its $UL_P$ is lower)",
+        "value": null
+      }
+    ],
+    "takeaway": "Raise the confidence level → bigger capital multiplier → more economic capital, whatever the correlation."
+  },
+  {
+    "id": "SC-notes-6-08",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 397
+    },
+    "trap_category": "Formula",
+    "setup": "A trading book holds USD 10m in asset 1 (daily $\\sigma = 2\\%$) and USD 5m in asset 2 (daily $\\sigma = 1\\%$). Correlation $0.7$. VaR at 99% ($z = 2.3264$). Horizon 10 days.",
+    "ask": "The 10-day 99% VaR is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 1.7 million",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 0.55 million",
+        "correct": false,
+        "why": "Forgot the $\\sqrt{10}$ horizon scaling: that is the 1-day VaR."
+      },
+      {
+        "label": "≈ USD 5.5 million",
+        "correct": false,
+        "why": "Scaled by $10$ instead of $\\sqrt{10}$."
+      },
+      {
+        "label": "≈ USD 0.17 million",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Stand-alone variances",
+        "display": "$10^2(0.02)^2 + 5^2(0.01)^2 = 0.04 + 0.0025 = 0.0425$",
+        "value": 0.0425
+      },
+      {
+        "label": "Covariance term",
+        "display": "$2 \\times 0.7 \\times 10 \\times 5 \\times 0.02 \\times 0.01 = 0.014$",
+        "value": 0.014
+      },
+      {
+        "label": "Portfolio variance",
+        "display": "$\\sigma_P^2 = 0.0565$",
+        "value": 0.0565
+      },
+      {
+        "label": "Daily portfolio σ",
+        "display": "$\\sigma_P = \\sqrt{0.0565} = 0.2377$ (USD m)",
+        "value": 0.2377
+      },
+      {
+        "label": "10-day 99% VaR",
+        "display": "$0.2377 \\times 2.3264 \\times \\sqrt{10} = \\text{USD } 1.75\\text{m}$",
+        "value": 1.7487
+      }
+    ],
+    "takeaway": "Build σ_P from the covariance matrix, then × z × √(days).",
+    "check": {
+      "inputs": {
+        "w1": 10,
+        "w2": 5,
+        "s1": 0.02,
+        "s2": 0.01,
+        "rho": 0.7,
+        "z": 2.3264,
+        "x": 10
+      },
+      "steps": [
+        {
+          "name": "var",
+          "expr": "w1**2*s1**2 + w2**2*s2**2 + 2*rho*w1*w2*s1*s2",
+          "value": 0.0565
+        },
+        {
+          "name": "sigP",
+          "expr": "sqrt(var)",
+          "value": 0.2377
+        },
+        {
+          "name": "VaR",
+          "expr": "sigP*z*sqrt(x)",
+          "value": 1.7487
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-09",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 404
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A trading book holds USD 10m in asset 1 (daily $\\sigma = 2\\%$) and USD 5m in asset 2 (daily $\\sigma = 1\\%$). Correlation $0.7$. VaR at 99% ($z = 2.3264$). Stand-alone daily σ in USD m: $10 \\times 2\\% = 0.20$ and $5 \\times 1\\% = 0.05$, so their sum is $0.25$.",
+    "ask": "Before finishing, is the portfolio daily $\\sigma_P$ above, below, or equal to 0.25?",
+    "options": [
+      {
+        "label": "Below 0.25",
+        "correct": true
+      },
+      {
+        "label": "Exactly 0.25",
+        "correct": false,
+        "why": "Stand-alone σs add only when $\\rho = 1$. At $\\rho = 0.7$ the cross term is smaller."
+      },
+      {
+        "label": "Above 0.25",
+        "correct": false,
+        "why": "With $\\rho \\le 1$, $\\sigma_P$ can never exceed the sum of stand-alone σs."
+      }
+    ],
+    "working": [
+      {
+        "label": "Stand-alone variances",
+        "display": "$10^2(0.02)^2 + 5^2(0.01)^2 = 0.04 + 0.0025 = 0.0425$",
+        "value": 0.0425
+      },
+      {
+        "label": "Covariance term",
+        "display": "$2 \\times 0.7 \\times 10 \\times 5 \\times 0.02 \\times 0.01 = 0.014$",
+        "value": 0.014
+      },
+      {
+        "label": "Portfolio variance",
+        "display": "$\\sigma_P^2 = 0.0565$",
+        "value": 0.0565
+      },
+      {
+        "label": "Daily portfolio σ",
+        "display": "$\\sigma_P = \\sqrt{0.0565} = 0.2377$ (USD m)",
+        "value": 0.2377
+      },
+      {
+        "label": "Compare",
+        "display": "$0.2377 < 0.25$: a diversification benefit of about 0.012",
+        "value": null
+      }
+    ],
+    "takeaway": "ρ < 1 → portfolio σ (and VaR) below the sum of the stand-alone figures.",
+    "check": {
+      "inputs": {
+        "w1": 10,
+        "w2": 5,
+        "s1": 0.02,
+        "s2": 0.01,
+        "rho": 0.7,
+        "z": 2.3264,
+        "x": 10
+      },
+      "steps": [
+        {
+          "name": "var",
+          "expr": "w1**2*s1**2 + w2**2*s2**2 + 2*rho*w1*w2*s1*s2",
+          "value": 0.0565
+        },
+        {
+          "name": "sigP",
+          "expr": "sqrt(var)",
+          "value": 0.2377
+        },
+        {
+          "name": "sumsd",
+          "expr": "w1*s1 + w2*s2",
+          "value": 0.25
+        },
+        {
+          "name": "gap",
+          "expr": "sigP - sumsd",
+          "value": -0.0123
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-10",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 465
+    },
+    "trap_category": "Polarity",
+    "setup": "A trading book holds USD 10m in asset 1 (daily $\\sigma = 2\\%$) and USD 5m in asset 2 (daily $\\sigma = 1\\%$). Correlation $0.7$. VaR at 99% ($z = 2.3264$). At correlation 0.7 the 10-day VaR is USD 1.75m. The correlation assumption is cut to 0, positions and volatilities unchanged.",
+    "ask": "The 10-day 99% VaR:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Both positions are long. Lower correlation shrinks the covariance term, which lowers σ_P and VaR."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "Correlation enters VaR through the covariance term $2\\rho w_1 w_2\\sigma_1\\sigma_2$; setting $\\rho = 0$ removes 0.014 of variance."
+      }
+    ],
+    "working": [
+      {
+        "label": "Variance at ρ = 0",
+        "display": "$0.04 + 0.0025 = 0.0425$",
+        "value": 0.0425
+      },
+      {
+        "label": "σ_P at ρ = 0",
+        "display": "$\\sqrt{0.0425} = 0.2062$",
+        "value": 0.2062
+      },
+      {
+        "label": "VaR at ρ = 0",
+        "display": "$0.2062 \\times 2.3264 \\times \\sqrt{10} = \\text{USD } 1.52\\text{m}$, down from 1.75m",
+        "value": 1.5166
+      }
+    ],
+    "takeaway": "Lower correlation → lower VaR → lower capital charge (for long–long books).",
+    "check": {
+      "inputs": {
+        "w1": 10,
+        "w2": 5,
+        "s1": 0.02,
+        "s2": 0.01,
+        "rho": 0.7,
+        "z": 2.3264,
+        "x": 10,
+        "rho0": 0.0
+      },
+      "steps": [
+        {
+          "name": "var",
+          "expr": "w1**2*s1**2 + w2**2*s2**2 + 2*rho*w1*w2*s1*s2",
+          "value": 0.0565
+        },
+        {
+          "name": "sigP",
+          "expr": "sqrt(var)",
+          "value": 0.2377
+        },
+        {
+          "name": "VaR",
+          "expr": "sigP*z*sqrt(x)",
+          "value": 1.7487
+        },
+        {
+          "name": "var0",
+          "expr": "w1**2*s1**2 + w2**2*s2**2 + 2*rho0*w1*w2*s1*s2",
+          "value": 0.0425
+        },
+        {
+          "name": "VaR0",
+          "expr": "sqrt(var0)*z*sqrt(x)",
+          "value": 1.5166
+        },
+        {
+          "name": "dVaR",
+          "expr": "VaR0 - VaR",
+          "value": -0.2321
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-11",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 352
+    },
+    "trap_category": "Formula",
+    "setup": "A correlation-swap buyer pays fixed $\\rho = 0.20$ on USD 1m notional, three assets. Realized pairwise correlations: $\\rho_{2,1} = 0.6$, $\\rho_{3,1} = 0.2$, $\\rho_{3,2} = 0.04$.",
+    "ask": "The buyer's payoff is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 80,000",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 280,000",
+        "correct": false,
+        "why": "Forgot to subtract the fixed leg: $1\\text{m} \\times 0.28$."
+      },
+      {
+        "label": "≈ USD 840,000",
+        "correct": false,
+        "why": "Summed the pairwise correlations instead of averaging them, and dropped the fixed leg: $1\\text{m} \\times 0.84$."
+      },
+      {
+        "label": "≈ USD 8,000",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Sum of pairwise correlations",
+        "display": "$0.6 + 0.2 + 0.04 = 0.84$",
+        "value": 0.84
+      },
+      {
+        "label": "Realized correlation",
+        "display": "$\\rho_{real} = \\tfrac{2}{3^2 - 3} \\times 0.84 = \\tfrac{0.84}{3} = 0.28$",
+        "value": 0.28
+      },
+      {
+        "label": "Buyer's payoff",
+        "display": "$1{,}000{,}000 \\times (0.28 - 0.20) = \\text{USD } 80{,}000$",
+        "value": 80000
+      }
+    ],
+    "takeaway": "Correlation-swap payoff = notional × (average pairwise realized ρ − fixed ρ).",
+    "check": {
+      "inputs": {
+        "N": 1000000,
+        "rf": 0.2,
+        "r21": 0.6,
+        "r31": 0.2,
+        "r32": 0.04,
+        "n": 3
+      },
+      "steps": [
+        {
+          "name": "sumr",
+          "expr": "r21+r31+r32",
+          "value": 0.84
+        },
+        {
+          "name": "rreal",
+          "expr": "2/(n**2-n)*sumr",
+          "value": 0.28
+        },
+        {
+          "name": "payoff",
+          "expr": "N*(rreal-rf)",
+          "value": 80000
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-12",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 342
+    },
+    "trap_category": "Formula",
+    "setup": "A correlation-swap buyer pays fixed $\\rho = 0.20$ on USD 1m notional, three assets. Realized pairwise correlations: $\\rho_{2,1} = 0.6$, $\\rho_{3,1} = 0.2$, $\\rho_{3,2} = 0.04$. You have the pairwise sum $0.84$ and will scale it by $\\tfrac{2}{n^2 - n}$.",
+    "ask": "Will realized correlation beat the fixed 0.20, i.e. is the buyer's payoff positive, negative, or zero?",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "You divided by $n^2 - n = 6$ and forgot the 2: $0.84/6 = 0.14 < 0.20$. The factor is $2/6 = 1/3$, giving 0.28."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "$\\rho_{real} = 0.28 \\ne 0.20$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Sum of pairwise correlations",
+        "display": "$0.6 + 0.2 + 0.04 = 0.84$",
+        "value": 0.84
+      },
+      {
+        "label": "Realized correlation",
+        "display": "$\\rho_{real} = \\tfrac{2}{3^2 - 3} \\times 0.84 = \\tfrac{0.84}{3} = 0.28$",
+        "value": 0.28
+      },
+      {
+        "label": "Buyer's payoff",
+        "display": "$1{,}000{,}000 \\times (0.28 - 0.20) = \\text{USD } 80{,}000$",
+        "value": 80000
+      }
+    ],
+    "takeaway": "2/(n²−n) is just 1 / (number of pairs): with 3 assets, average the 3 pairwise ρs.",
+    "check": {
+      "inputs": {
+        "N": 1000000,
+        "rf": 0.2,
+        "r21": 0.6,
+        "r31": 0.2,
+        "r32": 0.04,
+        "n": 3
+      },
+      "steps": [
+        {
+          "name": "sumr",
+          "expr": "r21+r31+r32",
+          "value": 0.84
+        },
+        {
+          "name": "rreal",
+          "expr": "2/(n**2-n)*sumr",
+          "value": 0.28
+        },
+        {
+          "name": "payoff",
+          "expr": "N*(rreal-rf)",
+          "value": 80000
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-13",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 541
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Two USD 2.5m loans, each $PD = 5\\%$, default correlation $\\rho = 0.5$. Joint default: $P(AB) = \\rho\\sqrt{PD_A(1-PD_A)PD_B(1-PD_B)} + PD_A PD_B$.",
+    "ask": "Which piece of $P(AB)$ is bigger: the correlation term or the independence term $PD_A PD_B$?",
+    "options": [
+      {
+        "label": "The correlation term, by roughly 10×",
+        "correct": true
+      },
+      {
+        "label": "The independence term $PD_A PD_B$",
+        "correct": false,
+        "why": "$PD_A PD_B = 0.0025$, but the correlation term is $0.5 \\times 0.0475 \\approx 0.024$."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "$0.024$ vs $0.0025$: nearly an order of magnitude apart."
+      }
+    ],
+    "working": [
+      {
+        "label": "Bernoulli variance product",
+        "display": "$0.05(0.95) \\times 0.05(0.95) = 0.00226$",
+        "value": 0.002256
+      },
+      {
+        "label": "Correlation term",
+        "display": "$0.5 \\times \\sqrt{0.00226} = 0.5 \\times 0.0475 = 0.0238$",
+        "value": 0.02375
+      },
+      {
+        "label": "Independence term",
+        "display": "$0.05 \\times 0.05 = 0.0025$",
+        "value": 0.0025
+      },
+      {
+        "label": "Joint default probability",
+        "display": "$P(AB) = 0.0238 + 0.0025 \\approx 0.0263$",
+        "value": 0.02625
+      },
+      {
+        "label": "Expected loss on both",
+        "display": "$0.0263 \\times 5{,}000{,}000 \\approx \\text{USD } 131{,}000$ (vs 12,500 at $\\rho = 0$)",
+        "value": 131250
+      }
+    ],
+    "takeaway": "At realistic default correlations the ρ term, not PD_A × PD_B, drives joint default.",
+    "check": {
+      "inputs": {
+        "PDA": 0.05,
+        "PDB": 0.05,
+        "rho": 0.5,
+        "EAD": 5000000
+      },
+      "steps": [
+        {
+          "name": "prod",
+          "expr": "PDA*(1-PDA)*PDB*(1-PDB)",
+          "value": 0.002256
+        },
+        {
+          "name": "corr",
+          "expr": "rho*sqrt(prod)",
+          "value": 0.02375
+        },
+        {
+          "name": "ind",
+          "expr": "PDA*PDB",
+          "value": 0.0025
+        },
+        {
+          "name": "PAB",
+          "expr": "corr+ind",
+          "value": 0.02625
+        },
+        {
+          "name": "EL",
+          "expr": "PAB*EAD",
+          "value": 131250
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-14",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 134
+    },
+    "trap_category": "Polarity",
+    "setup": "An investor holds Spanish government bonds and buys CDS protection on Spain from BNP Paribas. The default correlation between Spain and BNP Paribas rises; Spain's own default probability is unchanged.",
+    "ask": "The value of the CDS to the buyer (the fair fixed spread):",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Higher correlation means BNP is more likely to be down when Spain defaults, so the protection is less likely to pay. That is wrong-way risk."
+      },
+      {
+        "label": "Unchanged, since the reference PD did not move",
+        "correct": false,
+        "why": "The spread depends on the reference PD and on the joint default correlation between reference entity and seller."
+      }
+    ],
+    "working": [
+      {
+        "label": "Driver",
+        "display": "The fixed spread depends on the reference PD and $\\rho(\\text{Spain}, \\text{BNP})$",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "$\\rho \\uparrow$: if both default the buyer gets nothing, so the CDS value (spread) falls",
+        "value": null
+      }
+    ],
+    "takeaway": "Higher reference–seller correlation → wrong-way risk → CDS protection worth less."
+  },
+  {
+    "id": "SC-notes-6-15",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+    "reading_id": "MR-8",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/20_MR_MR8.tex",
+      "line": 210
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Five annual returns for $X$ and $Y$. The sum of cross-products of deviations is $-0.5135$; sample standard deviations are $\\sigma_X = 0.4207$ and $\\sigma_Y = 0.4068$ (divide by $n - 1 = 4$).",
+    "ask": "The correlation between X and Y is:",
+    "options": [
+      {
+        "label": "Strongly negative, below $-0.6$",
+        "correct": true
+      },
+      {
+        "label": "Mildly negative, between $-0.6$ and $0$",
+        "correct": false,
+        "why": "$-0.5135$ is the sum of cross-products, not $\\rho$. Covariance is $-0.1284$, and dividing by $\\sigma_X\\sigma_Y = 0.171$ scales it up to $-0.75$."
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "The cross-product sum is negative, so the covariance is negative; dividing by two positive σs cannot flip the sign."
+      }
+    ],
+    "working": [
+      {
+        "label": "Covariance",
+        "display": "$\\mathrm{cov} = -0.5135 / 4 = -0.1284$",
+        "value": -0.1284
+      },
+      {
+        "label": "Product of σs",
+        "display": "$0.4207 \\times 0.4068 = 0.1711$",
+        "value": 0.1711
+      },
+      {
+        "label": "Correlation",
+        "display": "$\\rho = -0.1284 / 0.1711 = -0.75$",
+        "value": -0.7501
+      }
+    ],
+    "takeaway": "Covariance / (σ_X σ_Y): when both σs are below 1, ρ is larger in size than the covariance.",
+    "check": {
+      "inputs": {
+        "cp": -0.5135,
+        "n": 5,
+        "sx": 0.4207,
+        "sy": 0.4068
+      },
+      "steps": [
+        {
+          "name": "cov",
+          "expr": "cp/(n-1)",
+          "value": -0.128375
+        },
+        {
+          "name": "den",
+          "expr": "sx*sy",
+          "value": 0.17114
+        },
+        {
+          "name": "rho",
+          "expr": "cov/den",
+          "value": -0.7501
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-16",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+    "reading_id": "CR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+      "line": 561
+    },
+    "trap_category": "Formula",
+    "setup": "A USD 1,000,000 loan: spread 0.65%, fees 0.1%, operating costs 0.2%, no expected loss given, tax 11.1%. Duration 3.75, current rate 10.5%, rates expected to rise 1.5%.",
+    "ask": "The loan's RAROC is closest to?",
+    "options": [
+      {
+        "label": "≈ 9.6%",
+        "correct": true
+      },
+      {
+        "label": "≈ 0.91%",
+        "correct": false,
+        "why": "Divided $\\Delta i$ by $i$ instead of $1 + i$: capital at risk becomes 535,714."
+      },
+      {
+        "label": "≈ 36%",
+        "correct": false,
+        "why": "Dropped the duration: $\\Delta L = 1\\text{m} \\times 0.015/1.105 = 13{,}575$."
+      },
+      {
+        "label": "≈ 2.9%",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Net margin",
+        "display": "$0.0065 + 0.001 - 0 - 0.002 = 0.0055$",
+        "value": 0.0055
+      },
+      {
+        "label": "Loan revenues",
+        "display": "$1{,}000{,}000 \\times 0.0055 \\times (1 - 0.111) = 4{,}889.50$",
+        "value": 4889.5
+      },
+      {
+        "label": "Capital at risk",
+        "display": "$|\\Delta L| = 1{,}000{,}000 \\times 3.75 \\times \\tfrac{0.015}{1.105} = 50{,}905$",
+        "value": 50904.98
+      },
+      {
+        "label": "RAROC",
+        "display": "$4{,}889.50 / 50{,}905 = 9.61\\%$",
+        "value": 0.0961
+      }
+    ],
+    "takeaway": "RAROC = L(s+f−l−c)(1−x) ÷ L·D·Δi/(1+i).",
+    "check": {
+      "inputs": {
+        "L": 1000000,
+        "s": 0.0065,
+        "f": 0.001,
+        "l": 0.0,
+        "c": 0.002,
+        "x": 0.111,
+        "D": 3.75,
+        "i": 0.105,
+        "di": 0.015
+      },
+      "steps": [
+        {
+          "name": "rev",
+          "expr": "L*(s+f-l-c)*(1-x)",
+          "value": 4889.5
+        },
+        {
+          "name": "CaR",
+          "expr": "L*D*di/(1+i)",
+          "value": 50904.98
+        },
+        {
+          "name": "RAROC",
+          "expr": "rev/CaR",
+          "value": 0.09605
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-17",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+    "reading_id": "CR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+      "line": 553
+    },
+    "trap_category": "Role",
+    "setup": "A USD 1,000,000 loan: spread 0.65%, fees 0.1%, operating costs 0.2%, no expected loss given, tax 11.1%. Duration 3.75, current rate 10.5%, rates expected to rise 1.5%. RAROC is 9.61%. Now suppose the expected rate rise is 3% instead of 1.5%, all else equal.",
+    "ask": "The loan's RAROC:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "$\\Delta i$ adds nothing to revenue; it sits in the denominator (capital at risk), which doubles."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "Revenue is unchanged but capital at risk $L \\cdot D \\cdot \\Delta i/(1+i)$ doubles to about 101,810."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loan revenues",
+        "display": "Unchanged at $4{,}889.50$",
+        "value": 4889.5
+      },
+      {
+        "label": "Capital at risk",
+        "display": "$1{,}000{,}000 \\times 3.75 \\times \\tfrac{0.03}{1.105} = 101{,}810$",
+        "value": 101809.95
+      },
+      {
+        "label": "RAROC",
+        "display": "$4{,}889.50 / 101{,}810 = 4.80\\%$, down from 9.61%",
+        "value": 0.04803
+      }
+    ],
+    "takeaway": "Bigger expected rate shock → more capital at risk → lower RAROC.",
+    "check": {
+      "inputs": {
+        "L": 1000000,
+        "s": 0.0065,
+        "f": 0.001,
+        "l": 0.0,
+        "c": 0.002,
+        "x": 0.111,
+        "D": 3.75,
+        "i": 0.105,
+        "di": 0.015,
+        "di2": 0.03
+      },
+      "steps": [
+        {
+          "name": "rev",
+          "expr": "L*(s+f-l-c)*(1-x)",
+          "value": 4889.5
+        },
+        {
+          "name": "CaR",
+          "expr": "L*D*di/(1+i)",
+          "value": 50904.98
+        },
+        {
+          "name": "RAROC",
+          "expr": "rev/CaR",
+          "value": 0.09605
+        },
+        {
+          "name": "CaR2",
+          "expr": "L*D*di2/(1+i)",
+          "value": 101809.95
+        },
+        {
+          "name": "RAROC2",
+          "expr": "rev/CaR2",
+          "value": 0.04803
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-18",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+    "reading_id": "CR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+      "line": 169
+    },
+    "trap_category": "Polarity",
+    "setup": "Under the IRB approach, two corporate loans have the same 5-year maturity. Borrower A has $PD = 0.1\\%$; borrower B has $PD = 5\\%$.",
+    "ask": "Which borrower gets the larger maturity adjustment?",
+    "options": [
+      {
+        "label": "A, the low-PD borrower",
+        "correct": true
+      },
+      {
+        "label": "B, the high-PD borrower",
+        "correct": false,
+        "why": "Backwards. A high-PD borrower already has a high incidence of default factored into its estimate, so maturity adds less."
+      },
+      {
+        "label": "Same for both, since maturity is the same",
+        "correct": false,
+        "why": "The adjustment depends on PD as well as maturity: low-PD borrowers get higher adjustments."
+      }
+    ],
+    "working": [
+      {
+        "label": "Rule 1",
+        "display": "Capital requirements rise with maturity (default risk grows with time)",
+        "value": null
+      },
+      {
+        "label": "Rule 2",
+        "display": "Low-PD borrowers get higher maturity adjustments than high-PD borrowers",
+        "value": null
+      }
+    ],
+    "takeaway": "Maturity adjustment: up with maturity, and larger for LOW-PD borrowers."
+  },
+  {
+    "id": "SC-notes-6-19",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+    "reading_id": "CR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/02_CR_CR5.tex",
+      "line": 500
+    },
+    "trap_category": "Polarity",
+    "setup": "In CreditRisk+, the expected number of defaults $qn$ is itself uncertain and modelled as gamma-distributed, turning the Poisson into a negative binomial. The standard deviation of $qn$ is increased, with its mean unchanged.",
+    "ask": "The probability of an extreme outcome with many defaults:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Backwards. More uncertainty in the default rate fattens the right tail of the default-count distribution."
+      },
+      {
+        "label": "Unchanged, since the mean default count is unchanged",
+        "correct": false,
+        "why": "The mean fixes the centre, not the tail. As $\\sigma(qn) \\to 0$ you get back the Poisson; as it grows, extreme default counts become more likely."
+      }
+    ],
+    "working": [
+      {
+        "label": "Limit",
+        "display": "$\\sigma(qn) \\to 0$: negative binomial $\\to$ Poisson",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "$\\sigma(qn) \\uparrow$: more probability of a large number of defaults",
+        "value": null
+      }
+    ],
+    "takeaway": "Uncertain default rate (gamma mixing) → fatter tail of defaults."
+  },
+  {
+    "id": "SC-notes-6-20",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+      "line": 78
+    },
+    "trap_category": "Formula",
+    "setup": "A bank holds 10m shares (bid 89.5, offer 90.5) and 50m ounces of a commodity (bid 15.00, offer 15.10). Dollar bid-offer spread: shares mean 1.0, s.d. 2.0; commodity mean 0.1, s.d. 0.1. Spreads normal; 99% worst case uses $\\lambda = 2.326$.",
+    "ask": "The 99% stressed cost of liquidation is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 37 million",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 7.5 million",
+        "correct": false,
+        "why": "That is the normal-market cost (half the mean spread). The $\\lambda\\sigma$ widening is missing."
+      },
+      {
+        "label": "≈ USD 2,700 million",
+        "correct": false,
+        "why": "Applied dollar spread moments straight to dollar positions. $\\mu$ and $\\sigma$ must be converted to proportional spreads (÷ mid) first."
+      },
+      {
+        "label": "≈ USD 370 million",
+        "correct": false,
+        "why": "Scale slip (10×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Position values",
+        "display": "$\\alpha_S = 90 \\times 10 = 900$, $\\alpha_C = 15.05 \\times 50 = 752.5$ (USD m)",
+        "value": null
+      },
+      {
+        "label": "Stressed proportional spreads",
+        "display": "Shares: $\\tfrac{1}{90} + 2.326 \\times \\tfrac{2}{90} = 0.0628$; commodity: $\\tfrac{0.1}{15.05}(1 + 2.326) = 0.0221$",
+        "value": null
+      },
+      {
+        "label": "Shares leg",
+        "display": "$0.5 \\times 900 \\times 0.0628 = 28.26$",
+        "value": 28.26
+      },
+      {
+        "label": "Commodity leg",
+        "display": "$0.5 \\times 752.5 \\times 0.0221 = 8.32$",
+        "value": 8.32
+      },
+      {
+        "label": "Stressed cost of liquidation",
+        "display": "$28.26 + 8.32 = \\text{USD } 36.6\\text{m}$",
+        "value": 36.58
+      }
+    ],
+    "takeaway": "Stressed cost = Σ ½ α (μ + λσ), with μ, σ as PROPORTIONAL spreads.",
+    "check": {
+      "inputs": {
+        "Ns": 10,
+        "Nc": 50,
+        "bs": 89.5,
+        "os": 90.5,
+        "bc": 15.0,
+        "oc": 15.1,
+        "mus": 1.0,
+        "sds": 2.0,
+        "muc": 0.1,
+        "sdc": 0.1,
+        "lam": 2.326
+      },
+      "steps": [
+        {
+          "name": "mids",
+          "expr": "(bs+os)/2",
+          "value": 90.0
+        },
+        {
+          "name": "midc",
+          "expr": "(bc+oc)/2",
+          "value": 15.05
+        },
+        {
+          "name": "as_",
+          "expr": "mids*Ns",
+          "value": 900.0
+        },
+        {
+          "name": "ac",
+          "expr": "midc*Nc",
+          "value": 752.5
+        },
+        {
+          "name": "sS",
+          "expr": "mus/mids + lam*sds/mids",
+          "value": 0.0628
+        },
+        {
+          "name": "sC",
+          "expr": "muc/midc + lam*sdc/midc",
+          "value": 0.022103
+        },
+        {
+          "name": "legS",
+          "expr": "0.5*as_*sS",
+          "value": 28.26
+        },
+        {
+          "name": "legC",
+          "expr": "0.5*ac*sC",
+          "value": 8.3155
+        },
+        {
+          "name": "stressed",
+          "expr": "legS+legC",
+          "value": 36.576
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-21",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+      "line": 57
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A bank holds 10m shares (bid 89.5, offer 90.5) and 50m ounces of a commodity (bid 15.00, offer 15.10). Normal market conditions.",
+    "ask": "The cost of liquidating the whole book is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 7.5 million",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 2.5 million",
+        "correct": false,
+        "why": "That is the commodity leg only. The question asks for the book, and the shares leg adds 5.0m."
+      },
+      {
+        "label": "≈ USD 490 million",
+        "correct": false,
+        "why": "Multiplied the dollar spread by the dollar position: $0.5(1 \\times 900 + 0.1 \\times 752.5)$. Use the proportional spread $s = p/\\text{mid}$."
+      },
+      {
+        "label": "≈ USD 0.75 million",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Position values",
+        "display": "$\\alpha_S = 900$, $\\alpha_C = 752.5$ (USD m)",
+        "value": null
+      },
+      {
+        "label": "Proportional spreads",
+        "display": "$s_S = 1/90 = 0.0111$, $s_C = 0.10/15.05 = 0.00664$",
+        "value": null
+      },
+      {
+        "label": "Shares leg",
+        "display": "$0.5 \\times 900 \\times 0.0111 = 5.00$",
+        "value": 5.0
+      },
+      {
+        "label": "Commodity leg",
+        "display": "$0.5 \\times 752.5 \\times 0.00664 = 2.50$",
+        "value": 2.5
+      },
+      {
+        "label": "Normal cost of liquidation",
+        "display": "$5.00 + 2.50 = \\text{USD } 7.5\\text{m}$",
+        "value": 7.5
+      }
+    ],
+    "takeaway": "Normal-market liquidation cost = Σ ½ × proportional spread × position value.",
+    "check": {
+      "inputs": {
+        "Ns": 10,
+        "Nc": 50,
+        "bs": 89.5,
+        "os": 90.5,
+        "bc": 15.0,
+        "oc": 15.1,
+        "mus": 1.0,
+        "sds": 2.0,
+        "muc": 0.1,
+        "sdc": 0.1,
+        "lam": 2.326
+      },
+      "steps": [
+        {
+          "name": "mids",
+          "expr": "(bs+os)/2",
+          "value": 90.0
+        },
+        {
+          "name": "midc",
+          "expr": "(bc+oc)/2",
+          "value": 15.05
+        },
+        {
+          "name": "as_",
+          "expr": "mids*Ns",
+          "value": 900.0
+        },
+        {
+          "name": "ac",
+          "expr": "midc*Nc",
+          "value": 752.5
+        },
+        {
+          "name": "legS",
+          "expr": "0.5*as_*(os-bs)/mids",
+          "value": 5.0
+        },
+        {
+          "name": "legC",
+          "expr": "0.5*ac*(oc-bc)/midc",
+          "value": 2.5
+        },
+        {
+          "name": "normal",
+          "expr": "legS+legC",
+          "value": 7.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-22",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+      "line": 78
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A bank holds 10m shares (bid 89.5, offer 90.5) and 50m ounces of a commodity (bid 15.00, offer 15.10). Dollar bid-offer spread: shares mean 1.0, s.d. 2.0; commodity mean 0.1, s.d. 0.1. Spreads normal; 99% worst case uses $\\lambda = 2.326$. Position values are USD 900m (shares) and USD 752.5m (commodity).",
+    "ask": "In the 99% stressed cost of liquidation, which leg contributes more?",
+    "options": [
+      {
+        "label": "The shares leg, by a wide margin",
+        "correct": true
+      },
+      {
+        "label": "The commodity leg",
+        "correct": false,
+        "why": "Its position is similar in size, but its stressed proportional spread is only 2.2% against 6.3% for the shares."
+      },
+      {
+        "label": "About equal, since the positions are similar in size",
+        "correct": false,
+        "why": "The shares' spread s.d. is twice its mean, so the $\\lambda\\sigma$ term blows up: 28.26m vs 8.32m."
+      }
+    ],
+    "working": [
+      {
+        "label": "Position values",
+        "display": "$\\alpha_S = 90 \\times 10 = 900$, $\\alpha_C = 15.05 \\times 50 = 752.5$ (USD m)",
+        "value": null
+      },
+      {
+        "label": "Stressed proportional spreads",
+        "display": "Shares: $\\tfrac{1}{90} + 2.326 \\times \\tfrac{2}{90} = 0.0628$; commodity: $\\tfrac{0.1}{15.05}(1 + 2.326) = 0.0221$",
+        "value": null
+      },
+      {
+        "label": "Shares leg",
+        "display": "$0.5 \\times 900 \\times 0.0628 = 28.26$",
+        "value": 28.26
+      },
+      {
+        "label": "Commodity leg",
+        "display": "$0.5 \\times 752.5 \\times 0.0221 = 8.32$",
+        "value": 8.32
+      },
+      {
+        "label": "Stressed cost of liquidation",
+        "display": "$28.26 + 8.32 = \\text{USD } 36.6\\text{m}$",
+        "value": 36.58
+      }
+    ],
+    "takeaway": "Stressed liquidation cost is driven by spread volatility, not position size alone.",
+    "check": {
+      "inputs": {
+        "Ns": 10,
+        "Nc": 50,
+        "bs": 89.5,
+        "os": 90.5,
+        "bc": 15.0,
+        "oc": 15.1,
+        "mus": 1.0,
+        "sds": 2.0,
+        "muc": 0.1,
+        "sdc": 0.1,
+        "lam": 2.326
+      },
+      "steps": [
+        {
+          "name": "mids",
+          "expr": "(bs+os)/2",
+          "value": 90.0
+        },
+        {
+          "name": "midc",
+          "expr": "(bc+oc)/2",
+          "value": 15.05
+        },
+        {
+          "name": "as_",
+          "expr": "mids*Ns",
+          "value": 900.0
+        },
+        {
+          "name": "ac",
+          "expr": "midc*Nc",
+          "value": 752.5
+        },
+        {
+          "name": "sS",
+          "expr": "mus/mids + lam*sds/mids",
+          "value": 0.0628
+        },
+        {
+          "name": "sC",
+          "expr": "muc/midc + lam*sdc/midc",
+          "value": 0.022103
+        },
+        {
+          "name": "legS",
+          "expr": "0.5*as_*sS",
+          "value": 28.26
+        },
+        {
+          "name": "legC",
+          "expr": "0.5*ac*sC",
+          "value": 8.3155
+        },
+        {
+          "name": "stressed",
+          "expr": "legS+legC",
+          "value": 36.576
+        },
+        {
+          "name": "gap",
+          "expr": "legS-legC",
+          "value": 19.94
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-23",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+      "line": 175
+    },
+    "trap_category": "Polarity",
+    "setup": "Ashanti Goldfields hedged its future production by selling gold forward. The hedge generated margin calls it could not meet, because its underlying gold was illiquid.",
+    "ask": "Which gold-price move triggered the crisis?",
+    "options": [
+      {
+        "label": "Gold price rose",
+        "correct": true
+      },
+      {
+        "label": "Gold price fell",
+        "correct": false,
+        "why": "A fall would have paid on the short forwards. A falling price is the Metallgesellschaft story (oil), the classic sibling swap."
+      },
+      {
+        "label": "Either direction, since any large move forces margin calls",
+        "correct": false,
+        "why": "Only the move against the short forward position creates margin calls: a rise."
+      }
+    ],
+    "working": [
+      {
+        "label": "Position",
+        "display": "Short gold forwards (a hedge against falling prices)",
+        "value": null
+      },
+      {
+        "label": "Loss side",
+        "display": "Gold rises → forwards lose → margin calls → cash crisis",
+        "value": null
+      }
+    ],
+    "takeaway": "Ashanti: gold ROSE. Metallgesellschaft: oil FELL. Both were hedgers hit by cash timing."
+  },
+  {
+    "id": "SC-notes-6-24",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/01_LR_LTR1.tex",
+      "line": 276
+    },
+    "trap_category": "Polarity",
+    "setup": "After an initial price drop, trading in a market is dominated by trend followers, stop-loss rules and dynamic hedgers.",
+    "ask": "The subsequent price move:",
+    "options": [
+      {
+        "label": "Amplified, with the fall feeding on itself",
+        "correct": true
+      },
+      {
+        "label": "Damped, with prices stabilising",
+        "correct": false,
+        "why": "That is negative-feedback (value) trading, buying into falls. These three all sell as prices fall."
+      },
+      {
+        "label": "Reversed",
+        "correct": false,
+        "why": "Nothing here buys the dip. Each rule mechanically requires selling as the price falls."
+      }
+    ],
+    "working": [
+      {
+        "label": "Classification",
+        "display": "Trend trading, stop-loss rules and dynamic hedging are positive-feedback trading",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "Sell on falls → more falls → a one-sided, illiquid market (a liquidity black hole)",
+        "value": null
+      }
+    ],
+    "takeaway": "Positive feedback = sell on falls = destabilising."
+  },
+  {
+    "id": "SC-notes-6-25",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-7: Beyond Exceedance-Based Backtesting of VaR Models",
+    "reading_id": "MR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+      "line": 70
+    },
+    "trap_category": "Formula",
+    "setup": "A 95% VaR model is backtested over 100 days. Exceedances are binomial with $p = 0.05$ per day.",
+    "ask": "The probability of exactly 3 exceedances is closest to?",
+    "options": [
+      {
+        "label": "≈ 14%",
+        "correct": true
+      },
+      {
+        "label": "≈ 5%",
+        "correct": false,
+        "why": "That is the per-day exceedance probability p, not the probability of a count."
+      },
+      {
+        "label": "≈ 0.013%",
+        "correct": false,
+        "why": "Only $p^3 = 0.000125$: dropped the $\\binom{100}{3}$ count and the $(0.95)^{97}$ term."
+      },
+      {
+        "label": "≈ 1.4%",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Combinations",
+        "display": "$\\binom{100}{3} = \\tfrac{100 \\times 99 \\times 98}{6} = 161{,}700$",
+        "value": 161700
+      },
+      {
+        "label": "No-exceedance days",
+        "display": "$0.95^{97} = 0.00690$",
+        "value": 0.006904
+      },
+      {
+        "label": "Three exceedances",
+        "display": "$0.05^3 = 0.000125$",
+        "value": 0.000125
+      },
+      {
+        "label": "Probability",
+        "display": "$161{,}700 \\times 0.00690 \\times 0.000125 = 13.96\\%$",
+        "value": 0.1396
+      }
+    ],
+    "takeaway": "Binomial count: C(n,x)(1−p)^(n−x) p^x; with np = 5, a count of 3 is ordinary (~14%).",
+    "check": {
+      "inputs": {
+        "n": 100,
+        "k": 3,
+        "p": 0.05
+      },
+      "steps": [
+        {
+          "name": "C",
+          "expr": "n*(n-1)*(n-2)/6",
+          "value": 161700
+        },
+        {
+          "name": "q",
+          "expr": "(1-p)**(n-k)",
+          "value": 0.006904
+        },
+        {
+          "name": "pk",
+          "expr": "p**k",
+          "value": 0.000125
+        },
+        {
+          "name": "prob",
+          "expr": "C*q*pk",
+          "value": 0.13958
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-26",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-7: Beyond Exceedance-Based Backtesting of VaR Models",
+    "reading_id": "MR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+      "line": 46
+    },
+    "trap_category": "Polarity",
+    "setup": "A 95% daily VaR model is backtested over 100 trading days and shows 12 exceedances.",
+    "ask": "The model is:",
+    "options": [
+      {
+        "label": "Underestimating risk (too aggressive)",
+        "correct": true
+      },
+      {
+        "label": "Overestimating risk (too conservative)",
+        "correct": false,
+        "why": "Too FEW exceedances would mean overestimation. 12 is far above the expected 5."
+      },
+      {
+        "label": "Correctly calibrated",
+        "correct": false,
+        "why": "Expected count is $np = 5$; 12 sits in the thin right shoulder of the binomial."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expected exceedances",
+        "display": "$np = 100 \\times 0.05 = 5$",
+        "value": 5
+      },
+      {
+        "label": "Excess",
+        "display": "$12 - 5 = 7$ more than expected",
+        "value": 7
+      },
+      {
+        "label": "Reading",
+        "display": "Too many exceedances → VaR set too low → risk underestimated",
+        "value": null
+      }
+    ],
+    "takeaway": "Too many exceedances → underestimates risk; too few → overestimates.",
+    "check": {
+      "inputs": {
+        "n": 100,
+        "p": 0.05,
+        "x": 12
+      },
+      "steps": [
+        {
+          "name": "expd",
+          "expr": "n*p",
+          "value": 5
+        },
+        {
+          "name": "excess",
+          "expr": "x - n*p",
+          "value": 7
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-27",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-7: Beyond Exceedance-Based Backtesting of VaR Models",
+    "reading_id": "MR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+      "line": 184
+    },
+    "trap_category": "Scope",
+    "setup": "A VaR backtest gives $LR_{uc} = 1.5$ and $LR_{ind} = 4.2$. At 95%: independence alone is rejected if $LR_{ind} > 3.84$; the model (conditional coverage) is rejected if $LR_{cc} > 5.99$.",
+    "ask": "Does the conditional-coverage test reject the model?",
+    "options": [
+      {
+        "label": "No: $LR_{cc}$ is below 5.99",
+        "correct": true
+      },
+      {
+        "label": "Yes: $LR_{cc}$ is above 5.99",
+        "correct": false,
+        "why": "$LR_{cc} = LR_{uc} + LR_{ind} = 1.5 + 4.2 = 5.7 < 5.99$."
+      },
+      {
+        "label": "Yes, automatically, because $LR_{ind} > 3.84$",
+        "correct": false,
+        "why": "3.84 is the 1-df critical value for the independence test alone. The model-level (conditional coverage) test is 2-df, judged against 5.99."
+      }
+    ],
+    "working": [
+      {
+        "label": "Conditional coverage statistic",
+        "display": "$LR_{cc} = 1.5 + 4.2 = 5.7$",
+        "value": 5.7
+      },
+      {
+        "label": "Compare",
+        "display": "$5.7 < 5.99$ (2 df): not rejected, though independence alone fails at $4.2 > 3.84$",
+        "value": null
+      }
+    ],
+    "takeaway": "LR_cc = LR_uc + LR_ind, compared with 5.99 (2 df), not 3.84.",
+    "check": {
+      "inputs": {
+        "LRuc": 1.5,
+        "LRind": 4.2,
+        "crit": 5.99
+      },
+      "steps": [
+        {
+          "name": "LRcc",
+          "expr": "LRuc + LRind",
+          "value": 5.7
+        },
+        {
+          "name": "margin",
+          "expr": "LRcc - crit",
+          "value": -0.29
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-28",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-7: Beyond Exceedance-Based Backtesting of VaR Models",
+    "reading_id": "MR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+      "line": 521
+    },
+    "trap_category": "Intermediate result",
+    "setup": "For the PIT backtest, the model forecast day 5's P&L as normal with mean 0 and standard deviation 3.25%. The actual P&L was $-5.48\\%$.",
+    "ask": "Where does day 5's PIT land?",
+    "options": [
+      {
+        "label": "Below 0.10 (deep in the left tail)",
+        "correct": true
+      },
+      {
+        "label": "Between 0.10 and 0.50",
+        "correct": false,
+        "why": "$-5.48\\%$ looks moderate, but it is $-1.69\\sigma$. $N(-1.69) \\approx 0.046$."
+      },
+      {
+        "label": "Above 0.50",
+        "correct": false,
+        "why": "A loss sits below the forecast mean, so its PIT is below 0.5."
+      }
+    ],
+    "working": [
+      {
+        "label": "Standardise",
+        "display": "$z = -5.48 / 3.25 = -1.69$",
+        "value": -1.686
+      },
+      {
+        "label": "PIT",
+        "display": "$N(-1.69) = 0.046$",
+        "value": 0.046
+      }
+    ],
+    "takeaway": "PIT = forecast CDF at the outcome; a −1.7σ day maps to about 0.05.",
+    "check": {
+      "inputs": {
+        "pl": -5.48,
+        "sd": 3.25
+      },
+      "steps": [
+        {
+          "name": "z",
+          "expr": "pl/sd",
+          "value": -1.6862
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-29",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-7: Beyond Exceedance-Based Backtesting of VaR Models",
+    "reading_id": "MR-7",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/37_MR_MR7.tex",
+      "line": 387
+    },
+    "trap_category": "Polarity",
+    "setup": "A VaR model's forecast P&L distribution is systematically too narrow compared with the true distribution. You histogram a long series of its PITs by decile.",
+    "ask": "The PIT histogram:",
+    "options": [
+      {
+        "label": "Piles up in both end deciles",
+        "correct": true
+      },
+      {
+        "label": "Bunches in the middle deciles, thin at the ends",
+        "correct": false,
+        "why": "That is the signature of a forecast that is too WIDE."
+      },
+      {
+        "label": "Stays roughly uniform",
+        "correct": false,
+        "why": "Uniform PITs mean a well-calibrated forecast. A too-narrow forecast sends real outcomes into its tails."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mechanism",
+        "display": "Outcomes the narrow model calls extreme happen more often than it expects",
+        "value": null
+      },
+      {
+        "label": "PIT effect",
+        "display": "Those outcomes map to PITs near 0 and near 1, so the end deciles are overfull",
+        "value": null
+      }
+    ],
+    "takeaway": "Too narrow → PITs pile at both ends; too wide → PITs bunch in the middle."
+  },
+  {
+    "id": "SC-notes-6-30",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-16: Netting, Close-out and Related Aspects",
+    "reading_id": "CR-16",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/37_CR_CR16.tex",
+      "line": 229
+    },
+    "trap_category": "Sign",
+    "setup": "A participant holds three index CDS on the same index, same maturity, same coupon: long 200 with counterparty X, short 100 with Y, short 75 with Z. All three are submitted for compression.",
+    "ask": "The single surviving net contract is:",
+    "options": [
+      {
+        "label": "Long, facing X",
+        "correct": true
+      },
+      {
+        "label": "Short, facing Y",
+        "correct": false,
+        "why": "The shorts total 175, less than the 200 long. Net is $+25$."
+      },
+      {
+        "label": "Flat, since longs and shorts cancel",
+        "correct": false,
+        "why": "$200 - 175 = 25$ remains, so compression leaves a residual long."
+      }
+    ],
+    "working": [
+      {
+        "label": "Net notional",
+        "display": "$200 - 100 - 75 = 25$ long",
+        "value": 25
+      },
+      {
+        "label": "Surviving counterparty",
+        "display": "The long leg's counterparty, X",
+        "value": null
+      }
+    ],
+    "takeaway": "Net = longs − shorts; the net contract stays with the counterparty on the surviving side.",
+    "check": {
+      "inputs": {
+        "LX": 200,
+        "SY": 100,
+        "SZ": 75
+      },
+      "steps": [
+        {
+          "name": "shorts",
+          "expr": "SY+SZ",
+          "value": 175
+        },
+        {
+          "name": "net",
+          "expr": "LX - SY - SZ",
+          "value": 25
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-31",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-16: Netting, Close-out and Related Aspects",
+    "reading_id": "CR-16",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/37_CR_CR16.tex",
+      "line": 274
+    },
+    "trap_category": "Scope",
+    "setup": "A participant holds three index CDS on the same index, same maturity, same coupon: long 200 with counterparty X, short 100 with Y, short 75 with Z. All three are submitted for compression.",
+    "ask": "Gross notional after compression is closest to?",
+    "options": [
+      {
+        "label": "≈ 25",
+        "correct": true
+      },
+      {
+        "label": "≈ 375",
+        "correct": false,
+        "why": "That is the gross notional before compression (200 + 100 + 75)."
+      },
+      {
+        "label": "≈ 125",
+        "correct": false,
+        "why": "Dropped Y's short leg: 200 − 75."
+      },
+      {
+        "label": "≈ 7.5",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Net notional",
+        "display": "$200 - 100 - 75 = 25$ long",
+        "value": 25
+      },
+      {
+        "label": "Surviving counterparty",
+        "display": "The long leg's counterparty, X",
+        "value": null
+      },
+      {
+        "label": "Gross notional before",
+        "display": "$200 + 100 + 75 = 375$",
+        "value": 375
+      },
+      {
+        "label": "Gross notional after",
+        "display": "$25$: a 93.3% reduction, net risk unchanged",
+        "value": 25
+      }
+    ],
+    "takeaway": "Compression collapses gross notional to the net; the net risk position does not change.",
+    "check": {
+      "inputs": {
+        "LX": 200,
+        "SY": 100,
+        "SZ": 75
+      },
+      "steps": [
+        {
+          "name": "gross",
+          "expr": "LX+SY+SZ",
+          "value": 375
+        },
+        {
+          "name": "net",
+          "expr": "LX - SY - SZ",
+          "value": 25
+        },
+        {
+          "name": "cut",
+          "expr": "1 - net/gross",
+          "value": 0.9333
+        },
+        {
+          "name": "after",
+          "expr": "net",
+          "value": 25
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-6-32",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-16: Netting, Close-out and Related Aspects",
+    "reading_id": "CR-16",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/37_CR_CR16.tex",
+      "line": 135
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Across three counterparties, total exposure is 360 with no netting, 120 with bilateral netting, and 60 once trades move to central clearing.",
+    "ask": "In absolute terms, which step removes more exposure?",
+    "options": [
+      {
+        "label": "Bilateral netting (360 → 120)",
+        "correct": true
+      },
+      {
+        "label": "Central clearing (120 → 60)",
+        "correct": false,
+        "why": "Central clearing is the stronger mechanism overall, but this second step removes only 60, against 240 for bilateral netting."
+      },
+      {
+        "label": "About the same",
+        "correct": false,
+        "why": "240 against 60: bilateral netting does four times the work."
+      }
+    ],
+    "working": [
+      {
+        "label": "Bilateral step",
+        "display": "$360 - 120 = 240$",
+        "value": 240
+      },
+      {
+        "label": "Clearing step",
+        "display": "$120 - 60 = 60$",
+        "value": 60
+      },
+      {
+        "label": "Overall",
+        "display": "$1 - 60/360 = 83\\%$ reduction",
+        "value": 0.8333
+      }
+    ],
+    "takeaway": "Most of the exposure reduction comes from the first step (bilateral netting); clearing halves the remainder.",
+    "check": {
+      "inputs": {
+        "none": 360,
+        "bil": 120,
+        "ccp": 60
+      },
+      "steps": [
+        {
+          "name": "step1",
+          "expr": "none - bil",
+          "value": 240
+        },
+        {
+          "name": "step2",
+          "expr": "bil - ccp",
+          "value": 60
+        },
+        {
+          "name": "total",
+          "expr": "1 - ccp/none",
+          "value": 0.8333
+        }
+      ]
+    }
+  }
+]

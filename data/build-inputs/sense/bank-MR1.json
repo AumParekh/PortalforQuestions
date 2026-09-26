@@ -1,0 +1,2577 @@
+[
+ {
+  "id": "SC-bank-MR1-01",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-30"
+  },
+  "trap_category": "Formula",
+  "setup": "FRTB internal models. Five partial expected shortfalls on a 10-day base shock (EUR m): $ES_1, \\dots, ES_5 = 40, 30, 20, 12, 6$, for liquidity horizons of 10, 20, 40, 60 and 120 days. Each $ES_j$ with $j \\ge 2$ is scaled by $\\sqrt{(LH_j - LH_{j-1})/10}$. The five scaled figures are then combined as the square root of the sum of their squares.",
+  "ask": "Total expected shortfall is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 19m",
+    "correct": false,
+    "why": "Scale slip (0.3×). The total can't be below $ES_1 = 40$ on its own, since every other term only adds under the square root."
+   },
+   {
+    "label": "≈ EUR 62m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 170m",
+    "correct": false,
+    "why": "Scaled each category by its full horizon $\\sqrt{LH_j/10}$ instead of the increment, then added the five figures in a straight line instead of in quadrature."
+   },
+   {
+    "label": "≈ EUR 3,800m",
+    "correct": false,
+    "why": "Stopped at the sum of squares (3,804) and never took the square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaled $ES_2$",
+    "display": "$30 \\times \\sqrt{10/10} = 30.00$",
+    "value": 30.0
+   },
+   {
+    "label": "Scaled $ES_3$",
+    "display": "$20 \\times \\sqrt{20/10} = 28.28$",
+    "value": 28.28
+   },
+   {
+    "label": "Scaled $ES_4$",
+    "display": "$12 \\times \\sqrt{20/10} = 16.97$",
+    "value": 16.97
+   },
+   {
+    "label": "Scaled $ES_5$",
+    "display": "$6 \\times \\sqrt{60/10} = 14.70$",
+    "value": 14.7
+   },
+   {
+    "label": "Sum of squares",
+    "display": "$1600 + 900 + 800 + 288 + 216 = 3804$",
+    "value": 3804
+   },
+   {
+    "label": "Total ES",
+    "display": "$\\sqrt{3804} \\approx \\text{EUR } 61.7\\text{m}$",
+    "value": 61.68
+   }
+  ],
+  "takeaway": "FRTB ES: scale by the horizon increment, then add in quadrature. The total lands above $ES_1$ but below the straight sum of the scaled partials (about 130).",
+  "check": {
+   "inputs": {
+    "E1": 40,
+    "E2": 30,
+    "E3": 20,
+    "E4": 12,
+    "E5": 6,
+    "L1": 10,
+    "L2": 20,
+    "L3": 40,
+    "L4": 60,
+    "L5": 120
+   },
+   "steps": [
+    {
+     "name": "s2",
+     "expr": "E2*sqrt((L2-L1)/10)",
+     "value": 30.0
+    },
+    {
+     "name": "s3",
+     "expr": "E3*sqrt((L3-L2)/10)",
+     "value": 28.284
+    },
+    {
+     "name": "s4",
+     "expr": "E4*sqrt((L4-L3)/10)",
+     "value": 16.971
+    },
+    {
+     "name": "s5",
+     "expr": "E5*sqrt((L5-L4)/10)",
+     "value": 14.697
+    },
+    {
+     "name": "ss",
+     "expr": "E1**2+s2**2+s3**2+s4**2+s5**2",
+     "value": 3804.0
+    },
+    {
+     "name": "ES",
+     "expr": "sqrt(ss)",
+     "value": 61.677
+    },
+    {
+     "name": "slip_level_linear",
+     "expr": "E1+E2*sqrt(L2/10)+E3*sqrt(L3/10)+E4*sqrt(L4/10)+E5*sqrt(L5/10)",
+     "value": 172.6
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.3*ES",
+     "value": 18.503
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-02",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-30"
+  },
+  "trap_category": "Formula",
+  "setup": "FRTB expected shortfall. Liquidity horizons are 10, 20, 40, 60 and 120 days. Each partial $ES_j$ ($j \\ge 2$) is scaled by $\\sqrt{(LH_j - LH_{j-1})/10}$ before aggregation. $ES_3$ belongs to the 40-day category and $ES_4$ to the 60-day category.",
+  "ask": "Which scaling factor is larger: the one applied to $ES_3$ or the one applied to $ES_4$?",
+  "options": [
+   {
+    "label": "They are equal",
+    "correct": true
+   },
+   {
+    "label": "$ES_4$'s factor is larger",
+    "correct": false,
+    "why": "Scaled by the horizon level, $\\sqrt{60/10} = 2.45$ against $\\sqrt{40/10} = 2.00$. The formula uses the increment from the previous horizon, not the level."
+   },
+   {
+    "label": "$ES_3$'s factor is larger",
+    "correct": false,
+    "why": "This would need the 40→60 step to be shorter than the 20→40 step. Both increments are 20 days."
+   }
+  ],
+  "working": [
+   {
+    "label": "Increment for category 3",
+    "display": "$40 - 20 = 20$ days",
+    "value": 20
+   },
+   {
+    "label": "Increment for category 4",
+    "display": "$60 - 40 = 20$ days",
+    "value": 20
+   },
+   {
+    "label": "Both factors",
+    "display": "$\\sqrt{20/10} = 1.414$",
+    "value": 1.414
+   }
+  ],
+  "takeaway": "FRTB horizon scaling uses the increment $LH_j - LH_{j-1}$, not the horizon itself. That makes categories 3 and 4 identical.",
+  "check": {
+   "inputs": {
+    "L2": 20,
+    "L3": 40,
+    "L4": 60
+   },
+   "steps": [
+    {
+     "name": "f3",
+     "expr": "sqrt((L3-L2)/10)",
+     "value": 1.4142
+    },
+    {
+     "name": "f4",
+     "expr": "sqrt((L4-L3)/10)",
+     "value": 1.4142
+    },
+    {
+     "name": "diff",
+     "expr": "f4-f3",
+     "value": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-43"
+  },
+  "trap_category": "Role",
+  "setup": "Currency option parity: $p = c + Ke^{-rT} - S_0e^{-qT}$. The foreign rate acts as the yield $q$. Spot is USD 0.5500, strike USD 0.5700, $T = 1$. The domestic rate is $r = 4\\%$ and the foreign rate is $q = 8\\%$. The call trades at USD 0.0325, with an implied vol of 14.5%.",
+  "ask": "The residual $Ke^{-rT} - S_0e^{-qT}$, which equals $p - c$, is:",
+  "options": [
+   {
+    "label": "Positive: the put is worth more than the call",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Swapped the rates, discounting the strike at 8% and spot at 4%: $0.5262 - 0.5284 = -0.002$. The domestic rate discounts the domestic strike, and the foreign rate discounts spot."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The strike sits above spot and is also discounted at the lower rate. Both push $Ke^{-rT}$ above $S_0e^{-qT}$, and the gap is about 0.040, larger than the call price itself."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discounted strike",
+    "display": "$0.5700 \\times e^{-0.04} = 0.54765$",
+    "value": 0.54765
+   },
+   {
+    "label": "Discounted spot",
+    "display": "$0.5500 \\times e^{-0.08} = 0.50771$",
+    "value": 0.50771
+   },
+   {
+    "label": "Residual $p - c$",
+    "display": "$0.54765 - 0.50771 = +0.03994$",
+    "value": 0.03994
+   },
+   {
+    "label": "Put",
+    "display": "$p = 0.0325 + 0.03994 \\approx \\text{USD } 0.0724$",
+    "value": 0.0724
+   }
+  ],
+  "takeaway": "In FX parity, $r$ (domestic) discounts the strike and $q$ (foreign) discounts spot. The implied vol is not needed.",
+  "check": {
+   "inputs": {
+    "S": 0.55,
+    "K": 0.57,
+    "r": 0.04,
+    "q": 0.08,
+    "T": 1,
+    "c": 0.0325
+   },
+   "steps": [
+    {
+     "name": "Kd",
+     "expr": "K*exp(-r*T)",
+     "value": 0.54765
+    },
+    {
+     "name": "Sd",
+     "expr": "S*exp(-q*T)",
+     "value": 0.50771
+    },
+    {
+     "name": "resid",
+     "expr": "Kd-Sd",
+     "value": 0.039936
+    },
+    {
+     "name": "p",
+     "expr": "c+resid",
+     "value": 0.072436
+    },
+    {
+     "name": "slip_swapped",
+     "expr": "K*exp(-q*T)-S*exp(-r*T)",
+     "value": -0.0022579
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-44"
+  },
+  "trap_category": "Sign",
+  "setup": "Using $\\sigma = 34.0\\%$, BSM values a European call at USD 6.95 and the matching European put (same strike and maturity) at USD 5.12. The call actually trades at USD 7.23.",
+  "ask": "The put's market price is most likely:",
+  "options": [
+   {
+    "label": "Above USD 5.12",
+    "correct": true
+   },
+   {
+    "label": "Below USD 5.12",
+    "correct": false,
+    "why": "Flipped the sign of the error: $5.12 - 0.28 = 4.84$. The market pays more than BSM for the call, so it pays more for the put too."
+   },
+   {
+    "label": "Equal to USD 5.12",
+    "correct": false,
+    "why": "Put-call parity holds for both model and market prices, so any dollar mispricing BSM makes on the call it makes on the put."
+   }
+  ],
+  "working": [
+   {
+    "label": "Call error (market − model)",
+    "display": "$7.23 - 6.95 = +0.28$",
+    "value": 0.28
+   },
+   {
+    "label": "Put market price",
+    "display": "$5.12 + 0.28 = \\text{USD } 5.40$",
+    "value": 5.4
+   }
+  ],
+  "takeaway": "Same strike, same maturity: BSM's dollar pricing error is identical for the call and the put, and so is the implied vol.",
+  "check": {
+   "inputs": {
+    "cB": 6.95,
+    "cM": 7.23,
+    "pB": 5.12
+   },
+   "steps": [
+    {
+     "name": "err",
+     "expr": "cM-cB",
+     "value": 0.28
+    },
+    {
+     "name": "pM",
+     "expr": "pB+err",
+     "value": 5.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-05",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-45"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Bilinear interpolation on a volatility surface at $K/S_0 = 1.10$ and a maturity of 4.0 years. Interpolating across strike has already given 19.80% on the 2-year row and 21.60% on the 5-year row.",
+  "ask": "The final 4-year implied volatility will be closer to:",
+  "options": [
+   {
+    "label": "21.60% (the 5-year row)",
+    "correct": true
+   },
+   {
+    "label": "19.80% (the 2-year row)",
+    "correct": false,
+    "why": "Put the weight on the wrong end. The weight on the 5-year value is $(4-2)/(5-2) = 2/3$, because 4 years sits closer to 5 than to 2. Stopping at 19.80% is the other trap: that is the 2-year row, not the answer."
+   },
+   {
+    "label": "Exactly midway (20.70%)",
+    "correct": false,
+    "why": "The midpoint of 2 and 5 years is 3.5 years, not 4."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight on 5-year row",
+    "display": "$(4 - 2)/(5 - 2) = 0.667$",
+    "value": 0.6667
+   },
+   {
+    "label": "Interpolated vol",
+    "display": "$19.80 + (21.60 - 19.80) \\times 0.667 = 21.00\\%$",
+    "value": 21.0
+   }
+  ],
+  "takeaway": "Bilinear interpolation takes two passes, one in each dimension. Put each weight on the grid point the target is nearest to.",
+  "check": {
+   "inputs": {
+    "v2": 19.8,
+    "v5": 21.6,
+    "T": 4
+   },
+   "steps": [
+    {
+     "name": "w5",
+     "expr": "(T-2)/(5-2)",
+     "value": 0.66667
+    },
+    {
+     "name": "vol",
+     "expr": "v2+(v5-v2)*w5",
+     "value": 21.0
+    },
+    {
+     "name": "mid",
+     "expr": "(v2+v5)/2",
+     "value": 20.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-06",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-47"
+  },
+  "trap_category": "Sign",
+  "setup": "Normal ES as a loss: $ES = -\\mu + \\sigma \\times \\frac{e^{-Y^2/2}}{\\sqrt{2\\pi}\\,(1-X)}$. The daily mean return is $+1.0\\%$, daily $\\sigma = 5.0\\%$, $X = 97.5\\%$ and $Y = 1.96$. The tail term is already done: $5.0\\% \\times 2.338 = 11.69\\%$.",
+  "ask": "The daily 97.5% ES, expressed as a loss, is:",
+  "options": [
+   {
+    "label": "Below 11.69%",
+    "correct": true
+   },
+   {
+    "label": "Above 11.69%",
+    "correct": false,
+    "why": "Added the mean, treating the +1% expected return as if it were an expected loss. An expected profit reduces the tail loss, so it is subtracted."
+   },
+   {
+    "label": "Exactly 11.69%",
+    "correct": false,
+    "why": "Dropped the $-\\mu$ term. The mean is small, but it is stated and it moves the answer by a full percentage point."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail multiplier",
+    "display": "$e^{-1.96^2/2} / (\\sqrt{2\\pi} \\times 0.025) = 2.338$",
+    "value": 2.338
+   },
+   {
+    "label": "Tail term",
+    "display": "$5.0\\% \\times 2.338 = 11.69\\%$",
+    "value": 11.69
+   },
+   {
+    "label": "ES as a loss",
+    "display": "$-1.0\\% + 11.69\\% = 10.69\\%$",
+    "value": 10.69
+   }
+  ],
+  "takeaway": "When the mean is an expected RETURN, subtract it from the tail term to get a loss.",
+  "check": {
+   "inputs": {
+    "mu": 1.0,
+    "s": 5.0,
+    "Y": 1.96,
+    "X": 0.975
+   },
+   "steps": [
+    {
+     "name": "mult",
+     "expr": "exp(-Y**2/2)/(sqrt(2*3.141592653589793)*(1-X))",
+     "value": 2.3376
+    },
+    {
+     "name": "tail",
+     "expr": "s*mult",
+     "value": 11.688
+    },
+    {
+     "name": "ES",
+     "expr": "-mu+tail",
+     "value": 10.688
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-07",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-48"
+  },
+  "trap_category": "Sign",
+  "setup": "A USD 30m exposure is normally distributed. It is stated in loss-positive format: mean loss $+4.0\\%$, $\\sigma = 15.0\\%$. The 97.5% ES multiplier is 2.3378, and the tail term is already done: $15.0\\% \\times 2.3378 = 35.07\\%$.",
+  "ask": "The 97.5% ES as a percentage of the exposure is:",
+  "options": [
+   {
+    "label": "Above 35.07%",
+    "correct": true
+   },
+   {
+    "label": "Below 35.07%",
+    "correct": false,
+    "why": "Subtracted the mean as if it were an expected return. In loss-positive format, +4% is an expected loss, so it adds to the tail."
+   },
+   {
+    "label": "Exactly 35.07%",
+    "correct": false,
+    "why": "Dropped the mean term, which here is worth four percentage points."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail term",
+    "display": "$15.0\\% \\times 2.3378 = 35.07\\%$",
+    "value": 35.07
+   },
+   {
+    "label": "ES in %",
+    "display": "$4.0\\% + 35.07\\% = 39.07\\%$",
+    "value": 39.07
+   },
+   {
+    "label": "ES in USD",
+    "display": "$30 \\times 39.07\\% \\approx \\text{USD } 11.72\\text{m}$",
+    "value": 11.72
+   }
+  ],
+  "takeaway": "Read the format label first. A positive mean LOSS is added; a positive mean RETURN is subtracted.",
+  "check": {
+   "inputs": {
+    "mu": 4.0,
+    "s": 15.0,
+    "m": 2.3378,
+    "P": 30
+   },
+   "steps": [
+    {
+     "name": "tail",
+     "expr": "s*m",
+     "value": 35.067
+    },
+    {
+     "name": "ESpct",
+     "expr": "mu+tail",
+     "value": 39.067
+    },
+    {
+     "name": "ESusd",
+     "expr": "P*ESpct/100",
+     "value": 11.72
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-08",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-48"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 30m exposure is normally distributed. It is stated in loss-positive format: mean loss $4.0\\%$, $\\sigma = 15.0\\%$. Use $ES_{97.5\\%} = \\mu + \\sigma \\times \\phi(1.96)/(1 - 0.975)$, with $\\phi(1.96) = 0.05845$.",
+  "ask": "The single-period 97.5% ES is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.5m",
+    "correct": false,
+    "why": "Forgot to divide the density by the tail probability $(1 - X) = 0.025$. Without that, the multiplier is 0.058 when it should be 2.34."
+   },
+   {
+    "label": "≈ USD 12m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 39m",
+    "correct": false,
+    "why": "Reported the percentage (39.1%) as the dollar figure and skipped the multiply by USD 30m. An ES above the whole exposure is an instant red flag."
+   },
+   {
+    "label": "≈ USD 120m",
+    "correct": false,
+    "why": "Scale slip (10×). This is four times the exposure itself."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail multiplier",
+    "display": "$0.05845 / 0.025 = 2.338$",
+    "value": 2.338
+   },
+   {
+    "label": "ES in %",
+    "display": "$4.0\\% + 15.0\\% \\times 2.338 = 39.07\\%$",
+    "value": 39.07
+   },
+   {
+    "label": "ES in USD",
+    "display": "$30 \\times 0.3907 \\approx \\text{USD } 11.7\\text{m}$",
+    "value": 11.72
+   }
+  ],
+  "takeaway": "The 97.5% normal ES is about $\\mu + 2.34\\sigma$, roughly 40% of this exposure. A figure above the whole position is a red flag.",
+  "check": {
+   "inputs": {
+    "mu": 0.04,
+    "s": 0.15,
+    "phi": 0.05845,
+    "X": 0.975,
+    "P": 30
+   },
+   "steps": [
+    {
+     "name": "mult",
+     "expr": "phi/(1-X)",
+     "value": 2.338
+    },
+    {
+     "name": "ESpct",
+     "expr": "mu+s*mult",
+     "value": 0.3907
+    },
+    {
+     "name": "ESusd",
+     "expr": "P*ESpct",
+     "value": 11.721
+    },
+    {
+     "name": "slip_noTail",
+     "expr": "P*(mu+s*phi)",
+     "value": 1.463
+    },
+    {
+     "name": "slip_pct",
+     "expr": "100*ESpct",
+     "value": 39.07
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*ESusd",
+     "value": 117.21
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-09",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-01"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 1 (normal, no drift): $dr = \\sigma\\,dw$. The current short rate is 7.18%, $\\sigma = 118$ bp per year, and the step is three months ($dt = 0.25$). The realised draw is $dw = 0.18$.",
+  "ask": "The change in the short rate over the step is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.053%",
+    "correct": false,
+    "why": "Also multiplied by $dt$. The realised $dw$ already carries the time scaling, because its s.d. is $\\sqrt{dt}$, so $dt$ does not appear again."
+   },
+   {
+    "label": "≈ 0.21%",
+    "correct": true
+   },
+   {
+    "label": "≈ 2.1%",
+    "correct": false,
+    "why": "Scale slip (10×). A 2% move in one quarter would be almost twice the whole annual volatility."
+   },
+   {
+    "label": "≈ 21%",
+    "correct": false,
+    "why": "Plugged in 118 without converting basis points to percent: $118 \\times 0.18 = 21.2$ is in basis points, not percent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Volatility in %",
+    "display": "$118\\text{ bp} = 1.18\\%$",
+    "value": 1.18
+   },
+   {
+    "label": "Rate change",
+    "display": "$dr = 1.18\\% \\times 0.18 = 0.2124\\%$",
+    "value": 0.2124
+   },
+   {
+    "label": "New level",
+    "display": "$7.18\\% + 0.2124\\% = 7.3924\\%$",
+    "value": 7.3924
+   }
+  ],
+  "takeaway": "Given a realised $dw$, the change is just $\\sigma \\times dw$. The time step only matters for the distribution of $dw$.",
+  "check": {
+   "inputs": {
+    "sig": 1.18,
+    "dw": 0.18,
+    "dt": 0.25,
+    "r0": 7.18
+   },
+   "steps": [
+    {
+     "name": "dr",
+     "expr": "sig*dw",
+     "value": 0.2124
+    },
+    {
+     "name": "r1",
+     "expr": "r0+dr",
+     "value": 7.3924
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*dw*dt",
+     "value": 0.0531
+    },
+    {
+     "name": "slip_bp",
+     "expr": "118*dw",
+     "value": 21.24
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-10",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-03"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 2: $dr = \\lambda\\,dt + \\sigma\\,dw$, with $r_0 = 6.138\\%$, $\\lambda = 0.239\\%$ per year and $\\sigma = 1.20\\%$ per year. The horizon is one month.",
+  "ask": "The standard deviation of the one-month rate change is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.10%",
+    "correct": false,
+    "why": "Scaled $\\sigma$ by $dt = 1/12$. That is the drift's scaling; dispersion scales with $\\sqrt{dt}$."
+   },
+   {
+    "label": "≈ 0.35%",
+    "correct": true
+   },
+   {
+    "label": "≈ 1.2%",
+    "correct": false,
+    "why": "Left $\\sigma$ at its annual value, so the one-month horizon was never applied."
+   },
+   {
+    "label": "≈ 4.2%",
+    "correct": false,
+    "why": "Multiplied by $\\sqrt{12}$ instead of dividing. That stretches the annual figure outward when it should shrink it."
+   }
+  ],
+  "working": [
+   {
+    "label": "$\\sqrt{dt}$",
+    "display": "$\\sqrt{1/12} = 0.2887$",
+    "value": 0.2887
+   },
+   {
+    "label": "Monthly s.d.",
+    "display": "$1.20\\% \\times 0.2887 = 0.3464\\%$",
+    "value": 0.3464
+   }
+  ],
+  "takeaway": "Drift scales with $dt$ and dispersion with $\\sqrt{dt}$, so write both side by side before substituting.",
+  "check": {
+   "inputs": {
+    "sig": 1.2,
+    "lam": 0.239,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "sd",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.34641
+    },
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.019917
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*dt",
+     "value": 0.1
+    },
+    {
+     "name": "slip_up",
+     "expr": "sig*sqrt(12)",
+     "value": 4.1569
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-11",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-03"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 2: $dr = \\lambda\\,dt + \\sigma\\,dw$, with $\\lambda = 0.239\\%$ per year and $\\sigma = 1.20\\%$ per year. The horizon is one month ($dt = 1/12$).",
+  "ask": "Over the month, which is bigger: the expected drift $\\lambda\\,dt$ or the one-s.d. random move $\\sigma\\sqrt{dt}$?",
+  "options": [
+   {
+    "label": "The random move, by a wide margin",
+    "correct": true
+   },
+   {
+    "label": "The drift",
+    "correct": false,
+    "why": "Compared the unscaled annual drift (0.239%) with $\\sigma \\times dt$ (0.10%). Each term needs its own time scaling."
+   },
+   {
+    "label": "They are about the same size",
+    "correct": false,
+    "why": "About 0.02% of drift against 0.35% of dispersion is a factor of roughly 17, not a match. Drift shrinks with $dt$, dispersion only with $\\sqrt{dt}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift per month",
+    "display": "$0.239\\% / 12 = 0.0199\\%$",
+    "value": 0.0199
+   },
+   {
+    "label": "S.d. per month",
+    "display": "$1.20\\% \\times \\sqrt{1/12} = 0.3464\\%$",
+    "value": 0.3464
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.3464 / 0.0199 \\approx 17$",
+    "value": 17.4
+   }
+  ],
+  "takeaway": "At short horizons dispersion swamps drift; drift only catches up at long horizons because $t$ outgrows $\\sqrt{t}$.",
+  "check": {
+   "inputs": {
+    "sig": 1.2,
+    "lam": 0.239,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.019917
+    },
+    {
+     "name": "sd",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.34641
+    },
+    {
+     "name": "ratio",
+     "expr": "sd/drift",
+     "value": 17.393
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-12",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-04"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 2: $dr = \\lambda\\,dt + \\sigma\\,dw$. The current rate is 5.26%, $\\sigma = 115$ bp per year and $\\lambda = 0.25\\%$ per year. The step is one month, and the realised draw is $dw = 0.25$.",
+  "ask": "The drift contribution $\\lambda\\,dt$ to this month's change is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.6 bp",
+    "correct": false,
+    "why": "Scale slip (0.3×)."
+   },
+   {
+    "label": "≈ 2.1 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 7.2 bp",
+    "correct": false,
+    "why": "Scaled the drift by $\\sqrt{dt}$. That is the dispersion's scaling; drift is linear in $dt$."
+   },
+   {
+    "label": "≈ 25 bp",
+    "correct": false,
+    "why": "Used the annual drift unscaled, which is the classic Model 2 slip."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift term",
+    "display": "$0.25\\% \\times 1/12 = 0.0208\\% \\approx 2.1\\text{ bp}$",
+    "value": 2.083
+   },
+   {
+    "label": "Random term",
+    "display": "$1.15\\% \\times 0.25 = 0.2875\\% = 28.75\\text{ bp}$",
+    "value": 28.75
+   },
+   {
+    "label": "New rate",
+    "display": "$5.26\\% + 0.0208\\% + 0.2875\\% = 5.5683\\%$",
+    "value": 5.5683
+   }
+  ],
+  "takeaway": "Over one month a 25 bp-a-year drift is only about 2 bp, small next to the random term.",
+  "check": {
+   "inputs": {
+    "lam_bp": 25,
+    "sig_bp": 115,
+    "dw": 0.25,
+    "dt": 0.08333333333333333,
+    "r0": 5.26
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "lam_bp*dt",
+     "value": 2.0833
+    },
+    {
+     "name": "rand",
+     "expr": "sig_bp*dw",
+     "value": 28.75
+    },
+    {
+     "name": "r1",
+     "expr": "r0+(drift+rand)/100",
+     "value": 5.5683
+    },
+    {
+     "name": "slip_sqrt",
+     "expr": "lam_bp*sqrt(dt)",
+     "value": 7.2169
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.3*drift",
+     "value": 0.625
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-13",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-05"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Model 1 binomial tree with no drift. $r_0 = 4.00\\%$, $\\sigma = 1.20\\%$ per year, and each step is three months ($dt = 0.25$). Each node moves up or down by $\\sigma\\sqrt{dt}$ with probability ½.",
+  "ask": "Which is larger: the up-up node's distance above 4.00% after two steps, or one standard deviation of the six-month change, $\\sigma\\sqrt{2\\,dt}$?",
+  "options": [
+   {
+    "label": "The up-up node's distance",
+    "correct": true
+   },
+   {
+    "label": "$\\sigma\\sqrt{2\\,dt}$",
+    "correct": false,
+    "why": "Reversed the comparison. The extreme path is $2\\sigma\\sqrt{dt}$, which equals $\\sqrt{2} \\times \\sigma\\sqrt{2\\,dt}$."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Treated two steps as one step of length $2dt$. The tree's extreme path widens linearly in the number of steps, while the s.d. widens with its square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Step size",
+    "display": "$1.20\\% \\times \\sqrt{0.25} = 0.60\\%$",
+    "value": 0.6
+   },
+   {
+    "label": "Up-up distance",
+    "display": "$2 \\times 0.60\\% = 1.20\\%$ (node at 5.20%)",
+    "value": 1.2
+   },
+   {
+    "label": "Six-month s.d.",
+    "display": "$1.20\\% \\times \\sqrt{0.5} = 0.85\\%$",
+    "value": 0.8485
+   }
+  ],
+  "takeaway": "A tree's outer nodes run $n\\sigma\\sqrt{dt}$ out, ahead of the $\\sigma\\sqrt{n\\,dt}$ spread of the distribution.",
+  "check": {
+   "inputs": {
+    "sig": 1.2,
+    "dt": 0.25,
+    "r0": 4.0
+   },
+   "steps": [
+    {
+     "name": "step",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.6
+    },
+    {
+     "name": "upup",
+     "expr": "2*step",
+     "value": 1.2
+    },
+    {
+     "name": "sd6m",
+     "expr": "sig*sqrt(2*dt)",
+     "value": 0.84853
+    },
+    {
+     "name": "node",
+     "expr": "r0+upup",
+     "value": 5.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-14",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-09"
+  },
+  "trap_category": "Formula",
+  "setup": "Ho-Lee tree: $dr = \\lambda(t)\\,dt + \\sigma\\,dw$. $r_0 = 5.00\\%$, $\\sigma = 1.20\\%$ per year, quarterly steps ($dt = 0.25$). The drift is $\\lambda(1) = 0.40\\%$ per year over step 1 and $\\lambda(2) = 0.80\\%$ per year over step 2.",
+  "ask": "The middle node after two steps sits above 5.00% by roughly:",
+  "options": [
+   {
+    "label": "≈ +0.03 pp",
+    "correct": false,
+    "why": "Scale slip (0.1×)."
+   },
+   {
+    "label": "≈ +0.10 pp",
+    "correct": false,
+    "why": "Applied only the first step's drift, $\\lambda(1)\\,dt$, and dropped the second."
+   },
+   {
+    "label": "≈ +0.30 pp",
+    "correct": true
+   },
+   {
+    "label": "≈ +1.2 pp",
+    "correct": false,
+    "why": "Added the annual drifts unscaled ($0.40 + 0.80$) without multiplying each by $dt$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Step 1 drift",
+    "display": "$0.40\\% \\times 0.25 = 0.10\\%$",
+    "value": 0.1
+   },
+   {
+    "label": "Step 2 drift",
+    "display": "$0.80\\% \\times 0.25 = 0.20\\%$",
+    "value": 0.2
+   },
+   {
+    "label": "Middle node",
+    "display": "$5.00\\% + 0.10\\% + 0.20\\% = 5.30\\%$ (the $\\pm\\sigma\\sqrt{dt}$ moves cancel)",
+    "value": 5.3
+   }
+  ],
+  "takeaway": "In a recombining tree, the up and down moves cancel on the middle path, so the middle node is just the start plus the sum of the dt-scaled drifts.",
+  "check": {
+   "inputs": {
+    "r0": 5.0,
+    "l1": 0.4,
+    "l2": 0.8,
+    "dt": 0.25
+   },
+   "steps": [
+    {
+     "name": "d1",
+     "expr": "l1*dt",
+     "value": 0.1
+    },
+    {
+     "name": "d2",
+     "expr": "l2*dt",
+     "value": 0.2
+    },
+    {
+     "name": "shift",
+     "expr": "d1+d2",
+     "value": 0.3
+    },
+    {
+     "name": "mid",
+     "expr": "r0+shift",
+     "value": 5.3
+    },
+    {
+     "name": "slip_first",
+     "expr": "d1",
+     "value": 0.1
+    },
+    {
+     "name": "slip_unscaled",
+     "expr": "l1+l2",
+     "value": 1.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-15",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-16"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Model 3: $dr = \\lambda(t)\\,dt + \\sigma e^{-\\alpha t}\\,dw$, with $\\sigma = 1.50\\%$ and $\\alpha = 0.05$. At $t = 3$ years, $\\lambda = 0.30\\%$ per year, the step is one month and the realised $dw = 0.20$. With the undecayed $\\sigma$ alone, $\\sigma\\,dw = 0.30\\%$.",
+  "ask": "After you add the drift and apply the volatility decay, the true $dr$ is:",
+  "options": [
+   {
+    "label": "Below 0.30%",
+    "correct": true
+   },
+   {
+    "label": "Above 0.30%",
+    "correct": false,
+    "why": "Added the drift (+2.5 bp) but forgot that $e^{-0.15} = 0.861$ trims the random term by about 4.2 bp. That route gives 0.325%, reading $\\sigma$ as constant."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The decay effect (−4.2 bp) is about 1.7× the drift (+2.5 bp), so the net is about −1.7 bp, clearly below."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decayed vol",
+    "display": "$1.50\\% \\times e^{-0.15} = 1.2911\\%$",
+    "value": 1.2911
+   },
+   {
+    "label": "Drift term",
+    "display": "$0.30\\% / 12 = 0.0250\\%$",
+    "value": 0.025
+   },
+   {
+    "label": "Random term",
+    "display": "$1.2911\\% \\times 0.20 = 0.2582\\%$",
+    "value": 0.2582
+   },
+   {
+    "label": "$dr$",
+    "display": "$0.0250\\% + 0.2582\\% = 0.2832\\%$",
+    "value": 0.2832
+   },
+   {
+    "label": "Residual vs 0.30%",
+    "display": "$0.2832\\% - 0.30\\% = -0.0168\\%$",
+    "value": -0.0168
+   }
+  ],
+  "takeaway": "In Model 3, evaluate $\\sigma e^{-\\alpha t}$ first. By year 3 the decay costs more than a month of drift adds.",
+  "check": {
+   "inputs": {
+    "sig": 1.5,
+    "a": 0.05,
+    "t": 3,
+    "lam": 0.3,
+    "dt": 0.08333333333333333,
+    "dw": 0.2
+   },
+   "steps": [
+    {
+     "name": "sigt",
+     "expr": "sig*exp(-a*t)",
+     "value": 1.2911
+    },
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.025
+    },
+    {
+     "name": "rand",
+     "expr": "sigt*dw",
+     "value": 0.25821
+    },
+    {
+     "name": "dr",
+     "expr": "drift+rand",
+     "value": 0.28321
+    },
+    {
+     "name": "resid",
+     "expr": "dr-sig*dw",
+     "value": -0.016788
+    },
+    {
+     "name": "slip_nodecay",
+     "expr": "drift+sig*dw",
+     "value": 0.325
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-16",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-24"
+  },
+  "trap_category": "Scope",
+  "setup": "A portfolio is LONG asset X and SHORT asset Y. Both assets have positive volatility and the position sizes are fixed. The correlation between X and Y rises.",
+  "ask": "Variance-covariance portfolio VaR:",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "True when both positions are LONG. With one short, $w_1 w_2 < 0$, so the cross term $2w_1w_2\\rho\\sigma_1\\sigma_2$ falls as $\\rho$ rises."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Correlation enters through the cross term, which is non-zero whenever both positions are non-zero."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cross term",
+    "display": "$2 w_1 w_2 \\rho \\sigma_1 \\sigma_2$ with $w_1 > 0,\\ w_2 < 0$",
+    "value": null
+   },
+   {
+    "label": "Sign of coefficient on $\\rho$",
+    "display": "$2 w_1 w_2 \\sigma_1 \\sigma_2 < 0$, so variance falls as $\\rho$ rises",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "Portfolio VaR falls; it is largest at $\\rho = -1$",
+    "value": null
+   }
+  ],
+  "takeaway": "Long-long: VaR rises with ρ. Long-short: the sign flips, and VaR peaks at ρ = −1.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-17",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-25"
+  },
+  "trap_category": "Sibling",
+  "setup": "USD 10m is split 6:4 between asset X ($\\sigma = 5\\%$) and asset Y ($\\sigma = 10\\%$), $z = 2.33$. The two assets are currently perfectly correlated. The correlation then drops to zero.",
+  "ask": "Portfolio VaR:",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "The two calculations were done correctly but the labels were swapped. For a long-only book, ρ = 1 is always the upper bound."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Correlation only drops out when one position is zero. Here both are live, so the cross term matters."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR of X",
+    "display": "$6 \\times 0.05 \\times 2.33 = 0.699$",
+    "value": 0.699
+   },
+   {
+    "label": "VaR of Y",
+    "display": "$4 \\times 0.10 \\times 2.33 = 0.932$",
+    "value": 0.932
+   },
+   {
+    "label": "At $\\rho = 1$",
+    "display": "$0.699 + 0.932 = \\text{USD } 1.631\\text{m}$",
+    "value": 1.631
+   },
+   {
+    "label": "At $\\rho = 0$",
+    "display": "$\\sqrt{0.699^2 + 0.932^2} = \\text{USD } 1.165\\text{m}$",
+    "value": 1.165
+   },
+   {
+    "label": "Change",
+    "display": "$1.165 - 1.631 = -0.47$",
+    "value": -0.466
+   }
+  ],
+  "takeaway": "For a long-only book, individual VaRs add at ρ = 1 and combine in quadrature at ρ = 0, so VaR falls as correlation falls.",
+  "check": {
+   "inputs": {
+    "X": 6,
+    "Y": 4,
+    "sX": 0.05,
+    "sY": 0.1,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "vX",
+     "expr": "X*sX*z",
+     "value": 0.699
+    },
+    {
+     "name": "vY",
+     "expr": "Y*sY*z",
+     "value": 0.932
+    },
+    {
+     "name": "v1",
+     "expr": "vX+vY",
+     "value": 1.631
+    },
+    {
+     "name": "v0",
+     "expr": "sqrt(vX**2+vY**2)",
+     "value": 1.165
+    },
+    {
+     "name": "chg",
+     "expr": "v0-v1",
+     "value": -0.466
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-18",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-25"
+  },
+  "trap_category": "Formula",
+  "setup": "USD 10m is split 6:4 between asset X ($\\sigma = 5\\%$) and asset Y ($\\sigma = 10\\%$). The assets are uncorrelated. Use the variance-covariance approach with $z = 2.33$.",
+  "ask": "Portfolio 99% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.10m",
+    "correct": false,
+    "why": "Used variances ($0.05^2$, $0.10^2$) in place of volatilities in the individual VaRs."
+   },
+   {
+    "label": "≈ USD 1.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 12m",
+    "correct": false,
+    "why": "Scale slip (10×). That exceeds the entire USD 10m portfolio."
+   },
+   {
+    "label": "≈ USD 120m",
+    "correct": false,
+    "why": "Entered volatilities as 5 and 10 instead of 0.05 and 0.10, a percent-vs-decimal slip that makes everything 100× too big."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR of X",
+    "display": "$6 \\times 0.05 \\times 2.33 = 0.699$",
+    "value": 0.699
+   },
+   {
+    "label": "VaR of Y",
+    "display": "$4 \\times 0.10 \\times 2.33 = 0.932$",
+    "value": 0.932
+   },
+   {
+    "label": "Portfolio VaR at $\\rho = 0$",
+    "display": "$\\sqrt{0.699^2 + 0.932^2} \\approx \\text{USD } 1.165\\text{m}$",
+    "value": 1.165
+   }
+  ],
+  "takeaway": "Uncorrelated VaRs combine in quadrature. Here that lands between the larger single VaR (0.93) and their sum (1.63).",
+  "check": {
+   "inputs": {
+    "X": 6,
+    "Y": 4,
+    "sX": 0.05,
+    "sY": 0.1,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "vX",
+     "expr": "X*sX*z",
+     "value": 0.699
+    },
+    {
+     "name": "vY",
+     "expr": "Y*sY*z",
+     "value": 0.932
+    },
+    {
+     "name": "v0",
+     "expr": "sqrt(vX**2+vY**2)",
+     "value": 1.165
+    },
+    {
+     "name": "slip_var",
+     "expr": "sqrt((X*sX**2*z)**2+(Y*sY**2*z)**2)",
+     "value": 0.099538
+    },
+    {
+     "name": "slip_pct",
+     "expr": "100*v0",
+     "value": 116.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-19",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-26"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 10m portfolio holds USD 3m in A (daily $\\sigma_A = 3\\%$) and USD 7m in B (daily $\\sigma_B = 5\\%$), with $\\rho = 0.4$. Use the variance-covariance approach with $z = 2.33$.",
+  "ask": "The one-day 99% portfolio VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.036m",
+    "correct": false,
+    "why": "Multiplied the portfolio VARIANCE (0.00156) by value and $z$ without taking its square root."
+   },
+   {
+    "label": "≈ USD 0.92m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 15m",
+    "correct": false,
+    "why": "Annualised by $\\sqrt{250}$. The volatilities are daily and the question asks for one day."
+   },
+   {
+    "label": "≈ USD 92m",
+    "correct": false,
+    "why": "Entered the weights as 30 and 70 instead of 0.3 and 0.7, which inflates the s.d. 100×."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance terms",
+    "display": "$0.3^2(0.03)^2 + 0.7^2(0.05)^2 + 2(0.3)(0.7)(0.4)(0.03)(0.05) = 0.001558$",
+    "value": 0.001558
+   },
+   {
+    "label": "Portfolio s.d.",
+    "display": "$\\sqrt{0.001558} = 3.947\\%$",
+    "value": 3.947
+   },
+   {
+    "label": "VaR",
+    "display": "$10 \\times 0.03947 \\times 2.33 \\approx \\text{USD } 0.92\\text{m}$",
+    "value": 0.9197
+   }
+  ],
+  "takeaway": "Sanity band: VaR must sit between the ρ = 0 figure (0.84) and the ρ = 1 figure (1.02).",
+  "check": {
+   "inputs": {
+    "wA": 0.3,
+    "wB": 0.7,
+    "sA": 0.03,
+    "sB": 0.05,
+    "rho": 0.4,
+    "P": 10,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "wA**2*sA**2+wB**2*sB**2+2*wA*wB*rho*sA*sB",
+     "value": 0.001558
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 0.039472
+    },
+    {
+     "name": "VaR",
+     "expr": "P*sd*z",
+     "value": 0.91969
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "P*var*z",
+     "value": 0.036301
+    },
+    {
+     "name": "slip_annual",
+     "expr": "VaR*sqrt(250)",
+     "value": 14.542
+    },
+    {
+     "name": "slip_pctw",
+     "expr": "100*VaR",
+     "value": 91.969
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-20",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-31"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "There are 20 daily P&L observations (USD thousands). The ten worst are −84, −61, −47, −38, −30, −25, −19, −14, −9 and −5. At 90% confidence the tail holds $(1 - 0.90) \\times 20 = 2$ observations, so the 90% VaR threshold is 61.",
+  "ask": "The 90% expected shortfall is:",
+  "options": [
+   {
+    "label": "Above 61",
+    "correct": true
+   },
+   {
+    "label": "Exactly 61",
+    "correct": false,
+    "why": "Reported the threshold (the VaR) instead of averaging the losses inside the tail."
+   },
+   {
+    "label": "Below 61",
+    "correct": false,
+    "why": "ES averages losses at or beyond the VaR threshold, so it can't come in below VaR. To get below 61 you must have averaged observations from outside the tail."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail observations",
+    "display": "$(1 - 0.90) \\times 20 = 2$: losses 84 and 61",
+    "value": 2
+   },
+   {
+    "label": "ES",
+    "display": "$(84 + 61)/2 = 72.5$",
+    "value": 72.5
+   }
+  ],
+  "takeaway": "ES ≥ VaR at the same confidence level, always. If yours comes out lower, something is wrong.",
+  "check": {
+   "inputs": {
+    "n": 20,
+    "cl": 0.9,
+    "L1": 84,
+    "L2": 61
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "(1-cl)*n",
+     "value": 2.0
+    },
+    {
+     "name": "ES",
+     "expr": "(L1+L2)/2",
+     "value": 72.5
+    },
+    {
+     "name": "gap",
+     "expr": "ES-L2",
+     "value": 11.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-21",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-32"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "The 95% ES is approximated as the plain average of five tail VaRs (EUR m): 18.0 at 96%, 20.5 at 97%, 24.0 at 98%, 30.0 at 99% and 42.5 at 99.9%.",
+  "ask": "The resulting ES estimate is:",
+  "options": [
+   {
+    "label": "Above 24.0",
+    "correct": true
+   },
+   {
+    "label": "Equal to 24.0",
+    "correct": false,
+    "why": "Took the middle value of the list (the median). ES is a MEAN."
+   },
+   {
+    "label": "Below 24.0",
+    "correct": false,
+    "why": "The largest VaR sits 18.5 above 24.0 while the smallest is only 6.0 below. The skewed tail pulls the mean up, not down."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sum of tail VaRs",
+    "display": "$18.0 + 20.5 + 24.0 + 30.0 + 42.5 = 135.0$",
+    "value": 135.0
+   },
+   {
+    "label": "ES estimate",
+    "display": "$135.0 / 5 = \\text{EUR } 27.0\\text{m}$",
+    "value": 27.0
+   }
+  ],
+  "takeaway": "ES averages the tail, so a long right tail drags it above the middle tail VaR.",
+  "check": {
+   "inputs": {
+    "v1": 18.0,
+    "v2": 20.5,
+    "v3": 24.0,
+    "v4": 30.0,
+    "v5": 42.5
+   },
+   "steps": [
+    {
+     "name": "tot",
+     "expr": "v1+v2+v3+v4+v5",
+     "value": 135.0
+    },
+    {
+     "name": "ES",
+     "expr": "tot/5",
+     "value": 27.0
+    },
+    {
+     "name": "gap",
+     "expr": "ES-v3",
+     "value": 3.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-22",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-39"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "You hold one share of a stock that closed yesterday at USD 100. The 95% historical-simulation VaR uses a 260-day window, so it reads off the $(1 - 0.95) \\times 260 + 1 = 14$th worst return. Yesterday that return was −6.05% (VaR USD 6.05), and the 13th worst was −6.25%. Today the stock falls 10%, a new worst return, and a −3% day drops out of the window.",
+  "ask": "Today's 95% VaR in USD, compared with yesterday's USD 6.05:",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "Updated only the quantile ($6.25\\% \\times 100 = 6.25$) and applied it to yesterday's price. The position is now worth USD 90."
+   },
+   {
+    "label": "Roughly unchanged",
+    "correct": false,
+    "why": "The two updates don't cancel. The quantile worsens by about 3%, the base falls by 10%, and the net change is about −7%."
+   }
+  ],
+  "working": [
+   {
+    "label": "New 14th-worst return",
+    "display": "Every rank shifts down one, so the old 13th (−6.25%) becomes the new 14th",
+    "value": -6.25
+   },
+   {
+    "label": "Today's position value",
+    "display": "$100 \\times (1 - 0.10) = 90$",
+    "value": 90
+   },
+   {
+    "label": "Today's VaR",
+    "display": "$90 \\times 6.25\\% = \\text{USD } 5.625$",
+    "value": 5.625
+   },
+   {
+    "label": "Change",
+    "display": "$5.625 - 6.05 = -0.425$",
+    "value": -0.425
+   }
+  ],
+  "takeaway": "A rolling HS VaR has two moving parts, the quantile AND the position value. A big loss can lower the dollar VaR.",
+  "check": {
+   "inputs": {
+    "P0": 100,
+    "drop": 0.1,
+    "q14_old": 6.05,
+    "q13_old": 6.25,
+    "n": 260,
+    "cl": 0.95
+   },
+   "steps": [
+    {
+     "name": "pos",
+     "expr": "(1-cl)*n+1",
+     "value": 14.0
+    },
+    {
+     "name": "P1",
+     "expr": "P0*(1-drop)",
+     "value": 90.0
+    },
+    {
+     "name": "VaR0",
+     "expr": "P0*q14_old/100",
+     "value": 6.05
+    },
+    {
+     "name": "VaR1",
+     "expr": "P1*q13_old/100",
+     "value": 5.625
+    },
+    {
+     "name": "chg",
+     "expr": "VaR1-VaR0",
+     "value": -0.425
+    },
+    {
+     "name": "slip_quantile_only",
+     "expr": "P0*q13_old/100",
+     "value": 6.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-23",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-39"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "The 95% historical-simulation VaR uses a 260-day window, so it reads off the 14th worst return. Yesterday the 13th and 14th worst were −6.25% and −6.05%. Today a −10% return enters the window, worse than every existing observation. The return leaving is −3%, which was not in the tail.",
+  "ask": "Today's 14th-worst return, compared with −6.05%, is:",
+  "options": [
+   {
+    "label": "Worse (a bigger loss)",
+    "correct": true
+   },
+   {
+    "label": "Better (a smaller loss)",
+    "correct": false,
+    "why": "Nothing leaves the tail. The departing −3% was never in the worst 16, so no rank moves up, and the new −10% pushes every rank down one."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "That would only hold if the new return were milder than −6.05%. At −10% it outranks all of them."
+   }
+  ],
+  "working": [
+   {
+    "label": "New rank of −10%",
+    "display": "1st worst; all others shift down one rank",
+    "value": 1
+   },
+   {
+    "label": "Today's 14th worst",
+    "display": "Yesterday's 13th: −6.25%",
+    "value": -6.25
+   }
+  ],
+  "takeaway": "A new worst-ever return shifts every order statistic down one place, so the VaR quantile gets worse.",
+  "check": {
+   "inputs": {
+    "q13_old": -6.25,
+    "q14_old": -6.05
+   },
+   "steps": [
+    {
+     "name": "q14_new",
+     "expr": "q13_old",
+     "value": -6.25
+    },
+    {
+     "name": "shift",
+     "expr": "q14_new-q14_old",
+     "value": -0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-24",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-03"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "The standard error of a quantile (VaR) estimate is $se = \\frac{1}{f(q)}\\sqrt{p(1-p)/n}$, with $n = 1{,}000$. Moving from 95% to 99.9% confidence, $p(1-p)$ falls from 0.0475 to 0.000999, and the density at the quantile falls from 0.1031 to 0.00337.",
+  "ask": "The net effect on the standard error is:",
+  "options": [
+   {
+    "label": "It rises",
+    "correct": true
+   },
+   {
+    "label": "It falls",
+    "correct": false,
+    "why": "Looked only at $p(1-p)$, whose square-root ratio is about 0.145×, and forgot the density sits in the DENOMINATOR, where its ratio is about 30.6×."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The two effects are 0.145× and 30.6×. They net to about 4.4×, nowhere near a wash."
+   }
+  ],
+  "working": [
+   {
+    "label": "$se$ at 95%",
+    "display": "$\\sqrt{0.0475/1000} / 0.1031 = 0.0668$",
+    "value": 0.0668
+   },
+   {
+    "label": "$se$ at 99.9%",
+    "display": "$\\sqrt{0.000999/1000} / 0.00337 = 0.2966$",
+    "value": 0.2966
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.2966 / 0.0668 \\approx 4.4$",
+    "value": 4.44
+   }
+  ],
+  "takeaway": "Deep-tail VaR is estimated less precisely, because the density at the quantile collapses faster than $p(1-p)$ does.",
+  "check": {
+   "inputs": {
+    "p1": 0.95,
+    "p2": 0.999,
+    "f1": 0.1031,
+    "f2": 0.00337,
+    "n": 1000
+   },
+   "steps": [
+    {
+     "name": "se1",
+     "expr": "sqrt(p1*(1-p1)/n)/f1",
+     "value": 0.066848
+    },
+    {
+     "name": "se2",
+     "expr": "sqrt(p2*(1-p2)/n)/f2",
+     "value": 0.29659
+    },
+    {
+     "name": "ratio",
+     "expr": "se2/se1",
+     "value": 4.4367
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-25",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-03"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Quantile standard error: $se = \\frac{1}{f(q)}\\sqrt{p(1-p)/n}$, with $n = 1{,}000$ in both cases. At 95%: $p(1-p) = 0.0475$ and $f(q) = 0.1031$. At 99.9%: $p(1-p) = 0.000999$ and $f(q) = 0.00337$.",
+  "ask": "$se_{99.9\\%} / se_{95\\%}$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.021×",
+    "correct": false,
+    "why": "Took the raw ratio of $p(1-p)$ (0.000999 / 0.0475), with no square root and no density."
+   },
+   {
+    "label": "≈ 0.15×",
+    "correct": false,
+    "why": "Took the square root of the $p(1-p)$ ratio but ignored the density, which is the bigger effect."
+   },
+   {
+    "label": "≈ 4.4×",
+    "correct": true
+   },
+   {
+    "label": "≈ 31×",
+    "correct": false,
+    "why": "Used the density ratio (0.1031 / 0.00337) alone and dropped the offsetting $\\sqrt{p(1-p)}$ term."
+   }
+  ],
+  "working": [
+   {
+    "label": "$\\sqrt{p(1-p)}$ ratio",
+    "display": "$\\sqrt{0.000999/0.0475} = 0.145$",
+    "value": 0.145
+   },
+   {
+    "label": "Density ratio (inverted)",
+    "display": "$0.1031 / 0.00337 = 30.6$",
+    "value": 30.6
+   },
+   {
+    "label": "Net ratio",
+    "display": "$0.145 \\times 30.6 \\approx 4.4$",
+    "value": 4.44
+   }
+  ],
+  "takeaway": "The two effects multiply: roughly ×0.15 from $p(1-p)$ and ×31 from the density, so going deep into the tail costs precision.",
+  "check": {
+   "inputs": {
+    "a1": 0.0475,
+    "a2": 0.000999,
+    "f1": 0.1031,
+    "f2": 0.00337
+   },
+   "steps": [
+    {
+     "name": "rp",
+     "expr": "sqrt(a2/a1)",
+     "value": 0.14502
+    },
+    {
+     "name": "rf",
+     "expr": "f1/f2",
+     "value": 30.593
+    },
+    {
+     "name": "ratio",
+     "expr": "rp*rf",
+     "value": 4.4367
+    },
+    {
+     "name": "slip_raw",
+     "expr": "a2/a1",
+     "value": 0.021032
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-26",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-21"
+  },
+  "trap_category": "Sibling",
+  "setup": "An exchange option pays $\\max(S_1 - S_2, 0)$. The correlation between $S_1$ and $S_2$ rises, and each asset's own volatility is unchanged.",
+  "ask": "The exchange option's value:",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "That is the BASKET call, which is an option on a sum. The exchange option is an option on a DIFFERENCE, where correlation enters with a minus sign."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Option value rises with the volatility of the underlying combination, and $\\text{Var}(S_1 - S_2) = \\sigma_1^2 + \\sigma_2^2 - 2\\rho\\sigma_1\\sigma_2$ moves with $\\rho$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Spread variance",
+    "display": "$\\sigma_1^2 + \\sigma_2^2 - 2\\rho\\sigma_1\\sigma_2$, which decreases in $\\rho$",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "Less spread volatility, so the option is worth less",
+    "value": null
+   }
+  ],
+  "takeaway": "An option on a difference loses value as correlation rises; an option on a sum gains value.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-27",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-17"
+  },
+  "trap_category": "Polarity",
+  "setup": "Volatility follows a GARCH(1,1) process, and current volatility is ABOVE its long-run level.",
+  "ask": "The term structure of volatility forecasts slopes:",
+  "options": [
+   {
+    "label": "Downward",
+    "correct": true
+   },
+   {
+    "label": "Upward",
+    "correct": false,
+    "why": "That is the case when current volatility is BELOW long-run. GARCH itself imposes no upward slope."
+   },
+   {
+    "label": "Flat",
+    "correct": false,
+    "why": "Only if current volatility equals the long-run level. GARCH(1,1) mean-reverts, so forecasts drift toward the long-run level."
+   }
+  ],
+  "working": [
+   {
+    "label": "Mean reversion",
+    "display": "Forecasts converge geometrically to the long-run variance",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "Current > long-run, so forecasts decline with horizon: a downward slope",
+    "value": null
+   }
+  ],
+  "takeaway": "GARCH term structure: the slope points from the current volatility toward the long-run level.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-28",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-13"
+  },
+  "trap_category": "Scope",
+  "setup": "FX rates violate both lognormality conditions: their volatility is non-constant and they jump. The result is a pronounced FX volatility smile.",
+  "ask": "As option maturity increases, the implied-volatility smile becomes:",
+  "options": [
+   {
+    "label": "Less pronounced",
+    "correct": true
+   },
+   {
+    "label": "More pronounced",
+    "correct": false,
+    "why": "Non-constant volatility makes the effect on PRICES more pronounced with maturity. The smile plots IMPLIED volatilities, and there both channels weaken."
+   },
+   {
+    "label": "No different",
+    "correct": false,
+    "why": "The jump effect on implied volatility fades with maturity. Short-dated rows of a surface are visibly more curved than long-dated ones."
+   }
+  ],
+  "working": [
+   {
+    "label": "Non-constant vol, effect on implied vol",
+    "display": "Less pronounced as maturity rises",
+    "value": null
+   },
+   {
+    "label": "Jumps, effect on implied vol",
+    "display": "Less pronounced as maturity rises",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "The smile flattens with maturity",
+    "value": null
+   }
+  ],
+  "takeaway": "Smiles are sharpest at short maturities; both FX channels fade in implied-volatility terms as T grows.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-29",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-15"
+  },
+  "trap_category": "Polarity",
+  "setup": "A firm's debt load is roughly fixed. Its equity value falls.",
+  "ask": "Under the capital-structure leverage argument, the equity's volatility:",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Reverses the leverage effect. Lower equity against fixed debt raises the debt-to-equity ratio and amplifies swings on the residual equity claim."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "That holds only with zero debt, where equity volatility equals EBIT volatility."
+   }
+  ],
+  "working": [
+   {
+    "label": "Debt-to-equity",
+    "display": "Equity down with debt fixed, so D/E rises",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "Higher leverage amplifies equity volatility, so price down means volatility up",
+    "value": null
+   }
+  ],
+  "takeaway": "Falling equity raises leverage and so volatility. That negative price–vol link is one reason for the downward equity skew.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-30",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-21"
+  },
+  "trap_category": "Scope",
+  "setup": "The FRTB switched from 99% VaR to 97.5% ES. Under normality, 99% VaR $= \\mu + 2.326\\sigma$ and 97.5% ES $= \\mu + 2.338\\sigma$, which are nearly equal. Now suppose losses have a heavier tail than the normal.",
+  "ask": "Compared with the 99% VaR, the 97.5% ES is:",
+  "options": [
+   {
+    "label": "Larger, potentially by a lot",
+    "correct": true
+   },
+   {
+    "label": "Smaller",
+    "correct": false,
+    "why": "Focused on the lower confidence level. ES averages the whole tail beyond its quantile, so a heavy tail raises it more than it raises a single quantile."
+   },
+   {
+    "label": "Roughly equal",
+    "correct": false,
+    "why": "Near-equality is the normal-distribution result. Heavy tails break it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Normal case",
+    "display": "$2.338\\sigma$ vs $2.326\\sigma$: about 0.5% apart",
+    "value": null
+   },
+   {
+    "label": "Heavy tail",
+    "display": "VaR ignores the shape beyond the quantile; ES averages it",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "97.5% ES exceeds 99% VaR, possibly by a lot",
+    "value": null
+   }
+  ],
+  "takeaway": "The switch is capital-neutral only under normality. Heavy tails make 97.5% ES bite harder than 99% VaR.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-31",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-49"
+  },
+  "trap_category": "Role",
+  "setup": "In volatility-weighted historical simulation, one month ago the asset returned 5%. The daily volatility estimate at that time was 2%, and today's daily volatility forecast is 1.5%.",
+  "ask": "The volatility-adjusted return, compared with 5%, is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Inverted the ratio: $5\\% \\times 2/1.5 = 6.67\\%$. Current volatility goes on top."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "That is basic HS. Volatility weighting rescales by $\\sigma_{\\text{now}}/\\sigma_{\\text{then}} = 0.75$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaling ratio",
+    "display": "$\\sigma_{\\text{now}} / \\sigma_{\\text{then}} = 1.5 / 2.0 = 0.75$",
+    "value": 0.75
+   },
+   {
+    "label": "Adjusted return",
+    "display": "$0.75 \\times 5\\% = 3.75\\%$",
+    "value": 3.75
+   }
+  ],
+  "takeaway": "Calmer now than then means old returns get scaled DOWN. Current volatility goes in the numerator.",
+  "check": {
+   "inputs": {
+    "r": 5.0,
+    "sNow": 1.5,
+    "sThen": 2.0
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "sNow/sThen",
+     "value": 0.75
+    },
+    {
+     "name": "rAdj",
+     "expr": "k*r",
+     "value": 3.75
+    },
+    {
+     "name": "slip_inv",
+     "expr": "r*sThen/sNow",
+     "value": 6.6667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-32",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-43"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 1m equity portfolio, one-year horizon: mean 15%, volatility 25%, $z = 2.33$. Under normal returns, 99% VaR $= (-0.15 + 0.25 \\times 2.33) \\times 1\\text{m} = \\text{USD } 432{,}500$. You switch to lognormal: $VaR = P\\,[1 - \\exp(\\mu - \\sigma z)]$.",
+  "ask": "The lognormal VaR, compared with USD 432,500, is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Since $e^{-x} > 1 - x$, the lognormal loss $1 - e^{-0.4325}$ is always below the normal $0.4325$. Lognormal also caps the loss at the full value."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "The exponent equals the normal bracket, $-0.4325$, but $1 - e^{-0.4325} = 0.351$, not 0.4325."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$\\mu - \\sigma z = 0.15 - 0.5825 = -0.4325$",
+    "value": -0.4325
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$1\\text{m} \\times (1 - e^{-0.4325}) \\approx \\text{USD } 351{,}100$",
+    "value": 351100
+   },
+   {
+    "label": "Gap vs normal",
+    "display": "$351{,}100 - 432{,}500 \\approx -81{,}400$",
+    "value": -81400
+   }
+  ],
+  "takeaway": "For the same μ and σ, lognormal VaR is always below normal VaR, because $1 - e^{-x} < x$.",
+  "check": {
+   "inputs": {
+    "P": 1000000,
+    "mu": 0.15,
+    "s": 0.25,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "vn",
+     "expr": "P*(-mu+s*z)",
+     "value": 432500.0
+    },
+    {
+     "name": "vl",
+     "expr": "P*(1-exp(mu-s*z))",
+     "value": 351120.0
+    },
+    {
+     "name": "gap",
+     "expr": "vl-vn",
+     "value": -81385.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR1-33",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-51"
+  },
+  "trap_category": "Polarity",
+  "setup": "Stock A's past 260 daily returns are highly NEGATIVELY skewed. P1 is long stock A; P2 is the same-size short position.",
+  "ask": "Moving from P1 (long) to P2 (short), the absolute 99% VaR:",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "That is the positive-skew case. With negative skew the long LEFT tail hurts the long position, not the short."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Long and short VaRs match only for a symmetric distribution. Skewness is exactly what breaks that."
+   }
+  ],
+  "working": [
+   {
+    "label": "Long's loss tail",
+    "display": "Left tail, which is long here",
+    "value": null
+   },
+   {
+    "label": "Short's loss tail",
+    "display": "Right tail, which is short here",
+    "value": null
+   },
+   {
+    "label": "Result",
+    "display": "VaR(P2) < VaR(P1), so going short lowers VaR",
+    "value": null
+   }
+  ],
+  "takeaway": "The sign of skew picks the side that's penalised. With negative skew, the long position carries the bigger VaR.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-34",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-13"
+  },
+  "trap_category": "Sign",
+  "setup": "An at-the-money call has strike USD 20.00 and BSM delta 0.50. The implied distribution has a LIGHT left tail and a HEAVY right tail, so implied volatility rises with $K/S_0$. The stock now rises toward USD 21.00.",
+  "ask": "The call's TRUE delta:",
+  "options": [
+   {
+    "label": "Rises above 0.50",
+    "correct": false,
+    "why": "Counted only the BSM term ($N(d_1)$ rises). The smile term, vega × $\\partial\\sigma_{imp}/\\partial S$, is negative here."
+   },
+   {
+    "label": "Falls below 0.50",
+    "correct": false,
+    "why": "Counted only the smile term. The standard BSM term pushes delta up."
+   },
+   {
+    "label": "Stays at 0.50",
+    "correct": false,
+    "why": "Ignores both terms; neither is zero here."
+   },
+   {
+    "label": "Can't be signed without magnitudes",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Term 1: BSM",
+    "display": "$\\partial c/\\partial S$ rises as the option moves into the money: positive",
+    "value": null
+   },
+   {
+    "label": "Term 2: smile",
+    "display": "$S$ up means $K/S_0$ down, so $\\sigma_{imp}$ falls; vega > 0, so the term is negative",
+    "value": null
+   },
+   {
+    "label": "Net",
+    "display": "The two terms oppose, so the direction is indeterminate",
+    "value": null
+   }
+  ],
+  "takeaway": "True delta = BSM delta + vega × ∂σ/∂S. Under a reverse skew the two terms fight, so you need magnitudes.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR1-35",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Empirical Approaches to Risk Metrics and Hedging",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-08"
+  },
+  "trap_category": "Formula",
+  "setup": "You are hedging USD 100m face of a bond (DV01 0.300) with an instrument whose DV01 is 0.250. The DV01-neutral hedge is USD 120m face, short. A regression of the bond's yield changes on the hedge's yield changes gives beta = 0.800.",
+  "ask": "The regression hedge's face value, compared with USD 120m, is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Divided by beta ($120 / 0.8 = 150$) instead of multiplying."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Beta scales the DV01-neutral size, and only β = 1 leaves it unchanged."
+   }
+  ],
+  "working": [
+   {
+    "label": "DV01 ratio",
+    "display": "$0.300 / 0.250 = 1.20$",
+    "value": 1.2
+   },
+   {
+    "label": "DV01-neutral face",
+    "display": "$100 \\times 1.20 = 120$",
+    "value": 120
+   },
+   {
+    "label": "Regression hedge",
+    "display": "$120 \\times 0.800 = \\text{USD } 96\\text{m}$ short",
+    "value": 96
+   }
+  ],
+  "takeaway": "If beta < 1, the regression hedge is smaller than the DV01-neutral hedge.",
+  "check": {
+   "inputs": {
+    "F": 100,
+    "Dp": 0.3,
+    "Dh": 0.25,
+    "b": 0.8
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "Dp/Dh",
+     "value": 1.2
+    },
+    {
+     "name": "dv01n",
+     "expr": "F*ratio",
+     "value": 120.0
+    },
+    {
+     "name": "hedge",
+     "expr": "dv01n*b",
+     "value": 96.0
+    },
+    {
+     "name": "slip_div",
+     "expr": "dv01n/b",
+     "value": 150.0
+    }
+   ]
+  }
+ }
+]

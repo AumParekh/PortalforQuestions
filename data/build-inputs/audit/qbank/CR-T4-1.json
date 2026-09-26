@@ -1,0 +1,51 @@
+{
+  "slice": "CR-T4-1",
+  "checked": 18,
+  "notFound": [],
+  "flags": [
+    {
+      "id": "CR-T4-18",
+      "field": "solution",
+      "severity": "wrong-content",
+      "current": "Opening line: 'The two exposures move in opposite directions with respect to posted initial margin, which is the entire point of the question.' Table row: '| Segregated initial margin posted of 6 | Reduces (as a buffer held against the exposure) | Increases, since it must be funded and cannot be reused |'. Trap: 'The defining trap is the sign of initial margin, which enters the two calculations with opposite signs.'",
+      "proposed": "Say plainly that 'posted bilaterally' means each side posts 6 of segregated IM, so two different amounts are involved: (i) IM RECEIVED (6) reduces CCR exposure: max(0, 15-10-6) = 0; (ii) IM POSTED (6) has no effect on CCR exposure (it is segregated, so it is bankruptcy-remote), but it raises funding exposure: 15-10+6 = 11. The received IM does not reduce funding exposure because segregated IM cannot be rehypothecated. Patches: opening line -> 'Bilateral posting means each party posts 6 of segregated IM. The IM received reduces counterparty exposure. The IM posted increases funding exposure. Each affects only one of the two measures.' Table: split the row into 'Segregated IM received of 6 | Reduces | No effect (cannot be reused)' and 'Segregated IM posted of 6 | No effect (segregated, so not at risk) | Increases'. Trap: 'enters the two calculations with opposite signs' -> 'the IM received enters the credit calculation and the IM posted enters the funding calculation'.",
+      "source_says": "The source (p.33) has the same wording: the table row 'Segregated initial margin posted of 6 | Reduces (as a buffer held against the exposure) | Increases'. The key (d) and both formulas are right.",
+      "derivation": "CCR exposure = max(0, MtM - VM held - IM received) = max(0, 15-10-6) = 0. Funding exposure = MtM - VM held + IM posted = 15-10+6 = 11. So the answer is (d), and the key is correct. But the IM that reduces CCR exposure is the counterparty's IM (received). The bank's own posted IM is segregated and does not reduce its CCR exposure, so the table row saying posted IM 'Reduces' CCR exposure is wrong. The 'opposite signs' framing only works because the solution silently treats two different IM amounts (6 received, 6 posted) as one item. A candidate who learns 'posted IM reduces my counterparty exposure' has learned something false.",
+      "evidence": "PDF p.32 (stem: 'segregated initial margin of 6 has been posted bilaterally') and p.33 (signs table and TRAP). The concept line on p.33 itself says 'initial margin received reduce[s] counterparty credit exposure, whereas initial margin posted is a funding cost', which contradicts the table row.",
+      "confidence": "medium"
+    },
+    {
+      "id": "CR-T4-04",
+      "field": "solution",
+      "severity": "wrong-content",
+      "current": "The symmetric case. A symmetric distribution about zero gives expected MtM of zero and expected exposure equal to the mean of the positive half, which is strictly positive.",
+      "proposed": "The symmetric case. A symmetric distribution about zero gives expected MtM of zero and expected exposure equal to P(V>0) x E[V | V>0], that is, half the average of the positive outcomes, which is strictly positive (for a normal distribution, EE = sigma x phi(0) = 0.399 sigma).",
+      "source_says": "The source (p.8) has the same sentence.",
+      "derivation": "EE = E[max(V,0)] = P(V>0)*E[V|V>0]. For a distribution symmetric about 0, P(V>0) = 0.5, so EE is half the conditional mean of the positive half, not equal to it. The solution's own illustration shows this: values +12, 0, -12 give EE = 4.0, while the positive outcome averages 12. Normal case: E[max(V,0)] = sigma/sqrt(2*pi) = 0.399 sigma, while E[V|V>0] = 0.798 sigma.",
+      "evidence": "PDF p.8, 'The symmetric case' paragraph; worked illustration on the same page (average of max(V,0) = 4.0).",
+      "confidence": "medium"
+    },
+    {
+      "id": "CR-T4-08",
+      "field": "solution",
+      "severity": "wrong-content",
+      "current": "Shortening $\\tau$ from three days to one therefore reduces the residual exposure by a factor of roughly $\\sqrt{3}$, or about 42%.",
+      "proposed": "If the whole margin period of risk were cut from three days to one, the margin-period component of residual exposure would fall by a factor of $\\sqrt{3}$, about 42%. Shortening only the remargining period gives a smaller reduction, because the notice, settlement and close-out days in the margin period of risk stay the same.",
+      "source_says": "The source (p.15) has the same sentence.",
+      "derivation": "The solution defines MPoR = remargining period + notice/dispute/settlement + close-out, and says the exposure accrued is about sigma*sqrt(MPoR). Cutting the remargining period from 3 days to 1 shortens MPoR by 2 days, not by a factor of 3 (for example 3+2 = 5 days -> 1+2 = 3 days gives 1-sqrt(3/5) = 22.5%, not 42%). The sqrt(3) reduction also applies only to the margin-period term, not to the whole residual (threshold + MTA are unchanged). The direction, and so the key (c), is correct; only the quantified claim is overstated. 1-1/sqrt(3) = 0.4226 was checked in python.",
+      "evidence": "PDF p.15, 'How exposure scales with it' paragraph and the MPoR formula just above it.",
+      "confidence": "low"
+    },
+    {
+      "id": "CR-T4-16",
+      "field": "solution",
+      "severity": "typo",
+      "current": "| Total capital ratio | 14.75% | 14.84% | 15.52% | Declining |",
+      "proposed": "| Total capital ratio | 14.75% | 14.84% | 15.53% | Declining |",
+      "source_says": "The source (p.29) shows 15.52%.",
+      "derivation": "192,900 / 1,242,500 = 0.155252, which rounds to 15.53%. The other ratios check: CET1 11.27/11.10/11.03; Tier 1 13.02/12.69/12.45; total 14.75/14.84. The conclusion (Mixed, key a) is unaffected.",
+      "evidence": "PDF p.29, ratio table.",
+      "confidence": "high"
+    }
+  ]
+}

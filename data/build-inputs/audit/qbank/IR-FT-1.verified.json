@@ -1,0 +1,108 @@
+{
+ "slice": "IR-FT-1",
+ "decisions": [
+  {
+   "id": "IR-FT-13",
+   "field": "question",
+   "verdict": "accept",
+   "final": "A risk analyst holds two long positions with individual VaRs of EUR 2.4 million and EUR 1.6 million. The correlation between them is known to be non-negative but is otherwise unknown. Which of the following is most accurate?",
+   "reason": "Verified: VaR_P = sqrt(2.4^2+1.6^2+2*rho*2.4*1.6) gives 0.80/2.12/2.884/4.00 at rho=-1/-0.5/0/+1. With correlation genuinely unknown, (b) is the exactly true statement and (a) is false for any negative rho, so the stem as written has two defensible answers (source key (a) relies on an unstated rho>=0 assumption; source solution even concedes this). Adding the non-negative-correlation condition makes (a) uniquely best (b then cites an unattainable bound). Key stays (a). Note: 'long' alone would not suffice, so the explicit rho>=0 clause is required. Companion solution and optionAnalysis.b patches are listed in 'added' (the auditor's solution patch folded in, with wording adapted to the new stem)."
+  },
+  {
+   "id": "IR-FT-14",
+   "field": "solution",
+   "verdict": "modify",
+   "final": "Examining the variance formula is important because it reveals how the correlations of the asset returns affect volatility. The conclusion is direct: the variance and standard deviation are **lower when the correlations are lower**.\n\n| Input | What it supplies |\n|---|---|\n| Volatilities of each risk factor | The diagonal of the covariance matrix. Sufficient only for a single-factor position. |\n| Correlations between each pair | The off-diagonal terms. These determine how much of the individual risks offset, and therefore the gap between undiversified and diversified VaR. |\n\nTo calculate delta-normal VaR with more than one risk factor, a covariance matrix is required that incorporates the correlations between each risk factor and the volatilities of each. Knowing the volatilities **and** the correlations allows the portfolio standard deviation, and hence the VaR, to be derived.\n\nIndividual VaR is the VaR of a position in isolation, defined using the absolute value of the position weight, because both long and short positions pose risk. That absolute value is why undiversified VaR (portfolio VaR with all correlations set to +1) equals the sum of the individual VaRs only when no position is short. With a short position, setting the correlations to +1 lets the long and short legs offset, so undiversified VaR falls below the sum of the individual VaRs. The sum remains an upper bound on portfolio VaR whatever the correlations, but with shorts it is reached when the short legs are perfectly negatively correlated with the long legs, not at $\\rho=+1$.",
+   "reason": "Flag is right: sigma_p <= sum |w_i| sigma_i for any correlations (triangle inequality), so the sum of individual VaRs is always an upper bound, shorts or not; long/short 1:1 check gives 2.0/1.41/0.0 at rho=-1/0/+1, never above 2. What fails with shorts is undiversified VaR (rho=+1) = sum. Auditor's replacement says the sum is 'just not a tight one', which is itself wrong: the sum is attained when shorts are perfectly negatively correlated with longs (rho_ij = sign(w_i)sign(w_j) is a valid rank-1 correlation matrix), so the bound is tight, just not reached at rho=+1. Final is the full solution with the last paragraph replaced."
+  },
+  {
+   "id": "IR-FT-25",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "correct",
+     "reason": "Correct legs in the correct ratio, and all four return sources."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "Both legs inverted. The target is bought because it trades at a discount to the offer; the acquirer is shorted to hedge the consideration."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "Buying both doubles exposure to the acquirer rather than hedging it, and the premise is false: the acquirer's stock frequently falls on announcement, and because each CI share converts into AWI shares at close, a long AWI leg adds acquirer price exposure instead of offsetting it."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "Reverses the effect of a fixed exchange ratio. Fixing the ratio fixes the number of acquirer shares received and therefore leaves the arbitrageur fully exposed to their price."
+    }
+   },
+   "reason": "Confirmed on source p.21: the stem gives only post-announcement prices (AWI 50, CI 95), and no USD 52 appears anywhere in Q25; the reason cites an ungiven fact. Auditor's replacement is sound; lightly reworded to keep the 'doubles exposure' clause. Final is the full optionAnalysis object with only c changed. Key unaffected (spread 2x50-95 = USD 5)."
+  },
+  {
+   "id": "IR-FT-26",
+   "field": "solution",
+   "verdict": "modify",
+   "final": "| Outcome | Target leg, long | Acquirer leg, short |\n|---|---|---|\n| Deal closes | Gains the arbitrage spread, typically a few percent | Neutralised at conversion |\n| Deal fails | Price typically falls back to its pre-announcement level or possibly even lower | Acquirer's price may rise on the news, creating losses on the short position |\n\nBoth legs lose on failure, which is why the source states plainly that the **losses from a failed deal can far exceed the gains earned when a deal is successfully completed**. The gain on completion is capped at the spread, typically a few percent, whereas the loss on failure is the whole announcement premium plus any loss on the short acquirer leg. For example, a target that rose from USD 36 to USD 42 on a USD 45 offer gains USD 3 if the deal closes but loses USD 6 if it fails, before any loss on a short acquirer leg; a deal announced at a 40% premium leaves far more to give back.\n\nOption (d) inverts the reasoning about mutual funds. Many long-only investors are **not attracted** to the expected returns from buying the target's stock, because the potential gain is relatively small and there is uncertainty about whether the deal will close. Hedge funds participate because they can apply specialised legal and antitrust expertise to assess completion probability, and because the short position generates incremental return.",
+   "reason": "Confirmed on source p.22: the 'worked example' (USD 1.50 spread / USD 1.50 downside) is not present in the question or anywhere in the source file (only S4, p.60: USD 3 gain / USD 6 loss), so the numbers are unverifiable for the candidate. The sentence is not self-contradictory (it calls the symmetry 'unusually favourable'), but it is an unanchored reference. Auditor's proposed replacement uses Q25 and claims the loss 'can be many times the USD 5 gain', which Q25 gives no pre-announcement price to support. Replaced instead with a self-contained illustration (the source's own S4 numbers: 45 offer, 36 pre, 42 post -> +3 vs -6). Key unaffected."
+  },
+  {
+   "id": "IR-FT-34",
+   "field": "solution",
+   "verdict": "modify",
+   "final": "| Risk | Recommended remedy |\n|---|---|\n| Credit | Funds with substantial private credit should adopt more rigorous processes, similar to those used by banks, to monitor performance in structured products and direct lending. Underwriting policies and procedures require careful scrutiny. Note that for insurance companies and pension funds no requirements currently exist to monitor the creditworthiness of the underlying loan assets, leaving substantial reliance on internal valuations and external rating agencies. |\n| Liquidity | Allow only closed-end funds, allow more infrequent redemptions, mandate more notice for redemptions and more time for settlements; impose more onerous rules mandating liquidity management techniques and stress testing where substantial mismatches exist; and require thorough, understandable disclosure of investment risks and redemption restrictions. |\n| Leverage | Require private credit firms to demonstrate to their banks that they have strong liquidity management processes, including stress testing of constrained funding, of write-downs on leveraged assets, and of large abrupt credit draws by borrowers. Implement more reporting requirements within and across borders, with enhanced regulator cooperation. Impose leverage caps where levels are too high. |\n| Valuation | Greater regulatory oversight of valuation methods; more frequent external valuations where valuations are significant or error-prone; and audits of valuations to spot deficiencies in methods and internal controls so they can be corrected promptly. The key risk lies with write-downs of illiquid and semiliquid assets, which must be accurately determined and recognised in the appropriate period. |\n\nThe three exit-slowing liquidity remedies in option (a) (closed-end structure, less frequent redemptions, longer notice and settlement) point the same way, toward slowing the exit. That is the logic of the whole category: since the assets cannot be liquidated quickly, the liability side must be made correspondingly slow, and the disclosure requirement exists so that investors understand the constraint before they are subject to it.",
+   "reason": "Confirmed on source p.28-29: both sentences (Credit row: insurers/pension funds no monitoring requirement; Valuation row: write-downs of illiquid and semiliquid assets) are in the source table and were dropped in transcription; restored verbatim. Rejected the auditor's secondary 'three' -> 'four' change: the sentence deliberately counts the three exit-slowing remedies and treats disclosure separately ('and the disclosure requirement exists so that...'), so 'four' would make it wrong; instead clarified which three are meant. OA(a) 'All four liquidity remedies' is consistent with option (a) listing four measures."
+  }
+ ],
+ "added": [
+  {
+   "id": "IR-FT-13",
+   "field": "solution",
+   "severity": "wrong-content",
+   "addedByVerifier": true,
+   "current": "Option (b) is the mathematically stricter bound and is not what the reading states. ... treated as a special case rather than as the working lower bound.",
+   "proposed": "$$VaR_P = \\sqrt{VaR_1^2 + VaR_2^2 + 2\\rho_{1,2}VaR_1VaR_2}$$\n\n| Correlation | Result | Value |\n|---|---|---|\n| $\\rho = 0$ | The cross term vanishes; $VaR_P = \\sqrt{VaR_1^2+VaR_2^2}$ | $\\sqrt{5.76+2.56} = 2.88$ |\n| $\\rho = +1$ | No benefit from diversification; $VaR_P = VaR_1+VaR_2$, the undiversified VaR | $2.4+1.6 = 4.00$ |\n\nTotal VaR will be less if the positions are uncorrelated and greater if they are correlated, so the two calculations bracket the answer. In general, undiversified VaR is the sum of all the individual position VaRs when none of those positions are short.\n\nOption (b) is the complete (wider) bound that would apply if the correlation could be negative: the perfect-negative-correlation case gives $|2.4-1.6| = 0.80$. Because the stem restricts the correlation to be non-negative, $\\rho=-1$ cannot arise, and the tight bounds are those the reading frames at $\\rho=0$ and $\\rho=+1$.\n\nThe framework assumes returns follow an elliptical distribution, a broader class that includes the normal. That assumption is what makes beta and similar concepts usable, and it is worth remembering because it is the same assumption underpinning the relative-probability interpretation of scenario z-scores in Reading 97.",
+   "source_says": "Same as JSON (p.12).",
+   "derivation": "Companion to the IR-FT-13 stem fix. [0.80, 4.00] is the wider (complete) bound, not the 'stricter' one; after the stem restricts rho >= 0 the solution should say why (b) fails. Full solution text given in 'proposed'.",
+   "evidence": "PDF p.12 Q13 solution.",
+   "confidence": "high"
+  },
+  {
+   "id": "IR-FT-13",
+   "field": "optionAnalysis",
+   "severity": "wrong-content",
+   "addedByVerifier": true,
+   "current": "b: Uses the perfect-negative-correlation case as the lower bound, which is not the framing the reading gives and would be an unusable bound for a long-only book.",
+   "proposed": {
+    "a": {
+     "verdict": "correct",
+     "reason": "Both bounds, both correlations, and the identification of the upper bound with the undiversified sum."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "Uses the perfect-negative-correlation case as the lower bound. With the correlation known to be non-negative, $\\rho=-1$ cannot occur, so EUR 0.80 million is not attainable and the tight range is EUR 2.88 million to EUR 4.00 million, the framing the reading gives."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "Correct values, correlations exchanged. Perfect positive correlation removes diversification and therefore gives the maximum, not the minimum."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "Denies a result the reading supplies. Since $\\rho$ is bounded within $[-1,+1]$, the cross term is bounded and so is portfolio VaR."
+    }
+   },
+   "source_says": "Same as JSON (p.12).",
+   "derivation": "Companion to the IR-FT-13 stem fix: with rho >= 0 stated, (b) is wrong because rho=-1 is unattainable; 'long-only book' alone does not rule out negative correlation. Full optionAnalysis object given.",
+   "evidence": "PDF p.12 Q13 option analysis b.",
+   "confidence": "high"
+  }
+ ],
+ "spotChecked": [
+  "IR-FT-02",
+  "IR-FT-04",
+  "IR-FT-09",
+  "IR-FT-11",
+  "IR-FT-36"
+ ],
+ "spotCheckNotes": "All five match source text and keys; IR-FT-04 recomputed (A: (2-1)x2 = 2% net, B: 4-1 = 3% net); IR-FT-02 table recomputed (avg of 0.90, 0.40, -0.10 = 0.40; demeaned 0.50/0.00/-0.50). No new problems."
+}

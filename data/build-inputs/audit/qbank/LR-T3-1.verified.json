@@ -1,0 +1,150 @@
+{
+ "slice": "LR-T3-1",
+ "decisions": [
+  {
+   "id": "LR-T3-08",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "correct",
+     "reason": "530 supplies less 545 demands gives a deficit of USD 15 million."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "A deficit of USD 23 million does not follow from any single consistent classification error. Moving one item across the line shifts the net by twice its size, so placing scheduled loan repayments (122) among demands gives 408 - 667 = a deficit of USD 259 million, not 23. It fails the reconciliation of 530 supplies against 545 demands."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "The magnitude is right but the sign is reversed, which happens when demands are subtracted from supplies in the wrong order."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "A surplus of USD 23 million requires two items misclassified in opposite directions: treating money market borrowings (110) as a demand and deposit withdrawals (129) as a supply gives supplies of 549 against demands of 526. Classify each line by the direction of the cash flow and it cannot arise."
+    }
+   },
+   "reason": "Source p.13 OA (b)/(d) match the JSON, but the stated mechanisms are false. Base: supplies 530, demands 545, net -15 (key a confirmed). Exhaustive python search: moving any 1, 2 or 3 items across the line, or omitting any 1 or 2 items, never yields -23; the only route to +/-23 is swapping money market borrowings to demands and withdrawals to supplies (+23; 549 vs 526). Moving loan repayments alone gives -259. Auditor's fix is correct; wording lightly tightened (shows 408 - 667 = -259). Trap text needs a matching edit, recorded as an added flag."
+  },
+  {
+   "id": "LR-T3-09",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "correct",
+     "reason": "(122 minus 31) minus 89 = USD 2 million."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "USD 3 million results from an arithmetic slip in the second subtraction and does not reconcile: 89 plus 3 gives demands of 92, implying a surplus of 30 rather than 31."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "USD 7 million treats the surplus as USD 26 million or otherwise mis-states one input; it fails the reconstruction check."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "USD 11 million does not reconcile: demands of 89 + 11 = 100 against supplies of 122 imply a surplus of USD 22 million, not 31. Note that the sign error in step one (adding the surplus to supplies) gives (122 + 31) - 89 = USD 64 million, not 11."
+    }
+   },
+   "reason": "Source p.14 OA (d) matches the JSON. (122 + 31) - 89 = 64, so the claimed sign-error mechanism does not produce 11 and 'less an offsetting slip' is unexplained. Reconstruction 122 - (89 + 11) = 22 != 31 is the correct refutation. Key (a) = 122 - 31 - 89 = 2 confirmed; (b) 30 and (c) 26 reconstructions in OA also verified."
+  },
+  {
+   "id": "LR-T3-13",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "The reading separates where intraday liquidity comes from and what it is consumed by. Both lists must be held, because a question of this form asks for one of each.\n\n| Sources of intraday liquidity | Uses of intraday liquidity |\n|---|---|\n| Cash balances held at the central bank | Settlements at payment, clearing and settlement (PCS) systems |\n| Liquid assets that can be monetised during the day | Outgoing wire transfers on behalf of the bank and its clients |\n| Intraday credit, including uncommitted lines from a clearing bank | Funding for Nostro accounts, meaning balances held at correspondent banks in other currencies |\n| Overnight borrowings, such as federal funds purchased and Eurodollar deposits | Collateral pledging |\n| Incoming funds flow from counterparties | Asset purchases and funding |\n\nStep 1. Identify the source. Federal funds purchased are overnight borrowings by market convention: they are repaid the next business day, and the reading lists federal funds purchased by name under overnight borrowings. They are not intraday credit, which is extended and extinguished within the same business day; an overnight borrowing survives the close.\n\nStep 2. Identify the use. A Nostro account is the bank's own account held at a correspondent, typically in a foreign currency. Funding foreign exchange obligations falling due at a correspondent is funding for Nostro accounts.",
+    "optionAnalysis": {
+     "a": {
+      "verdict": "incorrect",
+      "reason": "Wrong on both. Cash balances are a distinct source and were not used here, and the obligation is at a correspondent account rather than an outgoing wire transfer."
+     },
+     "b": {
+      "verdict": "incorrect",
+      "reason": "Liquid assets are a genuine source but not the one described, and the use is again misidentified."
+     },
+     "c": {
+      "verdict": "correct",
+      "reason": "Federal funds purchased are overnight borrowings (repaid the next business day by convention), and meeting obligations at a correspondent is funding for Nostro accounts."
+     },
+     "d": {
+      "verdict": "incorrect",
+      "reason": "Sibling swap on the source. Intraday credit is extended and repaid within the same day; federal funds purchased are overnight borrowings, not intraday credit. Settlement at a PCS system is also a different use from funding a correspondent account."
+     }
+    },
+    "trap": {
+     "operators": [
+      "sibling-swap"
+     ],
+     "explanation": "Option D is the trap and it turns on the tenor of the borrowing. The word intraday in the objective primes candidates to select intraday credit as the source, but federal funds purchased are overnight by convention (repaid the next business day), which is why the reading lists them under overnight borrowings. Identify the instrument before reaching for the word intraday. The second discriminator is the destination: a correspondent account is a Nostro, not a wire transfer and not a PCS settlement."
+    }
+   },
+   "reason": "Confirmed on PDF p.18-20: the stem attaches 'the following morning' to the FX obligations at the correspondent; it never states when the fed funds are repaid, yet solution Step 1, OA (c), OA (d) and the trap all cite 'repaid the following morning' as a stem fact. Key (c) stands (the reading lists federal funds purchased under overnight borrowings; options a, b, d all name other sources/uses). Of the auditor's two alternatives, patching the explanations is chosen over editing the source stem; exact replacement text for solution Step 1, OA c/d and trap.explanation given in final (other fields unchanged)."
+  },
+  {
+   "id": "LR-T3-36",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "3.25% = 5.00% times (1 minus 0.35), taxing a yield that is already tax-exempt. This applies the adjustment in the wrong direction."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "5.00% is the municipal yield itself, with no adjustment made."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "6.75% = 5.00% x (1 + 0.35), that is 5.00% plus 35% of 5.00%. It grosses the yield up by multiplying by (1 + t) instead of dividing by (1 - t), which understates the tax-equivalent yield."
+    },
+    "d": {
+     "verdict": "correct",
+     "reason": "0.05 divided by 0.65 = 7.69%."
+    }
+   },
+   "reason": "Source p.51 OA (c) matches the JSON. 0.05/0.65 = 7.69% (option d, the key, confirmed), whereas 0.05 x 1.35 = 6.75%; the source's first clause equates 6.75% with the correct formula, which is false. Auditor's replacement is correct."
+  }
+ ],
+ "added": [
+  {
+   "id": "LR-T3-08",
+   "field": "trap",
+   "severity": "source-error",
+   "current": "The dominant error is a misclassification rather than arithmetic, and the item most often moved to the wrong side is scheduled loan repayments, because the word repayment reads as an outflow. It is cash coming in from borrowers. Sort every line by asking which way the money travels before totalling anything. Option C is the pure sign error and is caught by asking whether the answer should be a surplus or a deficit before you compute it.",
+   "proposed": {
+    "operators": [
+     "sign-error",
+     "role-misassignment"
+    ],
+    "explanation": "The dominant error is a misclassification rather than arithmetic. Scheduled loan repayments are the line most easily put on the wrong side, because the word repayment reads as an outflow; it is cash coming in from borrowers. Moving any single item across the line shifts the net by twice its size, so a misclassification produces a large error, not a near miss. Sort every line by asking which way the money travels before totalling anything. Option C is the pure sign error and is caught by asking whether the answer should be a surplus or a deficit before you compute it."
+   },
+   "source_says": "Source p.13 TRAP identical to JSON.",
+   "derivation": "Companion to the accepted optionAnalysis fix: the trap text implies that moving scheduled loan repayments produces a distractor (option B), but it produces -259, which is not offered. Rewritten to keep the teaching point without the false link to an option.",
+   "evidence": "PDF p.13 TRAP.",
+   "confidence": "high",
+   "addedByVerifier": true
+  },
+  {
+   "id": "LR-T3-08",
+   "field": "solution",
+   "severity": "minor",
+   "current": "The four pairings in the table are worth memorising as pairs, since GARP constructs distractors by moving one item across the line: inflows against withdrawals, repayments received against new loans granted, asset sales against borrowings repaid.",
+   "proposed": "$\\text{Net liquidity position} = \\text{total supplies of liquidity} - \\text{total demands for liquidity}$\n\nStep 1. Assign each item. The test is simply the direction of the cash flow.\n\n| Supplies (cash in) | Amount | Demands (cash out) | Amount |\n|---|---|---|---|\n| Deposit inflows | 119 | Deposit withdrawals | 129 |\n| Scheduled loan repayments | 122 | Acceptable loan requests | 90 |\n| Sales of bank assets | 61 | Stockholder dividend payments | 172 |\n| Revenues from non-deposit services | 118 | Repayments of bank borrowings | 84 |\n| Borrowings from the money market | 110 | Operating expenses | 70 |\n| Total supplies | 530 | Total demands | 545 |\n\nStep 2. Net:\n\n$530 - 545 = -\\text{USD }15\\text{ million}$\n\nInterpretation: the bank faces a liquidity deficit of USD 15 million over the day and must cover it, most obviously by increasing money market borrowings or selling additional assets. Note that the two largest single items sit on opposite sides and are both discretionary in nature: the USD 172 million dividend is a demand the bank chooses to create, and the USD 110 million of money market borrowing is a supply it chooses to raise. A deficit of this size is a management decision as much as a forecast.\n\nThe pairings in the table are worth memorising as pairs, since distractors are commonly built by moving an item across the line: deposit inflows against withdrawals, loan repayments received against new loans granted, asset sales and new borrowings against borrowings repaid.",
+   "source_says": "Source p.13 identical to JSON.",
+   "derivation": "Says 'four pairings' but lists three; minor. Proposed value is the full solution with that paragraph fixed.",
+   "evidence": "PDF p.13 last solution paragraph.",
+   "confidence": "medium",
+   "addedByVerifier": true
+  }
+ ],
+ "spotChecked": [
+  "LR-T3-06",
+  "LR-T3-10",
+  "LR-T3-21",
+  "LR-T3-35",
+  "LR-T3-37"
+ ],
+ "spotCheckNotes": "All five keys and solutions re-derived and correct: Q10 gaps -111/-61/+23; Q21 pledged ratios 62.5/58.2/56.25/60.7%; Q35 YTM 13.797% (PV at 13.8% = 1599.84); Q37 20-15=5; Q6 tax swap conceptual key confirmed."
+}

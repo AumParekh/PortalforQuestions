@@ -1,0 +1,135 @@
+{
+ "slice": "LR-T1-1",
+ "decisions": [
+  {
+   "id": "LR-T1-01",
+   "field": "options",
+   "verdict": "accept",
+   "final": {
+    "options": [
+     {
+      "key": "a",
+      "text": "0.0378"
+     },
+     {
+      "key": "b",
+      "text": "0.0757"
+     },
+     {
+      "key": "c",
+      "text": "0.1514"
+     },
+     {
+      "key": "d",
+      "text": "7.0000"
+     }
+    ],
+    "optionAnalysis": {
+     "a": {
+      "verdict": "incorrect",
+      "reason": "0.0378 is exactly half of the correct spread. It is what you get by applying the one-half unwind factor ($s\\alpha/2$) when the question asked for the spread itself, not for the cost of liquidation."
+     },
+     "b": {
+      "verdict": "correct",
+      "reason": "$7.00 \\div 92.50 = 0.0757$."
+     },
+     "c": {
+      "verdict": "incorrect",
+      "reason": "0.1514 = 7.00 ÷ 46.25. This divides by half the mid-market price instead of the mid-market price, doubling the answer."
+     },
+     "d": {
+      "verdict": "incorrect",
+      "reason": "7.0000 is the dollar bid-offer spread p, not the proportional spread s. The question asked for the proportional measure."
+     }
+    }
+   },
+   "reason": "Source PDF p.2-3 matches JSON (0.1538 = 7.00/45.50). Re-derived: mid 92.50, half-mid 46.25; 7/46.25 = 0.15135 = 2 x 0.07568, whereas 7/45.50 = 0.15385 corresponds to no quantity in the stem. The rationale and trap text (divisor halved, answer doubled) only hold for 0.1514. Changing the distractor to 0.1514 makes option, optionAnalysis and trap consistent; key b (0.0757) confirmed and unaffected. Source error carried forward."
+  },
+  {
+   "id": "LR-T1-05",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "USD 30.70 is the commodity's mid-market price, not its offer. It also arises from omitting the one-half factor on the commodity leg (setting $s \\times 614 = 2.00$), which halves the required spread."
+    },
+    "b": {
+     "verdict": "correct",
+     "reason": "$w = 30.60 + 0.0065147 \\times 30.70 = \\text{USD } 30.80$."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "USD 30.90 results from adding the full spread (USD 0.20) to the mid-market price (USD 30.70) instead of to the bid. The offer sits half a spread above the mid, not a full spread."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "USD 31.80 results from attributing the entire USD 12.0 million cost to the commodity leg, ignoring the USD 10.0 million contributed by the share position."
+    }
+   },
+   "reason": "Source p.8 has the same text. Re-derived: shares leg 0.40/80.60 x 4,030/2 = 10.00m; commodity s = 4/614 = 0.0065147; dollar spread = 0.0065147 x 30.70 = 0.20; offer = 30.60 + 0.20 = 30.80 (key b confirmed). Mid + half-spread = 30.80 (the correct answer), mid + full spread = 30.90, so the original first sentence describes the correct method and contradicts its own second sentence. Proposed wording is correct. Final is the full optionAnalysis object with only c.reason changed."
+  },
+  {
+   "id": "LR-T1-09",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "Hull's second definition of LVaR uses the stressed-market formula for the liquidity leg:\n\n$$\\text{Liquidity-adjusted VaR} = \\text{VaR} + \\sum_i (\\mu_i + \\lambda \\sigma_i) \\times \\alpha_i \\div 2$$\n\n**Step 1. Market VaR at 95%:**\n$$\\text{VaR} = 1.65 \\times 0.0200 \\times 2{,}000{,}000 = \\text{CNY } 66{,}000$$\n\n**Step 2.** Mean proportional spread. Mid-market price = $(41.00 + 39.00) \\div 2 = \\text{CNY } 40.00$, so $\\mu = 2.00 \\div 40.00 = 0.050$. The standard deviation of the proportional spread is given as $\\sigma = 0.020$.\n\n**Step 3. Stressed liquidity cost.** Note that the same deviate of 1.65 is applied to the spread distribution:\n$$LC = (0.050 + 1.65 \\times 0.020) \\div 2 \\times 2{,}000{,}000 = (0.050 + 0.033) \\div 2 \\times 2{,}000{,}000 = 0.04150 \\times 2{,}000{,}000 = \\text{CNY } 83{,}000$$\n\n**Step 4. Add:**\n$$LVaR = 66{,}000 + 83{,}000 = \\text{CNY } 149{,}000$$\n\nInterpretation: allowing the spread to be volatile raises the liquidity component from CNY 50,000 (the constant-spread figure) to CNY 83,000, an increase of two thirds. Note that the liquidity component now exceeds the market VaR component. Using the exact deviate 1.645 gives CNY 148,700, which still rounds to CNY 149,000.",
+   "reason": "Source p.13 has 148,691. Re-computed with z=1.645: VaR 65,800 + LC (0.050+0.0329)/2 x 2,000,000 = 82,900; total 148,700 exactly. Key c (149,000 with z=1.65: 66,000 + 83,000) confirmed."
+  },
+  {
+   "id": "LR-T1-10",
+   "field": "solution",
+   "verdict": "modify",
+   "final": {
+    "solution": "The liquidity adjustment is added to whatever VaR the institution computes. The VaR method changes the first term only.\n\n$$\\text{Lognormal VaR} = V \\times [1 - \\exp(\\mu - \\sigma z)]$$\n\n**Step 1. Lognormal VaR at 95% (z = 1.645):**\n$$\\mu - \\sigma z = 0.140 - (0.260 \\times 1.645) = 0.140 - 0.42770 = -0.28770$$\n$$\\exp(-0.28770) = 0.74999$$\n$$\\text{VaR} = 1{,}000{,}000 \\times (1 - 0.74999) = \\text{BRL } 250{,}013$$\n\nInterpretation of this intermediate: over one year, the position is 95% likely to retain at least 75% of its value, so the worst-case mark-to-market loss is about BRL 250,000. Because the lognormal form bounds the loss at 100% of value, it produces a smaller figure than the normal approximation at long horizons.\n\n**Step 2. Liquidity cost.** Mid-market price = $(21.00 + 19.00) \\div 2 = \\text{BRL } 20.00$, so $s = 2.00 \\div 20.00 = 0.100$:\n$$LC = 0.100 \\times 1{,}000{,}000 \\div 2 = \\text{BRL } 50{,}000$$\n\n**Step 3. Add:**\n$$LVaR = 250{,}013 + 50{,}000 = \\text{BRL } 300{,}013, \\text{ or about BRL } 300{,}000$$",
+    "optionAnalysis": {
+     "a": {
+      "verdict": "incorrect",
+      "reason": "BRL 250,000 is the lognormal VaR alone, with the liquidity adjustment omitted. This is the intermediate-result trap."
+     },
+     "b": {
+      "verdict": "correct",
+      "reason": "250,013 + 50,000 = about BRL 300,000."
+     },
+     "c": {
+      "verdict": "incorrect",
+      "reason": "BRL 350,000 = 250,000 + 100,000. The one-half factor has been dropped from the liquidity cost."
+     },
+     "d": {
+      "verdict": "incorrect",
+      "reason": "BRL 478,000 = (1.645 × 0.260 × 1,000,000) + 50,000. This uses relative normal VaR of BRL 427,700 instead of lognormal VaR, ignoring both the drift term and the lognormal transformation."
+     }
+    },
+    "trap": {
+     "operators": [
+      "wrong-input-twin",
+      "dropped-term"
+     ],
+     "explanation": "Option D is the method twin and it is the substantive test here: over a one-year horizon the difference between normal and lognormal VaR is large (BRL 427,700 against BRL 250,013), so the phrase 'geometric returns are normally distributed' is doing real work in the stem and must be read. Option A punishes anyone who computes the harder leg and then forgets the easy one."
+    }
+   },
+   "reason": "Numerical correction is right: 0.14 - 0.26 x 1.645 = -0.2877; exp(-0.2877) = 0.749987; VaR = 250,013; LVaR = 300,013. Source p.14-15 has the same erroneous 0.75001/249,986/299,986. Modified because the auditor missed that optionAnalysis.b also states \"249,986 + 50,000\"; final updates solution, optionAnalysis.b and trap.explanation together. Key b (about BRL 300,000) confirmed; distractors a 250k, c 350k, d 427,700+50,000=477,700 are all consistent."
+  }
+ ],
+ "added": [
+  {
+   "id": "LR-T1-41",
+   "field": "options",
+   "severity": "typo",
+   "addedByVerifier": true,
+   "current": "Option a 'USD 3.59 million'; optionAnalysis.a 'USD 3.59 million = 30.00 − 26.42'",
+   "proposed": "Option a -> 'USD 3.58 million'; optionAnalysis.a reason -> 'USD 3.58 million = 30.00 − 26.42, subtracting only the asset-side loss and ignoring the offsetting fall in the value of liabilities.'",
+   "source_says": "Same as JSON (USD 3.59 million).",
+   "derivation": "Asset leg = -4 x (0.04/1.09) x 180 = -26.422; 30 - 26.422 = 3.578, i.e. 3.58, and the rationale's own arithmetic 30.00 - 26.42 = 3.58. Key c (20.09) confirmed: -26.42 + 16.51 = -9.91; 30 - 9.91 = 20.09. Cosmetic distractor inconsistency only.",
+   "evidence": "PDF LR Tier 1, Q41 options and OPTION ANALYSIS (a)",
+   "confidence": "high"
+  }
+ ],
+ "spotChecked": {
+  "LR-T1-06": "ok: 44.53+4.89=49.42; normal 25.65; no-half 98.83",
+  "LR-T1-28": "ok: 94.10-69.60=24.50; distractors 18.10, 20.86, 87.86 verified",
+  "LR-T1-36": "ok: conceptual, b correct",
+  "LR-T1-41": "key ok (20.09); option a 3.59 should be 3.58 (added flag)",
+  "LR-T1-50": "ok: 42,000/43,000=97.7%; distractors 79.1, 102.4, 105.6 verified"
+ }
+}

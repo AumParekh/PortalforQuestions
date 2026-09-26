@@ -1,0 +1,2381 @@
+[
+  {
+    "id": "SC-bank-OR1-01",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-10"
+    },
+    "trap_category": "Formula",
+    "setup": "A USD 1.0bn loan portfolio yields 5.0% a year. Operating cost is USD 6.0m, the deposit transfer charge is 1.40% on the full USD 1.0bn, and expected loss is 1.0% (USD 10m). Economic capital of USD 80m (8% of the loan) is invested at the 1.0% risk-free rate. Tax rate 25%.",
+    "ask": "After-tax RAROC is closest to?",
+    "options": [
+      {
+        "label": "≈ 1.6%",
+        "correct": false,
+        "why": "Divided by the USD 1.0bn loan, not the USD 80m of economic capital. RAROC is a return on capital, not on exposure."
+      },
+      {
+        "label": "≈ 20%",
+        "correct": true
+      },
+      {
+        "label": "≈ 59%",
+        "correct": false,
+        "why": "Scale slip (3×). That would need about USD 47m after tax, but only USD 15.6m survives funding, costs, EL and tax."
+      },
+      {
+        "label": "≈ 195%",
+        "correct": false,
+        "why": "Economic capital entered as 8 (the 8% ratio) instead of USD 80m, a percent-vs-amount slip."
+      }
+    ],
+    "working": [
+      {
+        "label": "Revenue",
+        "display": "$0.05 \\times 1{,}000 = 50.0$",
+        "value": 50.0
+      },
+      {
+        "label": "Transfer charge",
+        "display": "$0.014 \\times 1{,}000 = 14.0$",
+        "value": 14.0
+      },
+      {
+        "label": "Return on EC",
+        "display": "$0.01 \\times 80 = 0.8$",
+        "value": 0.8
+      },
+      {
+        "label": "Pre-tax numerator",
+        "display": "$50.0 - 6.0 - 14.0 - 10.0 + 0.8 = 20.8$",
+        "value": 20.8
+      },
+      {
+        "label": "After-tax numerator",
+        "display": "$20.8 \\times (1 - 0.25) = 15.6$",
+        "value": 15.6
+      },
+      {
+        "label": "RAROC",
+        "display": "$15.6 / 80 = 19.5\\%$",
+        "value": 0.195
+      }
+    ],
+    "takeaway": "RAROC = after-tax risk-adjusted income / economic capital. With capital at 8% of the loan, a 1.5% after-tax margin comes out near 20%.",
+    "check": {
+      "inputs": {
+        "L": 1000,
+        "y": 0.05,
+        "OC": 6,
+        "tp": 0.014,
+        "EL": 10,
+        "EC": 80,
+        "rf": 0.01,
+        "t": 0.25
+      },
+      "steps": [
+        {
+          "name": "rev",
+          "expr": "y*L",
+          "value": 50.0
+        },
+        {
+          "name": "tc",
+          "expr": "tp*L",
+          "value": 14.0
+        },
+        {
+          "name": "rec",
+          "expr": "rf*EC",
+          "value": 0.8
+        },
+        {
+          "name": "pre",
+          "expr": "rev-OC-tc-EL+rec",
+          "value": 20.8
+        },
+        {
+          "name": "post",
+          "expr": "pre*(1-t)",
+          "value": 15.6
+        },
+        {
+          "name": "raroc",
+          "expr": "post/EC",
+          "value": 0.195
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-02",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-10"
+    },
+    "trap_category": "Formula",
+    "setup": "Same portfolio: revenue USD 50.0m, operating cost 6.0m, transfer charge 14.0m, expected loss 10.0m, return on EC 0.8m, giving a pre-tax numerator of USD 20.8m. Tax 25%, economic capital USD 80m (RAROC 19.5%). Two classic slips: dropping the $(1-t)$ factor, or dropping the expected loss.",
+    "ask": "Which slip inflates RAROC more?",
+    "options": [
+      {
+        "label": "Dropping expected loss",
+        "correct": true
+      },
+      {
+        "label": "Dropping the tax factor",
+        "correct": false,
+        "why": "The tax haircut is only 25% × 20.8 = USD 5.2m, but the EL is still USD 7.5m after tax. Dropping EL does more damage."
+      },
+      {
+        "label": "They inflate it equally",
+        "correct": false,
+        "why": "They add back different amounts: USD 5.2m (tax) and USD 7.5m (EL after tax), which is 6.5pp against 9.4pp of RAROC."
+      }
+    ],
+    "working": [
+      {
+        "label": "Tax haircut",
+        "display": "$20.8 \\times 0.25 = 5.2$",
+        "value": 5.2
+      },
+      {
+        "label": "EL, after tax",
+        "display": "$10.0 \\times (1 - 0.25) = 7.5$",
+        "value": 7.5
+      },
+      {
+        "label": "RAROC with no tax factor",
+        "display": "$20.8 / 80 = 26.0\\%$",
+        "value": 0.26
+      },
+      {
+        "label": "RAROC with no EL",
+        "display": "$(20.8 + 10.0) \\times 0.75 / 80 = 28.9\\%$",
+        "value": 0.28875
+      },
+      {
+        "label": "Verdict",
+        "display": "EL slip $+9.4$pp $>$ tax slip $+6.5$pp",
+        "value": null
+      }
+    ],
+    "takeaway": "A deduction still matters after tax: 10m of EL is worth 7.5m of numerator, more than the whole 5.2m tax bite.",
+    "check": {
+      "inputs": {
+        "L": 1000,
+        "y": 0.05,
+        "OC": 6,
+        "tp": 0.014,
+        "EL": 10,
+        "EC": 80,
+        "rf": 0.01,
+        "t": 0.25,
+        "pre": 20.8
+      },
+      "steps": [
+        {
+          "name": "tax_cut",
+          "expr": "pre*t",
+          "value": 5.2
+        },
+        {
+          "name": "el_at",
+          "expr": "EL*(1-t)",
+          "value": 7.5
+        },
+        {
+          "name": "gap",
+          "expr": "el_at-tax_cut",
+          "value": 2.3
+        },
+        {
+          "name": "r_notax",
+          "expr": "pre/EC",
+          "value": 0.26
+        },
+        {
+          "name": "r_noEL",
+          "expr": "(pre+EL)*(1-t)/EC",
+          "value": 0.28875
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-03",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-11"
+    },
+    "trap_category": "Sibling",
+    "setup": "A single loan: value USD 2,000,000, gross revenue USD 250,000, expected loss 300bp, interest expense USD 100,000, operating costs USD 60,000, return on invested economic capital USD 10,000, and economic capital USD 400,000. No tax.",
+    "ask": "Once expected loss is in dollars, which is larger: expected loss or operating costs?",
+    "options": [
+      {
+        "label": "They are equal",
+        "correct": true
+      },
+      {
+        "label": "Operating costs are larger",
+        "correct": false,
+        "why": "That comes from applying 300bp to the USD 400,000 of capital (USD 12,000). Expected loss is a reserve on the exposure, so the base is the USD 2m loan."
+      },
+      {
+        "label": "Expected loss is larger",
+        "correct": false,
+        "why": "300bp of USD 2,000,000 is exactly USD 60,000, the same as operating costs."
+      }
+    ],
+    "working": [
+      {
+        "label": "Expected loss",
+        "display": "$0.03 \\times 2{,}000{,}000 = 60{,}000$",
+        "value": 60000
+      },
+      {
+        "label": "Operating costs",
+        "display": "$60{,}000$ (given)",
+        "value": 60000
+      },
+      {
+        "label": "Numerator",
+        "display": "$250{,}000 - 60{,}000 - 60{,}000 - 100{,}000 + 10{,}000 = 40{,}000$",
+        "value": 40000
+      },
+      {
+        "label": "RAROC",
+        "display": "$40{,}000 / 400{,}000 = 10\\%$",
+        "value": 0.1
+      }
+    ],
+    "takeaway": "A rate quoted in bp needs its base named first. For expected loss that base is the exposure, never the capital.",
+    "check": {
+      "inputs": {
+        "loan": 2000000,
+        "rev": 250000,
+        "bp": 300,
+        "intx": 100000,
+        "oc": 60000,
+        "rec": 10000,
+        "EC": 400000
+      },
+      "steps": [
+        {
+          "name": "EL",
+          "expr": "bp/10000*loan",
+          "value": 60000.0
+        },
+        {
+          "name": "ratio",
+          "expr": "EL/oc",
+          "value": 1.0
+        },
+        {
+          "name": "num",
+          "expr": "rev-EL-oc-intx+rec",
+          "value": 40000.0
+        },
+        {
+          "name": "raroc",
+          "expr": "num/EC",
+          "value": 0.1
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-04",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-11"
+    },
+    "trap_category": "Scope",
+    "setup": "The same loan: USD 2,000,000 exposure earning USD 250,000 gross, so the headline yield is 12.5%. Deductions are expected loss of 300bp on the loan, USD 100,000 of interest and USD 60,000 of operating costs; add back USD 10,000 of return on capital. Economic capital is USD 400,000 (a fifth of the loan).",
+    "ask": "The loan's RAROC compared with its 12.5% gross yield is:",
+    "options": [
+      {
+        "label": "Lower",
+        "correct": true
+      },
+      {
+        "label": "Higher",
+        "correct": false,
+        "why": "Capital is only a fifth of the loan, which multiplies the return by 5. But the deductions leave USD 40k of the USD 250k (16%), so 12.5% × 5 × 0.16 = 10%."
+      },
+      {
+        "label": "About the same",
+        "correct": false,
+        "why": "10% against 12.5% is a fifth lower, not a rounding difference."
+      }
+    ],
+    "working": [
+      {
+        "label": "Numerator",
+        "display": "$250{,}000 - 60{,}000 - 60{,}000 - 100{,}000 + 10{,}000 = 40{,}000$",
+        "value": 40000
+      },
+      {
+        "label": "RAROC",
+        "display": "$40{,}000 / 400{,}000 = 10.0\\%$",
+        "value": 0.1
+      },
+      {
+        "label": "Gross yield",
+        "display": "$250{,}000 / 2{,}000{,}000 = 12.5\\%$",
+        "value": 0.125
+      },
+      {
+        "label": "Comparison",
+        "display": "$10.0\\% < 12.5\\%$: after funding, costs and EL the shareholder return is lower",
+        "value": null
+      }
+    ],
+    "takeaway": "The capital leverage (×5) cannot rescue a margin that funding, costs and EL have cut to 16% of revenue.",
+    "check": {
+      "inputs": {
+        "loan": 2000000,
+        "rev": 250000,
+        "bp": 300,
+        "intx": 100000,
+        "oc": 60000,
+        "rec": 10000,
+        "EC": 400000
+      },
+      "steps": [
+        {
+          "name": "EL",
+          "expr": "bp/10000*loan",
+          "value": 60000.0
+        },
+        {
+          "name": "num",
+          "expr": "rev-EL-oc-intx+rec",
+          "value": 40000.0
+        },
+        {
+          "name": "raroc",
+          "expr": "num/EC",
+          "value": 0.1
+        },
+        {
+          "name": "gy",
+          "expr": "rev/loan",
+          "value": 0.125
+        },
+        {
+          "name": "gap",
+          "expr": "raroc-gy",
+          "value": -0.025
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-05",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-14"
+    },
+    "trap_category": "Polarity",
+    "setup": "A bank cuts the confidence level behind its RAROC economic capital from 99.97% to 99.5%. Nothing else changes, and the activity's risk is dominated by rare, large operational and credit losses.",
+    "ask": "The risk capital allocated to the activity:",
+    "options": [
+      {
+        "label": "Falls, so the measure is less conservative",
+        "correct": true
+      },
+      {
+        "label": "Rises, because more of the loss distribution is captured",
+        "correct": false,
+        "why": "Polarity flip. A lower confidence level reads the worst-case loss closer to the body of the distribution, so capital shrinks."
+      },
+      {
+        "label": "Stays the same, and only its year-to-year volatility changes",
+        "correct": false,
+        "why": "Role slip. The PIT vs TTC choice drives volatility; the confidence level sets the level."
+      }
+    ],
+    "working": [
+      {
+        "label": "Capital definition",
+        "display": "$\\text{RC} = \\text{worst-case loss at } c - EL$",
+        "value": null
+      },
+      {
+        "label": "Effect of lower $c$",
+        "display": "$c \\downarrow \\Rightarrow$ quantile nearer the body $\\Rightarrow \\text{RC} \\downarrow$",
+        "value": null
+      },
+      {
+        "label": "Conservatism",
+        "display": "Less capital against the same exposure is less conservative, not more",
+        "value": null
+      }
+    ],
+    "takeaway": "Lowering the confidence level always releases capital, and releasing capital is never conservative."
+  },
+  {
+    "id": "SC-bank-OR1-06",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-14"
+    },
+    "trap_category": "Role",
+    "setup": "A bank switches the default probabilities feeding its economic capital from through-the-cycle (rating-agency style) estimates to point-in-time (structural, KMV-style) estimates.",
+    "ask": "Year-to-year volatility of economic capital, and so of RAROC:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "The direction is backwards. PIT PDs track current conditions and ratings stay put less often, so capital moves more."
+      },
+      {
+        "label": "Unchanged, because only the level of capital moves",
+        "correct": false,
+        "why": "Role slip. The level is set by the confidence level; the PIT vs TTC choice is what drives volatility."
+      }
+    ],
+    "working": [
+      {
+        "label": "PIT",
+        "display": "PIT PDs follow the current cycle $\\Rightarrow$ more rating migration",
+        "value": null
+      },
+      {
+        "label": "Result",
+        "display": "PIT $\\Rightarrow$ higher volatility of EC; TTC $\\Rightarrow$ lower volatility of EC",
+        "value": null
+      }
+    ],
+    "takeaway": "PIT → volatile capital and RAROC; TTC → stable. Volatility belongs to the PD method, level to the confidence level."
+  },
+  {
+    "id": "SC-bank-OR1-07",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-21"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A project's RAROC is 10.00%. Its beta is 1.18, $r_f = 2.00\\%$ and the expected market return is 7.932%, so the market premium $R_M - r_f$ is 5.932%.",
+    "ask": "Adjusted RAROC minus the risk-free rate is:",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "That only happens if r_f is dropped from the bracket: 1.18 × 7.932% = 9.36% leaves 0.64%, which is below 2%. The charge is 1.18 × 5.932% ≈ 7.0%."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The margin is a full 1.00pp (3.00% against 2.00%)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Systematic-risk charge",
+        "display": "$1.18 \\times 5.932\\% = 7.00\\%$",
+        "value": 0.07
+      },
+      {
+        "label": "Adjusted RAROC",
+        "display": "$10.00\\% - 7.00\\% = 3.00\\%$",
+        "value": 0.03
+      },
+      {
+        "label": "Residual vs $r_f$",
+        "display": "$3.00\\% - 2.00\\% = +1.00\\%$",
+        "value": 0.01
+      }
+    ],
+    "takeaway": "Test the condition before computing a gap: here adjusted RAROC already beats r_f, so the required increase is zero.",
+    "check": {
+      "inputs": {
+        "raroc": 0.1,
+        "beta": 1.18,
+        "rf": 0.02,
+        "rm": 0.07932
+      },
+      "steps": [
+        {
+          "name": "charge",
+          "expr": "beta*(rm-rf)",
+          "value": 0.0699976
+        },
+        {
+          "name": "adj",
+          "expr": "raroc-charge",
+          "value": 0.0300024
+        },
+        {
+          "name": "resid",
+          "expr": "adj-rf",
+          "value": 0.0100024
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-08",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-19"
+    },
+    "trap_category": "Formula",
+    "setup": "A loan portfolio's traditional RAROC works out at 13.50%. The firm's equity beta is 1.60, the risk-free rate is 1.0% and the expected market return is 8.0%.",
+    "ask": "The RAROC adjusted for systematic risk is closest to?",
+    "options": [
+      {
+        "label": "≈ 0.23%",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      },
+      {
+        "label": "≈ 0.70%",
+        "correct": false,
+        "why": "The risk-free rate was dropped from the bracket: 13.5% − 1.6 × 8.0% = 0.7%. The premium is R_M − r_f = 7.0%."
+      },
+      {
+        "label": "≈ 2.3%",
+        "correct": true
+      },
+      {
+        "label": "≈ 13.5%",
+        "correct": false,
+        "why": "That is the unadjusted RAROC. The systematic-risk charge was never subtracted."
+      }
+    ],
+    "working": [
+      {
+        "label": "Market premium",
+        "display": "$8.0\\% - 1.0\\% = 7.0\\%$",
+        "value": 0.07
+      },
+      {
+        "label": "Systematic-risk charge",
+        "display": "$1.60 \\times 7.0\\% = 11.2\\%$",
+        "value": 0.112
+      },
+      {
+        "label": "Adjusted RAROC",
+        "display": "$13.50\\% - 11.20\\% = 2.30\\%$",
+        "value": 0.023
+      }
+    ],
+    "takeaway": "A high beta can swallow most of a healthy-looking RAROC; the adjusted figure is then compared with r_f, not the hurdle.",
+    "check": {
+      "inputs": {
+        "raroc": 0.135,
+        "beta": 1.6,
+        "rf": 0.01,
+        "rm": 0.08
+      },
+      "steps": [
+        {
+          "name": "prem",
+          "expr": "rm-rf",
+          "value": 0.07
+        },
+        {
+          "name": "charge",
+          "expr": "beta*prem",
+          "value": 0.112
+        },
+        {
+          "name": "adj",
+          "expr": "raroc-charge",
+          "value": 0.023
+        },
+        {
+          "name": "slip_norf",
+          "expr": "raroc-beta*rm",
+          "value": 0.007
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-09",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-20"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A USD 200m loan portfolio has an unadjusted RORAC of 6.39%, just above the firm's 6% hurdle rate. Equity beta is 1.05, $r_f = 3\\%$ and the expected market return is 7%.",
+    "ask": "Adjusted RORAC minus the risk-free rate is:",
+    "options": [
+      {
+        "label": "Negative",
+        "correct": true
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "That comes from comparing the unadjusted 6.39% with the 6% hurdle. After the 1.05 × 4% = 4.20% charge, 2.19% is below 3%."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The gap is −0.81pp, which is clearly negative."
+      }
+    ],
+    "working": [
+      {
+        "label": "Systematic-risk charge",
+        "display": "$1.05 \\times (7\\% - 3\\%) = 4.20\\%$",
+        "value": 0.042
+      },
+      {
+        "label": "Adjusted RORAC",
+        "display": "$6.39\\% - 4.20\\% = 2.19\\%$",
+        "value": 0.0219
+      },
+      {
+        "label": "Residual vs $r_f$",
+        "display": "$2.19\\% - 3.00\\% = -0.81\\%$: reject",
+        "value": -0.0081
+      }
+    ],
+    "takeaway": "Once returns are beta-adjusted, the bar is the risk-free rate, and 'above the hurdle' can turn into a reject.",
+    "check": {
+      "inputs": {
+        "rorac": 0.06392,
+        "beta": 1.05,
+        "rf": 0.03,
+        "rm": 0.07
+      },
+      "steps": [
+        {
+          "name": "charge",
+          "expr": "beta*(rm-rf)",
+          "value": 0.042
+        },
+        {
+          "name": "adj",
+          "expr": "rorac-charge",
+          "value": 0.02192
+        },
+        {
+          "name": "resid",
+          "expr": "adj-rf",
+          "value": -0.00808
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-10",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-28"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A leveraged fund (portfolio USD 2,000m, expected loss USD 50m) sizes economic capital at 99.5% confidence. Its 99.5% worst-case loss is revised up from USD 500m to USD 1,000m.",
+    "ask": "The increase in required economic capital is closest to?",
+    "options": [
+      {
+        "label": "≈ USD 10m",
+        "correct": false,
+        "why": "Applied 1 − 99.5% = 0.5% to the USD 2,000m portfolio. Portfolio value is a red herring."
+      },
+      {
+        "label": "≈ USD 50m",
+        "correct": false,
+        "why": "That is the expected loss. It doesn't change, and it cancels out of the difference."
+      },
+      {
+        "label": "≈ USD 500m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 2,000m",
+        "correct": false,
+        "why": "Treated the whole portfolio as capital, as if solvency had to be guaranteed at 100%."
+      }
+    ],
+    "working": [
+      {
+        "label": "UL before",
+        "display": "$500 - 50 = 450$",
+        "value": 450
+      },
+      {
+        "label": "UL after",
+        "display": "$1{,}000 - 50 = 950$",
+        "value": 950
+      },
+      {
+        "label": "Increase in EC",
+        "display": "$950 - 450 = \\text{USD } 500\\text{m}$",
+        "value": 500
+      }
+    ],
+    "takeaway": "Capital = worst-case loss − EL. With EL unchanged, the change in capital is the change in the tail.",
+    "check": {
+      "inputs": {
+        "V": 2000,
+        "EL": 50,
+        "W0": 500,
+        "W1": 1000
+      },
+      "steps": [
+        {
+          "name": "UL0",
+          "expr": "W0-EL",
+          "value": 450
+        },
+        {
+          "name": "UL1",
+          "expr": "W1-EL",
+          "value": 950
+        },
+        {
+          "name": "inc",
+          "expr": "UL1-UL0",
+          "value": 500
+        },
+        {
+          "name": "dW",
+          "expr": "W1-W0",
+          "value": 500
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-11",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-28"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Same fund: expected loss USD 50m, unchanged. The 99.5% worst-case loss rises from USD 500m to USD 1,000m, and economic capital is sized as worst-case loss minus EL, before and after.",
+    "ask": "Which is larger: the increase in economic capital or the increase in worst-case loss?",
+    "options": [
+      {
+        "label": "They are equal",
+        "correct": true
+      },
+      {
+        "label": "The capital increase is smaller, by the USD 50m of EL",
+        "correct": false,
+        "why": "EL is subtracted from both the before and the after figure, so it cancels in the difference."
+      },
+      {
+        "label": "The capital increase is larger",
+        "correct": false,
+        "why": "Nothing adds to capital beyond the deeper tail, and EL is unchanged."
+      }
+    ],
+    "working": [
+      {
+        "label": "UL before",
+        "display": "$500 - 50 = 450$",
+        "value": 450
+      },
+      {
+        "label": "UL after",
+        "display": "$1{,}000 - 50 = 950$",
+        "value": 950
+      },
+      {
+        "label": "Increase in EC",
+        "display": "$950 - 450 = 500$",
+        "value": 500
+      },
+      {
+        "label": "Increase in worst case",
+        "display": "$1{,}000 - 500 = 500$: identical",
+        "value": 500
+      }
+    ],
+    "takeaway": "A constant EL cancels in any before/after comparison. Read the final noun ('increase') before computing levels.",
+    "check": {
+      "inputs": {
+        "V": 2000,
+        "EL": 50,
+        "W0": 500,
+        "W1": 1000
+      },
+      "steps": [
+        {
+          "name": "UL0",
+          "expr": "W0-EL",
+          "value": 450
+        },
+        {
+          "name": "UL1",
+          "expr": "W1-EL",
+          "value": 950
+        },
+        {
+          "name": "inc",
+          "expr": "UL1-UL0",
+          "value": 500
+        },
+        {
+          "name": "dW",
+          "expr": "W1-W0",
+          "value": 500
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-12",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-32"
+    },
+    "trap_category": "Sibling",
+    "setup": "A bank's Business Indicator is EUR 18.0bn. Marginal coefficients: 12% on the first EUR 1bn, 15% from EUR 1bn to 30bn, 18% above EUR 30bn. A colleague shortcuts the BIC as $18.0 \\times 15\\% = 2.70$.",
+    "ask": "The correct BIC is:",
+    "options": [
+      {
+        "label": "Below 2.70",
+        "correct": true
+      },
+      {
+        "label": "Above 2.70",
+        "correct": false,
+        "why": "The 18% bucket only starts at EUR 30bn. At BI = 18bn no coefficient above 15% applies."
+      },
+      {
+        "label": "Exactly 2.70",
+        "correct": false,
+        "why": "The first EUR 1bn is charged 12%, not 15%, which takes 0.03bn off."
+      }
+    ],
+    "working": [
+      {
+        "label": "Bucket 1 slice",
+        "display": "$1.0 \\times 12\\% = 0.12$",
+        "value": 0.12
+      },
+      {
+        "label": "Bucket 2 slice",
+        "display": "$(18.0 - 1.0) \\times 15\\% = 2.55$",
+        "value": 2.55
+      },
+      {
+        "label": "BIC",
+        "display": "$0.12 + 2.55 = 2.67$",
+        "value": 2.67
+      },
+      {
+        "label": "vs shortcut",
+        "display": "$2.67 - 2.70 = -0.03$",
+        "value": -0.03
+      }
+    ],
+    "takeaway": "Marginal, not average: each coefficient applies only to the slice of BI inside its bucket, like tax brackets.",
+    "check": {
+      "inputs": {
+        "BI": 18.0,
+        "c1": 0.12,
+        "c2": 0.15,
+        "c3": 0.18,
+        "b1": 1.0,
+        "b2": 30.0
+      },
+      "steps": [
+        {
+          "name": "p1",
+          "expr": "b1*c1",
+          "value": 0.12
+        },
+        {
+          "name": "p2",
+          "expr": "(BI-b1)*c2",
+          "value": 2.55
+        },
+        {
+          "name": "BIC",
+          "expr": "p1+p2",
+          "value": 2.67
+        },
+        {
+          "name": "shortcut",
+          "expr": "BI*c2",
+          "value": 2.7
+        },
+        {
+          "name": "resid",
+          "expr": "BIC-shortcut",
+          "value": -0.03
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-13",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-32"
+    },
+    "trap_category": "Formula",
+    "setup": "A bank's Business Indicator is EUR 18.0bn. Marginal coefficients: 12% up to EUR 1bn, 15% from EUR 1bn to 30bn, 18% above EUR 30bn.",
+    "ask": "The Business Indicator Component is closest to?",
+    "options": [
+      {
+        "label": "≈ EUR 0.27bn",
+        "correct": false,
+        "why": "Percent/decimal slip: 15% read as 1.5% (18 × 0.015)."
+      },
+      {
+        "label": "≈ EUR 0.9bn",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      },
+      {
+        "label": "≈ EUR 2.7bn",
+        "correct": true
+      },
+      {
+        "label": "≈ EUR 18bn",
+        "correct": false,
+        "why": "That is the BI itself. You stopped before applying the coefficients."
+      }
+    ],
+    "working": [
+      {
+        "label": "Bucket 1 slice",
+        "display": "$1.0 \\times 12\\% = 0.12$",
+        "value": 0.12
+      },
+      {
+        "label": "Bucket 2 slice",
+        "display": "$17.0 \\times 15\\% = 2.55$",
+        "value": 2.55
+      },
+      {
+        "label": "BIC",
+        "display": "$0.12 + 2.55 = \\text{EUR } 2.67\\text{bn}$",
+        "value": 2.67
+      }
+    ],
+    "takeaway": "BIC is roughly 15% of BI for a mid-sized bank, so a BI of 18bn means a BIC of about 2.7bn.",
+    "check": {
+      "inputs": {
+        "BI": 18.0,
+        "c1": 0.12,
+        "c2": 0.15,
+        "c3": 0.18,
+        "b1": 1.0,
+        "b2": 30.0
+      },
+      "steps": [
+        {
+          "name": "p1",
+          "expr": "b1*c1",
+          "value": 0.12
+        },
+        {
+          "name": "p2",
+          "expr": "(BI-b1)*c2",
+          "value": 2.55
+        },
+        {
+          "name": "BIC",
+          "expr": "p1+p2",
+          "value": 2.67
+        },
+        {
+          "name": "shortcut",
+          "expr": "BI*c2",
+          "value": 2.7
+        },
+        {
+          "name": "resid",
+          "expr": "BIC-shortcut",
+          "value": -0.03
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-14",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-32"
+    },
+    "trap_category": "Formula",
+    "setup": "Marginal BIC coefficients: 12% on the first EUR 1bn of BI, 15% from 1bn to 30bn, 18% above 30bn. At BI = EUR 18bn the BIC is EUR 2.67bn. Now consider a bank with BI = EUR 35bn.",
+    "ask": "BIC as a percentage of BI at 35bn, compared with 18bn, is:",
+    "options": [
+      {
+        "label": "Higher",
+        "correct": true
+      },
+      {
+        "label": "Lower",
+        "correct": false,
+        "why": "The direction is backwards. The extra BI above 30bn is charged 18%, which pulls the average rate up, not down."
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "Only a single flat coefficient keeps BIC/BI constant. Marginal coefficients rise with size."
+      }
+    ],
+    "working": [
+      {
+        "label": "Average rate at 18bn",
+        "display": "$2.67 / 18 = 14.8\\%$",
+        "value": 0.14833
+      },
+      {
+        "label": "BIC at 35bn",
+        "display": "$0.12 + 29 \\times 15\\% + 5 \\times 18\\% = 5.37$",
+        "value": 5.37
+      },
+      {
+        "label": "Average rate at 35bn",
+        "display": "$5.37 / 35 = 15.3\\%$",
+        "value": 0.15343
+      }
+    ],
+    "takeaway": "Rising marginal coefficients mean op-risk capital grows faster than proportionally with bank size.",
+    "check": {
+      "inputs": {
+        "c1": 0.12,
+        "c2": 0.15,
+        "c3": 0.18,
+        "BIa": 18.0,
+        "BIb": 35.0
+      },
+      "steps": [
+        {
+          "name": "BICa",
+          "expr": "1*c1+(BIa-1)*c2",
+          "value": 2.67
+        },
+        {
+          "name": "ra",
+          "expr": "BICa/BIa",
+          "value": 0.148333
+        },
+        {
+          "name": "BICb",
+          "expr": "1*c1+29*c2+(BIb-30)*c3",
+          "value": 5.37
+        },
+        {
+          "name": "rb",
+          "expr": "BICb/BIb",
+          "value": 0.153429
+        },
+        {
+          "name": "diff",
+          "expr": "rb-ra",
+          "value": 0.00509524
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-15",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-33"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Acme Bank's Business Indicator is EUR 56.0bn, which gives a BIC of EUR 9.15bn after the 12%/15%/18% marginal coefficients. Its Internal Loss Multiplier is 0.8050.",
+    "ask": "Acme's operational-risk RWA is closest to?",
+    "options": [
+      {
+        "label": "≈ EUR 0.59bn",
+        "correct": false,
+        "why": "Divided ORC by 12.5 instead of multiplying. RWA is 12.5 × capital, the reciprocal of 8%."
+      },
+      {
+        "label": "≈ EUR 7.4bn",
+        "correct": false,
+        "why": "That is the capital charge (ORC). You stopped one step early."
+      },
+      {
+        "label": "≈ EUR 92bn",
+        "correct": true
+      },
+      {
+        "label": "≈ EUR 700bn",
+        "correct": false,
+        "why": "Applied 12.5 to the BI itself (56 × 12.5) and skipped the BIC and ILM."
+      }
+    ],
+    "working": [
+      {
+        "label": "BIC",
+        "display": "$0.12 + 29 \\times 0.15 + 26 \\times 0.18 = 9.15$",
+        "value": 9.15
+      },
+      {
+        "label": "ORC",
+        "display": "$9.15 \\times 0.8050 = 7.37$",
+        "value": 7.3658
+      },
+      {
+        "label": "RWA",
+        "display": "$12.5 \\times 7.37 = \\text{EUR } 92.1\\text{bn}$",
+        "value": 92.07
+      }
+    ],
+    "takeaway": "Op-risk RWA = 12.5 × ORC. Once you have the capital charge, multiply by 12.5; don't stop at the capital figure.",
+    "check": {
+      "inputs": {
+        "BI": 56.0,
+        "ILM": 0.805,
+        "c1": 0.12,
+        "c2": 0.15,
+        "c3": 0.18
+      },
+      "steps": [
+        {
+          "name": "p1",
+          "expr": "1*c1",
+          "value": 0.12
+        },
+        {
+          "name": "p2",
+          "expr": "29*c2",
+          "value": 4.35
+        },
+        {
+          "name": "p3",
+          "expr": "(BI-30)*c3",
+          "value": 4.68
+        },
+        {
+          "name": "BIC",
+          "expr": "p1+p2+p3",
+          "value": 9.15
+        },
+        {
+          "name": "ORC",
+          "expr": "BIC*ILM",
+          "value": 7.36575
+        },
+        {
+          "name": "RWA",
+          "expr": "12.5*ORC",
+          "value": 92.0719
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-16",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-33"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Acme's BI of EUR 56.0bn spans all three buckets: the first EUR 1bn at 12%, EUR 1bn to 30bn at 15%, and everything above EUR 30bn at 18%.",
+    "ask": "Which bucket's slice adds more to the BIC?",
+    "options": [
+      {
+        "label": "Bucket 3 (above EUR 30bn)",
+        "correct": true
+      },
+      {
+        "label": "Bucket 2 (EUR 1bn to 30bn)",
+        "correct": false,
+        "why": "Bucket 2 covers more BI (29bn against 26bn), but the 18% coefficient more than makes up the gap: 4.68 against 4.35."
+      },
+      {
+        "label": "They contribute exactly the same",
+        "correct": false,
+        "why": "29 × 15% = 4.35 and 26 × 18% = 4.68, so they are not equal."
+      }
+    ],
+    "working": [
+      {
+        "label": "Bucket 2 slice",
+        "display": "$(30 - 1) \\times 15\\% = 4.35$",
+        "value": 4.35
+      },
+      {
+        "label": "Bucket 3 slice",
+        "display": "$(56 - 30) \\times 18\\% = 4.68$",
+        "value": 4.68
+      },
+      {
+        "label": "BIC",
+        "display": "$0.12 + 4.35 + 4.68 = 9.15$",
+        "value": 9.15
+      }
+    ],
+    "takeaway": "For big banks the top bucket dominates: its higher coefficient outweighs a slightly narrower slice.",
+    "check": {
+      "inputs": {
+        "BI": 56.0,
+        "ILM": 0.805,
+        "c1": 0.12,
+        "c2": 0.15,
+        "c3": 0.18
+      },
+      "steps": [
+        {
+          "name": "p1",
+          "expr": "1*c1",
+          "value": 0.12
+        },
+        {
+          "name": "p2",
+          "expr": "29*c2",
+          "value": 4.35
+        },
+        {
+          "name": "p3",
+          "expr": "(BI-30)*c3",
+          "value": 4.68
+        },
+        {
+          "name": "BIC",
+          "expr": "p1+p2+p3",
+          "value": 9.15
+        },
+        {
+          "name": "gap",
+          "expr": "p3-p2",
+          "value": 0.33
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-17",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-34"
+    },
+    "trap_category": "Sign",
+    "setup": "A bank's BIC is EUR 2.67bn. Its average annual operational-risk losses over the past ten years are EUR 200m. The Loss Component is $LC = 15 \\times$ average annual loss, and $ILM = \\ln\\left(e - 1 + LC/BIC\\right)$. The national regulator has not set ILM = 1.",
+    "ask": "The sign of ILM − 1 is:",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "That only happens if the ×15 is forgotten: LC = 0.2 < 2.67. The correct LC = 3.00 is above BIC, so the log argument is above e."
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "ILM = 1 only when LC equals BIC exactly, or when the regulator sets it to 1 (ruled out here)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Loss Component",
+        "display": "$LC = 15 \\times 0.200 = 3.00$",
+        "value": 3.0
+      },
+      {
+        "label": "Ratio",
+        "display": "$LC/BIC = 3.00 / 2.67 = 1.124 > 1$",
+        "value": 1.1236
+      },
+      {
+        "label": "ILM",
+        "display": "$\\ln(2.718 - 1 + 1.124) = \\ln(2.842) = 1.0445$",
+        "value": 1.0445
+      },
+      {
+        "label": "ILM − 1",
+        "display": "$+0.0445$: capital goes up",
+        "value": 0.0445
+      }
+    ],
+    "takeaway": "LC > BIC ⇒ ILM > 1 ⇒ more capital; LC < BIC ⇒ ILM < 1. Settle the direction before taking any logs.",
+    "check": {
+      "inputs": {
+        "BIC": 2.67,
+        "loss": 0.2
+      },
+      "steps": [
+        {
+          "name": "LC",
+          "expr": "15*loss",
+          "value": 3.0
+        },
+        {
+          "name": "ratio",
+          "expr": "LC/BIC",
+          "value": 1.1236
+        },
+        {
+          "name": "ILM",
+          "expr": "log(exp(1)-1+ratio)",
+          "value": 1.04446
+        },
+        {
+          "name": "ORC",
+          "expr": "BIC*ILM",
+          "value": 2.78872
+        },
+        {
+          "name": "uplift",
+          "expr": "ILM-1",
+          "value": 0.0444649
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-18",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-34"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "BIC is EUR 2.67bn and the Loss Component is EUR 3.00bn, so $LC/BIC = 1.124$. The multiplier is $ILM = \\ln\\left(e - 1 + LC/BIC\\right)$ and ORC = BIC × ILM.",
+    "ask": "ORC exceeds BIC by roughly what percentage?",
+    "options": [
+      {
+        "label": "≈ 0.44%",
+        "correct": false,
+        "why": "Scale slip (0.1×)."
+      },
+      {
+        "label": "≈ 4.4%",
+        "correct": true
+      },
+      {
+        "label": "≈ 12%",
+        "correct": false,
+        "why": "Used LC/BIC = 1.124 as the multiplier. The log exists to damp the adjustment: 12% excess losses give only about a 4.4% capital uplift."
+      },
+      {
+        "label": "≈ 112%",
+        "correct": false,
+        "why": "Added LC on top of BIC (2.67 + 3.00) instead of scaling BIC by the ILM."
+      }
+    ],
+    "working": [
+      {
+        "label": "Log argument",
+        "display": "$e - 1 + 1.124 = 2.842$",
+        "value": 2.8418
+      },
+      {
+        "label": "ILM",
+        "display": "$\\ln(2.842) = 1.0445$",
+        "value": 1.0445
+      },
+      {
+        "label": "ORC",
+        "display": "$2.67 \\times 1.0445 = 2.79$",
+        "value": 2.7889
+      },
+      {
+        "label": "Uplift",
+        "display": "$1.0445 - 1 = 0.0445 \\approx 4.4\\%$ (unrounded ILM $= 1.04446$)",
+        "value": 0.04446
+      }
+    ],
+    "takeaway": "The ILM is log-damped: losses running about 12% above BIC lift capital by only about 4.4%.",
+    "check": {
+      "inputs": {
+        "BIC": 2.67,
+        "loss": 0.2
+      },
+      "steps": [
+        {
+          "name": "LC",
+          "expr": "15*loss",
+          "value": 3.0
+        },
+        {
+          "name": "ratio",
+          "expr": "LC/BIC",
+          "value": 1.1236
+        },
+        {
+          "name": "ILM",
+          "expr": "log(exp(1)-1+ratio)",
+          "value": 1.04446
+        },
+        {
+          "name": "ORC",
+          "expr": "BIC*ILM",
+          "value": 2.78872
+        },
+        {
+          "name": "uplift",
+          "expr": "ILM-1",
+          "value": 0.0444649
+        },
+        {
+          "name": "naive",
+          "expr": "ratio-1",
+          "value": 0.123596
+        },
+        {
+          "name": "addLC",
+          "expr": "(BIC+LC)/BIC-1",
+          "value": 1.1236
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-19",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T2-36"
+    },
+    "trap_category": "Scope",
+    "setup": "Under the Basel III standardised approach, a bank with BI well above EUR 1bn has a Loss Component (15 × average annual op-risk loss over ten years) below its BIC, and its regulator applies the ILM. A large old loss now drops out of the ten-year window, which lowers LC further. BI is unchanged.",
+    "ask": "The bank's operational-risk capital charge:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Unchanged, because internal loss history no longer enters the calculation",
+        "correct": false,
+        "why": "Scope slip. The reform removed internal models, not internal loss data. Losses enter through ILM = ln(e − 1 + LC/BIC)."
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Polarity flip. A lower LC/BIC lowers the ILM, and with it the capital."
+      }
+    ],
+    "working": [
+      {
+        "label": "Formula",
+        "display": "$ORC = BIC \\times \\ln\\left(e - 1 + LC/BIC\\right)$",
+        "value": null
+      },
+      {
+        "label": "Effect",
+        "display": "$LC \\downarrow \\Rightarrow LC/BIC \\downarrow \\Rightarrow ILM \\downarrow$ (further below 1) $\\Rightarrow ORC \\downarrow$",
+        "value": null
+      }
+    ],
+    "takeaway": "Loss experience still counts through the ILM: lower losses relative to BIC mean lower capital, higher losses mean higher capital."
+  },
+  {
+    "id": "SC-bank-OR1-20",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 25: High-Level Summary of Basel III Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-FT-46"
+    },
+    "trap_category": "Sibling",
+    "setup": "A bank's RWA under its approved approaches (including internal models) is EUR 180.0bn. Its RWA using only the standardised approaches is EUR 260.0bn. The Basel III output floor is 72.5%.",
+    "ask": "Approved-approach RWA minus the floored standardised figure is:",
+    "options": [
+      {
+        "label": "Negative, so the floor binds",
+        "correct": true
+      },
+      {
+        "label": "Positive, so the floor is slack",
+        "correct": false,
+        "why": "That comes from putting the 72.5% on the modelled leg (0.725 × 180 = 130.5). The percentage belongs to the standardised leg: 0.725 × 260 = 188.5."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The gap is −8.5bn, about 5% of RWA, which is decisive."
+      }
+    ],
+    "working": [
+      {
+        "label": "Floor",
+        "display": "$0.725 \\times 260.0 = 188.5$",
+        "value": 188.5
+      },
+      {
+        "label": "Residual",
+        "display": "$180.0 - 188.5 = -8.5$",
+        "value": -8.5
+      },
+      {
+        "label": "Reported RWA",
+        "display": "$\\max(180.0,\\ 188.5) = 188.5$",
+        "value": 188.5
+      }
+    ],
+    "takeaway": "Output floor: RWA = max(modelled, 72.5% × standardised). The 72.5% always goes on the standardised leg.",
+    "check": {
+      "inputs": {
+        "RA": 180.0,
+        "RS": 260.0,
+        "f": 0.725
+      },
+      "steps": [
+        {
+          "name": "floor",
+          "expr": "f*RS",
+          "value": 188.5
+        },
+        {
+          "name": "resid",
+          "expr": "RA-floor",
+          "value": -8.5
+        },
+        {
+          "name": "rep",
+          "expr": "max(RA,floor)",
+          "value": 188.5
+        },
+        {
+          "name": "uplift",
+          "expr": "rep-RA",
+          "value": 8.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-21",
+    "mode": "magnitude",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 25: High-Level Summary of Basel III Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-FT-46"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A bank's RWA under its approved approaches is EUR 180.0bn. Its standardised-only RWA is EUR 260.0bn. The Basel III output floor is 72.5%.",
+    "ask": "The floor adds roughly how much to reported RWA?",
+    "options": [
+      {
+        "label": "≈ EUR 2.6bn",
+        "correct": false,
+        "why": "Scale slip (0.3×)."
+      },
+      {
+        "label": "≈ EUR 8.5bn",
+        "correct": true
+      },
+      {
+        "label": "≈ EUR 50bn",
+        "correct": false,
+        "why": "Put the 72.5% on the bank's own 180 (130.5) and measured 180 − 130.5. That is the wrong leg, and a cushion rather than an uplift."
+      },
+      {
+        "label": "≈ EUR 190bn",
+        "correct": false,
+        "why": "That is the reported RWA level (188.5), not the increase over the bank's own EUR 180bn."
+      }
+    ],
+    "working": [
+      {
+        "label": "Floor",
+        "display": "$0.725 \\times 260.0 = 188.5$",
+        "value": 188.5
+      },
+      {
+        "label": "Reported RWA",
+        "display": "$\\max(180.0,\\ 188.5) = 188.5$",
+        "value": 188.5
+      },
+      {
+        "label": "Uplift",
+        "display": "$188.5 - 180.0 = \\text{EUR } 8.5\\text{bn}$",
+        "value": 8.5
+      }
+    ],
+    "takeaway": "The floor can only raise RWA. When it binds, the uplift is the gap to 72.5% of standardised RWA, not the whole modelling benefit.",
+    "check": {
+      "inputs": {
+        "RA": 180.0,
+        "RS": 260.0,
+        "f": 0.725
+      },
+      "steps": [
+        {
+          "name": "floor",
+          "expr": "f*RS",
+          "value": 188.5
+        },
+        {
+          "name": "resid",
+          "expr": "RA-floor",
+          "value": -8.5
+        },
+        {
+          "name": "rep",
+          "expr": "max(RA,floor)",
+          "value": 188.5
+        },
+        {
+          "name": "uplift",
+          "expr": "rep-RA",
+          "value": 8.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-22",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 25: High-Level Summary of Basel III Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-FT-46"
+    },
+    "trap_category": "Polarity",
+    "setup": "Same bank: standardised-only RWA is EUR 260.0bn and the output floor is 72.5%. Model refinements cut its approved-approach RWA from EUR 180.0bn to EUR 170.0bn.",
+    "ask": "Reported RWA:",
+    "options": [
+      {
+        "label": "Unchanged",
+        "correct": true
+      },
+      {
+        "label": "Falls by about EUR 10bn",
+        "correct": false,
+        "why": "The floor already binds at 188.5, both before and after. A lower modelled figure only widens the gap below the floor."
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "The floor lifts reported RWA to 72.5% of standardised and no further. Extra modelling benefit isn't penalised beyond that."
+      }
+    ],
+    "working": [
+      {
+        "label": "Floor",
+        "display": "$0.725 \\times 260.0 = 188.5$",
+        "value": 188.5
+      },
+      {
+        "label": "Before",
+        "display": "$\\max(180.0,\\ 188.5) = 188.5$",
+        "value": 188.5
+      },
+      {
+        "label": "After",
+        "display": "$\\max(170.0,\\ 188.5) = 188.5$",
+        "value": 188.5
+      }
+    ],
+    "takeaway": "Once the output floor binds, further model-driven RWA cuts are worth nothing to the bank.",
+    "check": {
+      "inputs": {
+        "RA0": 180.0,
+        "RA1": 170.0,
+        "RS": 260.0,
+        "f": 0.725
+      },
+      "steps": [
+        {
+          "name": "floor",
+          "expr": "f*RS",
+          "value": 188.5
+        },
+        {
+          "name": "rep0",
+          "expr": "max(RA0,floor)",
+          "value": 188.5
+        },
+        {
+          "name": "rep1",
+          "expr": "max(RA1,floor)",
+          "value": 188.5
+        },
+        {
+          "name": "ratio",
+          "expr": "rep1/rep0",
+          "value": 1.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-23",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 25: High-Level Summary of Basel III Reforms (BCBS)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-FT-47"
+    },
+    "trap_category": "Formula",
+    "setup": "A G-SIB faces a risk-weighted higher loss-absorbency (HLA) requirement of 2.5%. The Basel III leverage ratio minimum is 3% Tier 1, and G-SIBs add a leverage ratio buffer on top. A colleague writes 3% + 2.5% = 5.5%.",
+    "ask": "The correct Tier 1 leverage requirement, including the buffer, compared with 5.5% is:",
+    "options": [
+      {
+        "label": "Lower",
+        "correct": true
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "The HLA isn't carried over in full. The leverage buffer is calibrated at 50% of it."
+      },
+      {
+        "label": "Higher",
+        "correct": false,
+        "why": "Nothing is added beyond the 3% minimum and the buffer, and the buffer is smaller than the HLA."
+      }
+    ],
+    "working": [
+      {
+        "label": "Leverage buffer",
+        "display": "$50\\% \\times 2.5\\% = 1.25\\%$",
+        "value": 0.0125
+      },
+      {
+        "label": "Requirement",
+        "display": "$3.00\\% + 1.25\\% = 4.25\\%$",
+        "value": 0.0425
+      },
+      {
+        "label": "vs 5.5%",
+        "display": "$4.25\\% - 5.50\\% = -1.25\\%$",
+        "value": -0.0125
+      }
+    ],
+    "takeaway": "G-SIB leverage buffer = half the risk-weighted HLA, on top of the 3% minimum (for example 2% HLA gives a 1% buffer).",
+    "check": {
+      "inputs": {
+        "hla": 0.025,
+        "base": 0.03,
+        "k": 0.5
+      },
+      "steps": [
+        {
+          "name": "buf",
+          "expr": "k*hla",
+          "value": 0.0125
+        },
+        {
+          "name": "req",
+          "expr": "base+buf",
+          "value": 0.0425
+        },
+        {
+          "name": "resid",
+          "expr": "req-(base+hla)",
+          "value": -0.0125
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-24",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-12"
+    },
+    "trap_category": "Scope",
+    "setup": "Two candidate businesses; the cost of equity is 6.2%. Tarragona: expected net profit EUR 3.0m on economic capital of EUR 50m. Valencia: EUR 1.5m on EUR 22m.",
+    "ask": "Which has the higher RAROC?",
+    "options": [
+      {
+        "label": "Valencia",
+        "correct": true
+      },
+      {
+        "label": "Tarragona",
+        "correct": false,
+        "why": "It earns twice the profit but uses more than twice the capital: 3.0/50 = 6.0% against 1.5/22 = 6.8%."
+      },
+      {
+        "label": "They are equal",
+        "correct": false,
+        "why": "6.0% against 6.8%: the gap is 0.8pp, and it straddles the 6.2% cost of equity."
+      }
+    ],
+    "working": [
+      {
+        "label": "Tarragona RAROC",
+        "display": "$3.0 / 50 = 6.00\\%$",
+        "value": 0.06
+      },
+      {
+        "label": "Valencia RAROC",
+        "display": "$1.5 / 22 = 6.82\\%$",
+        "value": 0.06818
+      },
+      {
+        "label": "vs 6.2%",
+        "display": "Only Valencia clears the cost of equity",
+        "value": null
+      }
+    ],
+    "takeaway": "Putting capital in the denominator can reverse a profit ranking. Compare profit to capital, not profit to profit.",
+    "check": {
+      "inputs": {
+        "pT": 3.0,
+        "eT": 50.0,
+        "pV": 1.5,
+        "eV": 22.0,
+        "ke": 0.062
+      },
+      "steps": [
+        {
+          "name": "rT",
+          "expr": "pT/eT",
+          "value": 0.06
+        },
+        {
+          "name": "rV",
+          "expr": "pV/eV",
+          "value": 0.0681818
+        },
+        {
+          "name": "gap",
+          "expr": "rV-rT",
+          "value": 0.00818182
+        },
+        {
+          "name": "mT",
+          "expr": "rT-ke",
+          "value": -0.002
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-25",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-13"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Per USD 100 of loans: expected revenue 7.0, expected credit loss 3.0, budgeted operating costs 2.5, return on economic capital 0.2 (EC = 40), tax 30%. Operating costs actually came in at double the budget.",
+    "ask": "With EL included and operating costs doubled, the pre-tax RAROC numerator is:",
+    "options": [
+      {
+        "label": "Negative",
+        "correct": true
+      },
+      {
+        "label": "Positive",
+        "correct": false,
+        "why": "Positive only if the 3.0 of expected loss is left out (7 − 5 + 0.2 = 2.2). EL is a cost of doing business and always comes off the numerator."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The numerator is −0.8 per 100 against revenue of 7.0, which gives RAROC = −1.40%. That is clearly negative."
+      }
+    ],
+    "working": [
+      {
+        "label": "Doubled costs",
+        "display": "$2 \\times 2.5 = 5.0$",
+        "value": 5.0
+      },
+      {
+        "label": "Pre-tax numerator",
+        "display": "$7.0 - 3.0 - 5.0 + 0.2 = -0.8$",
+        "value": -0.8
+      },
+      {
+        "label": "After tax",
+        "display": "$-0.8 \\times 0.70 = -0.56$",
+        "value": -0.56
+      },
+      {
+        "label": "RAROC",
+        "display": "$-0.56 / 40 = -1.40\\%$",
+        "value": -0.014
+      }
+    ],
+    "takeaway": "EL (3.0) plus a 2.5 cost overrun is more than the whole 4.7 of margin before EL, so the sign flips.",
+    "check": {
+      "inputs": {
+        "rev": 7.0,
+        "EL": 3.0,
+        "oc": 2.5,
+        "rec": 0.2,
+        "EC": 40.0,
+        "t": 0.3
+      },
+      "steps": [
+        {
+          "name": "oc2",
+          "expr": "2*oc",
+          "value": 5.0
+        },
+        {
+          "name": "pre",
+          "expr": "rev-EL-oc2+rec",
+          "value": -0.8
+        },
+        {
+          "name": "post",
+          "expr": "pre*(1-t)",
+          "value": -0.56
+        },
+        {
+          "name": "raroc",
+          "expr": "post/EC",
+          "value": -0.014
+        },
+        {
+          "name": "proj",
+          "expr": "(rev-oc+rec)*(1-t)/EC",
+          "value": 0.08225
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-26",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-15"
+    },
+    "trap_category": "Polarity",
+    "setup": "A bank's rating-migration matrix is estimated on 2009–2024 data (growth and mild recessions) and applied uniformly, which makes it a through-the-cycle construction. A severe recession, deeper than any since the 1990s, is expected in 2025.",
+    "ask": "The matrix's 2025 default probabilities will be:",
+    "options": [
+      {
+        "label": "Underestimated",
+        "correct": true
+      },
+      {
+        "label": "Overstated",
+        "correct": false,
+        "why": "Polarity flip. TTC smooths toward the cycle average, and in a severe recession realised defaults run above that average."
+      },
+      {
+        "label": "About right, because TTC is designed to be stable",
+        "correct": false,
+        "why": "Stable is not the same as accurate. TTC deliberately ignores the coming downturn."
+      }
+    ],
+    "working": [
+      {
+        "label": "TTC",
+        "display": "Estimates sit near the cycle average and do not condition on current conditions",
+        "value": null
+      },
+      {
+        "label": "Severe recession",
+        "display": "actual defaults $>$ cycle-average rates $\\Rightarrow$ TTC PDs too low",
+        "value": null
+      },
+      {
+        "label": "Knock-on",
+        "display": "EL and economic capital are both understated, so RAROC is flattered",
+        "value": null
+      }
+    ],
+    "takeaway": "TTC PDs lag a downturn: in a severe recession they underestimate default, which flatters capital and RAROC."
+  },
+  {
+    "id": "SC-bank-OR1-27",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-16"
+    },
+    "trap_category": "Scope",
+    "setup": "A liquid proprietary trading desk reports a one-day VaR. The naive one-year figure is $\\text{VaR}_{1d} \\times \\sqrt{\\text{business days}}$. In a crisis the desk would run its position down, in an orderly way over a 'time to reduce', to a core risk level and hold it there for the rest of the year.",
+    "ask": "Appropriate one-year risk capital, compared with the naive annualised VaR, is:",
+    "options": [
+      {
+        "label": "Below it",
+        "correct": true
+      },
+      {
+        "label": "Above it, because volatility clustering makes √T too low",
+        "correct": false,
+        "why": "The adjustment that matters here is the shrinking position, not clustering. Exposure falls to the core level."
+      },
+      {
+        "label": "Equal to it",
+        "correct": false,
+        "why": "√T scaling assumes the full position is held all year, which a desk in a crisis would not do."
+      }
+    ],
+    "working": [
+      {
+        "label": "Naive",
+        "display": "$\\text{VaR}_{1d} \\times \\sqrt{250}$ assumes a constant full position",
+        "value": null
+      },
+      {
+        "label": "Realistic path",
+        "display": "Exposure declines to the core risk level over the time to reduce, then stays there",
+        "value": null
+      },
+      {
+        "label": "Result",
+        "display": "risk capital $<$ annualised VaR",
+        "value": null
+      }
+    ],
+    "takeaway": "For liquid trading desks, risk capital sits below √T-scaled VaR. Over-attributing it can push a value-creating desk below the hurdle."
+  },
+  {
+    "id": "SC-bank-OR1-28",
+    "mode": "intermediate",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-17"
+    },
+    "trap_category": "Formula",
+    "setup": "The hurdle rate is the market-value-weighted cost of equity. Common equity is USD 200m with a CAPM cost of 8.75%. Preferred equity is USD 800m and pays USD 48m of dividends a year.",
+    "ask": "The blended hurdle rate will sit closer to:",
+    "options": [
+      {
+        "label": "6%, below the midpoint",
+        "correct": true
+      },
+      {
+        "label": "8.75%",
+        "correct": false,
+        "why": "Common equity is only 20% of the equity by market value, so the preferred cost dominates."
+      },
+      {
+        "label": "The midpoint of the two costs (≈7.4%)",
+        "correct": false,
+        "why": "That needs equal weights, but market values are 200 against 800."
+      }
+    ],
+    "working": [
+      {
+        "label": "Cost of preferred",
+        "display": "$48 / 800 = 6.00\\%$",
+        "value": 0.06
+      },
+      {
+        "label": "Midpoint",
+        "display": "$(8.75\\% + 6.00\\%)/2 = 7.375\\%$",
+        "value": 0.07375
+      },
+      {
+        "label": "Hurdle",
+        "display": "$(200 \\times 8.75\\% + 800 \\times 6.00\\%) / 1{,}000 = 6.55\\%$: below the midpoint, 0.55pp from 6%",
+        "value": 0.0655
+      }
+    ],
+    "takeaway": "A weighted hurdle leans toward the heavier weight: 80% preferred at 6% pulls it to 6.55%.",
+    "check": {
+      "inputs": {
+        "CE": 200.0,
+        "PE": 800.0,
+        "rCE": 0.0875,
+        "div": 48.0
+      },
+      "steps": [
+        {
+          "name": "rPE",
+          "expr": "div/PE",
+          "value": 0.06
+        },
+        {
+          "name": "mid",
+          "expr": "(rCE+rPE)/2",
+          "value": 0.07375
+        },
+        {
+          "name": "h",
+          "expr": "(CE*rCE+PE*rPE)/(CE+PE)",
+          "value": 0.0655
+        },
+        {
+          "name": "gap_mid",
+          "expr": "mid-h",
+          "value": 0.00825
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-29",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-23"
+    },
+    "trap_category": "Sign",
+    "setup": "Activities X and Y have stand-alone risk capital of USD 70m and USD 80m. The business unit's combined risk capital, after all diversification effects, is USD 120m.",
+    "ask": "The implied correlation between X and Y is:",
+    "options": [
+      {
+        "label": "Positive",
+        "correct": true
+      },
+      {
+        "label": "Zero",
+        "correct": false,
+        "why": "Zero correlation gives √(70² + 80²) ≈ 106m. At 120m the unit sits above that floor."
+      },
+      {
+        "label": "Negative",
+        "correct": false,
+        "why": "Negative correlation would pull combined capital below about 106m, not up to 120m."
+      }
+    ],
+    "working": [
+      {
+        "label": "Zero-correlation floor",
+        "display": "$\\sqrt{70^2 + 80^2} = 106.3$",
+        "value": 106.3
+      },
+      {
+        "label": "Perfect-correlation ceiling",
+        "display": "$70 + 80 = 150$",
+        "value": 150
+      },
+      {
+        "label": "Placement",
+        "display": "$106.3 < 120 < 150 \\Rightarrow \\rho > 0$",
+        "value": null
+      }
+    ],
+    "takeaway": "Aggregate capital sits between √Σ(RC²) (ρ = 0) and ΣRC (ρ = 1); anywhere above the floor means positive correlation.",
+    "check": {
+      "inputs": {
+        "X": 70.0,
+        "Y": 80.0,
+        "BU": 120.0
+      },
+      "steps": [
+        {
+          "name": "floor",
+          "expr": "sqrt(X**2+Y**2)",
+          "value": 106.301
+        },
+        {
+          "name": "ceil",
+          "expr": "X+Y",
+          "value": 150.0
+        },
+        {
+          "name": "above",
+          "expr": "BU-floor",
+          "value": 13.6985
+        },
+        {
+          "name": "rho",
+          "expr": "(BU**2-X**2-Y**2)/(2*X*Y)",
+          "value": 0.276786
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-OR1-30",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-24"
+    },
+    "trap_category": "Sibling",
+    "setup": "Two departments with less than perfect correlation share a combined risk capital figure. Each department's marginal capital is the combined capital minus the combined capital without that department.",
+    "ask": "The sum of the two marginal capitals, compared with the combined risk capital, is:",
+    "options": [
+      {
+        "label": "Less than it",
+        "correct": true
+      },
+      {
+        "label": "Exactly equal to it",
+        "correct": false,
+        "why": "Sibling mix-up. It is the fully diversified (pro rata) capitals that reconcile exactly."
+      },
+      {
+        "label": "More than it",
+        "correct": false,
+        "why": "Direction slip. Marginal capital credits each department with the full diversification benefit, so the sum falls short."
+      }
+    ],
+    "working": [
+      {
+        "label": "Fully diversified",
+        "display": "$\\sum \\text{FD capital} = \\text{combined capital}$ (exactly)",
+        "value": null
+      },
+      {
+        "label": "Marginal",
+        "display": "$\\sum \\text{marginal capital} < \\text{combined capital}$: the benefit is counted twice",
+        "value": null
+      }
+    ],
+    "takeaway": "Fully diversified capital adds up; marginal capital doesn't. That is why marginal capital drives business-mix decisions, not reconciliation."
+  },
+  {
+    "id": "SC-bank-OR1-31",
+    "mode": "direction",
+    "area": "ORR",
+    "reading": "Operational Risk and Resilience, Ch. 18: Risk Capital Attribution and Risk-Adjusted Performance Measurement (Crouhy, Galai and Mark)",
+    "reading_id": null,
+    "source": {
+      "kind": "bank",
+      "questionId": "OR-T1-29"
+    },
+    "trap_category": "Polarity",
+    "setup": "Consumer Credit Cards (stand-alone capital USD 90m) and Consumer Purchase Loans (USD 110m) are negatively correlated, so their combined capital is USD 150m. In a crisis, their correlation shifts sharply toward +1.",
+    "ask": "Combined risk capital:",
+    "options": [
+      {
+        "label": "Rises toward USD 200m",
+        "correct": true
+      },
+      {
+        "label": "Falls further below USD 150m",
+        "correct": false,
+        "why": "Polarity flip. Higher correlation shrinks the diversification benefit and does not add to it."
+      },
+      {
+        "label": "Stays at USD 150m, because the allocated benefit is fixed",
+        "correct": false,
+        "why": "The portfolio effect depends on correlation, which is unstable and can disappear in a crisis."
+      }
+    ],
+    "working": [
+      {
+        "label": "Portfolio effect now",
+        "display": "$(90 + 110) - 150 = 50$",
+        "value": 50
+      },
+      {
+        "label": "At $\\rho \\to +1$",
+        "display": "combined $\\to 90 + 110 = 200$; portfolio effect $\\to 0$",
+        "value": 200
+      }
+    ],
+    "takeaway": "Diversification benefits evaporate when correlations jump in a crisis, so be careful how generously you allocate them.",
+    "check": {
+      "inputs": {
+        "a": 90.0,
+        "b": 110.0,
+        "c": 150.0
+      },
+      "steps": [
+        {
+          "name": "sum",
+          "expr": "a+b",
+          "value": 200.0
+        },
+        {
+          "name": "pe",
+          "expr": "sum-c",
+          "value": 50.0
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,64 @@
+{
+ "slice": "LR-T2-1",
+ "decisions": [
+  {
+   "id": "LR-T2-44",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "USD 326 million does not correspond to any consistent treatment of the inputs; it is a plausibility distractor. Omitting the Treasury purchases alone would give $(660 + 358) - 721 = \\text{USD } 297$ million."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "USD 347 million does not correspond to any consistent treatment of the inputs. Omitting the drawings on credit lines from uses, the most common error, would give $(660 + 330) - 721 = \\text{USD } 269$ million."
+    },
+    "c": {
+     "verdict": "incorrect",
+     "reason": "USD 423 million $= 330 + 358 - 265$: it omits the USD 660 million loan request from uses and the USD 456 million received today from sources. (Omitting only the USD 265 million expected later in the week would overstate the gap, giving $1{,}348 - 456 = \\text{USD } 892$ million.)"
+    },
+    "d": {
+     "verdict": "correct",
+     "reason": "$1{,}348$ minus $721 = \\text{USD } 627$ million."
+    }
+   },
+   "reason": "Source PDF p.62 matches the JSON, so this is a source error. Key (d) 627 re-derived (uses 1,348 - sources 721). Exhaustive subset search over {660,330,358,-456,-265}: 326 and 347 are unreachable; 423 = 330+358-265 only; omitting 265 gives 892 (larger gap, contradicting OA(c)); OA(b) self-contradicts (its own arithmetic gives 269). Chose the auditor's minimal fix (keep options, rewrite OA a-c) rather than re-engineering the options, since changing option values changes the question away from the source; re-engineering to 269/297/892 remains an optional enhancement."
+  },
+  {
+   "id": "LR-T2-46",
+   "field": "optionAnalysis",
+   "verdict": "accept",
+   "final": {
+    "optionAnalysis.d.reason": "29.32% $= 1.06 \\times 1.22 - 1$: it multiplies the gross dollar rate by the forward rate itself instead of dividing by the forward-to-spot ratio $1.22 \\div 1.32$, so it is not a coherent parity calculation. A genuine base/quote inversion, $1.06 \\times (1.22 \\div 1.32) - 1$, would give $-2.03\\%$ instead.",
+    "trap.explanation": "Option D uses the forward rate level rather than the forward-to-spot ratio. The dominant error on covered interest parity questions is the base and quote inversion; here it would give a negative euro rate of -2.03%, which the direction check rules out immediately. Guard against both with the direction check before computing: the currency trading at a forward discount must be the higher-yielding one. The euro is at a discount, so the euro rate must exceed 6%, and it must exceed it by roughly the size of the discount."
+   },
+   "reason": "Source PDF p.65 identical to JSON. python: 1.06*1.32/1.22 = 1.14689 (the correct answer, algebraically equal to 1.06/(1.22/1.32)), so OA(d)'s stated derivation reproduces the key, not 29.32%. 1.06*1.22 = 1.2932 is the actual origin of (d); true inversion 1.06*1.22/1.32 - 1 = -2.03%. Key (c) 14.69% confirmed."
+  },
+  {
+   "id": "LR-T2-21",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "The components it charges are all liquidity costs:",
+   "reason": "PDF p.30 reads 'The components it charges are all liquidity costs'; extraction dropped the 's'. Cosmetic typo only."
+  },
+  {
+   "id": "LR-T2-03",
+   "field": "trap",
+   "verdict": "accept",
+   "final": "Four distinct failure modes, one per option. Option A stops one step early (intermediate-result trap); option C mis-sizes accrued interest (unit and time conversion); option D drops the haircut (dropped term). Build the chain in the fixed order every time: clean, add accrued, subtract haircut, add repo interest. Note also the structural check that catches option D instantly: whenever the haircut exceeds the repo interest accrued over the term (here 3.5% against 1%), the repayment must be below the dirty value of the collateral pledged, so an outflow above GBP 9,787,500 signals a dropped haircut.",
+   "reason": "Source p.7 has the same sentence. Repayment = dirty*(1-h)*(1+rt) exceeds dirty whenever rt > h approx (e.g. zero-haircut gilt repo), so 'can never repay more than the dirty value' is false in general; it holds here only because h=3.5% > rt=1%. Replacement wording is correct. Final gives the full trap.explanation string with only the last sentence changed. Key (b) 9,539,387 re-derived (9,787,500*0.965*1.01); OA(c) 9,624,669 and OA(d) 9,885,375 verified. Low-severity pedagogical fix."
+  }
+ ],
+ "added": [],
+ "spotChecked": {
+  "ids": [
+   "LR-T2-02",
+   "LR-T2-04",
+   "LR-T2-05",
+   "LR-T2-41",
+   "LR-T2-45"
+  ],
+  "result": "all keys, solutions and distractor derivations verified against source and python; no problems"
+ }
+}

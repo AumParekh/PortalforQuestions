@@ -1,0 +1,3792 @@
+[
+ {
+  "id": "IM-5-F01",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 76,
+  "objective": "IM-5 a",
+  "name": "Individual VaR of a position",
+  "prompt": "What is the VaR of a single position taken in isolation, from its volatility, its size (or weight and the portfolio value) and the confidence multiplier?",
+  "latex": "\\text{VaR}_i = Z_c \\times \\sigma_i \\times |P_i| = Z_c \\times \\sigma_i \\times |w_i| \\times P",
+  "variables": [
+   {
+    "symbol": "\\text{VaR}_i",
+    "meaning": "individual VaR of position i (in isolation)"
+   },
+   {
+    "symbol": "Z_c",
+    "meaning": "confidence multiplier (z-value, e.g. 1.645 at 95%, 2.33 at 99%)"
+   },
+   {
+    "symbol": "\\sigma_i",
+    "meaning": "volatility of position i's return (decimal)"
+   },
+   {
+    "symbol": "P_i",
+    "meaning": "nominal (dollar) amount invested in position i"
+   },
+   {
+    "symbol": "w_i",
+    "meaning": "weight of position i in the portfolio"
+   },
+   {
+    "symbol": "P",
+    "meaning": "portfolio value"
+   }
+  ],
+  "skeleton": "\\text{VaR}_i = {{1}} \\times {{2}} \\times |P_i| = Z_c \\times \\sigma_i \\times |{{3}}| \\times {{4}}",
+  "slots": [
+   "Z_c",
+   "\\sigma_i",
+   "w_i",
+   "P"
+  ],
+  "decoys": [
+   "\\sigma_p",
+   "\\rho_i",
+   "\\beta_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{VaR}_i = Z_c \\times \\sigma_p \\times |P_i| = Z_c \\times \\sigma_p \\times |w_i| \\times P",
+    "kind": "wrong-variable",
+    "why": "Uses the portfolio's volatility instead of the position's own; this is the CAD 3.948 million distractor in the notes."
+   },
+   {
+    "latex": "\\text{VaR}_i = Z_c \\times \\sigma_i^2 \\times |P_i| = Z_c \\times \\sigma_i^2 \\times |w_i| \\times P",
+    "kind": "exponent",
+    "why": "VaR scales with volatility, not variance."
+   },
+   {
+    "latex": "\\text{VaR}_i = Z_c \\times \\sigma_i \\times |P_i| \\times \\rho_i = Z_c \\times \\sigma_i \\times |w_i| \\times P \\times \\rho_i",
+    "kind": "sibling",
+    "why": "Multiplying by the correlation with the portfolio gives component VaR, not individual VaR."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "Z_c",
+    "direction": "up",
+    "why": "A higher confidence level means a larger multiplier and a larger loss threshold."
+   },
+   {
+    "variable": "\\sigma_i",
+    "direction": "up",
+    "why": "A more volatile position has a bigger potential loss."
+   },
+   {
+    "variable": "P_i",
+    "direction": "depends",
+    "why": "On the sign: VaR uses |P_i|, so a larger long position raises VaR, while raising P_i towards zero from a short position lowers it."
+   }
+  ],
+  "intuition": "Stand-alone risk: how many standard deviations, times how volatile, times how big the position is.",
+  "calc": {
+   "expr": "Z * sig * Pi",
+   "inputs": [
+    {
+     "name": "Z",
+     "symbol": "Z_c",
+     "min": 1.28,
+     "max": 2.58,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "sig",
+     "symbol": "\\sigma_i",
+     "min": 0.01,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "Pi",
+     "symbol": "P_i",
+     "min": 1,
+     "max": 500,
+     "step": 1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{VaR}_i",
+    "unit": "$M",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "Z": 1.645,
+     "sig": 0.13,
+     "Pi": 15
+    },
+    "output": 3.208,
+    "source_line": 240
+   }
+  },
+  "tags": [
+   "VaR",
+   "individual VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F02",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 86,
+  "objective": "IM-5 a",
+  "name": "Diversified portfolio VaR",
+  "prompt": "What is the diversified (portfolio) VaR in the delta-normal setting, from the portfolio volatility and portfolio value?",
+  "latex": "\\text{VaR}_p = Z_c \\times \\sigma_p \\times P",
+  "variables": [
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "diversified portfolio VaR"
+   },
+   {
+    "symbol": "Z_c",
+    "meaning": "confidence multiplier (z-value)"
+   },
+   {
+    "symbol": "\\sigma_p",
+    "meaning": "portfolio return volatility (decimal), including diversification"
+   },
+   {
+    "symbol": "P",
+    "meaning": "portfolio value"
+   }
+  ],
+  "skeleton": "\\text{VaR}_p = {{1}} \\times {{2}} \\times {{3}}",
+  "slots": [
+   "Z_c",
+   "\\sigma_p",
+   "P"
+  ],
+  "decoys": [
+   "\\sigma_i",
+   "P_i",
+   "\\sigma_p^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{VaR}_p = Z_c \\times \\sigma_p^2 \\times P",
+    "kind": "exponent",
+    "why": "VaR uses the portfolio standard deviation, not its variance."
+   },
+   {
+    "latex": "\\text{VaR}_p = Z_c \\times \\sigma_p \\times P_i",
+    "kind": "wrong-variable",
+    "why": "Uses one position's size instead of the whole portfolio value; in the five-position example that gives $838,800 instead of $4,194,000."
+   },
+   {
+    "latex": "\\text{VaR}_p = \\sum_i Z_c \\times \\sigma_i \\times P_i",
+    "kind": "sibling",
+    "why": "Summing individual VaRs gives undiversified VaR, which ignores correlation below 1."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "Z_c",
+    "direction": "up",
+    "why": "Higher confidence means a larger multiplier."
+   },
+   {
+    "variable": "\\sigma_p",
+    "direction": "up",
+    "why": "A more volatile portfolio has a larger VaR."
+   },
+   {
+    "variable": "P",
+    "direction": "up",
+    "why": "VaR is proportional to the amount invested."
+   }
+  ],
+  "intuition": "Same recipe as individual VaR, but using the diversified portfolio volatility and the whole portfolio value.",
+  "calc": {
+   "expr": "Z * sigp * P",
+   "inputs": [
+    {
+     "name": "Z",
+     "symbol": "Z_c",
+     "min": 1.28,
+     "max": 2.58,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "sigp",
+     "symbol": "\\sigma_p",
+     "min": 0.01,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "P",
+     "symbol": "P",
+     "min": 1,
+     "max": 1000,
+     "step": 1,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{VaR}_p",
+    "unit": "$M",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "Z": 2.33,
+     "sigp": 0.18,
+     "P": 10
+    },
+    "output": 4.194,
+    "source_line": 124
+   }
+  },
+  "tags": [
+   "VaR",
+   "diversified VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F03",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 89,
+  "objective": "IM-5 a",
+  "name": "Two-asset portfolio variance",
+  "prompt": "What is the variance of a two-asset portfolio's return, from the weights, volatilities and correlation?",
+  "latex": "\\sigma_p^2 = w_1^2\\sigma_1^2 + w_2^2\\sigma_2^2 + 2w_1w_2\\rho_{12}\\sigma_1\\sigma_2",
+  "variables": [
+   {
+    "symbol": "\\sigma_p^2",
+    "meaning": "variance of the portfolio return"
+   },
+   {
+    "symbol": "w_1",
+    "meaning": "weight of asset 1"
+   },
+   {
+    "symbol": "w_2",
+    "meaning": "weight of asset 2"
+   },
+   {
+    "symbol": "\\sigma_1",
+    "meaning": "volatility of asset 1 (decimal)"
+   },
+   {
+    "symbol": "\\sigma_2",
+    "meaning": "volatility of asset 2 (decimal)"
+   },
+   {
+    "symbol": "\\rho_{12}",
+    "meaning": "correlation between the returns of assets 1 and 2"
+   }
+  ],
+  "skeleton": "\\sigma_p^2 = {{1}}\\sigma_1^2 + w_2^2\\sigma_2^2 + {{2}}w_1w_2{{3}}\\sigma_1\\sigma_2",
+  "slots": [
+   "w_1^2",
+   "2",
+   "\\rho_{12}"
+  ],
+  "decoys": [
+   "w_1",
+   "\\rho_{12}^2",
+   "\\beta_1"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\sigma_p^2 = w_1^2\\sigma_1^2 + w_2^2\\sigma_2^2 + w_1w_2\\rho_{12}\\sigma_1\\sigma_2",
+    "kind": "scaling",
+    "why": "The cross term appears twice (1-2 and 2-1), so it carries a factor of 2."
+   },
+   {
+    "latex": "\\sigma_p^2 = w_1\\sigma_1^2 + w_2\\sigma_2^2 + 2w_1w_2\\rho_{12}\\sigma_1\\sigma_2",
+    "kind": "exponent",
+    "why": "The weights must be squared in the own-variance terms."
+   },
+   {
+    "latex": "\\sigma_p^2 = w_1^2\\sigma_1^2 + w_2^2\\sigma_2^2 - 2w_1w_2\\rho_{12}\\sigma_1\\sigma_2",
+    "kind": "sign",
+    "why": "The covariance term enters with a plus sign; the sign of the weights, not the formula, handles short positions."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\rho_{12}",
+    "direction": "depends",
+    "why": "On the sign of w_1 w_2: for two long positions higher correlation raises variance; if one position is short it lowers it."
+   }
+  ],
+  "intuition": "Each asset's own risk, plus twice the co-movement term; correlation below 1 is where diversification comes from.",
+  "calc": {
+   "expr": "w1**2*s1**2 + w2**2*s2**2 + 2*w1*w2*rho*s1*s2",
+   "inputs": [
+    {
+     "name": "w1",
+     "symbol": "w_1",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": "decimal"
+    },
+    {
+     "name": "w2",
+     "symbol": "w_2",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": "decimal"
+    },
+    {
+     "name": "s1",
+     "symbol": "\\sigma_1",
+     "min": 0.01,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "s2",
+     "symbol": "\\sigma_2",
+     "min": 0.01,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "rho",
+     "symbol": "\\rho_{12}",
+     "min": -1,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\sigma_p^2",
+    "unit": "decimal",
+    "decimals": 6
+   },
+   "example": null
+  },
+  "tags": [
+   "portfolio variance",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F04",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 96,
+  "objective": "IM-5 a",
+  "name": "Undiversified VaR: portfolio VaR at perfect correlation",
+  "prompt": "At what correlation is there no diversification benefit, and how do the two individual VaRs then combine into portfolio VaR?",
+  "latex": "\\rho = 1:\\quad \\text{VaR}_p = \\text{VaR}_1 + \\text{VaR}_2",
+  "variables": [
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation between the two positions"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "\\text{VaR}_1",
+    "meaning": "individual VaR of position 1"
+   },
+   {
+    "symbol": "\\text{VaR}_2",
+    "meaning": "individual VaR of position 2"
+   }
+  ],
+  "skeleton": "\\rho = {{1}}:\\quad {{2}} = \\text{VaR}_1 + \\text{VaR}_2",
+  "slots": [
+   "1",
+   "\\text{VaR}_p"
+  ],
+  "decoys": [
+   "0",
+   "-1",
+   "\\text{VaR}_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\rho = 0:\\quad \\text{VaR}_p = \\text{VaR}_1 + \\text{VaR}_2",
+    "kind": "wrong-variable",
+    "why": "Simple addition holds only at perfect correlation; at zero correlation the VaRs add in quadrature."
+   },
+   {
+    "latex": "\\rho = 1:\\quad \\text{VaR}_p = \\sqrt{\\text{VaR}_1^2 + \\text{VaR}_2^2}",
+    "kind": "sibling",
+    "why": "The square-root-of-sum-of-squares form is the zero-correlation case."
+   },
+   {
+    "latex": "\\rho = -1:\\quad \\text{VaR}_p = \\text{VaR}_1 + \\text{VaR}_2",
+    "kind": "sign",
+    "why": "At negative correlation the positions offset each other; they do not add."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_1",
+    "direction": "up",
+    "why": "Each individual VaR adds one for one."
+   },
+   {
+    "variable": "\\text{VaR}_2",
+    "direction": "up",
+    "why": "Each individual VaR adds one for one."
+   }
+  ],
+  "intuition": "With perfect correlation there is no diversification, so risks simply stack: this is the undiversified VaR.",
+  "calc": {
+   "expr": "VaR1 + VaR2",
+   "inputs": [
+    {
+     "name": "VaR1",
+     "symbol": "\\text{VaR}_1",
+     "min": 0,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "VaR2",
+     "symbol": "\\text{VaR}_2",
+     "min": 0,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{VaR}_p",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "undiversified VaR",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F05",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 98,
+  "objective": "IM-5 a",
+  "name": "Portfolio VaR at zero correlation",
+  "prompt": "When the two positions are uncorrelated, how do their individual VaRs combine into portfolio VaR?",
+  "latex": "\\rho = 0:\\quad \\text{VaR}_p = \\sqrt{\\text{VaR}_1^2 + \\text{VaR}_2^2}",
+  "variables": [
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation between the two positions"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "\\text{VaR}_1",
+    "meaning": "individual VaR of position 1"
+   },
+   {
+    "symbol": "\\text{VaR}_2",
+    "meaning": "individual VaR of position 2"
+   }
+  ],
+  "skeleton": "\\rho = {{1}}:\\quad \\text{VaR}_p = \\sqrt{ {{2}} + \\text{VaR}_2^2}",
+  "slots": [
+   "0",
+   "\\text{VaR}_1^2"
+  ],
+  "decoys": [
+   "1",
+   "\\text{VaR}_1",
+   "2\\text{VaR}_1\\text{VaR}_2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\rho = 0:\\quad \\text{VaR}_p = \\text{VaR}_1 + \\text{VaR}_2",
+    "kind": "sibling",
+    "why": "Straight addition is the perfect-correlation (undiversified) case."
+   },
+   {
+    "latex": "\\rho = 0:\\quad \\text{VaR}_p = \\text{VaR}_1^2 + \\text{VaR}_2^2",
+    "kind": "exponent",
+    "why": "Forgetting the square root leaves a squared-currency number, not a VaR."
+   },
+   {
+    "latex": "\\rho = 1:\\quad \\text{VaR}_p = \\sqrt{\\text{VaR}_1^2 + \\text{VaR}_2^2}",
+    "kind": "wrong-variable",
+    "why": "Adding in quadrature is the uncorrelated case, not the perfectly correlated one."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_1",
+    "direction": "up",
+    "why": "A larger individual VaR raises the combined VaR, though less than one for one."
+   },
+   {
+    "variable": "\\text{VaR}_2",
+    "direction": "up",
+    "why": "A larger individual VaR raises the combined VaR, though less than one for one."
+   }
+  ],
+  "intuition": "Uncorrelated risks add like the sides of a right triangle: the portfolio VaR is the hypotenuse.",
+  "calc": {
+   "expr": "Math.sqrt(VaR1**2 + VaR2**2)",
+   "inputs": [
+    {
+     "name": "VaR1",
+     "symbol": "\\text{VaR}_1",
+     "min": 0,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$M"
+    },
+    {
+     "name": "VaR2",
+     "symbol": "\\text{VaR}_2",
+     "min": 0,
+     "max": 100,
+     "step": 0.5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{VaR}_p",
+    "unit": "$M",
+    "decimals": 2
+   },
+   "example": null
+  },
+  "tags": [
+   "diversified VaR",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F06",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 111,
+  "objective": "IM-5 a",
+  "name": "Volatility of an equally weighted N-asset portfolio",
+  "prompt": "With N equally weighted positions that share one volatility and one pairwise correlation, what is the portfolio volatility?",
+  "latex": "\\sigma_P = \\sigma\\sqrt{\\frac{1}{N} + \\left(1 - \\frac{1}{N}\\right)\\rho}",
+  "variables": [
+   {
+    "symbol": "\\sigma_P",
+    "meaning": "portfolio volatility"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "standard deviation of each position"
+   },
+   {
+    "symbol": "N",
+    "meaning": "number of positions"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation for each pair of positions"
+   }
+  ],
+  "skeleton": "\\sigma_P = {{1}}\\sqrt{\\frac{1}{ {{2}} } + \\left(1 - \\frac{1}{N}\\right){{3}}}",
+  "slots": [
+   "\\sigma",
+   "N",
+   "\\rho"
+  ],
+  "decoys": [
+   "\\sigma^2",
+   "N^2",
+   "\\rho^2",
+   "\\sqrt{\\rho}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\sigma_P = \\sigma\\sqrt{\\frac{1}{N} + \\left(1 + \\frac{1}{N}\\right)\\rho}",
+    "kind": "sign",
+    "why": "The correlation weight is (1 - 1/N), the share of the N^2 terms that are cross terms."
+   },
+   {
+    "latex": "\\sigma_P = \\sigma\\left(\\frac{1}{N} + \\left(1 - \\frac{1}{N}\\right)\\rho\\right)",
+    "kind": "exponent",
+    "why": "Dropping the square root gives 10.8% instead of 18% in the notes' example."
+   },
+   {
+    "latex": "\\sigma_P = \\sigma\\sqrt{\\frac{1}{N^2} + \\left(1 - \\frac{1}{N}\\right)\\rho}",
+    "kind": "exponent",
+    "why": "The own-variance share is 1/N, not 1/N^2."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "Every position is more volatile, so the portfolio is too."
+   },
+   {
+    "variable": "N",
+    "direction": "down",
+    "why": "More positions dilute the own-variance term 1/N, as long as the correlation is below 1."
+   },
+   {
+    "variable": "\\rho",
+    "direction": "up",
+    "why": "Higher pairwise correlation leaves less to diversify away."
+   }
+  ],
+  "intuition": "Adding positions shrinks only the 1/N part; the correlation part stays, so risk never falls below a floor.",
+  "calc": {
+   "expr": "sigma * Math.sqrt(1/N + (1 - 1/N)*rho)",
+   "inputs": [
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 5,
+     "max": 60,
+     "step": 1,
+     "unit": "%"
+    },
+    {
+     "name": "N",
+     "symbol": "N",
+     "min": 1,
+     "max": 100,
+     "step": 1,
+     "unit": ""
+    },
+    {
+     "name": "rho",
+     "symbol": "\\rho",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\sigma_P",
+    "unit": "%",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "sigma": 30,
+     "N": 5,
+     "rho": 0.2
+    },
+    "output": 18,
+    "source_line": 122
+   }
+  },
+  "tags": [
+   "diversification",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F07",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 144,
+  "objective": "IM-5 a",
+  "name": "Marginal VaR from the covariance with the portfolio",
+  "prompt": "What is the marginal VaR of position i, written as a derivative and then in terms of its covariance with the portfolio?",
+  "latex": "\\text{MVaR}_i = \\frac{\\partial\\,\\text{VaR}_p}{\\partial(\\text{monetary investment in } i)} = Z_c\\frac{\\partial \\sigma_p}{\\partial w_i} = Z_c\\frac{\\operatorname{cov}(R_i,R_p)}{\\sigma_p}",
+  "variables": [
+   {
+    "symbol": "\\text{MVaR}_i",
+    "meaning": "marginal VaR of position i: change in portfolio VaR per additional dollar in i"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "Z_c",
+    "meaning": "confidence multiplier (z-value)"
+   },
+   {
+    "symbol": "\\sigma_p",
+    "meaning": "portfolio volatility (in the notes' worked example, a dollar standard deviation)"
+   },
+   {
+    "symbol": "w_i",
+    "meaning": "position in asset i"
+   },
+   {
+    "symbol": "R_i",
+    "meaning": "return on asset i"
+   },
+   {
+    "symbol": "R_p",
+    "meaning": "return on the portfolio"
+   }
+  ],
+  "skeleton": "\\text{MVaR}_i = \\frac{\\partial\\,\\text{VaR}_p}{\\partial(\\text{monetary investment in } i)} = Z_c\\frac{\\partial \\sigma_p}{\\partial w_i} = {{1}}\\frac{\\operatorname{cov}(R_i, {{2}})}{ {{3}} }",
+  "slots": [
+   "Z_c",
+   "R_p",
+   "\\sigma_p"
+  ],
+  "decoys": [
+   "\\sigma_p^2",
+   "\\sigma_i",
+   "R_f",
+   "P"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\partial\\,\\text{VaR}_p}{\\partial(\\text{monetary investment in } i)} = Z_c\\frac{\\partial \\sigma_p}{\\partial w_i} = Z_c\\frac{\\operatorname{cov}(R_i,R_p)}{\\sigma_p^2}",
+    "kind": "exponent",
+    "why": "Dividing by the variance gives Z_c times beta, which is missing the VaR_p/portfolio-value scale."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\partial\\,\\text{VaR}_p}{\\partial(\\text{monetary investment in } i)} = Z_c\\frac{\\partial \\sigma_p}{\\partial w_i} = Z_c\\frac{\\operatorname{cov}(R_i,R_p)}{\\sigma_i}",
+    "kind": "wrong-variable",
+    "why": "The denominator is the portfolio's volatility, not the asset's."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\partial\\,\\text{VaR}_p}{\\partial(\\text{monetary investment in } i)} = Z_c\\frac{\\partial \\sigma_p}{\\partial w_i} = \\frac{\\operatorname{cov}(R_i,R_p)}{\\sigma_p}",
+    "kind": "missing-term",
+    "why": "Without Z_c this is the marginal volatility, not the marginal VaR."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "Z_c",
+    "direction": "depends",
+    "why": "On the sign of cov(R_i,R_p): a higher multiplier makes a positive marginal VaR larger and a negative (hedging) one more negative."
+   },
+   {
+    "variable": "\\operatorname{cov}(R_i,R_p)",
+    "direction": "up",
+    "why": "An asset that moves more with the portfolio adds more risk per extra dollar."
+   },
+   {
+    "variable": "\\sigma_p",
+    "direction": "depends",
+    "why": "On the sign of cov(R_i,R_p): with a positive covariance a larger sigma_p lowers marginal VaR; with a negative one it moves it up towards zero."
+   }
+  ],
+  "intuition": "Marginal VaR is the slope of portfolio VaR: how much one more dollar of i moves it, driven by i's co-movement with the portfolio.",
+  "calc": {
+   "expr": "Z * cov / sigp",
+   "inputs": [
+    {
+     "name": "Z",
+     "symbol": "Z_c",
+     "min": 1.28,
+     "max": 2.58,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "cov",
+     "symbol": "\\operatorname{cov}(R_i,R_p)",
+     "min": 0.001,
+     "max": 0.1,
+     "step": 0.0001,
+     "unit": "$M (per-dollar covariance with the portfolio)"
+    },
+    {
+     "name": "sigp",
+     "symbol": "\\sigma_p",
+     "min": 0.05,
+     "max": 1,
+     "step": 0.01,
+     "unit": "$M (dollar st. dev.)"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{MVaR}_i",
+    "unit": "per $",
+    "decimals": 6
+   },
+   "example": {
+    "inputs": {
+     "Z": 1.65,
+     "cov": 0.0144,
+     "sigp": 0.368782
+    },
+    "output": 0.064428,
+    "source_line": 202
+   }
+  },
+  "tags": [
+   "marginal VaR",
+   "covariance"
+  ]
+ },
+ {
+  "id": "IM-5-F08",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 149,
+  "objective": "IM-5 a",
+  "name": "Marginal VaR from beta",
+  "prompt": "Given portfolio VaR, portfolio value and an asset's beta, what is that asset's marginal VaR?",
+  "latex": "\\text{MVaR}_i = \\frac{\\text{VaR}_p}{\\text{portfolio value}} \\times \\beta_i",
+  "variables": [
+   {
+    "symbol": "\\text{MVaR}_i",
+    "meaning": "marginal VaR of asset i (change in portfolio VaR per unit of currency added to i)"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "\\text{portfolio value}",
+    "meaning": "total portfolio value"
+   },
+   {
+    "symbol": "\\beta_i",
+    "meaning": "beta of asset i with respect to the portfolio, cov(R_i,R_p)/sigma_p^2"
+   }
+  ],
+  "skeleton": "\\text{MVaR}_i = \\frac{ {{1}} }{ {{2}} } \\times {{3}}",
+  "slots": [
+   "\\text{VaR}_p",
+   "\\text{portfolio value}",
+   "\\beta_i"
+  ],
+  "decoys": [
+   "\\text{VaR}_i",
+   "\\rho_i",
+   "w_i",
+   "P_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\text{portfolio value}}{\\text{VaR}_p} \\times \\beta_i",
+    "kind": "inverted",
+    "why": "Marginal VaR is VaR per unit of portfolio value, so VaR goes on top."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\text{VaR}_p}{\\text{portfolio value}} \\times \\rho_i",
+    "kind": "wrong-variable",
+    "why": "Beta, not correlation, links the asset to the portfolio here; correlation belongs to the component-VaR form VaR_i x rho_i."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\text{VaR}_p \\times \\beta_i",
+    "kind": "missing-term",
+    "why": "Without dividing by portfolio value the result is in currency, not a per-dollar sensitivity."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_p",
+    "direction": "depends",
+    "why": "On the sign of beta_i: a riskier portfolio raises a positive-beta asset's marginal VaR and makes a negative-beta asset's more negative."
+   },
+   {
+    "variable": "\\text{portfolio value}",
+    "direction": "depends",
+    "why": "On the sign of beta_i: spreading the same VaR over a larger portfolio shrinks marginal VaR towards zero from either side."
+   },
+   {
+    "variable": "\\beta_i",
+    "direction": "up",
+    "why": "A higher-beta asset adds more risk per extra dollar."
+   }
+  ],
+  "intuition": "Portfolio VaR per dollar, scaled by how strongly the asset moves with the portfolio: reach for it when the question gives a beta.",
+  "calc": {
+   "expr": "VaRp / PV * beta",
+   "inputs": [
+    {
+     "name": "VaRp",
+     "symbol": "\\text{VaR}_p",
+     "min": 10000,
+     "max": 10000000,
+     "step": 1000,
+     "unit": "$"
+    },
+    {
+     "name": "PV",
+     "symbol": "\\text{portfolio value}",
+     "min": 100000,
+     "max": 100000000,
+     "step": 100000,
+     "unit": "$"
+    },
+    {
+     "name": "beta",
+     "symbol": "\\beta_i",
+     "min": -1,
+     "max": 3,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{MVaR}_i",
+    "unit": "per $",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "VaRp": 400000,
+     "PV": 4000000,
+     "beta": 1.2
+    },
+    "output": 0.12,
+    "source_line": 158
+   }
+  },
+  "tags": [
+   "marginal VaR",
+   "beta"
+  ]
+ },
+ {
+  "id": "IM-5-F09",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 150,
+  "objective": "IM-5 a",
+  "name": "Beta of an asset with respect to the portfolio",
+  "prompt": "How is the beta used in marginal VaR defined, from the asset's covariance with the portfolio and the portfolio's risk?",
+  "latex": "\\beta_i = \\operatorname{cov}(R_i,R_p)/\\sigma_p^2",
+  "variables": [
+   {
+    "symbol": "\\beta_i",
+    "meaning": "beta of asset i relative to the portfolio"
+   },
+   {
+    "symbol": "R_i",
+    "meaning": "return on asset i"
+   },
+   {
+    "symbol": "R_p",
+    "meaning": "return on the portfolio"
+   },
+   {
+    "symbol": "\\sigma_p",
+    "meaning": "portfolio volatility"
+   }
+  ],
+  "skeleton": "\\beta_i = \\operatorname{cov}(R_i, {{1}})/{{2}}",
+  "slots": [
+   "R_p",
+   "\\sigma_p^2"
+  ],
+  "decoys": [
+   "\\sigma_p",
+   "\\sigma_i^2",
+   "R_f"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\beta_i = \\operatorname{cov}(R_i,R_p)/\\sigma_p",
+    "kind": "exponent",
+    "why": "Beta divides by the portfolio variance, not the volatility."
+   },
+   {
+    "latex": "\\beta_i = \\operatorname{cov}(R_i,R_p)/\\sigma_i^2",
+    "kind": "wrong-variable",
+    "why": "The denominator is the variance of the portfolio the beta is measured against."
+   },
+   {
+    "latex": "\\beta_i = \\operatorname{cov}(R_i,R_p)/(\\sigma_i\\sigma_p)",
+    "kind": "sibling",
+    "why": "Dividing by both volatilities gives the correlation, not the beta."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\operatorname{cov}(R_i,R_p)",
+    "direction": "up",
+    "why": "More co-movement with the portfolio means a higher beta."
+   },
+   {
+    "variable": "\\sigma_p",
+    "direction": "depends",
+    "why": "On the sign of the covariance: a more volatile portfolio shrinks beta towards zero, lowering a positive beta and raising a negative one."
+   }
+  ],
+  "intuition": "Beta is the asset's co-movement with the portfolio measured in units of the portfolio's own variance.",
+  "calc": {
+   "expr": "cov / varp",
+   "inputs": [
+    {
+     "name": "cov",
+     "symbol": "\\operatorname{cov}(R_i,R_p)",
+     "min": -0.05,
+     "max": 0.1,
+     "step": 0.001,
+     "unit": "decimal"
+    },
+    {
+     "name": "varp",
+     "symbol": "\\sigma_p^2",
+     "min": 0.001,
+     "max": 0.1,
+     "step": 0.001,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\beta_i",
+    "unit": "",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "beta",
+   "marginal VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F10",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 174,
+  "objective": "IM-5 a",
+  "name": "Incremental VaR by full revaluation",
+  "prompt": "How is the incremental VaR of a new position A measured exactly, by revaluing the portfolio?",
+  "latex": "\\text{Incremental VaR}_A = \\text{VaR}_{P+A} - \\text{VaR}_P",
+  "variables": [
+   {
+    "symbol": "\\text{Incremental VaR}_A",
+    "meaning": "change in portfolio VaR owing to the new position A"
+   },
+   {
+    "symbol": "\\text{VaR}_{P+A}",
+    "meaning": "portfolio VaR with the new position A included"
+   },
+   {
+    "symbol": "\\text{VaR}_P",
+    "meaning": "portfolio VaR without position A"
+   }
+  ],
+  "skeleton": "\\text{Incremental VaR}_A = {{1}} - {{2}}",
+  "slots": [
+   "\\text{VaR}_{P+A}",
+   "\\text{VaR}_P"
+  ],
+  "decoys": [
+   "\\text{VaR}_A",
+   "\\text{MVaR}_A",
+   "\\text{CVaR}_A"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Incremental VaR}_A = \\text{VaR}_P - \\text{VaR}_{P+A}",
+    "kind": "sign",
+    "why": "The order is new minus old; with this sign a risk-increasing trade would look like a hedge."
+   },
+   {
+    "latex": "\\text{Incremental VaR}_A = \\text{VaR}_{P+A} - \\text{VaR}_A",
+    "kind": "wrong-variable",
+    "why": "Subtract the old portfolio's VaR, not the new position's stand-alone VaR."
+   },
+   {
+    "latex": "\\text{Incremental VaR}_A = \\text{VaR}_A",
+    "kind": "sibling",
+    "why": "The position's individual VaR ignores its diversification with the rest of the portfolio."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_{P+A}",
+    "direction": "up",
+    "why": "A riskier post-trade portfolio means a larger increment."
+   },
+   {
+    "variable": "\\text{VaR}_P",
+    "direction": "down",
+    "why": "The higher the starting VaR, the smaller the change for a given post-trade VaR."
+   }
+  ],
+  "intuition": "Price the portfolio's VaR with and without the trade and take the difference; if it is negative, the trade is a hedge.",
+  "calc": {
+   "expr": "VaRPA - VaRP",
+   "inputs": [
+    {
+     "name": "VaRPA",
+     "symbol": "\\text{VaR}_{P+A}",
+     "min": 0,
+     "max": 1000,
+     "step": 0.1,
+     "unit": "$000"
+    },
+    {
+     "name": "VaRP",
+     "symbol": "\\text{VaR}_P",
+     "min": 0,
+     "max": 1000,
+     "step": 0.1,
+     "unit": "$000"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Incremental VaR}_A",
+    "unit": "$000",
+    "decimals": 1
+   },
+   "example": {
+    "inputs": {
+     "VaRPA": 257.74,
+     "VaRP": 165.0
+    },
+    "output": 92.7,
+    "source_line": 437
+   }
+  },
+  "tags": [
+   "incremental VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F11",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 176,
+  "objective": "IM-5 a",
+  "name": "Incremental VaR approximated with marginal VaR",
+  "prompt": "How can incremental VaR be approximated without a full revaluation, using marginal VaR and the size of the new position?",
+  "latex": "\\text{Incremental VaR}_A \\approx \\text{MVaR}_A \\times P_A",
+  "variables": [
+   {
+    "symbol": "\\text{Incremental VaR}_A",
+    "meaning": "change in portfolio VaR owing to position A"
+   },
+   {
+    "symbol": "\\text{MVaR}_A",
+    "meaning": "marginal VaR of A (per currency unit)"
+   },
+   {
+    "symbol": "P_A",
+    "meaning": "dollar size of position A (a position, not the portfolio's total value)"
+   }
+  ],
+  "skeleton": "\\text{Incremental VaR}_A \\approx {{1}} \\times {{2}}",
+  "slots": [
+   "\\text{MVaR}_A",
+   "P_A"
+  ],
+  "decoys": [
+   "W",
+   "w_A",
+   "\\text{CVaR}_A",
+   "\\beta_A"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Incremental VaR}_A \\approx \\text{MVaR}_A \\times W",
+    "kind": "wrong-variable",
+    "why": "Multiply by the dollar size of the new position, not by the portfolio's total value."
+   },
+   {
+    "latex": "\\text{Incremental VaR}_A \\approx \\text{MVaR}_A \\times w_A",
+    "kind": "wrong-variable",
+    "why": "A weight gives a per-dollar number again; marginal VaR needs a dollar amount to become a VaR."
+   },
+   {
+    "latex": "\\text{Incremental VaR}_A \\approx \\text{MVaR}_A / P_A",
+    "kind": "inverted",
+    "why": "Marginal VaR is per dollar, so it is multiplied by the dollars added, not divided."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{MVaR}_A",
+    "direction": "up",
+    "why": "A steeper VaR slope means each added dollar adds more VaR."
+   },
+   {
+    "variable": "P_A",
+    "direction": "depends",
+    "why": "On the sign of MVaR_A: a bigger trade adds more VaR if MVaR_A is positive, and removes more if the trade is a hedge."
+   }
+  ],
+  "intuition": "Slope times step: marginal VaR per dollar, times the dollars you add. Good for small trades, poor for large ones.",
+  "calc": {
+   "expr": "MVaR * PA",
+   "inputs": [
+    {
+     "name": "MVaR",
+     "symbol": "\\text{MVaR}_A",
+     "min": -0.3,
+     "max": 0.3,
+     "step": 0.0001,
+     "unit": "per $"
+    },
+    {
+     "name": "PA",
+     "symbol": "P_A",
+     "min": 1000,
+     "max": 1000000,
+     "step": 1000,
+     "unit": "$"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Incremental VaR}_A",
+    "unit": "$",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "MVaR": 0.064428,
+     "PA": 10000
+    },
+    "output": 644.28,
+    "source_line": 206
+   }
+  },
+  "tags": [
+   "incremental VaR",
+   "marginal VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F12",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 218,
+  "objective": "IM-5 a",
+  "name": "Component VaR from marginal VaR or beta",
+  "prompt": "How much of portfolio VaR is attributable to position i, written with its marginal VaR or with its beta and weight?",
+  "latex": "\\text{CVaR}_i = (\\text{MVaR}_i)(w_i \\times P) = \\text{VaR}_p \\times \\beta_i \\times w_i",
+  "variables": [
+   {
+    "symbol": "\\text{CVaR}_i",
+    "meaning": "component VaR of position i (its share of portfolio VaR)"
+   },
+   {
+    "symbol": "\\text{MVaR}_i",
+    "meaning": "marginal VaR of position i"
+   },
+   {
+    "symbol": "w_i",
+    "meaning": "weight of position i"
+   },
+   {
+    "symbol": "P",
+    "meaning": "portfolio value"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "\\beta_i",
+    "meaning": "beta of position i with respect to the portfolio"
+   }
+  ],
+  "skeleton": "\\text{CVaR}_i = ({{1}})(w_i \\times P) = {{2}} \\times {{3}} \\times {{4}}",
+  "slots": [
+   "\\text{MVaR}_i",
+   "\\text{VaR}_p",
+   "\\beta_i",
+   "w_i"
+  ],
+  "decoys": [
+   "\\text{VaR}_i",
+   "\\rho_i",
+   "P_i",
+   "\\sigma_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{CVaR}_i = (\\text{MVaR}_i)(w_i \\times P) = \\text{VaR}_p \\times \\beta_i",
+    "kind": "missing-term",
+    "why": "Without the weight, the beta form ignores how much of the portfolio the position is."
+   },
+   {
+    "latex": "\\text{CVaR}_i = (\\text{MVaR}_i)(w_i \\times P) = \\text{VaR}_p \\times \\rho_i \\times w_i",
+    "kind": "wrong-variable",
+    "why": "With portfolio VaR the link is beta; correlation goes with the individual VaR (VaR_i x rho_i)."
+   },
+   {
+    "latex": "\\text{CVaR}_i = (\\text{MVaR}_i)(w_i \\times P) = \\text{VaR}_p \\times \\beta_i / w_i",
+    "kind": "inverted",
+    "why": "A bigger position should carry a bigger share of VaR, so the weight multiplies."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_p",
+    "direction": "depends",
+    "why": "On the sign of beta_i times w_i: the slice grows with portfolio VaR when it is positive and becomes more negative when the position is a hedge."
+   },
+   {
+    "variable": "\\beta_i",
+    "direction": "depends",
+    "why": "On the sign of w_i: a higher beta enlarges a long position's slice and shrinks (makes more negative) a short position's."
+   },
+   {
+    "variable": "w_i",
+    "direction": "depends",
+    "why": "On the sign of beta: a bigger weight enlarges the slice when beta is positive and makes it more negative when beta is negative."
+   }
+  ],
+  "intuition": "Slope times size: each position's component VaR is its marginal VaR times its dollar holding, and the slices sum to portfolio VaR.",
+  "calc": {
+   "expr": "VaRp * beta * w",
+   "inputs": [
+    {
+     "name": "VaRp",
+     "symbol": "\\text{VaR}_p",
+     "min": 1000,
+     "max": 10000000,
+     "step": 1000,
+     "unit": "$"
+    },
+    {
+     "name": "beta",
+     "symbol": "\\beta_i",
+     "min": -1,
+     "max": 3,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "w",
+     "symbol": "w_i",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{CVaR}_i",
+    "unit": "$",
+    "decimals": 0
+   },
+   "example": {
+    "inputs": {
+     "VaRp": 97384,
+     "beta": 0.5,
+     "w": 0.4
+    },
+    "output": 19477,
+    "source_line": 279
+   }
+  },
+  "tags": [
+   "component VaR",
+   "beta"
+  ]
+ },
+ {
+  "id": "IM-5-F13",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 219,
+  "objective": "IM-5 a",
+  "name": "Component VaR as individual VaR times correlation",
+  "prompt": "How do you get component VaR from the position's individual VaR and its correlation with the portfolio?",
+  "latex": "\\text{CVaR}_i = (Z_c \\sigma_i w_i P) \\times \\rho_i = \\text{VaR}_i \\times \\rho_i",
+  "variables": [
+   {
+    "symbol": "\\text{CVaR}_i",
+    "meaning": "component VaR of position i"
+   },
+   {
+    "symbol": "Z_c",
+    "meaning": "confidence multiplier (z-value)"
+   },
+   {
+    "symbol": "\\sigma_i",
+    "meaning": "volatility of position i (decimal)"
+   },
+   {
+    "symbol": "w_i",
+    "meaning": "weight of position i"
+   },
+   {
+    "symbol": "P",
+    "meaning": "portfolio value"
+   },
+   {
+    "symbol": "\\rho_i",
+    "meaning": "correlation of position i with the portfolio"
+   },
+   {
+    "symbol": "\\text{VaR}_i",
+    "meaning": "individual VaR of position i"
+   }
+  ],
+  "skeleton": "\\text{CVaR}_i = (Z_c {{1}} w_i P) \\times {{2}} = {{3}} \\times \\rho_i",
+  "slots": [
+   "\\sigma_i",
+   "\\rho_i",
+   "\\text{VaR}_i"
+  ],
+  "decoys": [
+   "\\sigma_p",
+   "\\beta_i",
+   "\\text{VaR}_p"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{CVaR}_i = (Z_c \\sigma_i w_i P) \\times \\beta_i = \\text{VaR}_i \\times \\beta_i",
+    "kind": "wrong-variable",
+    "why": "Individual VaR pairs with correlation; beta pairs with portfolio VaR."
+   },
+   {
+    "latex": "\\text{CVaR}_i = (Z_c \\sigma_i w_i P) = \\text{VaR}_i",
+    "kind": "missing-term",
+    "why": "Stopping at individual VaR gives the classic intermediate-result distractor (CAD 3.208 million in the notes)."
+   },
+   {
+    "latex": "\\text{CVaR}_i = (Z_c \\sigma_p w_i P) \\times \\rho_i = \\text{VaR}_i \\times \\rho_i",
+    "kind": "wrong-variable",
+    "why": "Uses the portfolio's volatility in place of the position's own; this is the CAD 3.948 million distractor in the notes."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{VaR}_i",
+    "direction": "depends",
+    "why": "On the sign of rho_i: a riskier stand-alone position contributes more when it is positively correlated with the portfolio, and hedges more when negatively correlated."
+   },
+   {
+    "variable": "\\rho_i",
+    "direction": "up",
+    "why": "The more the position moves with the portfolio, the more of its risk survives diversification."
+   },
+   {
+    "variable": "\\sigma_i",
+    "direction": "depends",
+    "why": "On the sign of rho_i (and of w_i): higher volatility raises individual VaR, which raises component VaR only if the correlation is positive."
+   }
+  ],
+  "intuition": "Component VaR is the part of a position's stand-alone risk that moves with the portfolio: individual VaR times its correlation.",
+  "calc": {
+   "expr": "Z * sig * wP * rho",
+   "inputs": [
+    {
+     "name": "Z",
+     "symbol": "Z_c",
+     "min": 1.28,
+     "max": 2.58,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "sig",
+     "symbol": "\\sigma_i",
+     "min": 0.01,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "wP",
+     "symbol": "w_i P",
+     "min": 1,
+     "max": 500,
+     "step": 1,
+     "unit": "$M"
+    },
+    {
+     "name": "rho",
+     "symbol": "\\rho_i",
+     "min": -1,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{CVaR}_i",
+    "unit": "$M",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "Z": 1.645,
+     "sig": 0.13,
+     "wP": 15,
+     "rho": 0.45
+    },
+    "output": 1.444,
+    "source_line": 241
+   }
+  },
+  "tags": [
+   "component VaR",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F14",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 313,
+  "objective": "IM-5 a",
+  "name": "Multi-day portfolio VaR from a dollar standard deviation",
+  "prompt": "Given the portfolio's daily dollar standard deviation from the covariance matrix, what is the t-day VaR?",
+  "latex": "\\text{VaR}_P = \\sigma_P \\times \\alpha \\times \\sqrt{t}",
+  "variables": [
+   {
+    "symbol": "\\text{VaR}_P",
+    "meaning": "portfolio VaR over the holding period"
+   },
+   {
+    "symbol": "\\sigma_P",
+    "meaning": "daily dollar standard deviation of the portfolio (in $ millions if positions are in millions), not a percentage"
+   },
+   {
+    "symbol": "\\alpha",
+    "meaning": "confidence multiplier (e.g. 2.33 at 99%)"
+   },
+   {
+    "symbol": "t",
+    "meaning": "holding period in days"
+   }
+  ],
+  "skeleton": "\\text{VaR}_P = {{1}} \\times {{2}} \\times \\sqrt{ {{3}} }",
+  "slots": [
+   "\\sigma_P",
+   "\\alpha",
+   "t"
+  ],
+  "decoys": [
+   "t^2",
+   "P",
+   "\\sigma_P^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{VaR}_P = \\sigma_P \\times \\alpha \\times t",
+    "kind": "exponent",
+    "why": "Risk scales with the square root of time, not time itself."
+   },
+   {
+    "latex": "\\text{VaR}_P = \\sigma_P \\times \\alpha \\times \\sqrt{t} \\times P",
+    "kind": "extra-term",
+    "why": "The dollar sigma already carries the position sizes; multiplying by portfolio value again overstates VaR about twelvefold in the notes' example."
+   },
+   {
+    "latex": "\\text{VaR}_P = \\sigma_P^2 \\times \\alpha \\times \\sqrt{t}",
+    "kind": "exponent",
+    "why": "Use the standard deviation, i.e. the square root of w'Σw, not the variance."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma_P",
+    "direction": "up",
+    "why": "More dollar volatility, more VaR."
+   },
+   {
+    "variable": "\\alpha",
+    "direction": "up",
+    "why": "Higher confidence, larger multiplier."
+   },
+   {
+    "variable": "t",
+    "direction": "up",
+    "why": "A longer horizon increases VaR with the square root of time."
+   }
+  ],
+  "intuition": "When the positions are in dollars, w'Σw is already dollar risk: take its root, times alpha, times root-t, and stop.",
+  "calc": {
+   "expr": "sigP * alpha * Math.sqrt(t)",
+   "inputs": [
+    {
+     "name": "sigP",
+     "symbol": "\\sigma_P",
+     "min": 0.01,
+     "max": 5,
+     "step": 0.0001,
+     "unit": "$M"
+    },
+    {
+     "name": "alpha",
+     "symbol": "\\alpha",
+     "min": 1.28,
+     "max": 2.58,
+     "step": 0.005,
+     "unit": ""
+    },
+    {
+     "name": "t",
+     "symbol": "t",
+     "min": 1,
+     "max": 250,
+     "step": 1,
+     "unit": "days"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{VaR}_P",
+    "unit": "$M",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "sigP": 0.1798,
+     "alpha": 2.33,
+     "t": 10
+    },
+    "output": 1.3248,
+    "source_line": 313
+   }
+  },
+  "tags": [
+   "VaR",
+   "covariance matrix",
+   "time scaling"
+  ]
+ },
+ {
+  "id": "IM-5-F15",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 358,
+  "objective": "IM-5 b",
+  "name": "Diversification floor for an equally weighted portfolio",
+  "prompt": "As the number of equally weighted positions grows without limit, to what level does portfolio volatility fall?",
+  "latex": "\\text{floor} = \\sigma\\sqrt{\\rho}",
+  "variables": [
+   {
+    "symbol": "\\text{floor}",
+    "meaning": "limit of the equally weighted portfolio volatility as N goes to infinity"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "standard deviation of each position"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation for each pair of positions"
+   }
+  ],
+  "skeleton": "\\text{floor} = {{1}}\\sqrt{ {{2}} }",
+  "slots": [
+   "\\sigma",
+   "\\rho"
+  ],
+  "decoys": [
+   "\\sigma^2",
+   "\\rho^2",
+   "N",
+   "1/N"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{floor} = \\sigma\\rho",
+    "kind": "exponent",
+    "why": "The floor is the square root of the correlation term, since the 1/N term vanishes inside the root."
+   },
+   {
+    "latex": "\\text{floor} = \\sigma\\sqrt{1 - \\rho}",
+    "kind": "wrong-variable",
+    "why": "Higher correlation must raise the floor, not lower it."
+   },
+   {
+    "latex": "\\text{floor} = \\sigma\\sqrt{\\rho / N}",
+    "kind": "extra-term",
+    "why": "The floor is the limit as N grows, so no N remains; with rho/N the risk would go to zero."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\sigma",
+    "direction": "up",
+    "why": "More volatile positions raise the floor proportionally."
+   },
+   {
+    "variable": "\\rho",
+    "direction": "up",
+    "why": "Correlation is the part of risk that diversification cannot remove."
+   }
+  ],
+  "intuition": "Adding holdings kills only the 1/N term; what is left is correlation risk, sigma times root-rho, and only rho = 0 goes to zero.",
+  "calc": {
+   "expr": "sigma * Math.sqrt(rho)",
+   "inputs": [
+    {
+     "name": "sigma",
+     "symbol": "\\sigma",
+     "min": 5,
+     "max": 60,
+     "step": 1,
+     "unit": "%"
+    },
+    {
+     "name": "rho",
+     "symbol": "\\rho",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "\\text{floor}",
+    "unit": "%",
+    "decimals": 1
+   },
+   "example": {
+    "inputs": {
+     "sigma": 30,
+     "rho": 0.2
+    },
+    "output": 13.4,
+    "source_line": 365
+   }
+  },
+  "tags": [
+   "diversification",
+   "correlation"
+  ]
+ },
+ {
+  "id": "IM-5-F16",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 484,
+  "objective": "IM-5 d",
+  "name": "Global minimum-risk portfolio condition",
+  "prompt": "What condition on marginal VaRs (and betas) holds at the global minimum-risk portfolio?",
+  "latex": "\\text{MVaR}_i = \\frac{\\text{VaR}}{W} \\times \\beta_i = \\text{constant}",
+  "variables": [
+   {
+    "symbol": "\\text{MVaR}_i",
+    "meaning": "marginal VaR of position i"
+   },
+   {
+    "symbol": "\\text{VaR}",
+    "meaning": "portfolio VaR"
+   },
+   {
+    "symbol": "W",
+    "meaning": "total portfolio value"
+   },
+   {
+    "symbol": "\\beta_i",
+    "meaning": "beta of position i with respect to the portfolio"
+   }
+  ],
+  "skeleton": "\\text{MVaR}_i = \\frac{ {{1}} }{ {{2}} } \\times {{3}} = {{4}}",
+  "slots": [
+   "\\text{VaR}",
+   "W",
+   "\\beta_i",
+   "\\text{constant}"
+  ],
+  "decoys": [
+   "\\text{VaR}_i",
+   "w_i",
+   "0",
+   "\\rho_i"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\frac{R_i - R_f}{\\text{MVaR}_i} = \\text{constant}",
+    "kind": "sibling",
+    "why": "Equal excess-return-to-MVaR ratios define the optimal (max Sharpe) portfolio, not the minimum-risk one."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\frac{\\text{VaR}}{W} \\times \\beta_i = 0",
+    "kind": "wrong-variable",
+    "why": "At the minimum the marginal VaRs are equal to each other (0.0762 in the notes), not zero."
+   },
+   {
+    "latex": "\\text{MVaR}_i = \\frac{W}{\\text{VaR}} \\times \\beta_i = \\text{constant}",
+    "kind": "inverted",
+    "why": "Marginal VaR is VaR per unit of portfolio value."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "At the bottom of the risk curve no reshuffle helps: every position adds the same VaR per dollar, so all betas are equal (to 1).",
+  "calc": null,
+  "tags": [
+   "risk minimization",
+   "marginal VaR"
+  ]
+ },
+ {
+  "id": "IM-5-F17",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 524,
+  "objective": "IM-5 d",
+  "name": "Sharpe ratio with VaR as the risk measure",
+  "prompt": "What ratio does the portfolio manager maximise when risk is measured by VaR?",
+  "latex": "\\frac{\\overline{R_p} - \\overline{R_f}}{\\text{VaR}_p}",
+  "variables": [
+   {
+    "symbol": "\\overline{R_p}",
+    "meaning": "expected portfolio return"
+   },
+   {
+    "symbol": "\\overline{R_f}",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\text{VaR}_p",
+    "meaning": "portfolio VaR"
+   }
+  ],
+  "skeleton": "\\frac{ {{1}} - {{2}} }{ {{3}} }",
+  "slots": [
+   "\\overline{R_p}",
+   "\\overline{R_f}",
+   "\\text{VaR}_p"
+  ],
+  "decoys": [
+   "\\sigma_p",
+   "\\beta_p",
+   "\\text{CVaR}_p"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\frac{\\text{VaR}_p}{\\overline{R_p} - \\overline{R_f}}",
+    "kind": "inverted",
+    "why": "Reward goes on top and risk underneath; the reciprocal would be minimised, not maximised."
+   },
+   {
+    "latex": "\\frac{\\overline{R_p} + \\overline{R_f}}{\\text{VaR}_p}",
+    "kind": "sign",
+    "why": "The numerator is the excess return over the risk-free rate."
+   },
+   {
+    "latex": "\\frac{\\overline{R_p}}{\\text{VaR}_p}",
+    "kind": "missing-term",
+    "why": "Without subtracting the risk-free rate this is not a Sharpe-type ratio."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\overline{R_p}",
+    "direction": "up",
+    "why": "More expected return per unit of VaR."
+   },
+   {
+    "variable": "\\overline{R_f}",
+    "direction": "down",
+    "why": "A higher risk-free rate shrinks the excess return."
+   },
+   {
+    "variable": "\\text{VaR}_p",
+    "direction": "depends",
+    "why": "On the sign of the excess return: with a positive excess return more VaR lowers the ratio; with a negative one it moves the ratio up towards zero."
+   }
+  ],
+  "intuition": "Excess return earned per unit of VaR: the portfolio-management target, as opposed to minimum risk.",
+  "calc": {
+   "expr": "(Rp - Rf) / VaRp",
+   "inputs": [
+    {
+     "name": "Rp",
+     "symbol": "\\overline{R_p}",
+     "min": 0,
+     "max": 20,
+     "step": 0.1,
+     "unit": "%"
+    },
+    {
+     "name": "Rf",
+     "symbol": "\\overline{R_f}",
+     "min": 0,
+     "max": 10,
+     "step": 0.1,
+     "unit": "%"
+    },
+    {
+     "name": "VaRp",
+     "symbol": "\\text{VaR}_p",
+     "min": 1,
+     "max": 50,
+     "step": 0.1,
+     "unit": "% of portfolio"
+    }
+   ],
+   "output": {
+    "symbol": "\\frac{\\overline{R_p} - \\overline{R_f}}{\\text{VaR}_p}",
+    "unit": "",
+    "decimals": 3
+   },
+   "example": null
+  },
+  "tags": [
+   "Sharpe ratio",
+   "portfolio management"
+  ]
+ },
+ {
+  "id": "IM-5-F18",
+  "reading_id": "IM-5",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/04_IM_IM5.tex",
+  "source_line": 526,
+  "objective": "IM-5 d",
+  "name": "Optimal portfolio condition: equal excess return per marginal VaR",
+  "prompt": "At the portfolio that maximises the VaR-based Sharpe ratio, what ratio must be the same across all assets?",
+  "latex": "\\frac{R_i - R_f}{\\text{MVaR}_i} = \\frac{R_j - R_f}{\\text{MVaR}_j} = \\frac{R_i - R_f}{\\beta_i} = \\text{constant}",
+  "variables": [
+   {
+    "symbol": "R_i",
+    "meaning": "expected return of asset i"
+   },
+   {
+    "symbol": "R_j",
+    "meaning": "expected return of asset j"
+   },
+   {
+    "symbol": "R_f",
+    "meaning": "risk-free rate"
+   },
+   {
+    "symbol": "\\text{MVaR}_i",
+    "meaning": "marginal VaR of asset i"
+   },
+   {
+    "symbol": "\\text{MVaR}_j",
+    "meaning": "marginal VaR of asset j"
+   },
+   {
+    "symbol": "\\beta_i",
+    "meaning": "beta of asset i with respect to the portfolio"
+   }
+  ],
+  "skeleton": "\\frac{R_i - R_f}{ {{1}} } = \\frac{R_j - R_f}{ {{2}} } = \\frac{ {{3}} }{\\beta_i} = \\text{constant}",
+  "slots": [
+   "\\text{MVaR}_i",
+   "\\text{MVaR}_j",
+   "R_i - R_f"
+  ],
+  "decoys": [
+   "\\sigma_i",
+   "R_i",
+   "\\text{VaR}_p",
+   "\\text{MVaR}_i^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{MVaR}_i = \\text{MVaR}_j = \\text{constant}",
+    "kind": "sibling",
+    "why": "Equal marginal VaRs define the minimum-risk portfolio, which ignores expected return."
+   },
+   {
+    "latex": "\\frac{R_i}{\\text{MVaR}_i} = \\frac{R_j}{\\text{MVaR}_j} = \\frac{R_i}{\\beta_i} = \\text{constant}",
+    "kind": "missing-term",
+    "why": "The ratios use excess returns over the risk-free rate."
+   },
+   {
+    "latex": "\\frac{R_i - R_f}{\\sigma_i} = \\frac{R_j - R_f}{\\sigma_j} = \\text{constant}",
+    "kind": "wrong-variable",
+    "why": "Stand-alone volatility ignores how each asset interacts with the portfolio; marginal VaR (or beta) is the right risk."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "At the optimum every asset earns the same excess return per unit of VaR it adds; add to the highest ratio, cut the lowest.",
+  "calc": null,
+  "tags": [
+   "optimal portfolio",
+   "marginal VaR",
+   "Sharpe ratio"
+  ]
+ },
+ {
+  "id": "MR-10-F01",
+  "reading_id": "MR-10",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/49_MR_MR10.tex",
+  "source_line": 159,
+  "objective": "MR-10 b",
+  "name": "Correlated default time from a Gaussian copula draw",
+  "prompt": "In a Gaussian copula simulation, how is a sampled value turned into the default time of asset i?",
+  "latex": "M_n(\\bullet) = Q_i(\\tau_i)",
+  "variables": [
+   {
+    "symbol": "M_n(\\bullet)",
+    "meaning": "value drawn from the multivariate standard normal sample, on [0,1]"
+   },
+   {
+    "symbol": "Q_i",
+    "meaning": "cumulative default probability function of asset i"
+   },
+   {
+    "symbol": "\\tau_i",
+    "meaning": "default time of asset i (what is solved for)"
+   }
+  ],
+  "skeleton": "{{1}} = {{2}}({{3}})",
+  "slots": [
+   "M_n(\\bullet)",
+   "Q_i",
+   "\\tau_i"
+  ],
+  "decoys": [
+   "N_i^{-1}",
+   "1 - Q_i",
+   "\\rho_M"
+  ],
+  "corruptions": [
+   {
+    "latex": "M_n(\\bullet) = N_i^{-1}(Q_i(\\tau_i))",
+    "kind": "wrong-variable",
+    "why": "The sampled value lies on [0,1] and is matched directly to the cumulative default probability, not to a normal percentile."
+   },
+   {
+    "latex": "M_n(\\bullet) = 1 - Q_i(\\tau_i)",
+    "kind": "sibling",
+    "why": "The draw is set equal to the cumulative default probability, not the survival probability."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Come in at the sampled value, hit the cumulative default curve, drop down to read the year: that is one simulated default time.",
+  "calc": null,
+  "tags": [
+   "copula",
+   "default time",
+   "simulation"
+  ]
+ },
+ {
+  "id": "MR-10-F02",
+  "reading_id": "MR-10",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/49_MR_MR10.tex",
+  "source_line": 210,
+  "objective": "MR-10 c",
+  "name": "General copula function",
+  "prompt": "How does a copula join marginal distributions G_i(u_i) into one joint distribution with a chosen correlation structure?",
+  "latex": "C\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = F_n\\Bigl[ F_1^{-1}\\bigl(G_1(u_1)\\bigr), \\ldots, F_n^{-1}\\bigl(G_n(u_n)\\bigr);\\ \\rho_F \\Bigr]",
+  "variables": [
+   {
+    "symbol": "C",
+    "meaning": "the copula function"
+   },
+   {
+    "symbol": "G_i(u_i)",
+    "meaning": "the marginal distributions"
+   },
+   {
+    "symbol": "F_n",
+    "meaning": "the joint cumulative distribution"
+   },
+   {
+    "symbol": "F_1^{-1}",
+    "meaning": "the inverse function (the notes: 'the inverse function of F_n') used to map each marginal"
+   },
+   {
+    "symbol": "\\rho_F",
+    "meaning": "the correlation matrix structure"
+   }
+  ],
+  "skeleton": "C\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = {{1}}\\Bigl[ {{2}}\\bigl(G_1(u_1)\\bigr), \\ldots, F_n^{-1}\\bigl(G_n(u_n)\\bigr);\\ {{3}} \\Bigr]",
+  "slots": [
+   "F_n",
+   "F_1^{-1}",
+   "\\rho_F"
+  ],
+  "decoys": [
+   "G_1^{-1}",
+   "F_1",
+   "u_1"
+  ],
+  "corruptions": [
+   {
+    "latex": "C\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = F_n\\Bigl[ F_1\\bigl(G_1(u_1)\\bigr), \\ldots, F_n\\bigl(G_n(u_n)\\bigr);\\ \\rho_F \\Bigr]",
+    "kind": "inverted",
+    "why": "Each marginal probability is mapped onto the known distribution with the inverse function, not the function itself."
+   },
+   {
+    "latex": "C\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = F_n\\Bigl[ F_1^{-1}\\bigl(G_1(u_1)\\bigr), \\ldots, F_n^{-1}\\bigl(G_n(u_n)\\bigr) \\Bigr]",
+    "kind": "missing-term",
+    "why": "Without the correlation structure there is nothing to define the dependence, which is the whole purpose of the copula."
+   },
+   {
+    "latex": "C\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = G_1(u_1) \\times \\cdots \\times G_n(u_n)",
+    "kind": "sibling",
+    "why": "Multiplying the marginals is the independence case; the copula imposes a correlation instead."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Map every marginal onto a known distribution, then impose the correlation there: the marginals are preserved, only the dependence is added.",
+  "calc": null,
+  "tags": [
+   "copula",
+   "correlation"
+  ]
+ },
+ {
+  "id": "MR-10-F03",
+  "reading_id": "MR-10",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/49_MR_MR10.tex",
+  "source_line": 222,
+  "objective": "MR-10 c",
+  "name": "Gaussian copula",
+  "prompt": "How does the Gaussian copula map n marginal distributions into a joint standard multivariate normal with correlation matrix rho_M?",
+  "latex": "C_G\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = M_n\\Bigl[ N_1^{-1}\\bigl(G_1(u_1)\\bigr), \\ldots, N_n^{-1}\\bigl(G_n(u_n)\\bigr);\\ \\rho_M \\Bigr]",
+  "variables": [
+   {
+    "symbol": "C_G",
+    "meaning": "the Gaussian copula"
+   },
+   {
+    "symbol": "G_i(u_i)",
+    "meaning": "the marginal distributions"
+   },
+   {
+    "symbol": "M_n",
+    "meaning": "the joint standard multivariate normal distribution"
+   },
+   {
+    "symbol": "N_i^{-1}",
+    "meaning": "inverse of the univariate standard normal CDF (the percentile function)"
+   },
+   {
+    "symbol": "\\rho_M",
+    "meaning": "correlation matrix of the multivariate normal"
+   }
+  ],
+  "skeleton": "C_G\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = {{1}}\\Bigl[ {{2}}\\bigl(G_1(u_1)\\bigr), \\ldots, N_n^{-1}\\bigl(G_n(u_n)\\bigr);\\ {{3}} \\Bigr]",
+  "slots": [
+   "M_n",
+   "N_1^{-1}",
+   "\\rho_M"
+  ],
+  "decoys": [
+   "N_1",
+   "G_1^{-1}",
+   "M_n^{-1}"
+  ],
+  "corruptions": [
+   {
+    "latex": "C_G\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = M_n\\Bigl[ N_1\\bigl(G_1(u_1)\\bigr), \\ldots, N_n\\bigl(G_n(u_n)\\bigr);\\ \\rho_M \\Bigr]",
+    "kind": "inverted",
+    "why": "A probability is turned into a standard normal percentile with the inverse CDF, not the CDF."
+   },
+   {
+    "latex": "C_G\\bigl[G_1(u_1), \\ldots, G_n(u_n)\\bigr] = M_n\\Bigl[ N_1^{-1}\\bigl(G_1(u_1)\\bigr), \\ldots, N_n^{-1}\\bigl(G_n(u_n)\\bigr) \\Bigr]",
+    "kind": "missing-term",
+    "why": "The correlation matrix is what links the variables; without it there is no joint dependence."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Turn each marginal probability into a standard normal percentile, then evaluate the multivariate normal with correlation matrix rho_M.",
+  "calc": null,
+  "tags": [
+   "Gaussian copula",
+   "correlation"
+  ]
+ },
+ {
+  "id": "MR-10-F04",
+  "reading_id": "MR-10",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/49_MR_MR10.tex",
+  "source_line": 234,
+  "objective": "MR-10 c",
+  "name": "Gaussian default time copula",
+  "prompt": "How does the Gaussian copula become a default time copula when the marginals are cumulative default probability curves?",
+  "latex": "C_{GD}\\bigl[Q_i(t), \\ldots, Q_n(t)\\bigr] = M_n\\Bigl[ N_1^{-1}\\bigl(Q_1(t)\\bigr), \\ldots, N_n^{-1}\\bigl(Q_n(t)\\bigr);\\ \\rho_M \\Bigr]",
+  "variables": [
+   {
+    "symbol": "C_{GD}",
+    "meaning": "the Gaussian default time copula"
+   },
+   {
+    "symbol": "Q_i(t)",
+    "meaning": "cumulative default probability of asset i by time t"
+   },
+   {
+    "symbol": "t",
+    "meaning": "time horizon"
+   },
+   {
+    "symbol": "M_n",
+    "meaning": "the joint standard multivariate normal distribution"
+   },
+   {
+    "symbol": "N_i^{-1}",
+    "meaning": "inverse of the univariate standard normal CDF"
+   },
+   {
+    "symbol": "\\rho_M",
+    "meaning": "correlation matrix of the multivariate normal (the default correlation)"
+   }
+  ],
+  "skeleton": "C_{GD}\\bigl[Q_i(t), \\ldots, Q_n(t)\\bigr] = {{1}}\\Bigl[ {{2}}\\bigl({{3}}\\bigr), \\ldots, N_n^{-1}\\bigl(Q_n(t)\\bigr);\\ {{4}} \\Bigr]",
+  "slots": [
+   "M_n",
+   "N_1^{-1}",
+   "Q_1(t)",
+   "\\rho_M"
+  ],
+  "decoys": [
+   "1 - Q_1(t)",
+   "N_1",
+   "G_1(u_1)"
+  ],
+  "corruptions": [
+   {
+    "latex": "C_{GD}\\bigl[Q_i(t), \\ldots, Q_n(t)\\bigr] = M_n\\Bigl[ N_1^{-1}\\bigl(1 - Q_1(t)\\bigr), \\ldots, N_n^{-1}\\bigl(1 - Q_n(t)\\bigr);\\ \\rho_M \\Bigr]",
+    "kind": "sibling",
+    "why": "The marginals are cumulative default probabilities, not survival probabilities."
+   },
+   {
+    "latex": "C_{GD}\\bigl[Q_i(t), \\ldots, Q_n(t)\\bigr] = M_n\\Bigl[ N_1\\bigl(Q_1(t)\\bigr), \\ldots, N_n\\bigl(Q_n(t)\\bigr);\\ \\rho_M \\Bigr]",
+    "kind": "inverted",
+    "why": "Each cumulative default probability is converted to a percentile with N^{-1} (e.g. 6.51% becomes -1.5133)."
+   },
+   {
+    "latex": "C_{GD}\\bigl[Q_i(t), \\ldots, Q_n(t)\\bigr] = M_n\\Bigl[ N_1^{-1}\\bigl(Q_1(t)\\bigr), \\ldots, N_n^{-1}\\bigl(Q_n(t)\\bigr) \\Bigr]",
+    "kind": "missing-term",
+    "why": "The default correlation enters only at the last step, but it must enter; without it there is no joint default."
+   }
+  ],
+  "sensitivities": [],
+  "intuition": "Cumulative default probability, to normal percentile, to bivariate normal with the default correlation: e.g. B and Caa both default within a year with 3.44% at rho = 0.4.",
+  "calc": null,
+  "tags": [
+   "Gaussian copula",
+   "joint default"
+  ]
+ },
+ {
+  "id": "MR-9-F01",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 164,
+  "objective": "MR-9 c",
+  "name": "Mean reversion process (with stochastic term)",
+  "prompt": "Write the mean-reverting process for the change in a variable, including its random shock.",
+  "latex": "S_t - S_{t-1} = a\\bigl( \\mu - S_{t-1} \\bigr)\\Delta t + \\sigma_S\\,\\epsilon\\sqrt{\\Delta t}",
+  "variables": [
+   {
+    "symbol": "S_t",
+    "meaning": "value of the variable at time t"
+   },
+   {
+    "symbol": "S_{t-1}",
+    "meaning": "value in the previous period"
+   },
+   {
+    "symbol": "a",
+    "meaning": "mean reversion rate"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "long-run mean"
+   },
+   {
+    "symbol": "\\Delta t",
+    "meaning": "time step"
+   },
+   {
+    "symbol": "\\sigma_S",
+    "meaning": "volatility of S"
+   },
+   {
+    "symbol": "\\epsilon",
+    "meaning": "random standard normal shock"
+   }
+  ],
+  "skeleton": "S_t - S_{t-1} = {{1}}\\bigl( {{2}} - S_{t-1} \\bigr)\\Delta t + \\sigma_S\\,\\epsilon\\sqrt{ {{3}} }",
+  "slots": [
+   "a",
+   "\\mu",
+   "\\Delta t"
+  ],
+  "decoys": [
+   "-a",
+   "S_t",
+   "(\\Delta t)^2"
+  ],
+  "corruptions": [
+   {
+    "latex": "S_t - S_{t-1} = a\\bigl( S_{t-1} - \\mu \\bigr)\\Delta t + \\sigma_S\\,\\epsilon\\sqrt{\\Delta t}",
+    "kind": "sign",
+    "why": "With the gap reversed the drift pushes the variable away from its mean."
+   },
+   {
+    "latex": "S_t - S_{t-1} = a\\bigl( \\mu - S_{t-1} \\bigr)\\Delta t + \\sigma_S\\,\\epsilon\\Delta t",
+    "kind": "exponent",
+    "why": "The random term scales with the square root of the time step."
+   },
+   {
+    "latex": "S_t - S_{t-1} = a\\bigl( \\mu - S_{t-1} \\bigr)\\sqrt{\\Delta t} + \\sigma_S\\,\\epsilon\\sqrt{\\Delta t}",
+    "kind": "exponent",
+    "why": "The drift scales with the time step itself, not its square root."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu",
+    "direction": "up",
+    "why": "A higher long-run mean pulls the variable up harder."
+   },
+   {
+    "variable": "S_{t-1}",
+    "direction": "down",
+    "why": "The higher the current level relative to the mean, the smaller (more negative) the expected change."
+   },
+   {
+    "variable": "a",
+    "direction": "depends",
+    "why": "On the sign of the gap: below the mean a faster reversion raises the change, above the mean it lowers it."
+   }
+  ],
+  "intuition": "Drift closes a fraction a of the gap to the mean each period; noise then scales with root-time.",
+  "calc": {
+   "expr": "a*(mu - S)*dt + sig*eps*Math.sqrt(dt)",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "S",
+     "symbol": "S_{t-1}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "dt",
+     "symbol": "\\Delta t",
+     "min": 0.01,
+     "max": 1,
+     "step": 0.01,
+     "unit": "years"
+    },
+    {
+     "name": "sig",
+     "symbol": "\\sigma_S",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "eps",
+     "symbol": "\\epsilon",
+     "min": -3,
+     "max": 3,
+     "step": 0.1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "S_t - S_{t-1}",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "mean reversion"
+  ]
+ },
+ {
+  "id": "MR-9-F02",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 166,
+  "objective": "MR-9 c",
+  "name": "Expected change under mean reversion (deterministic form)",
+  "prompt": "Dropping the random term, what is the expected change in a mean-reverting variable over one period?",
+  "latex": "S_t - S_{t-1} = a\\bigl( \\mu - S_{t-1} \\bigr)",
+  "variables": [
+   {
+    "symbol": "S_t",
+    "meaning": "value of the variable at time t"
+   },
+   {
+    "symbol": "S_{t-1}",
+    "meaning": "value in the previous period"
+   },
+   {
+    "symbol": "a",
+    "meaning": "mean reversion rate"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "long-run mean"
+   }
+  ],
+  "skeleton": "S_t - S_{t-1} = {{1}}\\bigl( {{2}} - {{3}} \\bigr)",
+  "slots": [
+   "a",
+   "\\mu",
+   "S_{t-1}"
+  ],
+  "decoys": [
+   "S_t",
+   "-a",
+   "1-a"
+  ],
+  "corruptions": [
+   {
+    "latex": "S_t - S_{t-1} = a\\bigl( S_{t-1} - \\mu \\bigr)",
+    "kind": "sign",
+    "why": "The gap is mean minus current value, so a variable below its mean is pulled up."
+   },
+   {
+    "latex": "S_t - S_{t-1} = a\\bigl( \\mu - S_t \\bigr)",
+    "kind": "wrong-variable",
+    "why": "The gap is measured from last period's value, the known starting point."
+   },
+   {
+    "latex": "S_t - S_{t-1} = (1-a)\\bigl( \\mu - S_{t-1} \\bigr)",
+    "kind": "sibling",
+    "why": "1 - a is the autocorrelation; the change closes a fraction a of the gap."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu",
+    "direction": "up",
+    "why": "A higher mean means a larger pull upward."
+   },
+   {
+    "variable": "S_{t-1}",
+    "direction": "down",
+    "why": "The closer the variable already is to (or the further above) the mean, the smaller the expected change."
+   },
+   {
+    "variable": "a",
+    "direction": "depends",
+    "why": "On the sign of the gap: below the mean a higher a means a bigger rise; above it, a bigger fall."
+   }
+  ],
+  "intuition": "The variable closes a fraction a of its gap to the mean each period: a = 0 no pull, a = 1 straight to the mean.",
+  "calc": {
+   "expr": "a*(mu - S)",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0,
+     "max": 1,
+     "step": 0.05,
+     "unit": ""
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 100,
+     "step": 1,
+     "unit": ""
+    },
+    {
+     "name": "S",
+     "symbol": "S_{t-1}",
+     "min": 0,
+     "max": 100,
+     "step": 1,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "S_t - S_{t-1}",
+    "unit": "",
+    "decimals": 2
+   },
+   "example": {
+    "inputs": {
+     "a": 0.5,
+     "mu": 80,
+     "S": 50
+    },
+    "output": 15,
+    "source_line": 229
+   }
+  },
+  "tags": [
+   "mean reversion"
+  ]
+ },
+ {
+  "id": "MR-9-F03",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 180,
+  "objective": "MR-9 c",
+  "name": "Expected level next period under mean reversion",
+  "prompt": "What is the expected value of a mean-reverting variable next period, given its current value, long-run mean and reversion rate?",
+  "latex": "S_t = a(\\mu - S_{t-1}) + S_{t-1}",
+  "variables": [
+   {
+    "symbol": "S_t",
+    "meaning": "expected value next period"
+   },
+   {
+    "symbol": "S_{t-1}",
+    "meaning": "current (previous-period) value"
+   },
+   {
+    "symbol": "a",
+    "meaning": "mean reversion rate"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "long-run mean"
+   }
+  ],
+  "skeleton": "S_t = {{1}}({{2}} - S_{t-1}) + {{3}}",
+  "slots": [
+   "a",
+   "\\mu",
+   "S_{t-1}"
+  ],
+  "decoys": [
+   "S_t",
+   "1-a",
+   "-a"
+  ],
+  "corruptions": [
+   {
+    "latex": "S_t = a(\\mu - S_{t-1})",
+    "kind": "missing-term",
+    "why": "That is only the change; add it to last period's value to get the level."
+   },
+   {
+    "latex": "S_t = a(\\mu - S_{t-1}) + \\mu",
+    "kind": "wrong-variable",
+    "why": "The change is added to the current value, not to the mean."
+   },
+   {
+    "latex": "S_t = a(S_{t-1} - \\mu) + S_{t-1}",
+    "kind": "sign",
+    "why": "With the gap reversed the variable moves away from its mean."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu",
+    "direction": "up",
+    "why": "A higher mean pulls the next value higher."
+   },
+   {
+    "variable": "S_{t-1}",
+    "direction": "up",
+    "why": "The coefficient on the current value is (1 - a), positive whenever a < 1."
+   },
+   {
+    "variable": "a",
+    "direction": "depends",
+    "why": "On whether the variable is below the mean (higher a raises S_t) or above it (higher a lowers S_t)."
+   }
+  ],
+  "intuition": "Start where you are and move a fraction a of the way to the mean: 30% with mean 35% and a = 0.78 gives 33.9%.",
+  "calc": {
+   "expr": "a*(mu - S) + S",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "S",
+     "symbol": "S_{t-1}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "S_t",
+    "unit": "decimal",
+    "decimals": 3
+   },
+   "example": {
+    "inputs": {
+     "a": 0.78,
+     "mu": 0.35,
+     "S": 0.3
+    },
+    "output": 0.339,
+    "source_line": 275
+   }
+  },
+  "tags": [
+   "mean reversion",
+   "forecast"
+  ]
+ },
+ {
+  "id": "MR-9-F04",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 183,
+  "objective": "MR-9 c",
+  "name": "Regression form of mean reversion",
+  "prompt": "Rewrite the mean-reversion equation so it can be matched term by term to a regression Y = alpha + beta X.",
+  "latex": "S_t - S_{t-1} = a\\mu - a S_{t-1}",
+  "variables": [
+   {
+    "symbol": "S_t",
+    "meaning": "value of the variable at time t"
+   },
+   {
+    "symbol": "S_{t-1}",
+    "meaning": "value in the previous period (the regressor X)"
+   },
+   {
+    "symbol": "a",
+    "meaning": "mean reversion rate; the regression slope is -a"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "long-run mean; the intercept is a times mu"
+   }
+  ],
+  "skeleton": "S_t - S_{t-1} = {{1}} - {{2}}",
+  "slots": [
+   "a\\mu",
+   "a S_{t-1}"
+  ],
+  "decoys": [
+   "\\mu",
+   "S_{t-1}",
+   "a S_t"
+  ],
+  "corruptions": [
+   {
+    "latex": "S_t - S_{t-1} = a\\mu + a S_{t-1}",
+    "kind": "sign",
+    "why": "Mean reversion is a negative relationship between the change and the level, so the slope is -a."
+   },
+   {
+    "latex": "S_t - S_{t-1} = \\mu - a S_{t-1}",
+    "kind": "missing-term",
+    "why": "The intercept is a times mu, not mu."
+   },
+   {
+    "latex": "S_t - S_{t-1} = a S_{t-1} - a\\mu",
+    "kind": "sign",
+    "why": "This flips both terms and makes the variable run away from its mean."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu",
+    "direction": "up",
+    "why": "A higher mean raises the intercept."
+   },
+   {
+    "variable": "S_{t-1}",
+    "direction": "down",
+    "why": "The slope on the level is -a."
+   },
+   {
+    "variable": "a",
+    "direction": "depends",
+    "why": "On whether the level is below or above the mean."
+   }
+  ],
+  "intuition": "Regress the change on the level: the slope is minus the reversion rate, so Y = 0.27 - 0.78X means 78% mean reversion.",
+  "calc": {
+   "expr": "a*mu - a*S",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "a",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "S",
+     "symbol": "S_{t-1}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "S_t - S_{t-1}",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "mean reversion",
+   "regression"
+  ]
+ },
+ {
+  "id": "MR-9-F05",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 286,
+  "objective": "MR-9 c",
+  "name": "Mean reversion rate from observed values",
+  "prompt": "Given this period's value, last period's value and the long-run mean, what mean reversion rate is implied?",
+  "latex": "a = \\frac{S_t - S_{t-1}}{\\mu - S_{t-1}}",
+  "variables": [
+   {
+    "symbol": "a",
+    "meaning": "mean reversion rate"
+   },
+   {
+    "symbol": "S_t",
+    "meaning": "value now"
+   },
+   {
+    "symbol": "S_{t-1}",
+    "meaning": "value in the previous period"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "long-run mean"
+   }
+  ],
+  "skeleton": "a = \\frac{ {{1}} - S_{t-1} }{ {{2}} - {{3}} }",
+  "slots": [
+   "S_t",
+   "\\mu",
+   "S_{t-1}"
+  ],
+  "decoys": [
+   "S_{t+1}",
+   "\\sigma_S",
+   "\\Delta t"
+  ],
+  "corruptions": [
+   {
+    "latex": "a = \\frac{\\mu - S_{t-1}}{S_t - S_{t-1}}",
+    "kind": "inverted",
+    "why": "The rate is the change achieved divided by the gap that was available to close."
+   },
+   {
+    "latex": "a = \\frac{S_t - S_{t-1}}{\\mu - S_t}",
+    "kind": "wrong-variable",
+    "why": "The gap is measured from last period's value."
+   },
+   {
+    "latex": "a = \\frac{S_t - S_{t-1}}{S_{t-1} - \\mu}",
+    "kind": "sign",
+    "why": "A move toward the mean must give a positive rate."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "S_t",
+    "direction": "depends",
+    "why": "On the sign of the gap: if the variable started below the mean, a higher S_t means faster reversion; if above, slower."
+   }
+  ],
+  "intuition": "Share of the gap closed: moving from 0.22 to 0.35 when the mean is 0.45 closes 0.13 of a 0.23 gap, about 56.5%.",
+  "calc": {
+   "expr": "(St - S) / (mu - S)",
+   "inputs": [
+    {
+     "name": "St",
+     "symbol": "S_t",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "S",
+     "symbol": "S_{t-1}",
+     "min": 0,
+     "max": 0.3,
+     "step": 0.01,
+     "unit": "decimal"
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0.35,
+     "max": 0.8,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "a",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "St": 0.35,
+     "S": 0.22,
+     "mu": 0.45
+    },
+    "output": 0.5652,
+    "source_line": 286
+   }
+  },
+  "tags": [
+   "mean reversion"
+  ]
+ },
+ {
+  "id": "MR-9-F06",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 302,
+  "objective": "MR-9 c",
+  "name": "One-period autocorrelation of correlations",
+  "prompt": "How is the autocorrelation between this period's correlation and last period's correlation computed?",
+  "latex": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr) = \\frac{\\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)}{\\sigma(\\rho_t) \\times \\sigma(\\rho_{t-1})}",
+  "variables": [
+   {
+    "symbol": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr)",
+    "meaning": "autocorrelation between the series and its one-period lag"
+   },
+   {
+    "symbol": "\\rho_t",
+    "meaning": "correlation value this period"
+   },
+   {
+    "symbol": "\\rho_{t-1}",
+    "meaning": "the same variable one period lagged"
+   },
+   {
+    "symbol": "\\mathrm{cov}",
+    "meaning": "covariance"
+   },
+   {
+    "symbol": "\\sigma",
+    "meaning": "standard deviation"
+   }
+  ],
+  "skeleton": "AC\\bigl(\\rho_t, {{1}}\\bigr) = \\frac{ {{2}}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)}{ {{3}} }",
+  "slots": [
+   "\\rho_{t-1}",
+   "\\mathrm{cov}",
+   "\\sigma(\\rho_t) \\times \\sigma(\\rho_{t-1})"
+  ],
+  "decoys": [
+   "\\rho_{t+1}",
+   "\\mathrm{var}",
+   "\\sigma(\\rho_t) + \\sigma(\\rho_{t-1})"
+  ],
+  "corruptions": [
+   {
+    "latex": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr) = \\frac{\\sigma(\\rho_t) \\times \\sigma(\\rho_{t-1})}{\\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)}",
+    "kind": "inverted",
+    "why": "Like any correlation, it is covariance divided by the product of standard deviations."
+   },
+   {
+    "latex": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr) = \\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)",
+    "kind": "missing-term",
+    "why": "Without standardising, the covariance is not bounded between -1 and 1."
+   },
+   {
+    "latex": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr) = \\frac{\\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)}{\\sigma(\\rho_t) + \\sigma(\\rho_{t-1})}",
+    "kind": "wrong-variable",
+    "why": "The denominator is the product of the two standard deviations, not their sum."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)",
+    "direction": "up",
+    "why": "More co-movement with the lagged value means more persistence."
+   },
+   {
+    "variable": "\\sigma(\\rho_t)",
+    "direction": "depends",
+    "why": "On the sign of the covariance: more dispersion shrinks the autocorrelation towards zero, lowering a positive value and raising a negative one."
+   }
+  ],
+  "intuition": "An ordinary correlation, just between a series and its own past: high autocorrelation means weak mean reversion.",
+  "calc": {
+   "expr": "cov / (s1 * s2)",
+   "inputs": [
+    {
+     "name": "cov",
+     "symbol": "\\mathrm{cov}\\bigl(\\rho_t, \\rho_{t-1}\\bigr)",
+     "min": -0.05,
+     "max": 0.05,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "s1",
+     "symbol": "\\sigma(\\rho_t)",
+     "min": 0.01,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "s2",
+     "symbol": "\\sigma(\\rho_{t-1})",
+     "min": 0.01,
+     "max": 0.5,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "AC\\bigl(\\rho_t, \\rho_{t-1}\\bigr)",
+    "unit": "",
+    "decimals": 4
+   },
+   "example": null
+  },
+  "tags": [
+   "autocorrelation"
+  ]
+ },
+ {
+  "id": "MR-9-F07",
+  "reading_id": "MR-9",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/48_MR_MR9.tex",
+  "source_line": 305,
+  "objective": "MR-9 c",
+  "name": "Autocorrelation from the mean reversion rate",
+  "prompt": "Given the mean reversion rate, what is the one-period-lag autocorrelation?",
+  "latex": "\\text{Autocorrelation} = 1 - \\text{mean reversion rate}",
+  "variables": [
+   {
+    "symbol": "\\text{Autocorrelation}",
+    "meaning": "one-period-lag autocorrelation (decimal)"
+   },
+   {
+    "symbol": "\\text{mean reversion rate}",
+    "meaning": "mean reversion rate a (decimal)"
+   }
+  ],
+  "skeleton": "\\text{Autocorrelation} = {{1}} - {{2}}",
+  "slots": [
+   "1",
+   "\\text{mean reversion rate}"
+  ],
+  "decoys": [
+   "0",
+   "\\text{correlation volatility}",
+   "\\text{average correlation}",
+   "\\text{Autocorrelation}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\text{Autocorrelation} = 1 + \\text{mean reversion rate}",
+    "kind": "sign",
+    "why": "They are complements that sum to 1: stronger mean reversion means lower autocorrelation."
+   },
+   {
+    "latex": "\\text{Autocorrelation} = \\frac{1}{\\text{mean reversion rate}}",
+    "kind": "inverted",
+    "why": "The relationship is a complement, not a reciprocal; 78% reversion gives 22%, not 128%."
+   },
+   {
+    "latex": "\\text{Autocorrelation} = 1 - \\text{mean reversion rate}^2",
+    "kind": "exponent",
+    "why": "The rate is not squared; 77.51% reversion gives 22.49% autocorrelation."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{mean reversion rate}",
+    "direction": "down",
+    "why": "The more strongly a variable is pulled back, the less it resembles its past."
+   }
+  ],
+  "intuition": "Reversion and persistence split the whole: 78% mean reversion leaves 22% autocorrelation (one-period lag only).",
+  "calc": {
+   "expr": "1 - a",
+   "inputs": [
+    {
+     "name": "a",
+     "symbol": "\\text{mean reversion rate}",
+     "min": 0,
+     "max": 1,
+     "step": 0.01,
+     "unit": "decimal"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{Autocorrelation}",
+    "unit": "decimal",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "a": 0.7751
+    },
+    "output": 0.2249,
+    "source_line": 313
+   }
+  },
+  "tags": [
+   "autocorrelation",
+   "mean reversion"
+  ]
+ },
+ {
+  "id": "MR-16-F01",
+  "reading_id": "MR-16",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/51_MR_MR16.tex",
+  "source_line": 88,
+  "objective": "MR-16 a",
+  "name": "Gauss+ short-term factor dynamics",
+  "prompt": "In the Gauss+ model, how does the short-term rate change over dt?",
+  "latex": "dr_t = -\\alpha_r\\,(r_t - m_t)\\,dt",
+  "variables": [
+   {
+    "symbol": "dr_t",
+    "meaning": "change in the short-term factor"
+   },
+   {
+    "symbol": "\\alpha_r",
+    "meaning": "mean reversion speed of the short-term rate"
+   },
+   {
+    "symbol": "r_t",
+    "meaning": "short-term factor (e.g. fed funds)"
+   },
+   {
+    "symbol": "m_t",
+    "meaning": "medium-term factor"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time interval (years)"
+   }
+  ],
+  "skeleton": "dr_t = -{{1}}\\,({{2}} - {{3}})\\,dt",
+  "slots": [
+   "\\alpha_r",
+   "r_t",
+   "m_t"
+  ],
+  "decoys": [
+   "\\alpha_m",
+   "l_t",
+   "\\mu"
+  ],
+  "corruptions": [
+   {
+    "latex": "dr_t = -\\alpha_r\\,(r_t - m_t)\\,dt + \\sigma_r\\,dW_t",
+    "kind": "extra-term",
+    "why": "The short rate has no random shock of its own; that is what gives Gauss+ its hump-shaped volatility curve."
+   },
+   {
+    "latex": "dr_t = -\\alpha_r\\,(r_t - \\mu)\\,dt",
+    "kind": "wrong-variable",
+    "why": "The short rate reverts to the medium-term factor, not to the constant long-run target."
+   },
+   {
+    "latex": "dr_t = \\alpha_r\\,(r_t - m_t)\\,dt",
+    "kind": "sign",
+    "why": "Without the minus sign the short rate would move away from m_t."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "m_t",
+    "direction": "up",
+    "why": "A higher medium-term factor pulls the short rate up."
+   },
+   {
+    "variable": "r_t",
+    "direction": "down",
+    "why": "The further the short rate is above m_t, the more it falls."
+   },
+   {
+    "variable": "\\alpha_r",
+    "direction": "depends",
+    "why": "On the sign of r_t - m_t: faster reversion gives a bigger move toward m_t in whichever direction."
+   }
+  ],
+  "intuition": "Pure drift, no shock: the short rate is towed toward the medium-term factor, like a central bank following the cycle.",
+  "calc": {
+   "expr": "-ar * (r - m) * dt",
+   "inputs": [
+    {
+     "name": "ar",
+     "symbol": "\\alpha_r",
+     "min": 0,
+     "max": 3,
+     "step": 0.0001,
+     "unit": ""
+    },
+    {
+     "name": "r",
+     "symbol": "r_t",
+     "min": 0,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "m",
+     "symbol": "m_t",
+     "min": 0,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.0833333,
+     "max": 1,
+     "step": 0.0833333,
+     "unit": "years"
+    }
+   ],
+   "output": {
+    "symbol": "dr_t",
+    "unit": "%",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "ar": 1.0547,
+     "r": 2.0,
+     "m": 3.0,
+     "dt": 0.0833333
+    },
+    "output": 0.0879,
+    "source_line": 254
+   }
+  },
+  "tags": [
+   "Gauss+",
+   "short rate",
+   "mean reversion"
+  ]
+ },
+ {
+  "id": "MR-16-F02",
+  "reading_id": "MR-16",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/51_MR_MR16.tex",
+  "source_line": 89,
+  "objective": "MR-16 a",
+  "name": "Gauss+ medium-term factor dynamics",
+  "prompt": "In the Gauss+ model, how does the medium-term factor change over dt, including its two shocks?",
+  "latex": "dm_t = -\\alpha_m\\,(m_t - l_t)\\,dt + \\sigma_m\\left(\\rho\\,dW_t^{1} + \\sqrt{1-\\rho^{2}}\\,dW_t^{2}\\right)",
+  "variables": [
+   {
+    "symbol": "dm_t",
+    "meaning": "change in the medium-term factor"
+   },
+   {
+    "symbol": "\\alpha_m",
+    "meaning": "mean reversion speed of the medium-term factor"
+   },
+   {
+    "symbol": "m_t",
+    "meaning": "medium-term factor"
+   },
+   {
+    "symbol": "l_t",
+    "meaning": "long-term factor"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time interval (years)"
+   },
+   {
+    "symbol": "\\sigma_m",
+    "meaning": "volatility of the medium-term factor"
+   },
+   {
+    "symbol": "\\rho",
+    "meaning": "correlation between the medium- and long-term factors"
+   },
+   {
+    "symbol": "dW_t^{1}",
+    "meaning": "shock shared with the long-term factor"
+   },
+   {
+    "symbol": "dW_t^{2}",
+    "meaning": "shock independent of the long-term factor"
+   }
+  ],
+  "skeleton": "dm_t = -\\alpha_m\\,(m_t - {{1}})\\,dt + \\sigma_m\\left({{2}}\\,dW_t^{1} + \\sqrt{ {{3}} }\\,dW_t^{2}\\right)",
+  "slots": [
+   "l_t",
+   "\\rho",
+   "1-\\rho^{2}"
+  ],
+  "decoys": [
+   "\\mu",
+   "r_t",
+   "1-\\rho",
+   "\\rho^{2}"
+  ],
+  "corruptions": [
+   {
+    "latex": "dm_t = -\\alpha_m\\,(m_t - l_t)\\,dt + \\sigma_m\\left(\\rho\\,dW_t^{1} + (1-\\rho)\\,dW_t^{2}\\right)",
+    "kind": "exponent",
+    "why": "The shock weights must have squares summing to 1 so total volatility stays sigma_m: rho and sqrt(1 - rho^2)."
+   },
+   {
+    "latex": "dm_t = -\\alpha_m\\,(m_t - \\mu)\\,dt + \\sigma_m\\left(\\rho\\,dW_t^{1} + \\sqrt{1-\\rho^{2}}\\,dW_t^{2}\\right)",
+    "kind": "wrong-variable",
+    "why": "The medium-term factor reverts to the long-term factor l_t; only l_t reverts to mu."
+   },
+   {
+    "latex": "dm_t = -\\alpha_m\\,(m_t - l_t)\\,dt + \\sigma_m\\left(\\rho\\,dW_t^{2} + \\sqrt{1-\\rho^{2}}\\,dW_t^{1}\\right)",
+    "kind": "wrong-variable",
+    "why": "The shared shock dW^1 must carry the weight rho, otherwise the correlation with l_t is not rho."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "l_t",
+    "direction": "up",
+    "why": "A higher long-term factor pulls the medium-term factor up."
+   },
+   {
+    "variable": "m_t",
+    "direction": "down",
+    "why": "The further m_t is above l_t, the stronger the pull down."
+   },
+   {
+    "variable": "dW_t^{2}",
+    "direction": "up",
+    "why": "The independent shock enters with a positive weight."
+   }
+  ],
+  "intuition": "Drift toward the long-term factor plus a shock that is partly shared with it (weight rho) and partly its own (weight root(1 - rho^2)).",
+  "calc": {
+   "expr": "-am * (m - l) * dt + sm * (rho * dW1 + Math.sqrt(1 - rho**2) * dW2)",
+   "inputs": [
+    {
+     "name": "am",
+     "symbol": "\\alpha_m",
+     "min": 0,
+     "max": 3,
+     "step": 0.0001,
+     "unit": ""
+    },
+    {
+     "name": "m",
+     "symbol": "m_t",
+     "min": 0,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "l",
+     "symbol": "l_t",
+     "min": 0,
+     "max": 10,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.0833333,
+     "max": 1,
+     "step": 0.0833333,
+     "unit": "years"
+    },
+    {
+     "name": "sm",
+     "symbol": "\\sigma_m",
+     "min": 0,
+     "max": 3,
+     "step": 0.001,
+     "unit": "%"
+    },
+    {
+     "name": "rho",
+     "symbol": "\\rho",
+     "min": -1,
+     "max": 1,
+     "step": 0.001,
+     "unit": ""
+    },
+    {
+     "name": "dW1",
+     "symbol": "dW_t^{1}",
+     "min": -1,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    },
+    {
+     "name": "dW2",
+     "symbol": "dW_t^{2}",
+     "min": -1,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "dm_t",
+    "unit": "%",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "am": 0.6358,
+     "m": 3.0,
+     "l": 4.0,
+     "dt": 0.0833333,
+     "sm": 1.092,
+     "rho": 0.212,
+     "dW1": 0.1,
+     "dW2": -0.05
+    },
+    "output": 0.0228,
+    "source_line": 263
+   }
+  },
+  "tags": [
+   "Gauss+",
+   "medium-term factor"
+  ]
+ },
+ {
+  "id": "MR-16-F03",
+  "reading_id": "MR-16",
+  "source_file": "notes/FRM_Consolidated_Vol2/ch/51_MR_MR16.tex",
+  "source_line": 91,
+  "objective": "MR-16 a",
+  "name": "Gauss+ long-term factor dynamics",
+  "prompt": "In the Gauss+ model, how does the long-term factor change over dt?",
+  "latex": "dl_t = -\\alpha_l\\,(l_t - \\mu)\\,dt + \\sigma_l\\,dW_t^{1}",
+  "variables": [
+   {
+    "symbol": "dl_t",
+    "meaning": "change in the long-term factor"
+   },
+   {
+    "symbol": "\\alpha_l",
+    "meaning": "mean reversion speed of the long-term factor"
+   },
+   {
+    "symbol": "l_t",
+    "meaning": "long-term factor"
+   },
+   {
+    "symbol": "\\mu",
+    "meaning": "constant long-run target"
+   },
+   {
+    "symbol": "dt",
+    "meaning": "time interval (years)"
+   },
+   {
+    "symbol": "\\sigma_l",
+    "meaning": "volatility of the long-term factor"
+   },
+   {
+    "symbol": "dW_t^{1}",
+    "meaning": "the long-term factor's shock (shared with the medium-term factor)"
+   }
+  ],
+  "skeleton": "dl_t = -{{1}}\\,(l_t - {{2}})\\,dt + \\sigma_l\\,{{3}}",
+  "slots": [
+   "\\alpha_l",
+   "\\mu",
+   "dW_t^{1}"
+  ],
+  "decoys": [
+   "dW_t^{2}",
+   "m_t",
+   "\\alpha_m",
+   "\\rho"
+  ],
+  "corruptions": [
+   {
+    "latex": "dl_t = -\\alpha_l\\,(l_t - \\mu)\\,dt + \\sigma_l\\,dW_t^{2}",
+    "kind": "wrong-variable",
+    "why": "The long-term factor is driven by dW^1 only; dW^2 is the medium-term factor's independent shock."
+   },
+   {
+    "latex": "dl_t = -\\alpha_l\\,(l_t - m_t)\\,dt + \\sigma_l\\,dW_t^{1}",
+    "kind": "wrong-variable",
+    "why": "The cascade runs r to m to l to mu; the long-term factor reverts to the constant mu."
+   },
+   {
+    "latex": "dl_t = -\\alpha_l\\,(l_t - \\mu)\\,dt + \\sigma_l\\left(\\rho\\,dW_t^{1} + \\sqrt{1-\\rho^{2}}\\,dW_t^{2}\\right)",
+    "kind": "extra-term",
+    "why": "Only the medium-term equation mixes the two shocks."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\mu",
+    "direction": "up",
+    "why": "A higher long-run target pulls the long-term factor up."
+   },
+   {
+    "variable": "l_t",
+    "direction": "down",
+    "why": "The further l_t is above mu, the stronger the pull down."
+   },
+   {
+    "variable": "dW_t^{1}",
+    "direction": "up",
+    "why": "A positive shock raises the long-term factor one for one with sigma_l."
+   }
+  ],
+  "intuition": "Slowest link of the cascade: a tiny drift toward mu, so almost all of its monthly move is the dW^1 shock.",
+  "calc": {
+   "expr": "-al * (l - mu) * dt + sl * dW1",
+   "inputs": [
+    {
+     "name": "al",
+     "symbol": "\\alpha_l",
+     "min": 0,
+     "max": 1,
+     "step": 0.0001,
+     "unit": ""
+    },
+    {
+     "name": "l",
+     "symbol": "l_t",
+     "min": 0,
+     "max": 15,
+     "step": 0.25,
+     "unit": "%"
+    },
+    {
+     "name": "mu",
+     "symbol": "\\mu",
+     "min": 0,
+     "max": 15,
+     "step": 0.005,
+     "unit": "%"
+    },
+    {
+     "name": "dt",
+     "symbol": "dt",
+     "min": 0.0833333,
+     "max": 1,
+     "step": 0.0833333,
+     "unit": "years"
+    },
+    {
+     "name": "sl",
+     "symbol": "\\sigma_l",
+     "min": 0,
+     "max": 3,
+     "step": 0.001,
+     "unit": "%"
+    },
+    {
+     "name": "dW1",
+     "symbol": "dW_t^{1}",
+     "min": -1,
+     "max": 1,
+     "step": 0.01,
+     "unit": ""
+    }
+   ],
+   "output": {
+    "symbol": "dl_t",
+    "unit": "%",
+    "decimals": 4
+   },
+   "example": {
+    "inputs": {
+     "al": 0.0165,
+     "l": 4.0,
+     "mu": 10.555,
+     "dt": 0.0833333,
+     "sl": 0.964,
+     "dW1": 0.1
+    },
+    "output": 0.1054,
+    "source_line": 272
+   }
+  },
+  "tags": [
+   "Gauss+",
+   "long-term factor"
+  ]
+ },
+ {
+  "id": "CR-17-F01",
+  "reading_id": "CR-17",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/36_CR_CR17.tex",
+  "source_line": 122,
+  "objective": "CR-17 c",
+  "name": "Margin received with a threshold and initial margin",
+  "prompt": "If a party is only receiving margin, what amount is required considering just the counterparty's threshold and initial margin?",
+  "latex": "\\max(\\text{value} - K_c,\\, 0) + \\mathrm{IM}_c",
+  "variables": [
+   {
+    "symbol": "\\text{value}",
+    "meaning": "current value of the relevant transactions"
+   },
+   {
+    "symbol": "K_c",
+    "meaning": "threshold for the counterparty"
+   },
+   {
+    "symbol": "\\mathrm{IM}_c",
+    "meaning": "initial margin (independent amount) for the counterparty"
+   }
+  ],
+  "skeleton": "\\max(\\text{value} - {{1}},\\, {{2}}) + {{3}}",
+  "slots": [
+   "K_c",
+   "0",
+   "\\mathrm{IM}_c"
+  ],
+  "decoys": [
+   "K_p",
+   "C",
+   "\\text{MTA}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\max(\\text{value} - K_c,\\, 0) - \\mathrm{IM}_c",
+    "kind": "sign",
+    "why": "Initial margin is extra collateral posted on top of the exposure-based amount."
+   },
+   {
+    "latex": "\\max(\\text{value} + K_c,\\, 0) + \\mathrm{IM}_c",
+    "kind": "sign",
+    "why": "Collateral is posted only on the excess of value over the threshold."
+   },
+   {
+    "latex": "\\max(\\text{value} - \\mathrm{IM}_c,\\, 0) + K_c",
+    "kind": "wrong-variable",
+    "why": "The threshold reduces the collateralised amount and the initial margin adds to it; swapping them reverses both effects."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{value}",
+    "direction": "up",
+    "why": "Above the threshold each extra unit of value is collateralised one for one (no effect below it)."
+   },
+   {
+    "variable": "K_c",
+    "direction": "down",
+    "why": "A higher threshold leaves more exposure uncollateralised."
+   },
+   {
+    "variable": "\\mathrm{IM}_c",
+    "direction": "up",
+    "why": "Initial margin adds directly, irrespective of exposure."
+   }
+  ],
+  "intuition": "Threshold and initial margin pull in opposite directions: the threshold forgives the first K of exposure, initial margin adds a cushion on top.",
+  "calc": {
+   "expr": "Math.max(V - Kc, 0) + IM",
+   "inputs": [
+    {
+     "name": "V",
+     "symbol": "\\text{value}",
+     "min": -500,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "Kc",
+     "symbol": "K_c",
+     "min": 0,
+     "max": 200,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "IM",
+     "symbol": "\\mathrm{IM}_c",
+     "min": 0,
+     "max": 100,
+     "step": 5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{margin}",
+    "unit": "$M",
+    "decimals": 0
+   },
+   "example": null
+  },
+  "tags": [
+   "collateral",
+   "threshold",
+   "initial margin"
+  ]
+ },
+ {
+  "id": "CR-17-F02",
+  "reading_id": "CR-17",
+  "source_file": "notes/FRM_Consolidated_Vol1/ch/36_CR_CR17.tex",
+  "source_line": 126,
+  "objective": "CR-17 c",
+  "name": "Credit support amount (variation margin)",
+  "prompt": "Including both parties' thresholds and the margin already held, what credit support amount can be called or must be returned?",
+  "latex": "\\max(\\text{value} - K_c,\\, 0) - \\max(-\\text{value} - K_p,\\, 0) - C",
+  "variables": [
+   {
+    "symbol": "\\text{value}",
+    "meaning": "current value of the relevant transactions (from the calculating party's side)"
+   },
+   {
+    "symbol": "K_c",
+    "meaning": "threshold for the counterparty"
+   },
+   {
+    "symbol": "K_p",
+    "meaning": "threshold for the party making the calculation"
+   },
+   {
+    "symbol": "C",
+    "meaning": "credit support balance (margin already held)"
+   }
+  ],
+  "skeleton": "\\max(\\text{value} - {{1}},\\, 0) - \\max({{2}} - {{3}},\\, 0) - {{4}}",
+  "slots": [
+   "K_c",
+   "-\\text{value}",
+   "K_p",
+   "C"
+  ],
+  "decoys": [
+   "\\mathrm{IM}_c",
+   "\\text{value}",
+   "\\text{MTA}"
+  ],
+  "corruptions": [
+   {
+    "latex": "\\max(\\text{value} - K_c,\\, 0) - \\max(-\\text{value} - K_p,\\, 0) + C",
+    "kind": "sign",
+    "why": "Margin already held reduces what can be called; at time 2 in the notes the answer is -25, not 275."
+   },
+   {
+    "latex": "\\max(\\text{value} - K_c,\\, 0) - \\max(\\text{value} - K_p,\\, 0) - C",
+    "kind": "sign",
+    "why": "The second term is the party's own obligation when the value is negative to it, so it uses -value."
+   },
+   {
+    "latex": "\\max(\\text{value} - K_c,\\, 0) - \\max(-\\text{value} - K_p,\\, 0) - C + \\mathrm{IM}_c",
+    "kind": "extra-term",
+    "why": "Initial margin is computed separately as the independent amount and is not netted against variation margin."
+   }
+  ],
+  "sensitivities": [
+   {
+    "variable": "\\text{value}",
+    "direction": "up",
+    "why": "A higher value to the calculating party means more margin can be called (weakly: flat between the thresholds)."
+   },
+   {
+    "variable": "K_c",
+    "direction": "down",
+    "why": "A higher counterparty threshold means less can be called."
+   },
+   {
+    "variable": "C",
+    "direction": "down",
+    "why": "Margin already held is subtracted one for one."
+   }
+  ],
+  "intuition": "What you are owed above their threshold, minus what you owe above yours, minus what you already hold; positive means call, negative means return or post.",
+  "calc": {
+   "expr": "Math.max(V - Kc, 0) - Math.max(-V - Kp, 0) - C",
+   "inputs": [
+    {
+     "name": "V",
+     "symbol": "\\text{value}",
+     "min": -500,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "Kc",
+     "symbol": "K_c",
+     "min": 0,
+     "max": 200,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "Kp",
+     "symbol": "K_p",
+     "min": 0,
+     "max": 200,
+     "step": 5,
+     "unit": "$M"
+    },
+    {
+     "name": "C",
+     "symbol": "C",
+     "min": 0,
+     "max": 500,
+     "step": 5,
+     "unit": "$M"
+    }
+   ],
+   "output": {
+    "symbol": "\\text{credit support amount}",
+    "unit": "$M",
+    "decimals": 0
+   },
+   "example": {
+    "inputs": {
+     "V": 225,
+     "Kc": 100,
+     "Kp": 100,
+     "C": 150
+    },
+    "output": -25,
+    "source_line": 175
+   }
+  },
+  "tags": [
+   "collateral",
+   "credit support amount",
+   "margin"
+  ]
+ }
+]

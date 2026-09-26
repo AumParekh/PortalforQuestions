@@ -1,0 +1,102 @@
+{
+ "slice": "MR-T4-1",
+ "decisions": [
+  {
+   "id": "MR-T4-22",
+   "field": "answer",
+   "verdict": "reject",
+   "final": null,
+   "reason": "Independently re-derived: drift 0.40*0.02/12=0.000667; vol term with sigma=0.08 is 0.08*0.20*0.15=0.00240, so as printed dr=0.3067% (nearest d). But options a/b/c and all rationales (b=0.0900% 'vol term alone', c=sum) are built on a vol term of 0.0009, i.e. sigma=0.03. The source's own working (p.24) adds 0.00090, confirming the typo is in sigma, not the key. Fix the stem (sigma 0.08->0.03, accepted below) and keep key c; do not change the key."
+  },
+  {
+   "id": "MR-T4-22",
+   "field": "question",
+   "verdict": "accept",
+   "final": "An analyst models the short rate with the Cox-Ingersoll-Ross process. The current short rate is 4.00%, the long-run level is 6.00%, the speed of mean reversion is 0.40 per year, and the volatility parameter is 0.03 in annualised decimal units. The time step is one month and the realised value of dw over the month is 0.15. Which is nearest to the change in the short rate over the month?",
+   "reason": "Source p.23 prints sigma=0.08 but its Step 3 and options a/b/c require sigma=0.03 (0.03*0.20*0.15=0.00090). With 0.03 the drift 0.0667% (a), vol 0.0900% (b), total 0.1567% (c) are exactly consistent. Minimal fix."
+  },
+  {
+   "id": "MR-T4-22",
+   "field": "options",
+   "verdict": "accept",
+   "final": [
+    {
+     "key": "a",
+     "text": "0.0667%"
+    },
+    {
+     "key": "b",
+     "text": "0.0900%"
+    },
+    {
+     "key": "c",
+     "text": "0.1567%"
+    },
+    {
+     "key": "d",
+     "text": "0.9667%"
+    }
+   ],
+   "reason": "With sigma=0.03, 0.3000% no longer corresponds to any described error. The stated percent-rate trap gives 0.03*2.00*0.15=0.0090 + 0.000667 = 0.9667%, a factor-of-ten vol term as the rationale says. Replace d text with 0.9667% (full options array given)."
+  },
+  {
+   "id": "MR-T4-22",
+   "field": "optionAnalysis",
+   "verdict": "modify",
+   "final": {
+    "a": {
+     "verdict": "incorrect",
+     "reason": "0.0667% is the drift term alone, with the volatility term dropped. It is a genuine intermediate quantity of the correct working."
+    },
+    "b": {
+     "verdict": "incorrect",
+     "reason": "0.0900% is the volatility term alone, with the drift dropped. The mirror of option (a)."
+    },
+    "c": {
+     "verdict": "correct",
+     "reason": "0.1567%, the sum of the two terms."
+    },
+    "d": {
+     "verdict": "incorrect",
+     "reason": "0.9667% results from using $\\sqrt{r}$ with the rate expressed in PERCENT rather than in decimal form, giving $\\sqrt{4.00}=2.00$ instead of $\\sqrt{0.04}=0.20$, which inflates the volatility term by a factor of ten ($0.03 \\times 2.00 \\times 0.15 = 0.0090$ instead of $0.00090$), so $0.000667 + 0.0090 = 0.009667$."
+    }
+   },
+   "reason": "Companion to the options fix (auditor did not flag it separately): d's rationale must quote 0.9667% instead of 0.3000% and can show the arithmetic. Full optionAnalysis object given."
+  },
+  {
+   "id": "MR-T4-22",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "Executing one step of the CIR process, in which the drift term scales with $dt$ while the volatility term is proportional to the square root of the current rate.\n\nThe CIR dynamics are:\n\n$$dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$$\n\nwhere $k$ is the speed of mean reversion, $\\theta$ the long-run level, $\\sigma$ the volatility parameter, $r$ the current short rate, and $dw$ a normal variable with standard deviation $\\sqrt{dt}$. All rates are in decimal form.\n\n**Step 1. The drift term.** Note that it scales LINEARLY with $dt$.\n\n$$k(\\theta - r)\\,dt = 0.40 \\times (0.0600 - 0.0400) \\times (1/12) = 0.40 \\times 0.0200 \\times 0.083333 = 0.000667, \\text{ that is } 0.0667\\%$$\n\n**Step 2. The volatility term.** Note that $\\sqrt{r}$ uses the CURRENT rate in decimal form.\n\n$$\\sqrt{r} = \\sqrt{0.0400} = 0.2000$$\n$$\\sigma\\sqrt{r}\\,dw = 0.03 \\times 0.2000 \\times 0.15 = 0.00090, \\text{ that is } 0.0900\\%$$\n\n**Step 3. Combine.** The realised $dw$ already embeds the time step, so no further scaling is required.\n\n$$dr = 0.000667 + 0.00090 = 0.001567, \\text{ that is } 0.1567\\%$$\n\nThe basis-point volatility, which the objective also asks you to describe, is the coefficient on $dw$:\n\n$$\\text{basis-point volatility} = \\sigma\\sqrt{r} = 0.03 \\times \\sqrt{0.04} = 0.006, \\text{ that is } 0.60\\% \\text{ annualised}$$\n\nIt rises with the level of the rate but less than proportionally, and falls to zero as the rate approaches zero, which is the property that keeps CIR rates non-negative.",
+   "reason": "Step 2 (0.08 -> 0.00240) contradicts Step 3 (adds 0.00090); source p.24 has the same self-contradiction ('Hmm, combining'). With sigma=0.03 Step 2 = 0.00090 (0.0900%) and basis-point vol = 0.03*0.20 = 0.006 (0.60%). Step 3 unchanged. Full solution string given."
+  },
+  {
+   "id": "MR-T4-14",
+   "field": "solution",
+   "verdict": "accept",
+   "final": "Applying the normal approximation to the binomial exception count to construct an acceptance region for a two-tailed model verification test.\n\nUnder the null hypothesis that the model is correctly calibrated, the number of exceptions $x$ is binomial with parameters $T$ and $p$, where $p$ is one minus the confidence level. For large $T$ the normal approximation gives the test statistic:\n\n$$z = \\frac{x - Tp}{\\sqrt{Tp(1-p)}}$$\n\n**Step 1.** Compute the expected number of exceptions and the standard deviation.\n\n$p = 1 - 0.98 = 0.02$, $T = 252$\n\n$$\\text{expected exceptions} = Tp = 252 \\times 0.02 = 5.04$$\n$$\\text{standard deviation} = \\sqrt{252 \\times 0.02 \\times 0.98} = \\sqrt{4.9392} = 2.2224$$\n\n**Step 2.** Set the acceptance region. A two-tailed test at 95% confidence uses a critical value of 1.96, so the model is accepted when $|z| \\le 1.96$.\n\n$$\\text{upper bound on } x = 5.04 + 1.96 \\times 2.2224 = 5.04 + 4.356 = 9.396$$\n\n**Step 3.** Convert to a whole number of exceptions. Since $x$ must be an integer, the largest acceptable count is 9.\n\n| Exceptions | z statistic | Decision |\n|---|---|---|\n| 9 | $(9 - 5.04)/2.2224 = 1.78$ | Within 1.96. ACCEPT. |\n| 10 | $(10 - 5.04)/2.2224 = 2.23$ | Beyond 1.96. REJECT. |\n\nNote that the test is two-tailed, so a lower bound also exists at $5.04 - 4.356 = 0.684$. Because it is positive, it binds: zero exceptions gives $z = (0 - 5.04)/2.2224 = -2.27$, beyond $-1.96$, so the model would be REJECTED as overstating risk, while one exception gives $z = -1.82$ and is accepted. The acceptance region is therefore 1 to 9 exceptions.",
+   "reason": "Recomputed: mean 5.04, sd 2.2224, 1.96*sd=4.356, lower bound 0.684 > 0 (not negative). x=0: z=-2.268 -> reject; x=1: z=-1.818 -> accept. Source p.16 claim is arithmetically false. Key a (9) unaffected (z(9)=1.78, z(10)=2.23). Full solution string given with the corrected note."
+  }
+ ],
+ "added": [
+  {
+   "id": "MR-T4-25",
+   "field": "optionAnalysis",
+   "severity": "minor",
+   "addedByVerifier": true,
+   "current": "would produce an estimate that grows without bound as the number of resamples rises, since more draws mean more chances of an extreme one.",
+   "proposed": "would produce an estimate that drifts upward toward the single worst VaR the data can support as the number of resamples rises, since more draws mean more chances of an extreme one.",
+   "source_says": "same as current (PDF p.~27, Q25 option (a) analysis)",
+   "derivation": "Each bootstrap resample is drawn with replacement from a fixed historical sample, so every resample VaR is bounded by the largest loss in that sample. The maximum across B resamples is non-decreasing in B but bounded; it cannot 'grow without bound'. Key c (average) is correct.",
+   "evidence": "Source text Q25 option (a): 'would produce an estimate that grows without bound as the number of resamples rises'.",
+   "confidence": "medium"
+  }
+ ],
+ "spotChecked": {
+  "MR-T4-03": "ok",
+  "MR-T4-08": "ok (1-(1.090/2.080)^2=0.7254 -> c)",
+  "MR-T4-12": "ok",
+  "MR-T4-18": "ok",
+  "MR-T4-25": "key ok; minor rationale overstatement flagged"
+ }
+}

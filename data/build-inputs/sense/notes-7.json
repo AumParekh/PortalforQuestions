@@ -1,0 +1,2193 @@
+[
+  {
+    "id": "SC-notes-7-01",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 147
+    },
+    "trap_category": "Polarity",
+    "setup": "A USD 200m portfolio holds a 1-year and a 5-year bond, USD 100m each. Average maturity is 3 years; Macaulay duration is 2.768 years. Zero-coupon VaR%: 2-year $0.9868\\%$, 3-year $1.4841\\%$. Principal mapping reads VaR% at the average maturity; duration mapping interpolates it at the duration.",
+    "ask": "Switching from principal mapping to duration mapping, the portfolio VaR:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Duration (2.768 years) sits below the 3-year average maturity, and VaR% rises with maturity, so the duration VaR% must be lower than 1.4841%."
+      },
+      {
+        "label": "Stays the same",
+        "correct": false,
+        "why": "Same notional, but a different VaR% is applied: 1.3687% at 2.768 years against 1.4841% at 3 years."
+      }
+    ],
+    "working": [
+      {
+        "label": "Interpolated VaR%",
+        "display": "$0.9868 + (1.4841 - 0.9868)(0.768) = 1.3687\\%$",
+        "value": 1.3687
+      },
+      {
+        "label": "Principal mapping VaR",
+        "display": "$200 \\times 1.4841\\% = \\text{USD } 2.968\\text{m}$",
+        "value": 2.968
+      },
+      {
+        "label": "Duration mapping VaR",
+        "display": "$200 \\times 1.3687\\% = \\text{USD } 2.737\\text{m}$",
+        "value": 2.737
+      },
+      {
+        "label": "Change",
+        "display": "$2.737 - 2.968 = -0.231$: falls",
+        "value": -0.231
+      }
+    ],
+    "takeaway": "Principal > duration > cash-flow (diversified) VaR: each method adds information and trims apparent risk.",
+    "check": {
+      "inputs": {
+        "NP": 200,
+        "V1": 0.4696,
+        "V2": 0.9868,
+        "V3": 1.4841,
+        "D": 2.768
+      },
+      "steps": [
+        {
+          "name": "Vint",
+          "expr": "V2 + (V3 - V2)*(D - 2)",
+          "value": 1.3687
+        },
+        {
+          "name": "VaR_prin",
+          "expr": "NP*V3/100",
+          "value": 2.9682
+        },
+        {
+          "name": "VaR_dur",
+          "expr": "NP*Vint/100",
+          "value": 2.7375
+        },
+        {
+          "name": "change",
+          "expr": "VaR_dur - VaR_prin",
+          "value": -0.23075
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-02",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 184
+    },
+    "trap_category": "Formula",
+    "setup": "Duration mapping. A USD 200m bond portfolio has duration 2.768 years. Zero-coupon VaR%: 2-year $0.9868\\%$, 3-year $1.4841\\%$. Interpolate VaR% at the duration and apply it to the notional.",
+    "ask": "Duration-mapping VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.76m",
+        "correct": false,
+        "why": "Kept only the interpolation step, $(1.4841 - 0.9868)\\times 0.768 = 0.382\\%$, and forgot to add the 2-year base of 0.9868%."
+      },
+      {
+        "label": "≈ USD 2.7m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 7.6m",
+        "correct": false,
+        "why": "Multiplied by the duration a second time. The VaR% is already the figure for a 2.768-year zero, so there is nothing left to scale."
+      },
+      {
+        "label": "≈ USD 270m",
+        "correct": false,
+        "why": "Applied 1.3687 as a decimal instead of a percent. VaR larger than the whole USD 200m portfolio is the giveaway."
+      }
+    ],
+    "working": [
+      {
+        "label": "Interpolation step",
+        "display": "$(1.4841 - 0.9868) \\times (2.768 - 2) = 0.3819\\%$",
+        "value": 0.3819
+      },
+      {
+        "label": "Interpolated VaR%",
+        "display": "$0.9868\\% + 0.3819\\% = 1.3687\\%$",
+        "value": 1.3687
+      },
+      {
+        "label": "Duration mapping VaR",
+        "display": "$200 \\times 1.3687\\% \\approx \\text{USD } 2.74\\text{m}$",
+        "value": 2.737
+      }
+    ],
+    "takeaway": "Mapped VaR on a USD 200m bond book is a percent or two of notional: low millions, never hundreds.",
+    "check": {
+      "inputs": {
+        "NP": 200,
+        "V1": 0.4696,
+        "V2": 0.9868,
+        "V3": 1.4841,
+        "D": 2.768
+      },
+      "steps": [
+        {
+          "name": "incr",
+          "expr": "(V3 - V2)*(D - 2)",
+          "value": 0.38193
+        },
+        {
+          "name": "Vint",
+          "expr": "V2 + incr",
+          "value": 1.3687
+        },
+        {
+          "name": "VaR_dur",
+          "expr": "NP*Vint/100",
+          "value": 2.7375
+        },
+        {
+          "name": "slip_incr",
+          "expr": "NP*incr/100",
+          "value": 0.76385
+        },
+        {
+          "name": "slip_xD",
+          "expr": "NP*Vint*D/100",
+          "value": 7.5773
+        },
+        {
+          "name": "slip_pct",
+          "expr": "NP*Vint",
+          "value": 273.75
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-03",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 218
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Cash-flow mapping of the same two-bond portfolio. The 1-year bucket holds PV USD 104.83m with VaR% $0.4696\\%$; the 5-year bucket holds PV USD 81.88m with VaR% $2.4261\\%$. Each bucket's contribution to undiversified VaR is $x \\times V$.",
+    "ask": "Which bucket contributes more to undiversified VaR?",
+    "options": [
+      {
+        "label": "The 5-year bucket",
+        "correct": true
+      },
+      {
+        "label": "The 1-year bucket",
+        "correct": false,
+        "why": "It has the larger PV, but its VaR% is about a fifth of the 5-year figure. PV is only 1.3 times larger, so the VaR% gap wins."
+      },
+      {
+        "label": "About equal",
+        "correct": false,
+        "why": "The VaR% gap (about 5×) swamps the PV gap (about 1.3×). The 5-year bucket carries roughly four times the risk."
+      }
+    ],
+    "working": [
+      {
+        "label": "1-year bucket",
+        "display": "$104.83 \\times 0.4696\\% = 0.492$",
+        "value": 0.4923
+      },
+      {
+        "label": "5-year bucket",
+        "display": "$81.88 \\times 2.4261\\% = 1.986$",
+        "value": 1.9865
+      },
+      {
+        "label": "Ratio",
+        "display": "$1.986 / 0.492 \\approx 4.0$",
+        "value": 4.03
+      }
+    ],
+    "takeaway": "In cash-flow mapping, the long bucket's VaR% dominates even when its PV is smaller.",
+    "check": {
+      "inputs": {
+        "x1": 104.83,
+        "V1": 0.4696,
+        "x5": 81.88,
+        "V5": 2.4261
+      },
+      "steps": [
+        {
+          "name": "c1",
+          "expr": "x1*V1/100",
+          "value": 0.49228
+        },
+        {
+          "name": "c5",
+          "expr": "x5*V5/100",
+          "value": 1.9865
+        },
+        {
+          "name": "ratio",
+          "expr": "c5/c1",
+          "value": 4.0353
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-04",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 368
+    },
+    "trap_category": "Sign",
+    "setup": "You sold a $6 \\times 12$ FRA on USD 100m, mapped as a 180-day leg of $x_1 = -97.991$ (VaR% 0.1629%) and a 360-day leg of $x_2 = +97.991$ (VaR% 0.4696%). The two rates have correlation 0.79. Diversified variance $= (x_1V_1)^2 + (x_2V_2)^2 + 2\\rho\\,(x_1V_1)(x_2V_2)$.",
+    "ask": "The cross term $2\\rho\\,(x_1V_1)(x_2V_2)$ is:",
+    "options": [
+      {
+        "label": "Negative, so it cuts VaR",
+        "correct": true
+      },
+      {
+        "label": "Positive, so it adds to VaR",
+        "correct": false,
+        "why": "That would need both legs on the same side. Here $x_1 < 0$ and $x_2 > 0$, so with $\\rho > 0$ the product is negative and the legs hedge each other."
+      },
+      {
+        "label": "Roughly zero",
+        "correct": false,
+        "why": "The correlation is 0.79, far from zero, and the cross term (−0.116) is about half the size of the squared long leg (0.212)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Short leg",
+        "display": "$x_1V_1 = -97.991 \\times 0.1629\\% = -0.160$",
+        "value": -0.1596
+      },
+      {
+        "label": "Long leg",
+        "display": "$x_2V_2 = 97.991 \\times 0.4696\\% = 0.460$",
+        "value": 0.4602
+      },
+      {
+        "label": "Cross term",
+        "display": "$2(0.79)(-0.160)(0.460) = -0.116$",
+        "value": -0.1161
+      },
+      {
+        "label": "Diversified VaR",
+        "display": "$\\sqrt{0.0255 + 0.2118 - 0.1161} = 0.348$ vs undiversified 0.620",
+        "value": 0.348
+      }
+    ],
+    "takeaway": "Opposite-signed legs + positive correlation = negative cross term: the FRA's two legs largely hedge each other.",
+    "check": {
+      "inputs": {
+        "x1": -97.991,
+        "V1": 0.1629,
+        "x2": 97.991,
+        "V2": 0.4696,
+        "rho": 0.79
+      },
+      "steps": [
+        {
+          "name": "a",
+          "expr": "x1*V1/100",
+          "value": -0.15963
+        },
+        {
+          "name": "b",
+          "expr": "x2*V2/100",
+          "value": 0.46017
+        },
+        {
+          "name": "cross",
+          "expr": "2*rho*a*b",
+          "value": -0.11606
+        },
+        {
+          "name": "var",
+          "expr": "a**2 + b**2 + cross",
+          "value": 0.12117
+        },
+        {
+          "name": "dVaR",
+          "expr": "sqrt(var)",
+          "value": 0.3481
+        },
+        {
+          "name": "uVaR",
+          "expr": "abs(a) + abs(b)",
+          "value": 0.61979
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-05",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 404
+    },
+    "trap_category": "Polarity",
+    "setup": "A sold $6 \\times 12$ FRA maps to a short 180-day leg (risk $x_1V_1 = -0.160$) and a long 360-day leg (risk $x_2V_2 = +0.460$), in USD millions. At a correlation of 0.79 the diversified VaR is 0.348. The correlation between the 180-day and 360-day rates now rises to 0.95.",
+    "ask": "The FRA's diversified VaR:",
+    "options": [
+      {
+        "label": "Falls",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "True for two same-signed exposures. These legs have opposite signs, so higher correlation makes the hedge tighter."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "Diversified VaR depends on the correlation through the cross term $2\\rho\\,(x_1V_1)(x_2V_2)$, which changes here. Only the undiversified sum (0.620) ignores it."
+      }
+    ],
+    "working": [
+      {
+        "label": "Cross term at 0.95",
+        "display": "$2(0.95)(-0.160)(0.460) = -0.140$",
+        "value": -0.1396
+      },
+      {
+        "label": "Diversified VaR at 0.95",
+        "display": "$\\sqrt{0.0255 + 0.2118 - 0.1396} = 0.313$",
+        "value": 0.3125
+      },
+      {
+        "label": "Change",
+        "display": "$0.313 - 0.348 = -0.036$: falls",
+        "value": -0.0356
+      }
+    ],
+    "takeaway": "Higher correlation raises VaR for same-sign exposures but lowers it for hedged (opposite-sign) ones.",
+    "check": {
+      "inputs": {
+        "x1": -97.991,
+        "V1": 0.1629,
+        "x2": 97.991,
+        "V2": 0.4696,
+        "rho": 0.79,
+        "rho2": 0.95
+      },
+      "steps": [
+        {
+          "name": "a",
+          "expr": "x1*V1/100",
+          "value": -0.15963
+        },
+        {
+          "name": "b",
+          "expr": "x2*V2/100",
+          "value": 0.46017
+        },
+        {
+          "name": "dVaR_79",
+          "expr": "sqrt(a**2 + b**2 + 2*rho*a*b)",
+          "value": 0.3481
+        },
+        {
+          "name": "dVaR_95",
+          "expr": "sqrt(a**2 + b**2 + 2*rho2*a*b)",
+          "value": 0.31252
+        },
+        {
+          "name": "change",
+          "expr": "dVaR_95 - dVaR_79",
+          "value": -0.035581
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-06",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-5",
+    "reading_id": "MR-5",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/36_MR_MR5.tex",
+      "line": 292
+    },
+    "trap_category": "Scope",
+    "setup": "A 1-year forward to buy EUR 100m for USD 126.5m maps into three legs, each with present value USD 122.911m: EUR spot (monthly VaR% $4.5381\\%$), a long 1-year EUR bill ($0.1396\\%$) and a short 1-year USD bill ($0.2121\\%$). Undiversified VaR $= \\sum |x_i|V_i$.",
+    "ask": "Undiversified monthly VaR of the forward is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.43m",
+        "correct": false,
+        "why": "Counted only the two bill legs and left out the EUR spot leg, which carries almost all the risk."
+      },
+      {
+        "label": "≈ USD 1.8m",
+        "correct": false,
+        "why": "Scale slip (0.3×). The spot leg alone is 4.5% of USD 123m, which is already about USD 5.6m."
+      },
+      {
+        "label": "≈ USD 6.0m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 600m",
+        "correct": false,
+        "why": "Used the VaR percentages as decimals. That gives a VaR about five times the size of the position."
+      }
+    ],
+    "working": [
+      {
+        "label": "EUR spot leg",
+        "display": "$122.911 \\times 4.5381\\% = 5.578$",
+        "value": 5.578
+      },
+      {
+        "label": "EUR bill leg",
+        "display": "$122.911 \\times 0.1396\\% = 0.172$",
+        "value": 0.1716
+      },
+      {
+        "label": "USD bill leg",
+        "display": "$122.911 \\times 0.2121\\% = 0.261$",
+        "value": 0.2607
+      },
+      {
+        "label": "Undiversified VaR",
+        "display": "$5.578 + 0.172 + 0.261 \\approx \\text{USD } 6.0\\text{m}$",
+        "value": 6.01
+      }
+    ],
+    "takeaway": "A currency forward's VaR is almost all spot FX risk; the two interest-rate legs are rounding.",
+    "check": {
+      "inputs": {
+        "x": 122.911,
+        "Vs": 4.5381,
+        "Ve": 0.1396,
+        "Vu": 0.2121
+      },
+      "steps": [
+        {
+          "name": "spot",
+          "expr": "x*Vs/100",
+          "value": 5.5778
+        },
+        {
+          "name": "eur",
+          "expr": "x*Ve/100",
+          "value": 0.17158
+        },
+        {
+          "name": "usd",
+          "expr": "x*Vu/100",
+          "value": 0.26069
+        },
+        {
+          "name": "uVaR",
+          "expr": "spot + eur + usd",
+          "value": 6.0101
+        },
+        {
+          "name": "slip_bills",
+          "expr": "eur + usd",
+          "value": 0.43228
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*uVaR",
+          "value": 1.803
+        },
+        {
+          "name": "slip_pct",
+          "expr": "x*(Vs + Ve + Vu)",
+          "value": 601.01
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-07",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 131
+    },
+    "trap_category": "Formula",
+    "setup": "Annual P/L for XYZ is normal with mean profit USD 15m and standard deviation USD 10m. Use $z_{95\\%} = 1.645$ and $\\mathrm{VaR} = -\\mu + \\sigma z$.",
+    "ask": "The 95% VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.44m",
+        "correct": false,
+        "why": "Scale slip (0.3×). $10 \\times 1.645 = 16.45$ less 15 leaves about 1.45, not a few hundred thousand."
+      },
+      {
+        "label": "≈ USD 1.5m",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 16m",
+        "correct": false,
+        "why": "Dropped the mean. A USD 15m expected profit offsets almost all of the $1.645\\sigma$ tail move."
+      },
+      {
+        "label": "≈ USD 150m",
+        "correct": false,
+        "why": "Used the variance, $\\sigma^2 = 100$, in place of $\\sigma = 10$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Tail move",
+        "display": "$\\sigma z = 10 \\times 1.645 = 16.45$",
+        "value": 16.45
+      },
+      {
+        "label": "95% VaR",
+        "display": "$-15 + 16.45 = \\text{USD } 1.45\\text{m}$",
+        "value": 1.45
+      }
+    ],
+    "takeaway": "A large positive mean eats most of the tail move: VaR = −μ + σz can be small, even negative.",
+    "check": {
+      "inputs": {
+        "mu": 15,
+        "sig": 10,
+        "z": 1.645
+      },
+      "steps": [
+        {
+          "name": "VaR",
+          "expr": "-mu + sig*z",
+          "value": 1.45
+        },
+        {
+          "name": "slip_nomu",
+          "expr": "sig*z",
+          "value": 16.45
+        },
+        {
+          "name": "slip_var",
+          "expr": "-mu + sig**2*z",
+          "value": 149.5
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*VaR",
+          "value": 0.435
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-08",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 211
+    },
+    "trap_category": "Sign",
+    "setup": "Annual P/L is normal with mean profit USD 20m and standard deviation USD 10m. You're about to compute the 5% VaR as $-\\mu + \\sigma z$ with $z = 1.65$, then choose between the loss reading and the profit reading.",
+    "ask": "The sign of the computed VaR figure is:",
+    "options": [
+      {
+        "label": "Negative, so the 5% tail is still a profit",
+        "correct": true
+      },
+      {
+        "label": "Positive, so the 5% tail is a loss",
+        "correct": false,
+        "why": "The tail move $\\sigma z = 16.5$ is smaller than the USD 20m mean, so $-20 + 16.5 < 0$."
+      },
+      {
+        "label": "Too close to call",
+        "correct": false,
+        "why": "The gap is USD 3.5m, a third of a standard deviation. That is clear-cut."
+      }
+    ],
+    "working": [
+      {
+        "label": "Tail move",
+        "display": "$10 \\times 1.65 = 16.5$",
+        "value": 16.5
+      },
+      {
+        "label": "VaR",
+        "display": "$-20 + 16.5 = -\\text{USD } 3.5\\text{m}$",
+        "value": -3.5
+      },
+      {
+        "label": "Reading",
+        "display": "5% chance that earnings fall below USD 3.5m (still a profit)",
+        "value": null
+      }
+    ],
+    "takeaway": "If μ > σz, VaR is negative: read it as a minimum profit, not a loss.",
+    "check": {
+      "inputs": {
+        "mu": 20,
+        "sig": 10,
+        "z": 1.65
+      },
+      "steps": [
+        {
+          "name": "tail",
+          "expr": "sig*z",
+          "value": 16.5
+        },
+        {
+          "name": "VaR",
+          "expr": "-mu + tail",
+          "value": -3.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-09",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 174
+    },
+    "trap_category": "Sibling",
+    "setup": "A USD 100 portfolio has returns with mean 10% and standard deviation 20%. Treating them as normal arithmetic returns gives a 99% VaR of $(-0.10 + 0.20 \\times 2.326) \\times 100 = 36.52$. Now treat the same 10% / 20% as normal geometric returns and use lognormal VaR, $P(1 - e^{\\mu - \\sigma z})$.",
+    "ask": "Compared with 36.52, the 99% lognormal VaR:",
+    "options": [
+      {
+        "label": "Is lower",
+        "correct": true
+      },
+      {
+        "label": "Is higher",
+        "correct": false,
+        "why": "Exponentiating caps the loss: $1 - e^{-0.365} = 0.306$ is less than 0.365, because $1 - e^{-y} < y$ for any $y > 0$."
+      },
+      {
+        "label": "Is the same",
+        "correct": false,
+        "why": "The two only match for tiny moves. At $y = 0.365$ the gap between $y$ and $1 - e^{-y}$ is about 6 points."
+      }
+    ],
+    "working": [
+      {
+        "label": "Exponent",
+        "display": "$0.10 - 0.20 \\times 2.326 = -0.3652$",
+        "value": -0.3652
+      },
+      {
+        "label": "Lognormal VaR",
+        "display": "$100(1 - e^{-0.3652}) = 30.59$",
+        "value": 30.59
+      },
+      {
+        "label": "Versus normal",
+        "display": "$30.59 - 36.52 = -5.93$: lower",
+        "value": -5.93
+      }
+    ],
+    "takeaway": "Lognormal VaR ≤ normal VaR for the same μ and σ: a log-return loss can never exceed 100%.",
+    "check": {
+      "inputs": {
+        "P": 100,
+        "mu": 0.1,
+        "sig": 0.2,
+        "z": 2.326
+      },
+      "steps": [
+        {
+          "name": "nVaR",
+          "expr": "(-mu + sig*z)*P",
+          "value": 36.52
+        },
+        {
+          "name": "lVaR",
+          "expr": "P*(1 - exp(mu - sig*z))",
+          "value": 30.594
+        },
+        {
+          "name": "change",
+          "expr": "lVaR - nVaR",
+          "value": -5.9258
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-10",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 174
+    },
+    "trap_category": "Formula",
+    "setup": "Geometric returns on a USD 100 portfolio are normal with mean 10% and standard deviation 20%. Use lognormal VaR, $P_{t-1}\\,(1 - e^{\\mu_R - \\sigma_R z})$, with $z_{95\\%} = 1.645$.",
+    "ask": "The 95% lognormal VaR is closest to:",
+    "options": [
+      {
+        "label": "≈ USD 0.20",
+        "correct": false,
+        "why": "Stopped at the fraction $1 - e^{-0.229} = 0.205$ and never multiplied by the USD 100 starting value."
+      },
+      {
+        "label": "≈ USD 6.1",
+        "correct": false,
+        "why": "Scale slip (0.3×). The exponent is −0.229, so roughly a fifth of the portfolio is at risk."
+      },
+      {
+        "label": "≈ USD 20",
+        "correct": true
+      },
+      {
+        "label": "≈ USD 80",
+        "correct": false,
+        "why": "Reported $100\\,e^{-0.229} = 79.5$, the value left in the tail, and forgot the $1 -$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Exponent",
+        "display": "$0.10 - 0.20 \\times 1.645 = -0.229$",
+        "value": -0.229
+      },
+      {
+        "label": "Lognormal VaR",
+        "display": "$100 \\times (1 - e^{-0.229}) \\approx \\text{USD } 20.5$",
+        "value": 20.47
+      }
+    ],
+    "takeaway": "Lognormal VaR ≈ P × |exponent| for small exponents, trimmed a little: −0.229 gives ≈ 20%.",
+    "check": {
+      "inputs": {
+        "P": 100,
+        "mu": 0.1,
+        "sig": 0.2,
+        "z": 1.645
+      },
+      "steps": [
+        {
+          "name": "expo",
+          "expr": "mu - sig*z",
+          "value": -0.229
+        },
+        {
+          "name": "lVaR",
+          "expr": "P*(1 - exp(expo))",
+          "value": 20.467
+        },
+        {
+          "name": "slip_noP",
+          "expr": "1 - exp(expo)",
+          "value": 0.20467
+        },
+        {
+          "name": "slip_no1",
+          "expr": "P*exp(expo)",
+          "value": 79.533
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*lVaR",
+          "value": 6.1401
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-11",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 248
+    },
+    "trap_category": "Intermediate result",
+    "setup": "You estimate the 95% ES of a standard normal by slicing the 5% tail into 5 equal slices and averaging the 4 VaRs at the boundaries: 1.7507, 1.8808, 2.0537, 2.3263 (96% to 99%). Their average is 2.003.",
+    "ask": "The exact ES (the limit as the number of slices grows) minus 2.003 is:",
+    "options": [
+      {
+        "label": "Positive: 2.003 understates ES",
+        "correct": true
+      },
+      {
+        "label": "Negative: 2.003 overstates ES",
+        "correct": false,
+        "why": "The four boundaries stop at 99%; the thinnest and deepest part of the tail, beyond 2.33, is never sampled. Adding it can only raise the average."
+      },
+      {
+        "label": "Zero: slicing is exact",
+        "correct": false,
+        "why": "It converges only as $n \\to \\infty$. With $n = 5$ the estimate is 0.06 short of the true value."
+      }
+    ],
+    "working": [
+      {
+        "label": "Four-slice average",
+        "display": "$(1.7507 + 1.8808 + 2.0537 + 2.3263)/4 = 2.003$",
+        "value": 2.003
+      },
+      {
+        "label": "Exact ES",
+        "display": "$\\dfrac{e^{-1.6449^2/2}}{0.05\\sqrt{2\\pi}} = 2.063$",
+        "value": 2.063
+      },
+      {
+        "label": "Residual",
+        "display": "$2.063 - 2.003 = +0.060$",
+        "value": 0.06
+      }
+    ],
+    "takeaway": "Tail-slicing ES rises toward the true value as n grows: coarse slices understate it.",
+    "check": {
+      "inputs": {
+        "v1": 1.7507,
+        "v2": 1.8808,
+        "v3": 2.0537,
+        "v4": 2.3263,
+        "z": 1.6449,
+        "pi": 3.14159265,
+        "x": 0.95
+      },
+      "steps": [
+        {
+          "name": "avg4",
+          "expr": "(v1 + v2 + v3 + v4)/4",
+          "value": 2.0029
+        },
+        {
+          "name": "ES",
+          "expr": "exp(-z**2/2)/((1 - x)*sqrt(2*pi))",
+          "value": 2.0626
+        },
+        {
+          "name": "resid",
+          "expr": "ES - avg4",
+          "value": 0.05968
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-12",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-1",
+    "reading_id": "MR-1",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/26_MR_MR1.tex",
+      "line": 297
+    },
+    "trap_category": "Formula",
+    "setup": "Expected shortfall of a standard normal ($\\mu = 0$, $\\sigma = 1$) at the 95% level, using $\\mathrm{ES} = \\mu + \\sigma\\,\\dfrac{e^{-z^2/2}}{(1-x)\\sqrt{2\\pi}}$ with $z = 1.645$ and $x = 0.95$.",
+    "ask": "ES is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.021",
+        "correct": false,
+        "why": "Put the tail probability in as 5 rather than 0.05."
+      },
+      {
+        "label": "≈ 0.10",
+        "correct": false,
+        "why": "Stopped at the density $e^{-z^2/2}/\\sqrt{2\\pi} = 0.103$ and never divided by the tail probability. ES has to sit beyond VaR (1.645)."
+      },
+      {
+        "label": "≈ 2.1",
+        "correct": true
+      },
+      {
+        "label": "≈ 8.0",
+        "correct": false,
+        "why": "Dropped the $e^{-z^2/2}$ factor, i.e. used the density at 0 instead of at the quantile."
+      }
+    ],
+    "working": [
+      {
+        "label": "Density at the quantile",
+        "display": "$e^{-1.645^2/2}/\\sqrt{2\\pi} = 0.1031$",
+        "value": 0.1031
+      },
+      {
+        "label": "ES",
+        "display": "$0.1031 / 0.05 \\approx 2.06$",
+        "value": 2.062
+      }
+    ],
+    "takeaway": "Normal ES at 95% ≈ 2.06σ, just beyond the 1.645σ VaR. Anything below the VaR is wrong on sight.",
+    "check": {
+      "inputs": {
+        "z": 1.645,
+        "pi": 3.14159265,
+        "x": 0.95
+      },
+      "steps": [
+        {
+          "name": "phi",
+          "expr": "exp(-z**2/2)/sqrt(2*pi)",
+          "value": 0.10311
+        },
+        {
+          "name": "ES",
+          "expr": "phi/(1 - x)",
+          "value": 2.0622
+        },
+        {
+          "name": "slip_pct",
+          "expr": "phi/(100*(1 - x))",
+          "value": 0.020622
+        },
+        {
+          "name": "slip_nodiv",
+          "expr": "phi",
+          "value": 0.10311
+        },
+        {
+          "name": "slip_noexp",
+          "expr": "1/((1 - x)*sqrt(2*pi))",
+          "value": 7.9788
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-13",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-6",
+    "reading_id": "MR-6",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/34_MR_MR6.tex",
+      "line": 71
+    },
+    "trap_category": "Scope",
+    "setup": "A desk's VaR is estimated from the portfolio's own historical returns (the P&L it actually earned). Today the trader adds a derivatives overlay that hedges most of the position. A second VaR uses pseudo returns: today's hedged portfolio revalued over the past.",
+    "ask": "The VaR built from actual historical returns:",
+    "options": [
+      {
+        "label": "Stays about the same",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "That is what the pseudo-return VaR does. The actual return history was earned by the unhedged book, so it cannot see today's hedge."
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Nothing in the past returns changes. The hedge only lowers risk going forward, which the historical series doesn't reflect."
+      }
+    ],
+    "working": [
+      {
+        "label": "Historical-return VaR",
+        "display": "Built from past P&L of the old, unhedged book: unchanged",
+        "value": null
+      },
+      {
+        "label": "Pseudo-return VaR",
+        "display": "Revalues the current hedged book over history: falls",
+        "value": null
+      },
+      {
+        "label": "Result",
+        "display": "Historical VaR now overstates risk (conceptual soundness failure)",
+        "value": null
+      }
+    ],
+    "takeaway": "Historical-return VaR is blind to position changes; pseudo returns are what capture a new hedge.",
+    "check": null
+  },
+  {
+    "id": "SC-notes-7-14",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-6",
+    "reading_id": "MR-6",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/34_MR_MR6.tex",
+      "line": 268
+    },
+    "trap_category": "Polarity",
+    "setup": "A bank puts confidence intervals around its historical-simulation VaR estimate, once in a calm period and once during a market stress period.",
+    "ask": "Moving from the calm period to the stress period, the confidence interval:",
+    "options": [
+      {
+        "label": "Widens",
+        "correct": true
+      },
+      {
+        "label": "Narrows",
+        "correct": false,
+        "why": "Stress scatters the tail observations, so the quantile is pinned down less precisely. The empirical finding is wider intervals."
+      },
+      {
+        "label": "Stays the same width",
+        "correct": false,
+        "why": "Interval width depends on how dispersed the tail observations are, and that changes sharply in stress."
+      }
+    ],
+    "working": [
+      {
+        "label": "Finding",
+        "display": "Historical-simulation VaR gives wider (less precise) confidence intervals during stress periods",
+        "value": null
+      },
+      {
+        "label": "Contrast",
+        "display": "More data and GARCH VaR of P&L both give tighter intervals",
+        "value": null
+      }
+    ],
+    "takeaway": "Stress widens HS VaR confidence intervals; more data and GARCH P&L VaR tighten them.",
+    "check": null
+  },
+  {
+    "id": "SC-notes-7-15",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-15",
+    "reading_id": "MR-15",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+      "line": 46
+    },
+    "trap_category": "Formula",
+    "setup": "Model 3: $dr = \\lambda\\,dt + \\sigma e^{-\\alpha t}\\,dw$. Short rate 5%, drift $\\lambda = 0.24\\%$ a year, $\\sigma = 1.50\\%$, $\\alpha = 0.3$, one month ($dt = t = 1/12$). The monthly shock $dw$ is drawn from $N(0, \\sqrt{1/12})$ and came out at 0.2.",
+    "ask": "The one-month change in the short rate is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.02%",
+        "correct": false,
+        "why": "Drift only: $0.24\\%/12$. The volatility term is more than ten times bigger."
+      },
+      {
+        "label": "≈ 0.10%",
+        "correct": false,
+        "why": "Scaled $dw$ by $\\sqrt{1/12}$ a second time. The draw 0.2 already comes from the monthly distribution."
+      },
+      {
+        "label": "≈ 0.31%",
+        "correct": true
+      },
+      {
+        "label": "≈ 1.5%",
+        "correct": false,
+        "why": "Left out $dw$ and added the full $\\sigma e^{-\\alpha t}$, as if the shock were one annual standard deviation."
+      }
+    ],
+    "working": [
+      {
+        "label": "Drift term",
+        "display": "$0.24\\% \\times 1/12 = 0.02\\%$",
+        "value": 0.0002
+      },
+      {
+        "label": "Shock term",
+        "display": "$1.5\\% \\times e^{-0.3/12} \\times 0.2 = 0.29\\%$",
+        "value": 0.002926
+      },
+      {
+        "label": "$dr$",
+        "display": "$0.02\\% + 0.29\\% \\approx 0.31\\%$",
+        "value": 0.003126
+      }
+    ],
+    "takeaway": "Monthly rate moves are tens of bp: the shock term dominates, and dw already carries the √dt.",
+    "check": {
+      "inputs": {
+        "lam": 0.0024,
+        "sig": 0.015,
+        "a": 0.3,
+        "dt": 0.08333333333333333,
+        "dw": 0.2
+      },
+      "steps": [
+        {
+          "name": "drift",
+          "expr": "lam*dt",
+          "value": 0.0002
+        },
+        {
+          "name": "shock",
+          "expr": "sig*exp(-a*dt)*dw",
+          "value": 0.0029259
+        },
+        {
+          "name": "dr",
+          "expr": "drift + shock",
+          "value": 0.0031259
+        },
+        {
+          "name": "slip_sqrt",
+          "expr": "drift + shock*sqrt(dt)",
+          "value": 0.0010446
+        },
+        {
+          "name": "slip_nodw",
+          "expr": "drift + sig*exp(-a*dt)",
+          "value": 0.01483
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-16",
+    "mode": "intermediate",
+    "area": "MR",
+    "reading": "MR-15",
+    "reading_id": "MR-15",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+      "line": 151
+    },
+    "trap_category": "Intermediate result",
+    "setup": "CIR: $dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$ with $r = 5\\%$, $\\theta = 24\\%$, $k = 0.04$, $\\sigma = 1.50\\%$, $dt = 1/12$ and a draw $dw = 0.2$. Before adding, size the drift term against the shock term.",
+    "ask": "Compared with each other, the drift and shock terms are:",
+    "options": [
+      {
+        "label": "About the same size",
+        "correct": true
+      },
+      {
+        "label": "Shock about 10× the drift",
+        "correct": false,
+        "why": "Took $\\sqrt{5} = 2.236$ instead of $\\sqrt{0.05} = 0.224$. That inflates the shock to 0.67% against a 0.063% drift."
+      },
+      {
+        "label": "Drift about 10× the shock",
+        "correct": false,
+        "why": "Forgot the $dt = 1/12$ on the drift. $0.04 \\times 19\\% = 0.76\\%$ is the annual drift, not the monthly one."
+      }
+    ],
+    "working": [
+      {
+        "label": "Drift term",
+        "display": "$0.04 \\times (24\\% - 5\\%) \\times 1/12 = 0.063\\%$",
+        "value": 0.000633
+      },
+      {
+        "label": "Shock term",
+        "display": "$1.5\\% \\times \\sqrt{0.05} \\times 0.2 = 0.067\\%$",
+        "value": 0.000671
+      },
+      {
+        "label": "Shock ÷ drift",
+        "display": "$0.067 / 0.063 \\approx 1.06$: about the same size",
+        "value": 1.06
+      }
+    ],
+    "takeaway": "In CIR, take √r with r as a decimal; here the drift and shock come out nearly equal.",
+    "check": {
+      "inputs": {
+        "k": 0.04,
+        "th": 0.24,
+        "r": 0.05,
+        "sig": 0.015,
+        "dt": 0.08333333333333333,
+        "dw": 0.2
+      },
+      "steps": [
+        {
+          "name": "drift",
+          "expr": "k*(th - r)*dt",
+          "value": 0.00063333
+        },
+        {
+          "name": "shock",
+          "expr": "sig*sqrt(r)*dw",
+          "value": 0.00067082
+        },
+        {
+          "name": "ratio",
+          "expr": "shock/drift",
+          "value": 1.0592
+        },
+        {
+          "name": "slip_sqrt5",
+          "expr": "sig*sqrt(100*r)*dw",
+          "value": 0.0067082
+        },
+        {
+          "name": "slip_nodt",
+          "expr": "k*(th - r)",
+          "value": 0.0076
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-17",
+    "mode": "magnitude",
+    "area": "MR",
+    "reading": "MR-15",
+    "reading_id": "MR-15",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+      "line": 163
+    },
+    "trap_category": "Formula",
+    "setup": "CIR short-rate step: $dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$. Current rate 5%, long-run level 24%, $k = 0.04$, $\\sigma = 1.50\\%$, one month ($dt = 1/12$), random draw $dw = 0.2$.",
+    "ask": "The one-month change in the short rate is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.039%",
+        "correct": false,
+        "why": "Scale slip (0.3×). Each term is about 0.06–0.07%, so the sum is near 0.13%."
+      },
+      {
+        "label": "≈ 0.13%",
+        "correct": true
+      },
+      {
+        "label": "≈ 0.73%",
+        "correct": false,
+        "why": "Took $\\sqrt{5}$ instead of $\\sqrt{0.05}$ in the volatility term, which makes the shock ten times too big."
+      },
+      {
+        "label": "≈ 6.4%",
+        "correct": false,
+        "why": "Plugged 24 − 5 = 19 into the drift as a whole number, then read the 0.063 result as a decimal (6.3%)."
+      }
+    ],
+    "working": [
+      {
+        "label": "Drift term",
+        "display": "$0.04 \\times 0.19 / 12 = 0.063\\%$",
+        "value": 0.000633
+      },
+      {
+        "label": "Shock term",
+        "display": "$1.5\\% \\times 0.2236 \\times 0.2 = 0.067\\%$",
+        "value": 0.000671
+      },
+      {
+        "label": "$dr$",
+        "display": "$0.063\\% + 0.067\\% \\approx 0.13\\%$",
+        "value": 0.0013
+      }
+    ],
+    "takeaway": "A one-month CIR step at a 5% rate is around 13 bp; a result of 70+ bp means √5 crept in.",
+    "check": {
+      "inputs": {
+        "k": 0.04,
+        "th": 0.24,
+        "r": 0.05,
+        "sig": 0.015,
+        "dt": 0.08333333333333333,
+        "dw": 0.2
+      },
+      "steps": [
+        {
+          "name": "drift",
+          "expr": "k*(th - r)*dt",
+          "value": 0.00063333
+        },
+        {
+          "name": "shock",
+          "expr": "sig*sqrt(r)*dw",
+          "value": 0.00067082
+        },
+        {
+          "name": "dr",
+          "expr": "drift + shock",
+          "value": 0.0013042
+        },
+        {
+          "name": "slip_sqrt5",
+          "expr": "drift + sig*sqrt(100*r)*dw",
+          "value": 0.0073415
+        },
+        {
+          "name": "slip_pctdrift",
+          "expr": "k*(100*th - 100*r)*dt + shock",
+          "value": 0.064004
+        },
+        {
+          "name": "slip_scale",
+          "expr": "0.3*dr",
+          "value": 0.00039125
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-18",
+    "mode": "direction",
+    "area": "MR",
+    "reading": "MR-15",
+    "reading_id": "MR-15",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol2/ch/22_MR_MR15.tex",
+      "line": 81
+    },
+    "trap_category": "Polarity",
+    "setup": "Model 3 with $\\sigma = 126$ bp and decay $\\alpha = 0.025$: the short rate's instantaneous volatility $\\sigma e^{-\\alpha t}$ keeps shrinking toward zero. At a 20-year horizon the standard deviation of the terminal short rate is 4.48%.",
+    "ask": "Extending the horizon from 20 to 30 years, that terminal standard deviation:",
+    "options": [
+      {
+        "label": "Still rises, but toward a ceiling",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "Falling instantaneous volatility means each extra year adds less variance, not negative variance. Cumulative uncertainty cannot shrink."
+      },
+      {
+        "label": "Stays flat",
+        "correct": false,
+        "why": "It only flattens in the limit ($\\sigma/\\sqrt{2\\alpha} = 5.63\\%$). At 30 years it is still well short of that."
+      }
+    ],
+    "working": [
+      {
+        "label": "SD at 20 years",
+        "display": "$1.26\\sqrt{(1 - e^{-1.0})/0.05} = 4.48\\%$",
+        "value": 4.48
+      },
+      {
+        "label": "SD at 30 years",
+        "display": "$1.26\\sqrt{(1 - e^{-1.5})/0.05} = 4.97\\%$",
+        "value": 4.967
+      },
+      {
+        "label": "Ceiling",
+        "display": "$\\sigma/\\sqrt{2\\alpha} = 1.26/\\sqrt{0.05} = 5.63\\%$",
+        "value": 5.635
+      },
+      {
+        "label": "Change",
+        "display": "$4.97 - 4.48 = +0.49$: rises",
+        "value": 0.487
+      }
+    ],
+    "takeaway": "Decaying volatility slows the growth of terminal SD; it doesn't reverse it. SD climbs toward σ/√(2α).",
+    "check": {
+      "inputs": {
+        "sig": 1.26,
+        "a": 0.025,
+        "T1": 20,
+        "T2": 30
+      },
+      "steps": [
+        {
+          "name": "sd20",
+          "expr": "sig*sqrt((1 - exp(-2*a*T1))/(2*a))",
+          "value": 4.4801
+        },
+        {
+          "name": "sd30",
+          "expr": "sig*sqrt((1 - exp(-2*a*T2))/(2*a))",
+          "value": 4.9666
+        },
+        {
+          "name": "cap",
+          "expr": "sig/sqrt(2*a)",
+          "value": 5.6349
+        },
+        {
+          "name": "change",
+          "expr": "sd30 - sd20",
+          "value": 0.48653
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-19",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-23",
+    "reading_id": "CR-23",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/23_CR_CR23.tex",
+      "line": 443
+    },
+    "trap_category": "Formula",
+    "setup": "A mortgage pool is 5 months old and prepays at 150 PSA. The 100 PSA benchmark CPR is $0.2\\% \\times$ month (up to month 30), and $\\mathrm{SMM} = 1 - (1 - \\mathrm{CPR})^{1/12}$.",
+    "ask": "The single monthly mortality (SMM) is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.011%",
+        "correct": false,
+        "why": "Converted twice: took the twelfth root of the SMM as well, so a monthly rate got de-annualized again."
+      },
+      {
+        "label": "≈ 0.13%",
+        "correct": true
+      },
+      {
+        "label": "≈ 1.5%",
+        "correct": false,
+        "why": "Stopped at the CPR. 1.5% is the annualized rate; the question asks for the monthly one."
+      },
+      {
+        "label": "≈ 18%",
+        "correct": false,
+        "why": "Multiplied the CPR by 12 instead of taking the twelfth root, which goes the wrong way."
+      }
+    ],
+    "working": [
+      {
+        "label": "100 PSA CPR at month 5",
+        "display": "$5 \\times 0.2\\% = 1.0\\%$",
+        "value": 0.01
+      },
+      {
+        "label": "150 PSA CPR",
+        "display": "$1.5 \\times 1.0\\% = 1.5\\%$",
+        "value": 0.015
+      },
+      {
+        "label": "SMM",
+        "display": "$1 - (1 - 0.015)^{1/12} = 0.1259\\%$",
+        "value": 0.001259
+      }
+    ],
+    "takeaway": "SMM ≈ CPR/12 in size: a 1.5% CPR means about 0.13% a month.",
+    "check": {
+      "inputs": {
+        "m": 5,
+        "mult": 1.5
+      },
+      "steps": [
+        {
+          "name": "cpr",
+          "expr": "mult*0.002*m",
+          "value": 0.015
+        },
+        {
+          "name": "smm",
+          "expr": "1 - (1 - cpr)**(1/12)",
+          "value": 0.0012587
+        },
+        {
+          "name": "slip_twice",
+          "expr": "1 - (1 - smm)**(1/12)",
+          "value": 0.00010495
+        },
+        {
+          "name": "slip_x12",
+          "expr": "12*cpr",
+          "value": 0.18
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-20",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-23",
+    "reading_id": "CR-23",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/23_CR_CR23.tex",
+      "line": 462
+    },
+    "trap_category": "Formula",
+    "setup": "A pool's CPR is 1.5%. You need the monthly rate. The exact route is $\\mathrm{SMM} = 1 - (1 - 0.015)^{1/12}$; the shortcut is $0.015/12 = 0.125\\%$.",
+    "ask": "Compared with the $\\mathrm{CPR}/12$ shortcut, the exact SMM is:",
+    "options": [
+      {
+        "label": "Slightly larger",
+        "correct": true
+      },
+      {
+        "label": "Slightly smaller",
+        "correct": false,
+        "why": "Survival compounds: twelve months at 0.125% each leave $(1 - 0.00125)^{12} = 0.98512$, i.e. a CPR of only 1.49%. The monthly rate must be a touch higher to reach 1.5%."
+      },
+      {
+        "label": "Exactly equal",
+        "correct": false,
+        "why": "Only for simple (non-compounding) rates. SMM and CPR are linked by a twelfth root, which is not linear."
+      }
+    ],
+    "working": [
+      {
+        "label": "Exact SMM",
+        "display": "$1 - 0.985^{1/12} = 0.12587\\%$",
+        "value": 0.0012587
+      },
+      {
+        "label": "Shortcut",
+        "display": "$0.015/12 = 0.12500\\%$",
+        "value": 0.00125
+      },
+      {
+        "label": "Difference",
+        "display": "$0.12587\\% - 0.12500\\% = +0.00087\\%$: exact is larger",
+        "value": 8.7e-06
+      }
+    ],
+    "takeaway": "SMM from CPR is a twelfth root, not a divide-by-12; the root gives a slightly bigger monthly rate.",
+    "check": {
+      "inputs": {
+        "cpr": 0.015
+      },
+      "steps": [
+        {
+          "name": "root",
+          "expr": "1 - (1 - cpr)**(1/12)",
+          "value": 0.0012587
+        },
+        {
+          "name": "lin",
+          "expr": "cpr/12",
+          "value": 0.00125
+        },
+        {
+          "name": "diff",
+          "expr": "root - lin",
+          "value": 8.677e-06
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-21",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-23",
+    "reading_id": "CR-23",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/23_CR_CR23.tex",
+      "line": 395
+    },
+    "trap_category": "Scope",
+    "setup": "A pool prepays at 200 PSA. The 100 PSA benchmark CPR is $0.2\\% \\times$ month for months 1 to 29, then 6% from month 30 onward. The pool ages from month 40 to month 60.",
+    "ask": "Its CPR over that period:",
+    "options": [
+      {
+        "label": "Stays the same",
+        "correct": true
+      },
+      {
+        "label": "Rises",
+        "correct": false,
+        "why": "Both months are past the month-30 cutoff, so the ramp no longer applies. The 200 PSA multiple scales the plateau height, not the ramp length."
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "PSA assumes prepayment speeds climb over the first 30 months and then level off. They don't decline with age."
+      }
+    ],
+    "working": [
+      {
+        "label": "Month 40",
+        "display": "$2 \\times \\min(0.2\\% \\times 40,\\ 6\\%) = 12\\%$",
+        "value": 0.12
+      },
+      {
+        "label": "Month 60",
+        "display": "$2 \\times \\min(0.2\\% \\times 60,\\ 6\\%) = 12\\%$",
+        "value": 0.12
+      },
+      {
+        "label": "Change",
+        "display": "$0$: unchanged",
+        "value": 0.0
+      }
+    ],
+    "takeaway": "After month 30 the PSA CPR is flat: 6% × the PSA multiple, whatever the age.",
+    "check": {
+      "inputs": {
+        "mult": 2.0,
+        "m1": 40,
+        "m2": 60
+      },
+      "steps": [
+        {
+          "name": "c1",
+          "expr": "mult*min(0.002*m1, 0.06)",
+          "value": 0.12
+        },
+        {
+          "name": "c2",
+          "expr": "mult*min(0.002*m2, 0.06)",
+          "value": 0.12
+        },
+        {
+          "name": "change",
+          "expr": "c2 - c1",
+          "value": 0.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-22",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 95
+    },
+    "trap_category": "Formula",
+    "setup": "The one-year transition matrix gives an AAA issuer an 89.85% chance of staying AAA. Assume the matrix can be rooted to shorter horizons.",
+    "ask": "The probability that an AAA issuer leaves AAA within three months is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.89%",
+        "correct": false,
+        "why": "Took the twelfth root (a one-month horizon) instead of the fourth root."
+      },
+      {
+        "label": "≈ 2.6%",
+        "correct": true
+      },
+      {
+        "label": "≈ 10%",
+        "correct": false,
+        "why": "Used the one-year figure, 10.15%, without shortening the horizon."
+      },
+      {
+        "label": "≈ 35%",
+        "correct": false,
+        "why": "Raised to the fourth power, which projects four years ahead instead of a quarter of a year."
+      }
+    ],
+    "working": [
+      {
+        "label": "Three-month stay probability",
+        "display": "$0.8985^{1/4} = 97.36\\%$",
+        "value": 0.9736
+      },
+      {
+        "label": "Three-month leave probability",
+        "display": "$1 - 0.9736 \\approx 2.6\\%$",
+        "value": 0.0264
+      }
+    ],
+    "takeaway": "Shorter horizon → take a root of the matrix; longer → a power. A quarter-year leave rate is roughly a quarter of the annual one.",
+    "check": {
+      "inputs": {
+        "p": 0.8985
+      },
+      "steps": [
+        {
+          "name": "stay3m",
+          "expr": "p**0.25",
+          "value": 0.9736
+        },
+        {
+          "name": "leave3m",
+          "expr": "1 - stay3m",
+          "value": 0.026402
+        },
+        {
+          "name": "slip_month",
+          "expr": "1 - p**(1/12)",
+          "value": 0.0088794
+        },
+        {
+          "name": "slip_year",
+          "expr": "1 - p",
+          "value": 0.1015
+        },
+        {
+          "name": "slip_pow",
+          "expr": "1 - p**4",
+          "value": 0.34826
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-23",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 102
+    },
+    "trap_category": "Formula",
+    "setup": "An AAA issuer stays AAA over one year with probability 89.85%. For a three-month horizon the notes take the fourth root, $0.8985^{1/4}$. A shortcut would split the 10.15% annual leave rate evenly: $1 - 10.15\\%/4 = 97.46\\%$.",
+    "ask": "Compared with the 97.46% shortcut, the fourth-root stay probability is:",
+    "options": [
+      {
+        "label": "Slightly lower",
+        "correct": true
+      },
+      {
+        "label": "Slightly higher",
+        "correct": false,
+        "why": "Staying compounds: $0.9746^4 = 0.9022$, which is above 0.8985. To end the year at 89.85% the quarterly stay probability must be a bit below 97.46%."
+      },
+      {
+        "label": "Exactly equal",
+        "correct": false,
+        "why": "A root is not a straight division. They only coincide when the leave rate is tiny."
+      }
+    ],
+    "working": [
+      {
+        "label": "Fourth root",
+        "display": "$0.8985^{1/4} = 97.36\\%$",
+        "value": 0.97359
+      },
+      {
+        "label": "Linear split",
+        "display": "$1 - 0.1015/4 = 97.46\\%$",
+        "value": 0.97463
+      },
+      {
+        "label": "Difference",
+        "display": "$97.36\\% - 97.46\\% = -0.10\\%$: root is lower",
+        "value": -0.00103
+      }
+    ],
+    "takeaway": "Rooting a survival probability gives a lower per-period survival than dividing the loss rate evenly.",
+    "check": {
+      "inputs": {
+        "p": 0.8985
+      },
+      "steps": [
+        {
+          "name": "root",
+          "expr": "p**0.25",
+          "value": 0.9736
+        },
+        {
+          "name": "lin",
+          "expr": "1 - (1 - p)/4",
+          "value": 0.97462
+        },
+        {
+          "name": "diff",
+          "expr": "root - lin",
+          "value": -0.0010273
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-24",
+    "mode": "magnitude",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 113
+    },
+    "trap_category": "Formula",
+    "setup": "Vasicek worst-case default rate at 99.9%: $\\mathrm{WCDR} = N\\!\\left(\\dfrac{N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}\\,N^{-1}(0.999)}{\\sqrt{1-\\rho}}\\right)$. PD = 1%, so $N^{-1}(\\mathrm{PD}) = -2.326$; $N^{-1}(0.999) = 3.090$; correlation $\\rho = 0.20$.",
+    "ask": "WCDR is closest to:",
+    "options": [
+      {
+        "label": "≈ 0.0017%",
+        "correct": false,
+        "why": "Subtracted $\\sqrt{\\rho}\\,N^{-1}(0.999)$ instead of adding it, so you get the best case rather than the worst case."
+      },
+      {
+        "label": "≈ 1.0%",
+        "correct": false,
+        "why": "Returned the PD itself, which is the $\\rho = 0$ answer. Correlation is the whole point of the stress."
+      },
+      {
+        "label": "≈ 2.8%",
+        "correct": false,
+        "why": "Used $\\rho = 0.20$ in the numerator instead of $\\sqrt{\\rho} = 0.447$."
+      },
+      {
+        "label": "≈ 15%",
+        "correct": true
+      }
+    ],
+    "working": [
+      {
+        "label": "Numerator",
+        "display": "$-2.326 + 0.447 \\times 3.090 = -0.944$",
+        "value": -0.944
+      },
+      {
+        "label": "Argument",
+        "display": "$-0.944 / \\sqrt{0.8} = -1.056$",
+        "value": -1.0558
+      },
+      {
+        "label": "WCDR",
+        "display": "$N(-1.056) \\approx 14.6\\%$",
+        "value": 0.1455
+      }
+    ],
+    "takeaway": "A modest ρ = 0.20 turns a 1% PD into a ~15% worst-case default rate; that is why capital is so ρ-sensitive.",
+    "check": {
+      "inputs": {
+        "zPD": -2.3263,
+        "zX": 3.0902,
+        "rho": 0.2,
+        "pp": 0.2316419,
+        "b1": 0.31938153,
+        "b2": -0.356563782,
+        "b3": 1.781477937,
+        "b4": -1.821255978,
+        "b5": 1.330274429,
+        "pi": 3.14159265
+      },
+      "steps": [
+        {
+          "name": "a_true",
+          "expr": "(zPD + sqrt(rho)*zX)/sqrt(1 - rho)",
+          "value": -1.0558
+        },
+        {
+          "name": "t_true",
+          "expr": "1/(1 + pp*abs(a_true))",
+          "value": 0.80349
+        },
+        {
+          "name": "N_true",
+          "expr": "exp(-a_true**2/2)/sqrt(2*pi)*(b1*t_true + b2*t_true**2 + b3*t_true**3 + b4*t_true**4 + b5*t_true**5)",
+          "value": 0.14553
+        },
+        {
+          "name": "a_rhoslip",
+          "expr": "(zPD + rho*zX)/sqrt(1 - rho)",
+          "value": -1.9099
+        },
+        {
+          "name": "t_rhoslip",
+          "expr": "1/(1 + pp*abs(a_rhoslip))",
+          "value": 0.69328
+        },
+        {
+          "name": "N_rhoslip",
+          "expr": "exp(-a_rhoslip**2/2)/sqrt(2*pi)*(b1*t_rhoslip + b2*t_rhoslip**2 + b3*t_rhoslip**3 + b4*t_rhoslip**4 + b5*t_rhoslip**5)",
+          "value": 0.028073
+        },
+        {
+          "name": "a_signslip",
+          "expr": "(zPD - sqrt(rho)*zX)/sqrt(1 - rho)",
+          "value": -4.146
+        },
+        {
+          "name": "t_signslip",
+          "expr": "1/(1 + pp*abs(a_signslip))",
+          "value": 0.5101
+        },
+        {
+          "name": "N_signslip",
+          "expr": "exp(-a_signslip**2/2)/sqrt(2*pi)*(b1*t_signslip + b2*t_signslip**2 + b3*t_signslip**3 + b4*t_signslip**4 + b5*t_signslip**5)",
+          "value": 1.6928e-05
+        },
+        {
+          "name": "a_zero",
+          "expr": "zPD",
+          "value": -2.3263
+        },
+        {
+          "name": "t_zero",
+          "expr": "1/(1 + pp*abs(a_zero))",
+          "value": 0.64983
+        },
+        {
+          "name": "N_zero",
+          "expr": "exp(-a_zero**2/2)/sqrt(2*pi)*(b1*t_zero + b2*t_zero**2 + b3*t_zero**3 + b4*t_zero**4 + b5*t_zero**5)",
+          "value": 0.010001
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-25",
+    "mode": "intermediate",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 114
+    },
+    "trap_category": "Sign",
+    "setup": "Building the Vasicek WCDR for PD = 1% ($N^{-1}(\\mathrm{PD}) = -2.326$), $\\rho = 0.20$ and 99.9% confidence ($N^{-1}(0.999) = 3.090$). First compute the numerator $N^{-1}(\\mathrm{PD}) + \\sqrt{\\rho}\\,N^{-1}(0.999)$.",
+    "ask": "The sign of that numerator is:",
+    "options": [
+      {
+        "label": "Negative, so WCDR is below 50%",
+        "correct": true
+      },
+      {
+        "label": "Positive, so WCDR is above 50%",
+        "correct": false,
+        "why": "$\\sqrt{0.20} \\times 3.090 = 1.38$ is not enough to offset −2.326. The numerator only turns positive when $\\rho$ exceeds about 0.57."
+      },
+      {
+        "label": "Roughly zero",
+        "correct": false,
+        "why": "The numerator is −0.94, nearly one full unit below zero, which still leaves WCDR well under 50%."
+      }
+    ],
+    "working": [
+      {
+        "label": "Flip point",
+        "display": "positive only if $\\rho > (2.326/3.090)^2 = 0.567$",
+        "value": 0.567
+      },
+      {
+        "label": "Correlation pull",
+        "display": "$\\sqrt{0.20} \\times 3.090 = 1.382$",
+        "value": 1.382
+      },
+      {
+        "label": "Numerator",
+        "display": "$-2.326 + 1.382 = -0.944 < 0$: WCDR below 50%",
+        "value": -0.944
+      }
+    ],
+    "takeaway": "For low PDs the WCDR numerator stays negative, so the worst case is high but still under 50%.",
+    "check": {
+      "inputs": {
+        "zPD": -2.3263,
+        "zX": 3.0902,
+        "rho": 0.2
+      },
+      "steps": [
+        {
+          "name": "pull",
+          "expr": "sqrt(rho)*zX",
+          "value": 1.382
+        },
+        {
+          "name": "numer",
+          "expr": "zPD + pull",
+          "value": -0.94432
+        },
+        {
+          "name": "rho_flip",
+          "expr": "(-zPD/zX)**2",
+          "value": 0.56671
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-26",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 163
+    },
+    "trap_category": "Polarity",
+    "setup": "A loan portfolio has PD = 1% and a Vasicek correlation of $\\rho = 0.20$, giving a 99.9% worst-case default rate of 14.6%. The correlation assumption is raised to 0.30, with PD and confidence level unchanged.",
+    "ask": "The worst-case default rate (and so the IRB capital charge):",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "The numerator is negative, so the smaller $\\sqrt{1-\\rho}$ does push the ratio down a little. But the $\\sqrt{\\rho}\\,N^{-1}(0.999)$ term grows much faster, and the net effect is up."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "WCDR depends directly on $\\rho$. Only at $\\rho = 0$ does it collapse to the PD."
+      }
+    ],
+    "working": [
+      {
+        "label": "Argument at 0.20",
+        "display": "$(-2.326 + 0.447 \\times 3.090)/\\sqrt{0.8} = -1.056$",
+        "value": -1.0558
+      },
+      {
+        "label": "Argument at 0.30",
+        "display": "$(-2.326 + 0.548 \\times 3.090)/\\sqrt{0.7} = -0.757$",
+        "value": -0.7574
+      },
+      {
+        "label": "WCDR",
+        "display": "$N(-1.056) = 14.6\\% \\;\\to\\; N(-0.757) = 22.4\\%$",
+        "value": 0.2244
+      },
+      {
+        "label": "Change",
+        "display": "$+7.9$ points: rises",
+        "value": 0.079
+      }
+    ],
+    "takeaway": "More asset correlation → fatter default-rate tail → higher WCDR and higher capital.",
+    "check": {
+      "inputs": {
+        "zPD": -2.3263,
+        "zX": 3.0902,
+        "rho1": 0.2,
+        "rho2": 0.3,
+        "pp": 0.2316419,
+        "b1": 0.31938153,
+        "b2": -0.356563782,
+        "b3": 1.781477937,
+        "b4": -1.821255978,
+        "b5": 1.330274429,
+        "pi": 3.14159265
+      },
+      "steps": [
+        {
+          "name": "a_r20",
+          "expr": "(zPD + sqrt(rho1)*zX)/sqrt(1 - rho1)",
+          "value": -1.0558
+        },
+        {
+          "name": "t_r20",
+          "expr": "1/(1 + pp*abs(a_r20))",
+          "value": 0.80349
+        },
+        {
+          "name": "N_r20",
+          "expr": "exp(-a_r20**2/2)/sqrt(2*pi)*(b1*t_r20 + b2*t_r20**2 + b3*t_r20**3 + b4*t_r20**4 + b5*t_r20**5)",
+          "value": 0.14553
+        },
+        {
+          "name": "a_r30",
+          "expr": "(zPD + sqrt(rho2)*zX)/sqrt(1 - rho2)",
+          "value": -0.75745
+        },
+        {
+          "name": "t_r30",
+          "expr": "1/(1 + pp*abs(a_r30))",
+          "value": 0.85073
+        },
+        {
+          "name": "N_r30",
+          "expr": "exp(-a_r30**2/2)/sqrt(2*pi)*(b1*t_r30 + b2*t_r30**2 + b3*t_r30**3 + b4*t_r30**4 + b5*t_r30**5)",
+          "value": 0.22439
+        },
+        {
+          "name": "change",
+          "expr": "N_r30 - N_r20",
+          "value": 0.078856
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-notes-7-27",
+    "mode": "direction",
+    "area": "CR",
+    "reading": "CR-10",
+    "reading_id": "CR-10",
+    "source": {
+      "kind": "notes",
+      "file": "notes/FRM_Consolidated_Vol1/ch/26_CR_CR10.tex",
+      "line": 231
+    },
+    "trap_category": "Scope",
+    "setup": "CreditRisk+ treats the expected number of defaults $qn$ as gamma-distributed with mean $\\mu$ and standard deviation $\\sigma$, which turns the Poisson default count into a negative binomial. The analyst raises $\\sigma$ and leaves $\\mu$ unchanged.",
+    "ask": "The probability of an extreme year with a very large number of defaults:",
+    "options": [
+      {
+        "label": "Rises",
+        "correct": true
+      },
+      {
+        "label": "Falls",
+        "correct": false,
+        "why": "More uncertainty about the default rate spreads the default-count distribution, putting more mass in the right tail."
+      },
+      {
+        "label": "Unchanged",
+        "correct": false,
+        "why": "The mean number of defaults is unchanged, but the tail isn't. $\\sigma$ is how CreditRisk+ builds in default correlation, and $\\sigma \\to 0$ recovers the thin-tailed Poisson."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mechanism",
+        "display": "Higher $\\sigma$ = more uncertainty in the default rate = implied default correlation",
+        "value": null
+      },
+      {
+        "label": "Limit",
+        "display": "$\\sigma \\to 0$: negative binomial $\\to$ Poisson (independent defaults)",
+        "value": null
+      },
+      {
+        "label": "Result",
+        "display": "Right tail of the default-count distribution fattens: extreme outcomes more likely",
+        "value": null
+      }
+    ],
+    "takeaway": "In CreditRisk+, default-rate volatility σ plays the role of correlation: raise it and the tail fattens.",
+    "check": null
+  }
+]

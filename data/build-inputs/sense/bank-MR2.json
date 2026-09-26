@@ -1,0 +1,2463 @@
+[
+ {
+  "id": "SC-bank-MR2-01",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-40"
+  },
+  "trap_category": "Sign",
+  "setup": "A desk's P/L over the period is normal with mean $+14.1$ (an expected **profit**) and standard deviation $28.2$. For the 95% VaR you have already computed the volatility leg $\\sigma z = 28.2 \\times 1.645 = 46.39$.",
+  "ask": "Once the mean is brought in, is the 95% VaR above 46.39, below it, or equal to it?",
+  "options": [
+   {
+    "label": "Below 46.39",
+    "correct": true
+   },
+   {
+    "label": "Above 46.39",
+    "correct": false,
+    "why": "Sign slip: an expected profit was treated as extra loss ($+14.1 + 46.39 = 60.5$). In P/L terms a positive mean offsets the tail loss."
+   },
+   {
+    "label": "Equal to 46.39",
+    "correct": false,
+    "why": "Dropped-term slip: $\\sigma z$ alone ignores the mean. It is only the whole VaR when $\\mu = 0$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Volatility leg",
+    "display": "$\\sigma z = 28.2 \\times 1.645 = 46.39$",
+    "value": 46.389
+   },
+   {
+    "label": "Mean leg",
+    "display": "$-\\mu = -14.1$ (expected profit reduces the loss)",
+    "value": -14.1
+   },
+   {
+    "label": "95% VaR",
+    "display": "$-14.1 + 46.39 = 32.29 < 46.39$",
+    "value": 32.289
+   }
+  ],
+  "takeaway": "In P/L format a positive mean is a profit: it pulls VaR below $\\sigma z$.",
+  "check": {
+   "inputs": {
+    "mu": 14.1,
+    "s": 28.2,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "sz",
+     "expr": "s*z",
+     "value": 46.389
+    },
+    {
+     "name": "VaR",
+     "expr": "-mu + sz",
+     "value": 32.289
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-02",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-41"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A portfolio is worth USD 200. Its arithmetic return over the horizon is normal with mean $+5\\%$ and standard deviation $10\\%$. Use $z_{95} = 1.65$.",
+  "ask": "The 95% VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ USD 0.12",
+    "correct": false,
+    "why": "Stopped at the return-space VaR ($-0.05 + 0.10 \\times 1.65 = 0.115$) and never multiplied by the USD 200 position. A z-score-sized number is not a currency loss."
+   },
+   {
+    "label": "≈ USD 23",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 70",
+    "correct": false,
+    "why": "Scale slip (3×)."
+   },
+   {
+    "label": "≈ USD 2,300",
+    "correct": false,
+    "why": "Percent vs decimal: plugged 5 and 10 in as whole numbers, $(-5 + 10 \\times 1.65) \\times 200 = 2{,}300$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Return-space VaR",
+    "display": "$-\\mu + \\sigma z = -0.05 + 0.10 \\times 1.65 = 0.115$",
+    "value": 0.115
+   },
+   {
+    "label": "Currency VaR",
+    "display": "$0.115 \\times 200 = \\text{USD } 23.0$",
+    "value": 23.0
+   }
+  ],
+  "takeaway": "Return-based VaR is a percentage until you multiply it by the position value.",
+  "check": {
+   "inputs": {
+    "mu": 0.05,
+    "s": 0.1,
+    "z": 1.65,
+    "P": 200
+   },
+   "steps": [
+    {
+     "name": "pct",
+     "expr": "-mu + s*z",
+     "value": 0.115
+    },
+    {
+     "name": "VaR",
+     "expr": "pct*P",
+     "value": 23.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-42"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 100m portfolio has normally distributed **geometric** returns with $\\mu = 10\\%$ and $\\sigma = 40\\%$. For the 95% lognormal VaR $P\\,[1 - e^{\\mu - \\sigma z}]$ you have the exponent $\\mu - \\sigma z = 0.10 - 0.40 \\times 1.645 = -0.558$.",
+  "ask": "Is the lognormal VaR more than half the portfolio value, less than half, or too close to call?",
+  "options": [
+   {
+    "label": "Less than half (below USD 50m)",
+    "correct": true
+   },
+   {
+    "label": "More than half (above USD 50m)",
+    "correct": false,
+    "why": "Normal-VaR reflex: $[-\\mu + \\sigma z] \\times P = 55.8$m, but the lognormal bracket is $1 - e^{-0.558}$, which is smaller than 0.558. Half is lost only when the exponent reaches $-\\ln 2 = -0.693$."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The exponent $-0.558$ is well short of $-0.693$: $e^{-0.558} \\approx 0.57$, so the loss is about 43%, clearly under 50%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$\\mu - \\sigma z = 0.10 - 0.658 = -0.558$",
+    "value": -0.558
+   },
+   {
+    "label": "Surviving fraction",
+    "display": "$e^{-0.558} = 0.572$",
+    "value": 0.5724
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$100 \\times (1 - 0.572) = \\text{USD } 42.8\\text{m} < 50$m",
+    "value": 42.76
+   }
+  ],
+  "takeaway": "Lognormal VaR loses $1 - e^{\\mu - \\sigma z}$ of value: half is gone only when $\\sigma z - \\mu$ exceeds $\\ln 2 \\approx 0.69$.",
+  "check": {
+   "inputs": {
+    "mu": 0.1,
+    "s": 0.4,
+    "z": 1.645,
+    "P": 100
+   },
+   "steps": [
+    {
+     "name": "expo",
+     "expr": "mu - s*z",
+     "value": -0.558
+    },
+    {
+     "name": "surv",
+     "expr": "exp(expo)",
+     "value": 0.5724
+    },
+    {
+     "name": "VaR",
+     "expr": "P*(1 - surv)",
+     "value": 42.76
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-43"
+  },
+  "trap_category": "Polarity",
+  "setup": "A USD 1m equity portfolio has mean return 15% and volatility 25%. Its one-year 99% VaR ($z = 2.33$) under the **normal** (arithmetic-return) assumption is USD 432,500.",
+  "ask": "Switch to the **lognormal** assumption (geometric returns normal) with the same inputs. The VaR…",
+  "options": [
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "Lognormal caps the loss at 100% of value; it cannot out-lose the normal. With the same inputs the lognormal bracket $1 - e^{-x}$ is always below the normal bracket $x$."
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "The exponent is the same number, $-0.4325$, but $1 - e^{-0.4325} = 0.351$, not 0.4325."
+   }
+  ],
+  "working": [
+   {
+    "label": "Normal bracket",
+    "display": "$-0.15 + 0.25 \\times 2.33 = 0.4325$",
+    "value": 0.4325
+   },
+   {
+    "label": "Normal VaR",
+    "display": "$0.4325 \\times 1{,}000{,}000 = \\text{USD } 432{,}500$",
+    "value": 432500
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$1{,}000{,}000 \\times [1 - e^{-0.4325}] = \\text{USD } 351{,}100$",
+    "value": 351115
+   },
+   {
+    "label": "Direction",
+    "display": "$351{,}100 < 432{,}500$: VaR falls",
+    "value": null
+   }
+  ],
+  "takeaway": "Same inputs, lognormal VaR < normal VaR, always, because $1 - e^{-x} < x$.",
+  "check": {
+   "inputs": {
+    "mu": 0.15,
+    "s": 0.25,
+    "z": 2.33,
+    "P": 1000000
+   },
+   "steps": [
+    {
+     "name": "bracket",
+     "expr": "-mu + s*z",
+     "value": 0.4325
+    },
+    {
+     "name": "normal",
+     "expr": "bracket*P",
+     "value": 432500
+    },
+    {
+     "name": "lognormal",
+     "expr": "P*(1 - exp(mu - s*z))",
+     "value": 351115
+    },
+    {
+     "name": "change",
+     "expr": "lognormal - normal",
+     "value": -81385
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-05",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-44"
+  },
+  "trap_category": "Formula",
+  "setup": "Two **independent** positions: $A \\sim N(0.5,\\,1)$ and $B \\sim N(3,\\,15)$, where the second parameter is the **variance**. The portfolio is $P = A + B$. Use $z_{95} = 1.645$.",
+  "ask": "The 95% parametric VaR of $P$ is closest to…",
+  "options": [
+   {
+    "label": "≈ 1.0",
+    "correct": false,
+    "why": "Scale slip (0.3×)."
+   },
+   {
+    "label": "≈ 3.1",
+    "correct": true
+   },
+   {
+    "label": "≈ 10",
+    "correct": false,
+    "why": "Sign slip: added the expected gain ($3.5 + 6.58 = 10.1$). A positive mean offsets the loss."
+   },
+   {
+    "label": "≈ 26",
+    "correct": false,
+    "why": "Treated the summed variance 16 as if it were the standard deviation (and dropped the mean): $16 \\times 1.645 \\approx 26$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio mean",
+    "display": "$\\mu_P = 0.5 + 3 = 3.5$",
+    "value": 3.5
+   },
+   {
+    "label": "Portfolio variance",
+    "display": "$1 + 15 = 16$ (variances add under independence)",
+    "value": 16
+   },
+   {
+    "label": "Portfolio s.d.",
+    "display": "$\\sigma_P = \\sqrt{16} = 4$",
+    "value": 4
+   },
+   {
+    "label": "95% VaR",
+    "display": "$-3.5 + 4 \\times 1.645 = 3.08$",
+    "value": 3.08
+   }
+  ],
+  "takeaway": "Independent positions: add variances, take the root, then subtract the mean.",
+  "check": {
+   "inputs": {
+    "muA": 0.5,
+    "muB": 3,
+    "vA": 1,
+    "vB": 15,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "muP",
+     "expr": "muA + muB",
+     "value": 3.5
+    },
+    {
+     "name": "vP",
+     "expr": "vA + vB",
+     "value": 16
+    },
+    {
+     "name": "sP",
+     "expr": "sqrt(vP)",
+     "value": 4
+    },
+    {
+     "name": "VaR",
+     "expr": "-muP + sP*z",
+     "value": 3.08
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-06",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-44"
+  },
+  "trap_category": "Formula",
+  "setup": "Two **independent** positions: $A \\sim N(0.5,\\,1)$ and $B \\sim N(3,\\,15)$ (second parameter = variance). On the way to the VaR of $P = A + B$ you need $\\sigma_P$. A colleague writes $\\sigma_A + \\sigma_B = 1 + \\sqrt{15} \\approx 4.87$.",
+  "ask": "Is the true $\\sigma_P$ larger than 4.87, smaller, or equal?",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Variances add, not standard deviations; the root of a sum is below the sum of the roots for positive terms, so independence can only shrink $\\sigma_P$ below 4.87."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Adding standard deviations silently assumes correlation $+1$. Here the positions are independent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Colleague's sum",
+    "display": "$\\sigma_A + \\sigma_B = 1 + 3.873 = 4.87$",
+    "value": 4.873
+   },
+   {
+    "label": "Portfolio variance",
+    "display": "$1 + 15 = 16$",
+    "value": 16
+   },
+   {
+    "label": "Portfolio s.d.",
+    "display": "$\\sigma_P = \\sqrt{16} = 4.00 < 4.87$",
+    "value": 4.0
+   }
+  ],
+  "takeaway": "Work in variance space until the last square root; adding sigmas assumes $\\rho = 1$.",
+  "check": {
+   "inputs": {
+    "vA": 1,
+    "vB": 15
+   },
+   "steps": [
+    {
+     "name": "sumsd",
+     "expr": "sqrt(vA) + sqrt(vB)",
+     "value": 4.873
+    },
+    {
+     "name": "sP",
+     "expr": "sqrt(vA + vB)",
+     "value": 4.0
+    },
+    {
+     "name": "gap",
+     "expr": "sP - sumsd",
+     "value": -0.873
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-07",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-45"
+  },
+  "trap_category": "Role",
+  "setup": "A CAD 150m bond portfolio (annual $\\sigma = 12\\%$) holds CAD 20m of bond X (annual $\\sigma = 9\\%$). The correlation of X with the portfolio is 0.60. Normal returns, one-year horizon, 99% ($z = 2.326$).",
+  "ask": "Bond X's **individual** VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ CAD 1.4m",
+    "correct": false,
+    "why": "Scale slip (0.3×)."
+   },
+   {
+    "label": "≈ CAD 4.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 42m",
+    "correct": false,
+    "why": "Used the portfolio's value and volatility: $150 \\times 2.326 \\times 0.12 = 41.9$m. That is the portfolio VaR, not X's."
+   },
+   {
+    "label": "≈ CAD 420m",
+    "correct": false,
+    "why": "Percent vs decimal: entered $\\sigma = 9$ instead of 0.09."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$20\\text{m} \\times 2.326 \\times 0.09 = \\text{CAD } 4.19\\text{m}$",
+    "value": 4.1868
+   },
+   {
+    "label": "Unused inputs",
+    "display": "$\\rho = 0.60$ and the 12% portfolio $\\sigma$ belong to component and marginal VaR",
+    "value": null
+   }
+  ],
+  "takeaway": "Individual VaR = own value × z × own σ; correlation and portfolio figures are excess data.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "z": 2.326,
+    "s": 0.09
+   },
+   "steps": [
+    {
+     "name": "indiv",
+     "expr": "V*z*s",
+     "value": 4.1868
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-08",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-45"
+  },
+  "trap_category": "Formula",
+  "setup": "Bond X is a CAD 20m position with **annual** volatility 9%. You want its **one-day** 99% individual VaR ($z = 2.326$), assuming 250 trading days and i.i.d. returns.",
+  "ask": "The one-day VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ CAD 0.017m",
+    "correct": false,
+    "why": "Divided the annual figure by 250 instead of $\\sqrt{250}$ (variance scaling applied to a volatility)."
+   },
+   {
+    "label": "≈ CAD 0.26m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 0.80m",
+    "correct": false,
+    "why": "Scale slip (3×)."
+   },
+   {
+    "label": "≈ CAD 4.2m",
+    "correct": false,
+    "why": "Forgot to rescale: that is the one-year VaR with the annual $\\sigma$."
+   }
+  ],
+  "working": [
+   {
+    "label": "One-year VaR",
+    "display": "$20\\text{m} \\times 2.326 \\times 0.09 = 4.19\\text{m}$",
+    "value": 4.1868
+   },
+   {
+    "label": "Square-root-of-time factor",
+    "display": "$\\sqrt{250} = 15.81$",
+    "value": 15.811
+   },
+   {
+    "label": "One-day VaR",
+    "display": "$4.19 / 15.81 = \\text{CAD } 0.265\\text{m}$",
+    "value": 0.2648
+   }
+  ],
+  "takeaway": "Volatility scales with $\\sqrt{T}$: annual → daily divides by about 16, not 250.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "z": 2.326,
+    "s": 0.09,
+    "days": 250
+   },
+   "steps": [
+    {
+     "name": "annual",
+     "expr": "V*z*s",
+     "value": 4.1868
+    },
+    {
+     "name": "root",
+     "expr": "sqrt(days)",
+     "value": 15.811
+    },
+    {
+     "name": "daily",
+     "expr": "annual/root",
+     "value": 0.2648
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-09",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-45"
+  },
+  "trap_category": "Sibling",
+  "setup": "Bond X is CAD 20m (annual $\\sigma = 9\\%$) inside a CAD 150m portfolio; its correlation with the portfolio is 0.60. At 99% one-year ($z = 2.326$) its individual VaR is $20 \\times 2.326 \\times 0.09 = \\text{CAD } 4.19$m.",
+  "ask": "Is X's **component** VaR larger than, smaller than, or equal to its individual VaR?",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Component VaR = individual VaR × correlation with the portfolio; a correlation below 1 can only shrink it."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Only when $\\rho = 1$, the undiversified case. Here $\\rho = 0.60$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$20 \\times 2.326 \\times 0.09 = 4.19$m",
+    "value": 4.1868
+   },
+   {
+    "label": "Component VaR",
+    "display": "$4.19 \\times 0.60 = 2.51$m $< 4.19$m",
+    "value": 2.5121
+   }
+  ],
+  "takeaway": "Component VaR = individual VaR × ρ: below individual whenever ρ < 1.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "z": 2.326,
+    "s": 0.09,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "indiv",
+     "expr": "V*z*s",
+     "value": 4.1868
+    },
+    {
+     "name": "comp",
+     "expr": "indiv*rho",
+     "value": 2.5121
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-10",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-48"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A one-year correlation swap on a three-asset basket has notional USD 12m and fixed correlation 0.18. At maturity the realised pairwise correlations are 0.24, 0.26 and 0.36.",
+  "ask": "The payoff to the buyer of correlation (the fixed-rate payer) is closest to…",
+  "options": [
+   {
+    "label": "≈ USD 0.13m",
+    "correct": false,
+    "why": "Averaged with $2/n^2 = 2/9$ instead of $2/(n^2-n) = 1/3$: realised $0.86 \\times 2/9 = 0.191$, so the payoff is $12 \\times (0.191 - 0.18) = 0.13$m. The $n$ diagonal pairs must be excluded."
+   },
+   {
+    "label": "≈ USD 1.3m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.4m",
+    "correct": false,
+    "why": "Forgot to net the fixed leg: $12 \\times 0.287 = 3.44$m is the realised leg alone."
+   },
+   {
+    "label": "≈ USD 10m",
+    "correct": false,
+    "why": "Summed the three correlations (0.86) instead of averaging them, and never netted the fixed rate: $12 \\times 0.86 = 10.3$m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Realised correlation",
+    "display": "$\\tfrac{1}{3}(0.24 + 0.26 + 0.36) = 0.2867$",
+    "value": 0.28667
+   },
+   {
+    "label": "Correlation spread",
+    "display": "$0.2867 - 0.18 = 0.1067$",
+    "value": 0.10667
+   },
+   {
+    "label": "Payoff",
+    "display": "$12\\text{m} \\times 0.1067 = \\text{USD } 1.28\\text{m}$",
+    "value": 1.28
+   }
+  ],
+  "takeaway": "Swap payoff = notional × (average realised − fixed); net the fixed leg.",
+  "check": {
+   "inputs": {
+    "N": 12,
+    "fixed": 0.18,
+    "r1": 0.24,
+    "r2": 0.26,
+    "r3": 0.36
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(r1 + r2 + r3)/3",
+     "value": 0.28667
+    },
+    {
+     "name": "spread",
+     "expr": "avg - fixed",
+     "value": 0.10667
+    },
+    {
+     "name": "payoff",
+     "expr": "N*spread",
+     "value": 1.28
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-11",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-48"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 12m correlation swap on three assets has a fixed correlation of 0.18. At maturity the realised pairwise correlations are 0.10, 0.28 and 0.12.",
+  "ask": "For the buyer of correlation (payer of the fixed rate), the payoff is…",
+  "options": [
+   {
+    "label": "Negative (buyer pays)",
+    "correct": true
+   },
+   {
+    "label": "Positive (buyer receives)",
+    "correct": false,
+    "why": "Anchored on the 0.28 pair, or summed the three (0.50) instead of averaging. The average is $0.50/3 = 0.167$, below 0.18."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Zero needs the average realised correlation to equal the fixed rate exactly; 0.167 ≠ 0.18."
+   }
+  ],
+  "working": [
+   {
+    "label": "Realised correlation",
+    "display": "$\\tfrac{1}{3}(0.10 + 0.28 + 0.12) = 0.1667$",
+    "value": 0.16667
+   },
+   {
+    "label": "Correlation spread",
+    "display": "$0.1667 - 0.18 = -0.0133$",
+    "value": -0.01333
+   },
+   {
+    "label": "Payoff",
+    "display": "$12\\text{m} \\times (-0.0133) = -\\text{USD } 0.16\\text{m}$",
+    "value": -0.16
+   }
+  ],
+  "takeaway": "Average the pairwise correlations first; the buyer wins only if that average beats the fixed rate.",
+  "check": {
+   "inputs": {
+    "N": 12,
+    "fixed": 0.18,
+    "r1": 0.1,
+    "r2": 0.28,
+    "r3": 0.12
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(r1 + r2 + r3)/3",
+     "value": 0.16667
+    },
+    {
+     "name": "spread",
+     "expr": "avg - fixed",
+     "value": -0.013333
+    },
+    {
+     "name": "payoff",
+     "expr": "N*spread",
+     "value": -0.16
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-49"
+  },
+  "trap_category": "Polarity",
+  "setup": "Volatility-weighted historical simulation (Hull–White). A return of $+5\\%$ was observed a month ago, when daily volatility was estimated at 2%. Today's daily volatility forecast is 1.5%.",
+  "ask": "The volatility-adjusted return used today is…",
+  "options": [
+   {
+    "label": "Smaller than 5%",
+    "correct": true
+   },
+   {
+    "label": "Larger than 5%",
+    "correct": false,
+    "why": "Inverted ratio: $(2.0/1.5) \\times 5\\% = 6.67\\%$. Today's volatility goes on top, because the output must live on today's scale."
+   },
+   {
+    "label": "Equal to 5%",
+    "correct": false,
+    "why": "That is basic historical simulation, with no volatility adjustment."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaling ratio",
+    "display": "$\\sigma_{\\text{today}} / \\sigma_{\\text{then}} = 1.5/2.0 = 0.75$",
+    "value": 0.75
+   },
+   {
+    "label": "Adjusted return",
+    "display": "$0.75 \\times 5\\% = 3.75\\% < 5\\%$",
+    "value": 0.0375
+   }
+  ],
+  "takeaway": "Calmer today than then → historical returns are scaled down (today's σ in the numerator).",
+  "check": {
+   "inputs": {
+    "r": 0.05,
+    "s_then": 0.02,
+    "s_now": 0.015
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "s_now/s_then",
+     "value": 0.75
+    },
+    {
+     "name": "radj",
+     "expr": "ratio*r",
+     "value": 0.0375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-13",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-50"
+  },
+  "trap_category": "Formula",
+  "setup": "Age-weighted historical simulation with a 300-day window and decay parameter $\\lambda = 0.8$. Consider the observation from 13 days ago.",
+  "ask": "The weight it receives is closest to…",
+  "options": [
+   {
+    "label": "≈ 0.0033",
+    "correct": false,
+    "why": "Equal weighting $1/300$: that is basic historical simulation, not age weighting."
+   },
+   {
+    "label": "≈ 0.014",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.069",
+    "correct": false,
+    "why": "Dropped the $(1 - \\lambda)$ factor: $0.8^{12} = 0.069$ on its own."
+   },
+   {
+    "label": "≈ 0.20",
+    "correct": false,
+    "why": "Never decayed: $(1 - \\lambda) = 0.2$ is the weight of the most recent observation ($i = 1$)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay factor",
+    "display": "$\\lambda^{i-1} = 0.8^{12} = 0.0687$",
+    "value": 0.068719
+   },
+   {
+    "label": "Numerator",
+    "display": "$0.0687 \\times (1 - 0.8) = 0.01374$",
+    "value": 0.013744
+   },
+   {
+    "label": "Denominator",
+    "display": "$1 - 0.8^{300} \\approx 1$",
+    "value": 1.0
+   },
+   {
+    "label": "Weight",
+    "display": "$w(13) = 0.01374$",
+    "value": 0.013744
+   }
+  ],
+  "takeaway": "Age weight $w(i) = \\lambda^{i-1}(1-\\lambda)/(1-\\lambda^n)$: newest gets $1-\\lambda$, then it decays geometrically.",
+  "check": {
+   "inputs": {
+    "lam": 0.8,
+    "i": 13,
+    "n": 300
+   },
+   "steps": [
+    {
+     "name": "decay",
+     "expr": "lam**(i-1)",
+     "value": 0.068719
+    },
+    {
+     "name": "num",
+     "expr": "decay*(1 - lam)",
+     "value": 0.013744
+    },
+    {
+     "name": "den",
+     "expr": "1 - lam**n",
+     "value": 1.0
+    },
+    {
+     "name": "w",
+     "expr": "num/den",
+     "value": 0.013744
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-14",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-50"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Age-weighted historical simulation: 300-day window, decay $\\lambda = 0.8$, weight $w(i) = \\lambda^{i-1}(1-\\lambda)/(1-\\lambda^{n})$. Basic historical simulation would give every observation $1/300 \\approx 0.0033$.",
+  "ask": "Is the age weight on the observation from 13 days ago larger than, smaller than, or about the same as 0.0033?",
+  "options": [
+   {
+    "label": "Larger",
+    "correct": true
+   },
+   {
+    "label": "Smaller",
+    "correct": false,
+    "why": "Thirteen days is still recent at $\\lambda = 0.8$: $0.8^{12} \\approx 0.069$, times 0.2 gives about 0.014, roughly 4× the equal weight. The age weight drops below $1/300$ only from about day 20 onward."
+   },
+   {
+    "label": "About the same",
+    "correct": false,
+    "why": "0.0137 vs 0.0033 is a factor of about 4, not a near tie."
+   }
+  ],
+  "working": [
+   {
+    "label": "Equal weight",
+    "display": "$1/300 = 0.00333$",
+    "value": 0.003333
+   },
+   {
+    "label": "Age weight",
+    "display": "$0.8^{12} \\times 0.2 / (1 - 0.8^{300}) = 0.01374$",
+    "value": 0.013744
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.01374 / 0.00333 \\approx 4.1$",
+    "value": 4.123
+   }
+  ],
+  "takeaway": "With a fast decay (λ = 0.8), recent observations get far more than 1/n; old ones get almost nothing.",
+  "check": {
+   "inputs": {
+    "lam": 0.8,
+    "i": 13,
+    "n": 300
+   },
+   "steps": [
+    {
+     "name": "eq",
+     "expr": "1/n",
+     "value": 0.003333
+    },
+    {
+     "name": "w",
+     "expr": "lam**(i-1)*(1 - lam)/(1 - lam**n)",
+     "value": 0.013744
+    },
+    {
+     "name": "ratio",
+     "expr": "w/eq",
+     "value": 4.123
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-15",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-51"
+  },
+  "trap_category": "Polarity",
+  "setup": "Stock A's past 260 daily returns are strongly **negatively** skewed. Position P1 is long A; P2 is an equal-sized short in A.",
+  "ask": "Which position has the larger 99% VaR?",
+  "options": [
+   {
+    "label": "P1, the long",
+    "correct": true
+   },
+   {
+    "label": "P2, the short",
+    "correct": false,
+    "why": "Polarity flip: a short loses when A rises, so it lives in the right tail, which negative skew makes short and thin."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "True only for a symmetric distribution; skew is exactly what breaks the mirror image."
+   },
+   {
+    "label": "Cannot be determined",
+    "correct": false,
+    "why": "The sign of the skew is given, and the sign decides which tail is long."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail shape",
+    "display": "Negative skew → long **left** tail, short right tail",
+    "value": null
+   },
+   {
+    "label": "Exposure map",
+    "display": "Long loses on the downside (left tail); short loses on the upside (right tail)",
+    "value": null
+   },
+   {
+    "label": "Answer",
+    "display": "Long position faces the long tail → larger VaR",
+    "value": null
+   }
+  ],
+  "takeaway": "Negative skew penalises the long; positive skew penalises the short.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-16",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Empirical Approaches to Risk Metrics and Hedging",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-06"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Regression hedge of a corporate bond yield $Y_p$ with a government futures yield $Y_h$: correlation 0.8, $\\sigma(Y_p) = 0.05$, $\\sigma(Y_h) = 0.04$. The slope is $\\beta = \\rho\\,\\sigma_p/\\sigma_h$.",
+  "ask": "The correlation pulls β below 1 and the volatility ratio pushes it above 1. Net: is β above 1, below 1, or exactly 1?",
+  "options": [
+   {
+    "label": "Exactly 1",
+    "correct": true
+   },
+   {
+    "label": "Below 1",
+    "correct": false,
+    "why": "That is the correlation factor alone (0.8); the volatility ratio 1.25 then scales it back up."
+   },
+   {
+    "label": "Above 1",
+    "correct": false,
+    "why": "That is the volatility ratio alone (1.25), with the correlation dropped."
+   }
+  ],
+  "working": [
+   {
+    "label": "Volatility ratio",
+    "display": "$\\sigma_p / \\sigma_h = 0.05 / 0.04 = 1.25$",
+    "value": 1.25
+   },
+   {
+    "label": "Hedge beta",
+    "display": "$\\beta = 0.8 \\times 1.25 = 1.00$",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "β = ρ × σ(hedged)/σ(hedge); here 0.8 × 1.25 cancels exactly, so regression and DV01-neutral hedges coincide.",
+  "check": {
+   "inputs": {
+    "rho": 0.8,
+    "sp": 0.05,
+    "sh": 0.04
+   },
+   "steps": [
+    {
+     "name": "vr",
+     "expr": "sp/sh",
+     "value": 1.25
+    },
+    {
+     "name": "beta",
+     "expr": "rho*vr",
+     "value": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-17",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Empirical Approaches to Risk Metrics and Hedging",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-07"
+  },
+  "trap_category": "Formula",
+  "setup": "Daily yield changes of the hedging instrument over four days (bp): 2.0, 2.5, 1.5, 3.0. The sample covariance with the hedged yield is 0.273. The hedge $\\beta = \\text{Cov}/\\text{Var}(Y_h)$ uses the **sample** variance.",
+  "ask": "Without finishing the division: is β above 1, below 1, or too close to call?",
+  "options": [
+   {
+    "label": "Below 1",
+    "correct": true
+   },
+   {
+    "label": "Above 1",
+    "correct": false,
+    "why": "Inverted ratio: $\\text{Var}/\\text{Cov} = 0.417/0.273 = 1.53$ is the reverse slope."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "Deviations from the mean 2.25 are ±0.25 and ±0.75, so the squared deviations sum to 1.25 and the sample variance is 0.417, well above the covariance 0.273."
+   }
+  ],
+  "working": [
+   {
+    "label": "Mean of $Y_h$",
+    "display": "$9.0/4 = 2.25$",
+    "value": 2.25
+   },
+   {
+    "label": "Sum of squared deviations",
+    "display": "$0.0625 + 0.0625 + 0.5625 + 0.5625 = 1.25$",
+    "value": 1.25
+   },
+   {
+    "label": "Sample variance",
+    "display": "$1.25/(4-1) = 0.4167$",
+    "value": 0.41667
+   },
+   {
+    "label": "Hedge beta",
+    "display": "$0.273/0.4167 = 0.655 < 1$",
+    "value": 0.6552
+   }
+  ],
+  "takeaway": "β = Cov/Var(hedge): when Var(hedge) exceeds the covariance, β < 1.",
+  "check": {
+   "inputs": {
+    "a": 2.0,
+    "b": 2.5,
+    "c": 1.5,
+    "d": 3.0,
+    "cov": 0.273
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "(a + b + c + d)/4",
+     "value": 2.25
+    },
+    {
+     "name": "ss",
+     "expr": "(a-m)**2 + (b-m)**2 + (c-m)**2 + (d-m)**2",
+     "value": 1.25
+    },
+    {
+     "name": "var",
+     "expr": "ss/3",
+     "value": 0.41667
+    },
+    {
+     "name": "beta",
+     "expr": "cov/var",
+     "value": 0.6552
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-18",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Empirical Approaches to Risk Metrics and Hedging",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-08"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "You are hedging USD 100m face of a bond with DV01 0.300 using an instrument with DV01 0.250. The estimated regression hedge factor is $\\beta = 0.80$.",
+  "ask": "In absolute size, is the regression hedge's face value larger than, smaller than, or equal to the DV01-neutral hedge's face value?",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Divided by β instead of multiplying ($120/0.8 = 150$m). β < 1 means the hedged yield moves less than the hedge yield, so less hedge is needed."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Only when β = 1, the DV01-neutral special case."
+   }
+  ],
+  "working": [
+   {
+    "label": "DV01 ratio",
+    "display": "$0.300/0.250 = 1.20$",
+    "value": 1.2
+   },
+   {
+    "label": "DV01-neutral face",
+    "display": "$100 \\times 1.20 = 120$m (short)",
+    "value": 120
+   },
+   {
+    "label": "Regression face",
+    "display": "$120 \\times 0.80 = 96$m (short) $< 120$m",
+    "value": 96
+   }
+  ],
+  "takeaway": "Regression hedge = DV01-neutral hedge × β; with β < 1 it must be the smaller position.",
+  "check": {
+   "inputs": {
+    "F": 100,
+    "dv_p": 0.3,
+    "dv_h": 0.25,
+    "beta": 0.8
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "dv_p/dv_h",
+     "value": 1.2
+    },
+    {
+     "name": "dvn",
+     "expr": "F*ratio",
+     "value": 120
+    },
+    {
+     "name": "reg",
+     "expr": "dvn*beta",
+     "value": 96
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-19",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Extreme Value Theory",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-21"
+  },
+  "trap_category": "Formula",
+  "setup": "A peaks-over-threshold (GPD) fit gives scale $\\beta = 0.60$, shape $\\xi = 0.30$, threshold $u = 1\\%$, and a share of observations above the threshold of $N_u/n = 5\\%$.",
+  "ask": "The 99% VaR is closest to…",
+  "options": [
+   {
+    "label": "≈ 0.23%",
+    "correct": false,
+    "why": "Flipped the exponent's sign: $0.20^{+0.30} = 0.617$ gives $1 + 2(0.617 - 1) = 0.23\\%$, which is below the threshold, impossible for a tail quantile."
+   },
+   {
+    "label": "≈ 2.2%",
+    "correct": true
+   },
+   {
+    "label": "≈ 6.7%",
+    "correct": false,
+    "why": "Scale slip (3×)."
+   },
+   {
+    "label": "≈ 19%",
+    "correct": false,
+    "why": "Used $N_u/n = 0.05$ where its reciprocal $n/N_u = 20$ belongs: $(0.05 \\times 0.01)^{-0.3} = 9.78$, so VaR $= 1 + 2 \\times 8.78 = 18.6\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inner term",
+    "display": "$\\tfrac{n}{N_u}(1-c) = 20 \\times 0.01 = 0.20$",
+    "value": 0.2
+   },
+   {
+    "label": "Power",
+    "display": "$0.20^{-0.30} = 1.6207$",
+    "value": 1.6207
+   },
+   {
+    "label": "99% VaR",
+    "display": "$1 + \\tfrac{0.60}{0.30}(1.6207 - 1) = 2.24\\%$",
+    "value": 2.2413
+   }
+  ],
+  "takeaway": "GPD VaR $= u + \\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$; it must land above $u$.",
+  "check": {
+   "inputs": {
+    "beta": 0.6,
+    "xi": 0.3,
+    "u": 1.0,
+    "p_exc": 0.05,
+    "c": 0.99
+   },
+   "steps": [
+    {
+     "name": "inner",
+     "expr": "(1/p_exc)*(1 - c)",
+     "value": 0.2
+    },
+    {
+     "name": "power",
+     "expr": "inner**(-xi)",
+     "value": 1.6207
+    },
+    {
+     "name": "VaR",
+     "expr": "u + (beta/xi)*(power - 1)",
+     "value": 2.2413
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-20",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Extreme Value Theory",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T3-21"
+  },
+  "trap_category": "Sign",
+  "setup": "GPD tail model: $\\beta = 0.60$, $\\xi = 0.30$, threshold $u = 1\\%$, $N_u/n = 5\\%$. The 99% VaR is $u + \\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$, and you have the inner term $\\frac{n}{N_u}(1-c) = 20 \\times 0.01 = 0.20$.",
+  "ask": "Is the curly-bracket term $\\{0.20^{-0.30} - 1\\}$ positive, negative, or approximately zero?",
+  "options": [
+   {
+    "label": "Positive: VaR sits above u",
+    "correct": true
+   },
+   {
+    "label": "Negative: VaR sits below u",
+    "correct": false,
+    "why": "A number below 1 raised to a **negative** power exceeds 1. The negative bracket comes from flipping the sign of $\\xi$ ($0.20^{+0.30} = 0.617$)."
+   },
+   {
+    "label": "Approximately zero: VaR ≈ u",
+    "correct": false,
+    "why": "$0.20^{-0.30} = 1.62$, so the bracket is 0.62, not near zero."
+   }
+  ],
+  "working": [
+   {
+    "label": "Power",
+    "display": "$0.20^{-0.30} = 1.6207$",
+    "value": 1.6207
+   },
+   {
+    "label": "Curly bracket",
+    "display": "$1.6207 - 1 = 0.6207 > 0$",
+    "value": 0.6207
+   },
+   {
+    "label": "99% VaR",
+    "display": "$1 + 2.0 \\times 0.6207 = 2.24\\% > u$",
+    "value": 2.2413
+   }
+  ],
+  "takeaway": "In the GPD VaR, $(\\text{small number})^{-\\xi} > 1$, so VaR always sits above the threshold.",
+  "check": {
+   "inputs": {
+    "beta": 0.6,
+    "xi": 0.3,
+    "u": 1.0,
+    "inner": 0.2
+   },
+   "steps": [
+    {
+     "name": "power",
+     "expr": "inner**(-xi)",
+     "value": 1.6207
+    },
+    {
+     "name": "brk",
+     "expr": "power - 1",
+     "value": 0.6207
+    },
+    {
+     "name": "VaR",
+     "expr": "u + (beta/xi)*brk",
+     "value": 2.2413
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-21",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "VaR Mapping",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-08"
+  },
+  "trap_category": "Formula",
+  "setup": "A benchmark index has 95% VaR of USD 2.080m; the active portfolio's tracking-error VaR against it is USD 1.090m. The ratio is $1.090/2.080 = 0.524$. Variance improvement is the share of index **variance** eliminated.",
+  "ask": "Is the variance improvement above 50%, below 50%, or too close to call?",
+  "options": [
+   {
+    "label": "Above 50%",
+    "correct": true
+   },
+   {
+    "label": "Below 50%",
+    "correct": false,
+    "why": "Forgot to square: $1 - 0.524 = 47.6\\%$. VaR is in standard-deviation units, so the ratio must be squared before comparing variances."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "That near-50% number is the unsquared one. Squared, the ratio is 0.275, far from 0.5."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR ratio",
+    "display": "$1.090/2.080 = 0.524$",
+    "value": 0.52404
+   },
+   {
+    "label": "Variance ratio",
+    "display": "$0.524^2 = 0.275$",
+    "value": 0.27462
+   },
+   {
+    "label": "Variance improvement",
+    "display": "$1 - 0.275 = 72.5\\% > 50\\%$",
+    "value": 0.72538
+   }
+  ],
+  "takeaway": "VaRs are standard deviations: square their ratio before talking variance.",
+  "check": {
+   "inputs": {
+    "te": 1.09,
+    "idx": 2.08
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "te/idx",
+     "value": 0.52404
+    },
+    {
+     "name": "vr",
+     "expr": "ratio**2",
+     "value": 0.27462
+    },
+    {
+     "name": "impr",
+     "expr": "1 - vr",
+     "value": 0.72538
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-22",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Backtesting VaR",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-14"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Backtesting a daily 98% VaR over $T = 252$ days with a two-tailed 95% test (accept if $|z| \\le 1.96$). Expected exceptions $Tp = 5.04$; standard deviation $\\sqrt{Tp(1-p)} = 2.22$. The model produced 10 exceptions.",
+  "ask": "Is the z-statistic for 10 exceptions above the 1.96 cutoff, below it, or too close to call?",
+  "options": [
+   {
+    "label": "Above 1.96: reject",
+    "correct": true
+   },
+   {
+    "label": "Below 1.96: accept",
+    "correct": false,
+    "why": "The acceptance bound is $5.04 + 1.96 \\times 2.22 = 9.40$; rounding that bound up to 10 makes 10 look acceptable, but the largest acceptable count is 9. Dividing by the variance 4.94 instead of the s.d. gives the same wrong accept."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "$z = 4.96/2.22 = 2.23$, clearly past 1.96; 10 exceptions is 0.6 above the 9.40 bound."
+   }
+  ],
+  "working": [
+   {
+    "label": "Excess exceptions",
+    "display": "$10 - 5.04 = 4.96$",
+    "value": 4.96
+   },
+   {
+    "label": "z-statistic",
+    "display": "$4.96 / 2.2224 = 2.23 > 1.96$",
+    "value": 2.2318
+   },
+   {
+    "label": "Acceptance bound",
+    "display": "$5.04 + 1.96 \\times 2.2224 = 9.40$ → max 9 exceptions",
+    "value": 9.396
+   }
+  ],
+  "takeaway": "The largest acceptable exception count is the integer below the bound, not the nearest one.",
+  "check": {
+   "inputs": {
+    "T": 252,
+    "p": 0.02,
+    "x": 10,
+    "zc": 1.96
+   },
+   "steps": [
+    {
+     "name": "mean",
+     "expr": "T*p",
+     "value": 5.04
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(T*p*(1 - p))",
+     "value": 2.2224
+    },
+    {
+     "name": "z",
+     "expr": "(x - mean)/sd",
+     "value": 2.2318
+    },
+    {
+     "name": "bound",
+     "expr": "mean + zc*sd",
+     "value": 9.396
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-23",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-22"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "One monthly step of a CIR short-rate model, $dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$: $r = 4\\%$, $\\theta = 6\\%$, $k = 0.40$, $\\sigma = 0.08$, $dt = 1/12$, realised $dw = 0.15$ (rates in decimals).",
+  "ask": "Which term contributes more to $dr$ this month: the drift or the diffusion?",
+  "options": [
+   {
+    "label": "The diffusion term",
+    "correct": true
+   },
+   {
+    "label": "The drift term",
+    "correct": false,
+    "why": "Drift scales linearly with $dt$: $0.40 \\times 0.02 \\times \\tfrac{1}{12} = 0.00067$, tiny over one month."
+   },
+   {
+    "label": "Roughly equal",
+    "correct": false,
+    "why": "$0.0024$ vs $0.00067$: the diffusion term is about 3.6× the drift."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift term",
+    "display": "$0.40 \\times (0.06 - 0.04) \\times \\tfrac{1}{12} = 0.000667$",
+    "value": 0.000667
+   },
+   {
+    "label": "Root of rate",
+    "display": "$\\sqrt{0.04} = 0.20$ (decimal rate)",
+    "value": 0.2
+   },
+   {
+    "label": "Diffusion term",
+    "display": "$0.08 \\times 0.20 \\times 0.15 = 0.0024$",
+    "value": 0.0024
+   },
+   {
+    "label": "Diffusion / drift",
+    "display": "$0.0024 / 0.000667 \\approx 3.6$",
+    "value": 3.6
+   }
+  ],
+  "takeaway": "Over short steps the random term dominates the drift; in CIR take $\\sqrt{r}$ on the decimal rate.",
+  "check": {
+   "inputs": {
+    "r": 0.04,
+    "theta": 0.06,
+    "k": 0.4,
+    "sigma": 0.08,
+    "dt": 0.08333333333333333,
+    "dw": 0.15
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "k*(theta - r)*dt",
+     "value": 0.000667
+    },
+    {
+     "name": "sr",
+     "expr": "sqrt(r)",
+     "value": 0.2
+    },
+    {
+     "name": "diff",
+     "expr": "sigma*sr*dw",
+     "value": 0.0024
+    },
+    {
+     "name": "ratio",
+     "expr": "diff/drift",
+     "value": 3.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-24",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-02"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "You estimate the 95% quantile (VaR) from $n = 1{,}000$ observations assumed standard normal. The density at that quantile is $f(q) = 0.1031$.",
+  "ask": "The standard error of the quantile estimate, in return units, is closest to…",
+  "options": [
+   {
+    "label": "≈ 0.00071",
+    "correct": false,
+    "why": "Multiplied by the density instead of dividing. A thinner density at the quantile must mean a **larger** standard error."
+   },
+   {
+    "label": "≈ 0.0069",
+    "correct": false,
+    "why": "Stopped at $\\sqrt{p(1-p)/n}$ and never divided by $f(q)$."
+   },
+   {
+    "label": "≈ 0.067",
+    "correct": true
+   },
+   {
+    "label": "≈ 2.1",
+    "correct": false,
+    "why": "Left $n$ out of the root: $\\sqrt{0.0475}/0.1031 = 2.11$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Binomial term",
+    "display": "$p(1-p) = 0.95 \\times 0.05 = 0.0475$",
+    "value": 0.0475
+   },
+   {
+    "label": "Root",
+    "display": "$\\sqrt{0.0475/1000} = 0.00689$",
+    "value": 0.006892
+   },
+   {
+    "label": "Standard error",
+    "display": "$0.00689 / 0.1031 = 0.0668$",
+    "value": 0.06685
+   }
+  ],
+  "takeaway": "Quantile s.e. $= \\frac{1}{f(q)}\\sqrt{p(1-p)/n}$: the density divides, so thin tails mean noisy VaR.",
+  "check": {
+   "inputs": {
+    "p": 0.95,
+    "n": 1000,
+    "f": 0.1031
+   },
+   "steps": [
+    {
+     "name": "pq",
+     "expr": "p*(1 - p)",
+     "value": 0.0475
+    },
+    {
+     "name": "root",
+     "expr": "sqrt(pq/n)",
+     "value": 0.006892
+    },
+    {
+     "name": "se",
+     "expr": "root/f",
+     "value": 0.06685
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-25",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-04"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Analyst A (250 obs) estimates a 95% VaR of 2.10% with standard error 0.134%. Analyst B (1,000 obs) gets 2.31% with standard error 0.067%. The gap between the point estimates is 0.21 percentage points.",
+  "ask": "Is the 0.21pp gap larger than, smaller than, or too close to call against the half-width of A's 95% confidence interval?",
+  "options": [
+   {
+    "label": "Smaller: B's estimate sits inside A's interval",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Compared the gap to one standard error (0.134) instead of $1.96 \\times 0.134 = 0.263$."
+   },
+   {
+    "label": "Too close to call",
+    "correct": false,
+    "why": "The half-width is 0.263 against a 0.21 gap. B's 2.31% sits clearly inside [1.84%, 2.36%]."
+   }
+  ],
+  "working": [
+   {
+    "label": "Half-width of A's CI",
+    "display": "$1.96 \\times 0.134 = 0.263$",
+    "value": 0.26264
+   },
+   {
+    "label": "A's 95% CI",
+    "display": "$2.10 \\pm 0.263 = [1.84\\%,\\ 2.36\\%]$",
+    "value": null
+   },
+   {
+    "label": "Gap vs half-width",
+    "display": "$0.21 < 0.263$ → not statistically distinguishable",
+    "value": 0.21
+   }
+  ],
+  "takeaway": "A gap between estimates means nothing until it is measured in standard errors.",
+  "check": {
+   "inputs": {
+    "vA": 2.1,
+    "vB": 2.31,
+    "seA": 0.134,
+    "zc": 1.96
+   },
+   "steps": [
+    {
+     "name": "half",
+     "expr": "zc*seA",
+     "value": 0.26264
+    },
+    {
+     "name": "gap",
+     "expr": "vB - vA",
+     "value": 0.21
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-26",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-09"
+  },
+  "trap_category": "Polarity",
+  "setup": "You redraw a volatility smile against actual European **call** deltas, keeping the axis ordered so that the **strike increases** from left to right across five points.",
+  "ask": "Reading left to right, the call delta…",
+  "options": [
+   {
+    "label": "Falls steadily (near 1 → near 0)",
+    "correct": true
+   },
+   {
+    "label": "Rises steadily (near 0 → near 1)",
+    "correct": false,
+    "why": "Low strikes are deep in the money, with call delta near 1; high strikes are out of the money, with delta near 0."
+   },
+   {
+    "label": "Falls to 0.50, then rises again (10-25-50-25-10)",
+    "correct": false,
+    "why": "That is the market shorthand, which switches from puts to calls at the money. Call delta $N(d_1)$ is strictly decreasing in strike, so no value can repeat."
+   }
+  ],
+  "working": [
+   {
+    "label": "Monotonicity",
+    "display": "$N(d_1)$ is strictly decreasing in $K$",
+    "value": null
+   },
+   {
+    "label": "Sequence",
+    "display": "$[0.90,\\ 0.75,\\ 0.50,\\ 0.25,\\ 0.10]$",
+    "value": null
+   }
+  ],
+  "takeaway": "Call delta falls as strike rises; the symmetric 10-25-50-25 labels mix puts and calls.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-27",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-12"
+  },
+  "trap_category": "Sign",
+  "setup": "A one-year at-the-money equity call has BSM delta 0.60, so the matching put's BSM delta is $-0.40$. The market shows the standard equity skew: implied volatility **decreases** in $K/S(0)$ (heavy left tail).",
+  "ask": "Relative to $-0.40$, the put's TRUE delta (including the smile effect) is…",
+  "options": [
+   {
+    "label": "Higher, i.e. less negative (e.g. −0.35)",
+    "correct": true
+   },
+   {
+    "label": "Lower, i.e. more negative (e.g. −0.45)",
+    "correct": false,
+    "why": "This reads 'more sensitive' as 'more negative'. Parity forces put delta = call delta − 1, and the call's true delta rises above 0.60, so the put's delta also rises."
+   },
+   {
+    "label": "Equal to −0.40",
+    "correct": false,
+    "why": "This drops the smile term vega × ∂σ/∂S, which is positive under an equity skew."
+   }
+  ],
+  "working": [
+   {
+    "label": "Smile term",
+    "display": "vega $> 0$; $S\\uparrow \\Rightarrow K/S\\downarrow \\Rightarrow \\sigma_{imp}\\uparrow$, so $\\partial\\sigma_{imp}/\\partial S > 0$",
+    "value": null
+   },
+   {
+    "label": "True call delta",
+    "display": "$0.60 + (\\text{positive}) > 0.60$",
+    "value": null
+   },
+   {
+    "label": "True put delta",
+    "display": "$\\Delta_c - 1 > 0.60 - 1 = -0.40$",
+    "value": null
+   }
+  ],
+  "takeaway": "Equity skew raises both true deltas by the same amount: the call's above 0.60, the put's toward zero.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-28",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-13"
+  },
+  "trap_category": "Scope",
+  "setup": "A call struck at USD 20 is at the money (BSM delta 0.50). The implied distribution has a **light left tail and a heavy right tail**, so implied volatility **rises** with $K/S(0)$. The stock drifts up toward USD 21.",
+  "ask": "Relative to 0.50, the call's TRUE delta (BSM term plus smile term)…",
+  "options": [
+   {
+    "label": "Rises above 0.50",
+    "correct": false,
+    "why": "That counts only the BSM term. Under a reverse skew the smile term is negative and pulls the other way."
+   },
+   {
+    "label": "Falls below 0.50",
+    "correct": false,
+    "why": "That counts only the smile term; nothing in the setup says it outweighs the BSM move."
+   },
+   {
+    "label": "Stays at 0.50",
+    "correct": false,
+    "why": "This ignores both terms, and they are not zero."
+   },
+   {
+    "label": "Cannot be signed without magnitudes",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "BSM term",
+    "display": "Moving into the money: $N(d_1)$ rises above 0.50 (positive)",
+    "value": null
+   },
+   {
+    "label": "Smile term",
+    "display": "$S\\uparrow \\Rightarrow K/S\\downarrow \\Rightarrow \\sigma_{imp}\\downarrow$; vega $\\times$ (negative) $< 0$",
+    "value": null
+   },
+   {
+    "label": "Net",
+    "display": "Opposite signs → indeterminate without skew steepness and vega",
+    "value": null
+   }
+  ],
+  "takeaway": "Sign each delta term separately; call a direction only when the signs agree (equity skew yes, reverse skew no).",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-29",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T1-08"
+  },
+  "trap_category": "Polarity",
+  "setup": "An analyst believes an asset's volatility is uncertain and **positively** correlated with its price.",
+  "ask": "Relative to constant-volatility (BSM) prices, out-of-the-money **puts** are…",
+  "options": [
+   {
+    "label": "Cheaper",
+    "correct": true
+   },
+   {
+    "label": "More expensive",
+    "correct": false,
+    "why": "That is the equity pattern, which comes from **negative** correlation. Positive correlation thins the left tail, and OTM puts (low strikes) are priced off that tail."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Stochastic volatility that is correlated with price reshapes the implied distribution's tails, so low-strike options are no longer priced at the constant-volatility value."
+   }
+  ],
+  "working": [
+   {
+    "label": "Correlation → tails",
+    "display": "High price with high vol → heavy right tail, light left tail",
+    "value": null
+   },
+   {
+    "label": "Tails → strikes",
+    "display": "OTM puts are struck low → priced off the light left tail → cheaper",
+    "value": null
+   }
+  ],
+  "takeaway": "Positive price–vol correlation: upward skew, OTM puts cheap, OTM calls dear.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-30",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-08"
+  },
+  "trap_category": "Polarity",
+  "setup": "A normal (Gaussian) short-rate tree produces some negative nodes. The modeller replaces every negative node with zero and leaves all other nodes unchanged.",
+  "ask": "Compared with the unfloored tree, the mean of the modelled short rate…",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Wrong direction: the only values changed were negatives, and each one moved **up** to zero."
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "Tempting because negative nodes are rare, but truncating the left tail is a systematic change that moves the mean up (and the volatility down)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Mechanism",
+    "display": "Negative nodes move up to 0; nothing moves down",
+    "value": null
+   },
+   {
+    "label": "Moments",
+    "display": "Mean ↑, volatility ↓ vs the unadjusted model",
+    "value": null
+   }
+  ],
+  "takeaway": "Flooring at zero raises the mean and lowers the volatility of the modelled rate.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-31",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-20"
+  },
+  "trap_category": "Sign",
+  "setup": "A domestic investor holds a quanto **call** on a foreign equity index, with the payoff converted at a fixed exchange rate. Let $\\rho$ be the correlation between the index and the FX rate (domestic currency per unit of foreign).",
+  "ask": "If $\\rho$ increases, the value of the quanto call…",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "Wrong sign: $\\rho$ enters the quanto drift with a minus sign."
+   },
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Is unchanged, because the rate is fixed",
+    "correct": false,
+    "why": "The fixed rate is the source of the exposure, not a hedge against it."
+   },
+   {
+    "label": "Can't be signed without the FX volatility",
+    "correct": false,
+    "why": "Volatilities multiply $\\rho$ and are non-negative, so they set the size of the effect, not its sign."
+   }
+  ],
+  "working": [
+   {
+    "label": "Quanto drift",
+    "display": "$\\mu_{quanto} = r_f - q - \\rho\\,\\sigma_S\\,\\sigma_E$",
+    "value": null
+   },
+   {
+    "label": "Chain",
+    "display": "$\\rho\\uparrow \\Rightarrow \\mu_{quanto}\\downarrow \\Rightarrow$ call $\\downarrow$ (put $\\uparrow$)",
+    "value": null
+   }
+  ],
+  "takeaway": "Higher index–FX correlation lowers the quanto drift: quanto calls lose value, quanto puts gain.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-32",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-24"
+  },
+  "trap_category": "Scope",
+  "setup": "A portfolio is **long** two assets with fixed weights and volatilities. VaR is computed with the variance–covariance approach. The correlation between the assets rises from 0 to 0.5.",
+  "ask": "Portfolio VaR…",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "For two longs the cross term $2w_1w_2\\rho\\sigma_1\\sigma_2$ has a positive coefficient. VaR falls with $\\rho$ only if one leg is short."
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "Correlation enters portfolio variance directly through the cross term."
+   },
+   {
+    "label": "Depends on the two volatilities",
+    "correct": false,
+    "why": "The volatilities set the size of the change, not its sign: the coefficient on $\\rho$ is positive whatever they are."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$w_1^2\\sigma_1^2 + w_2^2\\sigma_2^2 + 2w_1w_2\\rho\\sigma_1\\sigma_2$",
+    "value": null
+   },
+   {
+    "label": "Sign",
+    "display": "Coefficient on $\\rho$ $> 0$ for long/long → VaR increasing in $\\rho$",
+    "value": null
+   }
+  ],
+  "takeaway": "Long/long: VaR rises with correlation, maximal at ρ = 1 (sum of individual VaRs).",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-33",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Meissner, Correlation Risk",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T2-30"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank spreads its loan book across more borrowers, lowering its concentration ratio. The default correlation between the loans is strictly **below one**.",
+  "ask": "The joint probability of default across the portfolio…",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "More names with $\\rho < 1$ add independent variation; simultaneous failure becomes less likely."
+   },
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "Only at $\\rho = 1$, where obligors fail as a block. The setup rules that out."
+   },
+   {
+    "label": "Cannot be determined",
+    "correct": false,
+    "why": "The $\\rho < 1$ condition is exactly what makes the sign determinable."
+   }
+  ],
+  "working": [
+   {
+    "label": "Joint PD",
+    "display": "$P(A \\cap B) = \\rho\\sqrt{PD_A(1-PD_A)PD_B(1-PD_B)} + PD_A PD_B$",
+    "value": null
+   },
+   {
+    "label": "Direction",
+    "display": "$\\rho < 1$ → diversification works → joint default probability falls",
+    "value": null
+   }
+  ],
+  "takeaway": "Lower concentration with ρ < 1 → lower joint default probability; at ρ = 1 diversification does nothing.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-34",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "VaR Mapping",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-04"
+  },
+  "trap_category": "Scope",
+  "setup": "A risk manager adds several new **general** risk factors to an existing mapped VaR model.",
+  "ask": "The specific risk in the model…",
+  "options": [
+   {
+    "label": "Increases",
+    "correct": false,
+    "why": "More factors can mean more estimation error, but the specific term is the residual, and a residual cannot grow when regressors are added."
+   },
+   {
+    "label": "Decreases",
+    "correct": true
+   },
+   {
+    "label": "Is unaffected",
+    "correct": false,
+    "why": "General and specific risk split one fixed total; they are not measured independently."
+   },
+   {
+    "label": "Can't be signed without knowing the factors",
+    "correct": false,
+    "why": "The factors chosen set the **size** of the drop, not its sign."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decomposition",
+    "display": "$V(R_p) = \\beta_p^2 V(R_m) + \\sum_i w_i^2 \\sigma_{\\text{specific},i}^2$",
+    "value": null
+   },
+   {
+    "label": "Direction",
+    "display": "Total fixed; more explained by general factors → residual (specific) shrinks",
+    "value": null
+   }
+  ],
+  "takeaway": "Adding general factors moves variance from specific to general risk: specific risk falls.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-35",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "VaR Mapping",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-06"
+  },
+  "trap_category": "Sibling",
+  "setup": "A two-bond portfolio's VaR is computed with **duration mapping**, which collapses it onto one vertex. The analyst re-maps it with **cash-flow mapping** onto several vertices whose correlations are high but below one.",
+  "ask": "The VaR…",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "Cash-flow mapping captures diversification that duration mapping assumes away; it cannot add risk here."
+   },
+   {
+    "label": "Falls",
+    "correct": true
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "Only if all vertex correlations were 1 and risk were linear in maturity; neither holds."
+   }
+  ],
+  "working": [
+   {
+    "label": "Duration mapping",
+    "display": "One vertex → cash flows implicitly perfectly correlated: VaR 2.80",
+    "value": 2.8
+   },
+   {
+    "label": "Cash-flow mapping",
+    "display": "$\\text{VaR}^2 = \\sum_{i,j}\\text{VaR}_i\\text{VaR}_j\\rho_{ij}$ with $\\rho_{ij} < 1$: VaR 2.67",
+    "value": 2.67
+   }
+  ],
+  "takeaway": "The finer the mapping, the more diversification it recognises: duration mapping is conservative.",
+  "check": {
+   "inputs": {
+    "dur": 2.8,
+    "cf": 2.67
+   },
+   "steps": [
+    {
+     "name": "change",
+     "expr": "cf - dur",
+     "value": -0.13
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MR2-36",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Backtesting VaR",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-T4-20"
+  },
+  "trap_category": "Polarity",
+  "setup": "A VaR model's PIT values (where each realised P&L fell within the model's predicted distribution) bunch heavily around 0.5, with very few near 0 or 1.",
+  "ask": "The model…",
+  "options": [
+   {
+    "label": "Overstates risk",
+    "correct": true
+   },
+   {
+    "label": "Understates risk",
+    "correct": false,
+    "why": "That is the signature of excess mass in the tails of the PIT histogram (outcomes landing at the extremes)."
+   },
+   {
+    "label": "Is well calibrated",
+    "correct": false,
+    "why": "A correct model gives a **flat** PIT histogram, not one peaked in the middle."
+   }
+  ],
+  "working": [
+   {
+    "label": "Reading",
+    "display": "Outcomes keep landing near the centre → predicted distribution too wide",
+    "value": null
+   },
+   {
+    "label": "Verdict",
+    "display": "Risk overstated; capital tied up unnecessarily",
+    "value": null
+   }
+  ],
+  "takeaway": "PIT peaked in the middle = forecast too wide (overstates); mass in the ends = too narrow (understates).",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-37",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-06"
+  },
+  "trap_category": "Polarity",
+  "setup": "A QQ plot of daily equity returns (empirical quantiles on the vertical axis) against a normal reference: the middle hugs the line, the left end falls **below** it and the right end rises **above** it.",
+  "ask": "Relative to the normal, the tails are…",
+  "options": [
+   {
+    "label": "Heavier",
+    "correct": true
+   },
+   {
+    "label": "Lighter",
+    "correct": false,
+    "why": "Lighter tails bend the ends **toward** the line. Here the extremes are larger in magnitude than the normal predicts at both ends."
+   },
+   {
+    "label": "Neither: it is a mean shift",
+    "correct": false,
+    "why": "A location shift moves the whole line (non-zero intercept); it doesn't bend both ends in opposite directions."
+   }
+  ],
+  "working": [
+   {
+    "label": "Left end",
+    "display": "Empirical quantile more negative than normal → bigger losses",
+    "value": null
+   },
+   {
+    "label": "Right end",
+    "display": "Empirical quantile more positive than normal → bigger gains",
+    "value": null
+   },
+   {
+    "label": "Verdict",
+    "display": "S-shape bending outward → excess kurtosis (heavy tails)",
+    "value": null
+   }
+  ],
+  "takeaway": "QQ ends bending away from the line = heavy tails; bending toward it = light tails.",
+  "check": null
+ },
+ {
+  "id": "SC-bank-MR2-38",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "reading_id": null,
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-FT-10"
+  },
+  "trap_category": "Polarity",
+  "setup": "An asset's implied distribution has a **lighter left tail and a heavier right tail** than lognormal. The risk reversal is $RR = \\sigma_{imp}(0.25\\Delta\\text{ call}) - \\sigma_{imp}(-0.25\\Delta\\text{ put})$.",
+  "ask": "The risk reversal is…",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "That is the standard equity-skew case (heavy left tail). This setup describes the reverse skew."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Zero needs a symmetric smile; the tails here are asymmetric."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tails → slope",
+    "display": "Light left, heavy right → implied vol increasing in strike",
+    "value": null
+   },
+   {
+    "label": "Legs",
+    "display": "25Δ call is struck high (high vol); −25Δ put is struck low (low vol)",
+    "value": null
+   },
+   {
+    "label": "Sign",
+    "display": "$RR = \\text{high} - \\text{low} > 0$",
+    "value": null
+   }
+  ],
+  "takeaway": "Risk reversal sign = direction of skew: negative for equity skew, positive for reverse skew.",
+  "check": null
+ }
+]
