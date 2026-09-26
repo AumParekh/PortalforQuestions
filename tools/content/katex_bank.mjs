@@ -1,7 +1,7 @@
-// Renders every $…$ / $$…$$ span in the question bank with KaTeX and reports the ones that fail.
+// Renders every $…$ / $$…$$ span in the question bank and the mocks with KaTeX and reports the ones that fail.
 //   NODE_PATH=<dir with katex> node tools/content/katex_bank.mjs [ID-prefix…]
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 const katex = require('katex');
@@ -17,8 +17,13 @@ const texts = (q) => [
   ['trap', q.trap?.explanation],
 ];
 
-for (const s of ['IR', 'MR', 'CR', 'LR', 'OR', 'CI']) {
-  for (const q of JSON.parse(readFileSync(new URL(`../../content/${s}.json`, import.meta.url))).questions) {
+const mocksDir = new URL('../../content/mocks/', import.meta.url);
+const files = [
+  ...['IR', 'MR', 'CR', 'LR', 'OR', 'CI'].map((s) => `${s}.json`),
+  ...(existsSync(mocksDir) ? readdirSync(mocksDir).filter((f) => f.endsWith('.json')).map((f) => `mocks/${f}`) : []),
+];
+for (const file of files) {
+  for (const q of JSON.parse(readFileSync(new URL(`../../content/${file}`, import.meta.url))).questions) {
     if (only.length && !only.some((p) => q.id.startsWith(p))) continue;
     for (const [where, text] of texts(q)) {
       if (typeof text !== 'string') continue;

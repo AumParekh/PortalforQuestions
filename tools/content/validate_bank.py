@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Structural checks on the question bank (content/{IR,MR,CR,LR,OR,CI}.json).
+"""Structural checks on the question bank (content/{IR,MR,CR,LR,OR,CI}.json and content/mocks/*.json).
 
 Usage: validate_bank.py [--diff <git-ref>]
 
@@ -8,6 +8,7 @@ optionAnalysis keys not matching the options, optionAnalysis marking anything bu
 as correct, or unbalanced $ math delimiters. With --diff, also lists every question whose
 answer key, options, question or solution differ from <git-ref> (the audit's change report).
 """
+import glob
 import json
 import os
 import re
@@ -54,7 +55,7 @@ def problems(q):
 
 
 def load(subject, ref=None):
-    path = f'content/{subject}.json'
+    path = subject if subject.startswith('content/') else f'content/{subject}.json'
     if ref:
         raw = subprocess.run(['git', 'show', f'{ref}:{path}'], cwd=ROOT, capture_output=True, text=True, check=True).stdout
         return json.loads(raw)['questions']
@@ -64,7 +65,8 @@ def load(subject, ref=None):
 def main():
     ref = sys.argv[sys.argv.index('--diff') + 1] if '--diff' in sys.argv else None
     bad, seen, total = [], set(), 0
-    for s in SUBJECTS:
+    mocks = sorted(os.path.relpath(p, ROOT) for p in glob.glob(os.path.join(ROOT, 'content', 'mocks', '*.json')))
+    for s in SUBJECTS + mocks:
         for q in load(s):
             total += 1
             p = problems(q)
