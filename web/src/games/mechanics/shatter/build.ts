@@ -207,24 +207,11 @@ export function timeFor(tokens: readonly Token[], pressureStep: number | null): 
   return Math.round(base * Math.pow(0.9, pressureStep));
 }
 
-/** What each trap shape does, for the one-line naming (§8.3). */
-export const TRAP_SHAPE: Record<TrapCategory, string> = {
-  Polarity: 'the direction is the whole claim, and the reversed version reads just as smoothly.',
-  Sibling: 'two neighbouring concepts trade places; each is right somewhere else.',
-  Role: 'the right action pinned on the wrong party.',
-  Sign: 'the right quantity with its sign or inequality turned.',
-  Scope: 'a true claim stretched past where the notes limit it.',
-  Definition: 'a near-miss definition that drops or adds one condition.',
-  Formula: 'the right inputs assembled the wrong way.',
-  'Intermediate result': 'a correct number that answers a different step of the chain.',
-  Sequence: 'the right steps in the wrong order.',
-};
-
 const GENERIC_TITLE = /trap|summary|remember|key (facts|points)|note/i;
 
 /**
  * A concept to name from a trap: its longest emphasised multi-word phrase; else the statement
- * itself when short; else a non-generic block title; else the category.
+ * itself when short; else a non-generic block title; else the statement.
  */
 export function namingFor(corpus: Corpus, reading: Reading, t: Trap): ConceptNaming {
   const correct = trapBody(t, t.correct_text ? 'correct' : 'text');
@@ -233,19 +220,16 @@ export function namingFor(corpus: Corpus, reading: Reading, t: Trap): ConceptNam
   const sentence = toDisplay(correct);
   const title = block?.title && !GENERIC_TITLE.test(block.title) ? toDisplay(block.title) : null;
   const longest = phrases.sort((a, b) => b.length - a.length)[0];
-  const term =
-    longest ?? (sentence.split(/\s+/).length <= 16 ? sentence.replace(/[.;:]+$/, '') : null) ?? title ?? `${t.category ?? 'Trap'} in ${reading.reading_id}`;
+  const bare = sentence.replace(/[.;:]+$/, '');
+  const term = longest ?? (sentence.split(/\s+/).length <= 16 ? bare : null) ?? title ?? bare;
   const los = learningObjectives(reading);
   const objectiveId = trapObjective(corpus, t) ?? los[los.length - 1]?.id ?? reading.reading_id;
   return {
     term,
     blockId: t.source_block ?? t.id,
     objectiveId,
-    line: t.category
-      ? `${t.category} trap: ${TRAP_SHAPE[t.category]}`
-      : term === sentence.replace(/[.;:]+$/, '')
-        ? `From the trap box in ${reading.reading_id}.`
-        : `From the trap box in ${reading.reading_id}: ${sentence}`,
+    // The notes' own sentence; nothing when the term already is that sentence.
+    line: term === bare ? '' : sentence,
   };
 }
 

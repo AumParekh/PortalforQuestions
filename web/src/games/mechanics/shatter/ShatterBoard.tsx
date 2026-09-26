@@ -140,8 +140,6 @@ function Round({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage, settled]);
 
-  // No trap-category names before the naming step (§11): discovery cites the block only.
-  const source = phase === 'discovery' || !p.category ? `block ${round.blockId}` : `${p.category} · block ${round.blockId}`;
   const verdictLine =
     p.verdict === 'TRUE' ? 'Stands as written.' : p.verdict === 'FLIPPED' ? 'Flipped. The notes say:' : 'Swapped. The notes say:';
 
@@ -186,7 +184,7 @@ function Round({
           </div>
           {p.verdict === 'TRUE' ? (
             <p className="g-settle g-small">
-              <span className="g-strong">Stands as written.</span> <span className="g-muted">{source}</span>
+              <span className="g-strong">Stands as written.</span>
             </p>
           ) : (
             <div className="g-assemble border-l-[3px] pl-4" style={{ borderColor: 'var(--g-green)' }}>
@@ -195,10 +193,12 @@ function Round({
               </p>
               {p.swap && (
                 <p className="g-small">
-                  <span className="g-strong">{p.swap.answer}</span>, not {p.swap.swappedIn}.
+                  <span className="g-strong">
+                    <NoteText latex={p.swap.answer} />
+                  </span>
+                  , not <NoteText latex={p.swap.swappedIn} />.
                 </p>
               )}
-              <p className="g-source">{source}</p>
             </div>
           )}
         </div>
@@ -207,7 +207,13 @@ function Round({
       {stage === 'done' && outcome && !outcome.correct && (
         <div className="space-y-3">
           <p className="g-small g-muted">
-            {outcome.timedOut ? 'Time ran out.' : outcome.ruling && outcome.ruling !== p.verdict ? `Ruled ${outcome.ruling}.` : outcome.picked ? `Picked "${outcome.picked}".` : 'That word is not the break.'}
+            {outcome.timedOut ? 'Time ran out.' : outcome.ruling && outcome.ruling !== p.verdict ? `Ruled ${outcome.ruling}.` : outcome.picked ? (
+              <>
+                Picked “<NoteText latex={outcome.picked} />”.
+              </>
+            ) : (
+              'That word is not the break.'
+            )}
           </p>
           <WrongHold
             wrong={<Statement p={p} tappable={false} marks={{ flip: false, tapped: outcome.tapped, hitOk: false }} />}
@@ -217,12 +223,11 @@ function Round({
                 <NoteText latex={p.correct} />
                 {p.swap && (
                   <span className="block g-small mt-1">
-                    {p.swap.answer}, not {p.swap.swappedIn}.
+                    <NoteText latex={p.swap.answer} />, not <NoteText latex={p.swap.swappedIn} />.
                   </span>
                 )}
               </>
             }
-            source={source}
             onSettled={() => setSettled(true)}
           />
         </div>

@@ -1088,8 +1088,10 @@ function namingFrom(reading: Reading, c: Candidate): ConceptNaming {
   const bare = c.kind === 'number' || c.kind === 'direction';
   const hangs = !bare ? ` “${c.answer}” is the word it hangs on here.` : c.blockTitle ? ` It runs through “${c.blockTitle}” here.` : '';
   const line = text
-    ? `The thread you were rebuilding is ${c.objectiveId}: ${text}.${hangs}`
-    : `The thread you were rebuilding runs through ${c.blockTitle ?? `block ${c.blockId}`}; “${c.answer}” is the word it hangs on.`;
+    ? `The thread you were rebuilding: ${text}.${hangs}`
+    : c.blockTitle
+      ? `The thread you were rebuilding runs through “${c.blockTitle}”; “${c.answer}” is the word it hangs on.`
+      : `“${c.answer}” is the word the thread you were rebuilding hangs on.`;
   return { term, blockId: c.blockId, objectiveId: c.objectiveId, line };
 }
 
@@ -1131,7 +1133,7 @@ export function buildCloze(reading: Reading, input: BuildInput): MechanicPlan<Cl
   const text = objectiveText(o);
   return {
     rounds,
-    target: text ? `the thread of ${first.objectiveId}: ${text}` : `the thread of ${first.objectiveId}`,
+    target: text ?? concept.term,
     opening: `A run of linked sentences from one thread of this reading, in the order the notes give them, each missing the word that carries it. Type what belongs. A cue is there if you ask — first a letter, then three choices — but a cue counts against how well you hold it.`,
     concept,
   };

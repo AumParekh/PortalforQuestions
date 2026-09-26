@@ -176,7 +176,6 @@ function Round({
     }
   };
 
-  const source = `block ${round.blockId}`;
   const cueLine =
     cue === 1 ? `Starts with “${p.firstLetter}”.` : cue === 2 ? `Starts with “${p.firstLetter}”. One of these three:` : null;
 
@@ -259,8 +258,7 @@ function Round({
                     : outcome.verdict === 'close'
                       ? `Held. The notes have “${p.answer}”.`
                       : 'Held.'}
-              </span>{' '}
-              <span className="g-muted">{source}</span>
+              </span>
             </p>
           </div>
         )}
@@ -286,12 +284,7 @@ function Round({
                   }
                 />
               }
-              right={
-                <>
-                  <Sentence p={p} className="g-serif" slot={<Filled text={p.answer} state="missed" />} />
-                  <span className={`block ${SMALL} g-muted`}>{source}</span>
-                </>
-              }
+              right={<Sentence p={p} className="g-serif" slot={<Filled text={p.answer} state="missed" />} />}
               onSettled={() => setSettled(true)}
             />
           </div>
@@ -312,12 +305,7 @@ function Round({
 /** A solved link stays on the thread: the sentence with its word back in place. */
 function SolvedLink({ round, state }: { round: MechanicRound<ClozePayload>; state: LinkState }) {
   return (
-    <div className="space-y-1">
-      <Sentence p={round.payload} className="g-serif text-[17px] leading-relaxed" slot={<Filled text={round.payload.answer} state={state} />} />
-      <p className={`${SMALL} g-muted`}>
-        <span className="g-mono">{round.blockId}</span>
-      </p>
-    </div>
+    <Sentence p={round.payload} className="g-serif text-[17px] leading-relaxed" slot={<Filled text={round.payload.answer} state={state} />} />
   );
 }
 
@@ -347,12 +335,10 @@ export function ClozeBoard({ phase, rounds, onResult, onPhaseDone }: MechanicRen
     }
   };
 
-  const objective = rounds[0]?.objectiveId;
-
   return (
     <div className="space-y-5">
       <div className={`${LABEL} g-muted`}>
-        {phase === 'discovery' ? 'The thread' : `The thread${objective ? ` · ${objective}` : ''}, under pressure`}
+        {phase === 'discovery' ? 'The thread' : 'The thread, under pressure'}
       </div>
       <div className="relative">
       <span className="absolute bottom-2 left-[7px] top-2 w-[2px]" style={{ background: 'var(--g-rule)' }} aria-hidden="true" />
