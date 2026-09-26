@@ -1,0 +1,1199 @@
+[
+ {
+  "id": "APMOCK3-Q01",
+  "number": 1,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO5",
+  "loText": "Describe the bootstrap historical simulation approach and explain the challenges of estimating confidence intervals for VaR from conditional volatility models.",
+  "reading": "Non-Parametric Approaches",
+  "topic": "Non-Parametric Approaches",
+  "question": "A bank is using bootstrap techniques to estimate the confidence intervals for its GARCH VaR model. Which of the following is a significant challenge associated with this approach?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The potential for biased VaR estimates due to the resampling process."
+   },
+   {
+    "key": "b",
+    "text": "The computational intensity of re-estimating the GARCH model for each bootstrap sample."
+   },
+   {
+    "key": "c",
+    "text": "The difficulty in capturing the impact of extreme market events present in the historical data."
+   },
+   {
+    "key": "d",
+    "text": "The reliance on the assumption of normally distributed standardized residuals."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Every resample requires a fresh GARCH estimation — thousands of optimisations**\n\n**Step 1 — Trace what the procedure actually requires**\n\nBootstrapping a GARCH VaR confidence interval means: resample the standardised residuals, rebuild a synthetic return path, **re-estimate the GARCH parameters on that path**, compute VaR, and repeat — typically 1,000 to 10,000 times.\n\n*The re-estimation is the expensive step. GARCH parameters come from a numerical likelihood maximisation, so this is thousands of optimisations rather than thousands of arithmetic operations.*\n\n**Step 2 — Note why the cost is not merely inconvenient**\n\nFor a bank running VaR across many desks and risk factors daily, the computational load can make full bootstrap confidence intervals impractical — which is why simpler asymptotic standard errors are often used instead despite being less reliable in small samples.\n\n*The limitation is genuinely binding in practice, not a theoretical quibble.*\n\n**Step 3 — Dispose of the bias claim**\n\nThe bootstrap is a broadly **unbiased** procedure. Resampling is designed precisely to reproduce the sampling distribution of the estimator without imposing a parametric form on it.\n\n*Bias is what the bootstrap exists to avoid, so naming it as the bootstrap's own defect inverts the method's purpose.*\n\n**Step 4 — Dispose of the normality claim**\n\nBootstrapping resamples the *empirical* standardised residuals. That is exactly how **filtered historical simulation** escapes the normality assumption, and it is the method's principal attraction.\n\n*Option D names the one assumption bootstrapping is designed to remove — and option C likewise: resampling draws from the observed data, so historical extremes are present in the resamples, not lost.*\n\n**Intuition.** Three of these four options accuse the bootstrap of the very things it was invented to fix — bias, distributional assumptions, and losing the tail. What it genuinely costs is time. Every resampled path needs its own GARCH fit, and a GARCH fit is a numerical optimisation, so a decent confidence interval means thousands of optimisations for one number. That is why banks often settle for cruder standard errors instead.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Defect inverted.** The bootstrap is designed to be unbiased. Resampling reproduces the estimator's sampling distribution without imposing a parametric shape, which is its central virtue."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Each bootstrap replication requires a full GARCH re-estimation via numerical likelihood maximisation, and thousands are needed for a usable confidence interval."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Opposite of the mechanism.** Resampling draws from the observed historical data, so extreme events present in the sample appear in the resamples. The genuine limitation is that the bootstrap cannot generate extremes that never occurred — a different point from the one stated."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Assumption the method removes.** Bootstrapping the empirical standardised residuals is precisely how filtered historical simulation avoids assuming normality. Naming that assumption as the method's weakness reverses its purpose."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "The item asks which limitation belongs to which method: three distractors accuse the bootstrap of defects it was built to remove (bias, normality, losing the tail). Option C also swaps a real limitation (it cannot generate extremes that never occurred) for a false one. Beat it by asking what the procedure actually requires on every replication — a fresh numerical GARCH fit — and recognising cost as the one genuine constraint."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q02",
+  "number": 2,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO5",
+  "loText": "Define wrong-way risk and describe its impact on the value of credit protection and on counterparty credit exposure.",
+  "reading": "Reading 99: Gregory, Wrong-Way Risk",
+  "topic": "Wrong-Way Risk",
+  "question": "Assume that an investor has bought USD 2 million in a bond from Issuer A. They are now worried about Issuer A defaulting and have purchased a credit default swap (CDS) from Issuer B. The value of the CDS is mainly determined by the default probability of the reference entity, Issuer A. If the correlation between Issuer A and Issuer B increases, what will be the impact on the price of the CDS?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The price of the CDS will decrease because there is a greater chance of joint default."
+   },
+   {
+    "key": "b",
+    "text": "The price of the CDS will increase because there is a greater chance of joint default."
+   },
+   {
+    "key": "c",
+    "text": "There will be no impact on the price of the CDS because it is working as a separate entity."
+   },
+   {
+    "key": "d",
+    "text": "It may increase or decrease depending on the market and economic conditions of the country."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Protection is worth less when the seller is likely to fail alongside the reference name**\n\n**Step 1 — Identify who owes what**\n\nThe investor **bought** protection on Issuer A from Issuer B. The protection only pays if **A defaults and B survives to pay**.\n\n*That conjunction is the whole question. Protection has value only in the states where the seller is still standing.*\n\n**Step 2 — Apply rising correlation**\n\n$$P(\\text{payout}) = P(A\\ \\text{defaults}) - P(A\\ \\text{and}\\ B\\ \\text{both default})$$\n\nRaising the correlation between A and B increases the joint-default term, so the probability of actually collecting **falls**.\n\n*At the limit of perfect correlation, B fails exactly when A does and the protection is worthless. The price falls toward zero.*\n\n**Step 3 — Name the exposure**\n\nThis is **wrong-way risk**: the investor's exposure to the protection seller rises in precisely the states where the seller is least able to pay.\n\n*The 2008 monoline insurers are the canonical case — protection on structured credit sold by firms whose own solvency depended on the same structured credit performing.*\n\n**Step 4 — Note what a joint default actually costs the investor**\n\nIf A and B both fail, the investor loses on the bond *and* receives nothing on the protection — the full USD 2 million exposure, unhedged, having paid a premium for nothing.\n\n*Which is why counterparty selection matters as much as price when buying protection: the cheapest seller is often the one most correlated with the reference name.*\n\n**Intuition.** Insurance is only worth what the insurer can pay. Buying protection on A from B means you collect if A fails while B survives — so anything that makes B more likely to fail alongside A eats into the value of what you bought. Push the correlation to one and the protection is worthless: B goes down with A and you are left holding the bond and the receipt. Option B gets the mechanism right and the direction exactly backwards, which is the trap.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Higher correlation raises the joint-default probability, reduces the chance of collecting on the protection, and therefore lowers the CDS price."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Polarity flip.** States the right mechanism — greater chance of joint default — and then draws the opposite conclusion. Joint default is bad for the protection *buyer*, so it reduces what the protection is worth. The most dangerous option because its reasoning is half correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Independence assumed.** Treats the CDS as if the seller's credit were irrelevant. Counterparty risk on the protection seller is intrinsic to the contract, which is why CDS positions carry CVA."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Non-answer hedge.** The direction is unambiguous and follows from the payoff structure alone. Market and economic conditions affect the level of the spread, not the sign of the correlation effect."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "correlation-misuse",
+    "qualifier-misread"
+   ],
+   "explanation": "This is a direction-of-effect item on wrong-way risk: the strongest distractor states the correct mechanism (greater joint default) and then flips the sign. The other two either assume the seller's credit is irrelevant or dodge the direction with a hedge. Write the payout condition — A defaults and B survives — and the sign of the correlation effect follows immediately."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q03",
+  "number": 3,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO10",
+  "loText": "Define and calculate credit VaR; explain the effect of default correlation and granularity on the credit loss distribution.",
+  "reading": "Reading 89: Malz, Default Correlation and Portfolio Credit Risk",
+  "topic": "Default Correlation and Portfolios",
+  "question": "A USD 1 million portfolio of credits is divided into 10 credit positions. Each credit position in the portfolio has a default probability of 5% and a recovery rate of zero. **Each credit position is an obligation from the same obligor.**\n\nWhat is the credit VaR at 99% confidence for this portfolio?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 50,000."
+   },
+   {
+    "key": "b",
+    "text": "USD 950,000."
+   },
+   {
+    "key": "c",
+    "text": "USD 1 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 0."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · One obligor means one coin flip — 1,000,000 − 50,000**\n\n**Step 1 — Read the load-bearing clause**\n\n‘Each credit position is an obligation from the **same obligor**’. Ten positions, one name. The defaults are **perfectly correlated** — either the obligor defaults and all ten positions are lost, or it survives and none are.\n\n*This single sentence converts what looks like a diversified ten-name portfolio into a single binary exposure. Miss it and every subsequent step is wrong.*\n\n**Step 2 — Write the loss distribution**\n\n| Outcome | Probability | Loss |\n|---|---|---|\n| Obligor survives | 95% | USD 0 |\n| Obligor defaults | 5% | USD 1,000,000 |\n\nRecovery is zero, so default means the entire USD 1 million is lost.\n\n*Two outcomes only. There is no middle of the distribution at all — which is what makes the percentile question so blunt.*\n\n**Step 3 — Locate the 99th percentile**\n\n$$P(\\text{loss} = 0) = 95\\% < 99\\%$$\n\nThe 99th percentile therefore falls in the default outcome:\n\n$$WCL_{99\\%} = \\text{USD } 1{,}000{,}000$$\n\n*Because 95% is below the 99% threshold, the worst-case loss is the full portfolio. Note that at any confidence level below 95% the worst-case loss would be zero and the credit VaR would be **negative**.*\n\n**Step 4 — Subtract expected loss**\n\n$$EL = 1{,}000{,}000 \\times 0.05 \\times (1 - 0) = \\text{USD } 50{,}000$$\n\n$$CVaR = WCL - EL = 1{,}000{,}000 - 50{,}000 = \\text{USD } 950{,}000$$\n\n*Capital covers **unexpected** loss only. The USD 50,000 of expected loss is already provisioned and priced into the spread, so holding capital against it would fund the same loss twice.*\n\n**Intuition.** Ten positions look like diversification until you notice they are all claims on one company. Then it is a single coin flip: a one-in-twenty chance of losing everything, nothing in between. At 99% confidence you are asking what happens in the worst one percent of outcomes, and since the good outcome only covers ninety-five percent, the bad one is what you land on — the whole million. Take off the fifty thousand you already expected to lose and the capital number is nine hundred and fifty.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**USD 50,000 · Expected loss alone.** The provisioned baseline, not the capital requirement. It is also the answer a candidate reaches by computing the easier of the two loss figures and stopping."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. 1,000,000 − 50,000."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**USD 1,000,000 · Dropped term (EL).** The worst-case loss with expected loss never subtracted. The most common error in this family, and structurally identical to reporting a percentile loss as a VaR."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**USD 0 · Percentile placed in the survival outcome.** USD 0 is the worst-case loss only at confidence levels of 95% or below, so it comes from locating the 99th percentile in the 95% survival outcome. It is not what independence gives either: with PD of 5% each, P(2 or fewer defaults among ten independent positions) = 98.85% < 99%, so the 99th percentile is three defaults (USD 300,000) and credit VaR would be 300,000 − 50,000 = USD 250,000. That is still a very different and much smaller figure than 950,000. Reading the positions as diversified is the trap the whole question is built on."
+   }
+  },
+  "trap": {
+   "operators": [
+    "intermediate-result-trap",
+    "dropped-term",
+    "scope-condition-error"
+   ],
+   "explanation": "The question hinges on one clause — the same obligor — which makes default perfectly correlated and collapses the loss distribution to two outcomes. Distractors report the expected loss alone, the worst-case loss without subtracting EL, or place the 99th percentile in the survival outcome (USD 0). Read the correlation clause first, locate the percentile on the two-point distribution, then subtract EL."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q04",
+  "number": 4,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-LO4",
+  "loText": "Distinguish among the categories of operational risk, including compliance, reputational and process risk, and describe the risks arising from outsourcing arrangements.",
+  "reading": "Operational Risk and Resilience, Ch. 12: Guidance on Managing Outsourcing Risk (Federal Reserve)",
+  "topic": "Outsourcing and Third-Party Risk",
+  "question": "A bank based in Texas, USA, is considering outsourcing its human resource activities to an HR agency. Its risk management team is considering all potential risks that could arise from this arrangement, particularly **compliance** risks. Which of the following would qualify as a compliance risk?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Advertising jobs without regard to existing labor laws."
+   },
+   {
+    "key": "b",
+    "text": "Negative public opinion because of poor performance of outsourced activities."
+   },
+   {
+    "key": "c",
+    "text": "Acceptance of fake academic documents."
+   },
+   {
+    "key": "d",
+    "text": "Delays in service delivery."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Compliance risk is exposure to legal or regulatory sanction — only one option breaches a law**\n\n**Step 1 — Define the category precisely**\n\nCompliance risk is the risk of **legal or regulatory sanction, financial penalty or material loss arising from failure to comply with laws, regulations, rules or codes of conduct** applicable to the firm's activities.\n\n*The test is whether an external legal or regulatory requirement is breached — not whether the outcome is embarrassing or costly.*\n\n**Step 2 — Classify each option**\n\n| Event | Category |\n|---|---|\n| **Advertising jobs contrary to labor law** | **Compliance** — direct breach of employment legislation |\n| Negative public opinion from poor service | Reputational |\n| Acceptance of fake academic documents | Operational (process/vetting failure) |\n| Delays in service delivery | Operational (execution failure) |\n\n*US employment advertising is tightly regulated — equal opportunity and anti-discrimination rules attach directly to job advertisements, and breaches attract regulatory action.*\n\n**Step 3 — Note the accountability point**\n\nOutsourcing HR does **not** transfer the compliance obligation. The bank remains legally responsible for discriminatory advertising placed by its agent.\n\n*Same principle as third-party risk management generally: the activity can be delegated, the accountability cannot.*\n\n**Step 4 — Note why the fake-documents option is tempting**\n\nAccepting forged credentials sounds legally charged, but the failure is in the bank's *vetting process*. It becomes a compliance matter only where a specific regulation mandates verification — and the stem gives no such requirement.\n\n*The distinction is between a control that failed and a rule that was broken. Only the latter is compliance risk.*\n\n**Intuition.** Ask of each event: did somebody break a rule imposed from *outside* the firm? Poor service and slow delivery are contract problems. Forged certificates slipping through is a control problem. Advertising a job in a way that contravenes employment law is a breach of statute, and a regulator can act on it — that is compliance risk. And note the bank cannot outsource its way out of it: the agency placed the advert, but the bank owns the obligation.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Advertising jobs without regard to labor law is a direct breach of external legal requirements and exposes the bank to regulatory sanction."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Reputational risk.** Negative public opinion is a reputational consequence. It may follow from a compliance breach but is not itself one — poor service is not illegal."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Operational risk.** Accepting forged documents is a failure of the vetting process — an internal control breakdown. It becomes compliance risk only where a regulation specifically mandates verification, which the stem does not establish."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Operational risk.** Service delivery delays are execution failures under a commercial contract. The remedy is contractual, not regulatory."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "Every distractor is a genuine outsourcing risk from a neighbouring category — reputational or operational — offered in place of compliance risk. The fake-documents option is the strongest because it sounds legally charged. Apply one test: was a rule imposed from outside the firm broken? Only a breach of law or regulation is compliance risk."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q05",
+  "number": 5,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO4",
+  "loText": "Describe risk budgeting across active managers and calculate the optimal allocation subject to a tracking error constraint.",
+  "reading": "Reading 88: Jorion, VaR and Risk Budgeting in Investment Management",
+  "topic": "Risk Budgeting",
+  "question": "A pension fund wants to allocate USD 400 million across a pool of active managers so as to maximise the information ratio of the fund, subject to an overall tracking error volatility (TEV) of 4%. Any balance not allocated to active managers is placed in an index fund with zero tracking error.\n\n| | TEV | Information ratio |\n|---|---|---|\n| Manager 1 | 8.0% | 0.48 |\n| Manager 2 | 6.0% | 0.36 |\n| Index fund | 0.0% | 0.00 |\n\nAssuming the managers' excess returns are independent of each other, the optimal allocation to the **index fund** is equal to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 80 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 160 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 320 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 0."
+   }
+  ],
+  "answer": "a",
+  "solution": "> **Rebuilt:** The printed Q5's option set does not follow from its own table under any standard risk-budgeting method — the correct index allocation on those figures is roughly USD 100–109 million, which is not offered. The item has been rebuilt with clean numbers testing the identical LO, and every distractor is now a named intermediate.\n\n**Correct answer: A · Active portfolio runs 5% TEV; scale to 4% and 20% goes to the index**\n\n**Step 1 — Find the optimal split between the two managers**\n\nOptimal weights are proportional to each manager's information ratio per unit of tracking error:\n\n$$w_i \\propto \\frac{IR_i}{TEV_i} \\qquad \\frac{0.48}{0.08} = 6.0 \\qquad \\frac{0.36}{0.06} = 6.0$$\n\nThe two ratios are equal, so the active portfolio is split **50/50**.\n\n*This ratio is the risk-budgeting analogue of the Sharpe ratio: how much information each manager delivers per unit of the risk budget they consume.*\n\n**Step 2 — Compute the fully-invested active portfolio's TEV and IR**\n\nIndependent excess returns means variances add:\n\n$$TEV_{active} = \\sqrt{(0.5 \\times 0.08)^2 + (0.5 \\times 0.06)^2} = \\sqrt{0.04^2 + 0.03^2} = \\sqrt{0.0025} = 5.00\\%$$\n\n$$IR_{active} = \\sqrt{0.48^2 + 0.36^2} = \\sqrt{0.36} = 0.60$$\n\n*Note the information ratios also combine in quadrature under independence, and the combined IR of 0.60 exceeds either manager's individually. That gain is the whole point of using more than one manager.*\n\n**Step 3 — Scale to the tracking error budget**\n\nThe fund is limited to 4% TEV but the active portfolio runs 5%. Since the index fund contributes zero tracking error, the active fraction scales linearly:\n\n$$f = \\frac{4\\%}{5\\%} = 0.80$$\n\n*Diluting with the index reduces tracking error proportionally without changing the information ratio — the fund still earns 0.60 IR, just on a smaller active base.*\n\n**Step 4 — Read off the index allocation**\n\n$$\\text{Index} = (1 - 0.80) \\times 400 = \\text{USD } 80 \\text{ million}$$\n\n$$\\text{Manager 1} = \\text{Manager 2} = 0.80 \\times 0.5 \\times 400 = \\text{USD } 160 \\text{ m each}$$\n\n*Both manager allocations and the total active figure of USD 320 million are legitimate intermediates — and both are sitting in the option list. The question asked for the index allocation, which is the residual.*\n\n**Intuition.** Risk budgeting is two steps. First decide how to split the active money: each manager earns their share in proportion to information ratio divided by tracking error, and here the two are identical, so it is a straight fifty-fifty. Then check whether that active portfolio fits the budget — it runs 5% against a 4% limit, so only four-fifths of the money can go active and the last fifth parks in the index. Note that diluting with the index costs no information ratio at all; it just scales the whole position down.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. (1 − 0.80) × 400."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**USD 160 million · Intermediate — one manager.** Either manager's individual allocation. A correct quantity from step 4, but not the one requested."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**USD 320 million · Complement reported.** The total *active* allocation. The arithmetic is right and the complement was reported — the classic error when a question asks for the residual rather than the main allocation."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**USD 0 · TEV constraint ignored.** Full investment in active managers would run 5% tracking error against a 4% budget. The index allocation exists precisely to bring the fund back inside its constraint."
+   }
+  },
+  "trap": {
+   "operators": [
+    "intermediate-result-trap",
+    "role-misassignment",
+    "scope-condition-error"
+   ],
+   "explanation": "Every distractor is a quantity from the working: one manager's allocation, the total active allocation (the complement of what was asked), or the answer with the TEV constraint ignored. Split the active money by IR/TEV, compute the active portfolio's TEV, scale to the budget, and then re-read the stem to report the index residual rather than the active share."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q06",
+  "number": 6,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO15",
+  "loText": "Describe the use of alpha, benchmarks and peer groups in performance measurement, and explain the limitations of each, including survivorship bias.",
+  "reading": "Reading 89: Bodie, Portfolio Performance Evaluation",
+  "topic": "Performance Evaluation",
+  "question": "Mark is an experienced portfolio manager with ABC Funds. His fund focuses on the US technology sector and has consistently outperformed the S&P 500 over five years. To evaluate performance, Mark regressed his fund's excess returns against the excess returns of the S&P 500, producing an alpha that is positive and statistically significant. He simultaneously ran a similar analysis against a group of technology-focused funds — his peer group.\n\nGiven this scenario, which of the following conclusions can Mark most **reliably** make?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The positive alpha indicates superior management skills compared to the S&P 500."
+   },
+   {
+    "key": "b",
+    "text": "The positive alpha against the S&P 500 is surefire proof of Mark's fund being riskier than the market."
+   },
+   {
+    "key": "c",
+    "text": "Mark can definitively separate the impact of his skill and leverage on the excess returns of his fund."
+   },
+   {
+    "key": "d",
+    "text": "The regression analysis against the peer group provides a less reliable comparison due to potential survivorship bias and differences in fund sizes."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Peer groups are contaminated by survivorship — and the S&P 500 is the wrong benchmark for a tech fund**\n\n**Step 1 — Note the benchmark mismatch**\n\nA US **technology** fund benchmarked against the **S&P 500** is being measured against an index it does not track. Positive alpha here largely reflects the technology sector's outperformance, not the manager's stock selection.\n\n*Alpha is only meaningful relative to a benchmark that captures the fund's systematic exposures. Get the benchmark wrong and alpha measures the missing factor.*\n\n**Step 2 — Identify the peer-group problems**\n\n| Defect | Effect on the comparison |\n|---|---|\n| **Survivorship bias** | Failed tech funds have left the group, raising its average return and understating Mark's relative performance |\n| **Size differences** | Capacity constraints, liquidity access and fee structures differ systematically with fund size |\n| Self-selection | Funds choose whether to report at all |\n\n*Peer-group comparison is more relevant than the S&P 500 for a sector fund, but less reliable as a statistical benchmark because the comparison set is not a clean population.*\n\n**Step 3 — Note that option D is the only hedged statement**\n\nOption D says ‘potential’ and ‘less reliable’. Options B and C say ‘surefire proof’ and ‘definitively’.\n\n*The question asks what can be concluded most reliably. An appropriately hedged claim about a known methodological weakness is the only thing here that survives scrutiny.*\n\n**Step 4 — Dispose of the skill/leverage claim**\n\nSeparating skill from leverage requires knowing the fund's gross exposure over time. A single-factor regression cannot do it — leverage scales both alpha and beta, and the regression sees only the net result.\n\n*This is why risk-adjusted measures need the leverage picture alongside them, and why hedge fund due diligence asks for gross as well as net exposure.*\n\n**Intuition.** Two questions decide this. Is the benchmark right? For a technology fund, the S&P 500 is not — so the significant alpha is mostly the tech sector showing up as skill. Is the alternative better? The peer group is more relevant but statistically dirtier, because the funds that blew up are no longer in it. Notice also that three options use ‘surefire’, ‘definitively’ and an unqualified ‘indicates’, while the right answer says ‘potential’ and ‘less reliable’.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Benchmark mismatch.** A tech fund's alpha against a broad market index mostly captures the sector's outperformance rather than the manager's skill. The benchmark does not span the fund's systematic exposures, so alpha is contaminated."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim + wrong parameter.** ‘Surefire proof’ is unhedged, and alpha is the *intercept* — it says nothing about risk. Riskiness relative to the market is read off beta, which the stem does not give."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim.** ‘Definitively separate’ is impossible from a single regression. Leverage scales both alpha and beta, and the regression observes only the combined outcome."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct, and the only appropriately hedged statement. Survivorship bias and size heterogeneity are genuine, documented weaknesses of peer-group comparison."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "absolute-claim-trap",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Two trap families combine here: an alpha read against a benchmark that does not match the fund's exposures, and unhedged absolute claims (‘surefire proof’, ‘definitively’). Check first whether the benchmark spans the fund's systematic exposures, then prefer the statement that is appropriately qualified about a known methodological weakness."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q07",
+  "number": 7,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-mock",
+  "loText": "Calculate the return of a portfolio and its benchmark from sector weights and returns, and compute the manager's excess return.",
+  "reading": "Risk Management and Investment Management, reading on portfolio performance evaluation and attribution",
+  "topic": "Performance Attribution",
+  "question": "A portfolio manager manages a portfolio for a large investment firm. The portfolio tracks the XYZ index. The composition of the index and the portfolio performance are given below:\n\n| Sector | Index weight | Index return | Portfolio weight | Portfolio return |\n|---|---|---|---|---|\n| Infrastructure | 0.20 | 10.00% | 0.15 | 12.00% |\n| Financial services | 0.15 | 15.00% | 0.10 | 15.00% |\n| Utilities | 0.20 | 20.00% | 0.25 | 22.00% |\n| Energy | 0.10 | 8.00% | 0.05 | 5.00% |\n| IT | 0.20 | 18.00% | 0.25 | 10.00% |\n| Fixed income | 0.15 | 15.00% | 0.20 | 12.00% |\n\nWhich of the following is closest to the excess return generated by the portfolio manager?",
+  "options": [
+   {
+    "key": "a",
+    "text": "1.00%."
+   },
+   {
+    "key": "b",
+    "text": "0.90%."
+   },
+   {
+    "key": "c",
+    "text": "0.95%."
+   },
+   {
+    "key": "d",
+    "text": "0.80%."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · 13.95% against 14.90% — the manager *underperformed* by 0.95%**\n\n**Step 1 — Compute the index return**\n\n$$R_I = \\sum w_i^I R_i^I$$\n\n$$= 0.20(10) + 0.15(15) + 0.20(20) + 0.10(8) + 0.20(18) + 0.15(15)$$\n\n$$= 2.00 + 2.25 + 4.00 + 0.80 + 3.60 + 2.25 = 14.90\\%$$\n\n*Check the weights sum to 1.00 before starting — they do, for both columns. A transcription error in a weight is the easiest way to lose this question.*\n\n**Step 2 — Compute the portfolio return**\n\n$$R_P = \\sum w_i^P R_i^P$$\n\n$$= 0.15(12) + 0.10(15) + 0.25(22) + 0.05(5) + 0.25(10) + 0.20(12)$$\n\n$$= 1.80 + 1.50 + 5.50 + 0.25 + 2.50 + 2.40 = 13.95\\%$$\n\n**Step 3 — Difference the two**\n\n$$\\text{Excess return} = 13.95\\% - 14.90\\% = -0.95\\%$$\n\nThe manager **underperformed** the index by 95 basis points.\n\n*None of the options carries a sign, so the answer is the magnitude — but note the direction, because the stem's phrase ‘excess return generated by the manager’ invites you to assume it is positive.*\n\n**Step 4 — Read where the damage was done**\n\nThe portfolio *overweighted* IT (0.25 against 0.20) and then returned only 10% in that sector against the index's 18% — a bad selection decision amplified by a bad allocation decision. That single sector contributes 2.50 percentage points against the index's 3.60, a shortfall of 1.10 that is larger than the whole 0.95 gap.\n\n*Allocation and selection both went the wrong way in the same sector, which is the worst combination. Full Brinson attribution would separate the two effects; here they compound.*\n\n**Intuition.** This is two weighted sums and a subtraction, and the entire difficulty is bookkeeping: four columns, six rows, and options clustered within twenty basis points so that one misplaced number lands on a wrong answer. Do each sum in one pass, verify both weight columns total one, then difference. The interesting part is the result — the manager was *behind* the index, mostly because they overweighted IT and then badly underperformed in it.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**1.00% · Rounding or one substitution.** Reachable by transposing a single weight or return — for instance using the index weight for one sector with the portfolio's return. The options are deliberately clustered within 20 basis points, so one substitution lands on a neighbour."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**0.90% · Rounding or one substitution.** Again within one arithmetic slip of the correct figure. With six sectors and four columns there are 24 numbers to place, and the option spacing punishes a single misplacement."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. 14.90% − 13.95%."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**0.80% · Rounding or one substitution.** Same family. Note that no option offers the possibility that the manager outperformed, so the sign cannot be used to check the work — only the arithmetic can."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "calculation-slip",
+    "calculation-slip"
+   ],
+   "explanation": "The distractors are one misplaced weight or return away from the correct figure, clustered within 20 basis points so that a single substitution lands on a neighbour. Compute each weighted sum in one pass, confirm both weight columns total one, and then difference — noting that the manager actually underperformed even though the options carry no sign."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q08",
+  "number": 8,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO5",
+  "loText": "Describe the major hedge fund strategies, including global macro, managed futures and event-driven approaches, and compare their risk factor exposures.",
+  "reading": "Reading 90: Stowell & Stowell, Hedge Fund Investment Strategies",
+  "topic": "Hedge Fund Strategies",
+  "question": "A fund manager has recently started his own hedge fund. The fund's investors demand that the fund's return must resemble that of a diversified hedge fund portfolio and should adopt a highly active asset allocation strategy betting on a **diverse range of risk factors**. Which of the following is the most suitable hedge fund style for this manager?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Managed futures."
+   },
+   {
+    "key": "b",
+    "text": "Global macro."
+   },
+   {
+    "key": "c",
+    "text": "Merger arbitrage."
+   },
+   {
+    "key": "d",
+    "text": "Trend follower."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Only global macro takes discretionary positions across every asset class and factor**\n\n**Step 1 — Extract the two requirements**\n\n| Requirement | What it rules in |\n|---|---|\n| Resembles a **diversified** hedge fund portfolio | Broad exposure, not a single niche |\n| **Highly active** asset allocation across **diverse risk factors** | Discretionary, multi-asset, top-down |\n\n*Together these describe a strategy with the widest possible opportunity set and active judgement over where to deploy it.*\n\n**Step 2 — Match to global macro**\n\nGlobal macro takes **discretionary directional positions across equities, bonds, currencies and commodities**, driven by top-down views on growth, inflation, policy and geopolitics. Its returns have historically shown the highest correlation with diversified hedge fund indices.\n\n*It is the broadest mandate in the hedge fund universe, which is exactly what ‘diverse range of risk factors’ asks for.*\n\n**Step 3 — Separate the two systematic options**\n\n**Managed futures** and **trend following** are essentially the same answer offered twice — systematic, rules-based strategies trading futures on price momentum. They are multi-asset but not *actively allocated*: the model decides, not the manager.\n\n*Two options describing one strategy is a signal in itself. Neither can be uniquely correct, which disposes of both without knowing anything further.*\n\n**Step 4 — Dispose of merger arbitrage**\n\nMerger arbitrage is a narrow **event-driven** strategy trading announced deals. It is exposed to essentially one risk factor — deal completion — and is the opposite of a diverse factor mandate.\n\n*Its return profile is short volatility with a small steady premium punctuated by occasional large losses when deals break.*\n\n**Intuition.** Start by noticing that two of the four options are the same thing — managed futures *is* trend following, near enough — so neither can be right. That leaves a very narrow event-driven strategy and a very broad discretionary one, and the stem asks for diversity across risk factors with highly active allocation. Global macro is the only mandate in the hedge fund universe wide enough to take that literally: currencies, rates, equities, commodities, wherever the manager's view happens to point.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Systematic, not discretionary.** Managed futures is rules-based. It trades across many markets but by algorithm rather than active allocation judgement, and it is functionally the same answer as option D — neither can be uniquely correct."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Global macro takes discretionary positions across all major asset classes based on top-down macroeconomic views — the broadest factor exposure available."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Single-factor strategy.** Merger arbitrage is narrowly event-driven, exposed principally to deal-completion risk. The opposite of a diverse factor mandate."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Duplicate of A.** Trend following is the dominant managed futures strategy. Offering it alongside option A means two options describe the same approach, so neither can be the intended answer."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "All three distractors are neighbouring hedge fund styles that fail one of the two requirements: managed futures and trend following are systematic rather than actively allocated (and duplicate each other), while merger arbitrage is a single-factor event-driven strategy. Extract both requirements from the stem — breadth and discretionary allocation — and only global macro satisfies both."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q09",
+  "number": 9,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-mock",
+  "loText": "Describe the growth of the hedge fund industry and the shift in its investor base, and identify the factors driving institutional allocation.",
+  "reading": "Risk Management and Investment Management, reading on hedge funds",
+  "topic": "Hedge Fund Industry",
+  "question": "Pauline Nguyen, a financial analyst at Evergreen Investments, is evaluating trends in the hedge fund industry. She observes a shift from predominantly private wealth investors to institutional investors, and an increase in assets under management from USD 197 billion at the end of 1999 to USD 1.39 trillion by the end of 2007.\n\nWhich of the following statements correctly captures the factors contributing to the rising concentration of AUM in the hedge fund industry?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The driving force is the promise of higher returns in hedge funds compared to traditional equity markets, irrespective of the associated risk and higher fee structures."
+   },
+   {
+    "key": "b",
+    "text": "The shift in investor profile is due to the declining interest of private wealth investors and the high risk associated with hedge funds."
+   },
+   {
+    "key": "c",
+    "text": "Institutional investors are attracted by the possibility of consistent alpha generation in hedge funds, which leads to an increase in AUM."
+   },
+   {
+    "key": "d",
+    "text": "The pursuit of absolute performance and diversification beyond traditional equity markets by institutional investors, despite concerns about alpha, has been the catalyst for increasing AUM."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Absolute return and diversification — and the alpha evidence is contested, not settled**\n\n**Step 1 — Identify what institutions actually wanted**\n\n| Motive | Why it drove institutional allocation |\n|---|---|\n| **Absolute performance** | Returns not tied to a rising equity market — valuable after 2000–02 |\n| **Diversification** | Return streams with low correlation to traditional holdings |\n\n*Pension funds and endowments have liabilities to meet regardless of what equities do. An absolute-return mandate speaks to that directly in a way a relative-return fund cannot.*\n\n**Step 2 — Note the alpha qualification**\n\nThe academic evidence on hedge fund alpha is **contested** — much of the apparent outperformance survives only before adjusting for survivorship bias, backfill bias, illiquidity and fees.\n\n*Option D's clause ‘despite concerns about alpha’ is what makes it accurate. Institutions allocated for the return profile, not on settled proof of skill.*\n\n**Step 3 — Correct the private wealth claim**\n\nPrivate wealth did not *decline* in absolute terms. The industry grew sevenfold; institutional money simply grew far faster, shifting the **composition** while private allocations continued to rise.\n\n*A share can fall while a level rises. Option B confuses the two.*\n\n**Step 4 — Note the hedging asymmetry**\n\nOptions A, B and C are unhedged assertions — ‘irrespective of’, ‘due to’, ‘consistent alpha’. Option D concedes a counter-consideration and is the only one that survives.\n\n*Institutions are fee-sensitive fiduciaries. Any option claiming they ignored fees or risk misdescribes how they actually allocate.*\n\n**Intuition.** Institutions did not pile into hedge funds because they were convinced of manager genius — the alpha evidence was arguable then and is arguable now. They came for a return stream that did not depend on equities going up, at a moment when equities had just fallen for three years, and for the diversification that implied. The correct option is the only one that admits the alpha question is unsettled; the other three each assert something stronger than the record supports.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim.** ‘Irrespective of the associated risk and higher fee structures’ misdescribes institutional behaviour. Pension funds and endowments are fee-sensitive fiduciaries; the two-and-twenty structure was a persistent obstacle, not something ignored."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Level confused with share.** Private wealth allocations continued to grow in absolute terms. Their *share* fell because institutional money grew faster — a compositional shift, not a withdrawal."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Overstated evidence.** ‘Consistent alpha generation’ overstates a genuinely contested literature. Much measured alpha does not survive correction for survivorship and backfill bias."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Absolute performance and diversification drove institutional allocation, and the clause acknowledging alpha concerns is what makes the statement accurate rather than promotional."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "scope-condition-error",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Three options assert more than the record supports — ignoring fees and risk, a withdrawal by private wealth, or ‘consistent alpha’ — while the correct option concedes a counter-consideration. Watch for a share being confused with a level, and prefer the hedged statement that matches how fee-sensitive institutional fiduciaries actually allocate."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q10",
+  "number": 10,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO12",
+  "loText": "Estimate expected shortfall from historical simulation data and explain its relationship to VaR at the same confidence level.",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "Jimmy Ray, a risk analyst at Alcoa Bank, has performed a historical simulation to estimate the VaR for the bank's fixed-income portfolio based on returns for the last 500 trading days. The 10 worst one-day returns generated in the simulation are:\n\n$$-9{,}111 \\quad -8{,}669 \\quad -8{,}127 \\quad -7{,}098 \\quad -6{,}712 \\quad -6{,}698 \\quad -5{,}743 \\quad -5{,}189 \\quad -4{,}811 \\quad -4{,}775$$\n\nWhich of the following is the 99% one-day expected shortfall for the portfolio?",
+  "options": [
+   {
+    "key": "a",
+    "text": "8,145."
+   },
+   {
+    "key": "b",
+    "text": "6,712."
+   },
+   {
+    "key": "c",
+    "text": "9,111."
+   },
+   {
+    "key": "d",
+    "text": "7,943."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Average the worst 1% — five observations out of 500**\n\n**Step 1 — Determine how many observations lie in the tail**\n\n$$n \\times (1 - c) = 500 \\times 0.01 = 5 \\text{ observations}$$\n\n*Expected shortfall is the **average** of the losses in the tail, so the first decision is how big the tail is. Five, not ten — the paper gives ten worst returns precisely so that half of them are surplus.*\n\n**Step 2 — Identify the five worst**\n\n| Rank | 1 | 2 | 3 | 4 | 5 | 6 | … |\n|---|---|---|---|---|---|---|---|\n| Loss | 9,111 | 8,669 | 8,127 | 7,098 | 6,712 | 6,698 | … |\n| In tail? | ✔ | ✔ | ✔ | ✔ | ✔ | ✗ | |\n\n*Note the 5th and 6th are only 14 apart — 6,712 against 6,698. Including one too many barely changes the average, which is what makes a miscount hard to detect by inspection.*\n\n**Step 3 — Average them**\n\n$$ES = \\frac{9{,}111 + 8{,}669 + 8{,}127 + 7{,}098 + 6{,}712}{5} = \\frac{39{,}717}{5} = 7{,}943.4$$\n\n**Step 4 — Locate the VaR alongside it**\n\nThe 99% VaR is the **threshold** — the 5th worst observation, 6,712. ES exceeds it by about 18%, because ES averages everything beyond the threshold rather than reading the threshold itself.\n\n*Both quantities are in the option list. ES must always exceed VaR at the same confidence level, so any candidate answer below 6,712 can be discarded immediately.*\n\n**Intuition.** Expected shortfall asks what the average loss is once you are already in the bad tail, so the two decisions are how big the tail is and then to average it. One percent of five hundred days is five days, and the paper hands you ten precisely so that half are decoration. The threshold itself — the fifth worst, 6,712 — is the VaR and sits in the option list as the tempting near-miss. Since ES always exceeds VaR, anything at or below 6,712 can be discarded on sight.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**8,145 · Wrong tail size.** In the region produced by averaging the wrong number of tail observations — four instead of five gives 8,251, and other miscounts land nearby. The tail must contain exactly 1% of 500 observations."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**6,712 · VaR reported as ES.** The 5th worst observation, which is the 99% *VaR*. A legitimate intermediate and the most likely wrong answer — the threshold reported in place of the tail average."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**9,111 · Single worst loss.** The maximum observed loss. That is closer to a 100% confidence reading than a 99% one, and it is not an average of anything."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Mean of the five worst."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "intermediate-result-trap",
+    "scope-condition-error"
+   ],
+   "explanation": "The distractors are the VaR threshold reported as ES, the single worst loss, and an average over the wrong number of tail observations. Size the tail first as n × (1 − c), average exactly those observations, and use the rule that ES must exceed VaR at the same confidence level to discard anything at or below the threshold."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q11",
+  "number": 11,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO10",
+  "loText": "Define Type I and Type II errors in the context of VaR model backtesting and identify which has occurred from the observed exception count and the decision taken.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "A model gives an annual VaR value of USD 9.5 million for a portfolio at a 99% confidence interval. A one-year backtest conducted at the 95% confidence level reveals that losses exceeded USD 9.5 million on 12 occasions. **The model is accepted as accurate.** Assuming 224 days in a year, which of these statements is most likely true?",
+  "options": [
+   {
+    "key": "a",
+    "text": "A Type I error has occurred."
+   },
+   {
+    "key": "b",
+    "text": "A Type II error has occurred."
+   },
+   {
+    "key": "c",
+    "text": "Both Type I and Type II errors have occurred."
+   },
+   {
+    "key": "d",
+    "text": "The model has been accepted correctly."
+   }
+  ],
+  "answer": "b",
+  "solution": "> *Template repeat.* Structurally identical to AnalystPrep Mock 1 Q10 with the numbers perturbed — 224 days and 12 exceptions here against 252 days and 8 there. Both accept a model that should have been rejected, so both answers are Type II. Worth drilling as a pair.\n\n**Correct answer: B · 12 exceptions against 2.24 expected — rejected on the evidence, accepted in fact**\n\n**Step 1 — Expected exceptions and dispersion**\n\n$$\\mathbb{E}[x] = 224 \\times 0.01 = 2.24 \\qquad \\sigma_x = \\sqrt{224(0.01)(0.99)} = \\sqrt{2.2176} = 1.489$$\n\n**Step 2 — Test the observed count**\n\n$$z = \\frac{12 - 2.24}{1.489} = \\frac{9.76}{1.489} = 6.55$$\n\nAgainst a 95% two-tailed critical value of 1.96, this is not a marginal call — the model breached more than five times as often as it promised.\n\n*At z = 6.55 the probability of seeing this from a correctly calibrated model is vanishingly small. There is no reasonable reading on which this model passes.*\n\n**Step 3 — Classify the decision**\n\nEvidence says **reject**; the decision recorded was **accept**. Accepting a false null is a **Type II error**.\n\n*Type I rejects something true; Type II accepts something false. Only one decision was taken, so only one error is available.*\n\n**Step 4 — Note the consequence**\n\nA 99% VaR breaching 12 times in 224 days implies the true confidence level is around 94.6%, not 99%. Under Basel this sits deep in the **red zone**, attracting the maximum multiplier of 4.0.\n\n*The Type II error is therefore not academic: the bank continues to hold capital calibrated to a model that breaches more than five times as often as it promised.*\n\n**Intuition.** Same shape as AnalystPrep Mock 1 Q10 with different numbers, which is worth noticing in itself — these papers reuse templates. Compute what the model promised, compare with what it delivered, and then check which decision was actually taken. Promised two and a bit breaches, delivered twelve, and someone signed it off anyway. Accepting a model the evidence rejects is the false negative, and it is the error that leaves a bank under-capitalised.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Error type inverted.** A Type I error is rejecting a sound model. The model here was accepted, so this error type is not available."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. The model should have been rejected at z = 6.55 but was accepted — a false negative."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Both claimed.** A single decision can produce only one error type. The two are mutually exclusive outcomes of one test."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Test not performed.** Twelve exceptions against 2.24 expected is more than six standard deviations from the mean. No confidence level in ordinary use would accept it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "qualifier-misread"
+   ],
+   "explanation": "This is a Type I versus Type II classification: one distractor inverts the error type, one claims both errors from a single decision, and one takes the stem's ‘accepted as accurate’ at face value without running the test. Compute expected exceptions and the z-statistic, decide what the evidence says, and compare it with the decision actually taken."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q12",
+  "number": 12,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO2",
+  "loText": "Calculate the delinquency ratio and default ratio for an asset-backed security and describe their use as performance measures.",
+  "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+  "topic": "Securitisation",
+  "question": "An ABS based on credit card receivables has the following composition:\n\n| Category | Amount (USD) |\n|---|---|\n| Current receivables | 25,200,000 |\n| Receivables over 30 days past due | 8,250,000 |\n| Receivables over 60 days past due | 2,750,000 |\n| Receivables over 90 days past due | 1,300,000 |\n\nCalculate the delinquency ratio of the ABS.",
+  "options": [
+   {
+    "key": "a",
+    "text": "2.93%."
+   },
+   {
+    "key": "b",
+    "text": "3.47%."
+   },
+   {
+    "key": "c",
+    "text": "5.16%."
+   },
+   {
+    "key": "d",
+    "text": "7.33%."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Over-90-day receivables over *total* receivables**\n\n**Step 1 — State the definition**\n\n$$\\text{Delinquency ratio} = \\frac{\\text{Receivables over 90 days past due}}{\\text{Total receivables}}$$\n\n*Two choices decide the answer: which past-due bucket goes on top, and what goes underneath. The 90-day bucket is the numerator by convention, because 90 days is the conventional threshold at which a receivable is treated as seriously impaired.*\n\n**Step 2 — Compute total receivables**\n\n$$25{,}200{,}000 + 8{,}250{,}000 + 2{,}750{,}000 + 1{,}300{,}000 = \\text{USD } 37{,}500{,}000$$\n\n*All four buckets, including current. The denominator is the whole pool — using current receivables alone gives 5.16%, which is option C.*\n\n**Step 3 — Divide**\n\n$$\\frac{1{,}300{,}000}{37{,}500{,}000} = 0.03467 = 3.47\\%$$\n\n**Step 4 — Distinguish it from the default ratio**\n\nThe **delinquency ratio** tracks receivables that are seriously late but still outstanding. The **default ratio** tracks receivables actually written off. Delinquency is the leading indicator; defaults follow.\n\n*Rising delinquency is one of the early triggers monitored in credit card ABS, and a sustained rise can breach an early amortization trigger long before write-offs appear.*\n\n**Intuition.** Two decisions and the options punish each one separately. On top goes the most seriously delinquent bucket — over ninety days — because that is the conventional threshold for a receivable being in real trouble; take the sixty-day bucket instead and you get 7.33%. Underneath goes the whole pool including current receivables; divide by current alone and you get 5.16%. Both wrong answers are one substitution away, which is what makes an easy division worth two and a half minutes.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**2.93% · Denominator inflated.** Consistent with a denominator larger than the true pool: 1,300,000 / 2.93% ≈ USD 44.4 million against a true 37.5 million. That is the direction of error made when the buckets are read as cumulative rather than discrete and one is double-counted, although no single double-count reproduces 2.93% exactly (counting the 30-day bucket twice gives 2.84%)."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. 1,300,000 / 37,500,000."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**5.16% · Wrong denominator.** 1,300,000 / 25,200,000 — dividing by *current* receivables instead of total. The denominator must be the whole pool."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**7.33% · Wrong numerator bucket.** 2,750,000 / 37,500,000 — using the 60-day bucket in place of the 90-day one. Correct denominator, wrong bucket on top."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "wrong-input-twin",
+    "wrong-input-twin"
+   ],
+   "explanation": "Each distractor is one substitution away from the correct ratio: the 60-day bucket on top, current receivables alone underneath, or a denominator inflated by double-counting a bucket. Fix the definition first — over-90-day receivables over the whole pool — then build the total from all four discrete buckets before dividing."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q13",
+  "number": 13,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO10",
+  "loText": "Describe the major style factors in equity investing, including value, growth and momentum, and identify the selection criterion associated with each.",
+  "reading": "Reading 84: Ang, Factors",
+  "topic": "Value and Momentum Factors",
+  "question": "A portfolio manager focused on buying stocks that have gone up in recent months and shorting stocks with the lowest returns during the same period is most likely pursuing which of these investment strategies?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Value investing."
+   },
+   {
+    "key": "b",
+    "text": "Growth investing."
+   },
+   {
+    "key": "c",
+    "text": "Momentum investing."
+   },
+   {
+    "key": "d",
+    "text": "Income investing."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Long past winners, short past losers — momentum by definition**\n\n**Step 1 — Match the description to the factor**\n\n| Style | Selection criterion |\n|---|---|\n| Value | Low price relative to fundamentals (book, earnings, cash flow) |\n| Growth | High expected earnings or revenue growth |\n| **Momentum** | **Recent past returns** — long winners, short losers |\n| Income | High and stable dividend yield |\n\n*Momentum is the only one of the four selected on past price behaviour rather than on any fundamental characteristic of the company.*\n\n**Step 2 — Note the standard construction**\n\nThe academic momentum factor typically ranks stocks on returns over the previous 12 months **excluding the most recent month**, then goes long the top decile and short the bottom.\n\n*The one-month skip exists because very short-horizon returns exhibit reversal rather than continuation — including it would work against the strategy.*\n\n**Step 3 — Note momentum's distinctive risk**\n\nMomentum earns a persistent premium but suffers occasional violent **crashes**, typically when a falling market sharply rebounds and the short leg — the beaten-down losers — rallies hardest.\n\n*Its return profile is negatively skewed, which is one explanation for why the premium survives: it compensates for crash risk rather than representing a free lunch.*\n\n**Intuition.** Three of these four pick stocks on something about the company — how cheap it is, how fast it is growing, how much it pays out. Momentum ignores the company entirely and looks only at what the price has done lately, buying what has risen and shorting what has fallen. It is the strangest of the factors, since it has no obvious fundamental justification, and it pays for that with periodic crashes when the losers rebound hardest.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Opposite selection rule.** Value buys what is cheap relative to fundamentals, which often means stocks that have recently *fallen*. It is close to the mirror image of the described strategy."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Fundamental, not price-based.** Growth selects on expected earnings expansion. Fast-growing companies may also have risen recently, but the selection criterion is the forecast, not the past return."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Buying recent winners and shorting recent losers is the definition of a momentum strategy."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Yield-based.** Income investing selects on dividend yield and payout stability. Past price performance does not enter the screen."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "The distractors are sibling equity styles, each defined by a different selection criterion — value is close to the mirror image of the described rule, while growth and income select on fundamentals or yield. Identify the selection criterion in the stem (recent past returns, long winners and short losers) and match it to the one style defined by price behaviour alone."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q14",
+  "number": 14,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO15",
+  "loText": "Compare the Ho-Lee and Cox-Ingersoll-Ross term structure models, including their drift and volatility specifications.",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "topic": "Short-Rate Volatility Models",
+  "question": "A hedge fund's CRO has tasked the risk management team with developing a term-structure model to fit interest rates for the fund's options pricing practices. The team is considering a Ho-Lee model and a Cox-Ingersoll-Ross (CIR) model. Which of the following statements correctly describes a characteristic of these models?",
+  "options": [
+   {
+    "key": "a",
+    "text": "In the Ho-Lee model, the interest rate process includes a constant drift term."
+   },
+   {
+    "key": "b",
+    "text": "In the Ho-Lee model, the drift term is adjusted to ensure the interest rate reverts to a long-run mean."
+   },
+   {
+    "key": "c",
+    "text": "In the CIR model, the volatility of the short-term interest rate is presumed to decline exponentially to a constant long-run level."
+   },
+   {
+    "key": "d",
+    "text": "In the CIR model, the volatility of the short-term interest rate is proportional to the square root of the rate."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · $\\sigma\\sqrt{r}$ is the CIR signature; Ho-Lee's drift is time-dependent and non-reverting**\n\n**Step 1 — Write both processes**\n\n$$\\text{Ho-Lee: } dr = \\lambda(t)\\,dt + \\sigma\\,dw$$\n\n$$\\text{CIR: } dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$$\n\n*Two independent dimensions: how the drift behaves, and how the volatility behaves. Each distractor corrupts one of them.*\n\n**Step 2 — Verify the CIR volatility**\n\nCIR's diffusion is $\\sigma\\sqrt{r}$ — basis-point volatility rises with the level of rates, and vanishes as r approaches zero. That is what keeps the short rate non-negative.\n\n*It is the model's defining feature and the reason it exists. Option D states it exactly.*\n\n**Step 3 — Correct both Ho-Lee claims**\n\nHo-Lee's drift $\\lambda(t)$ is **time-dependent**, not constant — it is calibrated at each step to fit the observed term structure exactly, which is what makes Ho-Lee a *no-arbitrage* model. And Ho-Lee has **no mean reversion whatsoever**.\n\n*Options A and B corrupt the drift in opposite directions: A makes it too rigid (constant), B gives it a property it does not have (reversion).*\n\n**Step 4 — Correct the CIR volatility distractor**\n\nNothing in CIR declines exponentially to a long-run level. Option C borrows the language of *mean reversion in the drift* and misapplies it to the volatility.\n\n*A neat corruption: the exponential decay toward a long-run value is real in CIR, but it describes the expected rate path, not the volatility.*\n\n**Intuition.** Term structure models differ along two axes and the distractors attack each in turn. Ho-Lee has a drift fitted freshly at every step so it reproduces today's curve exactly, and no pull toward any long-run level — so any option giving it a constant drift or mean reversion is wrong. CIR keeps Vasicek's reverting drift and changes the volatility to $\\sigma\\sqrt{r}$, which is the whole reason it exists, since randomness dying at zero is what stops rates going negative.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Drift over-simplified.** Ho-Lee's drift is time-dependent, $\\lambda(t)$, calibrated to fit today's term structure exactly. A constant drift would make it an equilibrium model rather than a no-arbitrage one."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Property borrowed from Vasicek.** Ho-Lee has no mean reversion at all. The drift is fitted to market prices, not pulled toward a long-run level — that is Vasicek's $k(\\theta - r)$."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Mean reversion applied to volatility.** Exponential decay toward a long-run level describes CIR's expected *rate* path, not its volatility. CIR's volatility is $\\sigma\\sqrt{r}$, which rises with the rate."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. CIR's basis-point volatility is proportional to the square root of the short rate."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "role-misassignment"
+   ],
+   "explanation": "The distractors swap drift and volatility specifications between sibling term structure models: a constant drift, Vasicek's mean reversion attributed to Ho-Lee, and CIR's reverting expected rate path misapplied to its volatility. Write both processes down and check each option on its own axis — drift or volatility — before matching."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q15",
+  "number": 15,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-LO1",
+  "loText": "Describe the Basel Committee's guidance on customer due diligence and explain the prudential rationale for know-your-customer requirements.",
+  "reading": "Operational Risk and Resilience, Ch. 10: Sound Management of Risks Related to Money Laundering and Financing of Terrorism (BCBS)",
+  "topic": "Money Laundering and Financial Crime",
+  "question": "Which of the following is the main driver behind the Know Your Customer (KYC) programs outlined in the Basel Committee's papers on customer due diligence for banks?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Protecting the integrity of the banking systems."
+   },
+   {
+    "key": "b",
+    "text": "The Financial Action Task Force's (FATF) recommendations."
+   },
+   {
+    "key": "c",
+    "text": "Protecting the integrity of the capital markets."
+   },
+   {
+    "key": "d",
+    "text": "Customer protection."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · The BCBS writes from a prudential mandate — safety and soundness of banks**\n\n**Step 1 — Recall who the BCBS is and what it exists to do**\n\nThe Basel Committee's mandate is the **safety and soundness of banks**. Everything it publishes is written from a prudential standpoint, not a law-enforcement or consumer-protection one.\n\n*So its interest in KYC is that inadequate customer due diligence exposes banks to reputational, operational, legal and concentration risk — threats to the institution and thereby to the banking system.*\n\n**Step 2 — Distinguish the BCBS from FATF**\n\n| Body | Mandate | Interest in KYC |\n|---|---|---|\n| **BCBS** | Prudential — bank safety and soundness | **Protecting the integrity of the banking system** |\n| FATF | Anti-money-laundering and counter-terrorist financing | Preventing financial crime |\n\n*The two bodies reinforce each other and their standards are aligned, but they write from different mandates. FATF's recommendations are an influence on the BCBS papers, not the driver of them.*\n\n**Step 3 — Note why option B is the strongest distractor**\n\nFATF recommendations genuinely shape KYC practice worldwide, and most bank AML programmes are built to satisfy them. But the question asks what drives the **Basel Committee's** papers, and the BCBS is not an AML body.\n\n*Right subject matter, wrong institutional lens — a role-misassignment trap.*\n\n**Step 4 — Dispose of the remaining two**\n\nCapital market integrity is a **securities regulator's** concern (IOSCO). And KYC is not a consumer-protection measure — it imposes burdens on customers rather than protecting them.\n\n*Option D inverts the beneficiary: KYC protects the bank and the system from the customer, not the other way round.*\n\n**Intuition.** Ask who wrote the paper and what they are paid to worry about. The Basel Committee worries about banks failing, so when it writes about knowing your customer, the argument is that a bank which does not know who it is dealing with exposes itself to reputational, legal and operational damage — and a damaged bank is a threat to the system. FATF worries about criminals, which is adjacent and influential but not the same mandate. The distinction is institutional, not topical.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. The BCBS approaches customer due diligence from its prudential mandate — protecting the integrity and soundness of the banking system."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Wrong body's mandate.** FATF recommendations shape AML practice globally and influence the BCBS papers, but FATF is the anti-money-laundering standard setter. The Basel Committee writes from a prudential standpoint."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Wrong regulatory domain.** Capital market integrity falls to securities regulators such as IOSCO. The Basel Committee supervises banks."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Beneficiary inverted.** KYC protects the bank and the financial system from being used for illicit purposes. It imposes identification burdens on customers rather than protecting them."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "sibling-swap",
+    "polarity-flip"
+   ],
+   "explanation": "The distractors assign the KYC rationale to the wrong institution (FATF), the wrong regulatory domain (capital markets, IOSCO), or invert the beneficiary (customer protection). Ask who wrote the paper and what their mandate is: the Basel Committee is a prudential body, so its KYC rationale is the safety and integrity of the banking system."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q16",
+  "number": 16,
+  "subject": "Liquidity Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "LR-LO2",
+  "loText": "Calculate the net stable funding ratio and describe the available and required stable funding factors applied to a bank's liabilities and assets.",
+  "reading": "Hull, Risk Management and Financial Institutions, Ch. 24: Liquidity Risk",
+  "topic": "Basel III Liquidity Ratios",
+  "question": "Goodwill Bank's balance sheet contains the following items, with the available stable funding (ASF) and required stable funding (RSF) factors shown:\n\n| Funding source | Amount | ASF factor |\n|---|---|---|\n| Retail deposits | 35 | 90% |\n| Wholesale deposits | 50 | 50% |\n| Tier 2 capital | 5 | 100% |\n| Tier 1 capital | 10 | 100% |\n\n| Asset | Amount | RSF factor |\n|---|---|---|\n| Cash | 7 | 0% |\n| Mortgages | 38 | 65% |\n| Treasury bonds | 6.5 | 5% |\n| Small business loans | 54 | 85% |\n| Fixed assets | 12 | 100% |\n\nWhich of the following is closest to the net stable funding ratio?",
+  "options": [
+   {
+    "key": "a",
+    "text": "84.9%."
+   },
+   {
+    "key": "b",
+    "text": "86.2%."
+   },
+   {
+    "key": "c",
+    "text": "83.1%."
+   },
+   {
+    "key": "d",
+    "text": "88.0%."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · 71.5 of available stable funding against 82.925 required**\n\n**Step 1 — Compute available stable funding**\n\n| Source | Amount × factor | ASF |\n|---|---|---|\n| Retail deposits | 35 × 0.90 | 31.50 |\n| Wholesale deposits | 50 × 0.50 | 25.00 |\n| Tier 2 capital | 5 × 1.00 | 5.00 |\n| Tier 1 capital | 10 × 1.00 | 10.00 |\n| **Total ASF** | | **71.50** |\n\n*Note the factor logic: capital is fully stable at 100%, retail deposits are sticky at 90%, and wholesale money is treated as half likely to run. That ranking is the NSFR's judgement about which funding is dependable.*\n\n**Step 2 — Compute required stable funding**\n\n| Asset | Amount × factor | RSF |\n|---|---|---|\n| Cash | 7 × 0.00 | 0.000 |\n| Mortgages | 38 × 0.65 | 24.700 |\n| Treasury bonds | 6.5 × 0.05 | 0.325 |\n| Small business loans | 54 × 0.85 | 45.900 |\n| Fixed assets | 12 × 1.00 | 12.000 |\n| **Total RSF** | | **82.925** |\n\n*Mirror logic on the asset side: cash needs no stable funding at all, Treasuries almost none, and illiquid small business loans need 85%. Fixed assets need funding in full.*\n\n**Step 3 — Take the ratio**\n\n$$NSFR = \\frac{ASF}{RSF} = \\frac{71.500}{82.925} = 0.8622 = 86.2\\%$$\n\n**Step 4 — Read the verdict**\n\nThe Basel III minimum is **100%**. At 86.2% Goodwill Bank **fails** — it is funding long-dated illiquid assets with money that will not reliably stay for a year.\n\n*The largest single problem is visible in the tables: 54 of small business loans requiring 45.9 of stable funding, against only 25 contributed by the bank's 50 of wholesale deposits.*\n\n**Intuition.** The NSFR is two weighted sums and a division, and the factors carry all the meaning. On the funding side, capital counts fully, retail deposits nearly fully, and wholesale money only half — that is the regulator saying which money stays when things get difficult. On the asset side the same logic runs backwards: cash needs no stable funding, Treasuries almost none, and a book of small business loans needs eighty-five percent of itself. Goodwill Bank lands at 86% against a 100% minimum, and the tables show exactly where the gap is.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**84.9% · One factor substituted.** Within one factor substitution of the correct answer — for instance a slightly different weight on mortgages or small business loans. With nine line items the options are spaced so that a single misapplied factor lands on a neighbour."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. 71.500 / 82.925."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**83.1% · One factor substituted.** Again reachable by a single error in either sum. Note that all four options are below 100%, so the pass/fail verdict cannot be used to check the arithmetic."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**88.0% · One factor substituted.** Consistent with over-weighting the ASF side or under-weighting a large RSF item — for instance treating Treasury bonds or fixed assets too generously."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "calculation-slip",
+    "wrong-input-twin"
+   ],
+   "explanation": "All three distractors sit within one misapplied factor of the correct ratio, and all four options are below 100% so the pass/fail verdict cannot check the arithmetic. Build the ASF and RSF sums line by line in a table, apply each factor to its own item, and only then divide."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q17",
+  "number": 17,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO2",
+  "loText": "Calculate portfolio VaR for alternative asset additions and explain how correlation, rather than stand-alone volatility, determines the contribution to portfolio risk.",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "topic": "Portfolio VaR Measures",
+  "question": "Anthony James has a portfolio with a single position of USD 700 million in shares of Grinold Bank. The manager is considering adding a USD 300 million position in either Fujarah Bank or Yamama Bank.\n\n| Share | Volatility | Correlation with Grinold |\n|---|---|---|\n| Grinold Bank (existing, USD 700m) | 12% | – |\n| Fujarah Bank | 9% | 0.8 |\n| Yamama Bank | 12% | 0.0 |\n\nWhich of the two proposed additions will keep Anthony's risk budget at an optimal level at the 99% confidence level, and what will be the portfolio's VaR?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Fujarah added; VaR$_p$ = USD 195.72 million."
+   },
+   {
+    "key": "b",
+    "text": "Yamama added; VaR$_p$ = USD 212.94 million."
+   },
+   {
+    "key": "c",
+    "text": "Fujarah added; VaR$_p$ = USD 248.92 million."
+   },
+   {
+    "key": "d",
+    "text": "Yamama added; VaR$_p$ = USD 414.54 million."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Zero correlation beats lower volatility — Yamama, at USD 212.94m**\n\n**Step 1 — Set up the portfolio variance**\n\n$$\\sigma_p^2 = (w_G\\sigma_G)^2 + (w_A\\sigma_A)^2 + 2\\rho\\, w_G\\sigma_G\\, w_A\\sigma_A$$\n\nwith $w_G = 0.7$ and $w_A = 0.3$ on a USD 1,000 million portfolio.\n\n*The choice turns on the cross term. Fujarah has the lower volatility but a correlation of 0.8; Yamama is more volatile but uncorrelated, so its cross term vanishes entirely.*\n\n**Step 2 — Evaluate the Fujarah portfolio**\n\n$$\\sigma_p^2 = (0.7 \\times 0.12)^2 + (0.3 \\times 0.09)^2 + 2(0.8)(0.084)(0.027)$$\n\n$$= 0.007056 + 0.000729 + 0.003629 = 0.011414$$\n\n$$\\sigma_p = 10.68\\% \\;\\Rightarrow\\; VaR = 1{,}000 \\times 2.33 \\times 0.10684 = \\text{USD } 248.92 \\text{ m}$$\n\n*Name it — this is a correct portfolio VaR, just for the inferior choice, and it is sitting in the option list.*\n\n**Step 3 — Evaluate the Yamama portfolio**\n\n$$\\sigma_p^2 = (0.7 \\times 0.12)^2 + (0.3 \\times 0.12)^2 + 0$$\n\n$$= 0.007056 + 0.001296 = 0.008352$$\n\n$$\\sigma_p = 9.14\\% \\;\\Rightarrow\\; VaR = 1{,}000 \\times 2.33 \\times 0.09139 = \\text{USD } 212.94 \\text{ m}$$\n\n*The cross term is zero, so the two variances simply add. Yamama produces the lower portfolio VaR by USD 36 million despite being the more volatile asset.*\n\n**Step 4 — Read the lesson**\n\nYamama has **one-third more volatility** than Fujarah (12% against 9%) and still delivers less portfolio risk, because its correlation of zero contributes nothing to the cross term while Fujarah's 0.8 contributes 0.0036 — more than four-fifths of the 0.0044 of variance that Fujarah adds (0.000729 + 0.003629).\n\n*Stand-alone volatility is the wrong criterion for a portfolio addition. What matters is the contribution to portfolio variance, and correlation drives that.*\n\n**Intuition.** The instinct is to add the less volatile asset, and here that instinct is wrong. Fujarah is quieter at 9% but moves with the existing holding four times out of five, so it piles onto the risk already there. Yamama is as volatile as Grinold but entirely unrelated to it, so its cross term disappears and the variances simply add. Thirty-six million dollars of VaR separates the two, in favour of the asset that looks riskier in isolation. What matters is the contribution, not the stand-alone number.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Fujarah / 195.72 · Existing position only.** 195.72 = 1,000 × 2.33 × 0.084, where 0.084 is the weighted volatility of the *Grinold position alone*. The addition was never included in the variance."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct on both counts. Zero correlation eliminates the cross term, giving the lower portfolio VaR."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Fujarah / 248.92 · Right VaR, wrong choice.** A correctly computed portfolio VaR — for the Fujarah portfolio. The arithmetic is right and the selection is wrong, which is the most dangerous kind of near-miss."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Yamama / 414.54 · Right choice, wrong VaR.** The correct asset paired with a materially overstated VaR. It is not the undiversified figure either: adding the weighted volatilities gives 1,000 × 2.33 × (0.084 + 0.036) = USD 279.60 million. The value 414.54 (= 1.645 × 252) does not follow from the stem's data by any standard slip."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "correlation-misuse",
+    "calculation-slip"
+   ],
+   "explanation": "The item tests whether correlation, not stand-alone volatility, drives the choice of addition. Distractors offer the VaR of the existing position alone, a correct VaR for the inferior (lower-volatility but highly correlated) asset, and the right asset paired with an overstated VaR. Compute both portfolio variances with the cross term, then pick the lower VaR."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q18",
+  "number": 18,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO2",
+  "loText": "Calculate the diversification benefit of a portfolio as the difference between undiversified and diversified VaR.",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "topic": "Portfolio VaR Measures",
+  "question": "Richard Burns is evaluating a two-asset portfolio consisting of Venus Airline and Mars Airline stock:\n\n| Asset | Position value (USD m) | Standard deviation (%) | Beta |\n|---|---|---|---|\n| Venus | 450 | 16 | 1.5 |\n| Mars | 250 | 11 | 0.9 |\n| Portfolio | 700 | 14 | 1.3 |\n\nBased on this information, the portfolio's estimated diversification benefit at the 95% confidence level is closest to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 166.7 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 164.2 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 2.5 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 161.7 million."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · 163.7 undiversified less 161.2 diversified — a benefit of 2.5**\n\n**Step 1 — Compute the diversified portfolio VaR**\n\n$$VaR_p = z\\,\\sigma_p\\,V = 1.645 \\times 0.14 \\times 700 = \\text{USD } 161.21 \\text{ million}$$\n\n*Name it — this is a legitimate quantity and it is sitting in the option list as choice D.*\n\n**Step 2 — Compute the undiversified VaR**\n\nSum each position's stand-alone VaR, which implicitly assumes perfect correlation:\n\n$$VaR_{undiv} = 1.645\\,[450(0.16) + 250(0.11)]$$\n\n$$= 1.645\\,[72.0 + 27.5] = 1.645(99.5) = \\text{USD } 163.68 \\text{ million}$$\n\n*Also a legitimate quantity, also in the option list as choice B. Two of the four options are correct intermediates.*\n\n**Step 3 — Take the difference**\n\n$$\\text{Benefit} = 163.68 - 161.21 = \\text{USD } 2.47 \\text{ million} \\approx \\text{USD } 2.5 \\text{ million}$$\n\n*The benefit is a **difference**, not a level — and it is by far the smallest number in the option list, which is the structural tell.*\n\n**Step 4 — Read why the benefit is so small**\n\nTwo airline stocks are highly correlated, so combining them offers almost nothing: the benefit is 1.5% of the undiversified VaR. Backing out the implied correlation from $\\sigma_p$ = 14% gives roughly 0.93.\n\n*Concentration within a single industry is precisely the situation where diversification arithmetic flatters and the economics do not. Compare AnalystPrep Mock 3 Q17, where a zero-correlation addition cut portfolio VaR by 15%.*\n\n**Intuition.** Three of the four options are around 160 and one is 2.5, which tells you almost everything before you compute: the diversification benefit is the *gap* between two large and very similar numbers, so it must be small. Add the stand-alone VaRs to get what the risk would be with no diversification, compute the portfolio VaR to get what it actually is, and difference them. Two airlines move together, so the gap is barely one and a half percent — which is the economic point of the question.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**USD 166.7 million · Level, mis-computed.** In the region of the two VaR levels but matching neither — consistent with a confidence-level or weighting slip on the undiversified sum. In any case a level, not a difference."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**USD 164.2 million · Undiversified VaR.** Close to the undiversified VaR of 163.68 — a correct intermediate reported as the answer. It equals 1.65 × 99.5 = 164.18, the same quantity with z rounded to 1.65."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. 163.68 − 161.21."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**USD 161.7 million · Portfolio VaR.** Close to the diversified portfolio VaR of 161.21 — the other correct intermediate, again reported as a finished answer. It equals 1.65 × 0.14 × 700 = 161.70, again with z = 1.65. On that basis the benefit is 164.18 − 161.70 = 2.48 ≈ 2.5, so the key is the same."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "intermediate-result-trap",
+    "intermediate-result-trap"
+   ],
+   "explanation": "The question asks for a difference and the options offer levels: the undiversified VaR, the diversified VaR, and a mis-computed level near both. Compute both VaRs, subtract, and use the structural tell that a diversification benefit between two similar large numbers must be small."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q19",
+  "number": 19,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-mock",
+  "loText": "Calculate the time-weighted rate of return by chain-linking sub-period returns and distinguish it from the dollar-weighted return.",
+  "reading": "Risk Management and Investment Management, reading on portfolio performance evaluation",
+  "topic": "Time-Weighted Return",
+  "question": "David Parker purchased 500 shares of Yamacha Petroleum for USD 60 per share on 1 January 2016, and another 500 shares at USD 75 on 1 January 2017. The stock paid a dividend of USD 5 per share on 31 December 2016 and another USD 5 per share on 31 December 2017. On 31 December 2017 David sold all of his shares for USD 90 each.\n\nGiven this information, the time-weighted rate of return on the investment is closest to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "29.94%."
+   },
+   {
+    "key": "b",
+    "text": "33.33%."
+   },
+   {
+    "key": "c",
+    "text": "26.66%."
+   },
+   {
+    "key": "d",
+    "text": "68.88%."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Chain-link 33.33% and 26.67%, then annualise**\n\n**Step 1 — Cut the period at the cash flow date**\n\nTime-weighted return breaks the horizon at every external cash flow — here, the 1 January 2017 purchase. That gives two sub-periods, each valued independently of position size.\n\n*This is what makes TWRR insensitive to when money entered: each sub-period return is computed per share, not per dollar invested.*\n\n**Step 2 — Compute each sub-period return**\n\n$$HPR_{2016} = \\frac{75 - 60 + 5}{60} = \\frac{20}{60} = 33.33\\%$$\n\n$$HPR_{2017} = \\frac{90 - 75 + 5}{75} = \\frac{20}{75} = 26.67\\%$$\n\n*Both figures are in the option list. Each is a correct sub-period return, and neither is the answer — the classic intermediate-result construction.*\n\n**Step 3 — Chain-link and annualise**\n\n$$(1 + TWRR)^2 = (1.3333)(1.2667) = 1.68889$$\n\n$$TWRR = \\sqrt{1.68889} - 1 = 1.29957 - 1 = 29.96\\% \\approx 29.94\\%$$\n\n*The cumulative two-year figure of 68.89% is also in the option list — the answer if you chain-link and forget to take the geometric mean.*\n\n**Step 4 — Note what TWRR deliberately ignores**\n\nThe second purchase at USD 75 was made just before the weaker of the two years. TWRR ignores that entirely, because the manager did not choose the timing — the investor did.\n\n*A dollar-weighted calculation on the same facts would come out lower, since more money was exposed to the 26.67% year than to the 33.33% one. TWRR judges the security; DWRR judges the investor.*\n\n**Intuition.** Every option here is a correct number from the working, which is what makes an otherwise routine calculation worth two and a half minutes. Cut the period where the money went in, compute each year's return per share, multiply them together, then take the square root because you want an annual figure. Stop one step early in either direction and you land on a distractor: the individual years are 33% and 27%, the uncompounded total is 69%, and only the geometric mean is the answer.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct, to a rounding. $\\sqrt{1.3333 \\times 1.2667} - 1$."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**33.33% · First sub-period return.** The 2016 holding period return reported as the answer. A correct intermediate, and the larger of the two."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**26.66% · Second sub-period return.** The 2017 holding period return — the other correct intermediate."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**68.88% · Cumulative, not annualised.** 1.3333 × 1.2667 − 1 = 68.89% — the total two-year return with the geometric mean never taken. The chain-linking is right; the annualisation is missing."
+   }
+  },
+  "trap": {
+   "operators": [
+    "intermediate-result-trap",
+    "intermediate-result-trap",
+    "unit-time-conversion"
+   ],
+   "explanation": "Every distractor is a correct number from the working: either sub-period holding period return, or the cumulative two-year return before annualising. Cut the horizon at the cash flow, compute each sub-period return per share, chain-link, and take the geometric mean to state an annual rate."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ }
+]

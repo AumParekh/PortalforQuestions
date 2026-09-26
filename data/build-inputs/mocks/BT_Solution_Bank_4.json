@@ -1,0 +1,1262 @@
+[
+ {
+  "id": "BTMOCK-Q61",
+  "number": 61,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO6",
+  "loText": "Describe EVT and its use in risk management",
+  "reading": "Extreme Value Theory",
+  "topic": "Extreme Value Theory",
+  "question": "Following Dowd, if $\\xi > 0$ the tail of an extreme loss distribution follows a power law, and assuming k is approximately constant this simplifies to $F(x) \\approx k \\cdot x^{-\\alpha}$.\n\nPatricia sets the exponent $\\alpha$ = **4.0** and observes that the **99.50% VaR is USD 6.0 million**. If the loss tail follows the power law, which is nearest to the implied **99.90% VaR**?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 5.0 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 9.0 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 13.0 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 21.0 million."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · Tail probability falls fivefold, so VaR scales by $5^{1/4}$\n\n1. **Step 1 — Eliminate on monotonicity**\n\n   The 99.90% VaR must **exceed** the 99.50% VaR of USD 6.0 million. Option A at USD 5.0 million is lower — impossible, whatever the exponent.\n\n   *A free elimination before any calculation, as in the Fréchet VaR item.*\n\n2. **Step 2 — Set up the scaling relation**\n\n   $$\\frac{F(x_1)}{F(x_2)} = \\left(\\frac{x_1}{x_2}\\right)^{-\\alpha} \\implies \\frac{x_2}{x_1} = \\left(\\frac{F(x_1)}{F(x_2)}\\right)^{1/\\alpha}$$\n\n   $$\\frac{F(x_1)}{F(x_2)} = \\frac{1 - 0.9950}{1 - 0.9990} = \\frac{0.005}{0.001} = 5$$\n\n   *The tail probability shrinks by a factor of five. The VaR grows by that factor raised to the **reciprocal** of the exponent — the exponent acts as a root, not a power.*\n\n3. **Step 3 — Apply the exponent**\n\n   $$\\frac{x_2}{x_1} = 5^{1/4} = 1.4953$$\n\n   $$x_2 = 6.0 \\times 1.4953 = \\text{USD } 8.97 \\approx \\mathbf{9.0} \\text{ million}$$\n\n4. **Step 4 — Note what the exponent controls**\n\n   | $\\alpha$ | Scaling factor $5^{1/\\alpha}$ | Implied 99.9% VaR |\n   |---|---|---|\n   | 2 (very fat tail) | 2.236 | 13.4 |\n   | **4** | **1.495** | **9.0** |\n   | 8 (thinner tail) | 1.223 | 7.3 |\n\n   *A **lower** $\\alpha$ means a fatter tail and a steeper rise in VaR as confidence increases. Using $\\alpha$ = 2 gives 13.4 — which is option C.*\n\n**Intuition.** The power law says the tail probability falls as a power of the loss size, so going from a one-in-two-hundred loss to a one-in-a-thousand loss means the probability shrinks fivefold and the loss grows by the fourth *root* of five — about fifty percent. Six million becomes nine. The exponent acts as a root, not a power, and the lower it is the fatter the tail: halve it to two and the answer jumps to thirteen, which is offered.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.3 (Dowd) on extreme value theory.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "5.0. Violates monotonicity: Below the given 99.50% VaR of 6.0 million. VaR cannot fall as confidence rises — eliminable without any calculation."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "9.0. $6.0 \\times 5^{1/4} = 8.97$. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "13.0. Exponent halved: $6.0 \\times 5^{1/2} = 13.4$ — using $\\alpha$ = 2 instead of 4, which assumes a much fatter tail than stated."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "21.0. Exponent applied as a power: Far too large. Consistent with treating the exponent as a multiplier or power rather than a reciprocal — the scaling factor is $5^{1/\\alpha}$, not $5^{\\alpha}$."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "wrong-input-twin",
+    "role-misassignment"
+   ],
+   "explanation": "Power-law scaling traps attack the direction of the move and the role of the exponent. Option A moves VaR the wrong way as confidence rises, option C plugs in a fatter tail ($\\alpha$ = 2) than stated, and option D uses the exponent as a power instead of a root. Eliminate anything below the known VaR first, then scale by the tail-probability ratio raised to $1/\\alpha$."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q62",
+  "number": 62,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO17",
+  "loText": "Summarize netting and close-out procedures (including multilateral netting), explain their advantages and disadvantages, and describe how they fit into the framework of the ISDA master agreement",
+  "reading": "Reading 94: Gregory, ISDA Master Agreement, Netting and Close-out",
+  "topic": "Netting, Collateral and Margin",
+  "question": "Acme Financial holds five derivative contracts with a counterparty, all within a single netting set. The current mark-to-market values are:\n\n$$+12 \\qquad -9 \\qquad +20 \\qquad -6 \\qquad +8$$\n\nDefine the **netting benefit** as the reduction in current exposure due to netting. What is the netting benefit in this set?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Zero."
+   },
+   {
+    "key": "b",
+    "text": "3."
+   },
+   {
+    "key": "c",
+    "text": "15."
+   },
+   {
+    "key": "d",
+    "text": "25."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · 40 gross falls to 25 net — a benefit of 15\n\n1. **Step 1 — Exposure without netting**\n\n   $$\\sum_i \\max(MtM_i,\\ 0) = 12 + 20 + 8 = 40$$\n\n   *Without an enforceable netting agreement, the administrator collects the 15 Acme owes and Acme queues as an unsecured creditor for the 40 it is owed.*\n\n2. **Step 2 — Exposure with netting**\n\n   $$\\max\\left(\\sum_i MtM_i,\\ 0\\right) = \\max(12 - 9 + 20 - 6 + 8,\\ 0) = \\max(25,\\ 0) = 25$$\n\n3. **Step 3 — Take the difference**\n\n   $$40 - 25 = \\mathbf{15}$$\n\n   Netting removes **37.5%** of the exposure — exactly the value of the negative positions, since 9 + 6 = 15.\n\n   *A useful shortcut: when the net figure is positive, the netting benefit equals the absolute value of the negative positions. Here 9 + 6 = 15, no further arithmetic required.*\n\n4. **Step 4 — Note when the shortcut fails**\n\n   If the negatives had *outweighed* the positives, the net exposure would floor at zero and the benefit would equal the full gross figure of 40 — not the sum of the negatives.\n\n   *Same floor as the swap exposure item: exposure is max(V, 0) and the shortcut only holds while the net remains positive.*\n\n**Intuition.** Without a master agreement the two contracts you owe on simply do not count — the administrator collects those and hands you a claim form for the forty you are owed. With netting the whole relationship collapses to twenty-five. The gap is fifteen, which happens to be exactly the value of the negative positions, and that shortcut works whenever the net figure stays positive. The remaining exposure of twenty-five is offered for anyone who answers the wrong question.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on netting and close-out (Gregory).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Zero. Benefit denied: Would require all five positions to share the same sign. Two are negative and total −15, so a substantial offset exists."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "3. Negatives netted against each other: Consistent with combining the two negative positions (9 − 6) rather than summing them. Both reduce the exposure and both count."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "15. 40 − 25. Correct."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "25. Net exposure, not the benefit: The exposure remaining *after* netting. A correct intermediate answering a different question — the stem asks for the reduction."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "sign-error",
+    "intermediate-result-trap"
+   ],
+   "explanation": "The netting benefit is a difference between two exposures, so the traps either stop at one of them or mishandle the negative trades. Option D reports the net exposure itself (an intermediate result), option B subtracts one negative from the other instead of adding them, and option A denies that any offset exists. Compute gross positive exposure, compute max(net, 0), and subtract."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q63",
+  "number": 63,
+  "subject": "Operational Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "OR-LO13",
+  "loText": "Top-down and bottom-up risk identification. Discuss",
+  "reading": "Operational Risk and Resilience, Ch. 3: Risk Identification",
+  "topic": "Risk Identification and Assessment",
+  "question": "Patricia is designing her firm's operational risk **scenario analysis**. She has prepared external loss data, internal loss data including near misses, RCSA results, key risk indicator scores, audit issues and concentrated exposures, and will facilitate a brainstorming session. Following good practice, which of the following is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Because most large operational losses result from external causes, her primary focus should be scenarios driven by external causes."
+   },
+   {
+    "key": "b",
+    "text": "She should compare her firm's generated scenarios to industry-specific lists published by external sources, but such a comparison should be made *after* her firm's own scenarios are generated."
+   },
+   {
+    "key": "c",
+    "text": "The initial output of scenario identification should be limited to approximately 10 or 12 scenarios in order to avoid missing the forest for the trees."
+   },
+   {
+    "key": "d",
+    "text": "Because the ultimate goal of scenario analysis is to predict the future with a sufficient degree of certainty, her process should acknowledge and elevate the role of prediction."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · Generate your own list first, then benchmark — otherwise the external list anchors you\n\n1. **Step 1 — State the sequencing rule**\n\n   Generate the firm's **own** scenarios first, then compare against published industry lists for completeness. Reversing the order lets the external list **anchor** the discussion.\n\n   *Participants shown an industry list will tick items off it rather than think about their own firm. The firm-specific scenarios — the ones nobody else would have written down — are exactly what gets lost.*\n\n2. **Step 2 — Note the value of the external comparison**\n\n   The comparison is still *essential*, as a completeness check. It catches categories the firm has never experienced and therefore cannot recall — the availability bias that internal loss data cannot correct.\n\n   *So the answer is not ‘ignore external lists’. It is ‘use them second, not first’.*\n\n3. **Step 3 — Correct the ‘external causes’ claim**\n\n   Large operational losses arise substantially from **internal** causes — conduct failures, rogue trading, control breakdowns, mis-selling. Focusing primarily on external causes would miss the largest historical losses in banking.\n\n   *Barings, Société Générale, PPI mis-selling, LIBOR — all internal. Option A would exclude the entire conduct risk category.*\n\n4. **Step 4 — Correct the remaining two**\n\n   The **initial** output should be *broad*, then narrowed — capping it at ten or twelve at the identification stage suppresses exactly the unconventional scenarios the exercise exists to surface. And scenario analysis is **not prediction**: it explores plausible severe outcomes to test resilience.\n\n   *Option D's error is the more fundamental. Treating scenarios as forecasts invites arguments about likelihood instead of preparation for severity.*\n\n**Intuition.** Show a room an industry list of operational risk scenarios and they will work through it obediently, and the scenarios unique to your own firm — the ones no published list contains — never get raised. So generate internally first, then benchmark for completeness. The other options fail on familiar ground: most big operational losses are internally caused, the initial list should be broad rather than capped, and scenario analysis was never a forecasting exercise.\n\n*Reference: GARP FRM Part II 2025 — Operational Risk and Resilience, reading on scenario analysis and risk identification.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Causal attribution wrong: Many of the largest operational losses in banking are internally caused — rogue trading, mis-selling, control failures. Prioritising external causes would exclude the conduct risk category entirely."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. External benchmarking is essential for completeness but must follow internal generation, so that published lists do not anchor the firm's own thinking."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Premature narrowing: The identification stage should generate broadly and narrow afterwards. Capping the initial list at ten or twelve suppresses the unconventional scenarios the exercise exists to find."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Purpose misstated: Scenario analysis does not aim to predict. It explores plausible severe outcomes to test resilience and inform capital — elevating prediction turns the exercise into an argument about probabilities."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "Good-practice questions on scenario analysis plant errors of direction, stage and purpose. Option A flips the source of large losses from internal to external, option C applies a narrowing step at the wrong stage, and option D swaps exploration of severe outcomes for forecasting. Remember the order: generate broadly and internally, benchmark externally afterwards, and treat scenarios as resilience tests rather than predictions."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q64",
+  "number": 64,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO44",
+  "loText": "Compare illiquidity risk premiums across and within asset categories",
+  "reading": "Reading 99: Ang, Illiquid Assets",
+  "topic": "Illiquid Assets",
+  "question": "Andrew Ang references Ilmanen's scatterplot of long-run average return against an index of illiquidity across asset classes, in which venture capital plots as both the least liquid and the highest returning. In regard to the **illiquidity risk premium**, which of the following is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "In general illiquid asset classes offer high risk-adjusted returns."
+   },
+   {
+    "key": "b",
+    "text": "These charts demonstrate that there do exist large illiquidity risk premiums ACROSS asset classes."
+   },
+   {
+    "key": "c",
+    "text": "There do exist large illiquidity risk premiums WITHIN many asset classes, but not ACROSS asset classes."
+   },
+   {
+    "key": "d",
+    "text": "Illiquid equities earn the same returns as liquid equities; and illiquid bonds earn the same returns as liquid bonds."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · The cross-asset chart is confounded; the within-asset evidence is solid\n\n1. **Step 1 — Explain why the cross-asset chart proves little**\n\n   Venture capital differs from Treasury bills in **far more than liquidity** — business risk, leverage, sector concentration, and reported returns distorted by survivorship and stale valuations.\n\n   *The scatterplot's upward slope may reflect any of those. Illiquidity is confounded with everything else that differs between asset classes, so the chart cannot isolate it.*\n\n2. **Step 2 — Explain why the within-asset evidence is convincing**\n\n   Comparing **illiquid to liquid within** a single asset class holds the other characteristics roughly constant — on-the-run against off-the-run Treasuries, liquid against illiquid equities.\n\n   *These comparisons show real and economically significant premiums. The classic case is the on-the-run/off-the-run Treasury spread: identical credit, identical cash flows, different liquidity, measurably different yields.*\n\n3. **Step 3 — Recall the biases from the companion item**\n\n   Reported illiquid returns are inflated by **survivorship, infrequent sampling and selection bias** — the three biases in BionicTurtle Q58. Those distortions affect the cross-asset chart's vertical axis directly.\n\n   *So the very data plotted on the chart is compromised, which is a second reason not to read a premium off it.*\n\n4. **Step 4 — Correct option A on risk adjustment**\n\n   Even where illiquid assets show higher *raw* returns, their **risk-adjusted** performance is unimpressive once returns are unsmoothed and the biases corrected.\n\n   *Ang's whole argument is that the apparent Sharpe ratios of illiquid assets are largely a measurement artefact.*\n\n**Intuition.** Comparing venture capital with Treasury bills and attributing the return gap to illiquidity is like comparing a racing car with a bicycle and attributing the speed difference to paint. They differ in every respect, and the venture capital numbers are inflated by survivorship and stale valuations besides. Compare an off-the-run Treasury with an on-the-run one, though — same issuer, same cash flows, only liquidity differs — and the premium is right there. Within, not across.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on illiquid assets (Ang).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Risk adjustment ignored: Raw returns may look high, but risk-adjusted performance is far less impressive once returns are unsmoothed and survivorship and selection biases corrected."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Confounded comparison: Across asset classes, illiquidity is entangled with business risk, leverage and reporting biases. The scatterplot cannot isolate an illiquidity premium."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Within asset classes — where other characteristics are held roughly constant — the illiquidity premium is well documented. Across asset classes the evidence is confounded."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Denies the within-asset premium: The within-asset premium is precisely where the evidence is strongest. Off-the-run Treasuries yield measurably more than on-the-run issues with identical cash flows."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "scope-condition-error",
+    "polarity-flip"
+   ],
+   "explanation": "The illiquidity premium question turns on scope: within an asset class the evidence is clean, across asset classes it is confounded. Option B moves the claim to the wrong scope, option A drops the risk adjustment (and the bias corrections) from the return comparison, and option D denies the within-class premium outright. Anchor on the on-the-run/off-the-run Treasury example to remember where the evidence lives."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q65",
+  "number": 65,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO8",
+  "loText": "Explain elements of the due diligence process used to assess investment managers",
+  "reading": "Reading 94: Due Diligence for Hedge Funds",
+  "topic": "Hedge Fund Due Diligence",
+  "question": "Sally is conducting due diligence on a new, entrepreneurial start-up hedge fund on behalf of an investor. According to Mirabile, which of the following is the most important principle or ingredient as she conducts her diligence?",
+  "options": [
+   {
+    "key": "a",
+    "text": "She should observe strong evidence that the fund has eliminated business model risk via the SEC's Zeta Sigma AIML filter."
+   },
+   {
+    "key": "b",
+    "text": "She should confirm that the CEO is exceptionally good at all three top-level skill sets: investment, operational, and business."
+   },
+   {
+    "key": "c",
+    "text": "She should follow all the steps in the process but with flexibility, as due diligence is also an art and each fund is unique with its own strategy."
+   },
+   {
+    "key": "d",
+    "text": "She should clarify that the fund's incentives are actual equity ownership grants rather than phantom equity, and that they are granted throughout the organization."
+   }
+  ],
+  "answer": "c",
+  "solution": "*Companion item. BionicTurtle Q35 asks what fraud screening requires (a comprehensive checklist); this asks what due diligence as a whole requires (that process, applied with flexibility). The two are complementary — a checklist applied mechanically to every fund, with judgement about what each fund's particular structure demands.*\n\n**Correct answer: C** · A complete process, applied with judgement about what this particular fund needs\n\n1. **Step 1 — Note the two halves of the correct answer**\n\n   **Follow all the steps** — completeness, so that nothing is skipped for a fund one happens to like. **With flexibility** — because a start-up macro fund and an established credit fund require different emphasis.\n\n   *Neither half alone is sufficient. Pure process misses what matters to a particular fund; pure judgement is how affinity and enthusiasm defeat diligence.*\n\n2. **Step 2 — Note what a start-up specifically demands**\n\n   The stem says the fund is **new and entrepreneurial**, which shifts weight toward business model viability, key-person risk, service provider quality and whether the operational infrastructure exists at all.\n\n   *An established fund with a decade of audited returns needs a different emphasis. That is what flexibility means in practice — not skipping steps, but weighting them.*\n\n3. **Step 3 — Note why option B is unrealistic**\n\n   Investment, operational and business skills rarely coexist in **one person**. The requirement is that the *organisation* covers all three — and a founder who claims all three personally is a concentration risk, not a reassurance.\n\n   *Key-person dependency is itself a due diligence finding. A fund where one individual does everything is more fragile, not less.*\n\n4. **Step 4 — Dispose of the remaining two**\n\n   The ‘**SEC Zeta Sigma AIML filter**’ does not exist — an invented term. And equity versus phantom equity is a real alignment question but a *detail*, not the governing principle of a diligence process.\n\n   *Option A is the invented-authority construction seen in the ‘validity test’ and ‘date of assessment’ items.*\n\n**Intuition.** Due diligence has to be complete and it has to be thoughtful, and the two requirements pull against each other. Complete, because the moment you skip steps for a fund you like, the checklist has stopped protecting anyone. Thoughtful, because a brand-new fund needs its operational infrastructure and key-person risk examined far harder than a fund with a decade of audited history. The option claiming one person is brilliant at all three disciplines describes a risk, not a comfort.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on hedge fund due diligence (Mirabile).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Invented authority: No such SEC filter exists. Business model risk cannot be *eliminated* by any mechanism, least of all a fabricated regulatory tool."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Concentration presented as strength: Investment, operational and business skills rarely coexist in one individual. The organisation must cover all three; a founder who does so alone is a key-person risk."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Due diligence requires following the full process for completeness while applying judgement about what each fund's particular structure and strategy demand."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Detail, not principle: Equity versus phantom equity is a legitimate alignment question, but it is one item on a checklist rather than the governing principle of the exercise."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "role-misassignment",
+    "scope-condition-error"
+   ],
+   "explanation": "Due diligence principle questions hide the answer among a fabricated absolute, a misplaced requirement and a true-but-minor detail. Option A claims a risk can be eliminated by an invented regulatory tool, option B assigns to one person what the organisation must cover, and option D promotes a single checklist item to the governing principle. Look for the option that describes the process as a whole: complete, but weighted with judgement."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q66",
+  "number": 66,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO15",
+  "loText": "Estimate VaR parametrically, normal and lognormal",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "Bertha measures performance with both arithmetic and geometric returns. The portfolio is worth **USD 100.0 million** and there are **250** trading days per year.\n\n| Basis | Average return p.a. | Standard deviation p.a. |\n|---|---|---|\n| Geometric | +12.0% | 28.0% |\n| Arithmetic | +14.0% | 32.0% |\n\nShe measures the one-day 95.0% VaR under both approaches — normal VaR on the arithmetic parameters and lognormal VaR on the geometric parameters. Which is true?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The normal VaR is approximately USD 37,700 **less** than the lognormal VaR."
+   },
+   {
+    "key": "b",
+    "text": "The normal VaR is approximately USD 380,100 **less** than the lognormal VaR."
+   },
+   {
+    "key": "c",
+    "text": "The normal VaR is approximately USD 29,400 **greater** than the lognormal VaR."
+   },
+   {
+    "key": "d",
+    "text": "The normal VaR is approximately USD 448,800 **greater** than the lognormal VaR."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · USD 3,273,000 normal against USD 2,824,000 lognormal\n\n1. **Step 1 — Scale the arithmetic parameters to one day**\n\n   $$\\mu = \\frac{0.14}{250} = 0.00056 \\qquad \\sigma = \\frac{0.32}{\\sqrt{250}} = \\frac{0.32}{15.811} = 0.020239$$\n\n   *The mean scales **linearly** with time and the volatility by the **square root**. Mixing the two is the standard scaling error.*\n\n2. **Step 2 — Compute the normal VaR**\n\n   $$\\begin{aligned} VaR_{normal} &= 100\\text{m}\\,\\big(1.645(0.020239) - 0.00056\\big) \\\\ &= 100\\text{m}(0.033293 - 0.00056) = \\text{USD } 3{,}273{,}000 \\end{aligned}$$\n\n3. **Step 3 — Compute the lognormal VaR on the geometric parameters**\n\n   $$\\mu = \\frac{0.12}{250} = 0.00048 \\qquad \\sigma = \\frac{0.28}{15.811} = 0.017709$$\n\n   $$\\begin{aligned} VaR_{lognormal} &= 100\\text{m}\\left(1 - e^{0.00048 - 1.645(0.017709)}\\right) \\\\ &= 100\\text{m}\\left(1 - e^{-0.028651}\\right) = 100\\text{m}(0.028244) = \\text{USD } 2{,}824{,}000 \\end{aligned}$$\n\n   *Note the parameters **differ** between the two calculations — 32% and 14% for arithmetic, 28% and 12% for geometric. That is where almost the entire difference comes from.*\n\n4. **Step 4 — Take the difference and read its source**\n\n   $$3{,}273{,}000 - 2{,}824{,}000 = \\text{USD } 449{,}000 \\approx \\mathbf{448{,}800}$$\n\n   On *identical* parameters the two methods would differ by only about USD 50,000 at a one-day horizon.\n\n   *So roughly 90% of the gap is the volatility difference (32% against 28%), not the functional form. The question looks like a normal-versus-lognormal comparison and is mostly a parameter comparison.*\n\n**Intuition.** It reads like a question about normal versus lognormal and it is mostly a question about which parameters go with which. The arithmetic basis carries 32% volatility and the geometric 28%, and that four-point gap does almost all the work — on identical inputs the two formulas differ by about fifty thousand over one day, not four hundred and fifty. The normal figure is the larger because its parameters are, and one distractor quotes roughly the right number with the sign reversed.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.1 (Dowd) on parametric VaR estimation.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "37,700 less. Direction reversed and magnitude small: Normal VaR is *greater* here, and by an order of magnitude more than this. Both the sign and the size are wrong."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "380,100 less. Right magnitude, wrong direction: Close to the correct magnitude but with the sign reversed. The arithmetic parameters are the larger ones, so the normal VaR is higher."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "29,400 greater. Same-parameter difference: In the region of the gap that *would* arise if both calculations used identical parameters — the pure functional-form effect, which is small at a one-day horizon. It ignores that the two bases carry different inputs."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "448,800 greater. 3,273,000 − 2,824,000. Correct."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sign-error",
+    "wrong-input-twin"
+   ],
+   "explanation": "Two things decide this item: which parameter set feeds which formula, and the direction of the gap. Options A and B put the normal VaR below the lognormal one (B with roughly the right size), while option C is the small gap you get by running both formulas on the same inputs. Scale each basis to one day (mean by 1/250, volatility by $1/\\sqrt{250}$), compute both VaRs on their own parameters, and only then take the difference."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q67",
+  "number": 67,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO18",
+  "loText": "Provide examples of trade compression of derivative positions, calculate net notional exposure amount, and identify the party holding the net contract position in a trade compression",
+  "reading": "Reading 94: Gregory, ISDA Master Agreement, Netting and Close-out",
+  "topic": "Netting, Collateral and Margin",
+  "question": "A trilateral ring exists between three counterparties (A, B and C) in a fungible product, with a current total notional of **370**. If trade compression can be achieved, which of the following is an efficient solution?",
+  "options": [
+   {
+    "key": "a",
+    "text": "A → 25 → B → 60 → C (new total notional = 110)."
+   },
+   {
+    "key": "b",
+    "text": "A → 30 → B → 45 → C (new total notional = 150)."
+   },
+   {
+    "key": "c",
+    "text": "B → 35 → C → 30 → A (new total notional = 65)."
+   },
+   {
+    "key": "d",
+    "text": "B → 25 → C → 10 → A (new total notional = 70)."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · Only option C's stated total matches the notionals it lists\n\n1. **Step 1 — Check each option's internal arithmetic**\n\n   | Option | Notionals listed | Sum | Total claimed | Consistent? |\n   |---|---|---|---|---|\n   | A | 25 + 60 | 85 | 110 | No |\n   | B | 30 + 45 | 75 | 150 | No |\n   | **C** | 35 + 30 | **65** | **65** | **Yes** |\n   | D | 25 + 10 | 35 | 70 | No |\n\n   *Three of the four options state a total that does not equal the sum of the trades they describe. That inconsistency identifies the answer without any knowledge of the ring.*\n\n2. **Step 2 — Note what compression achieves**\n\n   Trade compression **terminates offsetting positions** and replaces them with a smaller set of equivalent trades. Market risk and net exposures are unchanged; **gross notional** falls.\n\n   *Why bother? Gross notional drives operational load, leverage ratio denominators, initial margin and default fund contributions — all of which are expensive and none of which reflects real economic risk in a redundant ring.*\n\n3. **Step 3 — Note the size of the reduction**\n\n   $$\\frac{370 - 65}{370} = 82\\% \\text{ reduction in gross notional}$$\n\n   *Reductions of this magnitude are realistic. Industry compression cycles have eliminated hundreds of trillions of notional from the interest rate swap market since 2008.*\n\n4. **Step 4 — Note the constraint compression must respect**\n\n   Each participant's **net position must be unchanged**. Compression removes redundancy in a ring — where A owes B owes C owes A — without altering anyone's economic exposure.\n\n   *Which is why it requires multilateral participation and a trusted operator: no bilateral pair can unwind a three-way ring on its own.*\n\n**Intuition.** Before thinking about the ring at all, add up the trades each option describes and compare with the total it claims. Three of the four do not agree with themselves, which settles it. The concept underneath is worth knowing: compression tears up redundant offsetting trades in a ring where A owes B owes C owes A, leaving everyone's net position identical while gross notional collapses — here by more than four-fifths. Gross notional is what drives margin, leverage ratios and operational cost.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on counterparty risk mitigation and market infrastructure.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "110 claimed, 85 actual. Internally inconsistent: The two notionals listed sum to 85, not the 110 stated. The option contradicts itself."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "150 claimed, 75 actual. Internally inconsistent: 30 + 45 = 75, not 150 — the stated total is double the sum of the trades described."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "65 claimed, 65 actual. Correct. 35 + 30 = 65, matching the stated total, and it is also the largest reduction in gross notional — 82% from the original 370."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "70 claimed, 35 actual. Internally inconsistent: 25 + 10 = 35, half the stated total of 70."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "calculation-slip",
+    "calculation-slip"
+   ],
+   "explanation": "Every distractor here is an arithmetic contradiction: the trades listed do not add up to the new total notional claimed. Before reasoning about the ring, sum each option's notionals and compare with its stated total; only a self-consistent option can be a valid compression result. Then confirm that compression leaves every net position unchanged while cutting gross notional."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q68",
+  "number": 68,
+  "subject": "Operational Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "OR-LO13",
+  "loText": "Top-down and bottom-up risk identification. Discuss",
+  "reading": "Operational Risk and Resilience, Ch. 3: Risk Identification",
+  "topic": "Risk Identification and Assessment",
+  "question": "Sally is leading a causal analysis of operational risk and is choosing a factor model. Her candidates include fault tree analysis, root-cause analysis with the bowtie tool, the FAIR model and the Swiss cheese model. Which of the following statements is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Fault tree analysis is simple and non-reliant on domain expertise; however, it is unrealistic because it can only assume independent events."
+   },
+   {
+    "key": "b",
+    "text": "The bowtie tool is proactive because it assesses the likelihood and/or impact of risks before they materialize by examining controls and indirect causes."
+   },
+   {
+    "key": "c",
+    "text": "The FAIR model is inclusive because it emphasizes subjective identification of factors; however, it is not a probabilistic approach."
+   },
+   {
+    "key": "d",
+    "text": "The Swiss cheese model is elegant because clusters and their centroids are quantitatively retrieved via k-means clustering."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · The bowtie is forward-looking — it maps causes and controls before the event\n\n1. **Step 1 — Describe the bowtie**\n\n   A **hazard** sits at the centre. Causes and **preventive** controls fan out to the left; consequences and **mitigating** controls fan out to the right — hence the shape.\n\n   *Both sides are populated before anything happens, which is what makes it proactive. It is a control-mapping tool as much as a causal one.*\n\n2. **Step 2 — Correct the FTA claim**\n\n   Fault tree analysis **depends heavily on domain expertise** — someone must know the system well enough to enumerate every failure path and its logic. It also handles dependent events through common-cause modelling.\n\n   *Both halves of option A are wrong. FTA is expert-intensive, and it does not require independence.*\n\n3. **Step 3 — Correct the FAIR claim**\n\n   FAIR — Factor Analysis of Information Risk — is explicitly **probabilistic**. It decomposes risk into frequency and magnitude and applies distributions to each, typically via Monte Carlo.\n\n   *Option C states the opposite of the model's defining feature. FAIR exists precisely to replace qualitative red/amber/green scoring with quantified loss distributions.*\n\n4. **Step 4 — Correct the Swiss cheese claim**\n\n   The Swiss cheese model is a **conceptual metaphor**: layered defences each with holes, and an incident occurs when the holes align. It involves no k-means clustering or centroids of any kind.\n\n   *Option D attaches a machine learning algorithm to a diagram. Its actual value is the insight that incidents require multiple simultaneous control failures, which is why single-cause explanations are usually incomplete.*\n\n**Intuition.** Four real techniques, and three of the options attach a false property to one of them. Fault tree analysis is described as needing no expertise, which is exactly backwards — somebody has to know the system cold to draw the tree. FAIR is called non-probabilistic when quantifying probability distributions is the entire reason it exists. And the Swiss cheese model is a picture of layered defences, not a clustering algorithm. The bowtie really is proactive: causes and controls on the left, consequences and controls on the right, all mapped before anything goes wrong.\n\n*Reference: GARP FRM Part II 2025 — Operational Risk and Resilience, reading on causal analysis and risk identification.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Both halves false: Fault tree analysis relies heavily on domain expertise to enumerate failure paths, and it can model dependent and common-cause events. Neither claim holds."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. The bowtie maps causes and preventive controls on one side and consequences and mitigating controls on the other, before an event materialises — a proactive tool."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Defining feature denied: FAIR is explicitly probabilistic, decomposing risk into frequency and magnitude with distributions applied to each. Claiming it is not probabilistic inverts its purpose."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Algorithm attached to a metaphor: The Swiss cheese model is a conceptual illustration of layered defences with aligning gaps. It has no computational component and involves no clustering."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "sibling-swap"
+   ],
+   "explanation": "Each distractor pairs a real method with a property it does not have. Option A claims fault trees need no expertise and can only assume independence, option C denies FAIR's defining probabilistic nature, and option D borrows a clustering algorithm for a conceptual metaphor. Test each option by asking what the method is actually for; only the bowtie's proactive mapping of causes, controls and consequences survives."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q69",
+  "number": 69,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO8",
+  "loText": "Distinguish between the various sources of non-deposit liabilities at a bank.",
+  "reading": "LR2025, Ch. 14: Managing Nondeposit Liabilities",
+  "topic": "Reserves and Nondeposit Funding",
+  "question": "Regarding the various sources of **non-deposit funding**, which of the following statements is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The Fed Funds market is the least popular because its effective interest rate is higher than the alternatives."
+   },
+   {
+    "key": "b",
+    "text": "Repurchase agreements are more popular than Fed Funds because they are simpler; however, they incur greater credit risk."
+   },
+   {
+    "key": "c",
+    "text": "The advantages of the commercial paper market are the lack of credit risk and consistently high credit availability."
+   },
+   {
+    "key": "d",
+    "text": "Advances from Federal Home Loan Banks are highly popular among thrifts and small banks as a stable source of flexible funding."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · FHLB advances are the small bank's staple — stable, collateralised, flexible in maturity\n\n1. **Step 1 — Verify the FHLB claim**\n\n   FHLBank advances are **collateralised** by mortgage assets, available across a wide range of maturities from overnight to years, and backed by a government-sponsored entity — making them stable and flexible.\n\n   *For a thrift or a small community bank without access to wholesale markets, FHLB advances are often the only meaningful non-deposit funding source. The system exists for precisely that purpose.*\n\n2. **Step 2 — Correct the Fed Funds claim**\n\n   The Fed Funds market is the **most** widely used short-term source, and it is typically among the **cheapest** — the policy rate anchors it.\n\n   *Option A inverts both the popularity and the pricing. It is unsecured and overnight, which is what makes it cheap and also what makes it disappear in a crisis.*\n\n3. **Step 3 — Correct the repo claim**\n\n   Repos are **collateralised**, so they carry *less* credit risk than unsecured Fed Funds — not more. And they are operationally more complex, requiring collateral management and margining.\n\n   *Option B reverses both halves: repos are less risky and more complex, not the other way round.*\n\n4. **Step 4 — Correct the commercial paper claim**\n\n   Commercial paper is **unsecured** and carries real credit risk, and its availability is famously **volatile** — the market shut in 2008, which is what killed several issuers dependent on it.\n\n   *‘Lack of credit risk and consistently high availability’ describes the opposite of the CP market's actual history.*\n\n**Intuition.** Three of these reverse something. Fed Funds is called unpopular and expensive when it is the opposite on both counts. Repos are called riskier than Fed Funds when collateral is the whole point of them. Commercial paper is credited with no credit risk and reliable availability, which the autumn of 2008 disposed of definitively. What remains is the unglamorous truth that small banks and thrifts run on FHLB advances — collateralised, flexible in maturity, and there when other markets are not.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, reading on non-deposit funding (Rose & Hudgins).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Both claims reversed: Fed Funds is the most widely used short-term non-deposit source, and its rate is typically among the lowest, anchored by the policy rate."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Both claims reversed: Repos are collateralised and therefore carry *less* credit risk than unsecured Fed Funds, and they are operationally more complex rather than simpler."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Contradicted by 2008: Commercial paper is unsecured and carries genuine credit risk. Its availability is highly volatile — the market froze in 2008, stranding issuers who relied on it."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. FHLBank advances are collateralised, available across a range of maturities and backed by a government-sponsored entity, making them a stable and flexible source for thrifts and small banks."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Funding-source questions reverse familiar properties. Options A and B flip both of their claims (popularity and cost for Fed Funds; simplicity and credit risk for repos), and option C makes absolute claims about commercial paper that 2008 disproved. Anchor each source on two facts, secured or unsecured and stable or flighty, and the reversals become obvious."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q70",
+  "number": 70,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO10",
+  "loText": "Compare value and momentum investment strategies, including their return and risk profiles",
+  "reading": "Reading 84: Ang, Factors",
+  "topic": "Value and Momentum Factors",
+  "question": "Adding a momentum factor — WML (winners minus losers) or UMD (up minus down) — to the Fama-French model produces a four-factor model. Over the period January 1965 to December 2011, which of the following is TRUE about the momentum factor?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Momentum is a negative feedback strategy which is inherently stabilizing."
+   },
+   {
+    "key": "b",
+    "text": "The momentum factor is observed in equities but is NOT observed in bonds, commodities, and real estate."
+   },
+   {
+    "key": "c",
+    "text": "Momentum investing by definition is an anti-value strategy; correlations between HML and WML are strongly negative."
+   },
+   {
+    "key": "d",
+    "text": "The cumulated profits on momentum strategies have been an order of magnitude larger than cumulated profits on either size or value."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Momentum's cumulative profits dwarf both SMB and HML over the long sample\n\n1. **Step 1 — Note the scale of the effect**\n\n   Over the 1965–2011 window, cumulative momentum profits substantially exceeded those of **both** size and value — which is why momentum is often described as the strongest of the documented anomalies.\n\n   *And the most awkward: it has no risk-based explanation, works across markets and centuries, and persists despite being extensively published.*\n\n2. **Step 2 — Correct the feedback direction**\n\n   Momentum is a **positive feedback** strategy — buy what has risen, sell what has fallen. That amplifies price moves and is inherently **destabilising**.\n\n   *Value is the negative feedback strategy: buy what has fallen. Option A attributes value's stabilising property to momentum — a clean sibling swap.*\n\n3. **Step 3 — Correct the scope claim**\n\n   Momentum is observed **across asset classes** — bonds, commodities, currencies and real estate as well as equities. Its pervasiveness is part of what makes it so hard to explain away.\n\n   *An effect confined to equities could plausibly be a data-mining artefact. One appearing everywhere cannot be dismissed so easily.*\n\n4. **Step 4 — Note why option C overstates**\n\n   Momentum and value *are* negatively correlated, and the two combine well in a portfolio. But ‘**by definition**’ is wrong — momentum is defined by *past returns*, not by valuation, and the negative correlation is an empirical finding rather than a definitional one.\n\n   *The closest distractor, and it fails on a logical overstatement rather than a factual error — the correlation is real but typically moderate rather than ‘strongly’ negative.*\n\n**Intuition.** Momentum buys what has been going up, which pushes it up further — positive feedback, and destabilising, whatever option A says. It turns up in bonds and commodities and currencies too, not just equities, and over the long sample its cumulative profits leave size and value well behind. The subtle distractor is the one calling it anti-value *by definition*: the negative correlation with value is real and empirical, but momentum is defined by past returns, not by price-to-book.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on factor theory and empirical factors (Ang).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Value's property attributed to momentum: Momentum is *positive* feedback — buying winners amplifies price moves and is destabilising. Value is the negative feedback, stabilising strategy."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Scope understated: Momentum is documented across bonds, commodities, currencies and real estate as well as equities. Its cross-asset pervasiveness is central to the literature."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "‘By definition’ overstates: Momentum is defined by past returns, not by valuation. The negative correlation with HML is an empirical regularity of moderate size, not a definitional consequence."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Over the 1965–2011 sample, cumulative momentum profits substantially exceeded those of both the size and value factors."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "scope-condition-error",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Momentum distractors borrow value's properties, shrink momentum's scope, or harden an empirical correlation into a definition. Option A gives momentum value's negative-feedback, stabilising character, option B confines it to equities, and option C turns a moderate empirical negative correlation into a ‘by definition’, ‘strongly negative’ claim. Remember: momentum is positive feedback, pervasive across asset classes, and defined by past returns."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q71",
+  "number": 71,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO6",
+  "loText": "Describe historical simulation using non-parametric density estimation",
+  "reading": "Non-Parametric Approaches",
+  "topic": "Non-Parametric Approaches",
+  "question": "Peter has **250** daily P/L observations but the board wants VaR at granular confidence levels (99.0%, 99.1%, …, 99.9%), a **non-parametric** approach, and **confidence intervals** around the VaR estimates. Which of the following is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Peter can easily eliminate basic historical simulation because BHS cannot retrieve a 99.10% VaR quantile."
+   },
+   {
+    "key": "b",
+    "text": "Peter has a dilemma: constructing confidence intervals around VaR estimates will require a parametric approach."
+   },
+   {
+    "key": "c",
+    "text": "Peter has a dilemma: his sample size is too small to meet the board's preferences under any of the four approaches."
+   },
+   {
+    "key": "d",
+    "text": "Non-parametric density estimation can retrieve VaRs at granular confidence levels as if the distribution were a continuous probability density function."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · NPDE fits a continuous density through the discrete points, so any quantile is available\n\n1. **Step 1 — Note what limits basic historical simulation**\n\n   With 250 observations the order statistics sit at multiples of **1/250 = 0.4%**. The available deep quantiles are 99.2% and 99.6% — 99.1% falls between two data points.\n\n   *This is a genuine constraint, and it is what motivates the non-parametric density approach rather than what defeats the whole exercise.*\n\n2. **Step 2 — Explain what NPDE does about it**\n\n   Non-parametric density estimation — typically **kernel smoothing** — places a small continuous density around each observation and sums them, producing a smooth curve from which **any** quantile can be read.\n\n   *Crucially it remains non-parametric: no distributional form is assumed, so it satisfies the board's stated preference while solving the granularity problem.*\n\n3. **Step 3 — Correct the confidence interval claim**\n\n   Confidence intervals around VaR can be built **non-parametrically** — by **bootstrapping** (resampling the 250 observations with replacement) or from order statistics theory.\n\n   *Option B asserts that intervals require a parametric approach, which is false and would make the bootstrap impossible.*\n\n4. **Step 4 — Assess the sample size**\n\n   250 observations is **modest but workable**. Estimates deep in the tail will be imprecise — which is exactly what the confidence intervals will reveal — but the methods function.\n\n   *Wide intervals are informative, not disqualifying. They tell the board how much to trust a 99.9% figure drawn from 250 days, which is arguably the most useful output of the whole exercise.*\n\n**Intuition.** Two hundred and fifty observations give you quantiles every 0.4%, so a 99.1% VaR falls between two data points and basic historical simulation has nothing to hand you. Kernel smoothing fixes that by drawing a continuous curve through the sample — still non-parametric, since no distribution is assumed, but now readable at any confidence level. And the confidence intervals the board wants come from bootstrapping, not from any parametric assumption.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.2 (Dowd) on non-parametric approaches.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Constraint overstated into elimination: It is true that raw order statistics cannot land exactly on 99.10% with 250 observations, but that limitation is what motivates NPDE rather than eliminating the approach family. ‘Easily eliminate’ overstates."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Bootstrap ignored: Confidence intervals around VaR can be constructed non-parametrically by bootstrapping or from order statistics theory. No parametric assumption is required."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Sample size dismissed: 250 observations is workable. Tail estimates will be imprecise, but the confidence intervals will disclose that imprecision — which is the point of requesting them."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Non-parametric density estimation smooths the discrete sample into a continuous density, allowing VaR to be read at any confidence level without assuming a distributional form."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "scope-condition-error",
+    "absolute-claim-trap"
+   ],
+   "explanation": "The distractors turn real limitations of a 250-day sample into false impossibilities. Option A inflates the BHS granularity limit into grounds to ‘easily eliminate’, option B wrongly makes confidence intervals conditional on a parametric model, and option C declares the sample unusable under every approach. Remember the toolkit: NPDE for granularity, bootstrapping for confidence intervals, and wide intervals as information rather than failure."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q72",
+  "number": 72,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO19",
+  "loText": "Describe the mechanics of termination provisions and explain their advantages and disadvantages; identify and describe termination events and discuss their potential effects on parties to a transaction",
+  "reading": "Reading 94: Gregory, ISDA Master Agreement, Netting and Close-out",
+  "topic": "Netting, Collateral and Margin",
+  "question": "Two counterparties have a set of OTC derivative transactions and a bilateral collateral agreement. Each of the following is true **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "If they followed best practice, collateral posting should be continuous for both of them."
+   },
+   {
+    "key": "b",
+    "text": "As a counterparty risk mitigant, collateral posting is generally superior to a reset feature."
+   },
+   {
+    "key": "c",
+    "text": "Variation margin is a type of collateral that aims to track the change in valuation of the position over time."
+   },
+   {
+    "key": "d",
+    "text": "As a bilateral agreement, in the case of a positive MTM the party will call for collateral, and in the case of negative MTM the party will be required to post."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · A reset returns the MTM to zero — collateral only secures an exposure that remains\n\n1. **Step 1 — Compare the two mechanisms**\n\n   | | Collateral | Reset feature |\n   |---|---|---|\n   | What happens to exposure | **Secured**, but still present | **Eliminated** — MTM returns to zero |\n   | Residual risk | Margin period of risk, collateral value moves, disputes | None at the reset date |\n   | Operational burden | **Continuous** margining | Periodic cash settlement |\n\n   *A reset settles the accumulated value in cash and restarts the trade at par. There is nothing left to collateralise, which is why it is the stronger mitigant.*\n\n2. **Step 2 — Note what collateral leaves behind**\n\n   Collateral does not remove exposure; it secures it. Residual risks remain: the **margin period of risk** between the last call and close-out, movements in the collateral's own value, disputes and delays.\n\n   *Recall the collateralised credit VaR item, where a threshold plus a two-day move left a real residual exposure. That residual is precisely what a reset removes.*\n\n3. **Step 3 — Verify the three true statements**\n\n   Continuous (daily or intraday) margining **is** best practice. Variation margin **does** track MTM changes. And a bilateral agreement **does** run both ways — call when in the money, post when out.\n\n   *Option D describes the symmetry that distinguishes a bilateral agreement from a one-way CSA where only one party posts.*\n\n4. **Step 4 — Note why collateral is nonetheless more common**\n\n   Resets require the transaction to **support** them — a cash settlement mechanism and a re-striking convention — and they are not available for every product. Collateral is general-purpose.\n\n   *More widely applicable is not the same as more effective, which is the distinction option B blurs.*\n\n**Intuition.** Collateral secures an exposure that is still there; a reset makes the exposure go away by settling the accumulated value in cash and restarting the trade at par. That is why the reset is the stronger mitigant — nothing is left to collateralise, so no margin period of risk, no collateral valuation risk, no disputes. Collateral is more common because it works on any product, but wider applicability is not superiority, and that is the substitution option B makes.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on collateral and counterparty risk mitigation (Gregory).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(true) Continuous — daily or intraday — margining is best practice for bilateral collateral agreements, minimising the exposure that accumulates between calls."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Superiority reversed: Correct answer to the negative qualifier. A reset *eliminates* exposure by returning the MTM to zero; collateral merely secures an exposure that remains, leaving margin period of risk and collateral value risk behind."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(true) Variation margin is precisely the collateral that tracks changes in the mark-to-market value of the position over time."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(true) A bilateral agreement runs both ways: the party with positive MTM calls for collateral, the party with negative MTM posts it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "In an EXCEPT item the three distractors are true statements, so the trap is picking one of them by misreading the qualifier. The false statement reverses a ranking: collateral is more widely used than resets, but a reset eliminates the exposure while collateral only secures it. Beat it by checking each option for a comparative claim and asking whether wider applicability has been passed off as greater effectiveness."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q73",
+  "number": 73,
+  "subject": "Operational Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "OR-mock",
+  "loText": "Classify human error into skill-based, rule-based, knowledge-based and violation categories and match each to the appropriate control response.",
+  "reading": "Operational Risk and Resilience: People Risk and Human Error",
+  "topic": "People Risk and Human Error",
+  "question": "Four incidents occurred at MetroScape Bank, one of each major type of human error:\n\n- **I.** Jane, an experienced cashier, was multitasking and handed a customer USD 500 more than he withdrew. Her muscle memory failed in a moment of distraction.\n- **II.** After a redesigned incentive plan rewarding cross-selling, branches aggressively sold products to existing customers **without sufficient regard for suitability**. Customers complained.\n- **III.** Tom, an advisor, faced a novel request to combine two products. **Without prior experience or training**, he made an educated guess that caused significant tax consequences for the client.\n- **IV.** Lucy, a senior executive, knew the insider trading policy and traded on confidential merger information anyway, **driven by personal gain**.\n\nEach of the following is true **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The fourth (IV.) is a violation which is best mitigated by supervisory controls."
+   },
+   {
+    "key": "b",
+    "text": "The third (III.) is a knowledge-based mistake which can be mitigated by directive controls."
+   },
+   {
+    "key": "c",
+    "text": "The second (II.) is a quality-based (QB) mistake where the best mitigation is typically a lean Six Sigma response."
+   },
+   {
+    "key": "d",
+    "text": "The first (I.) is a skill-based slip, and root-cause analysis may imply process re-engineering, environmental factors, and/or workflow changes."
+   }
+  ],
+  "answer": "c",
+  "solution": "*Companion item. AnalystPrep Mock 2 Q49 classifies a single error (a cashier's slip); this presents all four categories at once with their control responses. Drill together — between them they cover the whole taxonomy.*\n\n**Correct answer: C** · There is no ‘quality-based’ category — the second is a rule-based failure\n\n1. **Step 1 — Map the four incidents to the four categories**\n\n   | Incident | Category | Why | Control response |\n   |---|---|---|---|\n   | I — Jane | **Skill-based slip** | Routine task, automatic execution, distraction | Process re-engineering, workflow |\n   | II — cross-selling | **Rule-based** | A rule applied where it did not fit — suitability ignored | Fix the incentive, enforce suitability |\n   | III — Tom | **Knowledge-based mistake** | Novel situation, no training, reasoning failed | Directive controls — training, guidance |\n   | IV — Lucy | **Violation** | Knew the rule, broke it deliberately | Supervisory and detective controls |\n\n   *The four categories are skill-based, rule-based, knowledge-based and violation. ‘Quality-based’ is not among them — the term is invented.*\n\n2. **Step 2 — Note why the control response tracks the category**\n\n   Skill-based slips are not cured by training — Jane already knew her job. Knowledge-based mistakes *are* — Tom did not know. And violations respond to neither, since Lucy knew perfectly well; they require **detection and consequence**.\n\n   *This is why the taxonomy earns its keep. Misclassify and you apply the wrong remedy — more training for a slip, more supervision for a knowledge gap.*\n\n3. **Step 3 — Note what incident II really needs**\n\n   The cross-selling failure was **caused by the incentive design**. Lean Six Sigma optimises processes for efficiency and defect reduction; it does nothing about an incentive plan rewarding the wrong behaviour.\n\n   *Fixing this means changing what the bank pays people to do. Wells Fargo is the standing example: no amount of process improvement offsets an incentive scheme that rewards volume over suitability.*\n\n4. **Step 4 — Verify the three true statements**\n\n   Violations need **supervisory** controls (A). Knowledge-based mistakes need **directive** controls — training and guidance (B). And skill-based slips call for **process and environmental** changes (D).\n\n   *All three pair the right category with the right remedy. Only option C fails, and it fails on both halves at once.*\n\n**Intuition.** Four incidents, four categories, and the useful part is that each demands a different remedy. Jane knew her job and slipped, so you redesign the workflow rather than retrain her. Tom did not know and needed guidance. Lucy knew and did it anyway, so only supervision and consequences bite. The cross-selling failure was bought and paid for by the incentive plan — and the false option invents a fifth category for it and then prescribes a process-improvement tool for what is a pay problem.\n\n*Reference: GARP FRM Part II 2025 — Operational Risk and Resilience, reading on people risk and human error.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(true) Lucy knew the policy and breached it deliberately — a violation. Since training cannot address deliberate misconduct, supervisory and detective controls are the appropriate response."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(true) Tom faced a novel situation without training and reasoned wrongly — a knowledge-based mistake, addressed by directive controls such as training and guidance."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Invented category, wrong remedy: Correct answer to the negative qualifier. There is no ‘quality-based’ error category — incident II is a *rule-based* failure. And lean Six Sigma addresses process efficiency, not an incentive plan rewarding unsuitable sales."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(true) Jane's error is the archetypal skill-based slip, and the remedy is process design — workflow changes and environmental factors — rather than training."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "This EXCEPT item hides the false statement behind an invented category that sounds like jargon. The three distractors correctly pair a category with its remedy, so choosing any of them means the negative qualifier was misread. Check each label against the four real categories (skill-based, rule-based, knowledge-based, violation) and each remedy against the cause; the option failing on both counts is the answer."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q74",
+  "number": 74,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO6",
+  "loText": "Discuss the process of liquidity transfer pricing (LTP) and identify best practices for the governance and implementation of an LTP process.",
+  "reading": "LR2025, Ch. 17: Liquidity Transfer Pricing",
+  "topic": "Liquidity Transfer Pricing",
+  "question": "What is the primary valid reason that banks need proper **liquidity transfer pricing**?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Because banks engage in maturity transformation."
+   },
+   {
+    "key": "b",
+    "text": "Because there is a lack of liquidity transformation products in the marketplace."
+   },
+   {
+    "key": "c",
+    "text": "Because the true economic cost of liquidity risk is approximately zero."
+   },
+   {
+    "key": "d",
+    "text": "Because markets are volatile; e.g., volatility of the 1-year LIBOR/swap spread."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Borrowing short and lending long creates a real cost that must be charged to whoever creates it\n\n1. **Step 1 — Trace the cost to its source**\n\n   Maturity transformation — short liabilities funding long assets — creates **liquidity risk**. The bank must hold buffers and term funding against it, and those cost money.\n\n   *No maturity transformation, no liquidity risk, nothing to price. The activity is the reason the discipline exists.*\n\n2. **Step 2 — Note what LTP does with that cost**\n\n   It allocates the cost to the **business line that creates it**. A thirty-year mortgage funded by overnight deposits consumes far more liquidity than a three-month trade facility, and should be charged accordingly.\n\n   *Without the charge, long-dated illiquid lending appears more profitable than it is, so the bank writes more of it. Mispricing liquidity is not a reporting problem — it distorts what the bank chooses to do.*\n\n3. **Step 3 — Note the pre-2008 failure**\n\n   Many banks charged liquidity at or near **zero**, treating it as a free central overhead. Business lines expanded illiquid, long-dated books that looked handsomely profitable and were not.\n\n   *Option C states that error as though it were a justification — the cost being zero would be an argument for not needing LTP at all.*\n\n4. **Step 4 — Dispose of the remaining two**\n\n   Option B asserts a **market gap**, which is not the rationale — LTP is an internal allocation mechanism regardless of what products exist. Option D describes **rate volatility**, which is interest rate risk, priced separately through FTP.\n\n   *Option D confuses the two transfer pricing systems: funds transfer pricing handles the rate risk, liquidity transfer pricing handles the liquidity.*\n\n**Intuition.** Banks borrow short and lend long, and that gap has to be paid for — in buffers, in term funding, in facilities held against a run. Liquidity transfer pricing simply sends that bill to whoever generated it, so a thirty-year mortgage funded overnight is charged more than a three-month facility. Get it wrong, as most banks did before 2008 by charging almost nothing, and the illiquid long-dated business looks wonderfully profitable right up until it is not.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, reading on liquidity transfer pricing.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Maturity transformation creates liquidity risk, which imposes real costs in buffers and term funding. LTP allocates those costs to the businesses generating them."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Not the rationale: LTP is an internal allocation mechanism. Its necessity does not depend on what liquidity transformation products the market offers."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "States the pre-crisis error as a reason: If the cost of liquidity risk were genuinely zero there would be nothing to transfer price. Treating it as near-zero is exactly the mistake that made LTP necessary."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Interest rate risk, not liquidity: Volatility in the LIBOR/swap spread is a rate risk matter, handled through funds transfer pricing. Liquidity transfer pricing addresses a different exposure."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "polarity-flip",
+    "sibling-swap"
+   ],
+   "explanation": "Rationale questions offer reasons that sound adjacent to the right one. Option B ties an internal allocation tool to an external market condition, option C turns the pre-crisis mistake (near-zero liquidity cost) into a justification, and option D swaps interest rate risk, which FTP prices, for liquidity risk. Trace the cost back to its source: maturity transformation creates it, and LTP charges it to the business line that causes it."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q75",
+  "number": 75,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO12",
+  "loText": "Explain how a hedge fund's business model risk and its fraud risk can be assessed",
+  "reading": "Reading 94: Due Diligence for Hedge Funds",
+  "topic": "Hedge Fund Due Diligence",
+  "question": "In “Finding Bernie Madoff”, Dimmock and Gerken test the predictability of investment fraud. Regarding their findings, each of the following is TRUE **except** which is not?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Disclosed soft dollars do not significantly predict fraud."
+   },
+   {
+    "key": "b",
+    "text": "Direct Theft and Self Dealing are the most common types of fraud."
+   },
+   {
+    "key": "c",
+    "text": "Current disclosures required by the SEC have significant power for predicting future fraud."
+   },
+   {
+    "key": "d",
+    "text": "Investors (on average) are compensated for fraud risk through superior performance and/or higher fees."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Investors bear fraud risk *uncompensated* — that is the paper's sting\n\n1. **Step 1 — State the paper's central finding**\n\n   Mandatory **Form ADV disclosures** contain genuine predictive power for future fraud — past regulatory and legal problems, conflicts of interest, and inconsistencies between filings all forecast it.\n\n   *The information was already public and already required. The failure was that nobody systematically read it, which is why the paper's title is a reproach rather than a puzzle.*\n\n2. **Step 2 — Note the uncompensated-risk result**\n\n   Investors are **not** compensated for fraud risk. Funds that later commit fraud do not deliver superior prior returns, nor do investors pay systematically different fees for bearing the exposure.\n\n   *Which makes fraud risk unlike almost every other risk in finance. Ordinarily bearing a risk earns a premium; here it earns nothing, so avoiding it is a pure gain — and that is precisely what makes due diligence worthwhile.*\n\n3. **Step 3 — Verify the fraud type finding**\n\n   **Direct theft and self-dealing** are the most common categories — not exotic derivative mispricing but straightforward misappropriation and conflicted transactions.\n\n   *Consistent with the due diligence emphasis on custody and independent verification: the common frauds are stopped by asking who holds the assets and who confirms they exist.*\n\n4. **Step 4 — Note the soft dollar finding**\n\n   **Disclosed** soft dollar arrangements do not significantly predict fraud — a disclosed conflict is a managed one. It is the *undisclosed* or inconsistently reported conflicts that carry the signal.\n\n   *A recurring theme: disclosure itself is the discriminator, not the underlying practice.*\n\n**Intuition.** The paper's uncomfortable finding is that the warning signs were already in the mandatory filings — past legal problems, conflicts, inconsistencies — and nobody was reading them. Its sharper finding is that fraud risk pays nothing: funds that later turn out to be frauds do not deliver better returns beforehand. Almost every other risk in finance carries a premium; this one is simply a loss waiting to happen, which is exactly why the diligence is worth doing.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on fraud risk and hedge fund due diligence (Dimmock and Gerken).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(true) Disclosed soft dollar arrangements do not significantly predict fraud. Disclosure is what matters — the predictive signal lies in undisclosed or inconsistent conflicts."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(true) Direct theft and self-dealing are the most common fraud types — straightforward misappropriation rather than sophisticated schemes."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(true) This is the paper's headline finding: existing SEC-mandated disclosures have significant power to predict future fraud, if anyone reads them systematically."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Uncompensated risk: Correct answer to the negative qualifier. Investors are *not* compensated for fraud risk — funds that later commit fraud show no superior prior performance. It is a risk borne for nothing."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "In this ‘except’ item the three distractors are genuine findings of the paper, so selecting one means the negative qualifier was misread. The false statement applies the usual risk–return intuition to fraud risk, which the paper shows earns no premium at all. Beat it by flagging any option that assumes a risk is compensated and checking it against the evidence."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q76",
+  "number": 76,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO7",
+  "loText": "Describe the peaks-over-threshold approach",
+  "reading": "Extreme Value Theory",
+  "topic": "Extreme Value Theory",
+  "question": "Ralph applies the **peaks-over-threshold** approach with n = 1,000 days. At a threshold of u = 4.0% he observes **N(u) = 28** exceedances, fits $\\beta$ = 0.80% and $\\xi$ = 0.310, and obtains a 99.90% VaR of 8.670%. He then raises the threshold to **u = 5.0%**, and the number of exceedances falls to **N(u) = 17**.\n\nWhich of the following is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The higher threshold offers the benefit of lower bias but the drawback of higher variance."
+   },
+   {
+    "key": "b",
+    "text": "The higher threshold offers the benefit of lower variance but the drawback of higher bias."
+   },
+   {
+    "key": "c",
+    "text": "Because the desired confidence is 99.90% and 0.10% = 1/1,000, the optimal threshold should be set equal to the dataset's second-worst return."
+   },
+   {
+    "key": "d",
+    "text": "He can avoid a subjective choice of the threshold by applying an analytical maximum log-likelihood function to all three parameters simultaneously."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Higher threshold means a better GPD fit on fewer observations\n\n1. **Step 1 — State the theoretical result**\n\n   The Pickands–Balkema–de Haan theorem says exceedances converge to a **generalised Pareto distribution** as the threshold rises. So a *higher* threshold means the GPD approximation is more accurate — **lower bias**.\n\n   *The convergence is asymptotic in the threshold, not in the sample. That is the whole reason a threshold must be chosen at all.*\n\n2. **Step 2 — State the cost**\n\n   Raising u from 4% to 5% cut the exceedances from **28 to 17** — a 39% loss of data. Fewer observations means noisier parameter estimates and **higher variance**.\n\n   *The trade-off is unavoidable and has no analytical solution. Practitioners use mean excess plots and stability plots to find a threshold beyond which the estimates settle — judgement guided by diagnostics, not a formula.*\n\n3. **Step 3 — Note the sample-size problem**\n\n   | Threshold | N(u) | N(u)/n | Fitting three parameters on… |\n   |---|---|---|---|\n   | 4.0% | 28 | 2.80% | 28 observations |\n   | 5.0% | 17 | 1.70% | **17 observations** |\n\n   *Seventeen observations is very thin for maximum likelihood estimation. The bias improvement is real, and so is the estimation noise it buys.*\n\n4. **Step 4 — Dispose of C and D**\n\n   Option C confuses the **threshold** with the **quantile** — the threshold marks where the tail model begins, and the whole point of EVT is to estimate *beyond* the worst observed return. Option D claims the choice can be made analytically; it cannot, and the subjectivity is EVT's acknowledged weakness.\n\n   *If setting the threshold at the second-worst return worked, EVT would add nothing to historical simulation.*\n\n**Intuition.** Push the threshold up and the generalised Pareto distribution fits better, because that is what the theory promises as you go further into the tail — less bias. But you have just thrown away eleven of your twenty-eight observations, and three parameters estimated from seventeen data points are noisy. There is no formula that resolves it; you look at stability plots and choose. That irreducible judgement is EVT's honest weakness, and one option pretends it away.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.3 (Dowd) on extreme value theory.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. A higher threshold improves the GPD approximation (lower bias) but leaves fewer exceedances to estimate from (higher variance)."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Both terms reversed: Exactly backwards. More data would reduce variance, and it is the *lower* threshold that retains more data — at the cost of a poorer GPD fit."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Threshold confused with quantile: The threshold marks where the tail model begins; the quantile is what the model estimates. Setting the threshold at the second-worst return would defeat the purpose of extrapolating beyond the sample."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Subjectivity denied: Threshold selection has no analytical solution. It is guided by mean excess and stability plots, and its subjectivity is a recognised limitation of the POT approach."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sibling-swap",
+    "absolute-claim-trap"
+   ],
+   "explanation": "POT threshold questions test the direction of the bias–variance trade-off and the role of the threshold. Option B swaps which of bias and variance improves, option C mistakes the threshold for the target quantile, and option D claims a subjective choice can be removed analytically. Remember: higher threshold, better GPD fit (lower bias), fewer exceedances (higher variance), and no formula to settle the trade-off."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q77",
+  "number": 77,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO22",
+  "loText": "Explain aspects of collateral including funding, rehypothecation, and segregation; assess the impact of collateral on counterparty risk and funding, with and without segregation or rehypothecation",
+  "reading": "Reading 95: Gregory, Collateral and Margin",
+  "topic": "Netting, Collateral and Margin",
+  "question": "Two counterparties are negotiating the **credit support annex** governing collateral posting under an ISDA Master Agreement. Each of the following is true **EXCEPT** which is inaccurate?",
+  "options": [
+   {
+    "key": "a",
+    "text": "If the goal is to minimize funding costs, both parties prefer to avoid rehypothecation rights."
+   },
+   {
+    "key": "b",
+    "text": "With respect to VARIATION margin, both parties probably prefer rehypothecation rights and probably will NOT require segregation."
+   },
+   {
+    "key": "c",
+    "text": "With respect to INITIAL margin, both parties are likely to insist on non-rehypothecation and probably will require segregation."
+   },
+   {
+    "key": "d",
+    "text": "Whoever is the collateral poster prefers the method of Security Interest rather than Title Transfer, which is preferred by the collateral taker."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Rehypothecation *lowers* funding cost — reusable collateral need not be funded twice\n\n1. **Step 1 — Note what rehypothecation does to funding**\n\n   If collateral can be **reused**, the receiver can post it onward to meet its own obligations rather than funding fresh collateral. That reduces the amount of collateral the system must finance.\n\n   *Restricting rehypothecation makes collateral sterile — it sits idle, and each participant funds its own separately. Funding costs go **up**, not down, which is the reverse of option A's claim.*\n\n2. **Step 2 — Note the trade-off rehypothecation involves**\n\n   | | Rehypothecation allowed | Rehypothecation restricted |\n   |---|---|---|\n   | Funding cost | **Lower** | Higher |\n   | Risk if receiver defaults | **Higher** — collateral may not be recoverable | Lower |\n\n   *Lehman crystallised this: clients whose collateral had been rehypothecated became unsecured creditors of the estate. Cheap funding, expensive tail.*\n\n3. **Step 3 — Verify the variation and initial margin split**\n\n   **Variation margin** settles amounts genuinely owed, so reuse is normal and segregation unnecessary. **Initial margin** is a buffer against future exposure that belongs to the poster — so it must be **segregated and not reused**.\n\n   *This distinction is now regulation, not preference: the uncleared margin rules mandate segregation and prohibit rehypothecation of initial margin.*\n\n4. **Step 4 — Verify the transfer method**\n\n   Under **Title Transfer** the collateral becomes the receiver's property; under **Security Interest** the poster retains ownership and grants a charge. The *poster* naturally prefers to keep ownership.\n\n   *Which is why English-law CSAs use title transfer and New York-law CSAs use security interest — the same economic trade appearing in two legal traditions.*\n\n**Intuition.** Rehypothecation is what stops collateral sitting idle — the receiver passes it on rather than funding fresh margin of its own, so the system finances less collateral overall and funding costs fall. Restrict it and everyone funds separately, which is more expensive and safer. That trade-off is why variation margin is freely reused while initial margin must be segregated and left alone: one settles what is owed, the other is a buffer that still belongs to whoever posted it.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on collateral and CSA terms (Gregory).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Funding effect reversed: Correct answer to the negative qualifier. Rehypothecation *reduces* funding costs by letting collateral be reused. Parties minimising funding cost would seek those rights, not avoid them."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(true) Variation margin settles amounts actually owed, so reuse is standard practice and segregation is not typically required."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(true) Initial margin is a buffer belonging to the poster. Segregation and non-rehypothecation are expected, and are now mandated under the uncleared margin rules."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(true) Title Transfer passes ownership to the receiver; Security Interest leaves it with the poster. Each party prefers the arrangement that favours its own position."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "The three distractors in this EXCEPT item are accurate CSA facts, so choosing one of them means the ‘inaccurate’ qualifier was misread. The false statement reverses the funding effect of rehypothecation, which lowers funding cost at the price of higher recovery risk. Fix the trade-off first (reuse means cheaper funding and more tail risk), then check each statement against it."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q78",
+  "number": 78,
+  "subject": "Operational Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "OR-LO15",
+  "loText": "Committee roles and report design. Identify, explain",
+  "reading": "Operational Risk and Resilience, Ch. 6: Risk Reporting",
+  "topic": "Risk Mitigation and Reporting",
+  "question": "An organisation's central operational risk function has primary responsibility for operational risk reporting. Regarding the challenges of reporting operational risks, each of the following is true **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The ORF should focus scarce resources on preventing and addressing major incidents rather than getting distracted by daily volatility."
+   },
+   {
+    "key": "b",
+    "text": "When benchmarking across business units, losses should be reported in dollar terms rather than percentages, because low percentages could obscure material losses."
+   },
+   {
+    "key": "c",
+    "text": "The ORF should regularly review small, frequent losses to spot potential control breaches or process flaws."
+   },
+   {
+    "key": "d",
+    "text": "The ORF can address the challenge of compiling qualitative risk data through conversion and summation, categorization, and worst-case reporting."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Options A and C cannot both be true — and small losses are the early warning\n\n1. **Step 1 — Spot the direct contradiction**\n\n   Option A says **ignore** daily volatility. Option C says **regularly review** small, frequent losses. Both cannot be correct, so one of them is the answer.\n\n   *A structural shortcut worth having: when two options in a set are mutually exclusive, the answer is almost always one of them. Same construction as the Meissner autocorrelation item earlier in this paper.*\n\n2. **Step 2 — Decide which survives**\n\n   High-frequency low-severity losses are the **leading indicator** of control failure. A rising trend in small errors reveals a degrading process well before it produces a large loss.\n\n   *Waiting for major incidents means learning only from disasters — which is expensive and slow. The small losses are the cheap data, and option A proposes discarding it.*\n\n3. **Step 3 — Note why dollar terms matter for benchmarking**\n\n   A USD 50 million loss at a business unit with USD 5 billion of revenue is 1% — a figure that *looks* immaterial in percentage terms while being a very large absolute loss.\n\n   *Percentages normalise for size, which is useful, and they also flatter large units. Reporting both is the practical answer; the option's reasoning is sound.*\n\n4. **Step 4 — Verify the qualitative data methods**\n\n   **Conversion and summation** assigns numeric scores and aggregates them; **categorization** groups by type or severity; **worst-case reporting** escalates the most severe assessment rather than an average.\n\n   *Worst-case reporting is the most conservative — it prevents a single serious concern being diluted by averaging it against benign ones.*\n\n**Intuition.** Two of these options flatly contradict each other — one says ignore the daily noise, the other says study the small losses carefully — so the answer is one of the two, and it is the one that throws information away. A rising drift in small errors is the cheapest warning a firm ever gets that a process is degrading. Restricting attention to major incidents means the only teacher is disaster.\n\n*Reference: GARP FRM Part II 2025 — Operational Risk and Resilience, reading on operational risk reporting and governance.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Discards the leading indicator: Correct answer to the negative qualifier. Small frequent losses are the early warning of control degradation. Ignoring them means learning only from major incidents, and it directly contradicts option C."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(true) Absolute dollar figures prevent large business units from appearing safe simply because a material loss is a small percentage of their revenue."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(true) Reviewing small, frequent losses is standard practice for identifying control breaches and process flaws before they produce a large event."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(true) Conversion and summation, categorization and worst-case reporting are recognised methods for aggregating qualitative risk assessments."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "In this EXCEPT item the three distractors are sound reporting practices, so picking one means the negative qualifier was misread. The false option sounds like prudent prioritisation but discards the high-frequency, low-severity data that gives the earliest warning, and it directly contradicts option C. When two options in a set are mutually exclusive, the answer is almost always one of them."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q79",
+  "number": 79,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO8",
+  "loText": "Identify the causes of the U.S. dollar shortage during the Great Financial Crisis.",
+  "reading": "LR2025, Ch. 19: The US Dollar Shortage in Global Banking",
+  "topic": "Dollar Funding and CIP",
+  "question": "According to Patrick McGuire, which of the following best summarises the **proximate cause** of the US dollar shortage during the global financial crisis?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Depositors initiated a classic run on the banks and converted their domestic deposits to foreign currency."
+   },
+   {
+    "key": "b",
+    "text": "The effective maturity of banks' dollar funding lengthened while their dollar assets shortened, decreasing their maturity mismatch."
+   },
+   {
+    "key": "c",
+    "text": "The effective maturity of banks' dollar funding shortened while their dollar assets lengthened, increasing their maturity mismatch."
+   },
+   {
+    "key": "d",
+    "text": "Banks shifted their portfolios to non-bank assets including retail and corporate lending, lending to hedge funds, and holdings of securities."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · Funding got shorter, assets got longer — the gap widened from both ends\n\n1. **Step 1 — Describe the two movements**\n\n   | Side | What happened | Why |\n   |---|---|---|\n   | Dollar **funding** | **Shortened** | Lenders cut tenor as risk aversion rose — term funding became overnight |\n   | Dollar **assets** | **Lengthened** | Illiquid assets could not be sold; ABCP conduits came back on balance sheet |\n\n   *Both sides moved against the banks simultaneously. The mismatch widened from both ends at once, which is what made it acute rather than merely uncomfortable.*\n\n2. **Step 2 — Note who was affected**\n\n   Principally **European banks**, which had built large dollar asset books funded synthetically — short-term dollar borrowing and FX swaps — without a dollar deposit base to fall back on.\n\n   *Precisely the carry trade structure tested in AnalystPrep Mock 1 Q55. The FX swap market was the plumbing, and when it seized there was no dollar funding at all.*\n\n3. **Step 3 — Note the resolution**\n\n   Central bank **swap lines** from the Federal Reserve. Only the Fed could create dollars, so foreign central banks borrowed them and on-lent to their own banks.\n\n   *A structural lesson: a bank running a large book in a currency its own central bank cannot issue has no lender of last resort in that currency — unless one is arranged in advance.*\n\n4. **Step 4 — Dispose of the remaining options**\n\n   Option A describes a **retail deposit run**, which is not what happened — this was a wholesale funding freeze. Option B **reverses** both movements. Option D describes the *asset* build-up over preceding years, which is background rather than the proximate cause.\n\n   *Option D is the sharpest near-miss: it accurately describes how the exposure was built, but the question asks what triggered the shortage.*\n\n**Intuition.** The gap opened from both ends at once. Lenders who had been rolling three-month dollar funding shortened to overnight or stopped altogether, while the assets on the other side became impossible to sell and conduits came back onto the balance sheet. European banks were worst hit because they had built large dollar books with no dollar deposits behind them — and no central bank of their own that could print the currency, which is why the Fed's swap lines were the only fix.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, reading on the global dollar system (McGuire).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Wrong kind of run: The dollar shortage was a wholesale funding freeze, not a retail deposit run. Depositors converting domestic deposits to foreign currency was not the mechanism."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Both movements reversed: Exactly backwards, and self-refuting: a *decreasing* maturity mismatch would relieve funding pressure rather than cause a shortage."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Dollar funding shortened as lenders cut tenor while dollar assets lengthened as they became unsaleable — widening the mismatch from both sides."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Background, not proximate cause: Accurately describes the accumulation of dollar assets over preceding years, but that is the pre-existing exposure. The question asks what precipitated the shortage."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "polarity-flip",
+    "scope-condition-error"
+   ],
+   "explanation": "Dollar-shortage distractors swap the kind of run, reverse the maturity movements, or offer background for trigger. Option A substitutes a retail deposit run for the wholesale funding freeze, option B flips both sides of the mismatch, and option D describes the pre-crisis build-up rather than the proximate cause. Read ‘proximate cause’ literally and check which way funding and asset maturities moved."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q80",
+  "number": 80,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO6",
+  "loText": "Describe factors that impact asset prices and explain the theory of factor risk premiums",
+  "reading": "Reading 83: Ang, Factor Theory",
+  "topic": "Factor Theory and CAPM",
+  "question": "Janice will run a factor regression with the market factor (MKT) plus two additional explanatory variables. Each of the following pairs is a good candidate **EXCEPT** which pair is NOT?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Quality and momentum (style factors)."
+   },
+   {
+    "key": "b",
+    "text": "Strategy and reputation (style factors)."
+   },
+   {
+    "key": "c",
+    "text": "Economic growth and inflation (macro factors)."
+   },
+   {
+    "key": "d",
+    "text": "Real interest rates and liquidity (macro factors)."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · A factor must be measurable, priced and investable — ‘reputation’ is none of these\n\n1. **Step 1 — State what a factor regression requires**\n\n   | Requirement | Why |\n   |---|---|\n   | **Measurable** | A time series is needed as a regressor |\n   | **Priced** | It must carry a risk premium, or the loading means nothing |\n   | **Investable / replicable** | A portfolio must exist that captures it |\n\n   *‘Strategy’ and ‘reputation’ fail all three. Neither has an agreed measurement, a documented premium, or a tradable proxy.*\n\n2. **Step 2 — Verify the genuine style factors**\n\n   **Quality** — profitability, earnings stability, low leverage — and **momentum** are both documented, measurable and replicable through long-short portfolios.\n\n   *Momentum is the factor tested at BionicTurtle Q70; quality sits alongside value and size in standard multi-factor models. Both have constructed index series available.*\n\n3. **Step 3 — Verify the macro factors**\n\n   **Economic growth** and **inflation** are the two classic macro factors, and **real rates** and **liquidity** are equally standard — all with published time series and identifiable exposures.\n\n   *Ang's framework organises assets by their sensitivity to exactly these: growth, inflation, real rates, volatility and liquidity.*\n\n4. **Step 4 — Note why option B is tempting**\n\n   Reputation and strategy *do* matter to a company's prospects — but they are **firm characteristics**, not systematic risk factors. A characteristic affects one company; a factor affects the cross-section of returns.\n\n   *That distinction is the whole point. The regression asks what common forces move the portfolio, and reputation is idiosyncratic by nature.*\n\n**Intuition.** A factor has to be three things: measurable, so you have a series to regress on; priced, so the loading tells you something; and investable, so the exposure can be taken or hedged. Quality, momentum, growth, inflation, real rates and liquidity all qualify. Strategy and reputation qualify on none of them — they matter enormously to an individual company and that is exactly the problem, because a factor is something that moves the whole cross-section, not one firm.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on factor theory and factor investing (Ang).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(valid) Quality and momentum are documented, measurable style factors with replicable long-short portfolio constructions and published index series."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Characteristics, not factors: Correct answer to the negative qualifier. Strategy and reputation have no agreed measurement, no documented risk premium and no investable proxy. They are firm characteristics rather than systematic factors."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(valid) Economic growth and inflation are the two classic macro factors, with observable series and identifiable asset exposures."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(valid) Real interest rates and liquidity are standard macro factors in the factor investing framework, both measurable and priced."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "The three distractors in this EXCEPT item are genuine style or macro factors, so choosing one means the negative qualifier was misread. The odd pair out is labelled ‘style factors’ to look like the others, but strategy and reputation are firm characteristics with no measurement, premium or investable proxy. Test each pair against the three requirements: measurable, priced and investable."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ }
+]

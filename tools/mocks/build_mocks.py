@@ -6,7 +6,7 @@ Usage: build_mocks.py <bank-dir>
 <bank-dir>/[AP_]<Set>_Solution_Bank_<n>.json are arrays of questions (subject-bank schema plus
 `number`). Banks are grouped by their question-id prefix (MOCK1-, PE1-, ...), sorted by number,
 and written with the time limit the real exam uses: 4 hours for 80 questions, pro rata for a
-partial set. Fails on duplicate ids or a question that breaks the bank rules (see
+partial set. Boundary questions captured by two banks are merged. Fails on conflicting copies or a question that breaks the bank rules (see
 tools/content/validate_bank.py); missing question numbers are reported.
 """
 import glob
@@ -47,6 +47,19 @@ def main():
                 failed.append((q.get('id'), f'unknown set in {os.path.basename(f)}'))
                 continue
             by_set.setdefault(prefix, []).append(q)
+    # A question on a bank boundary (stem in one file, solution in the next) is captured by both
+    # banks. Identical keys collapse to the fuller copy; different keys are a real conflict.
+    for prefix, qs in by_set.items():
+        keep = {}
+        for q in qs:
+            other = keep.get(q['id'])
+            if other is None:
+                keep[q['id']] = q
+            elif other['answer'] != q['answer']:
+                failed.append((q['id'], f'boundary copies disagree: {other["answer"]} vs {q["answer"]}'))
+            elif len(q['question']) + len(q['solution']) > len(other['question']) + len(other['solution']):
+                keep[q['id']] = q
+        by_set[prefix] = list(keep.values())
     os.makedirs(OUT, exist_ok=True)
     for prefix, qs in sorted(by_set.items()):
         slug, name = SETS[prefix]

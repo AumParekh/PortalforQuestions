@@ -1,0 +1,1325 @@
+[
+ {
+  "id": "APMOCK3-Q20",
+  "number": 20,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-mock",
+  "loText": "Calculate the market risk capital charge under the Basel 2.5 framework, including the VaR and stressed VaR components and their multiplicative factors.",
+  "reading": "Market Risk Measurement and Management, readings on Basel market risk capital requirements",
+  "topic": "Basel 2.5 Capital Charge",
+  "question": "A financial institution has a trading portfolio with the following characteristics (all 10-day, 99% confidence):\n\n| Item | Value |\n|---|---|\n| Previous day's VaR ($VaR_{t-1}$) | USD 1,200,000 |\n| Average VaR over the past 60 days | USD 1,400,000 |\n| Previous day's stressed VaR ($SVaR_{t-1}$) | USD 2,200,000 |\n| Average stressed VaR over the past 60 days | USD 2,000,000 |\n| Multiplicative factor for VaR ($m_r$) | 3 |\n| Stressed VaR multiplicative factor ($m_s$) | 3 |\n\nCalculate the total market risk capital charge under the Basel 2.5 framework.",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 10,200,000."
+   },
+   {
+    "key": "b",
+    "text": "USD 9,200,000."
+   },
+   {
+    "key": "c",
+    "text": "USD 5,000,000."
+   },
+   {
+    "key": "d",
+    "text": "USD 4,987,000."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · max(1.2, 4.2) + max(2.2, 6.0)**\n\n**Step 1 — Write the Basel 2.5 charge**\n\n$$C = \\max\\left(VaR_{t-1},\\ m_r\\overline{VaR}_{60}\\right) + \\max\\left(SVaR_{t-1},\\ m_s\\overline{SVaR}_{60}\\right)$$\n\nTwo independent max operators, each covering one component.\n\n*Basel 2.5's innovation was adding the **stressed VaR** leg, roughly doubling trading book capital after 2008. Both legs use the same structure.*\n\n**Step 2 — Evaluate the VaR leg**\n\n$$\\max(1{,}200{,}000,\\ 3 \\times 1{,}400{,}000) = \\max(1{,}200{,}000,\\ 4{,}200{,}000) = 4{,}200{,}000$$\n\n*The multiplied average dominates by a factor of 3.5. The previous day's VaR only binds in unusual circumstances — a sudden spike well above the 60-day average.*\n\n**Step 3 — Evaluate the stressed VaR leg**\n\n$$\\max(2{,}200{,}000,\\ 3 \\times 2{,}000{,}000) = \\max(2{,}200{,}000,\\ 6{,}000{,}000) = 6{,}000{,}000$$\n\n*Again the multiplied average wins comfortably. Note the trap in the data: $SVaR_{t-1}$ exceeds its 60-day average, tempting you to use it — but 2.2 million is still far below 6.0 million.*\n\n**Step 4 — Sum the two legs**\n\n$$C = 4{,}200{,}000 + 6{,}000{,}000 = \\text{USD } 10{,}200{,}000$$\n\nThe stressed leg contributes 59% of the total charge from a stressed VaR less than twice the ordinary one.\n\n*That asymmetry is the point of Basel 2.5 — capital calibrated to a stressed period rather than to recent calm.*\n\n**Intuition.** Two legs, each a max between yesterday's number and three times the sixty-day average, then add. The multiplier almost always makes the average dominate, so the max operators rarely bite — but the data here is arranged so that yesterday's stressed VaR exceeds its own average, which invites you to reach for it. It does not matter: 2.2 million still loses to 6 million. The structural point is that the stressed leg supplies nearly sixty percent of the total, which is exactly what Basel 2.5 was designed to achieve.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "USD 10,200,000 — 4,200,000 + 6,000,000. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**One max mis-resolved (USD 9,200,000).** Consistent with taking the previous day's figure on one leg while multiplying the other — for instance 4.2 million plus a mis-scaled stressed component."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Multipliers omitted (USD 5,000,000).** Close to the sum of the two unmultiplied averages (1.4 + 2.0 = 3.4 million) or of the two previous-day figures (3.4 million) with a partial multiplier. The factor of 3 has not been applied."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**One leg only (USD 4,987,000).** In the region of a single multiplied leg. Basel 2.5 requires *both* the VaR and stressed VaR components — omitting one halves the charge."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "dropped-term",
+    "dropped-term"
+   ],
+   "explanation": "Two max operators — which term binds. Each leg compares yesterday's figure with the multiplied 60-day average, and the distractors come from resolving one max the wrong way, dropping the factor of 3, or dropping a whole leg. Evaluate each max explicitly with the multiplier applied, then add both legs; the stressed leg is not optional under Basel 2.5."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q21",
+  "number": 21,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-mock",
+  "loText": "Calculate the credit equivalent amount and capital requirement for derivative exposures under the Basel I framework using current exposure plus add-ons.",
+  "reading": "Credit Risk / Operational Risk readings on the Basel I capital framework and counterparty credit exposure",
+  "topic": "Basel I Credit Equivalent",
+  "question": "Jinshi&Houshi Corporation has adopted the Basel I framework and must maintain at least 8% capital to risk-weighted assets. The add-on factors (percent of principal) are:\n\n| Remaining maturity | Interest rate | FX and gold | Equity | Precious metals ex gold | Other commodities |\n|---|---|---|---|---|---|\n| < 1 yr | 0.0 | 1.0 | 6.0 | 7.0 | 10.0 |\n| 1 to 5 yr | 0.5 | 5.0 | 8.0 | 7.0 | 12.0 |\n| > 5 yr | 1.5 | 7.5 | 10.0 | 8.0 | 15.0 |\n\nThe bank made the following transactions:\n\n- **(a)** A seven-year interest rate swap, notional USD 400 million, current market value −USD 3 million.\n- **(b)** A three-year interest rate swap, notional USD 170 million, current value +USD 7 million.\n- **(c)** A four-month commodity derivative, principal USD 80 million, currently worth USD 4 million.\n\nWhat is the capital requirement if the counterparty is a corporation (risk weight 0.5), assuming no netting?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 1.034 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 2.068 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 0.517 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 1.535 million."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Credit equivalent 25.85 × 0.5 risk weight × 8%**\n\n**Step 1 — Write the Basel I credit equivalent**\n\n$$CE = \\max(MtM,\\ 0) + \\text{notional} \\times \\text{add-on}$$\n\nCurrent exposure is **floored at zero** — a negative mark-to-market creates no exposure, because the bank owes rather than is owed.\n\n*The add-on is charged regardless of sign, because a position currently out of the money can move into the money before maturity. That is the potential future exposure.*\n\n**Step 2 — Compute each transaction**\n\n| Trade | Current exposure | Add-on | Credit equivalent |\n|---|---|---|---|\n| (a) 7-yr IRS, 400m, MtM −3 | max(−3, 0) = **0** | 400 × 1.5% = 6.00 | 6.00 |\n| (b) 3-yr IRS, 170m, MtM +7 | 7.00 | 170 × 0.5% = 0.85 | 7.85 |\n| (c) 4-mth commodity, 80m, MtM +4 | 4.00 | 80 × 10% = 8.00 | 12.00 |\n| **Total** | | | **25.85** |\n\n*Three separate band lookups. Trade (a) is over five years so takes 1.5%; trade (b) sits in the 1-to-5 band at 0.5%; trade (c) is four months, so under one year, and commodities take the punitive 10%.*\n\n**Step 3 — Apply the risk weight and the capital ratio**\n\n$$RWA = 25.85 \\times 0.5 = \\text{USD } 12.925 \\text{ million}$$\n\n$$\\text{Capital} = 12.925 \\times 0.08 = \\text{USD } 1.034 \\text{ million}$$\n\n*Two multiplications in sequence — the counterparty risk weight, then the 8% minimum. Omitting either is worth a factor of two or more.*\n\n**Step 4 — Note where the exposure actually sits**\n\nThe four-month commodity trade contributes USD 12 million of the 25.85 — **46% of the total from 12% of the notional**. Commodity add-ons are an order of magnitude above interest rate add-ons at every maturity.\n\n*Basel I's crude add-on grid is exactly the sort of thing later frameworks refined, but the ranking it encodes — commodities riskiest, interest rates least — survives.*\n\n**Intuition.** Three trades, and for each you need two numbers: what you are owed today, floored at zero, and an add-on for what you might be owed later. The negative-value swap contributes nothing on the first count but still carries its add-on, because it can swing back into the money. Then two multiplications on the total — the corporate risk weight and the 8% ratio — and the two most likely wrong answers are simply this answer doubled and halved, which is what omitting or double-counting the risk weight produces.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "USD 1.034 million — 25.85 × 0.5 × 0.08. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Risk weight omitted (USD 2.068 million).** Exactly double — 25.85 × 0.08 with the 0.5 corporate risk weight never applied. The most likely single-step omission."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Risk weight applied twice (USD 0.517 million).** Exactly half — consistent with applying the 0.5 weight twice, or halving the credit equivalent before weighting it."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Add-on band misread (USD 1.535 million).** No single band misread reproduces it: reading the four-month commodity into the 1-to-5 year row at 12% gives a credit equivalent of 27.45 and USD 1.098 million, and reading the seven-year swap into the 1-to-5 row at 0.5% gives 21.85 and USD 0.874 million. USD 1.535 million implies a credit equivalent of about 38.4, so it needs add-ons well above the ones the grid assigns to these maturities. Read each trade's band by remaining maturity."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "calculation-slip",
+    "wrong-input-twin"
+   ],
+   "explanation": "Negative MtM floored at zero, add-on band lookups, then two multiplications. The distractors are the correct answer doubled (risk weight dropped), halved (risk weight applied twice) and a figure that needs add-ons larger than the grid assigns. Floor each MtM at zero, keep the add-on on every trade, read each band by remaining maturity, and apply the 0.5 weight and the 8% ratio exactly once each."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q22",
+  "number": 22,
+  "subject": "Liquidity Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "LR-LO1",
+  "loText": "Describe the money market and capital market instruments issued by the US Treasury and distinguish them by original maturity and coupon structure.",
+  "reading": "LR2025, Ch. 4: The Investment Function in Financial Services Management",
+  "topic": "Bank Investment Portfolio",
+  "question": "A security issued by the United States federal government which matures in one year following the date of issue is most likely a:",
+  "options": [
+   {
+    "key": "a",
+    "text": "Treasury note."
+   },
+   {
+    "key": "b",
+    "text": "Treasury bond."
+   },
+   {
+    "key": "c",
+    "text": "Treasury bill."
+   },
+   {
+    "key": "d",
+    "text": "Structured note."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · One year or less at issue — a bill**\n\n**Step 1 — Set out the maturity bands**\n\n| Instrument | Original maturity | Coupon |\n|---|---|---|\n| **Treasury bill** | **One year or less** (4, 8, 13, 26, 52 weeks) | None — issued at a **discount** |\n| Treasury note | 2 to 10 years | Semi-annual |\n| Treasury bond | More than 10 years (20 and 30 year) | Semi-annual |\n\n*The 52-week bill is the longest of the bills, and it is precisely the instrument the stem describes.*\n\n**Step 2 — Note the second distinguishing feature**\n\nBills pay no coupon — they are issued at a **discount** to par and redeem at face value. Notes and bonds both pay semi-annual coupons.\n\n*This is why bill yields are quoted on a bank discount basis rather than as a conventional yield to maturity, and why the two conventions are a recurring confusable.*\n\n**Step 3 — Dispose of the structured note**\n\nA structured note is not a plain government security at all — it embeds derivatives and its payoff is linked to some reference index or rate.\n\n*It is the only option that is not a Treasury instrument, and it is included to catch candidates matching on the word ‘note’.*\n\n**Intuition.** Three Treasury instruments, three maturity bands, and the boundary that matters here is one year. Bills stop at fifty-two weeks and pay no coupon — you buy them below par and collect par. Notes start at two years, bonds at twenty. A security maturing exactly one year after issue is the longest bill there is. The fourth option is not a Treasury at all and is there for anyone pattern-matching on ‘note’.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Maturity band too long.** Treasury notes are issued with maturities from two to ten years. A one-year security falls below the note range entirely."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Maturity band far too long.** Treasury bonds are the long end — twenty and thirty years. Nowhere near one year."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Treasury bills carry original maturities of one year or less, the longest being the 52-week bill, and are issued at a discount rather than paying coupons."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Not a government instrument.** A structured note embeds derivatives and has a payoff linked to a reference index. It is not a plain Treasury security, and its inclusion catches anyone matching on the word ‘note’."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "scope-condition-error"
+   ],
+   "explanation": "Maturity boundary between the three Treasury instruments. Notes and bonds are sibling Treasury securities separated from bills only by original maturity, and the structured note sits outside the Treasury family altogether, lured in by the word ‘note’. Anchor on the one-year boundary: one year or less at issue, sold at a discount with no coupon, is a bill."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q23",
+  "number": 23,
+  "subject": "Liquidity Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "LR-mock",
+  "loText": "Describe the US regulatory requirements for foreign banking organisations, including intermediate holding company liquidity stress testing, and explain the rationale for ring-fencing.",
+  "reading": "Liquidity and Treasury Risk Measurement and Management, readings on liquidity regulation and stress testing",
+  "topic": "Foreign Banking Organisations",
+  "question": "According to US regulations, specific foreign banking organisations must conduct liquidity stress tests for intermediate holding companies and branches. Which of the following is the most valid reason for this regulation?",
+  "options": [
+   {
+    "key": "a",
+    "text": "To prevent foreign banks operating in the country from being over-reliant on offshore funding."
+   },
+   {
+    "key": "b",
+    "text": "Intermediate holding companies and branches share a common currency, hence no currency conversion."
+   },
+   {
+    "key": "c",
+    "text": "Intermediate companies and branches are more likely to face liquidity challenges during stress periods."
+   },
+   {
+    "key": "d",
+    "text": "It is just a way of monitoring the liquidity levels for the intermediate holding companies."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Local liquidity requirements stop US operations depending on a parent that may not deliver**\n\n**Step 1 — Recall what the crisis exposed**\n\nIn 2008, US branches of foreign banks were running large dollar books funded through their parents and the wholesale market. When that funding froze, the **Federal Reserve** ended up supporting institutions it did not consolidate or capitalise.\n\n*The same episode as the dollar shortage in AnalystPrep Mock 2 Q23 — European banks with dollar assets and no dollar deposit base.*\n\n**Step 2 — Explain the regulatory response**\n\nThe intermediate holding company requirement **ring-fences** US operations: they must hold their own liquidity buffers and pass their own stress tests, rather than relying on a promise of parent support that may be unavailable precisely when needed.\n\n*A parent under stress in its home jurisdiction — or blocked by its own supervisor — cannot upstream liquidity. Local self-sufficiency is the point.*\n\n**Step 3 — Note the cost of the policy**\n\nRing-fencing traps liquidity in national pockets and makes global banks less efficient at moving funding to where it is needed. Supervisors accept that cost in exchange for resilience.\n\n*This is the **fragmentation** debate — a genuine trade-off between efficiency and the credibility of local supervision.*\n\n**Step 4 — Dispose of the remaining three**\n\nOption B is factually irrelevant — and wrong in spirit, since currency mismatch is precisely the problem. Option C asserts a vulnerability without explaining it. Option D describes the activity rather than its purpose.\n\n*Only option A names a mechanism the regulation is designed to prevent.*\n\n**Intuition.** The Federal Reserve discovered in 2008 that it was effectively the liquidity backstop for foreign banks' US operations — institutions it neither supervised as a whole nor capitalised. The intermediate holding company regime is the answer: if you run a large dollar business here, you hold the liquidity here and prove it under our stress tests, rather than pointing at a parent that may be in trouble itself. It costs efficiency — liquidity gets trapped in national pockets — and supervisors have decided that is worth paying.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. The requirement exists to stop US operations of foreign banks depending on offshore or parent funding that may be unavailable in stress."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Irrelevant and inverted.** Currency conversion is not the rationale, and if anything currency mismatch between dollar assets and home-currency funding is part of the problem being addressed."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Assertion without mechanism.** Claims a greater vulnerability without saying why. Branches are not inherently more fragile — they are more fragile *because* they depend on external funding, which is what option A states."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Activity, not purpose.** ‘Just a way of monitoring’ describes what the rule does rather than why it exists. Every regulation monitors something."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "scope-condition-error"
+   ],
+   "explanation": "Regulatory motive — the ring-fencing rationale. One distractor inverts the problem (currency mismatch is the issue, not its absence), one asserts a vulnerability without the funding mechanism behind it, and one describes the activity instead of its purpose. Pick the option that names the specific failure the rule is built to prevent: dependence on parent or offshore funding that disappears in stress."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q24",
+  "number": 24,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO35",
+  "loText": "Compare the costs of central clearing and bilateral clearing, including margin requirements, default fund contributions and netting benefits.",
+  "reading": "Reading 96: Gregory, Central Clearing and Risk Intermediation",
+  "topic": "Central Clearing",
+  "question": "Considering the costs associated with clearing trades, which of the following statements accurately reflects the cost dynamics of central clearing compared with bilateral clearing?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Bilateral clearing involves direct negotiation of costs and may result in variable margin requirements, leading to potentially inconsistent cost structures."
+   },
+   {
+    "key": "b",
+    "text": "Central clearing consistently has higher cost structures due to the standardization of margin requirements, regardless of market conditions."
+   },
+   {
+    "key": "c",
+    "text": "CCPs eliminate the costs associated with trade clearing by pooling risk, thus removing the necessity for individual default funds or margins from members."
+   },
+   {
+    "key": "d",
+    "text": "In bilateral clearing, the higher predictability of costs is due to standardized practices that lead to uniform pricing models across all trades."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Bilateral terms are negotiated, so costs vary; central clearing standardises them**\n\n**Step 1 — Contrast how each sets margin**\n\n| | Bilateral | Central clearing |\n|---|---|---|\n| Margin terms | **Negotiated** in each CSA — thresholds, MTAs, eligible collateral all vary | **Standardised** by the CCP rulebook |\n| Cost predictability | Low — depends on relative bargaining power | High — published and uniform |\n| Additional obligations | None beyond the CSA | Default fund contributions and assessment rights |\n\n*A strong counterparty can negotiate a high threshold and post little; a weak one cannot. That variability is exactly what option A describes.*\n\n**Step 2 — Note that central clearing is not simply dearer**\n\nCentral clearing imposes initial margin and default fund contributions that bilateral trades might avoid — but it also delivers **multilateral netting** across all members, which can substantially reduce total margin.\n\n*Which route is cheaper depends on the portfolio and the market. Option B's ‘consistently… regardless of market conditions’ is an unhedged absolute and false.*\n\n**Step 3 — Correct the elimination claim**\n\nCCPs do not remove margin or default funds — they **require** them. Initial margin, variation margin and a mutualised default fund are the entire mechanism by which a CCP absorbs a member failure.\n\n*Option C describes the opposite of how a clearing house works, and is the clearest error in the set.*\n\n**Step 4 — Note that option D reverses the standardisation**\n\nStandardised practices and uniform pricing describe *central* clearing. Bilateral arrangements are the negotiated, non-uniform ones.\n\n*Options A and D make opposite claims about the same thing, so exactly one can be right — and negotiation is plainly the bilateral feature.*\n\n**Intuition.** Bilateral clearing is bespoke: every credit support annex is negotiated, so a strong bank posts little and a weak one posts a lot, and the cost of the same trade differs by who you face. Central clearing publishes one rulebook for everybody. That standardisation cuts both ways — it makes costs predictable but adds margin and default fund obligations you might have negotiated away bilaterally. Two of the wrong options here make unhedged claims about which is dearer, and one describes a CCP that has abolished margin, which is not a CCP at all.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Bilateral margin terms are negotiated counterparty by counterparty, producing variable requirements and inconsistent cost structures."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim.** ‘Consistently… regardless of market conditions’ is unhedged and false. Multilateral netting through a CCP can make central clearing cheaper, particularly for a large two-way book."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Mechanism inverted.** CCPs *require* initial margin, variation margin and default fund contributions — that stack is precisely how they absorb a member default. Claiming they remove the necessity reverses the model."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Direct contradiction of A.** Attributes standardisation and uniform pricing to bilateral clearing, which is where terms are individually negotiated. Options A and D cannot both be true."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "role-misassignment"
+   ],
+   "explanation": "Absolute claims about cost structure. One distractor asserts central clearing is always dearer regardless of conditions, one reverses the CCP model by abolishing margin and default funds, and one hands central clearing's standardisation to bilateral trades. Reject unhedged ‘consistently’ and ‘eliminate’ claims, then ask which regime negotiates terms (bilateral) and which publishes one rulebook (central)."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q25",
+  "number": 25,
+  "subject": "Liquidity Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "LR-LO12",
+  "loText": "Describe the use of cross-currency swaps to hedge foreign currency liabilities and distinguish hedging from speculative currency positions.",
+  "reading": "LR2025, Ch. 20: Covered Interest Rate Parity Lost",
+  "topic": "Dollar Funding and CIP",
+  "question": "Walter runs a business in the United States and has taken a mortgage on a French property that requires payments in **euros**. His company's revenues are in **dollars**, so he must convert dollars to euros to service the mortgage. The dollar is weakening against the euro, making the payments progressively more expensive.\n\nWhat should Walter do so that he does not end up paying a mortgage that keeps getting more expensive?",
+  "options": [
+   {
+    "key": "a",
+    "text": "He should adopt a cross-currency swap."
+   },
+   {
+    "key": "b",
+    "text": "He should adopt a carry trade."
+   },
+   {
+    "key": "c",
+    "text": "He should avoid entering any swaps."
+   },
+   {
+    "key": "d",
+    "text": "He should wait until the foreign exchange market has stabilised."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Recurring payments in one currency funded by revenue in another — the textbook swap case**\n\n**Step 1 — Characterise the exposure**\n\nWalter has **revenues in dollars** and a **stream of liabilities in euros** over the mortgage's life. That is a currency mismatch on recurring cash flows, not a one-off conversion.\n\n*The mismatch is structural and long-dated, which is what determines the right instrument. A single forward would fix one payment; the exposure is a series.*\n\n**Step 2 — Match the instrument to the exposure**\n\nA **cross-currency swap** exchanges a stream of payments in one currency for a stream in another at a rate fixed today. Walter pays dollars and receives the euros he needs, on the mortgage's schedule.\n\n*It converts an uncertain dollar cost into a known one for the life of the loan. A strip of forwards would achieve something similar but requires managing many contracts; the swap does it in one.*\n\n**Step 3 — Dispose of the carry trade**\n\nA carry trade borrows in a low-yielding currency to invest in a high-yielding one. It is a **speculative position** that *creates* currency exposure — the opposite of hedging.\n\n*It is also precisely the trade that unwinds violently in crises, which is how many unhedged borrowers in foreign currency have been ruined.*\n\n**Step 4 — Dispose of the two do-nothing options**\n\n‘Avoid swaps’ leaves the exposure fully open. ‘Wait for the market to stabilise’ is a directional bet dressed as prudence — and the dollar is weakening now.\n\n*Both amount to remaining unhedged while hoping. Hope is not a hedge, and the cost is accruing every payment date.*\n\n**Intuition.** Walter earns dollars and owes euros for years to come, which is a currency mismatch on a schedule rather than a single transaction. A cross-currency swap is built for exactly that: he pays a fixed dollar amount and receives the euros he needs, on the dates he needs them, at a rate agreed today. The alternatives are one speculation and two flavours of doing nothing — and doing nothing costs more every payment date while the dollar keeps sliding.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. A cross-currency swap converts Walter's dollar revenues into the euro payments his mortgage requires, at a rate fixed today for the life of the loan."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Speculation, not hedging.** A carry trade borrows cheap and lends dear across currencies. It takes on currency risk deliberately rather than removing it — the reverse of what Walter needs."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Exposure left open.** Avoiding swaps leaves the mismatch entirely unhedged, which is the problem the question describes."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Directional bet.** Waiting for stability is an implicit forecast that the dollar will recover. Meanwhile the payments continue at whatever rate prevails, and the stem says the trend is against him."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "scope-condition-error"
+   ],
+   "explanation": "Hedge matched to a recurring cash flow. The carry trade adds currency risk instead of removing it, and the two do-nothing options leave the mismatch open while implicitly betting on the dollar. Identify the exposure first (a series of euro payments funded by dollar revenue), then choose the instrument that fixes the whole series today — the cross-currency swap."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q26",
+  "number": 26,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO7",
+  "loText": "Describe the historical simulation and bootstrap historical simulation approaches to VaR estimation and explain their underlying assumptions and limitations.",
+  "reading": "Non-Parametric Approaches",
+  "topic": "Non-Parametric Approaches",
+  "question": "A risk manager wishes to use the bootstrap historical simulation approach to estimate VaR. What is the main reason for using **historical** returns to forecast VaR in this approach?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The distribution of returns is expected to change over time."
+   },
+   {
+    "key": "b",
+    "text": "The distribution of returns will remain the same in the past and in the future."
+   },
+   {
+    "key": "c",
+    "text": "The historical returns are always normally distributed."
+   },
+   {
+    "key": "d",
+    "text": "The historical returns have no impact on future returns."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Historical simulation assumes the past distribution is a good guide to the future**\n\n**Step 1 — State the founding assumption**\n\nHistorical simulation resamples *actual past returns* and treats the resulting empirical distribution as the forecast. That only makes sense if the return distribution is **stationary** — broadly the same going forward as it was historically.\n\n*No parametric form is assumed, but stationarity very much is. It is the price paid for avoiding a distributional assumption.*\n\n**Step 2 — Note what the method gains from it**\n\nBecause no shape is imposed, historical simulation captures whatever fat tails, skew and non-normality the data actually exhibits — a genuine advantage over a normal parametric VaR.\n\n*Bootstrapping adds a further benefit: resampling with replacement produces many synthetic paths from one history, allowing confidence intervals around the VaR estimate.*\n\n**Step 3 — Note where the assumption fails**\n\nGARP's stated weakness is that results are **completely dependent on the historical data set**. A regime shift, a new instrument, or a risk that simply has not occurred in the sample is invisible to the method.\n\n*Which is why the assumption in option B is the method's foundation and its principal vulnerability. Both facts are true simultaneously.*\n\n**Step 4 — Note why option A is the tempting one**\n\nReturn distributions *do* change over time — that is empirically correct. But it is a **criticism** of historical simulation, not a reason for using it.\n\n*The question asks for the rationale, not the limitation. A true statement answering the wrong question is the sharpest kind of distractor.*\n\n**Intuition.** Historical simulation makes one big bet: that tomorrow's returns come from roughly the same distribution as yesterday's. In exchange it never has to guess a shape, so it picks up whatever fat tails and skew the data actually contains. That single assumption is both why the method works and why GARP describes its weakness as complete dependence on the data set — a risk that never occurred in your sample simply does not exist to the model. Option A states that objection accurately and offers it as a reason to use the method.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Criticism offered as rationale.** Empirically true, and it is precisely the objection to historical simulation. If the distribution is expected to change, using history unadjusted is harder to justify, not easier."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. The method rests on the assumption that the past return distribution is a reasonable guide to the future — its foundation and its main vulnerability."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim + wrong method.** ‘Always normally distributed’ is unhedged and false. Historical simulation is chosen precisely *because* it does not assume normality."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Method's premise denied.** If historical returns had no bearing on future returns, resampling them would be meaningless. This states the opposite of the method's justification."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "absolute-claim-trap",
+    "polarity-flip"
+   ],
+   "explanation": "Absolute-claim vs. the working assumption. Option A offers the method's main criticism as its rationale, option D denies the premise outright, and option C adds an ‘always normal’ absolute that historical simulation specifically avoids. Ask what must be assumed for resampling the past to make sense: that the return distribution is stable over time."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q27",
+  "number": 27,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-mock",
+  "loText": "Describe root cause analysis and explain its role in identifying the underlying drivers of operational risk events and near misses.",
+  "reading": "Operational Risk and Resilience, reading on operational risk identification and incident management",
+  "topic": "Root Cause Analysis",
+  "question": "Which of the following statements best describes the purpose of root cause analysis?",
+  "options": [
+   {
+    "key": "a",
+    "text": "To identify an immediate cause of a significant operational risk event."
+   },
+   {
+    "key": "b",
+    "text": "To compare the results of multiple investigations and identify patterns leading to operational risk events."
+   },
+   {
+    "key": "c",
+    "text": "To evaluate the impact of a near miss or incident on operational performance."
+   },
+   {
+    "key": "d",
+    "text": "To support or challenge the initiatives proposed by the second line of defense."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Root cause analysis looks past the proximate trigger to the systemic pattern**\n\n**Step 1 — Separate proximate cause from root cause**\n\n| Layer | Example |\n|---|---|\n| Immediate (proximate) cause | A trader entered the wrong figure |\n| Contributing cause | No four-eyes check on that trade type |\n| **Root cause** | Control design never updated when the product was launched |\n\n*Stopping at the immediate cause produces the useless remediation ‘tell the trader to be more careful’. The root cause produces a control change that prevents the next occurrence.*\n\n**Step 2 — Note the aggregation dimension**\n\nA single investigation identifies one chain. The greater value comes from **comparing across investigations** — if six unrelated losses all trace back to change management, the pattern is the finding.\n\n*This is what option B describes, and it is what distinguishes root cause analysis as a programme from incident investigation as an activity.*\n\n**Step 3 — Note that near misses are in scope**\n\nRoot cause analysis is applied to **near misses** as well as realised losses. A near miss has an identical causal chain and costs nothing to learn from.\n\n*Option C describes assessing the impact of a near miss, which is a different exercise — impact measurement rather than causal investigation.*\n\n**Intuition.** Ask ‘why’ once and you get the trader who fat-fingered the trade. Ask it four or five times and you get the control that was never updated when the product launched — and only the second answer prevents a recurrence. The step beyond that, which the correct option names, is comparing findings across many investigations: if half a dozen unrelated losses all trace back to change management, that pattern is worth more than any single incident report.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Stops at the proximate cause.** Identifying the immediate cause is where root cause analysis *starts*, not what it is for. The whole method consists of pushing past the first answer to the underlying condition."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Comparing findings across multiple investigations to surface recurring patterns is what turns individual incident analysis into a root cause programme."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Impact, not cause.** Evaluating the impact of an incident measures consequence. Root cause analysis investigates causation — a different question about the same event."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Wrong function.** Supporting or challenging second-line initiatives describes an assurance or governance role. Root cause analysis is an investigative technique, not a review function."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "sibling-swap",
+    "role-misassignment"
+   ],
+   "explanation": "Immediate cause vs. underlying pattern. One distractor stops at the proximate trigger, one swaps causal investigation for impact measurement, and one hands the technique a governance-review role. Look for the option that goes beyond a single incident's first answer to the recurring pattern across investigations."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q28",
+  "number": 28,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO15",
+  "loText": "Compare arithmetic and geometric returns and explain the advantages of each in risk measurement.",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "During a job interview, Jacob Lee is asked to describe the advantages of geometric returns over arithmetic returns. Which of the following is an advantage of geometric returns?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Geometric returns are easier to calculate."
+   },
+   {
+    "key": "b",
+    "text": "Geometric returns account for compounding effects."
+   },
+   {
+    "key": "c",
+    "text": "Geometric returns are less volatile."
+   },
+   {
+    "key": "d",
+    "text": "Geometric returns provide a better measure of central tendency."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Geometric returns compound — and therefore preclude a price falling below zero**\n\n**Step 1 — Write both definitions**\n\n$$r_{\\text{arithmetic}} = \\frac{P_t - P_{t-1}}{P_{t-1}} \\qquad r_{\\text{geometric}} = \\ln\\left(\\frac{P_t}{P_{t-1}}\\right)$$\n\n*The geometric (log) return is the continuously compounded rate. Its defining property is that returns **add** across periods, whereas arithmetic returns must be chain-linked multiplicatively.*\n\n**Step 2 — Note the two consequences**\n\n| Property | Consequence |\n|---|---|\n| Log returns **add** over time | Multi-period aggregation is a sum, not a product |\n| Price = $P_0e^{r}$, always positive | **Precludes negative prices** — the basis of lognormal VaR |\n\n*The second is why lognormal VaR is bounded at 100% of position value while arithmetic normal VaR is not — the same distinction tested in AnalystPrep Mock 2 Q22.*\n\n**Step 3 — Dispose of the three false advantages**\n\nGeometric returns require a *logarithm*, so they are not easier to compute. They are not inherently less volatile — the two measures are close for small returns and diverge for large ones. And the **arithmetic** mean is the unbiased estimator of expected single-period return, so it is the better measure of central tendency for that purpose.\n\n*Option D is the sharpest: the geometric mean is the right measure of realised compound growth, but the arithmetic mean is the right measure of expected return. Different questions, different means.*\n\n**Intuition.** Log returns exist because they add. String together twelve monthly log returns and you can sum them to get the year; do that with arithmetic returns and you have to multiply the gross figures. The second consequence matters more for risk: since price equals the starting value times e to the return, no sequence of log returns can drive a price below zero, which is exactly why lognormal VaR is bounded at the position value. Note the arithmetic mean is still the better estimator of *expected* return — the two means answer different questions.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Computation reversed.** Geometric returns require a logarithm; arithmetic returns are a simple ratio. Ease of calculation favours the arithmetic form."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Geometric returns are continuously compounded, so they aggregate additively over time and imply a strictly positive price."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Property not inherent.** Neither measure is inherently less volatile. They coincide closely for small returns and diverge for large ones; volatility is a property of the data, not of the transformation."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Which mean answers which question.** The *arithmetic* mean is the unbiased estimator of expected single-period return. The geometric mean measures realised compound growth — a different quantity, and always the lower of the two."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "role-misassignment"
+   ],
+   "explanation": "Which property is the genuine advantage. One distractor reverses the computational comparison, one attributes a data property (volatility) to the return definition, and one hands the arithmetic mean's role as the expected-return estimator to the geometric mean. The defining advantage of log returns is that they compound — they add across periods and keep prices positive."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q29",
+  "number": 29,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO9",
+  "loText": "Calculate expected return using a multi-factor model incorporating market, size, value and momentum factors.",
+  "reading": "Reading 84: Ang, Factors",
+  "topic": "Value and Momentum Factors",
+  "question": "Daniel Kevin is estimating returns on stock *i* using a factor model with momentum. The risk-free rate is 2.5%.\n\n| Factor loading | Value | Portfolio returns | Value |\n|---|---|---|---|\n| $\\beta_{i,MKT}$ | 1.10 | Expected return on the market | 7.5% |\n| $\\beta_{i,SMB}$ | 1.30 | Small-cap stocks / large-cap stocks | 11.0% / 4.4% |\n| $\\beta_{i,HML}$ | 0.90 | High book-value / low book-value stocks | 13.0% / 5.5% |\n| $\\beta_{i,WML}$ | 1.20 | Winner stocks / loser stocks | 15.0% / 7.0% |\n\nCalculate the expected return of the stock **considering the momentum effect**.",
+  "options": [
+   {
+    "key": "a",
+    "text": "0.1373."
+   },
+   {
+    "key": "b",
+    "text": "0.3043."
+   },
+   {
+    "key": "c",
+    "text": "0.3293."
+   },
+   {
+    "key": "d",
+    "text": "0.3568."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · 2.5% + 1.10(5.0%) + 1.30(6.6%) + 0.90(7.5%) + 1.20(8.0%)**\n\n**Step 1 — Build each factor premium as a spread**\n\n| Factor | Long leg | Short leg | Premium |\n|---|---|---|---|\n| MKT | 7.5% | 2.5% (risk-free) | **5.0%** |\n| SMB | 11.0% | 4.4% | 6.6% |\n| HML | 13.0% | 5.5% | 7.5% |\n| WML | 15.0% | 7.0% | 8.0% |\n\n*Every factor is a long-minus-short spread, including the market — whose short leg is the risk-free asset. Using the 7.5% market return in place of the 5.0% premium is the single most likely error.*\n\n**Step 2 — Apply the loadings**\n\n$$1.10(5.0\\%) = 5.50\\% \\qquad 1.30(6.6\\%) = 8.58\\%$$\n\n$$0.90(7.5\\%) = 6.75\\% \\qquad 1.20(8.0\\%) = 9.60\\%$$\n\n**Step 3 — Add the risk-free rate**\n\n$$\\mathbb{E}[r_i] = 2.5\\% + 5.50\\% + 8.58\\% + 6.75\\% + 9.60\\% = 32.93\\%$$\n\n*The risk-free rate is the base on which all four premia sit. Omitting it gives 30.43% — which is option B.*\n\n**Step 4 — Note the momentum contribution**\n\nMomentum alone adds 9.60 percentage points — the **largest** single contribution, ahead of the size factor's 8.58%. The stem's instruction to consider the momentum effect is not decoration.\n\n*Dropping momentum entirely would give 23.33%, which is not offered — so the paper assumes you include it and tests the two subtler slips instead.*\n\n**Intuition.** Every factor in this family is a spread between a long leg and a short leg, and the market factor is no exception — its short leg is cash, so the premium is 5% rather than the 7.5% market return. Build all four spreads, multiply by the loadings, then remember the risk-free rate sits underneath as the base. The two distractors worth naming are exactly those two slips: 30.43% forgets the base, 35.68% uses the market return instead of the premium.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Most factors omitted (0.1373).** Far below the correct figure — most of the factor contribution is missing. It does not match the risk-free rate plus any one correctly computed premium (8.00% to 12.10%) or any two (14.75% to 20.68%); a single-factor CAPM answer would be 2.5% + 1.10(5%) = 8.0%."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Risk-free rate omitted (0.3043).** 32.93% − 2.5% = 30.43%. Every premium computed and applied correctly, with the risk-free base never added back."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "0.3293 — 2.5% + 5.50% + 8.58% + 6.75% + 9.60%. Correct."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Market return used as the premium (0.3568).** Substituting 7.5% for the 5.0% market premium adds 1.10 × 2.5% = 2.75 percentage points, giving 35.68%. The market factor is an excess return like every other factor."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "dropped-term",
+    "wrong-input-twin"
+   ],
+   "explanation": "Market premium vs. market return, and the risk-free base. The distractors drop factor premia, drop the risk-free intercept, or feed the raw 7.5% market return where the 5.0% excess return belongs. Convert every factor to a long-minus-short spread (the market's short leg is the risk-free rate), apply the loadings, and add the risk-free rate once at the end."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q30",
+  "number": 30,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO2",
+  "loText": "Calculate the percentage contribution of each position's component VaR to portfolio VaR and explain why component VaRs sum to the total.",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "topic": "Portfolio VaR Measures",
+  "question": "James Wit adds two assets to a new portfolio. The idiosyncratic components are uncorrelated. Asset A has a volatility of 6% and asset B 10%. USD 2.5 million is invested in A and USD 1.0 million in B. The asset betas are 0.97 and 1.075 respectively.\n\nCalculate the percentage contribution of each asset's component VaR to the portfolio VaR at the 95% confidence level.",
+  "options": [
+   {
+    "key": "a",
+    "text": "A 28.7% / B 71.3%."
+   },
+   {
+    "key": "b",
+    "text": "A 86.2% / B 13.8%."
+   },
+   {
+    "key": "c",
+    "text": "A 81.6% / B 18.6%."
+   },
+   {
+    "key": "d",
+    "text": "A 69.3% / B 30.7%."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Contribution collapses to weight × beta — everything else cancels**\n\n**Step 1 — Show why the formula collapses**\n\n$$\\%\\,\\text{contribution}_i = \\frac{CVaR_i}{VaR_p} = \\frac{w_i V \\cdot z\\sigma_p \\beta_i}{V \\cdot z\\sigma_p} = w_i\\beta_i$$\n\nThe confidence multiplier, the portfolio volatility and the portfolio value all **cancel**.\n\n*Which means the individual volatilities of 6% and 10% and the 95% confidence level are entirely **decoration**. Only the weights and the betas matter.*\n\n**Step 2 — Compute the weights**\n\n$$w_A = \\frac{2.5}{3.5} = 0.7143 \\qquad w_B = \\frac{1.0}{3.5} = 0.2857$$\n\n**Step 3 — Multiply by the betas**\n\n$$\\%_A = 0.7143 \\times 0.97 = 0.6929 = 69.3\\%$$\n\n$$\\%_B = 0.2857 \\times 1.075 = 0.3071 = 30.7\\%$$\n\n**Step 4 — Check the sum**\n\n$$69.3\\% + 30.7\\% = 100.0\\% \\checkmark$$\n\nComponent VaRs are the only decomposition that sums to portfolio VaR — that is what makes them the right measure for allocating risk.\n\n*The sum check is also a fast option filter. Option C gives 81.6 + 18.6 = 100.2%, which cannot be a valid decomposition.*\n\n**Intuition.** The formula looks intimidating and then almost everything cancels: the confidence level, the portfolio volatility and the portfolio value all appear in numerator and denominator alike, leaving weight times beta. That means the two volatilities the stem supplies never enter the calculation at all. Asset A holds 71% of the money with a beta just under one, so it contributes slightly less than 71%; asset B holds 29% with a beta above one, so slightly more. And check the sum — one option fails on 100.2% alone.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Assets transposed (28.7 / 71.3).** These are close to the position weights of 28.6% and 71.4% — but attached to the wrong assets, and with the betas never applied. Asset A holds 71% of the money, so it cannot contribute 29% of the risk when its beta is near one."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Beta applied incorrectly (86.2 / 13.8).** Overstates A's share by 17 percentage points. It is exactly the squared position weights, normalised: $0.7143^2 / (0.7143^2 + 0.2857^2) = 0.5102 / 0.5918 = 86.2\\%$. The betas never enter (weighting by beta alone would give 47.4 / 52.6); the contribution is weight times beta, not weight squared."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Does not sum to 100% (81.6 / 18.6).** 81.6 + 18.6 = 100.2%, which is not a valid decomposition. Component contributions must sum exactly to the portfolio VaR — a free elimination before any arithmetic."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "69.3 / 30.7 — Correct. 0.7143 × 0.97 and 0.2857 × 1.075, summing to 100%."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "wrong-input-twin",
+    "calculation-slip"
+   ],
+   "explanation": "Weight × beta — the volatilities are decoration. The distractors swap the two assets' shares, weight by the wrong inputs (the squared position weights), or fail to sum to 100%. Cancel the common terms to reach $w_i\\beta_i$, and use the sum-to-100% check to eliminate any impossible decomposition before calculating."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q31",
+  "number": 31,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "IR-LO30",
+  "loText": "Describe the Madoff case and identify the operational due diligence red flags that should have prompted investigation.",
+  "reading": "Reading 96: The Rise and Fall of Bernie Madoff",
+  "topic": "Madoff Fraud Case",
+  "question": "In the Bernie Madoff fraud case study, which of the following actions was a significant red flag that contributed to the ultimate discovery of the Ponzi scheme?",
+  "options": [
+   {
+    "key": "a",
+    "text": "High-frequency trading activity."
+   },
+   {
+    "key": "b",
+    "text": "Madoff's refusal to provide detailed portfolio information."
+   },
+   {
+    "key": "c",
+    "text": "An unusually high volume of international investments."
+   },
+   {
+    "key": "d",
+    "text": "Frequent changes in the company's legal counsel."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Opacity about holdings — the classic operational due diligence failure**\n\n**Step 1 — Identify the operational red flags**\n\n| Red flag | What it signalled |\n|---|---|\n| **Refusal to disclose holdings** | No independent verification of the claimed strategy was possible |\n| Tiny, unknown auditor | A three-person firm auditing billions in assets |\n| Self-custody | Madoff's own broker-dealer held the assets — no independent custodian |\n| Implausibly smooth returns | Consistent positive months regardless of market conditions |\n\n*Every one of these is an **operational** due diligence finding, not an investment one. The strategy sounded plausible; the infrastructure around it did not survive inspection.*\n\n**Step 2 — Note why opacity is the decisive flag**\n\nWithout position-level transparency, no investor could verify that the claimed split-strike conversion strategy was being executed — or that the assets existed. Harry Markopolos's analysis rested largely on the impossibility of the reported returns given the option market's size.\n\n*Opacity is what allowed everything else to persist. Once holdings are verified independently, a Ponzi scheme cannot continue.*\n\n**Step 3 — Dispose of the remaining three**\n\nHigh-frequency trading was not a feature of the claimed strategy. International investment volume is unremarkable for a large fund. And frequent changes of legal counsel is a generic governance concern with no particular connection to this case.\n\n*All three sound vaguely suspicious, which is the point — none is specific to Madoff.*\n\n**Step 4 — Draw the due diligence lesson**\n\nThe three structural safeguards Madoff lacked were an **independent custodian**, an **independent administrator** and a **credible auditor**. Each is now a standard operational due diligence requirement.\n\n*This connects directly to the hedge fund operational due diligence material — fraud risk is screened out rather than priced in, because investors earn no premium for bearing it.*\n\n**Intuition.** Madoff's strategy was never the problem — the plumbing was. He held the assets himself, used a three-person auditor, and would not show anyone the positions. That last point is the one that mattered, because without independent verification of holdings there is no way to distinguish a fund from a story. The other three options sound faintly suspicious in a generic way, which is exactly how weak distractors are built.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Not a feature of the case.** Madoff claimed a split-strike conversion strategy using options and large-cap equities. High-frequency trading played no part in the alleged approach or in its detection."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Refusal to provide detailed portfolio information prevented independent verification and is the central operational red flag of the case."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Unremarkable.** International investment volume is ordinary for a large fund and carries no fraud signal."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Generic governance concern.** Frequent changes of counsel might warrant attention in general, but it is not a documented feature of this case. The auditor — a three-person firm — was the relevant professional-services red flag."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "scope-condition-error",
+    "scope-condition-error"
+   ],
+   "explanation": "Which red flag was operational, not market. The distractors are generically suspicious-sounding features that were not part of the Madoff case — a strategy he never claimed, an unremarkable investment pattern and a governance issue that did not occur. Recall the case-specific operational failures (opacity, self-custody, a tiny auditor) and pick the one that blocked independent verification."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q32",
+  "number": 32,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-mock",
+  "loText": "Describe the systemic implications of cyber risk and distinguish direct operational contagion from second-order market and behavioural effects.",
+  "reading": "Operational Risk and Resilience / Current Issues readings on cyber risk and financial stability",
+  "topic": "Cyber Systemic Risk",
+  "question": "GlobalBank experiences a significant cyber attack that disrupts its real-time electronic payment system, causing widespread delays in processing transactions. GlobalBank is interconnected with various financial institutions through digital platforms used for transactions and trade settlements.\n\nIn this scenario, what is a **direct systemic risk** resulting from the attack?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Reduced consumer confidence in digital banking, leading to an increased preference for cash transactions."
+   },
+   {
+    "key": "b",
+    "text": "A rapid increase in short-selling of stocks of financial institutions interconnected with GlobalBank."
+   },
+   {
+    "key": "c",
+    "text": "Other financial institutions facing disruptions in their transaction processing due to their interconnectivity with GlobalBank."
+   },
+   {
+    "key": "d",
+    "text": "Stricter regulatory measures imposed on electronic payment systems across the financial sector."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Direct systemic risk propagates through the network itself, not through sentiment**\n\n**Step 1 — Define what makes a risk directly systemic**\n\nSystemic risk is the risk that **one institution's failure impairs others through their connections**. ‘Direct’ means transmitted through the operational linkage itself, not through market sentiment or policy response.\n\n*The stem tells you the transmission channel explicitly: GlobalBank is interconnected through digital platforms for transactions and settlements. That is the pipe through which the shock travels.*\n\n**Step 2 — Trace the immediate propagation**\n\nIf GlobalBank cannot process payments, its counterparties do not receive expected funds. They may then be unable to meet their own obligations — a **settlement chain failure** spreading outward mechanically.\n\n*No loss of confidence is required for this to happen. The cash simply does not arrive, and the next institution in the chain is short.*\n\n**Step 3 — Classify the other three**\n\n| Option | Type |\n|---|---|\n| Reduced consumer confidence | **Second-order behavioural** effect |\n| Short-selling of connected banks | **Market reaction** to the news |\n| Stricter regulation | **Policy response**, arriving months later |\n\n*All three are real consequences and all three are downstream of the direct operational contagion. The question asks for the first link, not the eventual ones.*\n\n**Step 4 — Note why payment systems are the concern**\n\nPayment and settlement infrastructure is the financial system's plumbing. A cyber attack on it is one of the few operational events capable of producing genuine systemic contagion — which is why operational resilience regulation focuses on **important business services** rather than on individual systems.\n\n*Same principle as the impact tolerance material: what matters is the service the outside world depends on, not the internal component that broke.*\n\n**Intuition.** Ask how the damage actually travels. If GlobalBank's payment system stops, the institutions expecting money from it do not get paid, and they in turn cannot pay whoever is next in line — the shock moves along the pipes, mechanically, without anyone forming an opinion about it. Everything else in the option list requires someone to *react*: investors short the stock, customers switch to cash, regulators write rules. Those are consequences of the contagion, not the contagion.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Second-order behavioural.** A shift toward cash is a downstream consequence of lost confidence, unfolding over weeks or months. It does not transmit the shock through the network."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Market reaction.** Short-selling is a price response to news, not an operational transmission. It reflects the systemic risk rather than constituting it."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Interconnected institutions cannot complete their own transactions when GlobalBank's payment processing fails — the shock propagates directly through the settlement linkage."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Policy response.** Regulatory tightening follows an incident, typically after inquiry and consultation. It is a consequence of systemic risk having materialised, not a channel of it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "scope-condition-error"
+   ],
+   "explanation": "Direct contagion vs. second-order consequences. All three distractors are real downstream effects — a behavioural shift, a market reaction and a policy response — but none is the direct transmission the stem's qualifier asks for. Trace how the shock physically travels: through the payment and settlement links to the institutions that do not get paid."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q33",
+  "number": 33,
+  "subject": "Current Issues",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CI-mock",
+  "loText": "Describe the resolution of Credit Suisse and identify the strengths and weaknesses of the international resolution framework exposed by the case.",
+  "reading": "Current Issues in Financial Markets (Book 5), reading on bank failures and resolution",
+  "topic": "Credit Suisse Resolution",
+  "question": "Despite having undergone extensive resolution planning in the years leading up to the crisis, the resolution of Credit Suisse presented certain challenges. Which of the following was identified as a **weakness** in the resolution framework exposed by this case?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Difficulty in restoring market trust post-intervention."
+   },
+   {
+    "key": "b",
+    "text": "Lack of pre-planning for potential bank failures."
+   },
+   {
+    "key": "c",
+    "text": "Insufficient public liquidity backstop mechanisms."
+   },
+   {
+    "key": "d",
+    "text": "Absence of cross-border cooperation protocols."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Announced support did not stop the outflows — confidence proved unrecoverable**\n\n**Step 1 — Eliminate the options the stem itself contradicts**\n\nThe stem states the bank had undergone **extensive resolution planning**, which rules out option B directly. And Credit Suisse was a G-SIB with established cross-border cooperation arrangements, which rules out option D.\n\n*Two options gone before any judgement about the case is required — the stem supplies the eliminations.*\n\n**Step 2 — Identify the genuine weakness**\n\nThe episode showed that once confidence has gone, **announced support may not restore it**. A very large liquidity facility was made available and deposit outflows continued regardless, forcing a weekend merger.\n\n*This is the uncomfortable finding for the whole post-2008 architecture: the tools were in place and adequately sized, and they did not stop the run.*\n\n**Step 3 — Note the related finding**\n\nThe resolution plan itself was ultimately **not used**. Authorities chose a commercially negotiated merger backed by state guarantees, raising the question of whether resolution regimes are credible when tested.\n\n*Planning existed; execution went a different way. That gap between the designed route and the chosen one is the case's central lesson.*\n\n**Step 4 — Contrast with the strength**\n\nThe framework's *strength* in this case was that substantial **TLAC** was in place and adequate — the loss-absorbing capacity built after 2008 was genuinely there.\n\n*Strength and weakness sit side by side: the capital stack worked, the confidence restoration did not. AnalystPrep Mock 2 Q5 asks the mirror question about the strength.*\n\n**Intuition.** The stem hands you two eliminations in its first clause — extensive resolution planning had been done, so neither absent planning nor absent cross-border protocols can be the answer. What remains is the genuinely uncomfortable finding: the authorities announced enormous liquidity support and the deposits kept leaving anyway. Once confidence has gone, a facility is just a number in a press release. That is why the case ended in a weekend merger rather than in the resolution everyone had spent a decade planning.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Substantial liquidity support was announced and deposit outflows continued regardless — intervention did not restore market trust."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Contradicted by the stem.** The stem states the bank had undergone extensive resolution planning. The problem was that the plan was not used, not that it did not exist."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Support was extensive.** Very large liquidity support was made available, including through emergency measures. The weakness was that the support failed to halt outflows, not that its scale was inadequate."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Contradicted by the case.** Credit Suisse was a global systemically important bank with established cross-border cooperation arrangements, and coordination among home and host authorities was intensive throughout."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "Weakness vs. facts contradicted by the stem. Each distractor names a plausible-sounding failure whose opposite is true in this case: planning existed, liquidity support was large and cross-border coordination was intensive. Use the stem to eliminate what it already contradicts, then pick the weakness that actually materialised — support that could not restore trust."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q34",
+  "number": 34,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-LO5",
+  "loText": "Describe third-party and outsourcing risk and distinguish it from the broader categories of operational, cyber and compliance risk.",
+  "reading": "Operational Risk and Resilience, Ch. 13: Case Study: Third-Party Risk Management",
+  "topic": "Outsourcing and Third-Party Risk",
+  "question": "A bank outsourced its customer data analysis to a specialised analytics company to leverage that firm's advanced data processing capabilities. It was subsequently discovered that, due to **inadequate security protocols at the analytics company**, there was unauthorised access to the bank's customer data, exposing sensitive personal and financial information.\n\nBased on this incident, what type of risk does this situation most closely represent?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Operational risk."
+   },
+   {
+    "key": "b",
+    "text": "Third-party risk."
+   },
+   {
+    "key": "c",
+    "text": "Compliance risk."
+   },
+   {
+    "key": "d",
+    "text": "Cyber risk."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · The failure occurred at the vendor — that specificity is what the question is testing**\n\n**Step 1 — Note that all four labels apply to some degree**\n\n| Label | Applies? | How specific? |\n|---|---|---|\n| Operational risk | Yes | The **parent category** — true of every option here |\n| **Third-party risk** | **Yes** | **Names where the failure occurred** |\n| Compliance risk | Consequence | Data protection breaches follow, but were not the cause |\n| Cyber risk | Yes | Describes the *mechanism*, not the source |\n\n*‘Most closely represents’ asks for the most **specific accurate** label, not the broadest true one.*\n\n**Step 2 — Locate the causal point**\n\nThe security protocols that failed were the **analytics company's**, not the bank's. The bank's own controls were not breached — its exposure arose entirely from the outsourcing arrangement.\n\n*Had the bank kept the analysis in house, the incident could not have occurred in this form. The vendor relationship is the necessary condition.*\n\n**Step 3 — Note that accountability does not transfer**\n\nThe bank remains **fully accountable** to its customers and its regulator. Outsourcing moves the activity, never the responsibility — which is why third-party risk is treated as its own discipline with its own life cycle.\n\n*Same principle as the Capital One cloud-vendor breach and the conduct-monitoring question earlier in this bank.*\n\n**Step 4 — Note why cyber is the strongest distractor**\n\nThe mechanism *was* unauthorised access. But describing it as cyber risk points remediation at the bank's own security stack, when the control gap was in vendor selection, contractual security requirements and ongoing monitoring.\n\n*Labelling the risk correctly determines who fixes it. That is the practical stake in an apparently semantic question.*\n\n**Intuition.** Four labels, all defensible, arranged from broadest to most specific. Operational risk is the parent of the other three and therefore says nothing. Cyber describes how the data got out; compliance describes what happens next. Third-party risk names the thing that actually failed — a vendor's controls, under an arrangement the bank chose to enter. That matters practically rather than semantically: call it cyber and you go and harden your own firewalls, when the gap was in how you selected and monitored a supplier.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Parent category.** True but too broad. Third-party risk, cyber risk and compliance risk are all subsets of operational risk, so this label does not discriminate at all."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. The failure originated in a vendor's controls under an outsourcing arrangement — the defining shape of third-party risk."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Consequence, not cause.** Data protection breaches and regulatory penalties will follow, but compliance failure is the *result* of the incident rather than its source."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Mechanism, not source.** Unauthorised access is the mechanism, but the vulnerability sat at the vendor. Labelling it cyber risk directs remediation at the bank's own security rather than at vendor oversight."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "Nested categories — which is most specific. Operational risk is the true-but-too-broad parent, compliance is the consequence and cyber is the mechanism; all three are defensible but none names where the failure sat. When several labels apply, take the most specific accurate one — here the vendor's failed controls make it third-party risk."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q35",
+  "number": 35,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-LO1",
+  "loText": "Describe the Basel expectations for governance of an operational risk management framework and the role of risk appetite within it.",
+  "reading": "Operational Risk and Resilience, Ch. 2: Risk Governance",
+  "topic": "Operational Risk Governance",
+  "question": "Mr Rihan is presenting to the board on the Basel regulatory expectations for governance of an operational risk management framework. What is the purpose of risk management governance within the ORM framework of a bank?",
+  "options": [
+   {
+    "key": "a",
+    "text": "To create a paper trail of compliance activities."
+   },
+   {
+    "key": "b",
+    "text": "To set model documentation standards, data quality expectations, and versioning criteria."
+   },
+   {
+    "key": "c",
+    "text": "To develop robust governance policies and processes and manage material risks per the firm's risk appetite."
+   },
+   {
+    "key": "d",
+    "text": "To oversee all the activities of banks."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Manage material risks within the appetite the board has set**\n\n**Step 1 — State the purpose**\n\nGovernance exists so that the firm **manages its material risks within the risk appetite the board has approved**, supported by policies and processes that make that possible.\n\n*Two elements bound together: an appetite that defines how much risk is acceptable, and the machinery to keep the firm inside it. Neither works alone.*\n\n**Step 2 — Dispose of the paper-trail claim**\n\nDocumentation is a **by-product** of good governance, not its purpose. A framework that produces excellent records and does not change any decision has failed.\n\n*This is the ‘compliance theatre’ failure mode — and it is precisely what the Basel use test in the Solvency II and model risk material exists to prevent.*\n\n**Step 3 — Note that option B is too narrow**\n\nModel documentation standards, data quality expectations and version control are **model risk management** requirements — a component of the framework, not its purpose.\n\n*Correct subject matter, wrong scope. ORM governance covers far more than models.*\n\n**Step 4 — Note that option D describes the supervisor**\n\n‘Overseeing all the activities of banks’ is what a *regulator* does. The question asks about governance **within** a bank's own framework.\n\n*A role-misassignment: the right verb attached to the wrong institution.*\n\n**Intuition.** Ask what the framework is *for*. Not to generate documents — that is what a framework produces, not what it achieves. Not to set model versioning rules — that is one small component. And not to supervise banks, which is the regulator's job, not the bank's. What it is for is keeping the firm's actual risk-taking inside the appetite the board approved, and building the policies and processes that make that achievable rather than aspirational.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**By-product as purpose.** Documentation follows from governance but is not its objective. A framework that generates records without influencing decisions is exactly the failure mode the use test targets."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Too narrow.** Model documentation, data quality and versioning are model risk management requirements — one component of the framework rather than the purpose of the whole."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Governance exists to establish robust policies and processes and to manage material risks in line with the firm's stated risk appetite."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Regulator's function.** Overseeing the activities of banks is a supervisory role. The question concerns governance inside a bank's own operational risk framework."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "scope-condition-error",
+    "role-misassignment"
+   ],
+   "explanation": "Purpose vs. by-product. One distractor mistakes documentation (an output) for the objective, one narrows governance to model risk management, and one assigns the supervisor's oversight role to the bank. Ask what the framework achieves rather than what it produces: keeping material risks within the board-approved appetite."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q36",
+  "number": 36,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "OR-LO3",
+  "loText": "Describe the three lines of defence model and the responsibilities of the second line in establishing risk management methodologies.",
+  "reading": "Operational Risk and Resilience, Ch. 2: Risk Governance",
+  "topic": "Operational Risk Governance",
+  "question": "Which of the following is most likely a role and responsibility of the **second line of defence** for the overall risk management of a firm under risk governance?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Making decisions for managing risks."
+   },
+   {
+    "key": "b",
+    "text": "Establishing risk management methods, and measurement methods."
+   },
+   {
+    "key": "c",
+    "text": "Overseeing the risk management activities of the third line of defense."
+   },
+   {
+    "key": "d",
+    "text": "Reports independently to the board of directors."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · The second line builds the toolkit; the first line uses it; the third line audits both**\n\n**Step 1 — Assign each activity**\n\n| Activity | Line |\n|---|---|\n| Making risk-taking decisions | **First** — the business owns the exposures |\n| **Establishing methods and measurement approaches** | **Second** |\n| Overseeing the third line | **Nobody** — the third line is independent by design |\n| Reporting independently to the board | **Third** — internal audit |\n\n*The second line's distinctive contribution is methodology: it defines how risk is measured, what limits apply and how breaches escalate.*\n\n**Step 2 — Note why option C is structurally impossible**\n\nThe third line's value rests entirely on its **independence**. If the second line oversaw internal audit, audit could not credibly assure the second line's own work.\n\n*Internal audit reports to the audit committee, not to management, precisely so that no management function can direct it.*\n\n**Step 3 — Note why option D belongs to the third line**\n\nIndependent reporting to the board is internal audit's defining characteristic. The second line sits **within management**, however independent it is of the business units.\n\n*A useful distinction: the second line is independent of the first line; the third line is independent of management altogether.*\n\n**Step 4 — Note the boundary that genuinely blurs**\n\nThe first/second boundary is the contested one, since both sit inside management. Whether a control function belongs to one or the other is a recurring organisational dispute; whether something is internal audit rarely is.\n\n*Same point as the BionicTurtle 3LoD question — the third line has the clearest boundaries because its independence is structural.*\n\n**Intuition.** Three lines, three verbs. The business *takes* risk. The second line *defines how it is measured* — the methods, the limits, the escalation rules. Internal audit *checks both* and reports over management's head to the board. The two wrong options here hand the second line either the first line's decision rights or the third line's independence, and one of them proposes that management supervise its own auditor, which would dissolve the reason for having one.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**First-line function.** Risk-taking decisions belong to the business that owns the exposure. A second line that makes those decisions forfeits its ability to challenge them."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Establishing risk management and measurement methodologies is the second line's defining contribution."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Structurally impossible.** Nothing in management oversees the third line — internal audit's independence is the point of having it. Oversight runs the other way."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Third-line characteristic.** Independent reporting to the board defines internal audit. The second line sits within management, independent of the business units but not of management itself."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "role-misassignment",
+    "role-misassignment"
+   ],
+   "explanation": "Which line sets methods vs. makes decisions. Every distractor attaches another line's role to the second line: first-line decision rights, an impossible oversight of internal audit, and the third line's independent board reporting. Map each activity to its owner — the business takes risk, the second line designs how it is measured, internal audit independently checks both."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q37",
+  "number": 37,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "MR-LO13",
+  "loText": "Describe probability integral transform based backtesting and explain the uniformity and independence properties implied by a correctly specified model.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "A risk management team is conducting an exceedance-based backtest on its VaR model and aims to reflect the model's key properties through a **PIT-based** backtest. Which attributes of probability integral transforms are essential for validating that exceedance-based properties are maintained?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Skewness and heavy tails."
+   },
+   {
+    "key": "b",
+    "text": "Uniform distribution and independence."
+   },
+   {
+    "key": "c",
+    "text": "Periodicity and cyclicality."
+   },
+   {
+    "key": "d",
+    "text": "Concentration and clustering."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · If the model is right, the PITs are i.i.d. Uniform(0,1)**\n\n**Step 1 — Define the transform**\n\nPush each realised return through the model's own forecast CDF:\n\n$$u_t = F_t(r_t)$$\n\nIf $F_t$ is the true predictive distribution, then $u_t$ is **Uniform(0,1)** and **independent** across time.\n\n*The PIT converts a distributional question into a distribution-free one — whatever shape the model forecasts, correct forecasts always produce uniforms.*\n\n**Step 2 — Map the two properties onto the two backtest failures**\n\n| PIT property | Exceedance equivalent | Test |\n|---|---|---|\n| **Uniform** | Correct **number** of exceptions | Kupiec (unconditional coverage) |\n| **Independent** | Exceptions not **clustered** | Christoffersen (independence) |\n\n*These are the same two failures the exceedance framework tests, which is why the PIT backtest ‘maintains’ the exceedance properties — it generalises them.*\n\n**Step 3 — Note what PIT adds**\n\nAn exceedance test discards all information except whether the threshold was breached. The PIT uses the **entire distribution**, so it can detect a model that produces the right number of breaches while being wrong everywhere else.\n\n*Far more powerful in small samples — which matters, since a 99% VaR generates only two or three exceptions a year.*\n\n**Step 4 — Note why the distractors fail**\n\nSkewness and heavy tails describe *return* distributions, not PITs of a correct model. Periodicity, cyclicality, concentration and clustering are all **violations** of independence — symptoms of failure offered as validation criteria.\n\n*Three options name things you hope not to find.*\n\n**Intuition.** Feed each realised return through the distribution your model predicted for that day. If the model was right, those numbers should be scattered evenly between zero and one with no pattern from one day to the next — uniform and independent. Those two properties are the same two things an exception count tests, coverage and clustering, but using the whole distribution instead of a single threshold. Three of the four options name things you would be alarmed to find.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Properties of returns, not PITs.** Skewness and heavy tails characterise financial return series. A correct model's PITs are uniform regardless of how skewed or fat-tailed the underlying returns are — that is the transform's purpose."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Under a correctly specified model the PITs are independent and uniformly distributed on [0,1], mirroring correct coverage and non-clustering."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Failure symptom.** Periodicity and cyclicality in the PITs would *violate* independence, indicating the model is not adapting to changing conditions."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Failure symptom.** Concentration violates uniformity and clustering violates independence. Both are the failures the test is designed to detect, not the properties it validates."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "The two properties a correct model implies. One distractor describes the return series rather than its PITs, and two name the very patterns (cycles, concentration, clustering) whose presence signals model failure. Remember the target: a correctly specified model turns realised returns into i.i.d. Uniform(0,1) values — uniformity mirrors coverage, independence mirrors no clustering."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q38",
+  "number": 38,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO1",
+  "loText": "Calculate conditional and marginal default probabilities from a constant hazard rate and distinguish between them.",
+  "reading": "Reading 88: Hull, Estimating Default Probabilities",
+  "topic": "Estimating Default Probabilities",
+  "question": "A corporation's hazard rate is 0.09 per year. Given that the company **survived the first year**, what is the probability that it will default before the end of the second year, assuming a constant hazard rate model?",
+  "options": [
+   {
+    "key": "a",
+    "text": "9.14%."
+   },
+   {
+    "key": "b",
+    "text": "8.61%."
+   },
+   {
+    "key": "c",
+    "text": "8.27%."
+   },
+   {
+    "key": "d",
+    "text": "7.87%."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Conditioning on survival resets the clock — $1 - e^{-0.09}$**\n\n**Step 1 — Note what conditioning does**\n\nThe hazard rate is **memoryless**. Given survival to the start of year two, the probability of failing during that year is the same as it was for year one from time zero:\n\n$$P(\\text{default in year } 2 \\mid \\text{survived year } 1) = 1 - e^{-\\lambda(1)}$$\n\n*Constant intensity means the past carries no information beyond the fact of survival. The firm faces the same one-year risk it always did.*\n\n**Step 2 — Evaluate**\n\n$$1 - e^{-0.09} = 1 - 0.913931 = 0.086069 = 8.61\\%$$\n\n**Step 3 — Contrast with the marginal probability**\n\nViewed from *today*, the unconditional chance of defaulting during year two is\n\n$$e^{-0.09} - e^{-0.18} = 0.913931 - 0.835270 = 0.078661 = 7.87\\%$$\n\nsmaller, because the firm must first survive year one.\n\n*That figure is option D. Conditional and marginal answer different questions and both are in the option list — the discrimination this item exists to test.*\n\n**Step 4 — Note the hazard rate is not itself a probability**\n\n$\\lambda = 0.09$ is an **intensity** — an instantaneous rate, not a probability. The corresponding one-year probability is 8.61%, slightly below 9% because the exponential compounds continuously.\n\n*Option A's 9.14% sits just above the raw 9%, which is what treating the intensity as a probability tends to produce.*\n\n**Intuition.** A constant hazard rate has no memory, so being told the firm survived a year tells you nothing about its prospects except that it is still here. The clock resets and the next year carries exactly the same risk as the first — one minus e to the minus lambda, 8.61%. The distractor to beat is the marginal figure of 7.87%, which is the chance *seen from today* that the firm gets through year one and then fails in year two. Different question, and it is smaller because it has two hurdles rather than one.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Hazard rate treated as a probability (9.14%).** In the region of the raw intensity of 9% — and $e^{0.09} - 1 = 9.42\\%$, the result of exponentiating with the wrong sign. The intensity is not a probability."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "8.61% — $1 - e^{-0.09}$. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Between the two correct answers (8.27%).** Sits between the conditional 8.61% and the marginal 7.87% — consistent with a partial or averaged construction rather than either well-defined quantity."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Marginal instead of conditional (7.87%).** $e^{-0.09} - e^{-0.18}$ — the *unconditional* probability of defaulting during year two, viewed from today. Correct arithmetic for the question that was not asked."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "calculation-slip",
+    "sibling-swap"
+   ],
+   "explanation": "Conditional vs. marginal, and the hazard rate as a probability. The distractors treat the intensity as if it were the probability, blend the two well-defined quantities, or compute the unconditional year-two default probability seen from today. Read the conditioning in the stem: given survival, a constant hazard rate resets the clock, so the answer is $1 - e^{-\\lambda}$."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q39",
+  "number": 39,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CR-LO35",
+  "loText": "Describe the risks introduced by central counterparties, including moral hazard and the mutualisation of risk.",
+  "reading": "Reading 96: Gregory, Central Clearing and Risk Intermediation",
+  "topic": "Central Clearing",
+  "question": "In a session on the implications of central counterparties in the OTC derivatives market, a debate arises about unintended consequences. Which of the following statements best captures the **moral hazard** problem that can arise in the context of CCPs?",
+  "options": [
+   {
+    "key": "a",
+    "text": "CCPs, by providing a guarantee on transactions, may inadvertently encourage market participants to engage in riskier trading practices, underestimating the systemic risk."
+   },
+   {
+    "key": "b",
+    "text": "CCPs, through their stringent margin requirements, deter participants from entering into derivative transactions, thereby excessively limiting market liquidity."
+   },
+   {
+    "key": "c",
+    "text": "CCPs, by offering advisory services on risk management and investment strategies, may lead to an over-reliance on CCP judgments, diminishing participants' responsibility."
+   },
+   {
+    "key": "d",
+    "text": "CCPs, by simplifying the legal framework for derivatives, may inadvertently increase legal risk due to participants' overconfidence in CCPs' ability to manage complex arrangements."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Protection changes behaviour — that is what moral hazard means**\n\n**Step 1 — State the definition**\n\nMoral hazard arises when a party **takes more risk because it is protected from the consequences**. The protection itself changes behaviour.\n\n*So the correct answer must contain both halves: a guarantee, and riskier conduct because of it. Only option A has both.*\n\n**Step 2 — Trace the mechanism at a CCP**\n\nA member facing a CCP no longer needs to assess its counterparty's creditworthiness — the clearing house stands in between. Bilateral credit discipline weakens, and trades are entered that would not have been acceptable bilaterally.\n\n*The risk has not disappeared. It has been **mutualised** into the default fund, which is what makes underestimating the systemic component so easy.*\n\n**Step 3 — Note the ‘too big to fail’ dimension**\n\nMandatory clearing has concentrated enormous exposure in a handful of CCPs, which are now themselves systemically critical. Participants may assume a CCP would be **rescued** rather than allowed to fail.\n\n*Moral hazard at two levels: members relative to the CCP, and the CCP relative to the state.*\n\n**Step 4 — Note why the other three are different criticisms**\n\nOption B describes excessive margin costs — a real complaint, but the opposite of encouraging risk. Options C and D describe over-reliance and legal complexity, which are operational concerns rather than incentive distortions.\n\n*All three are legitimate criticisms of central clearing. None is moral hazard.*\n\n**Intuition.** Moral hazard has a precise shape: you behave worse *because* you are protected. At a CCP, members stop scrutinising who is on the other side, because the clearing house has stepped in between — and the risk they stop pricing has not vanished, it has been pooled into a default fund everyone contributes to. Three of the four options are genuine criticisms of central clearing, but only one describes protection changing behaviour.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. The CCP guarantee reduces participants' incentive to assess counterparty risk, encouraging riskier trading and underestimation of the mutualised systemic exposure."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Opposite direction.** Describes margin requirements *deterring* activity. That is a cost-and-liquidity criticism, and it discourages risk-taking rather than encouraging it."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Over-reliance, not moral hazard.** Depending on someone else's judgement is an operational and governance concern. Moral hazard specifically requires protection from consequences altering the incentive to take risk."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Legal risk, not moral hazard.** Overconfidence in a CCP's legal machinery is a distinct concern. It involves no guarantee-driven change in risk appetite."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "Moral hazard vs. other CCP criticisms. The distractors are genuine but different complaints about central clearing — margin costs that deter risk-taking, over-reliance on CCP judgement and legal complexity. Test each option for both halves of the definition: a protection (the CCP guarantee) and riskier behaviour caused by it."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK3-Q40",
+  "number": 40,
+  "subject": "Current Issues",
+  "tier": "AnalystPrep Mock 3",
+  "lo": "CI-mock",
+  "loText": "Describe the use of synthetic data in financial applications of AI and its advantages and limitations.",
+  "reading": "Current Issues in Financial Markets (Book 5), readings on artificial intelligence in finance",
+  "topic": "Synthetic Data in AI",
+  "question": "Synthetic data is used to enhance AI models, especially in sensitive sectors such as finance. What is a key advantage of using synthetic data?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Perfect replication of real data statistics."
+   },
+   {
+    "key": "b",
+    "text": "Elimination of bias replication risk."
+   },
+   {
+    "key": "c",
+    "text": "Mitigation of privacy concerns."
+   },
+   {
+    "key": "d",
+    "text": "Lower generation cost than real data collection."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · No real individuals in the data, so privacy constraints loosen**\n\n**Step 1 — State the genuine advantage**\n\nSynthetic records correspond to **no actual person**. That relieves the data-protection constraints — GDPR, banking secrecy, cross-border transfer restrictions — that otherwise make sharing financial data difficult.\n\n*This is why synthetic data appears in finance specifically: the sector holds unusually sensitive records and faces unusually strict constraints on moving them.*\n\n**Step 2 — Reject the ‘perfect replication’ claim**\n\nSynthetic data *approximates* the statistical properties of the source. The approximation is imperfect by construction — if it were perfect it would carry the same re-identification risk as the original.\n\n*There is a direct trade-off: the more faithfully synthetic data reproduces the source, the more privacy it leaks. ‘Perfect’ is not merely overstated but self-defeating.*\n\n**Step 3 — Reject the bias-elimination claim**\n\nSynthetic data is generated *from* real data and **inherits** its biases — and can amplify them, since the generator learns and reproduces existing patterns.\n\n*A lending dataset reflecting historical discrimination produces synthetic data reflecting the same discrimination. This is a well-documented limitation, and option B asserts the opposite.*\n\n**Step 4 — Reject the cost claim**\n\nGenerating high-quality synthetic data requires building, training and validating a generative model, plus verifying that the output preserves the properties that matter. That is **not** obviously cheaper than collecting real data.\n\n*Cost is not the argument for synthetic data. Access is — it exists to make usable data available where the real thing cannot legally be shared.*\n\n**Intuition.** Synthetic data exists to solve one problem: you cannot share the real records. Nobody in the synthetic set is a real customer, so the privacy rules that block model development and data sharing stop applying. What it emphatically does not do is fix bias — it learns from the real data and reproduces whatever is in there — and it is neither perfectly faithful nor obviously cheap. Three of the four options promise more than the technique delivers.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Absolute-claim.** ‘Perfect replication’ is unachievable and would defeat the purpose — data that perfectly reproduces the original carries the original's re-identification risk."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Polarity flip.** Synthetic data inherits and can amplify the biases of its source, since the generator learns from real records. Bias replication is a known limitation, not something eliminated."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Synthetic records correspond to no real individual, mitigating privacy and data-protection constraints on sharing and model development."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Cost overstated.** Generating and validating high-quality synthetic data is itself expensive. Cost is not the motivation; regulatory access to usable data is."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "scope-condition-error"
+   ],
+   "explanation": "Overstated benefits — what synthetic data cannot fix. The distractors promise perfect fidelity (an unhedged absolute), bias elimination (the reverse of a known limitation) and a cost advantage that is not the technique's rationale. Anchor on the single problem synthetic data solves: records that correspond to no real person relieve privacy constraints."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ }
+]

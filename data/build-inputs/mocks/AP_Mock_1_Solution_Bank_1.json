@@ -1,0 +1,1388 @@
+[
+ {
+  "id": "APMOCK1-Q01",
+  "number": 1,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO14",
+  "loText": "Estimate VaR using a historical simulation approach; explain the process of return aggregation and the scaling of VaR across time horizons.",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "You are assigned to calculate the VaR for the stock of Fooda Inc. You are provided with the following data for the ten worst returns of the stock during the last 100 days:\n\n−1.2%  −0.7%  −3.2%  −2.6%  −2.4%  −2.0%  −1.9%  −1.7%  −1.5%  −1.5%\n\nWhich of the following is closest to the **monthly** VaR for Fooda Inc. using a confidence level of 95%? (Assume there are 20 trading days in a month.)",
+  "options": [
+   {
+    "key": "a",
+    "text": "−7.6%."
+   },
+   {
+    "key": "b",
+    "text": "−3.2%."
+   },
+   {
+    "key": "c",
+    "text": "−1.2%."
+   },
+   {
+    "key": "d",
+    "text": "−1.4%."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Sixth-worst of 100 observations, then scaled by $\\sqrt{20}$**\n\n**Step 1 — Sort the losses and locate the order statistic**\n\n| Rank | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |\n|---|---|---|---|---|---|---|---|---|---|---|\n| Return | −3.2 | −2.6 | −2.4 | −2.0 | −1.9 | **−1.7** | −1.5 | −1.5 | −1.2 | −0.7 |\n\n$$\\text{HS VaR order statistic} = (1 - c)n + 1 = (0.05)(100) + 1 = 6\\text{th worst}$$\n\n*The convention matters. With 100 observations at 95%, the sixth-worst return is the cut-off — five observations lie beyond it, which is exactly 5% of the sample. Taking the fifth instead gives −1.9% and a different final answer.*\n\n**Step 2 — Read the daily VaR**\n\n$$VaR_{daily,95\\%} = -1.7\\%$$\n\n*Name it. This is an intermediate, not the answer — the question asks for a monthly figure.*\n\n**Step 3 — Scale to a 20-day horizon**\n\n$$VaR_{monthly} = VaR_{daily} \\times \\sqrt{t} = -1.7\\% \\times \\sqrt{20} = -1.7\\% \\times 4.4721 = -7.60\\%$$\n\n*Variance scales linearly with time, so standard deviation — and therefore VaR — scales with its square root. Multiplying by 20 instead would give −34%, which no option offers, so the paper is testing the order statistic rather than the scaling rule here.*\n\n**Step 4 — Note what the method assumes**\n\nSquare-root-of-time scaling requires **i.i.d.** returns. Historical simulation makes no distributional assumption about the shape of the tail, but this scaling step quietly imports the independence assumption anyway.\n\n*One of the four verdicts on the √t rule: correct for i.i.d. normal returns, but it overstates for extreme value distributions and understates for autocorrelated illiquid returns.*\n\n**Intuition.** Two decisions decide this question and neither is arithmetic. First, which observation is the 95% cut-off when you have a hundred of them — the sixth worst, because five observations beyond it is exactly five percent. Second, has the answer been put on the horizon the question asked for. Three of the four options are daily-magnitude numbers, so noticing that the stem says *monthly* eliminates them before you rank anything.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "**−7.6%.** $-1.7\\% \\times \\sqrt{20}$. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**−3.2% · Worst observation, unscaled.** The single largest loss in the sample. That is effectively a 99%-plus reading, and it has not been scaled to the monthly horizon either — two errors in one number."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**−1.2% · Wrong end of the list.** The ninth-worst return. Reading the ranked list from the wrong direction, and again unscaled."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**−1.4% · Daily figure reported.** A daily-magnitude number where a monthly one was asked. Whatever order statistic produced it, the √20 scaling was never applied — and every option except A is a daily figure, which is the tell."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "polarity-flip",
+    "unit-time-conversion"
+   ],
+   "explanation": "Two errors drive this item: picking the wrong order statistic from the ranked tail, and reporting a daily figure when the stem asks for a monthly one. Every wrong option is an unscaled daily-magnitude number, so checking the horizon first eliminates three options. Then locate the 95% cut-off as the (1 − c)n + 1 = 6th worst observation and scale by √20."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q02",
+  "number": 2,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO15",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal return distributions.",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "An analyst has gathered the following information about a portfolio which has normally distributed **geometric** returns:\n\n| Item | Value |\n|---|---:|\n| Mean | 12% |\n| Standard deviation | 32% |\n| Portfolio value | USD 85 million |\n\nWhat is the 95% lognormal VaR for this portfolio?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 33.40 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 27.20 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 56.61 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 28.39 million."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · $85 \\times (1 - e^{0.12 - 1.645 \\times 0.32})$**\n\n**Step 1 — Recognise which model the stem is asking for**\n\n‘Normally distributed **geometric** returns’ means the *logarithm* of the price relative is normal, so the price itself is **lognormal**:\n\n$$VaR_{lognormal} = P\\left(1 - e^{\\mu - \\sigma z}\\right)$$\n\n*The word ‘geometric’ is the switch. Arithmetic returns give the normal form $P(-\\mu + \\sigma z)$; geometric returns give this one.*\n\n**Step 2 — Build the exponent**\n\n$$\\mu - \\sigma z = 0.12 - (1.645)(0.32) = 0.12 - 0.5264 = -0.4064$$\n\n*Note the drift enters **positively** inside the exponent here, whereas it enters negatively in the arithmetic form. The two look opposite and mean the same thing — drift always reduces the loss.*\n\n**Step 3 — Exponentiate and complete**\n\n$$e^{-0.4064} = 0.66605$$\n\n$$VaR = 85\\,(1 - 0.66605) = 85 \\times 0.33395 = \\text{USD } 28.39 \\text{ million}$$\n\n*The bracket is the proportion of value lost. The term inside it, 0.66605, is the proportion retained — and 85 × 0.66605 = 56.61, which is sitting in the option list.*\n\n**Step 4 — Sanity-check against the normal form**\n\nThe arithmetic VaR on the same parameters would be 85(1.645 × 0.32 − 0.12) = USD 34.5 million. Lognormal VaR is always the **lower** of the two for identical inputs, and is bounded at 100% of position value.\n\n*Lognormal is preferred not because it is more conservative — it is less — but because it precludes a loss exceeding the position, and therefore precludes negative prices.*\n\n**Intuition.** The lognormal formula has a step the arithmetic one does not: you exponentiate, and then you have to remember what the exponential *is*. $e^{\\mu - \\sigma z}$ is the fraction of your money still standing in the bad scenario — about two-thirds here. The loss is what's left over, one minus that. Stop one step early and you report 56.61, which is not a loss at all but the surviving value, and it sits right there in the options waiting.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**33.40 · Wrong z / wrong model.** In the region produced by either using the two-tailed 1.96 in place of the one-tailed 1.645, or by computing the *arithmetic* normal VaR (34.5) instead of the lognormal one. Both are the same class of error: the stem's parameters plugged into a neighbouring specification."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**27.20 · z omitted entirely.** 85 × 0.32 = 27.20 — the position multiplied by the standard deviation with no confidence-level multiplier and no drift. A one-standard-deviation move, which corresponds to roughly 84% confidence, not 95%."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**56.61 · Residual value, not loss.** 85 × 0.66605 — the value *remaining* after the loss rather than the loss itself. The exponential was computed correctly and then never subtracted from one. A clean intermediate-result trap, and the largest number in the list."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**28.39.** $85(1 - e^{-0.4064})$. Correct."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "dropped-term",
+    "intermediate-result-trap"
+   ],
+   "explanation": "The item tests the lognormal VaR form against its arithmetic sibling and against its own intermediate step. Option A plugs the inputs into a neighbouring specification (two-tailed z or arithmetic VaR), B drops the z multiplier and drift, and C reports the retained value $e^{\\mu - \\sigma z}$ instead of the loss. Let the word 'geometric' select the model, then always finish with one minus the exponential."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q03",
+  "number": 3,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO9",
+  "loText": "Explain the Merton model's treatment of the firm's capital structure, describing equity as a call option and debt as a risk-free bond combined with a short put on the firm's assets.",
+  "reading": "Reading 87: Rating Migration Matrices and Default Probability Measures",
+  "topic": "Merton and Credit Risk Models",
+  "question": "Since it was founded ten years ago, Bright Technologies pays no dividends to shareholders and is financed with 100% equity. Recently, management decided to have the firm leveraged and issued a zero-coupon bond with a principal amount of USD 100 million maturing in exactly three years. If the value of the firm at maturity is USD 80 million, determine the values of the different components of the firm's capital structure at the maturity date of the bond.",
+  "options": [
+   {
+    "key": "a",
+    "text": "Value of equity = USD 0; value of debt = USD 80 million."
+   },
+   {
+    "key": "b",
+    "text": "Value of equity = USD 20 million; value of debt = USD 80 million."
+   },
+   {
+    "key": "c",
+    "text": "Value of equity = USD 180 million; value of debt = USD 100 million."
+   },
+   {
+    "key": "d",
+    "text": "Value of equity = USD 20 million; value of debt = USD 0."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Equity is a call struck at the debt face value — it expires worthless here**\n\n**Step 1 — Write the two payoffs**\n\n$$E_T = \\max(V_T - F,\\ 0) \\qquad D_T = \\min(V_T,\\ F)$$\n\nEquity is a **call option** on the firm's assets struck at the debt face value. Debt is the firm value capped at what it is owed.\n\n*Limited liability is the whole content of the max operator: shareholders can lose their stake but cannot be pursued for the shortfall.*\n\n**Step 2 — Evaluate at V = 80, F = 100**\n\n$$E_T = \\max(80 - 100,\\ 0) = \\max(-20,\\ 0) = \\text{USD } 0$$\n\n$$D_T = \\min(80,\\ 100) = \\text{USD } 80 \\text{ million}$$\n\n*The firm is insolvent. Shareholders walk away with nothing; bondholders take the whole firm and are still USD 20 million short of their claim.*\n\n**Step 3 — Check the identity**\n\n$$E_T + D_T = 0 + 80 = 80 = V_T \\ \\checkmark$$\n\n*The two claims must exhaust the firm's value. Any option where equity plus debt does not equal 80 is arithmetically impossible — which disposes of options C and D without any modelling at all.*\n\n**Step 4 — Read the bondholders' position**\n\nThe USD 20 million shortfall is the bondholders' loss. Equivalently, holding the risky debt is the same as holding a risk-free bond and having **written a put** on the firm's assets, which has just been exercised against them.\n\n*Debt as a short put and equity as a long call are the two halves of the same picture, and GARP tests both framings.*\n\n**Intuition.** At maturity the Merton picture is not a model at all, just a waterfall. Bondholders are owed a hundred and the firm is worth eighty, so they take all eighty and absorb the twenty they will never see. Shareholders are behind them and get nothing — but nothing is the worst that can happen to them, which is what the max operator encodes. Before you evaluate anything, note that the two claims must add to eighty; that single check kills half the option list.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Equity expires worthless; debt receives the entire firm value of USD 80 million against a USD 100 million claim."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Max operator dropped.** Takes |80 − 100| = 20 as the equity value, ignoring the floor at zero. It also violates the identity: 20 + 80 = 100, which exceeds the firm's actual value of 80."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Arithmetically impossible.** 180 + 100 = 280 against a firm worth 80. Both claims have been valued at more than the assets that back them."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Claims inverted.** Reverses the seniority entirely — equity paid and debt wiped out. Debt ranks ahead of equity in every state of the world."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "calculation-slip",
+    "role-misassignment"
+   ],
+   "explanation": "At maturity the Merton payoffs are a simple waterfall: equity is max(V − F, 0) and debt is min(V, F). The distractors drop the zero floor on equity, value the claims above the firm's assets, or reverse seniority between debt and equity. Check first that equity plus debt equals the firm value of 80; that identity alone eliminates two options."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q04",
+  "number": 4,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO19",
+  "loText": "Define credit value adjustment and debt value adjustment; describe how changes in the credit spreads of each counterparty affect the bilateral valuation adjustment.",
+  "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+  "topic": "CVA, DVA and xVA",
+  "question": "In a recent transaction, Northern Star Bank (NSB) and Horizon Financial Group (HFG) entered into a 4-year interest rate swap. NSB agreed to pay HFG a fixed rate of 4.5% in exchange for 6-month SOFR plus a spread. Since the inception of the swap, both entities have experienced an improvement in their credit ratings. As a result, the credit spread for NSB has decreased from 90 bps to 40 bps, and the credit spread for HFG has decreased from 130 bps to 100 bps.\n\nAssuming the SOFR curve remains unchanged, which of the following statements is most likely to be correct if an identical 4-year swap was initiated today?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Since NSB's spread decreased more than HFG's spread, NSB's DVA will decrease and HFG's DVA will increase."
+   },
+   {
+    "key": "b",
+    "text": "Since NSB's spread decreased more than HFG's spread, NSB's CVA will decrease and HFG's CVA will increase."
+   },
+   {
+    "key": "c",
+    "text": "Since both entities' spreads decreased, the DVA and CVA on both sides of the contract will be lower."
+   },
+   {
+    "key": "d",
+    "text": "Since both entities' spreads decreased, the DVA and CVA on both sides of the contract will be higher."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · CVA is about *them*; DVA is about *me* — and both spreads fell**\n\n**Step 1 — Fix which spread drives which adjustment**\n\n| Party | Its CVA is driven by | Its DVA is driven by |\n|---|---|---|\n| NSB | **HFG's** spread (130 → 100 bps) | **NSB's own** spread (90 → 40 bps) |\n| HFG | **NSB's** spread (90 → 40 bps) | **HFG's own** spread (130 → 100 bps) |\n\n*CVA is a charge for the risk that the counterparty fails to pay you. DVA is the benefit you derive from the possibility that you fail to pay them. One looks outward, one looks inward.*\n\n**Step 2 — Apply the direction**\n\nA spread is a market price for default risk. Both spreads **fell**, so every one of the four adjustments in the table above is driven by a smaller default probability and therefore falls in magnitude.\n\n*There is no cross-effect to work out. Once you have the table, the answer follows mechanically — all four quantities move the same way.*\n\n**Step 3 — Dispose of the relative-magnitude framing**\n\nOptions A and B both open with ‘NSB's spread decreased more than HFG's’. That is true and entirely irrelevant: the *relative* size of the two improvements cannot make any adjustment **rise** when both underlying spreads fell.\n\n*A classic misdirection — a true observation used to license a false conclusion. Nothing here increases.*\n\n**Step 4 — Note the economic reading**\n\nBoth parties are now safer, so a swap struck today would price closer to its risk-free value. The DVA reduction is the uncomfortable half: NSB has *lost* accounting benefit precisely because its own credit improved.\n\n*This is why DVA is controversial — a firm books a gain as it deteriorates and a loss as it recovers, which is the opposite of what intuition expects. Basel III removes DVA gains from regulatory capital for exactly this reason.*\n\n**Intuition.** Sort out ownership before you touch the numbers. My CVA is a charge for *your* chance of failing me; my DVA is a credit for *my* chance of failing you. Write the four boxes out, note that both spreads narrowed, and every box shrinks. The two distractors that mention which spread fell further are using a true fact as cover — the relative size of two improvements cannot turn an improvement into a deterioration.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Impossible direction.** Would require HFG's DVA to rise, which needs HFG's own spread to *widen*. It narrowed from 130 to 100 bps. The relative-magnitude premise is true but cannot produce this conclusion."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Impossible direction.** Would require HFG's CVA to rise, which needs NSB's spread to widen. It narrowed sharply, from 90 to 40 bps — the largest single improvement in the stem."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Both spreads narrowed, so all four adjustments — each party's CVA and each party's DVA — are lower."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Polarity flip.** Right premise, reversed conclusion. Narrower spreads mean lower default probabilities and therefore smaller adjustments, not larger."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "role-misassignment",
+    "polarity-flip"
+   ],
+   "explanation": "The trap family is ownership: each party's CVA is driven by the counterparty's spread and its DVA by its own spread. Options A and B lean on a true but irrelevant fact (NSB's spread fell more) to claim an adjustment rises, and D reverses the direction outright. Build the two-by-two table of who drives what, note both spreads narrowed, and every adjustment falls."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q05",
+  "number": 5,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "IR-LO2",
+  "loText": "Calculate portfolio VaR from individual asset VaRs and their correlation; explain the effect of changing portfolio weights on diversified VaR.",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "topic": "Portfolio VaR Measures",
+  "question": "A portfolio consists of two assets, A and B:\n\n| Asset | Value | Return | 99% 1-day VaR |\n|---|---:|---:|---:|\n| A | USD 5 million | 5% | USD 0.58 million |\n| B | USD 10 million | 6% | USD 1.86 million |\n\nThe correlation between the two assets is 0.7. The portfolio manager decides to rebalance the portfolio so that both assets are equally weighted. If there is no change in the volatility of the two assets, what will be the effect of this rebalancing on the portfolio VaR?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 0.40 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 0.17 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 0.87 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 0.20 million."
+   }
+  ],
+  "answer": "d",
+  "solution": "> **Errata:** The autopsy for option B does not reproduce USD 0.17 million. Rescaling only one leg gives −0.24 or 0.46, and the 0.5 weights give 1.15. The value is closest to the change in undiversified VaR (correlation set to 1): $2.44 - 2.265 = 0.175$. The correct answer (D, USD 0.20 million) is unaffected.\n\n**Correct answer: D · 2.3035 before, 2.0981 after — a reduction of 0.20**\n\n**Step 1 — Compute the current portfolio VaR**\n\n$$VaR_p = \\sqrt{VaR_A^2 + VaR_B^2 + 2\\rho\\, VaR_A VaR_B}$$\n\n$$= \\sqrt{0.58^2 + 1.86^2 + 2(0.7)(0.58)(1.86)}$$\n\n$$= \\sqrt{0.3364 + 3.4596 + 1.51032} = \\sqrt{5.30632} = \\text{USD } 2.3035 \\text{ million}$$\n\n*Individual VaRs combine exactly like standard deviations, because each is a constant multiple of one. The cross term carries the correlation.*\n\n**Step 2 — Rescale each VaR to the new position size**\n\nTotal portfolio value is 15 million, so equal weighting gives 7.5 million each. With volatility unchanged, each VaR scales in direct proportion to position size:\n\n$$VaR_A' = 0.58 \\times \\frac{7.5}{5} = \\text{USD } 0.87 \\text{ million}$$\n\n$$VaR_B' = 1.86 \\times \\frac{7.5}{10} = \\text{USD } 1.395 \\text{ million}$$\n\n*Name both. A grew by half and B shrank by a quarter — and 0.87 is sitting in the option list as a finished answer.*\n\n**Step 3 — Recompute the portfolio VaR**\n\n$$VaR_p' = \\sqrt{0.87^2 + 1.395^2 + 2(0.7)(0.87)(1.395)}$$\n\n$$= \\sqrt{0.7569 + 1.946025 + 1.699110} = \\sqrt{4.402035} = \\text{USD } 2.0981 \\text{ million}$$\n\n*Correlation is unchanged at 0.7 — rebalancing moves the weights, not the relationship between the assets.*\n\n**Step 4 — Take the difference**\n\n$$2.3035 - 2.0981 = \\text{USD } 0.2054 \\text{ million} \\approx \\text{USD } 0.20 \\text{ million}$$\n\nThe rebalancing **reduces** portfolio VaR by roughly USD 205,000.\n\n*Worth understanding why it falls. The original book was concentrated in B, which carried the larger risk both by size and by volatility. Levelling the weights moves money out of the riskier asset, and at a correlation of 0.7 the diversification is modest but real.*\n\n**Intuition.** The only real subtlety is what happens to a VaR when you change the position size. Volatility is unchanged, so each VaR moves in strict proportion to the money behind it — asset A goes from five million to seven and a half, so its VaR goes up by half. Do that for both legs, recombine with the same correlation, and difference the two portfolio figures. The trap is that step 2 produces two perfectly good numbers, one of which is on the answer list.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**0.40 · Correlation mishandled.** In the region produced by dropping or mis-weighting the cross term in one of the two portfolio calculations. The difference of two square roots is very sensitive to the correlation term, so a single omission moves the answer sharply. [Note: Dropping the cross term from both calculations gives 0.30, and dropping it from only one gives −0.15 or 0.66. None of these reproduces 0.40 exactly.]"
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**0.17 · Rescaling error.** Consistent with rescaling only one leg, or with weighting the individual VaRs by the new weights (0.5 each) rather than by the ratio of new to old position size. [Errata: Neither route gives 0.17. Rescaling only A gives −0.24, rescaling only B gives 0.46, and using the 0.5 weights gives 1.15. The closest match is the change in *undiversified* VaR (ρ = 1 in both calculations): (0.58 + 1.86) − (0.87 + 1.395) = 0.175.]"
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**0.87 · Intermediate result.** Asset A's *rescaled VaR*, computed correctly at step 2 and then reported as though it were the answer. GARP's favourite construction: a legitimate quantity from the correct working, offered in place of the quantity actually requested."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**0.20.** 2.3035 − 2.0981. Correct."
+   }
+  },
+  "trap": {
+   "operators": [
+    "correlation-misuse",
+    "calculation-slip",
+    "intermediate-result-trap"
+   ],
+   "explanation": "A multi-step portfolio VaR calculation where every step produces a number that can be offered as a distractor. The wrong options come from mishandling the correlation cross term, rescaling the individual VaRs incorrectly, or stopping at asset A's rescaled VaR. Rescale each VaR by new/old position size, recombine with the unchanged correlation, and report the difference between the two portfolio figures."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q06",
+  "number": 6,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO14",
+  "loText": "Describe the probability integral transform and explain its use in validating the distributional assumptions of a risk model.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "When deriving probability integral transforms (PITs), a financial analyst finds varying degrees of distribution alignment amid real-world conditions. What must be achieved for PIT uniformity, thereby validating the model's predictions?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Achieve a skewed distribution with evident kurtosis boundaries."
+   },
+   {
+    "key": "b",
+    "text": "Reach cross-sectional stability through diverse market metrics."
+   },
+   {
+    "key": "c",
+    "text": "Ensure that transformed PIT results plot evenly over [0,1]."
+   },
+   {
+    "key": "d",
+    "text": "Drive consistency in parameter inputs at all risk thresholds."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · A correctly specified model turns its own forecasts into a flat uniform on [0,1]**\n\n**Step 1 — State what the transform does**\n\nFeed each realised outcome through the model's own forecast cumulative distribution function:\n\n$$u_t = F_t(x_t)$$\n\nIf the forecast distribution is correct, $u_t$ is distributed **uniformly on [0,1]** and successive values are independent.\n\n*The elegance is that it converts any distributional assumption — normal, t, skewed, mixture — into the same single testable prediction. You never have to test the assumed shape directly.*\n\n**Step 2 — Read the diagnostic**\n\n| Observed PIT pattern | What the model is doing wrong |\n|---|---|\n| Too many values near 0 and 1 | Tails too thin — extremes underpredicted |\n| Too many values in the middle | Tails too fat — model over-cautious |\n| Mass shifted to one side | Location bias — mean misforecast |\n| **Flat across [0,1]** | **Correctly specified** |\n\n*A histogram of PIT values is one of the fastest visual model checks available, and the shape of the departure tells you which part of the specification is at fault.*\n\n**Step 3 — Note the second requirement**\n\nUniformity alone is not sufficient. The PIT values must also be **independent** over time — the same distinction as unconditional versus conditional coverage in VaR backtesting.\n\n*A model can produce a perfectly flat histogram while its errors arrive in clusters, which is exactly what Christoffersen's independence test exists to catch.*\n\n**Intuition.** The probability integral transform is a trick for testing any distributional forecast with a single yardstick. Push each realised outcome through the model's own predicted CDF and ask where it landed as a percentile. If the model is right, those percentiles should be scattered evenly between zero and one — no clumping in the middle, no piling up at the edges. Bumps at the edges mean the tails were drawn too thin, which is the failure that matters most for risk work.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Opposite requirement.** A skewed transformed distribution is evidence the model is *mis*specified. Uniformity means flat and symmetric — skew and excess kurtosis in the PIT series are precisely the failure signatures."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Plausible-sounding jargon.** ‘Cross-sectional stability through diverse market metrics’ is not a defined concept in this context. It describes nothing testable and has no bearing on the transform."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. A correctly specified forecast distribution produces PIT values uniformly distributed on the unit interval."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Wrong object.** Consistency of parameter *inputs* is a stability property of the estimation procedure. The PIT tests the *output* distribution against realised outcomes, which is a different question entirely."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "A definition-recall item padded with plausible-sounding jargon. Option A describes the failure signature (skew, kurtosis) as the goal, B names an undefined concept, and D swaps the tested object from the output distribution to the parameter inputs. Anchor on the definition u = F(x): a correct model makes the PIT values flat on [0,1] and independent over time."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q07",
+  "number": 7,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO40",
+  "loText": "Describe the methods of mitigating counterparty credit risk, including netting agreements, collateral, credit triggers and credit derivatives.",
+  "reading": "Reading 96: Gregory, Central Clearing and Risk Intermediation",
+  "topic": "Central Clearing",
+  "question": "A hedge fund has the following credit risk exposures to AB&B, an A-rated corporation:\n\n| Contract | Contract value (USD) |\n|---|---:|\n| A | 44,000,000 |\n| B | 88,000,000 |\n| C | 35,200,000 |\n| D | 3,300,000 |\n| E | 20,000,000 |\n\nThe fund is looking into ways of reducing counterparty credit risk. Which of the following credit risk mitigation techniques would be most appropriate?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Implementing a netting framework."
+   },
+   {
+    "key": "b",
+    "text": "Increasing collateral."
+   },
+   {
+    "key": "c",
+    "text": "Use of credit triggers."
+   },
+   {
+    "key": "d",
+    "text": "Sell credit default swaps."
+   }
+  ],
+  "answer": "a",
+  "solution": "> **Errata:** *Key flagged, not changed.* All five contract values in the exhibit are positive. Close-out netting reduces exposure only by offsetting negative values against positive ones, so netting these five contracts leaves the exposure at USD 190.5 million. On the numbers given, increasing collateral (B) is the mitigant that actually reduces the exposure, and it is a defensible answer. A is kept because this paper has no published key and the item reads as a test of the many-contracts, one-counterparty pattern.\n\n**Correct answer: A · Five contracts, one counterparty — the textbook case for netting**\n\n**Step 1 — Read the shape of the exposure**\n\nFive separate contracts, **all facing the same counterparty**, totalling USD 190.5 million. The defining feature is multiplicity against a single name.\n\n*That structure is what a netting agreement exists for. Without one, each contract is a separate claim in insolvency and the fund owes on its out-of-the-money contracts while queuing as an unsecured creditor on the in-the-money ones.*\n\n**Step 2 — Explain what netting achieves**\n\nA legally enforceable close-out netting agreement collapses all five contracts into a **single net obligation** on default:\n\n$$\\text{Exposure} = \\max\\left(\\sum_i MtM_i,\\ 0\\right) \\quad \\text{rather than} \\quad \\sum_i \\max(MtM_i,\\ 0)$$\n\n*The gain comes from moving the max operator outside the sum. That is worth the most when the contracts point in different directions — and it is free, requiring no cash, no margin and no new counterparty.*\n\n**Step 3 — Assess collateral as the runner-up**\n\nCollateral is a genuine mitigant and reduces exposure further — but it is normally layered *on top of* netting, since a CSA computes margin calls against the **net** position. Netting is the foundation; collateral is the superstructure.\n\n*Order matters. Posting collateral against five gross exposures rather than one net exposure is enormously more expensive in funding terms.*\n\n**Step 4 — Dispose of the remaining two**\n\nCredit triggers act only *after* a rating deterioration, and can accelerate a counterparty's collapse rather than protect against it. And **selling** credit default swaps takes on more credit risk — the fund would need to *buy* protection.\n\n*Option D is a direction error rather than a category error, and it is the one to spot instantly: a protection seller is short credit, not hedged.*\n\n**Intuition.** Look at what the exposure actually looks like before picking a remedy. Here it is five contracts with one name, which is the exact configuration netting was invented for: instead of owing on your losers while standing in line on your winners, you settle one number. It costs nothing and needs no new counterparty. Collateral is the natural next layer but it works off the net figure, so netting has to come first — and selling protection is not a hedge at all, it is more of the same risk.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Multiple contracts with a single counterparty is precisely the configuration a netting framework addresses, and it requires no cash outlay."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Right idea, wrong order.** Collateral genuinely reduces exposure, but it is applied against the *net* position under a CSA. Netting comes first and makes the collateral arrangement far cheaper; collateralising five gross exposures would be prohibitively expensive. [Note: Every contract value in the exhibit is positive, so netting gives no reduction here while collateral does. B is a defensible alternative key.]"
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Reactive mitigant.** Credit triggers fire on a rating downgrade — after deterioration is already public. They can also be destabilising, forcing simultaneous demands on a weakening counterparty and hastening the failure they were meant to guard against."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Direction reversed.** Selling a CDS means *writing* protection and accepting credit risk. To hedge, the fund would need to buy protection on AB&B — and even then would substitute exposure to the protection seller."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "sibling-swap",
+    "polarity-flip"
+   ],
+   "explanation": "Match the mitigant to the shape of the exposure: many contracts against one counterparty is the configuration netting was designed for. Collateral is a real mitigant but is computed on the net position, credit triggers are a weaker reactive tool, and selling CDS adds credit risk rather than hedging it. Read the exhibit's structure first, then check the direction of any derivative hedge."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q08",
+  "number": 8,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO17",
+  "loText": "Distinguish between incremental CVA and marginal CVA and explain the circumstances in which each is the appropriate measure.",
+  "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+  "topic": "CVA, DVA and xVA",
+  "question": "Alliance Derivatives Group (ADG) is refining its risk management approach by considering the impact of netting on its portfolio's CVA computation. As part of this initiative, ADG is evaluating whether to include incremental CVA or marginal CVA in their calculation process. In which situation would it be most appropriate for ADG to utilize **incremental** CVA?",
+  "options": [
+   {
+    "key": "a",
+    "text": "When assessing the credit risk contribution of multiple trades executed with the same counterparty during a particular period, aiming to reduce the computational burden."
+   },
+   {
+    "key": "b",
+    "text": "When ADG needs to allocate CVA to transaction-level contributions at a particular point in time, such as for accounting purposes, or for decisions on trade restructuring, novation, or unwinding."
+   },
+   {
+    "key": "c",
+    "text": "In trade portfolio management, where ADG must constantly monitor and adjust its strategy based on the changing market value and risk profile of the derivatives."
+   },
+   {
+    "key": "d",
+    "text": "For risk analytical purposes, where ADG is interested in examining the sensitivity of the portfolio CVA to systemic factors, independent of timing or the ordering of transactions."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Incremental is order-dependent and priced at execution; marginal is order-free and allocates**\n\n**Step 1 — Define the two measures**\n\n| | Incremental CVA | Marginal CVA |\n|---|---|---|\n| Question answered | What does **adding this trade** do to portfolio CVA? | How is the **existing** portfolio CVA divided among trades? |\n| Order dependence | **Yes** — depends on what was already there | **No** — order-invariant |\n| Do the parts sum to the total? | Not necessarily | **Yes, by construction** |\n| Primary use | **Pricing a new trade** at execution | Allocation, accounting, unwind decisions |\n\n*The distinction is the same one that separates incremental VaR from component VaR — the true effect of a change versus a decomposition that adds up.*\n\n**Step 2 — Locate the computational-burden clause**\n\nComputing incremental CVA trade by trade requires a fresh portfolio revaluation for every new trade. Where a counterparty is traded frequently, incremental CVA may instead be computed for a **batch of trades executed over a period**, which materially reduces the computational load.\n\n*This is a documented practical application of incremental CVA specifically, and option A states it directly — batch, same counterparty, defined period, reduced burden.*\n\n**Step 3 — Identify option B as marginal CVA**\n\n‘Allocate CVA to transaction-level contributions at a particular point in time’ that sum to the portfolio total is the **definition** of marginal CVA. Accounting allocation and unwind decisions need contributions that add up, and only marginal CVA guarantees that.\n\n*The strongest distractor, because everything it describes is a real use case — just of the other measure.*\n\n**Step 4 — Note why netting makes this matter**\n\nUnder a netting agreement a new trade can **reduce** portfolio CVA, giving a *negative* incremental CVA if it offsets existing exposure. That is exactly why incremental CVA is the right pricing measure: it captures the netting benefit the new trade brings.\n\n*Pricing a new trade on its stand-alone CVA would overcharge the client and lose the business to a dealer who nets properly.*\n\n**Intuition.** Two ways to cut a portfolio CVA and they answer different questions. Incremental asks what this new trade costs me given everything I already hold — which is what you need to quote a price, and which depends entirely on what came before. Marginal asks how to split the CVA I already have across the trades that caused it, in shares that add up — which is what accounting and unwind decisions need. The giveaway phrases are ‘allocate’ and ‘independent of ordering’: both point to marginal.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Computing incremental CVA for a batch of trades with one counterparty over a period is the documented method for containing the computational cost of trade-by-trade incremental calculation."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Sibling swap (marginal CVA).** Allocating portfolio CVA into transaction-level contributions that sum to the total is marginal CVA by definition. Accounting and unwind decisions require additivity, which incremental CVA does not provide."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Neither measure.** Continuous monitoring of changing market value and risk profile describes ordinary portfolio risk management. It does not distinguish between the two CVA decompositions at all."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Order-independence clause.** ‘Independent of timing or the ordering of transactions’ is the defining property of *marginal* CVA. Incremental CVA is explicitly order-dependent — the same trade added first or last gives a different figure."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "Incremental and marginal CVA are sibling measures, and two of the distractors describe genuine uses of marginal CVA (allocation that sums to the total, order independence). A third describes generic portfolio management that fits neither. Spot the keywords: 'allocate' and 'independent of ordering' point to marginal; pricing a new trade or a batch of trades with one counterparty points to incremental."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q09",
+  "number": 9,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-mock",
+  "loText": "Describe mean reversion in interest rate and volatility models and calculate the long-run mean given the reversion rate and observed levels.",
+  "reading": "Meissner, Correlation Risk",
+  "topic": "Mean Reversion",
+  "question": "Given the following data about a variable S:\n\n| Item | Value |\n|---|---:|\n| $S_t$ | 50 |\n| $S_{t-1}$ | 30 |\n| Mean reversion rate | 0.4 |\n\nCalculate the long-run mean value for the variable.",
+  "options": [
+   {
+    "key": "a",
+    "text": "60."
+   },
+   {
+    "key": "b",
+    "text": "80."
+   },
+   {
+    "key": "c",
+    "text": "100."
+   },
+   {
+    "key": "d",
+    "text": "75."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · $50 - 30 = 0.4(\\mu - 30) \\Rightarrow \\mu = 80$**\n\n**Step 1 — Write the mean-reverting update**\n\n$$S_t - S_{t-1} = a\\,(\\mu - S_{t-1})$$\n\nThe pull toward the long-run mean is proportional to how far the variable was from that mean at the **start** of the period.\n\n*The bracket contains the lagged level. Using the current level instead is the single error this question is built around.*\n\n**Step 2 — Substitute and solve**\n\n$$50 - 30 = 0.4\\,(\\mu - 30)$$\n\n$$20 = 0.4\\mu - 12$$\n\n$$0.4\\mu = 32 \\implies \\mu = 80$$\n\n**Step 3 — Sanity-check the direction**\n\nThe variable rose from 30 to 50, so it must be moving *toward* a mean above 50. A long-run mean of 80 is consistent; anything below 50 would be moving away.\n\n*This check alone eliminates nothing here — every option exceeds 50 — but it is the first thing to verify in any mean-reversion question.*\n\n**Step 4 — Read the speed**\n\nWith a = 0.4, the gap closes by 40% each period. The half-life is\n\n$$\\frac{\\ln 2}{-\\ln(1 - a)} = \\frac{0.693}{0.511} \\approx 1.36 \\text{ periods}$$\n\n*A fast reverter. In the continuous-time Vasicek form the half-life is ln2/k, and GARP tests that formula directly — note it uses the mean reversion parameter, not the volatility.*\n\n**Intuition.** A mean-reverting series is pulled back toward its long-run level in proportion to how far away it was when the period began. Here it started at thirty, moved twenty, and the pull coefficient is 0.4 — so the gap it was closing must have been fifty, putting the mean at eighty. The one place to slip is which level goes inside the bracket: put the ending value there instead and you get a hundred, which is sitting in the option list.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**60 · Mis-specified equation.** In the region reached by mis-setting the reversion equation — for instance applying the rate to the change rather than to the gap, or averaging the two observed levels and scaling."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**80.** $20 = 0.4(\\mu - 30)$. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**100 · Current level in the bracket.** Solving $50 - 30 = 0.4(\\mu - \\mathbf{50})$ gives $\\mu = 100$. The reversion pull is measured from where the variable *started*, not where it ended. The most likely wrong answer."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**75 · Division without the change.** 30 / 0.4 = 75 — dividing the lagged level by the reversion rate and ignoring the observed move entirely."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "wrong-input-twin",
+    "dropped-term"
+   ],
+   "explanation": "The mean-reversion equation has one decision point: the level inside the bracket must be the lagged value, not the current one. Putting $S_t$ in the bracket gives 100, mis-setting the equation gives 60, and ignoring the observed change gives 75. Write $S_t - S_{t-1} = a(\\mu - S_{t-1})$ before substituting anything."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q10",
+  "number": 10,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO10",
+  "loText": "Define Type I and Type II errors in the context of VaR model backtesting and explain the trade-off between them.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "A model gives a VaR value of USD 5 million for a portfolio at a 99% confidence interval. A one-year backtest conducted at the 95% confidence level reveals that losses exceeded USD 5 million on 8 occasions. **The model is accepted as accurate.** Assuming 252 days in a year, which of these statements is most likely true?",
+  "options": [
+   {
+    "key": "a",
+    "text": "A Type I error has occurred."
+   },
+   {
+    "key": "b",
+    "text": "A Type II error has occurred."
+   },
+   {
+    "key": "c",
+    "text": "Both Type I and Type II errors have occurred."
+   },
+   {
+    "key": "d",
+    "text": "The model has been accepted correctly."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Eight exceptions against 2.52 expected — the model should have been rejected, but wasn't**\n\n**Step 1 — Compute the expected exception count**\n\n$$\\mathbb{E}[x] = n(1 - c) = 252 \\times 0.01 = 2.52$$\n\n$$\\sigma_x = \\sqrt{n\\,p(1-p)} = \\sqrt{252(0.01)(0.99)} = \\sqrt{2.4948} = 1.580$$\n\n*A correctly calibrated 99% model should breach two or three times a year. Eight is a long way from that.*\n\n**Step 2 — Test against the acceptance region**\n\n$$z = \\frac{x - \\mathbb{E}[x]}{\\sigma_x} = \\frac{8 - 2.52}{1.580} = 3.47$$\n\nAt a 95% two-tailed test the critical value is 1.96. Since 3.47 > 1.96, the model should be **rejected**.\n\n*The model is producing more than three times the exceptions it promised. Its VaR is too low — the bank is under-capitalised relative to what the model claims.*\n\n**Step 3 — Match the decision to the error type**\n\n| | Model is actually good | Model is actually bad |\n|---|---|---|\n| **Accept** | Correct | **Type II error** |\n| **Reject** | Type I error | Correct |\n\nThe evidence says the model is bad; the decision was to accept. That is a **Type II error**.\n\n*The mnemonic that survives exam pressure: Type I rejects something true, Type II accepts something false. Only one decision was made here, so only one error is possible.*\n\n**Step 4 — Note which error the regulator fears**\n\nA Type I error costs the bank — a sound model is rejected and the multiplier rises. A Type II error costs the **system** — an inadequate model keeps running and capital stays too low.\n\n*Which is why Basel's zones are calibrated asymmetrically, tolerating some Type I risk to reduce Type II risk. And note that at a fixed sample size the two trade off — only more data reduces both.*\n\n**Intuition.** Two facts settle this. The model promised roughly two and a half breaches and delivered eight, which is far outside anything chance explains — so the model is bad. And the decision recorded in the stem was to accept it. Bad model, accepted: that is the false negative, Type II. The reason it matters more than the alternative is that a Type I error only costs the bank an unnecessary capital add-on, while a Type II error leaves a broken model running the capital calculation.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Error type inverted.** A Type I error is *rejecting* a model that is in fact sound. Here the model was accepted, so a Type I error is not even available as a possibility."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Eight exceptions against 2.52 expected puts the model well outside the acceptance region, yet it was accepted — a false negative."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Both claimed.** Only one decision was taken, so only one error type can arise. Type I and Type II are mutually exclusive outcomes of a single test."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Test not performed.** Would require 8 exceptions to fall inside the acceptance region. With 2.52 expected and a standard deviation of 1.58, eight is 3.5 standard deviations out — comfortably in rejection territory."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "scope-condition-error",
+    "polarity-flip"
+   ],
+   "explanation": "Type I and Type II errors are sibling definitions, and the item hinges on which decision was actually made. Option A swaps the two error types, C claims both can occur from a single decision, and D skips the test and accepts the model's verdict. Establish whether the model is bad (z = 3.47 > 1.96), then map 'bad model, accepted' to Type II."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q11",
+  "number": 11,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO2",
+  "loText": "Describe the regression hedge and the reverse regression hedge and explain how each determines the risk weight applied to the hedging instrument.",
+  "reading": "Empirical Approaches to Risk Metrics and Hedging",
+  "topic": "Regression and PCA Hedging",
+  "question": "In the context of hedging portfolios using regression techniques, how does the approach to managing risk vary between a typical regression hedge and a **reverse** regression hedge?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Regression hedge diminishes risk weight by undersampling yields; reverse regression has no effect on risk weight."
+   },
+   {
+    "key": "b",
+    "text": "Regression supports allocating risk weight based on regression beta; reverse regression inversely adjusts risk weight."
+   },
+   {
+    "key": "c",
+    "text": "Both regression hedge and reverse regression hedge distribute risk weight proportionately alike."
+   },
+   {
+    "key": "d",
+    "text": "Regression hedge implies preserving all prior risk exposures, whereas reverse regression modifies them completely."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · The hedge ratio is the regression beta — reversing the regression inverts it**\n\n**Step 1 — Set up the standard regression hedge**\n\nRegress changes in the *exposed* yield on changes in the *hedging* yield:\n\n$$\\Delta y_{exposure} = \\alpha + \\beta\\, \\Delta y_{hedge} + \\varepsilon$$\n\nThe risk weight applied to the hedging instrument is the estimated β.\n\n*β answers the operative question: when the hedging instrument's yield moves one basis point, how many basis points does the exposure move?*\n\n**Step 2 — Reverse the regression**\n\nRegressing the other way round produces a different slope, and the hedge ratio becomes its **inverse**:\n\n$$\\Delta y_{hedge} = \\alpha' + \\beta'\\, \\Delta y_{exposure} + \\varepsilon' \\implies \\text{hedge ratio} = \\frac{1}{\\beta'}$$\n\n*Crucially β ≠ 1/β′ unless the regression fits perfectly. The two slopes are related by the R², so the two hedges are genuinely different positions.*\n\n**Step 3 — Explain why the choice matters**\n\nOrdinary least squares minimises errors in the **dependent** variable only. Which series you place on the left therefore decides which risk the hedge is optimised against — the choice is an economic one, not a statistical convenience.\n\n*A reverse regression hedge is appropriate when the hedging instrument, not the exposure, is the variable measured with error — the classic errors-in-variables problem.*\n\n**Step 4 — Dispose of the remaining three**\n\n‘Undersampling yields’ is not a defined technique. Claiming both approaches distribute risk weight identically denies the distinction the question is asking about. And a hedge does not ‘preserve all prior risk exposures’ — reducing them is the point.\n\n*Three of the four options are constructed from plausible-sounding but undefined vocabulary, which is a signal in itself.*\n\n**Intuition.** A regression hedge asks how much the thing you own moves when the thing you are hedging with moves, and that slope becomes your hedge ratio. Run the regression the other way and you get a different slope — not its reciprocal, because least squares only minimises error in whichever variable you put on the left. So the choice of direction is a decision about which side you believe is measured cleanly, and it produces a genuinely different position.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Invented technique.** ‘Undersampling yields’ is not a recognised hedging concept, and reverse regression certainly does affect the risk weight — changing it is the entire point."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. The standard hedge sets the risk weight at the regression beta; the reverse regression produces the inverse relationship and therefore a different hedge ratio."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Distinction denied.** If both distributed risk weight identically there would be no reason for the two techniques to exist. The slopes differ by a factor related to the regression R²."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Purpose inverted.** A hedge exists to *reduce* risk exposure, not preserve it. The description does not match either technique."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "sibling-swap",
+    "polarity-flip"
+   ],
+   "explanation": "The distractors are built from plausible-sounding but undefined vocabulary. Option A invents a technique and claims reverse regression has no effect, C collapses the two sibling techniques into one, and D inverts the purpose of a hedge. Anchor on the mechanics: the hedge ratio is the slope β of the exposure on the hedge, and the reverse regression gives 1/β′, a genuinely different position."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q12",
+  "number": 12,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-mock",
+  "loText": "Describe the limitations of backtesting VaR models in small samples and explain the use of Monte Carlo simulated p-values to obtain a correctly sized test.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "Backtesting VaR models often involves limited data, particularly when considering extreme events. This can lead to issues with the statistical power of standard backtesting tests. What technique is recommended to address this small-sample problem and ensure a correctly sized test?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Increasing the VaR confidence level (e.g., from 99% to 99.9%)."
+   },
+   {
+    "key": "b",
+    "text": "Using asymptotic (chi-squared) distributions for p-value calculation."
+   },
+   {
+    "key": "c",
+    "text": "Employing Monte Carlo simulated p-values instead of relying on asymptotic distributions."
+   },
+   {
+    "key": "d",
+    "text": "Aggregating data across different time periods to increase the sample size."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Simulate the test statistic's finite-sample distribution rather than assuming its limit**\n\n**Step 1 — Name the problem precisely**\n\nKupiec and Christoffersen statistics are compared against **chi-squared** critical values. That distribution is an *asymptotic* result — it holds as the sample size tends to infinity.\n\n*With 250 observations and two or three expected exceptions, the sample is nowhere near the asymptotic regime, so the true size of the test differs from its nominal level.*\n\n**Step 2 — Describe the remedy**\n\nSimulate many samples *under the null hypothesis* that the model is correct, compute the test statistic in each, and read the p-value off that **empirical** distribution.\n\n*This produces a correctly sized test at the actual sample size, because the critical values are derived from the finite sample rather than from a limiting approximation.*\n\n**Step 3 — Note that option B is the cause**\n\nRelying on asymptotic chi-squared distributions is precisely *what creates* the size distortion. Offering it as the cure inverts the problem.\n\n*The clearest kind of distractor: the thing being complained about, restated as the solution.*\n\n**Step 4 — Note why the other two make it worse**\n\nRaising the confidence level from 99% to 99.9% cuts expected exceptions from about 2.5 to 0.25 per year — *less* data, not more. And aggregating across periods pools different volatility regimes, violating the identical-distribution assumption the test rests on.\n\n*Option A is the same irony as Basel's design: the confidence level regulators most want is the one hardest to validate.*\n\n**Intuition.** The complaint is that a chi-squared critical value is a promise about what happens with infinite data, and a backtest has 250 days and about two breaches. The fix is to stop borrowing the infinite answer: generate thousands of artificial years under the assumption the model is right, see how the statistic actually behaves at *that* sample size, and judge against it. Two of the wrong options make the data problem worse, and one is simply the thing the question is complaining about.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Reduces the data further.** A higher confidence level produces *fewer* expected exceptions — roughly one every four years at 99.9%. That worsens the small-sample problem rather than solving it."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Cause offered as cure.** Reliance on asymptotic chi-squared distributions is the source of the size distortion. Prescribing it as the remedy restates the disease."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Monte Carlo simulated p-values give a correctly sized test at the actual sample size, without depending on an asymptotic approximation."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Violates the test's assumptions.** Pooling across periods mixes volatility regimes and portfolio compositions, breaking the identically-distributed assumption. More observations, but no longer observations of the same thing."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "role-misassignment",
+    "scope-condition-error"
+   ],
+   "explanation": "The item offers the cause of the problem as its cure: asymptotic chi-squared critical values are what distort the test size in small samples. Raising the confidence level shrinks the number of exceptions further, and pooling periods breaks the identical-distribution assumption. Identify the source of the distortion first, then choose the remedy that removes it, which here is simulating the finite-sample distribution."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q13",
+  "number": 13,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO2",
+  "loText": "Describe a term structure model with no drift and calculate the change in the short rate given the volatility and a realisation of the random shock.",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "topic": "Short-Rate Trees and Drift",
+  "question": "Using a term structure model with **no drift** and normally distributed rates, assume that the short-term interest rate is 5%, annual volatility is 75 basis points, and after one month the realisation of dw (a normally distributed random variable with mean 0 and standard deviation $\\sqrt{dt}$) is 0.2.\n\nWhat is the new spot rate?",
+  "options": [
+   {
+    "key": "a",
+    "text": "5.15%."
+   },
+   {
+    "key": "b",
+    "text": "4.85%."
+   },
+   {
+    "key": "c",
+    "text": "3.50%."
+   },
+   {
+    "key": "d",
+    "text": "6.50%."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · $dr = \\sigma\\,dw$ = 75 bps × 0.2 = 15 bps**\n\n**Step 1 — Write the process**\n\nModel 1 — no drift, normally distributed rates:\n\n$$dr = \\sigma\\, dw$$\n\nThere is no λdt term, so the entire change comes from the random component.\n\n*This is the simplest term structure specification: no drift, no mean reversion, constant basis-point volatility. It is the baseline against which Vasicek and CIR are compared.*\n\n**Step 2 — Apply the realisation**\n\n$$dr = 0.0075 \\times 0.2 = 0.0015 = 15 \\text{ basis points}$$\n\n*The time-scaling is already embedded in dw, whose standard deviation is √dt. The stem hands you the realised value directly, so no further √(1/12) adjustment is needed — a common over-correction.*\n\n**Step 3 — Update the rate**\n\n$$r_{new} = 5.00\\% + 0.15\\% = 5.15\\%$$\n\n**Step 4 — Note the model's defining weakness**\n\nWith no drift and no mean reversion, the rate follows a random walk and can wander without limit — including **below zero**. Constant basis-point volatility also means a 5% rate and a 15% rate are assumed to move by the same number of basis points.\n\n*Both defects are what Vasicek (adds mean reversion) and CIR (adds √r volatility, precluding negative rates) were introduced to fix.*\n\n**Intuition.** With no drift the whole change is the random term, so this is one multiplication: the annual volatility of 75 basis points times a realised shock of 0.2 gives 15 basis points, and the rate goes to 5.15%. Two things to resist. Do not re-scale by the square root of a twelfth — the stem's dw already carries the time scaling. And check the magnitude: a 150 basis point monthly move out of a 75 basis point annual volatility is not plausible, which kills both decimal-error options.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "**5.15%.** 5.00% + 0.0075(0.2). Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**4.85% · Sign reversed.** Subtracting the 15 basis point move instead of adding it. The realisation of dw is *positive* at 0.2, so the rate rises."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**3.50% · Decimal slip.** 5.00% − 1.50% — treating the 75 basis point volatility as 7.5% and reversing the sign. Two errors compounding."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**6.50% · Decimal slip.** 5.00% + 1.50% — the same order-of-magnitude error with the correct sign. A move of 150 basis points in one month from a 75 basis point annual volatility should fail a plausibility check immediately."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sign-error",
+    "unit-time-conversion",
+    "unit-time-conversion"
+   ],
+   "explanation": "A one-line calculation where the traps are sign and units. Option B subtracts the shock despite a positive dw, while C and D read 75 basis points as 7.5%, producing a 150 basis point move in one month. Multiply σ by the realised dw directly (no extra √dt), add it to the rate, and sanity-check that the move is a few basis points, not a hundred and fifty."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q14",
+  "number": 14,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-mock",
+  "loText": "Compare term structure models of differing complexity, including the Vasicek and Gauss+ models, and describe the applications for which each is suited.",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "topic": "Term Structure Models",
+  "question": "A risk manager evaluates the application benefits of the Vasicek model compared to the Gauss+ model. How does the structural complexity of these models influence their ideal use cases?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The Vasicek model's simplicity makes it ideal for basic, educational pricing exercises."
+   },
+   {
+    "key": "b",
+    "text": "Gauss+ is limited to academic use due to its theoretical assumptions."
+   },
+   {
+    "key": "c",
+    "text": "Vasicek's complexity suits trading sophisticated interest rate derivatives better than Gauss+."
+   },
+   {
+    "key": "d",
+    "text": "The simplicity of Gauss+ renders it less useful under advanced trading conditions."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Vasicek is the one-factor teaching model; Gauss+ is the multi-factor trading model**\n\n**Step 1 — Contrast the two structures**\n\n| | Vasicek | Gauss+ |\n|---|---|---|\n| Factors | **One** — the short rate | **Three** — short, medium and long-run components |\n| Curve shapes | Limited — cannot fit humps or twists | Rich — captures level, slope and curvature |\n| Tractability | Closed-form bond prices | Requires calibration and numerical work |\n| Natural use | **Teaching, intuition, simple pricing** | **Trading desks, relative value** |\n\n*Vasicek is the canonical illustration of mean reversion — it exists to make the mechanism visible. Gauss+ exists to price real books.*\n\n**Step 2 — Explain the single-factor limitation**\n\nA one-factor model forces every point on the curve to move together. It cannot represent a steepening, a flattening or a butterfly, so it cannot price instruments whose value depends on the curve's *shape*.\n\n*Since most relative-value trading is precisely a view on curve shape, one-factor models are unusable for it — hence the three-factor structure.*\n\n**Step 3 — Note Vasicek's enduring virtues**\n\nSimplicity is not merely a limitation. Vasicek gives closed-form bond prices, an explicit half-life of ln2/k, and a transparent link between the reversion parameter and the curve's shape.\n\n*It also has one well-known defect — normally distributed rates can go negative — which is exactly what motivates CIR's √r specification.*\n\n**Step 4 — Note the option structure**\n\nOptions C and D are straight **polarity flips**: C calls Vasicek complex, D calls Gauss+ simple. Option B misjudges Gauss+, which is a practitioner model, not an academic one.\n\n*Two of the four options can be eliminated purely by knowing which model has more factors — no further understanding required.*\n\n**Intuition.** Count the factors and the answer follows. Vasicek has one, so the whole yield curve has to move in lockstep — wonderful for showing a student what mean reversion looks like, useless for pricing a trade that depends on the curve steepening. Gauss+ has three, which is enough to represent level, slope and curvature, and that is why trading desks use it. Two of the four options simply swap which model is the complicated one.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Vasicek's single-factor structure and closed-form solutions make it well suited to teaching and to straightforward pricing exercises."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Misattributed usage.** Gauss+ is a practitioner model developed for trading desks. Its multi-factor structure exists precisely to handle real curve dynamics, which is the opposite of academic confinement."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Polarity flip.** Vasicek is the *simpler* of the two. Calling it complex and preferring it for sophisticated derivatives reverses the comparison entirely."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Polarity flip.** Gauss+ is the more complex model. Attributing simplicity to it inverts the same comparison from the other side."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "A comparison item where two distractors simply swap which model is the complex one and a third misassigns Gauss+ to academic use. Count the factors: Vasicek has one (teaching, closed-form pricing), Gauss+ has three (level, slope and curvature for trading desks). Once the complexity ranking is fixed, the polarity flips eliminate themselves."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q15",
+  "number": 15,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-mock",
+  "loText": "Apply put-call parity to options on an asset paying a continuous yield, including currency options, and calculate the price of a put from the corresponding call.",
+  "reading": "Hull, Ch. 20: Volatility Smiles",
+  "topic": "Put-Call Parity",
+  "question": "A foreign currency is valued at USD 1.80. The foreign currency has a European call option with a market price of USD 0.135, strike price of USD 1.70, and exactly one year to maturity. The US risk-free interest rate is 5% per annum and the foreign rate is 8% per annum. Assuming no arbitrage, determine the price of a European put option with a strike price of USD 1.70 and one year to maturity.\n\n*(Treat the yield on the underlying as equal to the foreign risk-free rate.)*",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 0.254."
+   },
+   {
+    "key": "b",
+    "text": "USD 0.153."
+   },
+   {
+    "key": "c",
+    "text": "USD 2.5608."
+   },
+   {
+    "key": "d",
+    "text": "USD 0.0905."
+   }
+  ],
+  "answer": "d",
+  "solution": "> **Errata:** The autopsies for options A and B do not reproduce their values. Transposing the rates gives −0.008, not 0.254. Discounting one leg only gives −0.048 or 0.173, and one rate on both legs gives 0.040 or 0.043, not 0.153. The correct answer (D, USD 0.0905) is unaffected.\n\n**Correct answer: D · $P = C + Ke^{-r_d T} - Se^{-r_f T}$**\n\n**Step 1 — Write parity for an asset paying a continuous yield**\n\n$$C + Ke^{-r_d T} = P + Se^{-r_f T}$$\n\n$$\\implies P = C + Ke^{-r_d T} - Se^{-r_f T}$$\n\n*For a currency option the foreign interest rate plays the role of a dividend yield — holding the foreign currency earns $r_f$, so the spot leg is discounted at the foreign rate and the strike at the domestic rate.*\n\n**Step 2 — Discount each leg with its own rate**\n\n$$Ke^{-r_d T} = 1.70\\, e^{-0.05} = 1.70(0.951229) = 1.617090$$\n\n$$Se^{-r_f T} = 1.80\\, e^{-0.08} = 1.80(0.923116) = 1.661609$$\n\n*Getting these two rates the wrong way round is the single error the question is built on. The strike is a domestic cash amount; the spot is a foreign asset.*\n\n**Step 3 — Assemble**\n\n$$P = 0.135 + 1.617090 - 1.661609 = \\text{USD } 0.09048 \\approx \\text{USD } 0.0905$$\n\n**Step 4 — Sanity-check the magnitude**\n\nThe call is deep in the money (spot 1.80 against a 1.70 strike), so the put should be cheap — and USD 0.09 against a call of USD 0.135 is consistent. Note also that a put can never be worth more than its strike, so any answer above 1.70 is impossible.\n\n*That bound eliminates option C without any arithmetic at all.*\n\n**Intuition.** Currency options are ordinary options with one twist: holding the foreign currency pays you the foreign interest rate, so it behaves exactly like a dividend yield. That fixes which rate goes where — the strike is a domestic cash sum discounted at the domestic rate, the spot is a foreign asset discounted at the foreign rate. Swap them and you are 300 basis points wrong. And before computing anything, note that a put cannot be worth more than its strike, which disposes of one option immediately.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**0.254 · Rates transposed.** In the region produced by discounting the spot at the domestic rate and the strike at the foreign rate — swapping which leg gets which. The two rates differ by 300 basis points, so the error is large. [Errata: Swapping the two rates gives $0.135 + 1.70e^{-0.08} - 1.80e^{-0.05} = -0.008$, not 0.254, so this mechanism does not reproduce the option value.]"
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**0.153 · Partial discounting.** Consistent with discounting only one of the two legs, or applying a single rate to both. Close enough to the call price of 0.135 to look plausible. [Errata: None of these routes gives 0.153. Discounting only the strike gives −0.048, discounting only the spot gives 0.173, and one rate on both legs gives 0.040 (5%) or 0.043 (8%).]"
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**2.5608 · Impossible by bound.** A European put cannot be worth more than its strike of 1.70 — its maximum payoff is the strike itself, if the currency falls to zero. Eliminable on sight."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**0.0905.** 0.135 + 1.61709 − 1.66161. Correct."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "dropped-term",
+    "calculation-slip"
+   ],
+   "explanation": "Currency put-call parity treats the foreign rate as a continuous yield, so each leg has its own discount rate: the strike at the domestic rate, the spot at the foreign rate. The distractors transpose the two rates, discount only one leg, or produce a put worth more than its strike. Assign the rates before computing, and use the bound P ≤ K to discard impossible answers."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q16",
+  "number": 16,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO16",
+  "loText": "Calculate the change in the short rate under the Cox-Ingersoll-Ross model given the mean reversion parameters, volatility and a realisation of the random shock.",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "topic": "Short-Rate Volatility Models",
+  "question": "Given the information below, use the Cox-Ingersoll-Ross model to find the short-term rate after one month.\n\n| Item | Value |\n|---|---:|\n| Current short-term rate | 5% |\n| Long-run value of the short-term rate | 7.5% |\n| Speed of mean reversion adjustment | 0.05 |\n| Volatility of rate change ($\\sigma$) | 0.8% |\n| Random variable dw | 0.3 |",
+  "options": [
+   {
+    "key": "a",
+    "text": "5.06%."
+   },
+   {
+    "key": "b",
+    "text": "5.11%."
+   },
+   {
+    "key": "c",
+    "text": "5.04%."
+   },
+   {
+    "key": "d",
+    "text": "5.21%."
+   }
+  ],
+  "answer": "a",
+  "solution": "> **Errata:** The option autopsies do not reproduce their values exactly. An unscaled annual drift gives 5.18% (B is 5.11%), a double-scaled diffusion gives 5.03% (C is 5.04%), and dropping $\\sqrt{r}$ gives 5.25% (D is 5.21%). The correct answer (A, 5.06%) is unaffected.\n\n**Correct answer: A · Drift of 1.04 bps plus a diffusion of 5.37 bps**\n\n**Step 1 — Write the CIR process**\n\n$$dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\, dw$$\n\nThe **√r** in the diffusion is what distinguishes CIR from Vasicek. Omit it and you have computed the wrong model.\n\n*At r = 5%, √r = 0.2236, so the √r term reduces the effective volatility to about 22% of σ. Dropping it inflates the diffusion more than fourfold.*\n\n**Step 2 — Compute the drift, scaled by dt**\n\n$$k(\\theta - r)\\,dt = 0.05(0.075 - 0.05) \\times \\tfrac{1}{12}$$\n\n$$= 0.05(0.025)(0.083333) = 0.000104 = 1.04 \\text{ bps}$$\n\n*The drift is **linear** in time, so it takes the full 1/12 factor. With a reversion speed of only 0.05 the pull toward 7.5% is very slow — barely one basis point a month.*\n\n**Step 3 — Compute the diffusion**\n\n$$\\sigma\\sqrt{r}\\, dw = 0.008 \\times \\sqrt{0.05} \\times 0.3$$\n\n$$= 0.008(0.223607)(0.3) = 0.000537 = 5.37 \\text{ bps}$$\n\n*The time scaling is already inside dw, whose standard deviation is √dt. The stem supplies the realised value directly, so no further √(1/12) is applied.*\n\n**Step 4 — Sum and update**\n\n$$dr = 0.000104 + 0.000537 = 0.000641 = 6.41 \\text{ bps}$$\n\n$$r_{new} = 5.00\\% + 0.0641\\% = 5.0641\\% \\approx 5.06\\%$$\n\n*Note the diffusion dominates the drift five to one. With such a slow reversion speed the model is close to a random walk over a one-month horizon.*\n\n**Intuition.** Two terms, and each has its own time convention. The drift is a steady pull toward 7.5%, so it scales linearly with the month — and with a reversion speed of 0.05 it barely registers, about one basis point. The diffusion carries the √r that defines CIR, which at a 5% rate cuts the effective volatility to under a quarter of σ; its time scaling is already inside the dw the stem hands you. Forget the √r and you have silently switched to Vasicek, which is exactly what the largest option offers.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "**5.06%.** 5.00% + 1.04 bps + 5.37 bps. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**5.11% · Drift not scaled by dt.** Applying the full annual drift of 12.5 bps instead of the monthly 1.04 bps. The drift term must carry the dt factor; only the diffusion has its time scaling folded into dw. [Errata: The full annual drift gives 5.00% + 12.5 bps + 5.37 bps = 5.18%, not 5.11%.]"
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**5.04% · Diffusion under-scaled.** Consistent with applying a further √dt to the diffusion term on top of the dw already supplied — double-scaling for time and shrinking the random component to about a quarter of its correct size. [Note: A further √(1/12) shrinks the diffusion to 1.55 bps, which gives 5.03% rather than 5.04%.]"
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**5.21% · Vasicek used instead of CIR.** Dropping the √r gives a diffusion of 0.008(0.3) = 24 bps rather than 5.37 bps. This is the sibling-model error the question is built on — Vasicek has constant basis-point volatility, CIR scales it by √r. [Errata: Dropping √r gives 5.00% + 1.04 bps + 24 bps = 5.25%, not 5.21%.]"
+   }
+  },
+  "trap": {
+   "operators": [
+    "unit-time-conversion",
+    "unit-time-conversion",
+    "sibling-swap"
+   ],
+   "explanation": "Each CIR term has its own time convention: the drift is multiplied by dt, while the diffusion's time scaling is already inside the supplied dw. Two distractors mishandle that scaling (annual drift, double-scaled diffusion) and the third drops the √r, silently switching to the Vasicek sibling. Write the full CIR process, scale only the drift by 1/12, and keep √r in the diffusion."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q17",
+  "number": 17,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO1",
+  "loText": "Calculate expected loss for a credit portfolio and explain why default correlation affects unexpected loss and credit VaR but not expected loss.",
+  "reading": "Reading 82: Schroeck, Capital Structure in Banks",
+  "topic": "Expected and Unexpected Loss",
+  "question": "A portfolio consists of two bonds, A and B. Credit VaR is defined as the maximum loss due to defaults at a confidence level of 99% over a one-year horizon. The probability of joint default of A and B is 1.45%, with 25% default correlation. Further details are given below:\n\n| Bond | Value | Default probability | Recovery rate |\n|---|---:|---:|---:|\n| A | GBP 1,000,000 | 4% | 70% |\n| B | GBP 800,000 | 6% | 60% |\n\nDetermine the **expected** credit loss for the portfolio.",
+  "options": [
+   {
+    "key": "a",
+    "text": "GBP 12,000."
+   },
+   {
+    "key": "b",
+    "text": "GBP 7,800."
+   },
+   {
+    "key": "c",
+    "text": "GBP 31,200."
+   },
+   {
+    "key": "d",
+    "text": "GBP 20,000."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · 12,000 + 19,200 — and correlation is irrelevant to expected loss**\n\n**Step 1 — Recognise the red herrings**\n\nExpected loss is a **linear** quantity, and expectation is additive regardless of dependence:\n\n$$\\mathbb{E}[L_A + L_B] = \\mathbb{E}[L_A] + \\mathbb{E}[L_B]$$\n\nThe joint default probability of 1.45% and the 25% default correlation are **not needed**.\n\n*Correlation affects the shape of the loss distribution — its variance, its tail, and therefore unexpected loss and credit VaR. It has no effect whatever on the mean. The stem's mention of credit VaR primes you to reach for the correlation figures.*\n\n**Step 2 — Convert recovery rates to LGD**\n\n$$LGD_A = 1 - 0.70 = 0.30 \\qquad LGD_B = 1 - 0.60 = 0.40$$\n\n*Recovery is what you keep; LGD is what you lose. Using the recovery rate directly is the input-twin error that recurs throughout the credit syllabus.*\n\n**Step 3 — Compute each bond's expected loss**\n\n$$EL_A = 1{,}000{,}000 \\times 0.04 \\times 0.30 = \\text{GBP } 12{,}000$$\n\n$$EL_B = 800{,}000 \\times 0.06 \\times 0.40 = \\text{GBP } 19{,}200$$\n\n*Name both. Bond A's figure of 12,000 is sitting in the option list as a finished answer — the smaller and easier of the two.*\n\n**Step 4 — Sum**\n\n$$EL_{portfolio} = 12{,}000 + 19{,}200 = \\text{GBP } 31{,}200$$\n\nNote that Bond B contributes more despite being the smaller position, because it carries both a higher default probability and a higher loss given default.\n\n*Had the question asked for credit VaR or unexpected loss, the correlation would have been essential. For expected loss it is decoration.*\n\n**Intuition.** The stem hands you a joint default probability and a correlation, mentions credit VaR, and then asks for *expected* loss — which needs none of it. Expectations add no matter how dependent the events are; correlation only changes how fat the tail is, which matters for unexpected loss and capital, never for the mean. So it is two multiplications and a sum, with the only real trap being recovery versus loss given default. One distractor is the correct answer multiplied by the correlation, which is the paper telling you what it hoped you would do.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**12,000 · One bond only.** Bond A's expected loss alone. The easier of the two calculations, reported before Bond B was added."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**7,800 · Correlation applied.** 31,200 × 0.25 — multiplying the correct total by the default correlation. Exactly the error the red-herring data is planted to induce: correlation has no place in an expected loss calculation."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "**31,200.** 12,000 + 19,200. Correct."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**20,000 · Partial or mis-weighted sum.** In the region reached by combining one bond's correct expected loss with a mis-computed figure for the other — for instance applying the wrong loss-given-default to Bond B."
+   }
+  },
+  "trap": {
+   "operators": [
+    "intermediate-result-trap",
+    "correlation-misuse",
+    "wrong-input-twin"
+   ],
+   "explanation": "The stem plants a joint default probability, a default correlation and a credit VaR definition, none of which affect expected loss. The distractors stop after one bond, multiply the right total by the correlation, or use the wrong loss given default. Expected loss is additive regardless of dependence: convert each recovery rate to LGD, compute PD × LGD × exposure per bond, and sum."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q18",
+  "number": 18,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO17",
+  "loText": "Describe close-out netting under the ISDA master agreement and distinguish bilateral netting from central clearing.",
+  "reading": "Reading 94: Gregory, ISDA Master Agreement, Netting and Close-out",
+  "topic": "Netting, Collateral and Margin",
+  "question": "As part of its derivatives risk management overhaul, Global Finance Bank (GFB) is focusing on the implications of netting and close-out procedures under the ISDA master agreement. The bank trades with multiple counterparties across a complex web of derivatives transactions.\n\nWhich of the following correctly describes the impact and role of netting in this scenario under the ISDA master agreement?",
+  "options": [
+   {
+    "key": "a",
+    "text": "It will allow GFB to combine all its derivatives exposures into a single global exposure with each counterparty, simplifying risk management and reducing operational costs."
+   },
+   {
+    "key": "b",
+    "text": "It will enable GFB to transfer all its counterparty risks to a central clearinghouse, effectively outsourcing risk management for these transactions."
+   },
+   {
+    "key": "c",
+    "text": "The procedure will focus on accelerating payment settlements from all counterparties, enhancing GFB's liquidity position in the market."
+   },
+   {
+    "key": "d",
+    "text": "It will involve GFB balancing the credit risks across different counterparties, independently managing each relationship without netting benefits."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · One net exposure *per counterparty* — netting is bilateral, clearing is not**\n\n**Step 1 — State what close-out netting does**\n\nAn ISDA master agreement makes every trade with a given counterparty part of **one contract**. On default all trades terminate and settle as a single net amount:\n\n$$\\text{Exposure} = \\max\\left(\\sum_i MtM_i,\\ 0\\right) \\quad \\text{rather than} \\quad \\sum_i \\max(MtM_i,\\ 0)$$\n\n*Moving the max operator outside the sum is the whole benefit. Without it, an insolvency practitioner could cherry-pick — demand payment on the trades in their favour while leaving the rest as unsecured claims.*\n\n**Step 2 — Note the scope limitation**\n\nISDA netting is **bilateral**: one net exposure with *each* counterparty, not one figure across all of them. True multilateral netting — offsetting a claim on A against a debt to B — requires a central counterparty to novate the trades.\n\n*Option A's phrase ‘with each counterparty’ is what makes it accurate. The netting is comprehensive within a relationship and stops at its edge.*\n\n**Step 3 — Separate netting from clearing**\n\nCentral clearing **novates** trades to a CCP, replacing bilateral exposures with exposure to the clearinghouse. That is a different mechanism, and it does not eliminate risk — it concentrates and mutualises it.\n\n*Option B describes clearing and then overstates it: nobody outsources risk management to a CCP, they take on CCP exposure plus margin and default fund obligations.*\n\n**Step 4 — Dispose of the remaining two**\n\nNetting is a *credit* mechanism, not a settlement-acceleration one. And option D explicitly denies netting benefits, which contradicts the premise of the question.\n\n*Option C's liquidity framing is the giveaway: netting reduces exposure at default, it does not speed up ordinary payments.*\n\n**Intuition.** Without a master agreement, each trade is its own contract, and an insolvency practitioner can demand payment on the ones in their favour while your winning trades join the queue of unsecured claims. The ISDA agreement stops that by making everything with one counterparty a single contract that settles as one number. The limit worth knowing is that it stops there — you cannot offset a claim on one bank against a debt to another without a clearinghouse standing between all of you.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. An ISDA master agreement collapses all trades with a given counterparty into a single net exposure, simplifying risk management and reducing operational cost."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Clearing, not netting.** Novating to a central counterparty is clearing. It replaces bilateral exposures with CCP exposure — and ‘outsourcing risk management’ overstates it, since members still post margin and stand behind the default fund."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Wrong mechanism.** Netting is a credit risk mitigant, not a settlement accelerator. It determines what is owed on close-out, not the timing of routine payments."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Premise denied.** Explicitly rules out netting benefits, which is the opposite of what an ISDA master agreement provides."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "scope-condition-error",
+    "polarity-flip"
+   ],
+   "explanation": "Netting and central clearing are sibling mitigants that are easy to conflate: option B describes clearing (and overstates it), C recasts netting as a settlement-speed tool, and D denies the netting benefit altogether. ISDA close-out netting is bilateral, producing one net exposure per counterparty. Look for the phrase 'with each counterparty' and reject any answer that moves risk to a CCP or talks about payment timing."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q19",
+  "number": 19,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO34",
+  "loText": "Describe the economic costs of an OTC derivative over its life, including CVA, FVA, KVA and MVA, and explain how the sign of the mark-to-market position affects each.",
+  "reading": "Gregory, The xVA Challenge",
+  "topic": "CVA, DVA and xVA",
+  "question": "Global Finance Bank (GFB) is training its derivatives team on the economic costs of OTC derivatives over their lifetime, and how the mark-to-market position affects those costs. The case study concerns an interest rate swap currently in a **positive** MtM position — the transaction is in the money to GFB. The swap is **partially collateralised**.\n\nWhich of the following accurately describes the economic costs GFB would incur in this scenario?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Counterparty risk costs due to GFB's potential for default, and a funding benefit from the uncollateralized component of the MtM position."
+   },
+   {
+    "key": "b",
+    "text": "Counterparty risk and funding costs arising from the uncollateralized component of the MtM position, and funding costs for the capital needed for the transaction and initial margin."
+   },
+   {
+    "key": "c",
+    "text": "Legal and compliance costs for contract documentation, and market risk costs due to potential unfavorable movements in interest rates."
+   },
+   {
+    "key": "d",
+    "text": "Brokerage and transaction fees for executing the swap, and premium costs for buying the derivative."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · In the money and uncollateralised means you are lending — a credit cost and a funding cost**\n\n**Step 1 — Read what a positive MtM means economically**\n\nGFB is **owed** money. To the extent that amount is not collateralised, GFB has effectively extended an unsecured loan to the counterparty.\n\n*Two consequences follow immediately and both are costs: the counterparty might not pay (credit), and GFB has to fund the receivable in the meantime (funding).*\n\n**Step 2 — Identify the cost stack**\n\n| Cost | Driver in this scenario |\n|---|---|\n| **CVA** | The **counterparty** may default on the uncollateralised receivable |\n| **FVA** | Funding the uncollateralised portion of the positive MtM |\n| **KVA** | Funding the regulatory capital held against the trade |\n| **MVA** | Funding the initial margin over the trade's life |\n\n*Option B names all four. This is the complete post-crisis XVA stack for an in-the-money, partially collateralised position.*\n\n**Step 3 — Correct the two errors in option A**\n\nFirst, counterparty risk cost arises from the *counterparty's* potential default, not GFB's — GFB's own default risk produces **DVA**, a benefit. Second, an uncollateralised *positive* MtM is a funding **cost**, not a benefit: GFB must borrow to carry an asset it has not been paid for.\n\n*The funding benefit arises on the opposite side — a negative MtM, where GFB is holding money it will eventually owe. Option A has both directions reversed.*\n\n**Step 4 — Dispose of the remaining two**\n\nLegal, compliance and brokerage costs are real but are **one-off transaction costs**, not the lifetime economic costs the session is about. And an interest rate swap has no premium — it is entered at zero cost.\n\n*Option D's ‘premium costs for buying the derivative’ misdescribes a swap outright.*\n\n**Intuition.** An in-the-money uncollateralised derivative is a loan you did not intend to make. The counterparty owes you money, you have not been paid, and until you are you must fund the receivable and worry about whether it arrives. So the costs are credit and funding on the exposed portion, plus the cost of the capital regulators make you hold and the margin you must post. The seductive wrong answer flips both directions at once — it charges you for your *own* default risk and calls an unfunded asset a funding benefit.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Both directions reversed.** Counterparty risk cost comes from the *counterparty's* default, not GFB's — GFB's own default risk gives DVA, a benefit. And an uncollateralised positive MtM is a funding cost, not a benefit. Two polarity flips in one option."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Counterparty risk and funding costs on the uncollateralised exposure, plus funding costs for regulatory capital and initial margin — CVA, FVA, KVA and MVA."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**One-off costs.** Legal and compliance costs are incurred at inception, not over the trade's life. Market risk is a risk the bank chose to take, not an economic cost of the counterparty relationship."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Wrong instrument.** An interest rate swap is entered at zero cost — there is no premium to pay. Brokerage fees are one-off execution costs, not lifetime economic costs."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "The trap family is direction: whose default drives the cost, and whether an uncollateralised positive MtM is a funding cost or benefit. Option A reverses both, while C and D substitute one-off transaction costs or an option premium for the lifetime xVA costs. For a positive, partially collateralised MtM, list CVA, FVA, KVA and MVA as costs and reject anything that charges you for your own default."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q20",
+  "number": 20,
+  "subject": "Investment Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "IR-LO6",
+  "loText": "Calculate portfolio VaR from individual position VaRs and their correlation, and describe the effect of correlation on the diversification benefit.",
+  "reading": "Reading 87: Jorion, Portfolio Risk: Analytical Methods",
+  "topic": "Portfolio VaR Measures",
+  "question": "Simon Sarkar is an analyst at Indo-Sino Investments. He is evaluating the risk of a portfolio and computes the VaR for the two positions: $\\text{VaR}_1$ = USD 7.3 million and $\\text{VaR}_2$ = USD 5.4 million. If the returns of the two assets are **perfectly correlated**, the VaR of the portfolio is closest to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 63.45 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 12.70 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 82.45 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 9.08 million."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · $\\rho = 1$ collapses the formula to simple addition**\n\n**Step 1 — Substitute ρ = 1 into the portfolio formula**\n\n$$VaR_p = \\sqrt{VaR_1^2 + VaR_2^2 + 2\\rho\\, VaR_1 VaR_2}$$\n\nWith ρ = 1 the expression inside the root is a perfect square:\n\n$$= \\sqrt{(VaR_1 + VaR_2)^2} = VaR_1 + VaR_2$$\n\n*Perfect correlation means no diversification whatsoever — the two positions lose together, so the losses simply add.*\n\n**Step 2 — Add**\n\n$$VaR_p = 7.3 + 5.4 = \\text{USD } 12.70 \\text{ million}$$\n\n**Step 3 — Note the bounds**\n\n| Correlation | Portfolio VaR | Interpretation |\n|---|---:|---|\n| ρ = +1 | **12.70** | Maximum — no diversification |\n| ρ = 0 | 9.08 | Independent — variances add |\n| ρ = −1 | 1.90 | Minimum — maximum offset |\n\n*The answer must lie between 1.90 and 12.70. Perfect correlation puts it at the ceiling, and 12.70 is the largest value the portfolio VaR can take.*\n\n**Step 4 — Note why VaR is not always subadditive**\n\nHere VaR is exactly additive at ρ = 1 and subadditive below it. But VaR can *fail* subadditivity for non-elliptical distributions — which is the coherence defect that motivates expected shortfall.\n\n*Under the normal assumption implicit in this formula, subadditivity holds. It is not a general property of VaR.*\n\n**Intuition.** Perfect correlation is the one case where the portfolio formula needs no work at all: the expression under the root becomes a perfect square and the VaRs simply add. Before computing anything, note that 12.70 is the arithmetic ceiling — no correlation can push portfolio VaR above the sum of the parts — which immediately disposes of the two large options. What remains is 12.70 for perfect correlation and 9.08 for independence, and the stem tells you which.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**63.45 · Squared quantity.** In the region of a variance-scale figure rather than a VaR-scale one. Any answer far above 12.70 has skipped a square root, since 12.70 is the arithmetic maximum."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**12.70.** 7.3 + 5.4. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**82.45 · Variance reported.** 7.3² + 5.4² = 53.29 + 29.16 = 82.45 — the sum of squared VaRs with the square root never taken, *and* the correlation term omitted. Two errors compounding."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**9.08 · Zero correlation assumed.** √82.45 = 9.08 — the portfolio VaR if the assets were *independent*. Correct arithmetic for the wrong correlation, and the most likely wrong answer."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "dropped-term",
+    "correlation-misuse"
+   ],
+   "explanation": "With perfect correlation the portfolio VaR formula collapses to simple addition, and the distractors come from mishandling the square root or the correlation term. Two options are variance-scale numbers above the 12.70 ceiling, and 9.08 is the answer for zero correlation. Use the bounds first: portfolio VaR cannot exceed the sum of the individual VaRs, and at ρ = 1 it equals that sum."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q21",
+  "number": 21,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO9",
+  "loText": "Determine the acceptance region for a VaR backtest at a given confidence level and identify the exception count that leads to model rejection.",
+  "reading": "Backtesting VaR",
+  "topic": "Backtesting VaR",
+  "question": "Michael Roy, a risk analyst at a large multinational bank, is backtesting the bank's VaR model. The model being tested is a daily **98%** VaR model. If the backtest is conducted for one year at the 95% confidence level, and assuming 252 days in a year, what is the number of daily losses that will lead Roy to conclude that the model is **not** calibrated correctly?",
+  "options": [
+   {
+    "key": "a",
+    "text": "8."
+   },
+   {
+    "key": "b",
+    "text": "9."
+   },
+   {
+    "key": "c",
+    "text": "10."
+   },
+   {
+    "key": "d",
+    "text": "5."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Acceptance runs to 9.4 exceptions — so 10 triggers rejection**\n\n**Step 1 — Expected exceptions and dispersion**\n\n$$\\mathbb{E}[x] = n(1 - c) = 252 \\times 0.02 = 5.04$$\n\n$$\\sigma_x = \\sqrt{n\\,p(1-p)} = \\sqrt{252(0.02)(0.98)} = \\sqrt{4.939} = 2.222$$\n\n*Note the model is 98%, not the more familiar 99% — so twice as many exceptions are expected, and the acceptance region sits higher.*\n\n**Step 2 — Build the upper bound of the acceptance region**\n\n$$\\mathbb{E}[x] + z\\,\\sigma_x = 5.04 + 1.96(2.222) = 5.04 + 4.356 = 9.40$$\n\n*Any count of 9 or fewer falls inside the region; the first integer beyond it is 10.*\n\n**Step 3 — Confirm at the boundary**\n\n$$x = 9:\\ z = \\frac{9 - 5.04}{2.222} = 1.78 < 1.96 \\Rightarrow \\text{accept}$$\n\n$$x = 10:\\ z = \\frac{10 - 5.04}{2.222} = 2.23 > 1.96 \\Rightarrow \\text{reject}$$\n\n*The question asks for the count that leads to rejection, so the answer is the first integer outside the region — not the last one inside it.*\n\n**Step 4 — Note the qualifier**\n\nReading the question as ‘the largest acceptable count’ gives 9. Reading it as ‘the count that triggers rejection’ gives 10. The stem says *not calibrated correctly*, which is rejection.\n\n*Both 9 and 10 are in the option list precisely to punish this. The arithmetic is the easy part; the qualifier decides the answer.*\n\n**Intuition.** Work out how many breaches the model promised — two percent of 252 days is about five — then how far above that chance alone could plausibly take you. Two standard deviations of 2.22 puts the ceiling at 9.4, so nine is still forgivable and ten is not. The whole question then rests on the qualifier: it asks what count leads you to conclude the model is *wrong*, so the answer is the first count outside the region, not the last one inside. Both are offered.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**8 · Inside the region.** z = 1.33, comfortably within the acceptance bounds. Eight exceptions against 5.04 expected is unremarkable sampling variation."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**9 · Largest acceptable count.** z = 1.78, still inside the ±1.96 region — so nine exceptions would lead Roy to *accept* the model. This is the answer to ‘what is the most exceptions that still passes’, which is not what was asked."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "**10.** Correct. z = 2.23 exceeds 1.96, so ten exceptions is the smallest count that leads to rejection."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**5 · Expected count.** 5.04 is what a correctly calibrated 98% model should produce. Rejecting at the expected value would reject every sound model."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "qualifier-misread",
+    "intermediate-result-trap"
+   ],
+   "explanation": "The arithmetic is easy; the qualifier decides the answer. Nine is the largest count that still passes, ten is the first that fails, and the stem asks for the count that leads to rejection. The expected count (5) and a count inside the region (8) are intermediate values from the working. Compute E[x] + 1.96σ, then take the first integer beyond it."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q22",
+  "number": 22,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO40",
+  "loText": "Describe the methods of mitigating counterparty credit risk and identify the constraints that market structure imposes on each.",
+  "reading": "Reading 96: Gregory, Central Clearing and Risk Intermediation",
+  "topic": "Central Clearing",
+  "question": "A trading firm specialises in derivatives linked to scarce commodities and, along with a few other dominant firms, holds substantial notional contracts in this niche market. The firm's management aims to significantly reduce its counterparty risk exposure, ideally to near zero. Which of the following strategies would be most effective in achieving this objective?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Requiring counterparties to provide ample high-quality collateral."
+   },
+   {
+    "key": "b",
+    "text": "Expanding the pool of counterparties."
+   },
+   {
+    "key": "c",
+    "text": "Implementing cross-product netting agreements with individual counterparties."
+   },
+   {
+    "key": "d",
+    "text": "Acquiring credit derivatives such as credit default swaps."
+   }
+  ],
+  "answer": "a",
+  "solution": "> **Template repeat.** Structurally identical to the market-dominance mitigation question in the scanned Mock 3 paper (Q52). Both plant a clause about the firm dominating its niche, which silently removes every mitigant requiring other market participants. Worth drilling as a pair.\n\n**Correct answer: A · Only collateral needs nothing but a bilateral agreement — and only it reaches near zero**\n\n**Step 1 — Read what the market structure rules out**\n\n| Mitigant | Requires | Available here? |\n|---|---|---|\n| Expanding the counterparty pool | More participants to trade with | **No** — a few dominant firms only |\n| Credit default swaps | A liquid market in each counterparty's credit | **Unlikely** — and substitutes new exposure |\n| Cross-product netting | Only bilateral agreements | Yes — but cannot reach zero |\n| **Collateral** | Only bilateral agreements | **Yes** |\n\n*The clause about a few dominant firms is load-bearing, not scene-setting. It eliminates option B outright and makes D impractical.*\n\n**Step 2 — Explain why collateral reaches near zero and netting does not**\n\nNetting reduces gross exposure to a *net* figure, but that net figure can still be large and remains uncollateralised. A CSA with a low threshold, small minimum transfer amount and daily margining drives the residual exposure toward zero.\n\n*The two are complements: netting establishes what is owed, collateral secures it. The question asks for near zero, which only the second delivers.*\n\n**Step 3 — Note the CDS circularity**\n\nBuying protection replaces exposure to the counterparty with exposure to the protection seller. In a concentrated niche market the likely sellers are the same handful of dominant firms — converting counterparty risk into **wrong-way risk**.\n\n*You would be buying protection against the failure of firms from firms whose own solvency depends on the same market.*\n\n**Step 4 — Note the residual**\n\nEven full collateralisation leaves exposure over the **margin period of risk** and to falls in collateral value. Hence ‘near zero’ rather than zero.\n\n*Same caveat that makes ‘collateral eliminates exposure’ an absolute-claim trap elsewhere in the syllabus.*\n\n**Intuition.** Most counterparty risk mitigants need somebody else: more counterparties to diversify across, or a willing protection seller. A firm that dominates a niche market has neither, which is the peculiar cost of being large in a small pond. Netting is available and helps, but it only tells you what the net number is — it does not secure it. Collateral needs nothing but a signed agreement with the people you already face, and it is the only route to near zero.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. High-quality collateral under a tight CSA requires only bilateral agreement with existing counterparties and can drive residual exposure close to zero."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Constraint ignored.** Expanding the counterparty pool requires counterparties to expand into. The stem states the market comprises a few dominant firms — that is precisely why the problem exists."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Reduces but cannot eliminate.** Cross-product netting is genuinely valuable and available here, but it collapses gross exposure to a net figure that remains unsecured. It cannot reach near zero on its own."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Substitutes exposure.** CDS protection replaces counterparty exposure with protection-seller exposure. In a concentrated market the sellers are likely correlated with the names being hedged — wrong-way risk rather than mitigation."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "qualifier-misread",
+    "scope-condition-error"
+   ],
+   "explanation": "The stem's market-structure clause (a few dominant firms in a niche market) silently removes every mitigant that needs other participants. Expanding the counterparty pool is impossible, CDS protection would come from correlated sellers, and netting reduces exposure but cannot take it to near zero. Read the constraint and the target ('near zero') together: only collateral under a tight CSA satisfies both."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ }
+]

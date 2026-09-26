@@ -1,0 +1,1199 @@
+[
+ {
+  "id": "BTMOCK-Q01",
+  "number": 1,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO12",
+  "loText": "Estimate expected shortfall given P&L or return data",
+  "reading": "Dowd, Estimating Market Risk Measures: An Introduction and Overview",
+  "topic": "Estimating VaR and ES",
+  "question": "Consider an exposure with a value of USD 30.0 million. In L(+)/P(−) format, its expected loss is 4.0% with volatility of 15.0%; that is, $\\mu(L/P) = +4.0\\%$, $\\sigma = 15.0\\%$. Conveniently, the exposure happens to have a normal distribution.\n\nWhich is nearest to the single-period 97.5% expected shortfall (ES)?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 6.60 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 9.38 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 11.72 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 14.50 million."
+   }
+  ],
+  "answer": "c",
+  "solution": "> **Errata:** Step 2 prints $\\phi(1.96) = 0.058389$; the exact density is $0.058441$, which gives a multiplier of $2.3376$, $ES \\approx 39.06\\%$ and USD 11.72 million, exactly option C. The answer is unchanged.\n\n**Correct answer: C** · $\\mu + \\sigma\\cdot\\phi(z)/(1-c) = 4\\% + 15\\%(2.3356)$\n\n1. **Step 1 — Note the sign convention**\n\n   **L(+)/P(−)** format means losses are recorded as positive numbers. So $\\mu = +4\\%$ is an expected *loss*, and it is **added** to the volatility term rather than subtracted.\n\n   *In the more familiar P/L convention a positive drift reduces VaR. Here the convention is flipped, and getting this wrong changes the answer by 8 percentage points of the exposure.*\n\n2. **Step 2 — Compute the ES multiplier**\n\n   For a normal distribution:\n\n$$ES = \\mu + \\sigma \\cdot \\frac{\\phi(z_c)}{1 - c}$$\n\n$$z_{97.5\\%} = 1.9600 \\qquad \\phi(1.9600) = \\frac{1}{\\sqrt{2\\pi}}e^{-1.96^2/2} = 0.058389$$\n\n$$\\frac{0.058389}{0.025} = 2.3356$$\n\n   *The multiplier 2.3356 replaces the 1.96 that VaR would use. That ratio — roughly 1.19 at this confidence level — is the ES uplift, the amount by which the average tail loss exceeds the tail threshold.*\n\n3. **Step 3 — Assemble**\n\n$$ES = 4.0\\% + 15.0\\%(2.3356) = 4.0\\% + 35.03\\% = 39.03\\%$$\n\n$$\\text{USD } 30.0\\text{m} \\times 0.3903 = \\text{USD } 11.71 \\text{ million}$$\n\n4. **Step 4 — Compare against the VaR**\n\n$$VaR_{97.5\\%} = 4.0\\% + 15.0\\%(1.96) = 33.4\\% \\Rightarrow \\text{USD } 10.02\\text{m}$$\n\n   ES exceeds VaR by USD 1.7 million — and ES is **coherent** where VaR is not, which is why FRTB replaced VaR with ES at 97.5%.\n\n   *Note the confidence level: Basel moved from 99% VaR to 97.5% ES deliberately, because 97.5% ES and 99% VaR give similar capital under a normal distribution while ES captures tail shape.*\n\n**Intuition.** Two things to get right and both are conventions rather than mathematics. First, L(+)/P(−) means the expected loss is a positive four percent that *adds* to the risk rather than offsetting it — the opposite of the usual profit-and-loss setup. Second, expected shortfall is not the threshold but the average beyond it, so the 1.96 becomes 2.34. Miss the first and you are eight points of exposure out; miss the second and you have computed a VaR.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.1–2 (Dowd) on coherent risk measures and expected shortfall.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "6.60. Drift sign reversed: Materially below even the 95% VaR. Consistent with *subtracting* the 4% drift instead of adding it — importing the P/L convention into an L/P question — and using a lower confidence level."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "9.38. ES uplift not applied: Sits in the VaR region rather than the ES region. Reachable by computing a VaR at 95–97.5% or by applying the ES multiplier while dropping the drift term. Either way the tail-average step is missing."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "11.72. $30 \\times (0.04 + 0.15 \\times 2.3356)$. Correct."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "14.50. Confidence level too deep: Consistent with an ES computed at 99% or 99.5% rather than 97.5% — for instance using the two-tailed 2.576 in place of 1.96, which gives roughly USD 14.2 million."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sign-error",
+    "sibling-swap",
+    "wrong-input-twin"
+   ],
+   "explanation": "Two convention traps guard this calculation. Option A flips the sign of the drift by importing the P/L convention into an L(+)/P(−) question, option B stops at a VaR-type threshold instead of the tail average, and option D uses a deeper confidence level than the 97.5% asked. Fix the sign convention first, then apply the ES multiplier $\\phi(z_c)/(1-c)$ at exactly the stated confidence."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q02",
+  "number": 2,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO6",
+  "loText": "Identify examples of wrong-way risk and examples of right-way risk",
+  "reading": "Reading 99: Gregory, Wrong-Way Risk",
+  "topic": "Wrong-Way Risk",
+  "question": "Among its financial positions, Zapex Financial Corporation has written a call, entered into an interest rate swap, and written a credit default swap. Among the following four positions, which is the **best** example of wrong-way risk?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Zapex has written (sold) a call option to a counterparty in the same industry."
+   },
+   {
+    "key": "b",
+    "text": "Zapex is the fixed-rate payer in an interest rate swap during an economic recovery."
+   },
+   {
+    "key": "c",
+    "text": "Zapex has written (sold) a credit default swap to a counterparty whose credit quality is positively correlated with the reference entity."
+   },
+   {
+    "key": "d",
+    "text": "Zapex has a position in a forward currency contract where its mark-to-market gain is positively correlated with the counterparty's default probability."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Exposure rising with the counterparty's default probability — the definition itself\n\n1. **Step 1 — State the definition**\n\n   Wrong-way risk arises when **exposure to a counterparty is positively correlated with that counterparty's probability of default** — you are owed most precisely when they are least able to pay.\n\n   *Option D states this word for word: mark-to-market gain (exposure) positively correlated with counterparty default probability. When an option restates the definition, that is usually the answer to a ‘best example’ qualifier.*\n\n2. **Step 2 — Check who carries the exposure in option A**\n\n   Zapex **wrote** the call, so Zapex received the premium and *owes* the payoff. A written option creates **zero counterparty exposure** after the premium settles — the counterparty owes Zapex nothing.\n\n   *No exposure means no wrong-way risk, regardless of industry correlation. The same no-exposure principle appears in the Mock 3 sold-option question.*\n\n3. **Step 3 — Check option C carefully**\n\n   Zapex **wrote** the CDS, so Zapex is the protection *seller*. Zapex's exposure to the buyer is only the premium stream. The dangerous configuration — buying protection from a seller correlated with the reference entity — is the *opposite* side of this trade.\n\n   *The strongest distractor, because the correlation described is genuinely the classic wrong-way setup — it has simply been attached to the wrong party. Zapex is on the safe side of it.*\n\n4. **Step 4 — Dispose of the swap**\n\n   Paying fixed in an interest rate swap during an economic recovery is a directional view on rates. Nothing links the swap's mark-to-market to the counterparty's creditworthiness, so there is no correlation to speak of.\n\n   *A generic market-risk position, not a wrong-way risk example at all.*\n\n**Intuition.** Wrong-way risk needs two things: you must be *owed* money, and the amount owed must grow as the other side weakens. Check the first condition before the second and two options fall away immediately — a written option and a written CDS leave Zapex owing rather than owed. Option C is the clever one, because it describes the classic monoline setup perfectly while quietly putting Zapex on the safe side of it. Option D just states the definition.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on counterparty risk and wrong-way risk (Gregory).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "No exposure exists: A written option leaves Zapex owing, not owed. With zero counterparty exposure there is nothing for the correlation to act on — industry proximity is irrelevant."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "No credit correlation: A directional rates position. Its mark-to-market is unconnected to the counterparty's default probability, so neither wrong-way nor right-way risk arises."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Wrong side of the trade: The correlation described is the textbook wrong-way configuration — but it applies to the protection *buyer*. Zapex wrote the CDS, so Zapex is the seller and carries only premium exposure. The trap is the word ‘written’."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Mark-to-market gain positively correlated with the counterparty's default probability is the definition of wrong-way risk stated directly."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "correlation-misuse",
+    "role-misassignment"
+   ],
+   "explanation": "Wrong-way risk requires an exposure (you are owed) that grows as the counterparty's default probability rises. Option A fails the exposure condition because a written option leaves Zapex owing, option B has no link between exposure and credit quality, and option C attaches the classic monoline correlation to the protection seller rather than the buyer. Check who is owed before checking the correlation."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q03",
+  "number": 3,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-mock",
+  "loText": "Describe the December 2017 revisions to the Basel III standardized and internal ratings-based approaches to credit risk.",
+  "reading": "Credit Risk Measurement and Management, readings on Basel III credit risk capital requirements",
+  "topic": "Basel III Credit Revisions",
+  "question": "In December 2017 the Basel Committee made several revisions to the Basel III framework, covering both the standardized approach (SA) to credit risk and the internal ratings-based (IRB) approaches. In regard to these revisions, which of the following statements is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "In the standardized approach for residential real estate exposures, the risk weights are lower if the loan-to-value (LTV) falls into a lower band."
+   },
+   {
+    "key": "b",
+    "text": "The standardized approach eliminated the treatment of unrated exposures because all exposures are required to have an external credit rating."
+   },
+   {
+    "key": "c",
+    "text": "The internal ratings-based approach removed the option to use the foundation IRB (F-IRB) because the advanced IRB (A-IRB) must be used for all asset classes."
+   },
+   {
+    "key": "d",
+    "text": "The internal ratings-based approach removed the parameter input floors (in the case of PD, LGD and EAD) to increase RWA variability across different banks."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Lower LTV means more borrower equity, so a lower risk weight\n\n1. **Step 1 — Confirm the LTV mechanism**\n\n   The December 2017 SA introduced **LTV-banded risk weights** for residential real estate. A lower LTV means more borrower equity, more cushion before the bank takes a loss, and therefore a **lower risk weight**.\n\n   *Before the revision, residential mortgages carried a flat 35% weight regardless of leverage. Banding by LTV made the treatment risk-sensitive.*\n\n2. **Step 2 — Correct the unrated-exposure claim**\n\n   The SA retained treatment for unrated exposures — it had to, because most corporate borrowers worldwide have no external rating. The revision added **due-diligence requirements** and, in some jurisdictions, a standardised credit risk assessment approach.\n\n   *Requiring every exposure to be externally rated is operationally impossible and would hand ratings agencies control of bank capital — the opposite of the reform's direction.*\n\n3. **Step 3 — Correct the F-IRB claim — it is exactly reversed**\n\n   The revision **removed A-IRB** for certain asset classes, not F-IRB. Banks and other financial institutions, and large corporates above a revenue threshold, must now use F-IRB or the SA — because internal LGD and EAD estimates proved unreliable for low-default portfolios.\n\n   *The direction of travel after the crisis was away from bank discretion, not toward it. Option C has the reform running backwards.*\n\n4. **Step 4 — Correct the input-floor claim — reversed twice**\n\n   The revision **introduced** input floors on PD, LGD and EAD, and did so specifically to **reduce** RWA variability across banks.\n\n   *Two errors in one sentence: the action and its purpose are both inverted. Excessive variability in internally modelled RWAs was the problem the reform was designed to fix.*\n\n**Intuition.** Every post-crisis Basel reform pushes the same direction: less bank discretion, more comparability. Read the three false options against that and they all run backwards — removing floors to *increase* variability, removing the simpler IRB in favour of the more model-heavy one, requiring universal external ratings. The true statement is the mundane one: more borrower equity, lower risk weight. When a reform option sounds like it grants banks more freedom, it is almost always the distractor.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, readings on Basel III credit risk capital requirements.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. The SA assigns lower risk weights to residential real estate exposures in lower LTV bands, reflecting the greater borrower equity cushion."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Absolute-claim: ‘All exposures are required to have an external credit rating’ is both unhedged and false. Unrated exposures remain, with added due-diligence requirements."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Polarity flip: Exactly reversed. The revision removed *A-IRB* for banks, financial institutions and large corporates, pushing them toward F-IRB or the SA."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Double polarity flip: The revision *introduced* input floors, and did so to *reduce* RWA variability. Both the action and the objective are inverted."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "The false options each run a post-crisis reform backwards or overstate it. Option B makes an unhedged universal claim about external ratings, option C swaps which IRB approach was removed, and option D inverts both the action (floors introduced) and its purpose (reduce RWA variability). Test each option against the reform's direction: less bank discretion, more comparability."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q04",
+  "number": 4,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO1",
+  "loText": "Explain and calculate liquidity trading risk via cost of liquidation and liquidity-adjusted VaR (LVaR).",
+  "reading": "Hull, Risk Management and Financial Institutions, Ch. 24: Liquidity Risk",
+  "topic": "Market Liquidity Risk",
+  "question": "An asset that is not very liquid is quoted bid USD 89.00, offer USD 96.00. Which is nearest to the **proportional** bid-offer spread?",
+  "options": [
+   {
+    "key": "a",
+    "text": "0.0378."
+   },
+   {
+    "key": "b",
+    "text": "0.0757."
+   },
+   {
+    "key": "c",
+    "text": "0.1538."
+   },
+   {
+    "key": "d",
+    "text": "7.000."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B** · 7 over the mid of 92.5\n\n1. **Step 1 — Compute the absolute spread**\n\n$$\\text{Spread} = \\text{Offer} - \\text{Bid} = 96.00 - 89.00 = \\text{USD } 7.00$$\n\n   *Name it — the raw dollar spread is sitting in the option list as choice D, unconverted.*\n\n2. **Step 2 — Compute the mid price**\n\n$$\\text{Mid} = \\frac{96.00 + 89.00}{2} = \\text{USD } 92.50$$\n\n   *The mid, not the bid, not the offer, and not the sum. The proportional spread is defined against the mid because that is the reference price a liquidation is measured from.*\n\n3. **Step 3 — Divide**\n\n$$s = \\frac{\\text{Offer} - \\text{Bid}}{\\text{Mid}} = \\frac{7.00}{92.50} = 0.0757$$\n\n   *About 7.6% — a wide spread, consistent with the stem describing the asset as not very liquid. A liquid large-cap equity would be a few basis points.*\n\n4. **Step 4 — Note where this figure goes next**\n\n   This proportional spread is the input to the cost of liquidation:\n\n$$\\text{Cost} = \\frac{1}{2}\\, s\\, V$$\n\n   Half of 7.57% is 3.79% of position value to exit — and note that 0.0378 is *also* in the option list.\n\n   *The half-spread is what a one-way exit actually costs, so option A is the correct answer to a different question. The stem asked for the spread, not the liquidation cost.*\n\n**Intuition.** Three of the four options are one operation away from correct, which is what makes an easy calculation into an exam question. Seven dollars is the spread; ninety-two fifty is the reference price; divide. Halving it gives what the exit actually costs, which is the right number for a different question and is offered here. Leaving it undivided gives seven, which is not a proportion of anything. Read the word ‘proportional’ and check the magnitude of your answer.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, Ch.1 (Hull) on liquidity trading risk.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "0.0378. Half-spread, or wrong denominator: Exactly half the correct figure. Reachable two ways: dividing by the *sum* of bid and offer (185) instead of the mid, or computing the half-spread liquidation cost. Both produce a legitimate quantity that answers a different question."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "0.0757. 7.00 / 92.50. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "0.1538. Spread doubled: Roughly twice the correct value — consistent with doubling the spread numerator while dividing by the mid, or with a halved denominator."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "7.000. Not proportional at all: The absolute dollar spread reported unconverted. The word ‘proportional’ in the stem requires division by a price, and the magnitude alone — a spread of 7 rather than 0.07 — should flag it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "calculation-slip",
+    "intermediate-result-trap"
+   ],
+   "explanation": "Each distractor is one operation away from $s = (\\text{Offer} - \\text{Bid})/\\text{Mid}$. Option A divides by the sum (or reports the half-spread liquidation cost), option C doubles the ratio, and option D stops at the raw dollar spread. Compute spread and mid explicitly, divide, and sanity-check that a proportional spread is a small fraction."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q05",
+  "number": 5,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO9",
+  "loText": "Explain how dynamic risk factors can be used in a multifactor model of asset returns, using the Fama-French model as an example",
+  "reading": "Reading 84: Ang, Factors",
+  "topic": "Value and Momentum Factors",
+  "question": "Richard conducted a factor regression for his firm's Flagship Portfolio using the three-factor Fama-French specification, where the factors are MKT (the market), SMB (small stocks minus big stocks) and HML (value stocks minus growth stocks). The regression is based on monthly returns.\n\nEach of the following statements is TRUE about these factor regression results **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The portfolio's style appears to be growth-oriented, small-cap."
+   },
+   {
+    "key": "b",
+    "text": "This portfolio manager appears to be skillful; that is, the alpha is significant."
+   },
+   {
+    "key": "c",
+    "text": "The low adjusted $R^2$ and low standard errors imply these factors are not appropriate to this portfolio."
+   },
+   {
+    "key": "d",
+    "text": "The implied CAPM benchmark is leveraged as it borrows cash (T-bills) to invest more than 100% in the market portfolio."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · Low standard errors argue *for* the factors, not against — the statement contradicts itself\n\n1. **Step 1 — Read the two claims inside option C separately**\n\n| Diagnostic | What it indicates |\n|---|---|\n| Low adjusted $R^2$ | The factors explain little of the return **variation** |\n| **Low** standard errors | The estimated coefficients are **precise** — measured reliably |\n\n   *These point in opposite directions. Low standard errors mean the loadings are well determined, which is evidence the factors are relevant. The statement yokes a genuine warning sign to a reassurance and treats both as condemning.*\n\n2. **Step 2 — Note that low $R^2$ alone is not disqualifying**\n\n   A portfolio can have modest $R^2$ because it carries substantial idiosyncratic risk, not because the factors are wrong. A concentrated stock-picking fund will show low $R^2$ against Fama-French while the loadings remain precisely estimated and economically meaningful.\n\n   *Low $R^2$ with high standard errors would support the conclusion. Low $R^2$ with low standard errors does not.*\n\n3. **Step 3 — Verify the three true statements are internally coherent**\n\n   A **negative HML** loading indicates growth rather than value; a **positive SMB** loading indicates small-cap. A significant intercept is by definition significant alpha. And a market beta above 1.0 implies the CAPM-equivalent benchmark holds more than 100% of the market portfolio, funded by borrowing at the risk-free rate.\n\n   *Each is a standard reading of a factor regression output, and each follows from a single coefficient. Only option C requires two statistics to be read against each other — and reads them wrongly.*\n\n4. **Step 4 — Note why this is answerable without the exhibit**\n\n   Options A, B and D each depend on the sign or magnitude of a specific coefficient. Option C is false on its own terms: *low* standard errors can never be evidence that regressors are inappropriate.\n\n   *A self-contradicting option is the strongest kind of answer to a negative qualifier — it does not need the data.*\n\n**Intuition.** You can answer this without ever seeing the regression output. Three options each rest on one coefficient — the sign of HML, the sign of SMB, the significance of the intercept, the size of beta. The fourth asks you to read two statistics together and gets the reading backwards: a *low* standard error means you have measured something precisely, which is an argument that the factor belongs, not that it does not. A statement that undermines itself is the answer to an EXCEPT question every time.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on factor theory and portfolio construction.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) A negative HML loading and a positive SMB loading together describe a small-cap growth style. Standard interpretation of the two style factors."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) A statistically significant positive intercept in a factor regression is the definition of significant alpha — return unexplained by the three factors."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Internally contradictory: Correct answer to the negative qualifier. Low standard errors indicate the coefficients are precisely estimated, which supports the factors' relevance rather than undermining it. Low $R^2$ alone reflects idiosyncratic risk, not misspecification."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) A market beta above one implies the CAPM-equivalent portfolio is levered — borrowing at the risk-free rate to hold more than 100% of the market."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "This is an EXCEPT question, so the three wrong options are true statements that a hurried reader picks by answering the positive question. The false statement hides a self-contradiction: low standard errors mean precisely estimated loadings, which support the factors rather than condemn them. Read each diagnostic on its own before accepting a combined conclusion."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q06",
+  "number": 6,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO2",
+  "loText": "Explain the implications of put-call parity on implied volatility",
+  "reading": "Volatility Smiles and the Fundamental Review of the Trading Book",
+  "topic": "Volatility Smiles",
+  "question": "The risk-free rate is 5.0% while the current stock price is USD 80.00. Two liquid options both have a strike price of USD 70.00, so that $K/S_0 = 0.875$. Both options have the same maturity of three months, $T = 0.25$ years. The implied volatility of the call is 30.0% and the implied volatility of the put is 38.0%.\n\nWhat is the trade that exploits this scenario, if any?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Buy call, sell put, and short the stock."
+   },
+   {
+    "key": "b",
+    "text": "Buy put, sell call, and buy the stock."
+   },
+   {
+    "key": "c",
+    "text": "Buy the call, buy the put, and short a straddle."
+   },
+   {
+    "key": "d",
+    "text": "Sell the call, sell the put, and buy a straddle."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · The put is dearer — sell it, buy the call, hedge with a short stock\n\n1. **Step 1 — Recall what parity requires**\n\n$$C - P = S_0 - Ke^{-rT}$$\n\n   Put-call parity is a **no-arbitrage identity**, not a model. A call and a put with the same strike and maturity on the same underlying must therefore share **one** implied volatility.\n\n   *Two different implied volatilities on the same strike and maturity is a direct parity violation. There is no story about skew that permits it — skew varies across strikes, not between a call and a put at the same strike.*\n\n2. **Step 2 — Identify which leg is rich**\n\n   Higher implied volatility means a higher price for the same contract specification. The put's implied volatility of 38% exceeds the call's 30%, so the **put is overpriced** relative to the call.\n\n   *The arbitrage rule is unchanging: sell the expensive one, buy the cheap one, hedge the residual.*\n\n3. **Step 3 — Build the position**\n\n   Buying the call and selling the put creates a **synthetic long stock** position:\n\n$$C - P = S_0 - Ke^{-rT} \\implies \\text{long call} + \\text{short put} \\approx \\text{long stock}$$\n\n   To lock the mispricing without taking directional risk, offset it by **shorting the actual stock**.\n\n   *The result is delta-neutral: the synthetic long and the physical short cancel, leaving the eight volatility points of mispricing as the profit.*\n\n4. **Step 4 — Note why the straddle options are incoherent**\n\n   A straddle *is* a call plus a put at the same strike. ‘Buy the call, buy the put, and short a straddle’ therefore buys and sells the same package — a position that nets to nothing and captures no mispricing.\n\n   *Both options C and D are self-cancelling by construction. Recognising that a straddle is the two options you have just traded eliminates half the list instantly.*\n\n**Intuition.** Parity is an identity, so a call and a put on the same strike and expiry cannot honestly carry different implied volatilities — eight points apart means one of them is simply mispriced. The put is dearer, so sell the put and buy the call, which leaves you synthetically long the stock; short the real stock and the direction cancels, leaving the mispricing as profit. The other two options are worth noticing for their own sake: both instruct you to trade a straddle against the very call and put that constitute it.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, Ch.20 (Hull) on volatility smiles and put-call parity.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Sell the expensive put, buy the cheap call to form a synthetic long, and short the stock to neutralise the direction."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Every leg reversed: Buys the overpriced put and sells the underpriced call — locking in a loss on both legs. The stock leg is reversed too. This is the correct trade run backwards."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Self-cancelling: Buying a call and a put at the same strike *is* a long straddle. Shorting a straddle simultaneously closes the position and leaves no exposure to the mispricing."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Self-cancelling: The mirror image of option C and equally self-cancelling. Selling both options is a short straddle; buying a straddle undoes it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "Option B runs the correct arbitrage backwards, buying the rich put and selling the cheap call. Options C and D treat a straddle as if it were a different instrument from the call and put already traded, so each position cancels itself. Identify the rich leg from the higher implied volatility, sell it, buy the cheap leg, and hedge the synthetic stock with the real stock."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q07",
+  "number": 7,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-LO17",
+  "loText": "Define and calculate incremental CVA and marginal CVA",
+  "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+  "topic": "CVA, DVA and xVA",
+  "question": "Consider a netting set with two derivative positions: an interest rate swap (IRS) with a marginal CVA of −1.450 and a cross-currency swap (CCS) with a marginal CVA of −1.550. If the first transaction is the cross-currency swap and its incremental CVA is −2.100, then what is the incremental CVA of the IRS?",
+  "options": [
+   {
+    "key": "a",
+    "text": "−0.900."
+   },
+   {
+    "key": "b",
+    "text": "−1.100."
+   },
+   {
+    "key": "c",
+    "text": "−1.550."
+   },
+   {
+    "key": "d",
+    "text": "−2.220."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Total is −3.000; the CCS took −2.100 going first, so the IRS takes the remainder\n\n1. **Step 1 — Use the additivity property of marginal CVA**\n\n   Marginal CVAs are constructed to **sum to the portfolio total**:\n\n$$CVA_{total} = CVA_{IRS}^{marg} + CVA_{CCS}^{marg} = -1.450 + (-1.550) = -3.000$$\n\n   *This is the defining property of the marginal decomposition, and it is the only route into the question — the total is not given directly.*\n\n2. **Step 2 — Use the additivity property of incremental CVA in sequence**\n\n   Incremental CVAs also sum to the total when taken in **execution order**:\n\n$$CVA_{total} = CVA_{CCS}^{inc} + CVA_{IRS}^{inc}$$\n\n   *Both decompositions add up to the same total. What differs is how they divide it — marginal by symmetric attribution, incremental by order of arrival.*\n\n3. **Step 3 — Solve for the second trade**\n\n$$-3.000 = -2.100 + CVA_{IRS}^{inc}$$\n\n$$CVA_{IRS}^{inc} = -3.000 + 2.100 = -0.900$$\n\n4. **Step 4 — Read what the numbers say about netting**\n\n| Trade | Incremental | Marginal | Reading |\n|---|---|---|---|\n| CCS (first) | −2.100 | −1.550 | Stand-alone; no netting partner yet |\n| IRS (second) | **−0.900** | −1.450 | Benefits from netting against the CCS |\n\n   The CCS went first and bore its full stand-alone CVA of −2.100. The IRS arrived into an existing netting set and added only −0.900 — substantially less than its own marginal figure of −1.450.\n\n   *Reverse the order and the numbers swap: whichever trade arrives second captures the netting benefit. That order dependence is precisely why incremental CVA is used for pricing a new trade and marginal CVA for allocating an existing portfolio.*\n\n**Intuition.** Both ways of cutting up a portfolio CVA have to add to the same total, and that is the whole solution: the marginals give you the total, the first trade's incremental is given, so the second trade's incremental is what's left. The interesting part is what the answer reveals. The cross-currency swap arrived first and paid full price; the interest rate swap arrived second and paid barely more than half its marginal share, because by then there was something to net against. Whoever trades second gets the netting benefit — which is exactly why incremental CVA prices new trades and marginal CVA allocates old ones.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, reading on credit value adjustment and netting (Gregory).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "−0.900. −3.000 − (−2.100). Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "−1.100. Sign slip in the subtraction: Reachable by mishandling the negatives — for instance computing 3.000 − 2.100 and then adjusting, or subtracting the marginal figures in the wrong order. Everything in this question is negative, which is where the errors come from."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "−1.550. Wrong trade's marginal CVA: The *CCS's* marginal CVA, lifted straight from the stem. A given quantity reported as an answer — and it belongs to the other trade."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "−2.220. Total mis-assembled: Consistent with adding rather than subtracting somewhere in the chain, or with treating the CCS's incremental figure as an addition to the total instead of a component of it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sign-error",
+    "wrong-input-twin",
+    "calculation-slip"
+   ],
+   "explanation": "Everything in this question is negative, so sign handling is where the errors live: option B slips a sign in the subtraction and option D assembles the total incorrectly. Option C simply reports the other trade's marginal CVA from the stem. Build the total from the marginals first, then subtract the first trade's incremental to get the second's."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q08",
+  "number": 8,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-mock",
+  "loText": "Describe the Basel III capital buffers, including the capital conservation buffer, the G-SIB buffer and the countercyclical buffer, and explain the consequences of breaching them.",
+  "reading": "Credit Risk / Operational Risk readings on Basel III capital regulation",
+  "topic": "Basel III Capital Buffers",
+  "question": "The central feature of Basel III's first pillar is the regulatory capital requirement. In addition to the minimums, as of early 2019 Basel specifies three buffers: the capital conservation buffer (CCB), the G-SIB buffer, and the countercyclical buffer (CCyB). Your colleague Mary makes the following five points:\n\n- **I.** For all three, the additional buffer must be CET1.\n- **II.** For all three, breach of the buffer requirements implies the bank's ability to pay dividends will be restricted.\n- **III.** The CCB requires an additional 2.5% of CET1 capital and is meant to ensure that banks have an additional layer of usable capital that can be drawn down when losses are incurred.\n- **IV.** The additional G-SIB requirement includes five buckets {1.0%, 1.5%, 2.0%, 2.5%, 3.5%} and is meant to reduce the likelihood and severity of the failure of a global systemically important financial institution.\n- **V.** The CCyB requirement varies between zero and 2.5% and is meant to protect the banking sector from periods of excess aggregate credit growth associated with the build-up of system-wide risks.\n\nIs Mary correct in her summary?",
+  "options": [
+   {
+    "key": "a",
+    "text": "No, unfortunately, none of her statements is correct."
+   },
+   {
+    "key": "b",
+    "text": "I. and II. are correct, but the others (III., IV. and V.) are wrong."
+   },
+   {
+    "key": "c",
+    "text": "III., IV. and V. are correct, but the others (I. and II.) are wrong."
+   },
+   {
+    "key": "d",
+    "text": "Yes, all five statements are correct."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Every one of the five checks out against the framework\n\n1. **Step 1 — Verify the two general properties (I and II)**\n\n| Claim | Verdict |\n|---|---|\n| All three buffers met with **CET1** | ✔ Buffers sit above the minima and must be the highest-quality capital |\n| Breach restricts **dividends** | ✔ Breaching triggers automatic distribution constraints |\n\n   *A buffer breach is not a breach of the minimum — the bank keeps operating. What bites is the constraint on distributions: dividends, buybacks and discretionary bonuses are restricted on a sliding scale as the buffer depletes.*\n\n2. **Step 2 — Verify the CCB (III)**\n\n   2.5% of CET1, designed as a **usable** layer that can be drawn down in stress. That usability is the design intent — a buffer nobody dares dip into is a minimum by another name.\n\n   *This proved genuinely contentious in March 2020, when supervisors urged banks to use their buffers and banks largely declined, fearing market stigma.*\n\n3. **Step 3 — Verify the G-SIB and countercyclical buffers (IV and V)**\n\n| Buffer | Range | Purpose |\n|---|---|---|\n| G-SIB | **Five buckets: 1.0 / 1.5 / 2.0 / 2.5 / 3.5%** | Reduce likelihood and severity of a G-SIB failure |\n| CCyB | **0 to 2.5%**, set nationally | Protect against excess aggregate credit growth |\n\n   *Note the G-SIB scale skips 3.0% — the top bucket is 3.5% and is deliberately left empty as a deterrent against banks growing into it.*\n\n4. **Step 4 — Note the option structure**\n\n   Three options divide the five statements into a ‘correct’ and an ‘incorrect’ group, which makes an all-correct answer feel wrong. But every statement verifies.\n\n   *A question offering ‘all of them are right’ alongside plausible partitions is testing whether you will invent an error to justify a more discriminating-looking answer. Check each claim on its own terms.*\n\n**Intuition.** Three buffers sitting on top of the minimum, all payable in CET1, all enforced the same way — not by shutting the bank down but by stopping it paying out. The parameters are worth committing to memory because they get tested directly: two and a half percent for the conservation buffer, zero to two and a half for the countercyclical one, and five G-SIB buckets running to three and a half percent with the top rung left empty on purpose. Every statement here is right, and the temptation is to manufacture a fault to justify a cleverer-looking answer.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk / Operational Risk readings on Basel III capital regulation.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Wholesale rejection: All five statements are accurate. This option would require every one to fail, which is not sustainable against the framework."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "False partition: Statements III, IV and V give the correct parameters: 2.5% CCB, five G-SIB buckets topping out at 3.5%, and a CCyB range of zero to 2.5%. None is wrong."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "False partition: Statements I and II are also correct: all three buffers must be met with CET1, and breaching any of them restricts distributions."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. All five statements verify against the Basel III buffer framework."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "The partition options tempt you to invent a fault so that a more discriminating-looking answer can be right. Option A rejects everything, while options B and C each declare a group of accurate statements false. Verify each buffer parameter and consequence independently, and accept 'all correct' when every claim checks out."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q09",
+  "number": 9,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO1",
+  "loText": "Explain and calculate liquidity trading risk via cost of liquidation and liquidity-adjusted VaR (LVaR).",
+  "reading": "Hull, Risk Management and Financial Institutions, Ch. 24: Liquidity Risk",
+  "topic": "Market Liquidity Risk",
+  "question": "A portfolio holds 100,000 shares of a stock and this single position has a value of USD 3.0 million. The stock is quoted bid USD 29.00, offer USD 31.00. The stock's daily volatility is 1.43%. Assume arithmetic returns are normally distributed and the expected daily return is zero.\n\nWhich is nearest to the position's one-day 99.0% confident liquidity-adjusted VaR (LVaR)?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 15,000."
+   },
+   {
+    "key": "b",
+    "text": "USD 80,000."
+   },
+   {
+    "key": "c",
+    "text": "USD 200,000."
+   },
+   {
+    "key": "d",
+    "text": "USD 1.0 million."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · USD 99,785 of market risk plus USD 100,000 of exit cost\n\n1. **Step 1 — Compute the market risk VaR**\n\n$$VaR = V \\times z \\times \\sigma = 3{,}000{,}000 \\times 2.326 \\times 0.0143 = \\text{USD } 99{,}785$$\n\n   *Check the position value against the quote: the mid is (29 + 31)/2 = USD 30, and 100,000 shares at 30 is exactly USD 3.0 million. The data is internally consistent.*\n\n2. **Step 2 — Compute the proportional spread**\n\n$$s = \\frac{\\text{Offer} - \\text{Bid}}{\\text{Mid}} = \\frac{31 - 29}{30} = 0.0667$$\n\n   *A 6.67% spread is enormous — this is a genuinely illiquid stock, which is the point of the question.*\n\n3. **Step 3 — Compute the liquidity cost**\n\n$$LC = \\frac{1}{2}\\, s\\, V = \\frac{1}{2}(0.0667)(3{,}000{,}000) = \\text{USD } 100{,}000$$\n\n   *The half reflects a one-way exit from mid to bid. Equivalently: selling 100,000 shares at the bid of 29 rather than the mid of 30 costs exactly USD 1 per share — USD 100,000.*\n\n4. **Step 4 — Add the two legs**\n\n$$LVaR = 99{,}785 + 100{,}000 = \\text{USD } 199{,}785 \\approx \\text{USD } 200{,}000$$\n\n   The liquidity cost **slightly exceeds** the entire market risk VaR.\n\n   *That is the lesson. For an illiquid position the cost of getting out can be as large as the price risk of holding it — and conventional VaR, which assumes you can exit at mid, misses all of it.*\n\n**Intuition.** Two legs and they happen to be almost identical here, which is the whole point. The price risk of holding overnight is about a hundred thousand; the cost of walking out of the door — selling at twenty-nine when the screen says thirty — is exactly a hundred thousand more. Conventional VaR reports the first and silently assumes the second is zero. For a stock quoting two dollars wide on a thirty dollar mid, that assumption doubles the understatement.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, Ch.1 (Hull) Eq. (1.3).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "15,000. Order of magnitude: Far below even a single leg. Consistent with applying a fraction of one percent somewhere in the chain — a decimal error rather than a conceptual one."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "80,000. One leg, understated: In the region of the market VaR computed at a lower confidence level — 1.645 rather than 2.326 gives USD 70,565 — with no liquidity adjustment at all. The bare VaR leg, understated."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "200,000. 99,785 + 100,000. Correct."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "1.0 million. Order of magnitude: A third of the entire position lost in one day. Implausible on a 1.43% daily volatility even with a 6.67% spread, and should fail a sanity check before any arithmetic."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "dropped-term",
+    "calculation-slip"
+   ],
+   "explanation": "LVaR has two legs, market VaR plus the half-spread exit cost $\\tfrac{1}{2}sV$, and option B keeps only an understated VaR leg. Options A and D are order-of-magnitude errors that a quick sanity check against a 1.43% daily volatility and a 6.67% spread eliminates. Compute each leg separately, add them, and check the magnitude against the position size."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q10",
+  "number": 10,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-LO3",
+  "loText": "Describe practical issues in portfolio construction, including the determination of an appropriate risk aversion, aversions to specific risks, and proper alpha coverage",
+  "reading": "Reading 86: Grinold & Kahn, Portfolio Construction",
+  "topic": "Portfolio Construction",
+  "question": "According to Grinold, typical information ratios (IR) include: 0.500 is good, 0.750 is very good and 1.00 is exceptional. In regard to risk aversion $\\lambda$, 0.150 is restrained, 0.100 is moderate and 0.050 is aggressive.\n\nPatricia is a manager with a “very good” information ratio of 0.750 and a “moderate” risk aversion of 0.10. If she shifts from this moderate risk aversion to an aggressive risk aversion of 0.050, what is the impact on the optimal level of active risk?",
+  "options": [
+   {
+    "key": "a",
+    "text": "No effect."
+   },
+   {
+    "key": "b",
+    "text": "Optimal active risk reduces by one-half."
+   },
+   {
+    "key": "c",
+    "text": "Optimal active risk increases by about +41%."
+   },
+   {
+    "key": "d",
+    "text": "Optimal active risk doubles."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · $\\psi^* = IR/2\\lambda$ — halve $\\lambda$ and $\\psi^*$ doubles\n\n1. **Step 1 — Write Grinold's optimal active risk**\n\n$$\\psi^* = \\frac{IR}{2\\lambda}$$\n\n   Optimal active risk is proportional to the information ratio and **inversely** proportional to risk aversion.\n\n   *The intuition is direct: a manager with more skill should take more active risk, and a manager with a more tolerant client should take more still.*\n\n2. **Step 2 — Evaluate at both levels of risk aversion**\n\n$$\\lambda = 0.10: \\quad \\psi^* = \\frac{0.750}{2(0.10)} = \\frac{0.750}{0.20} = 3.75$$\n\n$$\\lambda = 0.05: \\quad \\psi^* = \\frac{0.750}{2(0.05)} = \\frac{0.750}{0.10} = 7.50$$\n\n   *From 3.75% to 7.50% of tracking error. The information ratio never enters the comparison — it is unchanged, so it cancels.*\n\n3. **Step 3 — Read the relationship**\n\n$$\\frac{\\psi^*_{new}}{\\psi^*_{old}} = \\frac{\\lambda_{old}}{\\lambda_{new}} = \\frac{0.10}{0.05} = 2$$\n\n   Optimal active risk **doubles**.\n\n   *Because the relationship is a simple inverse, halving the denominator doubles the result. No computation of either level is strictly necessary — the ratio settles it.*\n\n4. **Step 4 — Note where the $\\sqrt{2}$ distractor comes from**\n\n   Option C's +41% is the $\\sqrt{2} - 1$ answer. That would be right if the relationship were inverse in $\\sqrt{\\lambda}$ — the reflex from square-root-of-time scaling, misapplied to a linear relationship.\n\n   *Grinold's formula has $\\lambda$ in the denominator unmodified. There is no square root anywhere in it.*\n\n**Intuition.** One formula and one inverse relationship. Optimal active risk is your skill divided by twice your client's aversion to risk, so a client who becomes twice as tolerant should have you taking twice the tracking error. The information ratio is unchanged and cancels out entirely — you never need to compute either level. The trap worth naming is option C: a square root appears in so much of this syllabus that importing one here feels natural, and Grinold's formula has none.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on portfolio construction (Grinold and Kahn).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Relationship denied: Risk aversion is the denominator of the formula. Halving it cannot leave optimal active risk unchanged."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Direction inverted: Reducing risk aversion means becoming *more* tolerant of risk, so optimal active risk rises. This option reads the inverse relationship as a direct one."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Square root imported: $\\sqrt{2} - 1 = 41\\%$, which would follow if $\\psi^*$ were inversely proportional to $\\sqrt{\\lambda}$. Grinold's formula is linear in $\\lambda$ — the square-root reflex from time-scaling does not apply here."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. $\\psi^* = IR/2\\lambda$, so halving $\\lambda$ from 0.10 to 0.05 doubles optimal active risk from 3.75% to 7.50%."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "polarity-flip",
+    "unit-time-conversion"
+   ],
+   "explanation": "The formula $\\psi^* = IR/2\\lambda$ is a plain inverse in $\\lambda$. Option A ignores the risk-aversion term, option B reads the inverse relationship as direct, and option C imports the square-root-of-time reflex where no square root exists. Take the ratio $\\lambda_{old}/\\lambda_{new}$ and the answer follows without computing either level."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q11",
+  "number": 11,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-LO15",
+  "loText": "Describe the short-term rate process under CIR and lognormal models",
+  "reading": "Tuckman, The Science of Term Structure Models",
+  "topic": "Short-Rate Volatility Models",
+  "question": "For his term structure model, Peter considered the Vasicek model, but on reflection he prefers the Cox-Ingersoll-Ross (CIR) model. In regard to the CIR, which of the following statements is TRUE?",
+  "options": [
+   {
+    "key": "a",
+    "text": "A drawback of the CIR is that it does not mean revert to a long-term rate."
+   },
+   {
+    "key": "b",
+    "text": "In the CIR, the drift is time-dependent such that CIR is a no-arbitrage model."
+   },
+   {
+    "key": "c",
+    "text": "An advantage of the CIR is that the terminal distribution of the short rate is eventually normally distributed."
+   },
+   {
+    "key": "d",
+    "text": "Unlike the Vasicek model's constant volatility, the CIR's basis point volatility is not constant, and this ensures the short rate cannot become negative."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · $\\sigma\\sqrt{r}$ vanishes at $r = 0$, so the positive drift pulls the rate back up\n\n1. **Step 1 — Write the two processes side by side**\n\n$$\\text{Vasicek: } dr = k(\\theta - r)dt + \\sigma\\, dw$$\n\n$$\\text{CIR: } dr = k(\\theta - r)dt + \\sigma\\sqrt{r}\\, dw$$\n\n   The drift terms are **identical**. The only difference is the $\\sqrt{r}$ in the diffusion.\n\n   *Both mean revert to $\\theta$ at speed $k$. Option A denies the shared drift term, which disposes of it immediately.*\n\n2. **Step 2 — Trace what $\\sqrt{r}$ does at the boundary**\n\n   As $r \\to 0$, the diffusion term $\\sigma\\sqrt{r} \\to 0$ while the drift $k(\\theta - r) \\to k\\theta > 0$. Randomness switches off exactly where the upward pull is strongest, so the rate is **reflected away from zero**.\n\n   *This is the CIR model's defining property and the reason it was introduced. Vasicek's constant $\\sigma$ keeps shocking the rate regardless of level, so it can and does go negative.*\n\n3. **Step 3 — Correct the no-arbitrage claim**\n\n   CIR has a **constant** drift specification and is an **equilibrium** model — it produces a term structure rather than fitting one. Time-dependent drift is the hallmark of no-arbitrage models such as Ho-Lee and Hull-White.\n\n   *Equilibrium models explain the curve's shape from economic parameters; no-arbitrage models take today's curve as given and fit to it exactly. Different purposes.*\n\n4. **Step 4 — Correct the distributional claim**\n\n   CIR's terminal short rate follows a **non-central chi-squared** distribution, which is bounded below at zero and right-skewed. It never becomes normal.\n\n   *Normality is precisely what CIR gives up in exchange for non-negativity — a normal distribution has unbounded support and would permit negative rates by construction.*\n\n**Intuition.** CIR is Vasicek with one change: multiply the volatility by the square root of the rate. Every consequence follows from that. Near zero the randomness dies away while the mean-reverting pull is still pushing upward, so the rate cannot cross into negative territory. The distribution stops being normal and becomes chi-squared, bounded below. And high rates now move further in basis points than low ones, which matches what rate markets actually do. The drift never changed, so any option about mean reversion is not about the difference at all.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, reading on term structure models with time-dependent volatility.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Shared property denied: CIR retains Vasicek's mean-reverting drift $k(\\theta - r)$ unchanged. Mean reversion is not what distinguishes the two models."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Model family swap: CIR is an equilibrium model with constant drift parameters. Time-dependent drift and exact fitting to the observed curve characterise no-arbitrage models such as Ho-Lee."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Distribution swapped: The CIR terminal distribution is non-central chi-squared, bounded at zero. A normal distribution would have unbounded support and would reintroduce the negative rates CIR exists to prevent."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Basis-point volatility $\\sigma\\sqrt{r}$ rises with the rate level and vanishes at zero, which together with the positive drift keeps the short rate non-negative."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "The distractors attribute the wrong properties to CIR. Option A denies the mean reversion it shares with Vasicek, option B borrows the time-dependent drift of no-arbitrage models such as Ho-Lee, and option C borrows Vasicek's normal distribution. Remember that CIR changes only the diffusion term, and trace every consequence from the square root of the rate."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q12",
+  "number": 12,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-mock",
+  "loText": "Identify the sources of credit risk arising in ordinary commercial transactions, including trade receivables, prepayment, insurance contracts and bank deposits.",
+  "reading": "Credit Risk Measurement and Management, introductory reading on the nature and sources of credit risk",
+  "topic": "Sources of Credit Risk",
+  "question": "Jason is a small business owner specialising in the wholesale of steel. He purchased insurance to help safeguard his company on 4 January 2023. Later that month, on 31 January, he made a significant payment to secure a shipment of steel that arrived on 2 February. Jason delivered the steel to two clients on 8 and 9 February; however, he did not receive payment from the clients until 13 February. After receiving the proceeds, Jason deposited the money at ABC Bank.\n\nAmong these transaction dates, on which did Jason **increase** his credit risk?",
+  "options": [
+   {
+    "key": "a",
+    "text": "None of the transactions increase his credit risk."
+   },
+   {
+    "key": "b",
+    "text": "His credit risk increased on the January dates but was unchanged on the February dates."
+   },
+   {
+    "key": "c",
+    "text": "His credit risk increased on the February dates but was unchanged on the January dates."
+   },
+   {
+    "key": "d",
+    "text": "His credit risk increased on all of the cited transaction dates."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Every date creates a new party who owes Jason something\n\n1. **Step 1 — State the test**\n\n   Credit risk arises whenever **somebody owes you a future performance** and might fail to deliver it. The test is not whether money moved — it is whether a claim on a counterparty was created.\n\n   *Applied consistently, this test catches exposures that do not look like lending at all.*\n\n2. **Step 2 — Walk the timeline**\n\n| Date | Event | New counterparty exposure |\n|---|---|---|\n| 4 Jan | Buys insurance | **The insurer** — will it pay a valid claim? |\n| 31 Jan | Prepays for steel | **The supplier** — money out, goods not yet delivered |\n| 8–9 Feb | Delivers to two clients on credit | **Both clients** — trade receivables |\n| 13 Feb | Deposits proceeds at ABC Bank | **The bank** — a deposit is an unsecured claim |\n\n   *Four distinct counterparties across five dates. Every single one represents somebody who could fail to perform.*\n\n3. **Step 3 — Note the two counter-intuitive ones**\n\n   An **insurance policy** is a claim on the insurer — the very reason insurance recognition is capped in Basel's operational risk framework. And a **bank deposit** is an unsecured claim on the bank, which is exactly what depositors of failed banks discover.\n\n   *These two are what the question is really testing. Buying protection and putting money in the bank both feel like reducing risk, and both create fresh credit exposure.*\n\n4. **Step 4 — Note that prepayment is also credit risk**\n\n   Paying on 31 January for steel arriving on 2 February leaves Jason exposed to his supplier for two days — a **settlement** exposure, the same asymmetry that caused the Herstatt failure in 1974.\n\n   *Whoever performs first carries the risk. That principle underlies delivery-versus-payment systems and the atomic settlement claims made for tokenisation.*\n\n**Intuition.** Ask at each date: is there now somebody who owes me something? Buying insurance means the insurer owes you a payout if you claim. Prepaying means the supplier owes you steel. Delivering on credit means the clients owe you money. Depositing at a bank means the bank owes you your own cash back — and depositors of failed banks learn that a deposit is an unsecured claim, not a safe box. Five dates, four counterparties, and the two that feel like *reducing* risk are the ones the question is really about.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, introductory reading on the nature and sources of credit risk.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Test not applied: Every date creates a claim on someone — insurer, supplier, clients, bank. None of these is risk-free."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Receivables and deposits missed: Delivering goods before payment creates trade receivables, and depositing cash creates a claim on the bank. Both are textbook credit exposures."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Insurance and prepayment missed: An insurance policy is a claim on the insurer, and prepaying a supplier leaves Jason exposed until the goods arrive. Both January dates create exposure."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. All five dates create a new counterparty exposure — insurer, supplier, two clients and the bank."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "scope-condition-error",
+    "scope-condition-error"
+   ],
+   "explanation": "The distractors narrow the definition of credit risk to transactions that look like lending. Option A denies any exposure, while options B and C each overlook one month's claims: receivables and deposits in B, insurance and prepayment in C. Apply one test at every date — is somebody now obliged to perform for Jason in the future?"
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q13",
+  "number": 13,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-mock",
+  "loText": "Compare the Basel I and Basel II accords and describe the innovations introduced by Basel II, including operational risk capital, the three-pillar structure and the IRB approaches.",
+  "reading": "Credit Risk / Operational Risk readings on the evolution of the Basel capital framework",
+  "topic": "Evolution of Basel Accords",
+  "question": "Peter wants to understand the difference between the original Basel I accord and Basel II, published in 2004. His colleague Mary says that, in comparison to Basel I (including the 1995/1996 Amendments), the significant innovations in Basel II included:\n\n- **I.** In addition to credit risk and market risk, Basel II required capital for operational risk.\n- **II.** Basel II eliminated risk weights and risk-weighted assets (RWA).\n- **III.** Basel II introduced the three-pillar structure, adding supervisory review and market discipline.\n- **IV.** Basel II allowed banks to use internal ratings-based approaches for credit risk capital.\n\nIs Mary correct?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Yes, all four statements are correct."
+   },
+   {
+    "key": "b",
+    "text": "I. and II. are correct but III. and IV. are inaccurate."
+   },
+   {
+    "key": "c",
+    "text": "Only II. is inaccurate but I., III. and IV. are correct."
+   },
+   {
+    "key": "d",
+    "text": "Unfortunately, none of her statements are correct."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C** · Basel II *refined* risk weights; it never abolished them\n\n1. **Step 1 — Verify the three genuine innovations**\n\n| Innovation | Verdict |\n|---|---|\n| Operational risk capital charge | ✔ Entirely new in Basel II — Basel I covered credit only, the 1996 Amendment added market risk |\n| Three-pillar structure | ✔ Minimum capital, supervisory review, market discipline |\n| Internal ratings-based approaches | ✔ Banks permitted to use own PD and, under A-IRB, own LGD and EAD |\n\n   *All three represent genuine breaks from Basel I, which was a single-pillar, credit-risk-only framework with regulator-set weights.*\n\n2. **Step 2 — Identify the false statement**\n\n   Basel II did **not** eliminate risk weights or risk-weighted assets. It made them *more* granular and risk-sensitive — replacing Basel I's crude buckets with weights driven by external ratings under the standardized approach and by internal estimates under IRB.\n\n   *RWA remains the denominator of every capital ratio to this day. Eliminating it would have dismantled the entire framework rather than reforming it.*\n\n3. **Step 3 — Note what Basel I's weights looked like**\n\n   Basel I used a handful of fixed buckets — 0% for OECD sovereigns, 20% for OECD banks, 50% for residential mortgages, 100% for everything corporate, regardless of the borrower's quality.\n\n   *A blue-chip corporate and a distressed one attracted the same 100% weight, which encouraged banks to hold the riskiest asset in each bucket. Fixing that arbitrage, not abolishing weights, was Basel II's purpose.*\n\n4. **Step 4 — Note the option structure**\n\n   Three options partition the four statements; one accepts all. Since exactly one statement fails, only the option isolating II can be right.\n\n   *Contrast with BT Q8, where all five statements verified. These papers use both constructions, so the count must be established rather than guessed from the shape of the options.*\n\n**Intuition.** Basel II did three memorable things: it charged capital for operational risk, it built the three-pillar architecture, and it let banks use their own credit models. What it emphatically did not do was throw away risk weights — it made them sharper, because Basel I's crude buckets treated a blue-chip and a near-defaulting corporate identically and banks duly loaded up on the worst asset in each bucket. Risk-weighted assets remain the denominator of every capital ratio today.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk / Operational Risk readings on the evolution of the Basel capital framework.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "False statement accepted: Statement II is wrong — Basel II retained and refined risk-weighted assets. All capital ratios are still expressed against RWA."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Inverted partition: Exactly backwards. Statements III and IV — the three pillars and the IRB approaches — are the two most widely cited Basel II innovations."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Operational risk capital, the three-pillar structure and the IRB approaches are genuine innovations; the claim that risk weights were eliminated is false."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Wholesale rejection: Three of the four statements are accurate. Rejecting all of them would deny the defining features of the framework."
+   }
+  },
+  "trap": {
+   "operators": [
+    "absolute-claim-trap",
+    "polarity-flip",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Options A and D are blanket verdicts, accepting or rejecting everything, while option B inverts the partition by rejecting the two best-known Basel II innovations. The single false statement is the claim that Basel II abolished risk weights, when it actually refined them. Verify each statement individually and count the failures before choosing a partition."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q14",
+  "number": 14,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-mock",
+  "loText": "Calculate the forward exchange rate implied by covered interest parity and explain the relationship between the interest rate differential and the forward premium or discount.",
+  "reading": "Market Risk / Liquidity readings on covered interest parity and the cross-currency basis",
+  "topic": "Covered Interest Parity",
+  "question": "Assume the spot FX rate between the US dollar and the Japanese yen is USDJPY 110.00 — that is, 110.00 yen per one dollar, with USD the base currency and JPY the quote currency. The USD interest rate is 2.50% and the JPY interest rate is 0.450%. The period is one year with annual compounding.\n\nIf covered interest parity enforces a perfectly accurate one-year forward rate, what is the implied one-year swap rate — the difference F(USDJPY) − S(USDJPY)?",
+  "options": [
+   {
+    "key": "a",
+    "text": "−2.20 JPY."
+   },
+   {
+    "key": "b",
+    "text": "Zero."
+   },
+   {
+    "key": "c",
+    "text": "+5.80 JPY."
+   },
+   {
+    "key": "d",
+    "text": "+13.70 JPY."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · $F = 110 \\times 1.0045 / 1.025 = 107.80$, so the swap rate is −2.20\n\n1. **Step 1 — Write covered interest parity in the right orientation**\n\n   With the rate quoted as *quote currency per unit of base currency*:\n\n$$F = S \\times \\frac{1 + r_{quote}}{1 + r_{base}}$$\n\n   Here the base is USD and the quote is JPY, so $r_{quote} = 0.45\\%$ and $r_{base} = 2.50\\%$.\n\n   *Getting the orientation right is the whole question. Invert the fraction and you get +2.24 rather than −2.20 — correct magnitude, wrong sign.*\n\n2. **Step 2 — Compute the forward rate**\n\n$$F = 110.00 \\times \\frac{1.00450}{1.02500} = 110.00 \\times 0.98000 = 107.80$$\n\n3. **Step 3 — Take the difference**\n\n$$F - S = 107.80 - 110.00 = -2.20 \\text{ JPY}$$\n\n   The dollar trades at a forward **discount** against the yen — fewer yen per dollar in one year's time.\n\n   *A negative swap rate on a USDJPY quote means the base currency is expected to buy less of the quote currency forward.*\n\n4. **Step 4 — Sanity-check with the economics**\n\n   The **higher-yielding** currency always trades at a forward **discount**. The dollar pays 2.50% against the yen's 0.45%, so the dollar must weaken forward by roughly the 205 basis point differential — otherwise a riskless profit would exist.\n\n   *This check settles the sign without any arithmetic: dollar yields more, so the dollar is worth fewer yen forward, so the difference is negative. Only one option is negative.*\n\n**Intuition.** Covered interest parity says you cannot make money by borrowing in one currency, converting, lending in the other, and hedging the way back — so the forward rate must exactly cancel the interest differential. The dollar pays two percent more than the yen, so the forward market has to make the dollar worth correspondingly fewer yen. That reasoning gives you the sign before any arithmetic, and only one option is negative. The magnitude then follows: two percent of a hundred and ten is about 2.2.\n\n*Reference: GARP FRM Part II 2025 — Market Risk / Liquidity readings on covered interest parity and the cross-currency basis.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "−2.20. 110 × 1.0045/1.025 − 110. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Zero. Parity misunderstood: A zero swap rate would require the two interest rates to be equal. They differ by 205 basis points, and covered interest parity converts that differential directly into a forward premium or discount."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "+5.80. Sign and magnitude: Positive, so it has the higher-yielding currency at a forward *premium* — the arbitrage-free relationship reversed. The magnitude is also inconsistent with a 205 basis point differential on a 110 spot."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "+13.70. Rates applied to the wrong base: Far too large. A 205 basis point differential on a spot of 110 implies a move of roughly 2.2 yen, not 13.7 — a magnitude check disposes of this before any calculation."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "sign-error",
+    "role-misassignment"
+   ],
+   "explanation": "The trap is orientation: which currency's rate belongs in the numerator. Option B ignores the interest differential altogether, option C puts the higher-yielding dollar at a forward premium, and option D applies the rates to the wrong base with an implausible magnitude. Fix the sign first (the higher-yielding currency trades at a forward discount), then check the magnitude is about 2% of spot."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q15",
+  "number": 15,
+  "subject": "Investment Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "IR-mock",
+  "loText": "Describe volatility as a risk factor and explain the leverage effect and the time-varying risk premium channels linking volatility to stock returns.",
+  "reading": "Risk Management and Investment Management, reading on factor theory (Ang)",
+  "topic": "Volatility as a Risk Factor",
+  "question": "Volatility is an important risk factor according to Andrew Ang. The strong negative relationship between VIX changes and stock returns is explained by at least two dynamics; the first is the leverage effect, and the second is a time-varying risk premium story consistent with the CAPM.\n\nAssume the risk-free rate is 3.0% and the equity risk premium is 6.0%, so the market's expected return is 9.0%. According to the CAPM, which of the following should cause a **decline** in a stock's price?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The VIX Index declines from 21.00 to 19.00."
+   },
+   {
+    "key": "b",
+    "text": "The market's volatility decreases and the stock's volatility decreases along with it."
+   },
+   {
+    "key": "c",
+    "text": "The stock's volatility decreases, which corresponds to an increase in its leverage via the leverage effect."
+   },
+   {
+    "key": "d",
+    "text": "The stock's volatility increases (along with an increase in its correlation to the market), while the market's volatility is unchanged."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Both $\\sigma_i$ and $\\rho$ rise with $\\sigma_m$ fixed — beta rises, discount rate rises, price falls\n\n1. **Step 1 — Write beta in its components**\n\n$$\\beta_i = \\frac{\\rho_{i,m}\\,\\sigma_i}{\\sigma_m}$$\n\n   A higher beta means a higher required return, and a higher discount rate applied to unchanged expected cash flows means a **lower price**.\n\n   *This is the transmission channel Ang describes. Volatility affects prices through the discount rate, not through the cash flows.*\n\n2. **Step 2 — Evaluate option D**\n\n   $\\sigma_i$ rises, $\\rho$ rises, $\\sigma_m$ unchanged — the numerator increases on both counts while the denominator holds. Beta **unambiguously rises**.\n\n   *Both moving factors push the same way, which is what makes this the clean answer. Only one of the four options raises beta at all.*\n\n3. **Step 3 — Evaluate the ambiguous option B**\n\n   If $\\sigma_i$ and $\\sigma_m$ both fall, beta's numerator and denominator move together and beta is roughly unchanged. But a falling market volatility means a *lower equity risk premium*, which raises prices.\n\n   *So option B pushes prices **up**, not down — the opposite of what the question asks.*\n\n4. **Step 4 — Dispose of the remaining two**\n\n   A falling VIX signals a lower risk premium, so prices *rise*. And option C is internally contradictory: the leverage effect says higher leverage produces *higher* equity volatility, so falling volatility cannot correspond to rising leverage.\n\n   *Option C is self-inconsistent on its own terms and can be discarded without any CAPM reasoning.*\n\n**Intuition.** Volatility reaches prices through the discount rate. Anything that raises a stock's beta raises what investors demand from it, and a higher demanded return on unchanged cash flows means a lower price today. Beta is correlation times the stock's volatility over the market's, so the only option that raises it is the one where the stock gets both more volatile and more market-correlated while the market itself holds still. The others either lower the risk premium — which lifts prices — or contradict the leverage effect they invoke.\n\n*Reference: GARP FRM Part II 2025 — Risk Management and Investment Management, reading on factor theory (Ang).*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Direction reversed: A falling VIX indicates a lower expected risk premium, which lowers the discount rate and *raises* prices. The observed negative relation between VIX changes and returns runs the other way."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Direction reversed: Both volatilities falling leaves beta broadly unchanged while reducing the market risk premium. The net effect is a lower discount rate and higher prices."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "Internally contradictory: The leverage effect states that *increasing* leverage raises equity volatility. Falling volatility accompanying rising leverage inverts the very mechanism it names."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Rising stock volatility and rising correlation with a fixed market volatility both raise beta, raising the required return and lowering the price."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "polarity-flip"
+   ],
+   "explanation": "Every distractor runs a volatility channel in the wrong direction. Options A and B describe falling volatility, which lowers the risk premium and lifts prices, and option C inverts the leverage effect it invokes. Decompose $\\beta_i = \\rho_{i,m}\\sigma_i/\\sigma_m$ and pick the only change that unambiguously raises beta and therefore the discount rate."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q16",
+  "number": 16,
+  "subject": "Market Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "MR-mock",
+  "loText": "Describe the Vasicek model, calculate the expected short rate given the half-life, and explain the limitations arising from its single-factor structure.",
+  "reading": "Market Risk Measurement and Management, reading on term structure models with drift and mean reversion",
+  "topic": "Vasicek Model",
+  "question": "An analyst fits a Vasicek model when the current short-term rate is 4.60%. If the theta ($\\theta$) parameter is 13.50%, then each of the following statements is true **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "A key advantage of the Vasicek model is that it is a relatively simple model."
+   },
+   {
+    "key": "b",
+    "text": "If the half-life is nine years, then we might expect the short rate to reach about 9.0% in nine years or so."
+   },
+   {
+    "key": "c",
+    "text": "The standard deviation of the short rate in ten years is less than it would be without mean reversion."
+   },
+   {
+    "key": "d",
+    "text": "Because it is a multi-factor model, the Vasicek is popularly applied to hedge portfolios that contain short-, medium- and long-term bonds."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D** · Vasicek is a *one*-factor model — that is its defining limitation\n\n1. **Step 1 — Identify the false statement immediately**\n\n   Vasicek is driven by a **single** state variable, the short rate:\n\n$$dr = k(\\theta - r)dt + \\sigma\\, dw$$\n\n   One factor means every point on the curve moves together, so the model cannot represent steepenings, flattenings or butterflies.\n\n   *A model that cannot produce non-parallel curve moves is precisely the wrong tool for hedging a portfolio spanning short, medium and long maturities. Option D is wrong on both the factor count and the use case.*\n\n2. **Step 2 — Verify the half-life statement**\n\n   The half-life is the time to close half the gap to the long-run mean:\n\n$$4.60\\% + \\tfrac{1}{2}(13.50\\% - 4.60\\%) = 4.60\\% + 4.45\\% = 9.05\\%$$\n\n   *About 9.0% after nine years — statement B checks out exactly. The half-life itself is $\\ln 2/k$, so a nine-year half-life implies $k \\approx 0.077$, a slow reverter.*\n\n3. **Step 3 — Verify the standard deviation statement**\n\n   Mean reversion pulls the rate back toward $\\theta$, **damping** the spread of outcomes. Without it the process is a random walk whose variance grows without limit; with it the variance converges to $\\sigma^2/2k$.\n\n   *So the ten-year standard deviation is indeed lower than a driftless random walk would give. Statement C is true and is one of the model's genuine attractions.*\n\n4. **Step 4 — Verify the simplicity statement**\n\n   Vasicek offers closed-form bond and option prices, three interpretable parameters and an explicit half-life. Simplicity is exactly why it is the standard teaching model.\n\n   *Its known defect is that normally distributed rates can go negative — which is what CIR's $\\sigma\\sqrt{r}$ fixes.*\n\n**Intuition.** Three of these are the standard things one says in Vasicek's favour: it is simple, it mean reverts at a rate you can express as a half-life, and that reversion keeps the distribution of future rates from fanning out indefinitely. The fourth calls it a multi-factor model, which it is not — one state variable, one source of randomness, and therefore a curve that can only move up and down in parallel. That limitation is exactly why nobody hedges a bond book across three maturity buckets with it.\n\n*Reference: GARP FRM Part II 2025 — Market Risk Measurement and Management, reading on term structure models with drift and mean reversion.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) Closed-form solutions and three interpretable parameters make Vasicek the canonical simple term structure model."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) Half the gap from 4.60% to 13.50% is 4.45%, giving 9.05% after one half-life. The statement is accurate to a rounding."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) Mean reversion damps the growth of variance, so the ten-year standard deviation is below what a random walk would produce."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Factor count wrong: Correct answer to the negative qualifier. Vasicek is a *single*-factor model. It forces parallel curve shifts and is therefore unsuited to hedging across the maturity spectrum — the reason multi-factor models such as Gauss+ exist."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "This is an EXCEPT question, so options A, B and C are true statements about Vasicek that tempt a reader who answers the positive question. The false statement miscounts the factors: Vasicek has one state variable, so it can only move the curve in parallel and cannot hedge across maturities. Check the factor count and the use case before verifying the arithmetic in B."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q17",
+  "number": 17,
+  "subject": "Credit Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "CR-mock",
+  "loText": "Calculate return on equity under different capital structures and explain how financial leverage amplifies both the level and the volatility of equity returns.",
+  "reading": "Credit Risk Measurement and Management, readings on capital structure and the analysis of financial statements",
+  "topic": "Leverage and ROE",
+  "question": "Firm A, Firm B and Firm C are three companies in the bottled water industry. All have a mix of debt and equity. In 2022 all three suffered credit losses that lowered EBIT. Each firm has total assets of USD 1,000 million, borrows at 5%, and pays tax at 25%. Each generated EBIT of USD 100 million before credit losses, and each suffered credit losses of USD 60 million.\n\n| Firm | Debt | Equity | Interest expense |\n|---|---:|---:|---:|\n| A | 700 | 300 | 35 |\n| B | 500 | 500 | 25 |\n| C | 300 | 700 | 15 |\n\nWhich of the following statements is correct?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Firm C has the highest ROE due to its lower equity position."
+   },
+   {
+    "key": "b",
+    "text": "Firm A had the higher ROE because of its large debt position."
+   },
+   {
+    "key": "c",
+    "text": "Without credit losses, Firm A would have had the highest ROE."
+   },
+   {
+    "key": "d",
+    "text": "Without credit losses, Firm B would have had the highest ROE."
+   }
+  ],
+  "answer": "c",
+  "solution": "> **Rebuilt:** The printed Q17 refers to ‘the above information’ but the financial summary table was an image and is absent from the source file. The item has been rebuilt with figures that reproduce the intended lesson — leverage amplifying ROE in both directions — and preserve the original option structure.\n\n**Correct answer: C** · Leverage amplifies both ways — A wins without the losses and loses badly with them\n\n1. **Step 1 — Compute ROE *after* the credit losses (EBIT = 40)**\n\n| Firm | EBIT − interest | After tax | ROE |\n|---|---:|---:|---:|\n| A | 40 − 35 = 5 | 3.75 | 1.25% |\n| B | 40 − 25 = 15 | 11.25 | 2.25% |\n| **C** | 40 − 15 = 25 | 18.75 | **2.68%** |\n\n   *With EBIT collapsed to 40, the most leveraged firm barely covers its interest. Firm C — the least leveraged — posts the highest ROE.*\n\n2. **Step 2 — Compute ROE *without* the credit losses (EBIT = 100)**\n\n| Firm | EBIT − interest | After tax | ROE |\n|---|---:|---:|---:|\n| **A** | 100 − 35 = 65 | 48.75 | **16.25%** |\n| B | 100 − 25 = 75 | 56.25 | 11.25% |\n| C | 100 − 15 = 85 | 63.75 | 9.11% |\n\n   *The ranking **completely reverses**. Firm A goes from worst to best because its small equity base divides a much larger profit.*\n\n3. **Step 3 — State the mechanism**\n\n   Leverage is profitable whenever the return on assets exceeds the cost of debt. With EBIT of 100 on assets of 1,000 the pre-tax ROA is 10% against a 5% borrowing cost, so debt adds value. After the credit losses ROA falls to 4% — **below** the 5% cost of debt — and leverage destroys value.\n\n   *That crossing point is the whole answer. The same capital structure that produced the best ROE in a good year produces the worst in a bad one.*\n\n4. **Step 4 — Read the risk lesson**\n\n   Firm A's ROE swings from 16.25% to 1.25% — a range of 15 percentage points — while Firm C's moves only from 9.11% to 2.68%. Leverage magnifies the **volatility** of equity returns, not just their level.\n\n   *This is the Merton intuition in accounting form: equity is a levered claim, and higher leverage means higher equity volatility. It is the same leverage effect that appears in the volatility-as-a-risk-factor material.*\n\n**Intuition.** Borrowing at five to earn ten is a good trade, and the more you do it the better your return on the equity you actually put up — so in a normal year the most indebted firm wins. Credit losses cut the return on assets to four, below the cost of the debt, and every one of those borrowed pounds now costs more than it earns. The ranking flips completely: Firm A goes from best to worst, and its ROE swings across fifteen percentage points while the conservative firm barely moves six.\n\n*Reference: GARP FRM Part II 2025 — Credit Risk Measurement and Management, readings on capital structure and the analysis of financial statements.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "Right firm, wrong reason: Firm C does have the highest ROE after the credit losses — but because its equity is the *largest* at 700, not the lowest. The conclusion is right and the stated mechanism is inverted."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "Direction reversed: Firm A has the *lowest* ROE at 1.25%. Its large debt position is precisely what hurt it, because return on assets fell below the cost of borrowing."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Without the credit losses, ROA of 10% exceeds the 5% cost of debt, so the most leveraged firm wins — Firm A at 16.25%."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "Middle firm: Firm B is second at 11.25% in the no-loss case. Leverage helps monotonically when ROA exceeds the borrowing cost, so the *most* leveraged firm leads."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "calculation-slip"
+   ],
+   "explanation": "Leverage amplifies ROE in whichever direction ROA moves relative to the cost of debt. Option A reaches the right firm with an inverted reason, option B claims leverage helped when ROA had fallen below the 5% borrowing cost, and option D stops at the middle of a monotonic ranking. Compare ROA with the cost of debt in each scenario before ranking the firms."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q18",
+  "number": 18,
+  "subject": "Operational Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "OR-LO3",
+  "loText": "Describe and compare the three lines of defence model.",
+  "reading": "Operational Risk and Resilience, Ch. 2: Risk Governance",
+  "topic": "Operational Risk Governance",
+  "question": "The three lines of defence model achieved wider visibility when the Institute of Internal Auditors published its position paper in 2013, updated in 2021. In regard to the 3LoD model, each of the following is true **EXCEPT** which is false?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The first line defines the organization's risk appetite but should not attempt to directly influence its risk culture."
+   },
+   {
+    "key": "b",
+    "text": "The first line is responsible for implementing and maintaining effective controls to manage material operational risks."
+   },
+   {
+    "key": "c",
+    "text": "The second line is part of management (and owns the ORM methodology) but provides support to the first line in order to help the firm create and protect value."
+   },
+   {
+    "key": "d",
+    "text": "The third line has the clearest boundaries due to its independence."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Two errors in one option — the board sets appetite, and the first line drives culture\n\n1. **Step 1 — Locate the first error: who sets risk appetite**\n\n   Risk appetite is set by the **board**, on the advice of the risk function. It is a governance decision about how much risk the firm will bear and is explicitly non-delegable.\n\n   *The first line operates within the appetite the board defines. Letting the risk-takers set their own limits removes the entire point of having limits.*\n\n2. **Step 2 — Locate the second error: risk culture**\n\n   The first line has the **greatest** influence on risk culture — it is where day-to-day behaviour, incentives and tone actually operate. Suggesting it should avoid influencing culture inverts this.\n\n   *Culture is not something the risk function can install from outside. Where the business rewards volume over quality, no second-line policy will correct it.*\n\n3. **Step 3 — Verify the three true statements**\n\n| Statement | Verdict |\n|---|---|\n| First line implements and maintains controls | ✔ It owns the risks and therefore the controls |\n| Second line is part of management, owns ORM methodology, supports the first line | ✔ The 2021 IIA update emphasises *collaboration*, not policing |\n| Third line has the clearest boundaries due to independence | ✔ Internal audit reports to the board, not to management |\n\n   *Statement C reflects the 2021 revision specifically: the second line helps the firm create value as well as protect it, which was a deliberate shift in framing.*\n\n4. **Step 4 — Note why the third line's boundaries are cleanest**\n\n   Internal audit's independence is structural — it reports to the audit committee rather than to management. The **first/second line boundary** is the blurry one, since both sit within management.\n\n   *Which is why disputes about whether a control function is first or second line are common, and disputes about whether something is internal audit are not.*\n\n**Intuition.** The false option packs two mistakes into one sentence, which is why it stands out once you look. Risk appetite comes from the board — that is the one thing in the framework that cannot be delegated, because letting the risk-takers set their own limits defeats the purpose. And risk culture is overwhelmingly shaped by the first line, since culture is what people actually do at their desks, not what a policy document says. Both halves are inverted.\n\n*Reference: GARP FRM Part II 2025 — Operational Risk and Resilience, reading on operational risk governance and the three lines of defence.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Two errors in one statement: Correct answer to the negative qualifier. The *board* defines risk appetite, not the first line; and the first line has the strongest influence on risk culture, not the weakest."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) The first line owns its risks and therefore owns the controls that manage them. Standard 3LoD allocation."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) Accurate, and specifically reflects the 2021 IIA update's emphasis on the second line supporting the business to create and protect value rather than acting purely as a policing function."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(True statement.) Internal audit's independence — reporting to the board rather than management — gives it the clearest boundary. The first/second line boundary is the contested one."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "This is an EXCEPT question, so options B, C and D are accurate descriptions of the three lines that catch a reader answering the positive question. The false statement hides two inversions: it gives the first line the board's job of setting risk appetite and denies the first line's central role in risk culture. Check who owns each governance decision before judging a statement true."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "BTMOCK-Q19",
+  "number": 19,
+  "subject": "Liquidity Risk",
+  "tier": "BionicTurtle Mock",
+  "lo": "LR-LO4",
+  "loText": "Evaluate the characteristics of sound Early Warning Indicators (EWI) measures.",
+  "reading": "LR2025, Ch. 3: Early Warning Indicators",
+  "topic": "Early Warning Indicators",
+  "question": "Liquidity early warning indicators can be compared to an automobile's dashboard, where a red light points attention to something that may become a problem if not addressed. Each of the following is a credible red flag in a liquidity EWI dashboard **EXCEPT** which is not?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Narrowing debt/CDS spreads."
+   },
+   {
+    "key": "b",
+    "text": "Sudden increase in debt costs."
+   },
+   {
+    "key": "c",
+    "text": "Sudden growth in assets accompanied by volatile liabilities."
+   },
+   {
+    "key": "d",
+    "text": "Rapid decline in the weighted average maturity of liabilities."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A** · Narrowing spreads are good news — the market is *more* confident\n\n1. **Step 1 — Read the direction on each indicator**\n\n| Indicator | Red flag direction | Stem says |\n|---|---|---|\n| Debt / CDS spreads | **Widening** | **Narrowing** — the opposite |\n| Debt costs | Rising | Sudden increase ✔ |\n| Asset growth with volatile liabilities | Both together | As stated ✔ |\n| Weighted average maturity of liabilities | Falling | Rapid decline ✔ |\n\n   *Three of the four are stated in their alarming direction; one is stated in its reassuring direction. That is the whole question.*\n\n2. **Step 2 — Explain why widening spreads are the canonical EWI**\n\n   A firm's own CDS spread aggregates every market participant's judgement of its credit and updates continuously. **Narrowing** spreads mean the market is becoming *more* comfortable — the opposite of a warning.\n\n   *Spreads are the strongest single early warning indicator precisely because they are forward-looking and sharp. Balance sheet ratios lag; spreads do not.*\n\n3. **Step 3 — Explain the two structural red flags**\n\n   Rapid asset growth funded by **volatile** liabilities is the Northern Rock pattern — expanding the book on money that can leave. And a falling weighted average maturity of liabilities means the funding base is shortening, so more must be rolled more often.\n\n   *Both describe a bank becoming more dependent on continuous market access, which is exactly what disappears in a crisis.*\n\n4. **Step 4 — Note the convergence principle**\n\n   Individual indicators can each have benign explanations. What matters is whether several forward-looking measures deteriorate **together**.\n\n   *A single amber light may be noise; three at once is a signal. Reading indicators as a set rather than individually is the discipline the framework exists to enforce.*\n\n**Intuition.** Every indicator on a liquidity dashboard has a direction that means trouble, and the trick here is that one option is quoted pointing the safe way. Debt costs rising, funding shortening, assets ballooning on flighty money — all alarming. Spreads *narrowing* means the market has decided you are safer than it thought, which is the reverse of a warning. Widening is the red flag, and it is the single sharpest one available because it updates continuously and aggregates everyone's opinion.\n\n*Reference: GARP FRM Part II 2025 — Liquidity and Treasury Risk Measurement and Management, reading on early warning indicators.*",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Direction reversed: Correct answer to the negative qualifier. *Widening* spreads are the red flag; narrowing spreads indicate improving market confidence in the firm's credit."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "(Genuine red flag.) A sudden increase in the cost of debt signals deteriorating market perception and directly raises the cost of rolling funding."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "(Genuine red flag.) Rapid asset growth funded by volatile liabilities is the classic pre-failure pattern — the Northern Rock configuration."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "(Genuine red flag.) A shortening liability maturity profile means more frequent refinancing and greater exposure to a market closure."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "This is an EXCEPT question, so options B, C and D are genuine red flags that tempt a reader who answers the positive question. The odd one out is an indicator quoted in its reassuring direction: narrowing spreads signal improving confidence, while widening is the warning. For each indicator, name the direction that means trouble and compare it with the direction stated."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ }
+]

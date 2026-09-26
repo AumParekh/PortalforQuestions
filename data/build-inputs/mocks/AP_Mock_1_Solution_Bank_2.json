@@ -1,0 +1,1262 @@
+[
+ {
+  "id": "APMOCK1-Q23",
+  "number": 23,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO1",
+  "loText": "Define the hazard rate and calculate cumulative, marginal and conditional default probabilities from a credit spread and recovery rate.",
+  "reading": "Reading 88: Hull, Estimating Default Probabilities",
+  "topic": "Estimating Default Probabilities",
+  "question": "Consider a corporate bond with a maturity of 2 years. The bond's yield is 7% and the risk-free rate is 3%. Assuming a recovery rate of 40%, a risk manager wishes to calculate the probability of default occurring in the **second year** of the bond's tenure. The 2-year period is divided into 1-year intervals.",
+  "options": [
+   {
+    "key": "a",
+    "text": "0.0755."
+   },
+   {
+    "key": "b",
+    "text": "0.0603."
+   },
+   {
+    "key": "c",
+    "text": "0.0658."
+   },
+   {
+    "key": "d",
+    "text": "0.0842."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Cumulative PD at 2 years less cumulative PD at 1 year**\n\n**Step 1 — Derive the hazard rate from the spread**\n\n$$\\lambda = \\frac{\\text{spread}}{1 - RR} = \\frac{0.07 - 0.03}{1 - 0.40} = \\frac{0.04}{0.60} = 0.0667$$\n\n*The denominator is **LGD**, not the recovery rate. Dividing by 0.40 instead of 0.60 gives λ = 0.10 and lands near option D — the standard input-twin error.*\n\n**Step 2 — Compute cumulative survival at each horizon**\n\n$$S(1) = e^{-0.0667(1)} = 0.93551 \\qquad S(2) = e^{-0.0667(2)} = 0.87517$$\n\n*Survival decays exponentially at a constant hazard rate. Each year the firm survives, it faces the same conditional default intensity.*\n\n**Step 3 — Convert to cumulative default probabilities**\n\n$$PD_{cum}(1) = 1 - 0.93551 = 0.06449$$\n\n$$PD_{cum}(2) = 1 - 0.87517 = 0.12483$$\n\n*Name both. The one-year figure of 0.0645 is close to option C, which is what a candidate reaches by computing the first year and stopping.*\n\n**Step 4 — Take the marginal probability**\n\n$$PD_{marginal,\\ year\\ 2} = PD_{cum}(2) - PD_{cum}(1) = 0.12483 - 0.06449 = 0.06034 \\approx 0.0603$$\n\n*The marginal probability is unconditional — the chance, viewed from today, of defaulting during year two. It is slightly below the year-one figure, because the firm must survive year one first. The conditional probability of default in year two given survival is 0.0645, unchanged.*\n\n**Intuition.** The spread compensates for expected loss, so dividing it by what you actually lose on default gives the default intensity. From there, survival decays exponentially, and the chance of failing during year two is simply the difference between the cumulative figures at two years and one. That difference is *marginal* probability and is slightly smaller than year one's, because the firm has to survive year one to default in year two. The conditional probability — given survival — never changes, and it is sitting in the option list.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**0.0755 · Hazard or horizon slip.** In the region produced by a mis-set hazard rate or by mixing discrete and continuous conventions. The four options are clustered within 250 basis points, so a single substitution lands on a neighbour."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**0.0603.** 0.12483 − 0.06449. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**0.0658 · Year-one or conditional PD.** Close to the first-year cumulative PD of 0.0645, which is also the *conditional* probability of default in year two. Correct arithmetic answering a different question — conditional rather than marginal."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**0.0842 · Recovery rate for LGD.** Using λ = 0.04/0.40 = 0.10 gives a year-two marginal PD of about 0.0861. Dividing the spread by the recovery rate instead of by loss given default — the classic input twin."
+   }
+  },
+  "trap": {
+   "operators": [
+    "calculation-slip",
+    "intermediate-result-trap",
+    "wrong-input-twin"
+   ],
+   "explanation": "The traps sit at each link of the chain: dividing the spread by the recovery rate instead of LGD, stopping at the year-one cumulative PD, or reporting the conditional rather than the marginal probability. Name each intermediate as you compute it and check it against the options. The marginal year-two PD is PD_cum(2) − PD_cum(1), which is slightly below the year-one figure."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q24",
+  "number": 24,
+  "subject": "Market Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "MR-LO9",
+  "loText": "Describe correlation swaps and calculate the realised correlation and the payoff to the buyer.",
+  "reading": "Meissner, Correlation Risk",
+  "topic": "Correlation Risk",
+  "question": "The buyer of a correlation swap with three assets and a maturity of one year pays a fixed rate of 2.5%. The notional amount is USD 1 million. If the realised pairwise correlations of the daily log returns are $\\rho_{2,1} = 0.2$, $\\rho_{3,1} = 0.4$ and $\\rho_{3,2} = 0.3$, what is the realised correlation?",
+  "options": [
+   {
+    "key": "a",
+    "text": "0.30."
+   },
+   {
+    "key": "b",
+    "text": "0.20."
+   },
+   {
+    "key": "c",
+    "text": "0.45."
+   },
+   {
+    "key": "d",
+    "text": "0.16."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Average the three pairs — 0.9 over 3**\n\n**Step 1 — Count the pairs**\n\n$$\\text{Number of pairs} = \\frac{n(n-1)}{2} = \\frac{3(2)}{2} = 3$$\n\nWith three assets there are exactly three distinct pairs, all of which the stem supplies.\n\n*The normalising constant is the number of pairs, not the number of assets. Dividing by 2 or by 9 instead of by 3 produces two of the distractors.*\n\n**Step 2 — Apply the realised correlation formula**\n\n$$\\rho_{realised} = \\frac{2}{n(n-1)} \\sum_{i>j} \\rho_{i,j} = \\frac{2}{6}(0.2 + 0.4 + 0.3) = \\frac{0.9}{3} = 0.30$$\n\n*It is simply the arithmetic mean of the pairwise correlations — the factor 2/n(n−1) is the reciprocal of the pair count.*\n\n**Step 3 — Settle the swap**\n\nThe buyer pays a fixed 2.5% and receives the realised correlation. With realised at 30% against a fixed 2.5%:\n\n$$\\text{Payoff} = 1{,}000{,}000 \\times (0.30 - 0.025) = \\text{USD } 275{,}000$$\n\nto the buyer.\n\n*A correlation swap buyer is long correlation — a bet that assets will move together more than the market priced. It is the natural hedge for a dispersion trade and gains in exactly the crises when diversification fails.*\n\n**Step 4 — Note the scaling as n grows**\n\nWith ten assets there would be 45 pairs. The pair count grows roughly with n², so the formula's normalisation matters far more in realistic multi-asset baskets.\n\n*Which is also why correlation risk is not diversifiable: adding assets adds pairs faster than it adds positions.*\n\n**Intuition.** A correlation swap settles on the average correlation across every pair in the basket, so the only decision is what to divide by. Three assets give three pairs — one, two; one, three; two, three — so the answer is the simple mean of the three numbers supplied. The formula's 2/n(n−1) looks forbidding but is just the reciprocal of the pair count, and two of the distractors come from mis-reading it as something to do with the number of assets.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "**0.30.** (0.2 + 0.4 + 0.3)/3. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**0.20 · Single pairwise value.** The smallest of the three supplied correlations, reported without averaging. A given input returned as an answer."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**0.45 · Wrong divisor.** 0.9 / 2 = 0.45 — dividing by the number of assets minus one rather than by the number of pairs. With three assets there are three pairs, not two."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**0.16 · Wrong divisor.** In the region of 0.9 divided by n² = 9, giving 0.10, or other mis-normalisations. The constant is 2/n(n−1), which equals one over the pair count."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "calculation-slip",
+    "calculation-slip"
+   ],
+   "explanation": "The only real decision is the normalising constant: realised correlation is the average over the n(n−1)/2 distinct pairs, not over the number of assets or n². One distractor simply returns an input, the other two come from the wrong divisor. Count the pairs first, then take the simple mean."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q25",
+  "number": 25,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO15",
+  "loText": "Explain how changes in counterparty credit spreads affect the credit value adjustment charged between derivative counterparties.",
+  "reading": "Reading 98: Gregory, Credit and Debt Value Adjustments",
+  "topic": "CVA, DVA and xVA",
+  "question": "Bank of Baroda often enters into swap contracts with Bank of Panamba, a major provider of swaps. In the last few months Panamba was downgraded from A to A−, while Baroda was downgraded from BB+ to BB. Following these changes, Panamba's credit spread increased from 38 bps to 128 bps, while Baroda's increased from 118 bps to 228 bps.\n\nWhich of the following actions will most likely be taken by the counterparties with respect to their credit value adjustment?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Bank of Panamba requests an increase in the CVA charge it receives."
+   },
+   {
+    "key": "b",
+    "text": "Bank of Baroda requests a reduction in the CVA charge it pays."
+   },
+   {
+    "key": "c",
+    "text": "CVA is no longer as important a factor, so the counterparties will migrate to other risk mitigation measures."
+   },
+   {
+    "key": "d",
+    "text": "Status quo remains, because although both credit qualities have migrated, the overall change is not sufficient to warrant an amendment."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Baroda's spread widened 110 bps — Panamba charges more for bearing Baroda's risk**\n\n**Step 1 — Fix who charges whom**\n\nA party's CVA charge compensates it for the risk that its **counterparty** defaults. Panamba faces Baroda, so Panamba's CVA is driven by *Baroda's* credit quality.\n\n*Panamba is the swap provider and the stronger credit, so it is the party charging. The question is whether the charge should rise or fall.*\n\n**Step 2 — Measure the deterioration**\n\n| Bank | Old spread | New spread | Change |\n|---|---|---|---|\n| Panamba (A → A−) | 38 bps | 128 bps | +90 |\n| **Baroda** (BB+ → BB) | 118 bps | 228 bps | **+110** |\n\n*Both deteriorated, but Baroda's spread widened more and from a higher base. Baroda is now a materially worse credit at 228 bps.*\n\n**Step 3 — Draw the conclusion**\n\nPanamba is bearing more counterparty risk than before, so it will **increase the CVA charge it receives** from Baroda.\n\n*Note that Panamba's own deterioration raises its DVA — a benefit to Panamba — but that is a separate leg and not what the options ask about.*\n\n**Step 4 — Dispose of the remaining three**\n\nBaroda cannot credibly request a *reduction* when its own credit has worsened. And a 90–110 basis point widening on both sides is a substantial repricing, not a reason to abandon CVA or to leave terms unchanged.\n\n*Options C and D both amount to doing nothing after a doubling of both parties' credit spreads, which no derivatives desk would accept.*\n\n**Intuition.** CVA is a charge for the other side's credit, so trace whose credit changed and who is exposed to it. Panamba faces Baroda, and Baroda's spread widened by 110 basis points to a distinctly sub-investment-grade 228 — so Panamba is carrying more risk and will want paying for it. The mirror option asks you to believe a downgraded borrower can demand a discount, which is the direction error the question exists to catch.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. Baroda's spread widened by 110 bps to 228 bps, so Panamba bears materially more counterparty risk and will raise the CVA charge it receives."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Direction inverted.** Baroda's own credit deteriorated, so it should pay *more*, not less. Requesting a reduction after being downgraded inverts the entire logic of CVA."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Importance reversed.** Widening spreads make CVA *more* important, not less. It is precisely when counterparty credit deteriorates that the adjustment matters most."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Materiality understated.** Panamba's spread more than tripled and Baroda's nearly doubled. Movements of this size are unambiguously material to any CVA calculation."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "polarity-flip",
+    "scope-condition-error"
+   ],
+   "explanation": "This is a direction question: CVA is charged for the counterparty's credit, so trace whose spread moved and who is exposed to it. The mirror option has the downgraded party asking for a discount, and the other two deny that a 90–110 bp widening matters at all. Fix who charges whom first, then read the direction of the change."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q26",
+  "number": 26,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO15",
+  "loText": "Compare structural and reduced-form models of default and explain how each generates default correlation.",
+  "reading": "Reading 89: Malz, Default Correlation and Portfolio Credit Risk",
+  "topic": "Merton and Credit Risk Models",
+  "question": "A financial risk manager needs to explain the distinction between **structural** and **reduced-form** models in the context of default correlation. Which of the following accurately describes a differentiating feature?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Structural models focus on the legal framework of default, whereas reduced-form models are based on underlying economic factors that impact a firm's assets."
+   },
+   {
+    "key": "b",
+    "text": "Reduced-form models directly specify default correlation based on asset value, while structural models use statistical concepts like copulas to model dependency structure."
+   },
+   {
+    "key": "c",
+    "text": "Structural models are based on underlying economic factors that impact a firm's assets, with default probability correlated through these factors, while reduced-form models specify default intensities and correlate them statistically."
+   },
+   {
+    "key": "d",
+    "text": "Reduced-form models determine default correlation through the common influences on a portfolio, such as market or sector trends, and structural models do not consider systematic factors."
+   }
+  ],
+  "answer": "c",
+  "solution": "**Correct answer: C · Structural models explain default from asset value; reduced-form models fit intensities to prices**\n\n**Step 1 — Separate the two families**\n\n| | Structural (Merton) | Reduced-form (intensity) |\n|---|---|---|\n| Default occurs when | Asset value falls below the debt threshold | A jump process fires — unexplained |\n| Driven by | **Economic factors affecting firm assets** | A hazard rate calibrated to market spreads |\n| Correlation arises from | Common factors driving asset values | Correlated intensities, or a copula |\n| Calibrated to | Equity prices and balance sheet data | Credit spreads directly |\n\n*Structural models explain default; reduced-form models describe it. That is the deepest difference and everything else follows from it.*\n\n**Step 2 — Verify option C**\n\nStructural correlation runs through common economic factors affecting asset values — the Vasicek single-factor model is the canonical case. Reduced-form correlation is imposed statistically on the default intensities.\n\n*Correct on both halves, which is what the other three fail to be.*\n\n**Step 3 — Note the practical trade-off**\n\nStructural models give economic intuition but notoriously **understate** short-term spreads, since a firm cannot default suddenly if its asset value moves continuously. Reduced-form models fit observed spreads at every horizon but explain nothing about why.\n\n*Hence the hybrid approaches in practice: structural intuition for capital allocation, reduced-form calibration for pricing.*\n\n**Step 4 — Note the corruption in each distractor**\n\nOption A invents a ‘legal framework’ description and swaps the economic-factor attribution. Option B reverses both mechanisms. Option D denies that structural models consider systematic factors — when a common systematic factor is exactly how they generate correlation.\n\n*Three sibling swaps of increasing boldness, ending with one that contradicts the structural model's defining feature.*\n\n**Intuition.** The two families answer different questions. A structural model says a firm defaults because its assets fell below what it owes, so anything moving assets together — the economy, the sector — moves defaults together. A reduced-form model does not ask why; it posits a default intensity, fits it to observed spreads, and then has to *impose* correlation from outside, usually with a copula. Every distractor here swaps which family owns which mechanism.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Both halves wrong.** Structural models are about *asset values*, not legal frameworks, and the economic-factor description belongs to structural models rather than reduced-form ones. Both attributions are inverted."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Sibling swap.** Exactly reversed. Structural models specify default via asset value; reduced-form models are the ones that reach for copulas and statistical dependency structures."
+   },
+   "c": {
+    "verdict": "correct",
+    "reason": "Correct. Structural models correlate default through common economic factors driving asset values; reduced-form models specify intensities and correlate them statistically."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Defining feature denied.** Structural models generate correlation *precisely* through systematic factors — the Vasicek single-factor model is built on one. Claiming they ignore systematic factors contradicts their core mechanism."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "absolute-claim-trap"
+   ],
+   "explanation": "Every distractor reassigns a mechanism to the wrong model family: structural models correlate defaults through common factors driving asset values, reduced-form models impose correlation statistically on intensities. Option D adds an absolute denial that structural models use systematic factors at all. Anchor each family to its defining mechanism before reading the options."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q27",
+  "number": 27,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-LO11",
+  "loText": "Describe the Basel requirements for operational loss data collection, including the gross loss amount and the reference dates required for each event.",
+  "reading": "Operational Risk and Resilience, Ch. 4: Risk Measurement and Assessment",
+  "topic": "Risk Identification and Assessment",
+  "question": "Banks are required to report not only gross loss amounts associated with each operational loss event but also the reference dates of the event. Which of the following is **least likely** an important date for an operational incident?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Date of occurrence."
+   },
+   {
+    "key": "b",
+    "text": "Date of accounting."
+   },
+   {
+    "key": "c",
+    "text": "Date of reporting."
+   },
+   {
+    "key": "d",
+    "text": "Date of assessment."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Occurrence, discovery and accounting are the three required dates**\n\n**Step 1 — List the three reference dates Basel requires**\n\n| Date | Meaning | Why it is captured |\n|---|---|---|\n| **Occurrence** | When the event happened | Anchors the loss to the period in which the control failed |\n| **Discovery** (reporting) | When the firm became aware | The gap to occurrence measures detection effectiveness |\n| **Accounting** | When the loss was booked | Reconciles the loss database to the general ledger |\n\n*Three dates, three distinct purposes. None of them is an ‘assessment’ date.*\n\n**Step 2 — Explain why the gaps matter**\n\nThe interval between **occurrence and discovery** is itself a control indicator. A rogue trading loss discovered years later — as at Barings and Société Générale — signals a detection failure quite separate from the loss itself.\n\n*The interval between discovery and accounting matters for a different reason: it determines which reporting period the loss lands in, and long gaps distort the time series used for capital modelling.*\n\n**Step 3 — Identify the invented term**\n\n‘Date of assessment’ is not a defined reference date in the framework. It is assembled from real operational risk vocabulary — risk assessment, RCSA — but does not correspond to any required field.\n\n*The same construction as the ‘validity test’ distractor in the Solvency II item: a plausible label built from words that genuinely appear elsewhere in the syllabus.*\n\n**Intuition.** An operational loss has a life cycle with three moments worth recording: when it happened, when somebody noticed, and when it hit the accounts. Each gap tells you something — a long lag from occurrence to discovery is a detection failure in its own right, and a long lag to accounting distorts which period the loss appears in. Assessment is something you do to risks, not a date attached to a loss, and the term is here because it sounds like it belongs.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Genuine date.** The date of occurrence anchors the loss to the period in which the control failure actually took place."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Genuine date.** The date of accounting is when the loss is recognised in the financial statements, and is required to reconcile the loss database to the general ledger."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Genuine date.** The date of reporting or discovery is when the firm became aware. The gap from occurrence is a direct measure of detection effectiveness."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**Invented term.** Correct answer to the negative qualifier. There is no ‘date of assessment’ reference field — the label is assembled from adjacent operational risk vocabulary."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "The stem asks for the date that is least likely required, so three genuine reference dates (occurrence, discovery/reporting, accounting) are planted as wrong answers. The invented option borrows real vocabulary (risk assessment, RCSA) to sound plausible. Recall the three required dates and pick the one that is not among them."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q28",
+  "number": 28,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-mock",
+  "loText": "Distinguish between key risk indicators and key control indicators and describe their use in monitoring operational risk.",
+  "reading": "Operational Risk and Resilience, reading on risk monitoring and reporting",
+  "topic": "Key Risk and Control Indicators",
+  "question": "John, the CRO of Omega Bank, is implementing a new risk control system and introduces Key Risk Indicators (KRIs) and Key Control Indicators (KCIs). Some team members are confused about the difference. Which of the following best differentiates between KRIs and KCIs?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Both KRIs and KCIs measure the potential risks that may impact the achievement of strategic objectives."
+   },
+   {
+    "key": "b",
+    "text": "KCIs identify potential risks, while KRIs measure the effectiveness of control mechanisms in mitigating those risks."
+   },
+   {
+    "key": "c",
+    "text": "Both KRIs and KCIs monitor the effectiveness of risk control mechanisms."
+   },
+   {
+    "key": "d",
+    "text": "KRIs identify potential risks that may hinder the achievement of an objective, while KCIs measure the effectiveness of mitigation mechanisms."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · KRI points at the risk; KCI points at the control**\n\n**Step 1 — Separate the two by what they observe**\n\n| | Key Risk Indicator | Key Control Indicator |\n|---|---|---|\n| Points at | The **risk** — exposure or its drivers | The **control** — is it operating? |\n| Example | Staff turnover in a trading desk; transaction volume growth | % of reconciliations completed on time; overdue access reviews |\n| Rising value means | More exposure | Weaker control operation |\n\n*The acronyms name what they indicate. A KRI indicates risk; a KCI indicates control. The letter in the middle is the whole answer.*\n\n**Step 2 — Note why both are needed**\n\nA KRI can rise for reasons entirely outside the firm's control — market volatility, customer behaviour. A KCI is squarely within management's control, so it is the one that can be *acted on* directly.\n\n*Watching only KRIs tells you the weather is worsening; watching KCIs tells you whether the roof is being maintained.*\n\n**Step 3 — Note the dangerous combination**\n\nRising KRIs alongside deteriorating KCIs is the configuration that should trigger escalation — exposure increasing while the mitigants weaken.\n\n*Either alone may be tolerable. Together they are the operational risk equivalent of the convergent liquidity early warning signals.*\n\n**Intuition.** The names give it away: a key *risk* indicator indicates risk, a key *control* indicator indicates control. Two of the four options collapse the distinction entirely by saying both do the same thing, and one swaps them. The reason the pair matters is that a KRI often moves for reasons management cannot influence — market volatility, customer behaviour — while a KCI is squarely actionable. Rising exposure with weakening controls is the combination that should trigger escalation.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Distinction collapsed.** Claims both measure risk, which erases the difference the question asks about. KCIs measure control operation, not exposure."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Sibling swap.** Exactly reversed. KCIs measure controls and KRIs measure risk — this option assigns each to the other's job."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Distinction collapsed.** Claims both monitor controls, the mirror image of option A. Again no differentiation is offered."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. KRIs indicate potential risks to objectives; KCIs measure how effectively the mitigating controls are operating."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "sibling-swap",
+    "role-misassignment"
+   ],
+   "explanation": "Two options collapse the distinction by giving KRIs and KCIs the same job, and one swaps their roles outright. The acronym settles it: a key risk indicator tracks exposure, a key control indicator tracks whether controls are operating. Read the middle letter and match each indicator to what it observes."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q29",
+  "number": 29,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO41",
+  "loText": "Explain the effect of default correlation on the value of CDO tranches and distinguish the correlation exposure of equity and senior tranches.",
+  "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+  "topic": "Securitisation",
+  "question": "A financial institution has **underwritten credit protection** on the uppermost tranche of a collateralized debt obligation. All other factors constant, how would a marked **reduction** in the default correlation among the CDO's underlying assets — compared with the correlation assumed when the tranche was priced — affect the firm's position?",
+  "options": [
+   {
+    "key": "a",
+    "text": "The impact will be ambiguous and contingent on the specific pricing model and prevailing market conditions."
+   },
+   {
+    "key": "b",
+    "text": "The value of the position will significantly increase, as the likelihood of activating the credit protection diminishes."
+   },
+   {
+    "key": "c",
+    "text": "There will be a notable depreciation in value, as the value of the credit protection itself escalates."
+   },
+   {
+    "key": "d",
+    "text": "The position's value will remain unaffected, since only the expected default losses are relevant, and default correlation does not influence these losses."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Senior tranches are short correlation — lower correlation makes them safer**\n\n**Step 1 — Establish the correlation exposure of each tranche**\n\n| Tranche | Correlation exposure | Why |\n|---|---|---|\n| Equity (first loss) | **Long** correlation | Higher correlation raises the chance of *zero* defaults, which is the only outcome that saves the equity tranche |\n| **Senior** | **Short** correlation | Only mass simultaneous default reaches the senior tranche — and correlation is what makes that possible |\n\n*With independent obligors, losses concentrate near the expected level and almost never reach the top of the structure. Correlation is what creates the fat tail that threatens senior investors.*\n\n**Step 2 — Establish which side the firm is on**\n\nThe firm has **underwritten** — sold — protection on the senior tranche. It is therefore economically **long** that tranche: it collects premium and pays out if the tranche takes losses.\n\n*Two directional decisions in sequence: which way the tranche responds to correlation, then which side of the protection the firm sits on. Getting either wrong flips the answer.*\n\n**Step 3 — Combine**\n\nCorrelation *falls* → the senior tranche becomes **safer** → the protection is less likely to be triggered → the protection seller's position **gains** in value.\n\n*The firm sold insurance against a catastrophe that has just become less likely. The premium it collected now looks generous relative to the risk.*\n\n**Step 4 — Note why option D is the most instructive error**\n\nCorrelation does *not* affect the expected loss of the **whole portfolio** — that is true and is tested elsewhere. But it profoundly affects how those losses are **distributed across tranches**.\n\n*Tranching is entirely a redistribution of a fixed expected loss across the loss distribution's shape. Correlation changes the shape, so it changes every tranche's value even while the total is unchanged.*\n\n**Intuition.** A senior tranche only takes losses if a great many obligors fail together, and correlation is exactly what makes that possible. Drop the correlation and defaults become independent, losses cluster near the average, and the top of the structure becomes almost untouchable. The firm sold protection on that tranche, so it is long the tranche and gains when the tranche gets safer. The subtle wrong answer is the one noting that correlation leaves total expected loss unchanged — true, and irrelevant, because tranching is entirely about how that fixed total is sliced.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Non-answer hedge.** The direction is unambiguous. Senior tranche value is monotonically decreasing in correlation, and the sign of the protection seller's position follows directly."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Lower correlation makes mass simultaneous default less likely, so the senior tranche is safer, the protection is less likely to be called, and the seller's position gains."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**One direction reversed.** Would follow if correlation had *risen*, or if the firm had bought rather than sold protection. Correct reasoning applied with one of the two directions flipped."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**True premise, wrong conclusion.** Correlation genuinely does not change the portfolio's *total* expected loss — but it redistributes that loss across tranches, which is the entire economic point of tranching. The most instructive distractor in the set."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "polarity-flip",
+    "correlation-misuse"
+   ],
+   "explanation": "Two directional decisions stack here: senior tranches are short correlation, and a protection seller is long the tranche. Flip either and you land on the depreciation option, while the 'no effect' option misuses the true fact that correlation leaves total expected loss unchanged. Settle the tranche's correlation sign, then the firm's side, then combine."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q30",
+  "number": 30,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO41",
+  "loText": "Explain the effect of default correlation on senior and equity CDO tranches and on the value of credit protection written on them.",
+  "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+  "topic": "Securitisation",
+  "question": "An investment firm has **sold default protection** on the most senior tranche of a collateralized debt obligation. Suppose the default correlation between assets held in the CDO **increases sharply**, but everything else remains unchanged. How will the firm's position be affected?",
+  "options": [
+   {
+    "key": "a",
+    "text": "It will neither lose nor gain value because correlation does not affect default losses."
+   },
+   {
+    "key": "b",
+    "text": "It will lose significant value, since the probability of exercising the protection increases."
+   },
+   {
+    "key": "c",
+    "text": "It will either increase or decrease depending on market conditions."
+   },
+   {
+    "key": "d",
+    "text": "It will gain significant value because the probability of exercising the protection falls."
+   }
+  ],
+  "answer": "b",
+  "solution": "> **Adjacent-question pair.** This is the exact mirror of Q29 in the same paper: identical structure, identical position, correlation moving the other way. Drill them together — if you can answer one and not the other, the failure is directional rather than conceptual.\n\n**Correct answer: B · Rising correlation threatens the senior tranche — the protection seller loses**\n\n**Step 1 — Establish the senior tranche's correlation exposure**\n\nA senior tranche is only breached when a **large number of obligors default together**. Correlation is precisely what makes that possible — with independent obligors, losses cluster near the expected level and never reach the top of the structure.\n\n*Senior tranches are therefore **short** correlation: their value falls as correlation rises. Equity tranches are the opposite.*\n\n**Step 2 — Establish which side the firm is on**\n\nThe firm **sold** protection, so it is economically **long** the senior tranche — collecting premium and paying out if the tranche takes losses.\n\n*Two directional decisions again. Long the tranche, and the tranche is short correlation, so the firm is short correlation.*\n\n**Step 3 — Combine**\n\nCorrelation *rises* → the senior tranche becomes **riskier** → the protection is more likely to be triggered → the seller's position **loses** value.\n\n*This is exactly what happened to monoline insurers and AIG in 2007–08. They had written protection on super-senior tranches priced on low assumed correlation; when correlation went to one, the tranches that were ‘never’ supposed to be touched were wiped out.*\n\n**Step 4 — Note again why option A is the instructive error**\n\nCorrelation does not change the *total* expected loss of the underlying pool — true. But it redistributes that loss across the tranches, which is the entire economic function of tranching.\n\n*A fixed expected loss can be sliced in radically different ways depending on the shape of the loss distribution, and correlation is what determines that shape.*\n\n**Intuition.** The top slice of a CDO is safe only if defaults stay independent, because it takes a wave of simultaneous failures to reach it. Push the correlation up and that wave becomes possible, so the tranche gets riskier and whoever sold protection on it is suddenly exposed to something they were paid very little for. That is the AIG story in one sentence. Note that the previous question in this paper is the same setup with correlation falling, and option D here is that question's answer.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**True premise, wrong conclusion.** Correlation leaves total portfolio expected loss unchanged, but redistributes it across tranches. Senior tranche value is highly sensitive to it — that sensitivity is what the tranche *is*."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Rising correlation raises the probability of mass simultaneous default, making the senior tranche riskier and the sold protection more likely to be called."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Non-answer hedge.** The direction is unambiguous. Senior tranche value is monotonically decreasing in correlation, so the protection seller's loss follows deterministically."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Direction reversed.** This is the answer to the *previous* question, where correlation fell. Here it rises, so the sign flips — which is precisely why the two items should be drilled as a pair."
+   }
+  },
+  "trap": {
+   "operators": [
+    "correlation-misuse",
+    "scope-condition-error",
+    "polarity-flip"
+   ],
+   "explanation": "This is the mirror of Q29, so the main trap is carrying over the previous answer with the direction unflipped. The 'no effect' option misuses the fact that correlation leaves total expected loss unchanged, and the 'depends on conditions' option dodges a direction that is unambiguous. Senior is short correlation and the protection seller is long senior, so rising correlation hurts the seller."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q31",
+  "number": 31,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO22",
+  "loText": "Describe collateral arrangements for OTC derivatives, including credit support annexes, initial margin and the treatment of uncollateralised exposures.",
+  "reading": "Reading 95: Gregory, Collateral and Margin",
+  "topic": "Netting, Collateral and Margin",
+  "question": "In an internal training session on counterparty credit risk for OTC derivatives traders, the head of risk management highlights a category of derivatives presenting unique challenges, and seeks to deepen understanding of how the absence of a standard risk mitigation tool affects the bank's exposure.\n\nWhat is the collateral requirement typically associated with OTC **uncollateralized** derivatives?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Participants are required to post collateral based on credit ratings at predetermined intervals."
+   },
+   {
+    "key": "b",
+    "text": "There is no routine collateral requirement; participants do not typically post collateral in these transactions."
+   },
+   {
+    "key": "c",
+    "text": "Collateral is pooled among all participants to cover the obligations within the entire market segment."
+   },
+   {
+    "key": "d",
+    "text": "A one-time collateral is posted at the start of the contract and released upon successful settlement."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Uncollateralised means exactly that — no margin posted**\n\n**Step 1 — Read the definition**\n\nAn **uncollateralised** derivative is one with no credit support annex and no margin flows. Exposure builds up as the mark-to-market moves and is left entirely unsecured.\n\n*The word answers the question. What makes the item worth two minutes is that each distractor describes a different real arrangement from elsewhere in the market.*\n\n**Step 2 — Identify what each distractor actually describes**\n\n| Option | Describes |\n|---|---|\n| A | A **ratings-based CSA** — a collateralised arrangement with rating triggers |\n| C | A **CCP default fund** — mutualised, and central clearing rather than OTC bilateral |\n| D | **Initial margin** posted at inception and returned at maturity |\n\n*All three are real market mechanisms. None of them is what ‘uncollateralised’ means.*\n\n**Step 3 — Note who trades uncollateralised and why it matters**\n\nCorporate end-users hedging commercial exposures are frequently exempt from margining, because posting variation margin daily would defeat the purpose of the hedge. The dealer on the other side absorbs the full uncollateralised exposure — and prices it through **CVA** and **FVA**.\n\n*Which is why uncollateralised trades carry a materially higher valuation adjustment: the exposure is real, unsecured and must be both charged for and funded.*\n\n**Intuition.** The answer is contained in the word, and the question is really testing whether you can recognise the three real arrangements planted around it. Ratings-triggered posting is a collateralised CSA. Pooled collateral across a market is a clearing house default fund. A single posting held to maturity is initial margin. None of them is nothing, which is what uncollateralised means — exposure accumulating unsecured, priced through CVA and funded through FVA.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Describes a collateralised CSA.** Ratings-based posting thresholds are a feature of collateralised arrangements. They are also destabilising — a downgrade triggers a margin call precisely when the counterparty can least afford it, which is what happened to AIG."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Uncollateralised OTC derivatives involve no routine collateral posting; exposure accumulates unsecured with the mark-to-market."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Describes a CCP default fund.** Pooled, mutualised collateral covering a whole market segment is the central clearing model. It is neither bilateral nor uncollateralised."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Describes initial margin.** A one-time posting at inception released at settlement is initial margin — a collateral arrangement, and the opposite of what the term describes."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "Each distractor is a real collateral mechanism borrowed from a neighbouring setting: a ratings-triggered CSA, a CCP default fund and initial margin. None of them describes an uncollateralised trade, which by definition has no routine posting. Take the term literally and identify where each planted arrangement actually comes from."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q32",
+  "number": 32,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-LO5",
+  "loText": "Describe major cyber risk case studies and identify the control failures that permitted each incident.",
+  "reading": "Operational Risk and Resilience, Ch. 9: Case Study: Cyberthreats and Information Security Risks",
+  "topic": "Cyber Risk Case Studies",
+  "question": "Following the Equifax data breach in 2017, which measure would have been most effective in preventing the incident?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Implementing stronger encryption methods for stored data."
+   },
+   {
+    "key": "b",
+    "text": "Regular audits and compliance checks to ensure security protocols are followed."
+   },
+   {
+    "key": "c",
+    "text": "Conducting regular employee training on data security and phishing attacks."
+   },
+   {
+    "key": "d",
+    "text": "Updating and patching security software immediately upon availability of fixes."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · A known vulnerability with a published patch, left unapplied**\n\n**Step 1 — Recall the specific failure**\n\nThe Equifax breach exploited a **known vulnerability in Apache Struts** for which a patch had already been released. The patch was not applied across all affected systems, leaving the gap open for months.\n\n*This was not a novel attack, an insider, or a phishing compromise. The fix existed and was publicly available — the failure was purely in applying it.*\n\n**Step 2 — Test each option against that failure**\n\n| Measure | Would it have prevented *this* breach? |\n|---|---|\n| Stronger encryption | Limits damage after access is gained — does not prevent entry |\n| Regular audits | Might have *detected* the unpatched system, indirectly |\n| Phishing training | No — the attack vector was not phishing |\n| **Prompt patching** | **Yes — directly addresses the exploited vulnerability** |\n\n*All four are sound security practices. Only one targets the actual mechanism of the breach, which is what ‘most effective in preventing this incident’ asks for.*\n\n**Step 3 — Note the operational risk lesson**\n\nThis is a **process and control execution** failure, not a technology gap. The control existed; nobody operated it consistently across the estate.\n\n*Patch management is unglamorous and is exactly where large breaches originate. The root cause is asset inventory and change management — you cannot patch systems you do not know you have.*\n\n**Step 4 — Note the aggravating factor**\n\nThe breach also demonstrated a **detection** failure: unauthorised access continued for approximately 76 days before discovery, which is the occurrence-to-discovery gap captured in operational loss data.\n\n*Two distinct control failures in one event — prevention and detection — which is why the case appears repeatedly in the cyber resilience readings.*\n\n**Intuition.** Case-study questions ask what would have stopped *this* event, not what is good practice in general — and all four options here are good practice. Equifax was not clever: a vulnerability was published, a patch was released, and it was not applied everywhere. Encryption would have limited the damage after entry, training addresses an attack that did not happen, and audits move too slowly. Only patching touches the actual mechanism, and the underlying failure is asset inventory — you cannot patch what you do not know you run.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Mitigates impact, not entry.** Encryption limits what an attacker can use once inside. It would not have stopped exploitation of an unpatched web application vulnerability."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Indirect and slower.** Audits might eventually have surfaced the unpatched system, but they operate on a periodic cycle. The vulnerability needed closing within days of the patch's release, not at the next audit."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Wrong attack vector.** The breach did not involve phishing or employee compromise. Training is valuable and irrelevant to this incident."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. The vulnerability was known and a patch was available. Applying it promptly would have closed the exploited entry point directly."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "scope-condition-error",
+    "sibling-swap"
+   ],
+   "explanation": "All four options are sound security practice, so the trap is answering 'what is good practice' instead of 'what would have stopped this breach'. Encryption limits damage after entry, audits are too slow, and phishing training targets a different attack vector. Recall the specific root cause (an unpatched, publicly known Apache Struts vulnerability) and pick the control that addresses it directly."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q33",
+  "number": 33,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-LO7",
+  "loText": "Calculate the Business Indicator under the Basel standardized approach to operational risk capital and describe its components.",
+  "reading": "Operational Risk and Resilience, Ch. 24: Basel III: Finalising Post-Crisis Reforms (BCBS)",
+  "topic": "Standardized Measurement Approach",
+  "question": "The following has been extracted from the P&L of a European bank (all figures in EUR):\n\n| Year ended | 20X6 | 20X7 | 20X8 | 20X9 |\n|---|---|---|---|---|\n| Interest, leases and dividends | 950m | 1.3bn | 1.8bn | 1.6bn |\n| Services | 1.6bn | 2.2bn | 2.6bn | 1.8bn |\n| Financial (net P/L on the trading book) | 500m | 1.1bn | 1.3bn | 1.5bn |\n\nUsing the Standardized Measurement Approach, the bank's Business Indicator for the year ended 31 December 20X9 is closest to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "EUR 4 billion."
+   },
+   {
+    "key": "b",
+    "text": "EUR 5 billion."
+   },
+   {
+    "key": "c",
+    "text": "EUR 3.2 billion."
+   },
+   {
+    "key": "d",
+    "text": "EUR 500 million."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Three-year average of each component, using 20X7 to 20X9**\n\n**Step 1 — Recall the structure of the Business Indicator**\n\n$$BI = ILDC + SC + FC$$\n\nThe interest, leases and dividend component; the services component; and the financial component. Each is a **rolling three-year average**.\n\n*The averaging is the point. Operational risk capital should not swing on one unusual year, so Basel smooths the exposure measure over three.*\n\n**Step 2 — Select the correct three years**\n\nFor the year ended 20X9 the window is **20X7, 20X8 and 20X9**. The 20X6 column is outside the window and is not used.\n\n*Four years of data are supplied and only three are needed — the surplus column is there to be discarded. Using 20X6 to 20X8 instead gives roughly EUR 4.4 billion, which is close to option A.*\n\n**Step 3 — Average each component**\n\n| Component | 20X7 | 20X8 | 20X9 | Average |\n|---|---|---|---|---|\n| ILDC | 1.3 | 1.8 | 1.6 | 1.567 |\n| SC | 2.2 | 2.6 | 1.8 | 2.200 |\n| FC | 1.1 | 1.3 | 1.5 | 1.300 |\n\n**Step 4 — Sum**\n\n$$BI = 1.567 + 2.200 + 1.300 = \\text{EUR } 5.067 \\text{ billion} \\approx \\text{EUR } 5 \\text{ billion}$$\n\nA BI above EUR 1 billion places the bank in **Bucket 2** or higher, where the marginal coefficient rises from 12% to 15%.\n\n*The bucket boundaries — EUR 1 billion and EUR 30 billion — are worth remembering, because the BI Component applies the coefficients marginally rather than to the whole amount.*\n\n**Intuition.** The Business Indicator is Basel's proxy for how much operational risk a bank is exposed to, built from three income streams and smoothed over three years so that a single odd year cannot move capital sharply. The table hands you four years and the reporting date tells you which three to use — the ones ending in the reporting year. Average each row, add the three, and note that crossing EUR 1 billion moves the bank into a higher marginal coefficient bucket.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**4 billion · Wrong three-year window.** Averaging 20X6 to 20X8 instead of 20X7 to 20X9 gives roughly EUR 4.4 billion. The window must end in the reporting year."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**5 billion.** 1.567 + 2.200 + 1.300. Correct."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**3.2 billion · Component omitted.** In the region reached by dropping one of the three components — for instance summing only the services and financial averages, or omitting the financial component."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**500 million · Single cell.** The 20X6 financial component figure, taken as though it were the whole indicator. A single cell from the table, and from the year outside the window."
+   }
+  },
+  "trap": {
+   "operators": [
+    "wrong-input-twin",
+    "dropped-term",
+    "wrong-input-twin"
+   ],
+   "explanation": "The table supplies four years so that the wrong window becomes a ready-made distractor; the other traps drop a component or lift a single cell. The BI for a reporting year averages each component over the three years ending in that year, then sums ILDC, SC and FC. Fix the window first, then check that all three components are included."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q34",
+  "number": 34,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO3",
+  "loText": "Explain how default probability and default correlation affect the value of CDO tranches and construct positions reflecting a view on each.",
+  "reading": "Reading 102: Choudhry, An Introduction to Securitisation",
+  "topic": "Securitisation",
+  "question": "An investment firm is contemplating positions in various tranches of a collateralized debt obligation. The chief CDO analyst predicts that the **default probability will increase significantly** and that **default correlation will decrease**. On this basis, the analyst will most likely recommend the:",
+  "options": [
+   {
+    "key": "a",
+    "text": "Purchase of the senior tranche and sale of the equity tranche."
+   },
+   {
+    "key": "b",
+    "text": "Purchase of the equity tranche and sale of the senior tranche."
+   },
+   {
+    "key": "c",
+    "text": "Purchase of the senior tranche and purchase of the equity tranche."
+   },
+   {
+    "key": "d",
+    "text": "Sale of the senior tranche and sale of the equity tranche."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · Equity is hurt by both moves; the senior tranche is helped by the correlation fall**\n\n**Step 1 — Build the two-by-two**\n\n| | PD rises | Correlation falls | Net |\n|---|---|---|---|\n| **Equity tranche** | Hurt — it absorbs first losses | **Hurt** — loses the chance of zero defaults | **Sell** |\n| **Senior tranche** | Hurt, but it is remote from losses | **Helped** — mass simultaneous default becomes unlikely | **Buy** |\n\n*The equity tranche is damaged by both predictions. The senior tranche receives one adverse and one favourable effect, and the correlation effect dominates because the senior tranche is remote from ordinary losses.*\n\n**Step 2 — Explain why falling correlation hurts equity**\n\nThe equity tranche's only good outcome is **zero defaults**, and high correlation is what makes that possible — if obligors move together, they may all survive together. Lower correlation makes some defaults near-certain, and the first-loss piece absorbs them.\n\n*Equity is **long** correlation. This is the half most candidates get wrong, because the intuition that ‘less correlation is safer’ holds for a portfolio but reverses for a first-loss slice.*\n\n**Step 3 — Explain why falling correlation helps the senior tranche**\n\nSenior investors are only touched by a wave of simultaneous failures. Independent defaults cluster near the expected level and stay well inside the subordination, so the tranche becomes safer even as the average default rate rises.\n\n*This is why the two tranches trade correlation in opposite directions — the same fact that makes correlation itself a tradeable exposure.*\n\n**Step 4 — Note the residual risk in the trade**\n\nBuying senior and selling equity is a **correlation trade**. If the correlation forecast is wrong — if correlation rises with the default rate, as it typically does in a downturn — both legs lose simultaneously.\n\n*Which is precisely what happened in 2007–08. Rising defaults and rising correlation arrived together, and positions constructed on the assumption that they would not were destroyed on both legs.*\n\n**Intuition.** Two forecasts, two tranches, so build the grid. Higher defaults hurt everything, but the equity tranche takes the first losses so it hurts most there. Falling correlation is where the tranches diverge: the senior slice is only ever touched by a wave of simultaneous failures, so independence makes it safer, while the equity slice loses its only escape route — the chance that everyone survives together. Equity is hit twice, senior is helped once, so the trade is long senior, short equity. And note the risk: in a real downturn defaults and correlation rise together, and both legs lose.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. The equity tranche suffers from both a higher default rate and lower correlation; the senior tranche benefits from lower correlation, which dominates for a tranche remote from ordinary losses."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Both legs reversed.** Buys the tranche hurt by both forecasts and sells the one helped by the correlation move. The exact inverse of the correct trade."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**No view expressed.** Buying both tranches is a long position on the whole structure, which contradicts the prediction of significantly higher default probability."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Correlation view ignored.** Selling both responds only to the higher default rate and ignores the correlation forecast entirely — which is the half that makes the senior tranche attractive."
+   }
+  },
+  "trap": {
+   "operators": [
+    "polarity-flip",
+    "scope-condition-error",
+    "correlation-misuse"
+   ],
+   "explanation": "Two variables move at once, and the traps come from reversing a direction, ignoring one forecast, or applying the portfolio intuition that less correlation is always safer. Equity is long correlation and senior is short correlation, so falling correlation hurts equity and helps senior. Build the two-by-two grid before choosing the trade."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q35",
+  "number": 35,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-LO17",
+  "loText": "Calculate counterparty exposure with and without close-out netting and quantify the netting benefit.",
+  "reading": "Reading 94: Gregory, ISDA Master Agreement, Netting and Close-out",
+  "topic": "Netting, Collateral and Margin",
+  "question": "A Spanish bank has the following derivative positions with a local company:\n\n| Position | Value (USD) |\n|---|---|\n| Long currency swaps | +33 million |\n| Short credit default swaps | −22 million |\n| Long interest rate swaps | +8 million |\n| Short swaptions | −17 million |\n\nIn the event that the counterparty defaults, what would be the loss to the financial institution if netting is used compared with the loss without netting?",
+  "options": [
+   {
+    "key": "a",
+    "text": "With netting USD 2m; without netting USD 2m."
+   },
+   {
+    "key": "b",
+    "text": "With netting USD 2m; without netting USD 41m."
+   },
+   {
+    "key": "c",
+    "text": "With netting USD 41m; without netting USD 2m."
+   },
+   {
+    "key": "d",
+    "text": "With netting USD 29m; without netting USD 41m."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · 41 without netting, 2 with — the max operator moves outside the sum**\n\n**Step 1 — Compute the exposure without netting**\n\nWithout an enforceable netting agreement each contract stands alone. On default the bank loses on every contract where it is **owed**, and remains liable on those where it *owes*:\n\n$$\\sum_i \\max(MtM_i,\\ 0) = 33 + 0 + 8 + 0 = \\text{USD 41 million}$$\n\n*The insolvency practitioner cherry-picks: they demand payment on the contracts in the estate's favour and leave the bank queuing as an unsecured creditor on the rest.*\n\n**Step 2 — Compute the exposure with netting**\n\n$$\\max\\left(\\sum_i MtM_i,\\ 0\\right) = \\max(33 - 22 + 8 - 17,\\ 0) = \\max(2,\\ 0) = \\text{USD 2 million}$$\n\n**Step 3 — Read the benefit**\n\n$$\\text{Netting benefit} = 41 - 2 = \\text{USD 39 million}$$\n\nNetting removes **95%** of the exposure here — and costs nothing but a signed master agreement.\n\n*The benefit is largest when positions point in different directions, which is exactly this book: two long, two short.*\n\n**Step 4 — State the general principle**\n\n$$\\max\\left(\\sum_i MtM_i,\\ 0\\right) \\le \\sum_i \\max(MtM_i,\\ 0)$$\n\nMoving the max operator **outside** the sum can only reduce the exposure, never increase it. The two coincide only when every position has the same sign.\n\n*Which is why netting is the first mitigant to put in place and why collateral arrangements are built on top of the net figure — collateralising 41 million instead of 2 million would be twenty times more expensive.*\n\n**Intuition.** Without a master agreement each trade is its own contract, so the administrator collects on the ones in their favour and hands you a claim form for the rest — you lose the full 41 you were owed while still paying the 39 you owed. With netting the whole relationship collapses to one number, and here the longs and shorts nearly cancel: two million. The general rule is that moving the max operator outside the sum can only help, and it helps most when the book points in both directions.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**2 / 2 · Netting benefit denied.** Claims netting makes no difference. That is only true when all positions share the same sign — here two are positive and two negative, so the benefit is substantial."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**2 / 41.** Correct. Net exposure is USD 2 million; gross exposure is the sum of the two positive positions, USD 41 million."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**41 / 2 · Figures transposed.** The right two numbers with the labels swapped. Netting cannot *increase* exposure — the inequality runs strictly one way."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**29 / 41 · Negative positions half-counted.** The gross figure is right. The 29 is consistent with netting only one of the two negative positions — for instance 33 − 22 + 8 − 17 computed with a sign slip, or 33 + 8 − 12. Either way the netting is incomplete."
+   }
+  },
+  "trap": {
+   "operators": [
+    "scope-condition-error",
+    "role-misassignment",
+    "sign-error"
+   ],
+   "explanation": "The whole item is the position of the max operator: without netting it sits inside the sum (only positive values count), with netting it moves outside (the book is summed first). Distractors deny any netting benefit, swap the two labels, or mishandle the signs of the negative positions. Remember that netting can only reduce exposure, so the 'with netting' figure must be the smaller one."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q36",
+  "number": 36,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-LO3",
+  "loText": "Describe the three lines of defence in operational risk governance and identify the responsibilities of the independent corporate operational risk management function.",
+  "reading": "Operational Risk and Resilience, Ch. 2: Risk Governance",
+  "topic": "Three Lines of Defence",
+  "question": "Which of the following tasks is performed under the **second line of defence** — an independent corporate operational risk management function?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Keeping track of risk events and losses through the collection and recording of data."
+   },
+   {
+    "key": "b",
+    "text": "Making follow-ups on the implementation of the control rules, the risk management action plans, and the audit tracking process."
+   },
+   {
+    "key": "c",
+    "text": "Identifying risks and controls in accordance with the group definitions."
+   },
+   {
+    "key": "d",
+    "text": "Reviewing and taking part in the monitoring and reporting of the operational risk profile."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Independent review and reporting of the risk profile is the second line's defining function**\n\n**Step 1 — Sort each activity by who performs it**\n\n| Activity | Line | Why |\n|---|---|---|\n| Collecting and recording loss data | **First** | The business owns the events and must record them |\n| Following up on control rules and action plans | **First** | Remediation is executed by whoever owns the control |\n| Identifying risks and controls | **First** | The business identifies the risks it runs |\n| **Reviewing and reporting the risk profile** | **Second** | Independent aggregation and challenge |\n\n*Three of the four are things the business does about its own risks. Only one requires standing outside the business and forming an independent view.*\n\n**Step 2 — Note the word doing the work**\n\n‘**Reviewing**’ is the discriminator. Reviewing implies looking at somebody else's work — which is exactly what an independent function does and what a first line cannot do about itself.\n\n*Options A, B and C all describe performing activities. Option D describes reviewing them.*\n\n**Step 3 — Note the second line's aggregation role**\n\nThe corporate ORM function also **aggregates** across business lines to produce a firm-wide profile. No individual business unit can see the whole picture, and concentrations only appear once the parts are combined.\n\n*This is why the function must be corporate and independent rather than embedded — aggregation and challenge both require distance from the units being aggregated.*\n\n**Intuition.** Three of these describe a business unit doing something about its own risks — recording its losses, chasing its action plans, naming its controls. The fourth describes *reviewing* that work and reporting on the resulting picture, which is precisely what a unit cannot do about itself. That is the whole architecture of the model: the first line runs the risk, and somebody with no stake in the answer looks at it afterwards.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**First-line activity.** Loss data collection is performed by the business that experienced the loss. The second line sets the standards for how it is captured and validates completeness — it does not do the recording."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**First-line activity.** Implementing control rules and executing remediation plans is done by the control owner in the business. Following up on one's own action plans is not independent oversight."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**First-line activity.** Risk and control identification is a first-line responsibility — typically through the RCSA. The second line provides the taxonomy and challenges the output."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "Correct. Independent review, monitoring and reporting of the operational risk profile is the defining second-line function."
+   }
+  },
+  "trap": {
+   "operators": [
+    "role-misassignment",
+    "role-misassignment",
+    "role-misassignment"
+   ],
+   "explanation": "Three first-line activities (recording losses, chasing action plans, identifying risks and controls) are presented as if they belonged to the second line. The discriminator is independence: the second line reviews, aggregates and reports on work the business performs. Ask of each option whether it is the business doing something about its own risk or someone independent reviewing it."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q37",
+  "number": 37,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-mock",
+  "loText": "Calculate operational risk capital under the Basel II standardized approach, including the treatment of negative gross income.",
+  "reading": "Operational Risk and Resilience, reading on Basel operational risk capital requirements",
+  "topic": "Basel II Standardized Approach",
+  "question": "A bank operates four business lines with the following multipliers and annual gross income (in millions):\n\n| Business line | Multiplier | Year 1 | Year 2 | Year 3 |\n|---|---|---|---|---|\n| Retail banking | 13% | 6 | 18 | 8 |\n| Asset management | 14% | 8 | 10 | 18 |\n| Trading and sales | 19% | 9 | −48 | 28 |\n| Corporate finance | 18% | 42 | 25 | 20 |\n\nBased on the Basel II accord, what is the required capital for operational risk under the standardized approach?",
+  "options": [
+   {
+    "key": "a",
+    "text": "11.83."
+   },
+   {
+    "key": "b",
+    "text": "11.17."
+   },
+   {
+    "key": "c",
+    "text": "12.48."
+   },
+   {
+    "key": "d",
+    "text": "7.59."
+   }
+  ],
+  "answer": "d",
+  "solution": "> **Errata:** Under Basel II the correct treatment floors a negative annual total at zero, which gives **7.88** — a figure not offered. The option set only supports **7.59**, obtained by carrying the negative year through the average. D is therefore treated as the intended answer, but the mechanism below shows both and the Basel-correct figure is 7.88.\n\n**Correct answer: D · Weight each line by its beta, total by year, then average the three years**\n\n**Step 1 — Compute the weighted total for each year**\n\n| Year | Retail | Asset mgmt | Trading | Corp fin | Total |\n|---|---|---|---|---|---|\n| 1 | 0.78 | 1.12 | 1.71 | 7.56 | **11.17** |\n| 2 | 2.34 | 1.40 | −9.12 | 4.50 | **−0.88** |\n| 3 | 1.04 | 2.52 | 5.32 | 3.60 | **12.48** |\n\n*Name the yearly totals — 11.17 and 12.48 are both sitting in the option list as finished answers. Note that negative income in one business line may offset positive income in others **within** the same year; that offsetting is permitted.*\n\n**Step 2 — Apply the Basel II floor**\n\nBasel II states that where the **aggregate** charge across all business lines in a given year is negative, the input for that year is set to **zero**:\n\n$$\\text{Capital} = \\frac{\\max(11.17, 0) + \\max(-0.88, 0) + \\max(12.48, 0)}{3} = \\frac{23.65}{3} = 7.88$$\n\n*This is the technically correct Basel II figure. It is not among the options.*\n\n**Step 3 — Compute the figure the option set supports**\n\nCarrying the negative year through without the floor:\n\n$$\\frac{11.17 + (-0.88) + 12.48}{3} = \\frac{22.77}{3} = 7.59$$\n\n*Only 7.59 appears in the option list, so it is the intended answer — but the floor is a genuine Basel II provision and the discrepancy should be logged.*\n\n**Step 4 — Note why the floor exists**\n\nWithout it, a catastrophic trading loss would *reduce* a bank's operational risk capital — a perverse outcome, since a year with a USD 48 million trading loss is hardly evidence of low operational risk.\n\n*The floor is the same conservatism as the Basel III standardized approach's treatment of loss data. Bad years should not buy capital relief.*\n\n**Intuition.** Multiply each business line's gross income by its beta, total across lines for each year, then average the three years. Two of the four options are simply the Year 1 and Year 3 totals, so stopping before the average lands on a distractor. The wrinkle is Year 2, where a large trading loss drags the annual total negative — Basel floors that at zero, because a disastrous year should not *reduce* your operational risk capital. Applying the floor gives 7.88 and the paper's options only support 7.59, which is worth logging.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**11.83 · Averaged over two years.** (11.17 + 12.48)/2 = 11.83 — dropping the negative year entirely and dividing by two rather than three. The floor sets that year to zero; it does not remove it from the denominator."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**11.17 · Year 1 only.** The Year 1 weighted total reported as the answer. A correct intermediate, not an average."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**12.48 · Year 3 only.** The Year 3 weighted total — the other correct intermediate, and the largest of the three."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**7.59.** Intended answer per the option set: 22.77/3, carrying the negative year through. **Errata:** the Basel-correct treatment floors that year at zero and yields 7.88, which is not offered — see the flag above."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "intermediate-result-trap",
+    "intermediate-result-trap"
+   ],
+   "explanation": "Two distractors are the Year 1 and Year 3 weighted totals, so stopping before the three-year average lands on a finished-looking answer. The other drops the negative year from the denominator and averages over two. Weight each line, total by year, keep all three years in the denominator, and remember that Basel II floors a negative annual aggregate at zero (7.88), which this option set does not offer."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q38",
+  "number": 38,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-LO1",
+  "loText": "Describe the Basel Committee's Principles for the Sound Management of Operational Risk and distinguish the responsibilities of the board from those of senior management.",
+  "reading": "Operational Risk and Resilience, Ch. 2: Risk Governance",
+  "topic": "Basel Operational Risk Principles",
+  "question": "Tom Mathews has been appointed a director of a multinational bank. With respect to Principle 3 (board review and approval of operational risk management) of the Basel Committee's *Principles for the Sound Management of Operational Risk*, Tom should **least likely** ensure that the board of directors performs which of the following?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Regularly review the operational risk management framework."
+   },
+   {
+    "key": "b",
+    "text": "Provide the bank's staff with guidance regarding operational risk management."
+   },
+   {
+    "key": "c",
+    "text": "Ensure the ORM framework is subject to independent review."
+   },
+   {
+    "key": "d",
+    "text": "Ensure that management follows the evolution of best practices."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Guiding staff is senior management's job — the board approves and oversees**\n\n**Step 1 — State what Principle 3 requires of the board**\n\nThe board should **approve and periodically review** the framework, and **ensure senior management implements it** effectively at all levels.\n\n*The verbs are approve, review and ensure. All three are oversight verbs — the board is not an operating body.*\n\n**Step 2 — Separate the board from senior management**\n\n| Board | Senior management |\n|---|---|\n| Approves the framework | Implements it |\n| Reviews it periodically | Translates it into policies and procedures |\n| Ensures independent review occurs | **Provides guidance to staff** |\n| Ensures management tracks best practice | Trains and communicates day to day |\n\n*Providing guidance to staff is day-to-day implementation, which sits under Principle 5 and belongs to senior management. A board of non-executive directors cannot and should not be instructing staff.*\n\n**Step 3 — Verify the three genuine board duties**\n\nRegular review, ensuring independent review of the framework, and ensuring management keeps pace with evolving practice are all oversight functions requiring no operational involvement.\n\n*Note the recurrence of **independent review** — the same requirement that appears throughout the operational risk governance material.*\n\n**Step 4 — Note why the boundary matters**\n\nA board that starts issuing operational guidance can no longer *oversee* that guidance objectively. Approving one's own instructions is not oversight.\n\n*The same independence principle that separates the three lines separates the board from management.*\n\n**Intuition.** Read the verbs. A board approves, reviews and ensures — all of which mean looking at what somebody else has done. Three of the options use exactly those verbs. The fourth has the board *providing guidance to staff*, which is an operating activity, and once a board is issuing instructions it cannot objectively review the instructions it issued. That boundary is the same independence logic that runs through the whole governance syllabus.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Genuine board duty.** Periodic review of the framework is stated explicitly in Principle 3."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "**Senior management's function.** Correct answer to the negative qualifier. Providing day-to-day guidance to staff is implementation, which belongs to senior management under Principle 5."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Genuine board duty.** Ensuring the framework is subject to independent review is a board responsibility — and one it cannot delegate to the function being reviewed."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Genuine board duty.** Ensuring management keeps pace with evolving industry practice is oversight of management's performance, squarely within the board's remit."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "qualifier-misread"
+   ],
+   "explanation": "The stem asks what the board should least likely do, so three genuine board duties are planted as wrong answers. The odd one out gives the board an operating task (guiding staff) that belongs to senior management under Principle 5. Read the verbs: the board approves, reviews and ensures, it does not instruct."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q39",
+  "number": 39,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-mock",
+  "loText": "Describe the risk management cycle and the activities performed at each stage.",
+  "reading": "Operational Risk and Resilience, introductory reading on the operational risk management framework",
+  "topic": "Risk Management Cycle",
+  "question": "Which of the four main tasks that make up the risk management cycle involves evaluating the probability of a risk occurring and its severity or impact if it does occur?",
+  "options": [
+   {
+    "key": "a",
+    "text": "Risk identification."
+   },
+   {
+    "key": "b",
+    "text": "Risk assessment."
+   },
+   {
+    "key": "c",
+    "text": "Risk mitigation."
+   },
+   {
+    "key": "d",
+    "text": "Risk monitoring."
+   }
+  ],
+  "answer": "b",
+  "solution": "**Correct answer: B · Likelihood × impact is the definition of assessment**\n\n**Step 1 — Walk the four stages in order**\n\n| Stage | Question it answers |\n|---|---|\n| Identification | **What** could go wrong? |\n| **Assessment** | **How likely, and how bad?** |\n| Mitigation | What do we **do** about it? |\n| Monitoring | Is it **working**, and has anything changed? |\n\n*The stem's two words — probability and severity — map onto exactly one stage. Assessment is where a risk gets its two coordinates.*\n\n**Step 2 — Note why the ordering matters**\n\nAssessment is what makes mitigation **proportionate**. Without it, every identified risk looks equally urgent and controls get allocated by whoever shouts loudest.\n\n*A frequent-but-trivial risk and a rare-but-catastrophic one need entirely different responses, and only assessment distinguishes them.*\n\n**Step 3 — Note the cycle's closure**\n\nMonitoring feeds back into identification, since the risk profile changes as the business and its environment change — which is why the process is a *cycle* rather than a project.\n\n*Same dynamism noted in the operational risk nature question: new products and new technology create exposures that did not exist at the last assessment.*\n\n**Intuition.** Four stages, four questions. What could go wrong, how likely and how bad, what to do, and is it working. The stem names probability and severity, which are precisely the two axes of a risk matrix, and that is the assessment stage by definition. Its practical importance is proportionality — without scoring likelihood and impact, a trivial nuisance and a firm-threatening exposure receive the same attention.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**Prior stage.** Identification catalogues what risks exist. It precedes any evaluation of how likely or how damaging they are."
+   },
+   "b": {
+    "verdict": "correct",
+    "reason": "Correct. Assessment evaluates both the probability of occurrence and the severity of impact — the two dimensions of the standard risk matrix."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Subsequent stage.** Mitigation designs and implements the response. It acts *on* the assessment's output rather than producing it."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Subsequent stage.** Monitoring tracks whether controls remain effective and whether the profile has shifted. It is ongoing surveillance, not initial evaluation."
+   }
+  },
+  "trap": {
+   "operators": [
+    "sibling-swap",
+    "sibling-swap",
+    "sibling-swap"
+   ],
+   "explanation": "All four options are genuine stages of the same cycle, so the trap is picking a neighbouring stage. Each stage answers one question: what could go wrong, how likely and how bad, what to do, and is it working. Probability and severity are the two axes of assessment, so map the stem's wording to that question."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q40",
+  "number": 40,
+  "subject": "Operational Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "OR-mock",
+  "loText": "Calculate operational risk capital under the Basel II standardized approach, including the zero floor applied to a negative annual aggregate.",
+  "reading": "Operational Risk and Resilience, reading on Basel operational risk capital requirements",
+  "topic": "Basel II Standardized Approach",
+  "question": "Jacque's & Josh Bank reports the following revenue (USD millions). The multipliers for corporate finance and retail banking are 17.99% and 12.11% respectively.\n\n| Business line | Multiplier | Year 1 | Year 2 | Year 3 |\n|---|---|---|---|---|\n| Corporate finance | 17.99% | 11.9 | 19.3 | 29.7 |\n| Retail banking | 12.11% | −26.2 | 29.4 | −31.7 |\n\nHow much operational risk capital should the bank hold under Basel II applying the standardized approach?",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 2.845 million."
+   },
+   {
+    "key": "b",
+    "text": "USD 4.268 million."
+   },
+   {
+    "key": "c",
+    "text": "USD 3.527 million."
+   },
+   {
+    "key": "d",
+    "text": "USD 4.119 million."
+   }
+  ],
+  "answer": "a",
+  "solution": "> **Cross-reference.** This item applies the Basel II zero-floor on a negative annual total — the correct answer of 2.845 is only reachable with the floor in place. Q37 of this same paper omits that floor. The two are internally inconsistent, which confirms the errata flagged at Q37.\n\n**Correct answer: A · Year 1 totals negative and is floored at zero; the other two average in**\n\n**Step 1 — Compute the weighted total for each year**\n\n| Year | Corporate finance | Retail banking | Annual total |\n|---|---|---|---|\n| 1 | 0.1799(11.9) = 2.141 | 0.1211(−26.2) = −3.173 | **−1.032** |\n| 2 | 0.1799(19.3) = 3.472 | 0.1211(29.4) = 3.560 | **7.032** |\n| 3 | 0.1799(29.7) = 5.343 | 0.1211(−31.7) = −3.839 | **1.504** |\n\n*Note Year 3: retail banking is negative but corporate finance more than offsets it, so the annual total stays positive. Offsetting within a year is permitted.*\n\n**Step 2 — Apply the zero floor to the negative year**\n\nYear 1's aggregate is negative, so it enters the numerator as **zero**:\n\n$$\\text{Capital} = \\frac{0 + 7.032 + 1.504}{3} = \\frac{8.537}{3} = \\text{USD 2.845 million}$$\n\n*The floor is what makes 2.845 reachable. Carrying −1.032 through would give 7.505/3 = 2.502, which is not among the options — so this question requires the floor.*\n\n**Step 3 — Note the denominator stays at three**\n\nThe floored year is set to zero, **not removed**. Dividing by two instead gives 8.537/2 = 4.268 — which is option B.\n\n*Floor the numerator, keep the denominator. This is the single most common error on the calculation and it is planted in the option list.*\n\n**Step 4 — Read the economics**\n\nRetail banking lost money in two of three years, and in those years it contributes **nothing** to required capital rather than a credit. The bank holds capital as though the bad years were merely neutral.\n\n*Which is the point of the floor: a division that destroyed value should not reduce the operational risk capital the firm must hold against it.*\n\n**Intuition.** Weight each line, total by year, and then handle the negative year. Basel sets a negative annual aggregate to zero but keeps it in the count — floor the numerator, not the denominator — which is exactly the distinction between 2.845 and the 4.268 sitting next to it. Worth noting that this question *requires* the floor to reach an offered answer, while Q37 of the same paper requires its absence. One of the two is wrong, and it is Q37.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "**2.845.** (0 + 7.032 + 1.504)/3. Correct."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**4.268 · Divided by two.** 8.537/2 — dropping the floored year from the denominator as well as the numerator. The floor sets that year to zero; it remains one of three observations."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**3.527 · Partial flooring.** In the region produced by flooring at the *business line* level rather than the annual aggregate, or by other partial applications. Offsetting within a year is permitted; only the annual total is floored."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**4.119 · Line-level flooring.** Points to setting each negative business-line figure to zero, which removes the permitted within-year offsetting and inflates the charge. Done exactly, line-level flooring gives (2.141 + 3.472 + 3.560 + 5.343)/3 = 4.839, so 4.119 reflects the direction of this error rather than reproducing it."
+   }
+  },
+  "trap": {
+   "operators": [
+    "dropped-term",
+    "scope-condition-error",
+    "scope-condition-error"
+   ],
+   "explanation": "The floor applies to the annual aggregate across business lines, not to each line, and the floored year stays in the three-year denominator. Distractors either drop that year from the denominator or floor at the business-line level, removing the offsetting that is permitted within a year. Weight, total by year, floor any negative annual total at zero, then divide by three."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q41",
+  "number": 41,
+  "subject": "Credit Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "CR-mock",
+  "loText": "Calculate the credit equivalent amount and risk-weighted assets for a derivative exposure under the Basel I framework.",
+  "reading": "Credit Risk / Operational Risk readings on the Basel I capital framework and counterparty credit exposure",
+  "topic": "Basel I Credit Equivalent",
+  "question": "Family Bank has entered a USD 100 million interest rate swap with a corporation. The swap has a remaining maturity of five years and a current value of USD 4.5 million. Add-on factors as a percentage of principal are:\n\n| Time remaining to maturity | Interest rate | Equity |\n|---|---|---|\n| < 1 year | 0.0 | 6.0 |\n| 1 to 5 years | 0.5 | 8.0 |\n| > 5 years | 1.5 | 10.0 |\n\nBased on the table, the equivalent risk-weighted asset under Basel I is closest to:",
+  "options": [
+   {
+    "key": "a",
+    "text": "USD 5,000,000."
+   },
+   {
+    "key": "b",
+    "text": "USD 1,125,000."
+   },
+   {
+    "key": "c",
+    "text": "USD 3,500,000."
+   },
+   {
+    "key": "d",
+    "text": "USD 2,500,000."
+   }
+  ],
+  "answer": "d",
+  "solution": "**Correct answer: D · Credit equivalent of 5.0 million, then a 50% corporate risk weight**\n\n**Step 1 — Compute the current exposure**\n\n$$\\max(MtM,\\ 0) = \\max(4.5,\\ 0) = \\text{USD 4.5 million}$$\n\n*The swap is in the money to Family Bank, so the full mark-to-market is at risk if the corporation defaults.*\n\n**Step 2 — Add the potential future exposure**\n\nFive years remaining falls in the **1-to-5 year** band, giving an interest rate add-on of 0.5%:\n\n$$\\text{Add-on} = 100 \\times 0.005 = \\text{USD 0.5 million}$$\n\n$$CE = 4.5 + 0.5 = \\text{USD 5.0 million}$$\n\n*The equity column is decoration — this is an interest rate swap. And note the band boundary: reading five years as ‘over 5’ would give a 1.5% add-on and a credit equivalent of 6.0 million.*\n\n**Step 3 — Apply the counterparty risk weight**\n\nThe counterparty is a **corporation**, which carries a 50% risk weight for derivative exposures under Basel I:\n\n$$RWA = 5.0 \\times 0.5 = \\text{USD 2.5 million}$$\n\n**Step 4 — Note what the question did *not* ask**\n\nThe capital *requirement* would be a further step: 2.5 × 8% = USD 200,000. The question asks for the risk-weighted asset, which stops at 2.5 million.\n\n*Three quantities in a chain — credit equivalent, risk-weighted asset, capital requirement — and the first two are both in the option list. Reading which one is requested is half the question.*\n\n**Intuition.** Three numbers in sequence: what you are owed now, what you might be owed later, and then a haircut for who owes it. The mark-to-market is 4.5, the add-on is half a percent of the notional because five years sits in the middle maturity band, and the corporate counterparty carries a 50% weight. The trap is stopping one step early — the credit equivalent of 5.0 million is in the options and is exactly twice the answer.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "incorrect",
+    "reason": "**5,000,000 · Credit equivalent, not RWA.** 4.5 + 0.5 — the credit equivalent amount with the 50% risk weight never applied. A correct intermediate one step short of the answer, and exactly double it."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**1,125,000 · Add-on omitted + wrong weight.** 4.5 × 0.25 — the current exposure alone at a 25% risk weight. Both the potential future exposure and the correct corporate weight are missing."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**3,500,000 · Wrong maturity band or weight.** In the region produced by taking the >5-year add-on of 1.5% (giving a credit equivalent of 6.0 million) alongside a mis-set risk weight. Five years sits in the 1-to-5 band."
+   },
+   "d": {
+    "verdict": "correct",
+    "reason": "**2,500,000.** (4.5 + 0.5) × 0.5. Correct."
+   }
+  },
+  "trap": {
+   "operators": [
+    "intermediate-result-trap",
+    "dropped-term",
+    "wrong-input-twin"
+   ],
+   "explanation": "The calculation is a chain (current exposure, add-on, credit equivalent, risk weight), and each distractor breaks one link: stopping at the credit equivalent, omitting the add-on, or reading the wrong maturity band. Five years sits in the 1-to-5 year band, and a corporate counterparty carries a 50% weight. Confirm which quantity in the chain the stem asks for before answering."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Numerical"
+  },
+  "difficulty": "HARD"
+ },
+ {
+  "id": "APMOCK1-Q42",
+  "number": 42,
+  "subject": "Liquidity Risk",
+  "tier": "AnalystPrep Mock 1",
+  "lo": "LR-LO5",
+  "loText": "Describe the design and monitoring of liquidity early warning indicators and their role within the contingency funding plan.",
+  "reading": "LR2025, Ch. 3: Early Warning Indicators",
+  "topic": "Early Warning Indicators",
+  "question": "Joe Hart is developing early warning indicators to help his bank monitor potential liquidity stress events. He has drafted the following background guidelines:\n\n- **I.** All EWIs must be updated **every two months** to detect potentially threatening events.\n- **II.** The bank should conduct a variety of short-term and protracted, bank-specific and market-wide liquidity stress tests using conservative and regularly reviewed assumptions.\n- **III.** The bank should establish a robust escalation policy so that critical decisions and transactions are handled at an appropriate level of management.\n\nWhich of these guidelines is **incorrect**?",
+  "options": [
+   {
+    "key": "a",
+    "text": "I."
+   },
+   {
+    "key": "b",
+    "text": "II."
+   },
+   {
+    "key": "c",
+    "text": "III."
+   },
+   {
+    "key": "d",
+    "text": "None of the above."
+   }
+  ],
+  "answer": "a",
+  "solution": "**Correct answer: A · A two-month refresh cycle is not an early warning — EWIs are monitored daily**\n\n**Step 1 — Test the frequency claim**\n\nLiquidity crises unfold over **days**. Northern Rock, Bear Stearns, Silicon Valley Bank — each failed inside a week or two of the first visible stress.\n\n*An indicator refreshed every two months could be up to sixty days stale at the moment it is needed. That is not an early warning; it is a post-mortem.*\n\n**Step 2 — State the actual requirement**\n\nEWIs should be monitored **daily or more frequently**, with market-based indicators — the firm's own CDS spread, funding costs, share price — watched continuously because they update in real time.\n\n*Balance sheet indicators may refresh more slowly, but the market-based ones are valuable precisely because they move first.*\n\n**Step 3 — Verify guideline II**\n\nShort-term *and* protracted, bank-specific *and* market-wide, with conservative and regularly reviewed assumptions — this is the BCBS stress testing requirement stated accurately.\n\n*All four dimensions matter. A bank can survive an idiosyncratic run and fail a market-wide freeze, or survive a week and fail a quarter.*\n\n**Step 4 — Verify guideline III**\n\nA robust escalation policy is a core requirement of the contingency funding plan. Indicators that trigger nothing are decoration — someone must have the authority to act, and the threshold at which they act must be pre-agreed.\n\n*Escalation defined in advance is what prevents the paralysis that sets in when nobody is sure who may authorise an emergency asset sale.*\n\n**Intuition.** The clue is in the name. An indicator that refreshes every two months could be eight weeks out of date at the moment the funding market closes — and the banks that failed in living memory did so in about a fortnight. The other two guidelines are textbook: stress across both horizons and both scenario types, and decide in advance who is allowed to press the button. Only the frequency is wrong, and it is wrong by roughly a factor of sixty.",
+  "optionAnalysis": {
+   "a": {
+    "verdict": "correct",
+    "reason": "Correct. A two-month update cycle cannot detect events that unfold over days. EWIs require daily or continuous monitoring, especially market-based indicators."
+   },
+   "b": {
+    "verdict": "incorrect",
+    "reason": "**Accurate guideline.** Accurately states the BCBS stress testing requirement across both time horizons and both scenario types, with conservative and regularly reviewed assumptions."
+   },
+   "c": {
+    "verdict": "incorrect",
+    "reason": "**Accurate guideline.** A robust escalation policy is a core element of the contingency funding plan. Indicators without pre-agreed escalation authority achieve nothing."
+   },
+   "d": {
+    "verdict": "incorrect",
+    "reason": "**Defect missed.** Guideline I is materially wrong on frequency. Two of the three are accurate; the third is not."
+   }
+  },
+  "trap": {
+   "operators": [
+    "qualifier-misread",
+    "qualifier-misread",
+    "scope-condition-error"
+   ],
+   "explanation": "The stem asks for the incorrect guideline, so two accurate BCBS-style statements are planted as wrong answers and 'none of the above' catches anyone who reads past the frequency. The defect is a two-month refresh cycle for indicators that must be monitored daily. Check each statement's time dimension against how fast liquidity crises actually unfold."
+  },
+  "notes": {
+   "added": false,
+   "typeMismatch": false,
+   "loType": "Qualitative"
+  },
+  "difficulty": "HARD"
+ }
+]
