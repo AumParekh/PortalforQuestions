@@ -1,0 +1,31 @@
+name: Live site check
+
+# Runs the browser smoke test against the published site (not a local build), after every
+# deploy and on demand: every screen at phone and desktop width, a play-through of each
+# section, and one session of every notes game.
+on:
+  workflow_run:
+    workflows: ['Deploy portal to GitHub Pages']
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Smoke test https://study.aumparekh.com
+        working-directory: web
+        run: |
+          npm install --no-save --no-package-lock playwright@1.47.2
+          npx playwright install --with-deps chromium
+          # Pages can take a minute to switch to a new deploy.
+          sleep 60
+          BASE=https://study.aumparekh.com node scripts/smoke.mjs
