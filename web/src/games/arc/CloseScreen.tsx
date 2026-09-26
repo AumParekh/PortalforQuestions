@@ -1,5 +1,7 @@
-// Close (§8.5): one screen — reading ID, LOs covered, concept named, trap categories drawn on,
-// and caught/missed by category as a stability measurement. Prints the §9.7 session-log lines.
+// Close (§8.5): one screen — the reading, the objectives covered (by their wording), the concept
+// named, trap categories drawn on, and caught/missed by category as a stability measurement. The
+// §9.7 session-log lines can be copied; they are not printed, since they carry block and objective
+// IDs that mean nothing on screen.
 // No points, streaks, XP, confetti or emoji (§10.6, §11).
 import { useState } from 'react';
 import { Check, Copy } from 'lucide-react';
@@ -7,7 +9,7 @@ import type { Reading, SessionLog } from '../types';
 import { TRAP_CATEGORIES } from '../types';
 import type { ConceptNaming } from './plugin';
 import type { NarrativeFrame } from './frames';
-import { GameButton, GameCard } from '../theme/primitives';
+import { GameButton, GameCard, NoteText } from '../theme/primitives';
 import { useGameProgress } from '../progress';
 import { learningObjectives } from '../corpus';
 
@@ -118,20 +120,22 @@ export function CloseScreen({
         <div className="grid gap-6 sm:grid-cols-2">
           <div>
             <div className="g-kicker">Concept named</div>
-            <p className="g-serif mt-1 text-lg">{naming.term}</p>
-            <p className="g-small g-muted">
-              {naming.objectiveId} · <span className="g-mono">{naming.blockId}</span>
+            <p className="g-serif mt-1 text-lg">
+              <NoteText latex={naming.term} />
             </p>
           </div>
           <div>
             <div className="g-kicker">Objectives</div>
             {log.completed ? (
-              <ul className="mt-1 space-y-1 g-small">
-                {objectives.map((o) => (
-                  <li key={o.id} className={closed.has(o.id) ? '' : 'g-muted'}>
-                    {closed.has(o.id) ? 'Closed' : 'Carries over'} · <span className="g-strong">{o.id}</span>
-                  </li>
-                ))}
+              <ul className="mt-1 space-y-2 g-small">
+                {objectives
+                  .filter((o) => o.text?.trim())
+                  .map((o) => (
+                    <li key={o.id} className={closed.has(o.id) ? '' : 'g-muted'}>
+                      <span className="g-strong">{closed.has(o.id) ? 'Closed' : 'Carries over'}</span>{' '}
+                      <NoteText latex={o.text ?? ''} className="g-serif" />
+                    </li>
+                  ))}
               </ul>
             ) : (
               <p className="mt-1 g-small g-muted">The arc ended early, so no objective is marked closed.</p>
@@ -166,9 +170,8 @@ export function CloseScreen({
       <GameCard tone="soft" className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="g-kicker">Session log</div>
-          <CopyButton text={text} />
+          {log.rounds.length > 0 && <CopyButton text={text} label="Copy session log" />}
         </div>
-        <pre className="g-mono overflow-x-auto whitespace-pre-wrap break-words">{text}</pre>
         {saved === 'unavailable' && (
           <p className="g-small g-muted">Browser storage is unavailable here, so this log lives only until the page closes. Copy it.</p>
         )}

@@ -62,8 +62,9 @@ export function GameButton({
 }
 
 /**
- * Renders a LaTeX snippet from the notes as reading text: text-mode macros are flattened, simple
- * math becomes Unicode, anything harder goes through KaTeX.
+ * Renders a LaTeX snippet from the notes (or display text made from one) as reading text:
+ * formatting, colour, size and layout commands are dropped, accents and dashes become characters,
+ * simple math becomes Unicode and anything harder goes through KaTeX. No markup reaches the screen.
  */
 export function NoteText({ latex, className = '' }: { latex: string; className?: string }) {
   const segs = useMemo(() => toSegments(latex), [latex]);
@@ -84,17 +85,18 @@ export function InlineMath({ tex }: { tex: string }) {
 
 /**
  * Wrong-answer correction (§10.3): the wrong version stays for a beat (~800 ms), then the correct
- * version fades in underneath with its source. No buzz, no red X.
+ * version fades in underneath. No buzz, no red X, and no source location: the player sees only the
+ * notes' own words.
  */
 export function WrongHold({
   wrong,
   right,
-  source,
   holdMs = 800,
   onSettled,
 }: {
   wrong: ReactNode;
   right: ReactNode;
+  /** Accepted for older callers and ignored: where a line came from is never shown. */
   source?: string;
   holdMs?: number;
   onSettled?: () => void;
@@ -111,7 +113,6 @@ export function WrongHold({
       <div className="g-hold-wrong g-serif">{wrong}</div>
       <div className="g-hold-right g-serif" aria-live="polite">
         {right}
-        {source && <div className="g-source">{source}</div>}
       </div>
     </div>
   );

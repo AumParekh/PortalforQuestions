@@ -20,7 +20,7 @@ import { useGameProgress } from '../progress';
 import { formatLogLines, orderedCategories, tallyByCategory, unique } from '../log';
 import { newSessionId } from '../random';
 import { learningObjectives } from '../corpus';
-import { GameButton, GameCard, PhaseDots } from '../theme/primitives';
+import { GameButton, GameCard, NoteText, PhaseDots } from '../theme/primitives';
 import { CloseScreen } from './CloseScreen';
 
 const PHASE_INDEX: Record<ArcPhase, number> = { opening: 0, discovery: 1, naming: 2, pressure: 3, close: 4 };
@@ -43,11 +43,6 @@ export interface SessionShellProps {
   trigger: SessionTrigger;
   onExit: () => void;
   onPlayNext?: () => void;
-}
-
-function letterOf(objectiveId: string): string {
-  const m = /\s([a-z]+)$/i.exec(objectiveId.trim());
-  return m ? m[1] : objectiveId;
 }
 
 type Answered = { round: MechanicRound<unknown>; result: RoundResult; grade: number };
@@ -290,7 +285,9 @@ export function SessionShell({ plugin, reading, corpus, plan, frame, trigger, on
           </h1>
           <p className="g-serif g-muted mx-auto max-w-[52ch]">{frame.line}</p>
           <hr className="g-rule mx-auto max-w-[120px]" />
-          <p className="g-reading mx-auto">{plan.opening}</p>
+          <p className="g-reading mx-auto">
+            <NoteText latex={plan.opening} />
+          </p>
           <GameButton variant="primary" onClick={begin}>
             Begin
           </GameButton>
@@ -314,11 +311,14 @@ export function SessionShell({ plugin, reading, corpus, plan, frame, trigger, on
       {phase === 'naming' && naming && (
         <GameCard className="g-enter space-y-4 py-8">
           <div className="g-kicker">What you were catching</div>
-          <p className="g-title g-assemble break-words">{naming.term}</p>
-          <p className="g-reading">{naming.line}</p>
-          <p className="g-small g-muted break-words">
-            {reading.reading_id} {letterOf(naming.objectiveId)} · block <span className="g-mono">{naming.blockId}</span>
+          <p className="g-title g-assemble break-words">
+            <NoteText latex={naming.term} />
           </p>
+          {naming.line.trim() && (
+            <p className="g-reading">
+              <NoteText latex={naming.line} />
+            </p>
+          )}
           <div className="pt-2">
             <GameButton variant="primary" onClick={toPressure}>
               {byPhase.pressure.length ? 'Now under pressure' : 'Close the session'}

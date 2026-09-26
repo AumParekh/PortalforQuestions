@@ -16,13 +16,16 @@ export interface MechanicContext {
   priorityCategory: TrapCategory | null;
 }
 
-/** One playable unit. Every round names the item it reviews and the block it came from (§9.6). */
+/**
+ * One playable unit. Every round names the item it reviews and the block it came from (§9.6), for
+ * the SRS schedule and the session log only: IDs are never shown to the player.
+ */
 export interface MechanicRound<P = unknown> {
   id: string;
   phase: PlayPhase;
   /** Stable extracted-item ID (trap ID, sub-item ID or block ID): the key of the shared SRS schedule. */
   itemId: string;
-  /** Source block ID, shown in feedback and logged. */
+  /** Source block ID: logged, never shown (feedback shows the notes' content, not where it sits). */
   blockId: string;
   /** Objective ID ("LTR-1 a") this round exercises; objectives with rounds close when the arc completes. */
   objectiveId?: string;
@@ -35,11 +38,15 @@ export interface MechanicRound<P = unknown> {
   payload: P;
 }
 
-/** Just-in-time naming (§8.3): official term, source block, LO, one line on its role in the reading. */
+/**
+ * Just-in-time naming (§8.3): the official term and one line on its role in the reading, both shown
+ * (LaTeX or display text; rendered through NoteText). The source block and LO are logged only.
+ */
 export interface ConceptNaming {
   term: string;
+  /** Logged only. */
   blockId: string;
-  /** "LTR-1 a" — the LO letter is shown from this. */
+  /** "LTR-1 a"; logged only. */
   objectiveId: string;
   line: string;
 }

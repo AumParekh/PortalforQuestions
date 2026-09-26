@@ -8,7 +8,6 @@ import type { MechanicId, Reading, SessionLog, SessionTrigger } from './types';
 import { AREA_NAMES, MECHANIC_CATALOGUE, TRAP_CATEGORIES, mechanicIdFromName } from './types';
 import type { Corpus } from './corpus';
 import { learningObjectives } from './corpus';
-import { toDisplay } from './text';
 import { useGameData } from './data';
 import { useGameProgress } from './progress';
 import { MECHANICS, getMechanic } from './mechanics';
@@ -17,13 +16,13 @@ import type { NarrativeFrame } from './arc/frames';
 import { pickFrame } from './arc/frames';
 import { chooseSession, priorityCategory } from './rotation';
 import type { RotationChoice } from './rotation';
-import { choiceStatement, formatGameLogMd, formatLogLines } from './log';
+import { choiceStatement, formatGameLogMd } from './log';
 import { dueItemIds, localDate } from './srs';
 import { seededRng } from './random';
 import { areaCoverage, categoryTotals, readingCoverage, rotationInput } from './stats';
 import { SessionShell } from './arc/SessionShell';
 import { CopyButton, StabilityRows } from './arc/CloseScreen';
-import { GameButton, GameCard } from './theme/primitives';
+import { GameButton, GameCard, NoteText } from './theme/primitives';
 
 interface Setup {
   plugin: AnyMechanicPlugin;
@@ -138,7 +137,9 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
       <Header title="Next session" onBack={onBack} />
       <GameCard className="space-y-4">
         <div className="g-kicker">The choice</div>
-        <p className="g-reading">{setup.statement}</p>
+        <p className="g-reading">
+          <NoteText latex={setup.statement} />
+        </p>
       </GameCard>
       <GameCard className="space-y-4">
         <div className="g-kicker">Tick-check · {reading.reading_id}</div>
@@ -153,7 +154,7 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
                   style={{ borderColor: 'var(--g-navy)', background: on ? 'var(--g-navy)' : 'transparent' }}
                 />
                 <span className={on ? '' : 'g-muted'}>
-                  <span className="g-strong">{o.id}</span> <span className="g-serif">{toDisplay(o.text ?? '')}</span>
+                  <NoteText latex={o.text ?? ''} className="g-serif" />
                   <span className="sr-only">{on ? ' (this session closes it)' : ' (carries over)'}</span>
                 </span>
               </li>
@@ -163,7 +164,7 @@ function Briefing({ setup, onStart, onBack }: { setup: Setup; onStart: () => voi
         <p className="g-small g-muted">
           {carry.length === 0
             ? 'This arc closes every objective in the reading.'
-            : `Carries over: ${carry.map((o) => o.id).join(', ')}.`}
+            : `${carry.length} of ${los.length} ${los.length === 1 ? 'objective carries' : 'objectives carry'} over to a later session.`}
         </p>
       </GameCard>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -199,13 +200,13 @@ function ReadingView({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="g-kicker">Objectives</div>
           <span className="g-small g-muted">
-            {cov.closed} of {cov.total} closed{reading.src != null ? ` · SRC ${reading.src}` : ''}
+            {cov.closed} of {cov.total} closed
           </span>
         </div>
         <ul className="space-y-2">
           {learningObjectives(reading).map((o) => (
             <li key={o.id} className={coverage[o.id] ? '' : 'g-muted'}>
-              <span className="g-strong">{o.id}</span> <span className="g-serif">{toDisplay(o.text ?? '')}</span>
+              <NoteText latex={o.text ?? ''} className="g-serif" />
               {coverage[o.id] && <span className="g-chip is-green ml-2">closed</span>}
             </li>
           ))}
@@ -303,7 +304,15 @@ function LogView({ sessions, onBack }: { sessions: SessionLog[]; onBack: () => v
                 {new Date(s.timestamp).toLocaleString()}
                 {s.completed ? '' : ' · arc not completed'}
               </div>
-              <pre className="g-mono whitespace-pre-wrap break-words">{(s.lines.length ? s.lines : formatLogLines(s)).join('\n')}</pre>
+              <p className="g-small">
+                <span className="g-strong">#{s.number}</span> · {s.readingId} · {s.mechanicTitle} · caught {s.caught} of {s.rounds.length}
+              </p>
+              {s.taught.trim() && (
+                <p className="g-serif mt-1">
+                  <NoteText latex={s.taught} />
+                </p>
+              )}
+              {s.missCategories.length > 0 && <p className="g-small g-muted mt-1">Missed: {s.missCategories.join(', ')}</p>}
             </GameCard>
           </li>
         ))}
