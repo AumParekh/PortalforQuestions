@@ -3,7 +3,7 @@
 
 Usage: build_mocks.py <bank-dir>
 
-<bank-dir>/<Set>_Solution_Bank_<n>.json are arrays of questions (subject-bank schema plus
+<bank-dir>/[AP_]<Set>_Solution_Bank_<n>.json are arrays of questions (subject-bank schema plus
 `number`). Banks are grouped by their question-id prefix (MOCK1-, PE1-, ...), sorted by number,
 and written with the time limit the real exam uses: 4 hours for 80 questions, pro rata for a
 partial set. Fails on duplicate ids or a question that breaks the bank rules (see
@@ -28,6 +28,9 @@ SETS = {
     'MOCK4': ('mock-4', 'Mock 4'),
     'PE1': ('garp-practice-exam-1', 'GARP Practice Exam 1'),
     'PE2': ('garp-practice-exam-2', 'GARP Practice Exam 2'),
+    'APMOCK1': ('analystprep-mock-1', 'AnalystPrep Mock 1'),
+    'APMOCK2': ('analystprep-mock-2', 'AnalystPrep Mock 2'),
+    'APMOCK3': ('analystprep-mock-3', 'AnalystPrep Mock 3'),
 }
 FULL_EXAM = 80
 MINUTES_PER_QUESTION = 240 / FULL_EXAM
