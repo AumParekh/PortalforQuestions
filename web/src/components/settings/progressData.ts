@@ -3,6 +3,9 @@ import type {
   GymAttempt,
   GymKind,
   GymState,
+  MockEndReason,
+  MockResult,
+  MockResultItem,
   OptionKey,
   QuestionState,
   ScopeKind,
@@ -17,11 +20,11 @@ import type { GamesExport } from '../../games/db';
 
 /** File format for "Export progress" / "Import progress". */
 /**
- * Version 2 adds the True/False stores, version 3 the gym stores (Formula Gym and siblings). Older files still import,
- * with the stores they predate left empty.
+ * Version 2 adds the True/False stores, version 3 the gym stores (Formula Gym and siblings), version 4 mock exam
+ * results. Older files still import, with the stores they predate left empty.
  */
 export interface ProgressExport {
-  version: 3;
+  version: 4;
   exportedAt: string;
   questionState: QuestionState[];
   attempts: AttemptRecord[];
@@ -30,6 +33,7 @@ export interface ProgressExport {
   tfAttempts: TFAttempt[];
   gymState: GymState[];
   gymAttempts: GymAttempt[];
+  mockResults: MockResult[];
   /** Notes-game progress (separate frm-games database); absent in files from before the games layer. */
   games?: GamesExport;
 }
@@ -41,7 +45,7 @@ export interface ParsedImport {
 }
 
 export async function buildExport(): Promise<ProgressExport> {
-  const [questionState, attempts, sessions, tfState, tfAttempts, gymState, gymAttempts] = await Promise.all([
+  const [questionState, attempts, sessions, tfState, tfAttempts, gymState, gymAttempts, mockResults] = await Promise.all([
     getAll('questionState'),
     getAll('attempts'),
     getAll('sessions'),
@@ -49,13 +53,15 @@ export async function buildExport(): Promise<ProgressExport> {
     getAll('tfAttempts'),
     getAll('gymState'),
     getAll('gymAttempts'),
+    getAll('mockResults'),
   ]);
   attempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   sessions.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
   tfAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   gymAttempts.sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  mockResults.sort((a, b) => a.submittedAt.localeCompare(b.submittedAt));
   return {
-    version: 3,
+    version: 4,
     exportedAt: new Date().toISOString(),
     questionState,
     attempts,
@@ -64,6 +70,7 @@ export async function buildExport(): Promise<ProgressExport> {
     tfAttempts,
     gymState,
     gymAttempts,
+    mockResults,
     // The games database is separate; a failure there shouldn't block exporting everything else.
     games: await exportGamesDb().catch(() => undefined),
   };
@@ -96,6 +103,7 @@ const OPTION_KEYS: readonly string[] = ['a', 'b', 'c', 'd', 'e'];
 const MODES: readonly string[] = ['drill', 'review-wrong', 'review-due', 'quest', 'mock'];
 const SCOPES: readonly string[] = ['subject', 'reading', 'topic', 'lo'];
 const GYM_KINDS: readonly string[] = ['formula', 'scenario'];
+const MOCK_END: readonly string[] = ['submit', 'time'];
 
 const isRec = (v: unknown): v is Rec => !!v && typeof v === 'object' && !Array.isArray(v);
 const str = (v: unknown): v is string => typeof v === 'string';
@@ -255,6 +263,46 @@ function gymAttempt(v: unknown): GymAttempt | null {
   return row;
 }
 
+function mockItem(v: unknown): MockResultItem | null {
+  if (!isRec(v) || !nonEmpty(v.questionId) || !str(v.subject)) return null;
+  const sel = selected(v.selected);
+  if (sel === undefined || sel === null) return null;
+  if (!str(v.correctOption) || !OPTION_KEYS.includes(v.correctOption)) return null;
+  return {
+    questionId: v.questionId,
+    number: count(v.number) ? v.number : 0,
+    subject: v.subject,
+    selected: sel,
+    correctOption: v.correctOption as OptionKey,
+    // Recomputed rather than trusted, so the score always matches the answers.
+    correct: sel !== '' && sel === v.correctOption,
+    flagged: v.flagged === true,
+    timeSeconds: count(v.timeSeconds) ? v.timeSeconds : 0,
+  };
+}
+
+function mockResult(v: unknown): MockResult | null {
+  if (!isRec(v) || !nonEmpty(v.resultId) || !nonEmpty(v.slug) || !isoDate(v.startedAt) || !isoDate(v.submittedAt)) return null;
+  if (!Array.isArray(v.items)) return null;
+  const items = v.items.map(mockItem);
+  // A result with an unreadable question would score wrong, so the whole row is left out instead.
+  if (items.length === 0 || items.some((i) => i === null)) return null;
+  const ok = items as MockResultItem[];
+  return {
+    resultId: v.resultId,
+    slug: v.slug,
+    name: nonEmpty(v.name) ? v.name : v.slug,
+    startedAt: v.startedAt,
+    submittedAt: v.submittedAt,
+    timeLimitMinutes: num(v.timeLimitMinutes) && v.timeLimitMinutes > 0 ? v.timeLimitMinutes : Math.max(1, ok.length * 3),
+    endedBy: str(v.endedBy) && MOCK_END.includes(v.endedBy) ? (v.endedBy as MockEndReason) : 'submit',
+    total: ok.length,
+    answered: ok.filter((i) => i.selected !== '').length,
+    correct: ok.filter((i) => i.correct).length,
+    items: ok,
+  };
+}
+
 function rows<T>(list: unknown[], parse: (v: unknown) => T | null, key: (t: T) => string): { ok: T[]; bad: number } {
   const byKey = new Map<string, T>();
   let bad = 0;
@@ -275,7 +323,7 @@ export function parseImport(text: string): ParsedImport {
     throw new Error('This file is not valid JSON.');
   }
   if (!isRec(data)) throw new Error('This file is not a progress export.');
-  if (data.version !== 1 && data.version !== 2 && data.version !== 3) {
+  if (data.version !== 1 && data.version !== 2 && data.version !== 3 && data.version !== 4) {
     throw new Error(
       data.version === undefined ? 'This file is not a progress export (no version).' : `Unsupported export version: ${String(data.version)}.`,
     );
@@ -289,6 +337,7 @@ export function parseImport(text: string): ParsedImport {
   const tfAttemptRows = list(data.tfAttempts);
   const gymStateRows = list(data.gymState);
   const gymAttemptRows = list(data.gymAttempts);
+  const mockResultRows = list(data.mockResults);
   const qs = rows(data.questionState, questionState, (r) => r.questionId);
   const at = rows(data.attempts, attempt, (r) => r.attemptId);
   const se = rows(data.sessions, session, (r) => r.sessionId);
@@ -296,6 +345,7 @@ export function parseImport(text: string): ParsedImport {
   const ta = rows(tfAttemptRows, tfAttempt, (r) => r.attemptId);
   const gs = rows(gymStateRows, gymState, (r) => r.itemId);
   const ga = rows(gymAttemptRows, gymAttempt, (r) => r.attemptId);
+  const mr = rows(mockResultRows, mockResult, (r) => r.resultId);
   const total =
     data.questionState.length +
     data.attempts.length +
@@ -303,15 +353,16 @@ export function parseImport(text: string): ParsedImport {
     tfStateRows.length +
     tfAttemptRows.length +
     gymStateRows.length +
-    gymAttemptRows.length;
+    gymAttemptRows.length +
+    mockResultRows.length;
   // Game rows are validated here too, so a bad row is reported as skipped instead of failing (or
   // half-applying) the games part of the import.
   const games = sanitizeGamesExport(data.games);
-  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + gs.bad + ga.bad + (games?.skipped ?? 0);
+  const skipped = qs.bad + at.bad + se.bad + ts.bad + ta.bad + gs.bad + ga.bad + mr.bad + (games?.skipped ?? 0);
   if (total > 0 && skipped === total) throw new Error('None of the records in this file could be read.');
   return {
     data: {
-      version: 3,
+      version: 4,
       exportedAt: isoDate(data.exportedAt) ? data.exportedAt : '',
       questionState: qs.ok,
       attempts: at.ok,
@@ -320,6 +371,7 @@ export function parseImport(text: string): ParsedImport {
       tfAttempts: ta.ok,
       gymState: gs.ok,
       gymAttempts: ga.ok,
+      mockResults: mr.ok,
       games: games?.snapshot,
     },
     skipped,
@@ -333,7 +385,7 @@ export function parseImport(text: string): ParsedImport {
 export async function replaceProgress(data: ProgressExport): Promise<void> {
   const db = await openDb();
   const tx = db.transaction(
-    ['questionState', 'attempts', 'sessions', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts'],
+    ['questionState', 'attempts', 'sessions', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts', 'mockResults'],
     'readwrite',
   );
   const done = new Promise<void>((resolve, reject) => {
@@ -348,6 +400,7 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   const ta = tx.objectStore('tfAttempts');
   const gs = tx.objectStore('gymState');
   const ga = tx.objectStore('gymAttempts');
+  const mr = tx.objectStore('mockResults');
   qs.clear();
   at.clear();
   se.clear();
@@ -355,6 +408,7 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   ta.clear();
   gs.clear();
   ga.clear();
+  mr.clear();
   for (const r of data.questionState) qs.put(r);
   for (const r of data.attempts) at.put(r);
   for (const r of data.sessions) se.put(r);
@@ -362,6 +416,7 @@ export async function replaceProgress(data: ProgressExport): Promise<void> {
   for (const r of data.tfAttempts) ta.put(r);
   for (const r of data.gymState) gs.put(r);
   for (const r of data.gymAttempts) ga.put(r);
+  for (const r of data.mockResults) mr.put(r);
   await done;
   // Wholesale replace applies to notes-game progress too: a file without it clears it. The games
   // database is separate, so this can't share the transaction above; if it fails (games storage

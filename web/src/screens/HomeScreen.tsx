@@ -6,7 +6,8 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
 import { ExamCountdown, TodaysPlan } from '../components/dashboard/ExamPlan';
 import type { PlanRow, PlanSection } from '../components/dashboard/ExamPlan';
-import { QUEST_GOAL, startDueReview, startMock, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
+import { QUEST_GOAL, startDueReview, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
+import { MockCard, MockResumeBanners } from '../components/dashboard/MockCard';
 import { AccuracyChip, ProgressBar } from '../components/dashboard/ProgressBar';
 import { SearchBox } from '../components/dashboard/SearchBox';
 import { StatTile } from '../components/dashboard/StatTile';
@@ -26,6 +27,8 @@ import { addDays, isDue, localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
 import { dueItemIds } from '../games/srs';
 import { useSession } from '../store/session';
+import { mockSlug } from '../mock/model';
+import { resultsFor, useMock } from '../mock/store';
 import type { ContentFile, QuestionState } from '../types';
 
 interface FileProgress {
@@ -64,7 +67,6 @@ function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
 
 function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: FileProgress; onOpen: () => void }) {
   const tierCount = file.tiers?.length ?? 0;
-  const Icon = file.type === 'mock' ? ClipboardList : BookOpen;
   const total = file.questionIds.length;
   return (
     <button
@@ -73,7 +75,7 @@ function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: Fil
       className="flex min-h-[44px] w-full items-start gap-3 rounded-2xl border border-transparent bg-card-light p-4 text-left shadow-sm transition hover:border-primary-100 hover:shadow-md dark:bg-card-dark dark:hover:border-slate-600 sm:p-5"
     >
       <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-slate-800 dark:text-primary-100">
-        <Icon className="h-5 w-5" aria-hidden="true" />
+        <BookOpen className="h-5 w-5" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-start justify-between gap-2">
@@ -83,7 +85,6 @@ function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: Fil
         <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
           {total} questions
           {tierCount > 0 && ` · ${tierCount} ${tierCount === 1 ? 'tier' : 'tiers'}`}
-          {file.type === 'mock' && file.timeLimitMinutes ? ` · ${file.timeLimitMinutes} min` : ''}
         </span>
         <span className="mt-2 flex items-center gap-3">
           <ProgressBar value={total ? progress.attempted / total : 0} label={`${file.name} attempted`} />
@@ -92,7 +93,7 @@ function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: Fil
           </span>
         </span>
         <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
-          {file.type === 'mock' ? 'Start full mock' : 'Quick 20 · shuffled'}
+          Quick 20 · shuffled
         </span>
       </span>
       <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -201,6 +202,8 @@ export function HomeScreen() {
   const answeredCount = useSession((s) => Object.keys(s.answers).length);
   const queueLength = useSession((s) => s.queue.length);
   const mocksRef = useRef<HTMLElement>(null);
+  const mockResults = useMock((s) => s.results);
+  const mockAttempts = useMock((s) => s.attempts);
 
   const subjectFiles = useMemo(() => files.filter((f) => f.type === 'subject'), [files]);
   const mockFiles = useMemo(() => files.filter((f) => f.type === 'mock'), [files]);
@@ -320,6 +323,8 @@ export function HomeScreen() {
           <ChevronRight className="h-5 w-5 shrink-0" aria-hidden="true" />
         </button>
       )}
+
+      <MockResumeBanners files={mockFiles} attempts={mockAttempts} />
 
       {sessionStatus === 'finished' && (
         <button
@@ -500,7 +505,11 @@ export function HomeScreen() {
             <QuickAction
               icon={<ClipboardList className="h-5 w-5" aria-hidden="true" />}
               title="Mock Exam"
-              detail={`${mockFiles.length} full ${mockFiles.length === 1 ? 'exam' : 'exams'} available`}
+              detail={
+                Object.keys(mockAttempts).length > 0
+                  ? 'Timed, exam conditions · an attempt is in progress'
+                  : `${mockFiles.length} timed ${mockFiles.length === 1 ? 'exam' : 'exams'} under exam conditions`
+              }
               onClick={scrollToMocks}
             />
           )}
@@ -547,9 +556,10 @@ export function HomeScreen() {
         <section ref={mocksRef} className="mt-10 scroll-mt-4">
           <SectionTitle>Mock exams</SectionTitle>
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {mockFiles.map((f) => (
-              <FileCard key={f.path} file={f} progress={progressByPath[f.path]} onOpen={() => startMock(f)} />
-            ))}
+            {mockFiles.map((f) => {
+              const slug = mockSlug(f.path);
+              return <MockCard key={f.path} file={f} results={resultsFor(mockResults, slug)} attempt={mockAttempts[slug]} />;
+            })}
           </div>
         </section>
       )}

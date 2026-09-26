@@ -2,7 +2,8 @@ import { Check, X } from 'lucide-react';
 import type { OptionKey } from '../types';
 import { Markdown } from './Markdown';
 
-export type OptionState = 'idle' | 'correct' | 'wrong' | 'reveal' | 'dimmed';
+/** 'selected': chosen but not yet marked (mock exams, where feedback waits for submission). */
+export type OptionState = 'idle' | 'selected' | 'correct' | 'wrong' | 'reveal' | 'dimmed';
 
 interface Props {
   letter: OptionKey;
@@ -16,6 +17,7 @@ interface Props {
 const BOX: Record<OptionState, string> = {
   idle:
     'border-slate-200 bg-card-light hover:border-primary hover:bg-primary-50 active:scale-[0.99] dark:border-slate-700 dark:bg-card-dark dark:hover:border-primary dark:hover:bg-slate-800',
+  selected: 'border-primary bg-primary-50 active:scale-[0.99] dark:border-primary dark:bg-primary/20',
   correct: 'border-emerald-600 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-950/40',
   wrong: 'border-red-600 bg-red-50 dark:border-red-500 dark:bg-red-950/40',
   reveal: 'border-emerald-600 bg-emerald-50 dark:border-emerald-500 dark:bg-emerald-950/40',
@@ -24,6 +26,7 @@ const BOX: Record<OptionState, string> = {
 
 const BADGE: Record<OptionState, string> = {
   idle: 'border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200',
+  selected: 'border-primary bg-primary text-white',
   correct: 'border-emerald-600 bg-emerald-600 text-white',
   wrong: 'border-red-600 bg-red-600 text-white',
   reveal: 'border-emerald-600 bg-emerald-600 text-white',
@@ -31,6 +34,7 @@ const BADGE: Record<OptionState, string> = {
 };
 
 const SR_STATUS: Partial<Record<OptionState, string>> = {
+  selected: ' (selected)',
   correct: ' (your answer, correct)',
   wrong: ' (your answer, incorrect)',
   reveal: ' (correct answer)',

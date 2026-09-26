@@ -14,6 +14,8 @@ import { useTf } from './store/tf';
 import { useGym } from './formulas/storage';
 import { OutdatedBanner } from './components/OutdatedBanner';
 import { RouteErrorBoundary } from './components/RouteErrorBoundary';
+import { useMock } from './mock/store';
+import { settleExpiredMocks } from './mock/submit';
 
 // The core question loop (Home, Setup, Question, Summary, Review) ships in the main chunk; every other screen is
 // its own chunk, fetched on first visit (the service worker precaches them all for offline use).
@@ -24,6 +26,7 @@ const loadGames = () => import('./games/GamesScreen');
 const loadAnalytics = () => import('./screens/AnalyticsScreen');
 const loadSettings = () => import('./screens/SettingsScreen');
 const loadDevLongest = () => import('./screens/DevLongestScreen');
+const loadMock = () => import('./mock/MockScreen');
 
 const TrueFalseScreen = lazy(() => loadTrueFalse().then((m) => ({ default: m.TrueFalseScreen })));
 const FormulaGymScreen = lazy(() => loadFormulaGym().then((m) => ({ default: m.FormulaGymScreen })));
@@ -32,6 +35,7 @@ const GamesScreen = lazy(() => loadGames().then((m) => ({ default: m.GamesScreen
 const AnalyticsScreen = lazy(() => loadAnalytics().then((m) => ({ default: m.AnalyticsScreen })));
 const SettingsScreen = lazy(() => loadSettings().then((m) => ({ default: m.SettingsScreen })));
 const DevLongestScreen = lazy(() => loadDevLongest().then((m) => ({ default: m.DevLongestScreen })));
+const MockScreen = lazy(() => loadMock().then((m) => ({ default: m.MockScreen })));
 
 const LAZY_ROUTES: Record<string, () => Promise<unknown>> = {
   '/truefalse': loadTrueFalse,
@@ -42,6 +46,9 @@ const LAZY_ROUTES: Record<string, () => Promise<unknown>> = {
   '/settings': loadSettings,
   '/dev/longest': loadDevLongest,
 };
+
+/** Mock exam routes carry a slug (/mock/<slug>/…), so they are matched by prefix. */
+const isMockRoute = (route: string) => route.startsWith('/mock/');
 
 function Skeleton({ label = 'Loading questions' }: { label?: string }) {
   return (
@@ -76,10 +83,12 @@ function Routes() {
   const { status, error, load } = useContent();
   const sessionStatus = useSession((s) => s.status);
   const persistenceReady = useUi((s) => s.persistenceReady);
+  const mockStatus = useMock((s) => s.status);
+  const mockInProgress = useMock((s) => Object.keys(s.attempts).length > 0);
 
   useEffect(() => {
     // A deep link to a lazy screen starts fetching its chunk now, alongside the question bank, rather than after it.
-    LAZY_ROUTES[route]?.().catch(() => undefined);
+    (isMockRoute(route) ? loadMock : LAZY_ROUTES[route])?.().catch(() => undefined);
     load();
     initPersistence();
     useTf.getState().loadProgress();
@@ -87,6 +96,8 @@ function Routes() {
     useGameProgress.getState().load();
     // Formula Gym answers count toward the streak on Home, so load them up front too.
     useGym.getState().load();
+    // Home shows each mock's last score and any attempt in progress.
+    void useMock.getState().load();
   }, [load]);
 
   // A restored session may reference questions a content update removed; drop them rather than strand the user.
@@ -100,6 +111,15 @@ function Routes() {
     if (queue.length === 0) s.reset();
     else useSession.setState({ queue, currentIndex: Math.min(s.currentIndex, queue.length - 1) });
   }, [status, persistenceReady]);
+
+  // A mock's clock runs while the app is closed or on another screen: one whose time is up is submitted, as the exam
+  // would have been (the exam screen submits its own; this catches the rest).
+  useEffect(() => {
+    if (status !== 'ready' || !persistenceReady || mockStatus === 'idle' || mockStatus === 'loading' || !mockInProgress) return;
+    settleExpiredMocks();
+    const id = window.setInterval(() => settleExpiredMocks(), 5000);
+    return () => window.clearInterval(id);
+  }, [status, persistenceReady, mockStatus, mockInProgress]);
 
   // A session route with no active session (e.g. after reload) goes back to setup.
   useEffect(() => {
@@ -123,6 +143,14 @@ function Routes() {
     );
   }
   if (status !== 'ready' || !persistenceReady) return <Skeleton />;
+
+  if (isMockRoute(route)) {
+    return (
+      <LazyRoute route={route}>
+        <MockScreen route={route} />
+      </LazyRoute>
+    );
+  }
 
   switch (route) {
     case '/setup':

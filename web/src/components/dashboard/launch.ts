@@ -85,7 +85,3 @@ export function startSubjectQuick(subject: string, file: ContentFile) {
     shuffle(file.questionIds).slice(0, 20),
   );
 }
-
-export function startMock(file: ContentFile) {
-  launch({ ...BASE, scopeKind: 'subject', selectedKeys: [file.name], count: 'all', order: 'sequential', mode: 'mock' }, [...file.questionIds]);
-}

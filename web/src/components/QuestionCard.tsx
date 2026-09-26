@@ -8,16 +8,18 @@ interface Props {
   /** True only right after the user answered this question, so the wrong-answer shake doesn't replay on revisit. */
   animateFeedback: boolean;
   onSelect: (key: OptionKey) => void;
+  /** Mock exams: the option chosen so far, shown without marking it right or wrong; options stay changeable. */
+  selected?: OptionKey;
 }
 
-function optionState(key: OptionKey, question: Question, record: AnswerRecord | undefined): OptionState {
-  if (!record) return 'idle';
+function optionState(key: OptionKey, question: Question, record: AnswerRecord | undefined, selected: OptionKey | undefined): OptionState {
+  if (!record) return key === selected ? 'selected' : 'idle';
   if (key === record.selected) return record.correct ? 'correct' : 'wrong';
   if (key === question.answer) return 'reveal';
   return 'dimmed';
 }
 
-export function QuestionCard({ question, record, animateFeedback, onSelect }: Props) {
+export function QuestionCard({ question, record, animateFeedback, onSelect, selected }: Props) {
   const stemSize = question.question.length > 800 ? 'text-lg' : 'text-xl';
   return (
     <div className="space-y-5">
@@ -30,7 +32,7 @@ export function QuestionCard({ question, record, animateFeedback, onSelect }: Pr
             key={opt.key}
             letter={opt.key}
             text={opt.text}
-            state={optionState(opt.key, question, record)}
+            state={optionState(opt.key, question, record, selected)}
             disabled={!!record}
             shake={animateFeedback}
             onSelect={onSelect}

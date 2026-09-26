@@ -1,7 +1,21 @@
 import { useSyncExternalStore } from 'react';
 
 // Hash routing so deep links work on GitHub Pages without a 404 fallback.
-export type Route = '/' | '/setup' | '/session' | '/summary' | '/review' | '/truefalse' | '/formulas' | '/sense' | '/analytics' | '/settings' | '/games' | '/dev/longest';
+// Mock exams take a slug and sub-view: /mock/<slug>[/exam | /results/<id>[/<n>]] (mock/model.ts builds them).
+export type Route =
+  | '/'
+  | '/setup'
+  | '/session'
+  | '/summary'
+  | '/review'
+  | '/truefalse'
+  | '/formulas'
+  | '/sense'
+  | '/analytics'
+  | '/settings'
+  | '/games'
+  | '/dev/longest'
+  | `/mock/${string}`;
 
 function current(): string {
   const h = window.location.hash.replace(/^#/, '');

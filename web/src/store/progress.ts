@@ -5,6 +5,7 @@ import { newId } from './session';
 import { useTf } from './tf';
 import { localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
+import { useMock } from '../mock/store';
 import { nextSchedule, PAR_SECONDS } from '../lib/srs';
 
 interface ProgressState {
@@ -144,9 +145,10 @@ export const useProgress = create<ProgressState>((set, get) => ({
     set({ states: {}, attempts: [], sessions: [] });
     useTf.getState().clearAll();
     useGym.getState().clearAll();
+    useMock.getState().clearAll();
     await useGameProgress.getState().resetAll();
     if (get().status === 'ready') {
-      await clearStores(['questionState', 'attempts', 'sessions', 'meta', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts']);
+      await clearStores(['questionState', 'attempts', 'sessions', 'meta', 'tfState', 'tfAttempts', 'gymState', 'gymAttempts', 'mockResults']);
     }
   },
 }));
