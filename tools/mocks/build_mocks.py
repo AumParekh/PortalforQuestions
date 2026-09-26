@@ -31,6 +31,7 @@ SETS = {
     'APMOCK1': ('analystprep-mock-1', 'AnalystPrep Mock 1'),
     'APMOCK2': ('analystprep-mock-2', 'AnalystPrep Mock 2'),
     'APMOCK3': ('analystprep-mock-3', 'AnalystPrep Mock 3'),
+    'BTMOCK': ('bionicturtle-mock', 'BionicTurtle Mock'),
 }
 FULL_EXAM = 80
 MINUTES_PER_QUESTION = 240 / FULL_EXAM
