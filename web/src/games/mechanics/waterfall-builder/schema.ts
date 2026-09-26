@@ -40,7 +40,13 @@ export interface FlowItem {
 
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const isStr = (v: unknown): v is string => typeof v === 'string' && v.trim().length > 0;
-const oneLine = (s: string): string => s.replace(/\s+/g, ' ').trim();
+const GREEK_WORD: Record<string, string> = { sigma: 'σ', theta: 'θ', rho: 'ρ', lambda: 'λ' };
+/** One line of curated text, with an ASCII symbol name as its letter ("-0.5 sigma" → "-0.5 σ"). */
+const oneLine = (s: string): string =>
+  s
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b(sigma|theta|rho|lambda)\b/g, (w: string) => GREEK_WORD[w]);
 
 export function wordCount(s: string): number {
   return s.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;

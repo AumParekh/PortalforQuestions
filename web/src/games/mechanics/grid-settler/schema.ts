@@ -66,16 +66,30 @@ export function textKey(s: string): string {
     .trim();
 }
 
+const GREEK_WORD: Record<string, string> = { sigma: 'σ', theta: 'θ', rho: 'ρ', lambda: 'λ', alpha: 'α', beta: 'β' };
+
+/**
+ * The curated lines' ASCII symbol names as letters: "sigma" → σ, "theta" → θ. Alpha and beta are
+ * also finance words ("Jensen's alpha", "Treynor by beta"), so they become letters only when
+ * bracketed alone, as a symbol ("Systematic risk (beta)").
+ */
+export function symbols(s: string): string {
+  return s.replace(/\b(sigma|theta|rho|lambda)\b|(?<=\()(alpha|beta)(?=\))/g, (w: string) => GREEK_WORD[w]);
+}
+
 export function parseAxis(x: unknown): GsAxis | null {
   if (!isRecord(x)) return null;
   const label = str(x.label);
   if (!label || !Array.isArray(x.values)) return null;
-  const values = x.values.map(str);
+  const values = x.values.map((v) => {
+    const t = str(v);
+    return t === null ? null : symbols(t);
+  });
   if (values.some((v) => v === null)) return null;
   const vs = values as string[];
   if (vs.length < MIN_AXIS_VALUES || vs.length > MAX_AXIS_VALUES) return null;
   if (new Set(vs.map(textKey)).size !== vs.length) return null;
-  return { label, values: vs };
+  return { label: symbols(label), values: vs };
 }
 
 /** One tile, or null when a field is missing, mistyped or its cell is out of range. */
@@ -88,7 +102,7 @@ export function parseTile(t: unknown, nx: number, ny: number): GsTile | null {
   if (!Array.isArray(t.cell) || t.cell.length !== 2) return null;
   const [x, y] = t.cell as unknown[];
   if (!isIndex(x, nx) || !isIndex(y, ny)) return null;
-  return { id, text, x, y, why };
+  return { id, text: symbols(text), x, y, why: symbols(why) };
 }
 
 /** Distinct cells a set of tiles occupies. */
@@ -131,12 +145,12 @@ export function parseGrid(raw: unknown, seenTileIds: Set<string> = new Set()): G
     readingId,
     sourceBlock,
     sourceLine: line,
-    title,
+    title: symbols(title),
     x,
     y,
     tiles,
-    pattern,
-    explanation: str(raw.explanation) ?? '',
+    pattern: symbols(pattern),
+    explanation: symbols(str(raw.explanation) ?? ''),
   };
 }
 

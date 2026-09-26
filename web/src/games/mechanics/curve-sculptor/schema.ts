@@ -48,14 +48,19 @@ function dropReadingRefs(s: string): string {
     .trim();
 }
 
-const GREEK: Record<string, string> = { theta: 'θ', sigma: 'σ', mu: 'μ', xi: 'ξ' };
+const GREEK: Record<string, string> = { theta: 'θ', sigma: 'σ', mu: 'μ', xi: 'ξ', rho: 'ρ', lambda: 'λ', alpha: 'α', beta: 'β', gamma: 'γ' };
 
 /**
- * The curated lines' ASCII symbols as characters: "theta" → θ, "sigma" → σ, "r0" → r₀, "X/S0" → X/S₀.
- * Sub- and superscripts written with _ and ^ ("E[r_T]", "e^(-kT)") are set by PlainText.
+ * The curated lines' ASCII symbols as characters: "theta" → θ, "sigma" → σ, "rho" → ρ, "r0" → r₀,
+ * "X/S0" → X/S₀. Alpha, beta and gamma are also finance words ("Jensen's alpha", "the beta
+ * distribution"), so they become letters only as a symbol: subscripted ("beta_P") or bracketed alone
+ * ("(alpha)"). Sub- and superscripts written with _ and ^ ("E[r_T]", "e^(-kT)") are set by PlainText.
  */
 export function notation(s: string): string {
-  return s.replace(/\b(theta|sigma|mu|xi)\b/g, (_, w: string) => GREEK[w]).replace(/\b([A-Za-z])0\b/g, '$1₀');
+  return s
+    .replace(/\b(theta|sigma|mu|xi|rho|lambda)\b/g, (_, w: string) => GREEK[w])
+    .replace(/\b(alpha|beta|gamma)(?=_)|(?<=\()(alpha|beta|gamma)(?=\))/g, (w: string) => GREEK[w])
+    .replace(/\b([A-Za-z])0\b/g, '$1₀');
 }
 
 /** Type guard + normaliser for one curated item; null when anything is off. */

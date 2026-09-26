@@ -1206,7 +1206,7 @@ export function namingFor(corpus: Corpus, reading: Reading, seq: OrderSequence):
     term: seq.concept,
     blockId: seq.blockId,
     objectiveId,
-    line: `${seq.steps.length} ${KIND_UNIT[seq.kind]} in a fixed order, and ${KIND_LINE[seq.kind]} Getting the pieces right but the order wrong is the Sequence trap.`,
+    line: `${seq.steps.length} ${KIND_UNIT[seq.kind]} in a fixed order, and ${KIND_LINE[seq.kind]}`,
   };
 }
 

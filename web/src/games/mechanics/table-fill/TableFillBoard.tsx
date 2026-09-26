@@ -11,7 +11,7 @@ import type { MechanicRenderProps, MechanicRound, RoundResult } from '../../arc/
 import type { PlayPhase } from '../../types';
 import type { Blank, Sheet, TableFillPayload, Tile } from './build';
 import { normCell, plainText, rowGrade } from './build';
-import { toDisplay, toSegments } from '../../text';
+import { mathToPlain, toDisplay, toSegments } from '../../text';
 import { GameCard, NoteText, TimerBar } from '../../theme/primitives';
 
 const SMALL: CSSProperties = { fontSize: 15, lineHeight: 1.55 };
@@ -68,6 +68,9 @@ function anchorCell(sheet: Sheet, rowIndex: number): string | null {
   return at === undefined ? null : row.cells[at] || null;
 }
 
+/** Commands that are not symbols, read as words; any other command (\mathbf, \frac, …) is dropped. */
+const SPOKEN_COMMAND: Record<string, string> = { sqrt: 'root of', star: '★', infty: 'infinity' };
+
 /** A cell as words for screen readers: formulas flattened to Unicode, or read without their TeX markup. */
 function spoken(latex: string): string {
   return toSegments(latex)
@@ -76,7 +79,8 @@ function spoken(latex: string): string {
         ? seg.text
         : plainText(`$${seg.tex}$`)
             .replace(/^\$|\$$/g, '')
-            .replace(/\\([a-zA-Z]+)/g, ' $1 ')
+            .replace(/\\[,;:! ]/g, ' ')
+            .replace(/\\([a-zA-Z]+)/g, (_m, name: string) => ` ${SPOKEN_COMMAND[name] ?? mathToPlain(`\\${name}`) ?? ''} `)
             .replace(/[{}^_\\&]/g, ' '),
     )
     .join('')
