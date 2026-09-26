@@ -59,12 +59,16 @@ function readAttempts(): Record<string, MockAttempt> | null {
   }
 }
 
+/** False once a write has failed: storage then lags memory and can't be trusted to say what is still open. */
+let writable = true;
+
 function writeAttempts(attempts: Record<string, MockAttempt>) {
   try {
     if (Object.keys(attempts).length === 0) window.localStorage.removeItem(ATTEMPTS_KEY);
     else window.localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
   } catch {
     // Storage blocked or full: the attempt still runs in memory, it just won't survive a reload.
+    writable = false;
   }
 }
 
@@ -182,7 +186,7 @@ export const useMock = create<MockStore>((set, get) => {
     take: (slug) => {
       const mine = get().attempts[slug];
       // localStorage is shared and synchronous across tabs, so it is the authority on whether this is still open.
-      const saved = readAttempts();
+      const saved = writable ? readAttempts() : null;
       const latest = saved ? saved[slug] : mine;
       if (!mine || !latest || latest.attemptId !== mine.attemptId) {
         if (saved) set({ attempts: saved });
