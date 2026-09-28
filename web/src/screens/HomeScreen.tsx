@@ -18,6 +18,7 @@ import type { Route } from '../lib/router';
 import { daysToExam, examPhase } from '../games/examDate';
 import type { ExamPhase } from '../games/examDate';
 import { useSettings } from '../lib/settings';
+import { activeProfile, switchProfile } from '../games/profile';
 import { DUE_SESSION_CAP, dueQuestionIds, nextDue } from '../lib/srs';
 import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
@@ -193,6 +194,7 @@ export function HomeScreen() {
   const tfDeckReady = useTf((s) => s.deckStatus === 'ready');
   const gameItems = useGameProgress((s) => s.items);
   const exam = useSettings((s) => s.examDate);
+  const profile = activeProfile();
   // True/False and Formula Gym answers count as study activity for the streak and today's goal.
   const studyEvents = useMemo(() => [...attempts, ...tfAttempts, ...gymAttempts], [attempts, tfAttempts, gymAttempts]);
   // A notes-game session counts as a study day for the streak, not as answers toward today's goal.
@@ -285,7 +287,20 @@ export function HomeScreen() {
   return (
     <div className="mx-auto max-w-[720px] px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))]">
       <header className="flex items-center justify-between gap-3">
-        <span className="text-lg font-bold tracking-tight">FRM Part II</span>
+        <div className="min-w-0">
+          <span className="block text-lg font-bold leading-tight tracking-tight">FRM Part II</span>
+          {/* Each person has their own progress; switching reloads into the picker (games/profile.ts). */}
+          <button
+            type="button"
+            onClick={switchProfile}
+            aria-label={`Hi, ${profile.name} · Switch user`}
+            className="-mx-1 flex min-h-[32px] max-w-full items-center gap-1 rounded-lg px-1 text-[15px] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+          >
+            <span className="truncate">Hi, {profile.name}</span>
+            <span aria-hidden="true">·</span>
+            <span className="shrink-0 font-medium text-primary-600 dark:text-primary-100">Switch</span>
+          </button>
+        </div>
         <div className="flex items-center gap-1">
           <button
             type="button"

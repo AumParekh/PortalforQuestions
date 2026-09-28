@@ -17,6 +17,8 @@ import type {
 import { getAll, openDb } from '../../lib/db';
 import { exportGamesDb, importGamesDb, sanitizeGamesExport } from '../../games/db';
 import type { GamesExport } from '../../games/db';
+import { activeProfile, isProfileId } from '../../games/profile';
+import type { ProfileId } from '../../games/profile';
 
 /** File format for "Export progress" / "Import progress". */
 /**
@@ -36,6 +38,8 @@ export interface ProgressExport {
   mockResults: MockResult[];
   /** Notes-game progress (separate frm-games database); absent in files from before the games layer. */
   games?: GamesExport;
+  /** Whose progress this is (games/profile.ts); absent in files from before profiles. Import still goes to the active one. */
+  profile?: ProfileId;
 }
 
 export interface ParsedImport {
@@ -63,6 +67,7 @@ export async function buildExport(): Promise<ProgressExport> {
   return {
     version: 4,
     exportedAt: new Date().toISOString(),
+    profile: activeProfile().id,
     questionState,
     attempts,
     sessions,
@@ -78,7 +83,7 @@ export async function buildExport(): Promise<ProgressExport> {
 
 export function exportFileName(d = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `frm-progress-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
+  return `frm-progress-${activeProfile().id}-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
 }
 
 export function downloadJson(data: unknown, fileName: string) {
@@ -373,14 +378,15 @@ export function parseImport(text: string): ParsedImport {
       gymAttempts: ga.ok,
       mockResults: mr.ok,
       games: games?.snapshot,
+      profile: isProfileId(data.profile) ? data.profile : undefined,
     },
     skipped,
   };
 }
 
 /**
- * Replaces all progress with the imported data in a single transaction, so a failure part-way
- * leaves the existing progress untouched. The meta store (resume state, etc.) is not changed.
+ * Replaces all of the active profile's progress with the imported data in a single transaction, so a failure
+ * part-way leaves the existing progress untouched. The meta store (resume state, etc.) is not changed.
  */
 export async function replaceProgress(data: ProgressExport): Promise<void> {
   const db = await openDb();

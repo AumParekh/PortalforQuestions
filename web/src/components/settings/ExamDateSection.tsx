@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
-import { CAP_DAYS_BEFORE_EXAM, DEFAULT_EXAM_DATE, daysToExam, examCapDay, examPhase, isExamDay } from '../../games/examDate';
+import { CAP_DAYS_BEFORE_EXAM, daysToExam, defaultExamDate, examCapDay, examPhase, isExamDay } from '../../games/examDate';
+import { activeProfile } from '../../games/profile';
 import { useSettings } from '../../lib/settings';
 import { localDay } from '../../formulas/storage';
 import { PHASE_LABEL, countdownText, formatExamDay } from '../dashboard/ExamPlan';
 import { SettingsRow, SettingsSection, buttonSecondary } from './controls';
 
-/** Settings → Exam: the exam date behind the Home countdown, the study phase and the review cap. */
+/** Settings → Exam: the exam date behind the Home countdown, the study phase and the review cap (per profile). */
 export function ExamDateSection() {
   const exam = useSettings((s) => s.examDate);
+  const planned = defaultExamDate();
   const setSettings = useSettings((s) => s.set);
   // The input's own text, so a half-typed date doesn't overwrite the saved one.
   const [draft, setDraft] = useState(exam);
@@ -30,7 +32,7 @@ export function ExamDateSection() {
   };
 
   return (
-    <SettingsSection title="Exam" description="Drives the countdown and today's plan on Home.">
+    <SettingsSection title="Exam" description={`${activeProfile().name}'s exam. Drives the countdown and today's plan on Home.`}>
       <SettingsRow
         label="Exam date"
         htmlFor="exam-date"
@@ -49,9 +51,9 @@ export function ExamDateSection() {
           onBlur={() => setDraft(exam)}
           className="min-h-[44px] w-full max-w-full rounded-xl border border-slate-300 bg-white px-3 text-base text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:[color-scheme:dark]"
         />
-        {exam !== DEFAULT_EXAM_DATE && (
-          <button type="button" onClick={() => change(DEFAULT_EXAM_DATE)} className={buttonSecondary}>
-            Reset to {formatExamDay(DEFAULT_EXAM_DATE)}
+        {exam !== planned && (
+          <button type="button" onClick={() => change(planned)} className={buttonSecondary}>
+            Reset to {formatExamDay(planned)}
           </button>
         )}
       </SettingsRow>

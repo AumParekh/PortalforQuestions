@@ -3,12 +3,14 @@ import type { MockResult, OptionKey } from '../types';
 import { getAll, putMany } from '../lib/db';
 import { newId } from '../store/session';
 import type { MockAttempt } from './model';
+import { profileKey } from '../games/profile';
 
 /**
  * Mock exam state: attempts in progress (localStorage, one per mock, written synchronously on every change so a reload
  * or a closed tab loses nothing) and submitted results (IndexedDB store "mockResults", included in progress export).
  */
 
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const ATTEMPTS_KEY = 'frm.mockAttempts.v1';
 
 const isRec = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -44,7 +46,7 @@ function parseAttempt(v: unknown): MockAttempt | null {
 /** Saved attempts by slug; null when localStorage can't be read (private mode, blocked storage). */
 function readAttempts(): Record<string, MockAttempt> | null {
   try {
-    const raw = window.localStorage.getItem(ATTEMPTS_KEY);
+    const raw = window.localStorage.getItem(profileKey(ATTEMPTS_KEY));
     const out: Record<string, MockAttempt> = {};
     const parsed: unknown = raw ? JSON.parse(raw) : {};
     if (isRec(parsed)) {
@@ -64,8 +66,8 @@ let writable = true;
 
 function writeAttempts(attempts: Record<string, MockAttempt>) {
   try {
-    if (Object.keys(attempts).length === 0) window.localStorage.removeItem(ATTEMPTS_KEY);
-    else window.localStorage.setItem(ATTEMPTS_KEY, JSON.stringify(attempts));
+    if (Object.keys(attempts).length === 0) window.localStorage.removeItem(profileKey(ATTEMPTS_KEY));
+    else window.localStorage.setItem(profileKey(ATTEMPTS_KEY), JSON.stringify(attempts));
   } catch {
     // Storage blocked or full: the attempt still runs in memory, it just won't survive a reload.
     writable = false;
@@ -123,9 +125,11 @@ export const useMock = create<MockStore>((set, get) => {
     load: async () => {
       if (get().status !== 'idle') return;
       set({ status: 'loading', attempts: readAttempts() ?? {} });
-      // Another tab answering, flagging or submitting: follow it, so neither tab overwrites the other's answers.
+      // Another tab answering, flagging or submitting: follow it, so neither tab overwrites the other's answers. Only
+      // this profile's key: a tab open as the other person has its own attempts.
+      const key = profileKey(ATTEMPTS_KEY);
       window.addEventListener('storage', (e) => {
-        if (e.key !== ATTEMPTS_KEY && e.key !== null) return;
+        if (e.key !== key && e.key !== null) return;
         const attempts = readAttempts();
         if (attempts) set({ attempts });
       });

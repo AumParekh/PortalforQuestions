@@ -1,5 +1,7 @@
 import type { AttemptRecord, GymAttempt, GymState, MockResult, QuestionState, SessionRecord, TFAttempt, TFState } from '../types';
+import { profileDbName } from '../games/profile';
 
+/** One database per profile: 'frm-portal-<id>' (games/profile.ts). */
 const DB_NAME = 'frm-portal';
 // v2 adds the True/False stores, v3 the gym stores (Formula Gym and siblings), v4 mock exam results; upgrades create
 // only what's missing, so older data is kept.
@@ -67,7 +69,7 @@ export function openDb(): Promise<IDBDatabase> {
       reject(new Error('IndexedDB is not available'));
       return;
     }
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    const req = indexedDB.open(profileDbName(DB_NAME), DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('questionState')) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, Monitor, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, Monitor, Moon, Sun, Users } from 'lucide-react';
 import { navigate } from '../lib/router';
 import { useContent } from '../store/content';
 import {
@@ -15,9 +15,10 @@ import {
   writeTheme,
 } from '../lib/settings';
 import type { HapticsMode, SessionCount, StudyDefaults, ThemeMode } from '../lib/settings';
-import { Segmented, SettingsRow, SettingsSection, Switch } from '../components/settings/controls';
+import { Segmented, SettingsRow, SettingsSection, Switch, buttonSecondary } from '../components/settings/controls';
 import { ProgressDataSection } from '../components/settings/ProgressDataSection';
 import { ExamDateSection } from '../components/settings/ExamDateSection';
+import { activeProfile, switchProfile } from '../games/profile';
 
 const THEMES: { value: ThemeMode; label: string; icon: ReactNode }[] = [
   { value: 'light', label: 'Light', icon: <Sun className="h-4 w-4" aria-hidden="true" /> },
@@ -102,6 +103,15 @@ export function SettingsScreen() {
       </header>
 
       <main className="mx-auto max-w-[720px] space-y-6 px-4 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-4">
+        <SettingsSection title="Studying as">
+          <SettingsRow label={activeProfile().name} hint="Progress, settings and the exam date below are this person's own. The theme is shared.">
+            <button type="button" onClick={switchProfile} className={`${buttonSecondary} w-full sm:w-auto`}>
+              <Users className="h-5 w-5" aria-hidden="true" />
+              Switch user
+            </button>
+          </SettingsRow>
+        </SettingsSection>
+
         <ExamDateSection />
 
         <SettingsSection title="Appearance">
@@ -171,7 +181,7 @@ export function SettingsScreen() {
             <p>
               <ContentCounts />
             </p>
-            <p>Progress is stored on this device only; sync arrives later.</p>
+            <p>Progress is stored on this device only, separately for each person; sync arrives later.</p>
           </div>
         </SettingsSection>
       </main>

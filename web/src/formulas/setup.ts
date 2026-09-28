@@ -1,6 +1,7 @@
 import type { SessionMode, SessionSize } from './plan';
 import type { Formula } from './types';
 import { GAMES } from './games';
+import { profileKey } from '../games/profile';
 
 export type SetupChoice = SessionMode | 'sheet';
 
@@ -20,6 +21,7 @@ export const SIZE_OPTIONS: { value: SessionSize; label: string }[] = [
   { value: 'all', label: 'All' },
 ];
 
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const STORAGE_KEY = 'frm.formulaGym.v1';
 
 export const DEFAULT_SETUP: GymSetup = { areas: [], readings: [], mode: 'workout', size: 10, numbers: false };
@@ -33,7 +35,7 @@ function strings(value: unknown): string[] {
 /** The saved setup, or null. Areas and readings are validated against the deck by the caller. */
 export function loadSetup(): GymSetup | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(profileKey(STORAGE_KEY));
     if (!raw) return null;
     const d: unknown = JSON.parse(raw);
     if (!d || typeof d !== 'object') return null;
@@ -52,7 +54,7 @@ export function loadSetup(): GymSetup | null {
 
 export function saveSetup(setup: GymSetup) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(setup));
+    window.localStorage.setItem(profileKey(STORAGE_KEY), JSON.stringify(setup));
   } catch {
     // Storage may be unavailable (private mode, quota); setup still works without it.
   }

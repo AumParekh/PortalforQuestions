@@ -1,8 +1,9 @@
 // A separate IndexedDB database for the game layer, so its schema versions never collide with
-// the app's 'frm-portal' database.
+// the app's 'frm-portal' database. One per profile: 'frm-games-<id>' (profile.ts).
 import type { CoverageRow, FrameId, ItemSrs, MechanicId, RoundLog, SessionLog, TrapCategory } from './types';
 import { TRAP_CATEGORIES } from './types';
 import { formatLogLines } from './log';
+import { profileDbName } from './profile';
 
 const DB_NAME = 'frm-games';
 const DB_VERSION = 1;
@@ -45,7 +46,7 @@ export function openGamesDb(): Promise<IDBDatabase> {
     let req: IDBOpenDBRequest;
     try {
       // Some private modes throw synchronously instead of firing onerror.
-      req = indexedDB.open(DB_NAME, DB_VERSION);
+      req = indexedDB.open(profileDbName(DB_NAME), DB_VERSION);
     } catch (e) {
       reject(e);
       return;

@@ -5,6 +5,7 @@ import { useContent } from '../../store/content';
 import { ConfirmDialog, SettingsRow, SettingsSection, buttonDangerOutline, buttonSecondary } from './controls';
 import { buildExport, downloadJson, exportFileName, parseImport, replaceProgress } from './progressData';
 import type { ParsedImport } from './progressData';
+import { activeProfile, profileById } from '../../games/profile';
 
 type Notice = { kind: 'ok' | 'error'; text: string } | null;
 type Pending = { kind: 'import'; parsed: ParsedImport; fileName: string } | { kind: 'subject'; subject: string } | { kind: 'all' } | null;
@@ -39,6 +40,8 @@ export function ProgressDataSection() {
 
   const available = status === 'ready';
   const stateCount = Object.keys(states).length;
+  // Everything here acts on the active profile's progress only (games/profile.ts).
+  const name = activeProfile().name;
 
   // Subjects from content, plus any that only exist in saved progress (e.g. a removed bank).
   const subjects = useMemo(() => {
@@ -106,7 +109,7 @@ export function ProgressDataSection() {
         setSubject('');
       } else {
         await useProgress.getState().resetAll();
-        setNotice({ kind: 'ok', text: 'All progress on this device has been erased.' });
+        setNotice({ kind: 'ok', text: `All of ${name}'s progress on this device has been erased.` });
       }
       setPending(null);
     } catch (e) {
@@ -125,7 +128,10 @@ export function ProgressDataSection() {
         : null;
 
   return (
-    <SettingsSection title="Progress data" description={`${plural(stateCount, 'question record')}, ${plural(attemptCount, 'attempt')}, ${plural(sessionCount, 'session')} saved on this device.`}>
+    <SettingsSection
+      title="Progress data"
+      description={`${name}: ${plural(stateCount, 'question record')}, ${plural(attemptCount, 'attempt')}, ${plural(sessionCount, 'session')} saved on this device.`}
+    >
       {unavailableHint && (
         <div role="note" className="flex gap-3 py-3 text-[15px] text-amber-800 dark:text-amber-200">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
@@ -135,7 +141,7 @@ export function ProgressDataSection() {
 
       <SettingsRow
         label="Export progress"
-        hint="Download a JSON backup of your question records, attempts and sessions, plus True/False, Formula Gym and notes-game progress."
+        hint={`Download a JSON backup of ${name}'s question records, attempts and sessions, plus True/False, Formula Gym and notes-game progress.`}
       >
         <button type="button" onClick={onExport} disabled={!available || busy} className={`${buttonSecondary} w-full sm:w-auto`}>
           <Download className="h-5 w-5" aria-hidden="true" />
@@ -143,7 +149,7 @@ export function ProgressDataSection() {
         </button>
       </SettingsRow>
 
-      <SettingsRow label="Import progress" hint="Replace the progress on this device with a backup file. You'll be asked to confirm first.">
+      <SettingsRow label="Import progress" hint={`Replace ${name}'s progress on this device with a backup file. You'll be asked to confirm first.`}>
         <input
           ref={fileRef}
           type="file"
@@ -187,7 +193,10 @@ export function ProgressDataSection() {
         </div>
       </SettingsRow>
 
-      <SettingsRow label="Reset everything" hint="Erases every question record, attempt and session, and all True/False, Formula Gym, notes-game and mock exam progress, on this device. Your settings and saved session setup are kept.">
+      <SettingsRow
+        label="Reset everything"
+        hint={`Erases every one of ${name}'s question records, attempts and sessions, and all their True/False, Formula Gym, notes-game and mock exam progress, on this device. Their settings and saved session setup are kept, and the other person's progress is untouched.`}
+      >
         <button type="button" disabled={!available || busy} onClick={() => setPending({ kind: 'all' })} className={`${buttonDangerOutline} w-full sm:w-auto`}>
           <Trash2 className="h-5 w-5" aria-hidden="true" />
           Reset everything
@@ -210,7 +219,7 @@ export function ProgressDataSection() {
 
       <ConfirmDialog
         open={pending?.kind === 'import'}
-        title="Replace progress with this backup?"
+        title={`Replace ${name}'s progress with this backup?`}
         confirmLabel="Replace and reload"
         danger
         busy={busy}
@@ -226,13 +235,18 @@ export function ProgressDataSection() {
               {plural(pending.parsed.data.sessions.length, 'session')}, {plural(pending.parsed.data.tfAttempts.length, 'True/False answer')},{' '}
               {plural(pending.parsed.data.gymAttempts.length, 'Formula Gym answer')} and {plural(pending.parsed.data.mockResults.length, 'mock exam result')}.
             </p>
+            {pending.parsed.data.profile && pending.parsed.data.profile !== activeProfile().id && (
+              <p className="text-amber-800 dark:text-amber-200">
+                This backup is {profileById(pending.parsed.data.profile).name}'s progress. It will be imported into {name}'s.
+              </p>
+            )}
             {pending.parsed.skipped > 0 && (
               <p className="text-amber-800 dark:text-amber-200">
                 {plural(pending.parsed.skipped, 'record')} couldn't be read and will be left out.
               </p>
             )}
             <p>
-              Everything currently saved on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}, plus True/False, Formula Gym, notes-game and mock exam progress) will be
+              Everything currently saved for {name} on this device ({plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')}, plus True/False, Formula Gym, notes-game and mock exam progress) will be
               replaced. Export first if you might want it back. The page reloads afterwards.
             </p>
           </>
@@ -256,7 +270,7 @@ export function ProgressDataSection() {
 
       <ConfirmDialog
         open={pending?.kind === 'all'}
-        title="Erase all progress?"
+        title={`Erase all of ${name}'s progress?`}
         confirmLabel="Erase everything"
         danger
         typeToConfirm="RESET"
@@ -265,8 +279,9 @@ export function ProgressDataSection() {
         onCancel={close}
       >
         <p>
-          This permanently deletes {plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')} and{' '}
-          {plural(sessionCount, 'session')} from this device, along with all True/False, Formula Gym, notes-game and mock exam progress. Your settings and saved session setup are kept.
+          This permanently deletes {name}'s {plural(stateCount, 'question record')}, {plural(attemptCount, 'attempt')} and{' '}
+          {plural(sessionCount, 'session')} from this device, along with all their True/False, Formula Gym, notes-game and mock exam progress. Their settings and saved
+          session setup are kept, and the other person's progress is untouched.
         </p>
         <p>Export your progress first if you might want it back.</p>
       </ConfirmDialog>

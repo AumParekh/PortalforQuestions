@@ -1,17 +1,20 @@
 import { create } from 'zustand';
-import { DEFAULT_EXAM_DATE, isExamDay, setExamDate } from '../games/examDate';
+import { defaultExamDate, isExamDay, setExamDate } from '../games/examDate';
+import { profileKey } from '../games/profile';
 
 /**
- * Small device-local preferences (plan §4: localStorage only for tiny synchronous settings).
- * Call `applySettings()` once from main.tsx before the first render so the <html> classes
- * are in place on load; after that every setter re-applies them itself.
+ * Small device-local preferences (plan §4: localStorage only for tiny synchronous settings), one set per profile
+ * (games/profile.ts; the theme is shared). This module reads storage as it loads, so it is only imported once the
+ * profile is chosen (main.tsx → start.tsx), and `applySettings()` runs before the app's first render so the <html>
+ * classes are in place; after that every setter re-applies them itself.
  */
 
 /** Shown in Settings → About; bump alongside package.json. */
 export const APP_VERSION = '0.1.0';
 
+/** Stored per profile, under `profileKey(SETTINGS_KEY)`. */
 export const SETTINGS_KEY = 'frm.settings.v1';
-/** Owned by SessionSetupScreen; Settings only merges its study defaults into `options`. */
+/** Owned by SessionSetupScreen (per profile); Settings only merges its study defaults into `options`. */
 export const SESSION_SETUP_KEY = 'frm.sessionSetup.v1';
 
 export type HapticsMode = 'auto' | 'on' | 'off';
@@ -33,15 +36,18 @@ export interface Settings {
   examDate: string;
 }
 
-export const DEFAULT_SETTINGS: Settings = {
-  legibleFont: false,
-  haptics: 'auto',
-  reduceMotion: false,
-  defaultTimerEnabled: true,
-  defaultTimerSeconds: 120,
-  defaultSessionCount: 20,
-  examDate: DEFAULT_EXAM_DATE,
-};
+/** The defaults for the active profile (its exam date differs). */
+export function defaultSettings(): Settings {
+  return {
+    legibleFont: false,
+    haptics: 'auto',
+    reduceMotion: false,
+    defaultTimerEnabled: true,
+    defaultTimerSeconds: 120,
+    defaultSessionCount: 20,
+    examDate: defaultExamDate(),
+  };
+}
 
 function isTimerSeconds(v: unknown): v is number {
   return typeof v === 'number' && (TIMER_SECONDS_CHOICES as readonly number[]).includes(v);
@@ -53,9 +59,9 @@ function isSessionCount(v: unknown): v is SessionCount {
 
 /** Accepts anything (parsed JSON, garbage) and returns a complete, valid Settings object. */
 export function sanitizeSettings(value: unknown): Settings {
-  if (!value || typeof value !== 'object') return { ...DEFAULT_SETTINGS };
+  const d = defaultSettings();
+  if (!value || typeof value !== 'object') return d;
   const v = value as Record<string, unknown>;
-  const d = DEFAULT_SETTINGS;
   return {
     legibleFont: typeof v.legibleFont === 'boolean' ? v.legibleFont : d.legibleFont,
     haptics: v.haptics === 'auto' || v.haptics === 'on' || v.haptics === 'off' ? v.haptics : d.haptics,
@@ -69,16 +75,16 @@ export function sanitizeSettings(value: unknown): Settings {
 
 function loadSettings(): Settings {
   try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
-    return raw ? sanitizeSettings(JSON.parse(raw)) : { ...DEFAULT_SETTINGS };
+    const raw = window.localStorage.getItem(profileKey(SETTINGS_KEY));
+    return raw ? sanitizeSettings(JSON.parse(raw)) : defaultSettings();
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return defaultSettings();
   }
 }
 
 function saveSettings(s: Settings) {
   try {
-    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+    window.localStorage.setItem(profileKey(SETTINGS_KEY), JSON.stringify(s));
   } catch {
     // Storage blocked or full; the setting still applies for this page view.
   }
@@ -209,7 +215,7 @@ export interface StudyDefaults {
 
 function readSetupRaw(): Record<string, unknown> | null {
   try {
-    const raw = window.localStorage.getItem(SESSION_SETUP_KEY);
+    const raw = window.localStorage.getItem(profileKey(SESSION_SETUP_KEY));
     if (!raw) return null;
     const data: unknown = JSON.parse(raw);
     return data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : null;
@@ -265,7 +271,7 @@ export function writeStudyDefaults(patch: Partial<StudyDefaults>) {
     },
   };
   try {
-    window.localStorage.setItem(SESSION_SETUP_KEY, JSON.stringify(merged));
+    window.localStorage.setItem(profileKey(SESSION_SETUP_KEY), JSON.stringify(merged));
   } catch {
     // Storage unavailable; New Session falls back to its own defaults.
   }

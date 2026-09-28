@@ -15,7 +15,9 @@ import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
 import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
 import { EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
+import { profileKey } from '../games/profile';
 
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const STORAGE_KEY = 'frm.sessionSetup.v1';
 const SEARCH_DEBOUNCE_MS = 150;
 const WEAK_THRESHOLD = 0.7;
@@ -100,7 +102,7 @@ function bool(value: unknown, fallback: boolean): boolean {
 
 function loadStored(): Stored {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(profileKey(STORAGE_KEY));
     if (!raw) return DEFAULTS;
     const data: unknown = JSON.parse(raw);
     if (!data || typeof data !== 'object') return DEFAULTS;
@@ -135,7 +137,7 @@ function loadStored(): Stored {
 
 function saveStored(value: Stored) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...value, trapFilter: value.rowChips.includes('trap') }));
+    window.localStorage.setItem(profileKey(STORAGE_KEY), JSON.stringify({ ...value, trapFilter: value.rowChips.includes('trap') }));
   } catch {
     // Storage may be unavailable (private mode, quota); setup still works without it.
   }

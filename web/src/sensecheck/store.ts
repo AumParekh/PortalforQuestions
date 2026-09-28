@@ -5,9 +5,11 @@ import { parseSenseDeck } from './parse';
 import { EMPTY_HISTORY, SESSION_SECONDS, parseHistory, withSession } from './rotation';
 import type { SenseHistory, SessionPlan } from './rotation';
 import type { Scenario, SenseMode } from './types';
+import { profileKey } from '../games/profile';
 
 export const SENSE_PATH = 'games/sensecheck.json';
 export const SENSE_GAME = 'sense-check';
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const HISTORY_KEY = 'frm.senseCheck.v1';
 /** Grade speed bands (seconds): a quick call is the skill being trained. */
 const FAST_SECONDS = 8;
@@ -62,7 +64,7 @@ export const useSenseDeck = create<DeckStore>((set, get) => ({
 
 export function loadHistory(): SenseHistory {
   try {
-    const raw = window.localStorage.getItem(HISTORY_KEY);
+    const raw = window.localStorage.getItem(profileKey(HISTORY_KEY));
     return raw ? parseHistory(JSON.parse(raw)) : EMPTY_HISTORY;
   } catch {
     return EMPTY_HISTORY;
@@ -71,7 +73,7 @@ export function loadHistory(): SenseHistory {
 
 function saveHistory(history: SenseHistory) {
   try {
-    window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    window.localStorage.setItem(profileKey(HISTORY_KEY), JSON.stringify(history));
   } catch {
     // Private mode or storage full: rotation just restarts next time.
   }

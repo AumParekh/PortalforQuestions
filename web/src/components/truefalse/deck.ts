@@ -1,4 +1,5 @@
 import type { TFCard, TFState } from '../../types';
+import { profileKey } from '../../games/profile';
 
 export type StatusFilter = 'all' | 'new' | 'missed' | 'wrong';
 export type DeckSize = 10 | 20 | 40 | 'all';
@@ -32,6 +33,7 @@ export const ORDER_OPTIONS: { value: DeckOrder; label: string }[] = [
   { value: 'weakest', label: 'Weakest first' },
 ];
 
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const STORAGE_KEY = 'frm.truefalse.v1';
 
 export const DEFAULT_SETUP: TfSetup = { subjects: [], topics: [], status: 'all', size: 20, order: 'shuffled' };
@@ -48,7 +50,7 @@ function strings(value: unknown): string[] {
 /** The saved setup, or null when nothing (valid) was saved. Subjects/topics are validated against the deck later. */
 export function loadSetup(): TfSetup | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(profileKey(STORAGE_KEY));
     if (!raw) return null;
     const data: unknown = JSON.parse(raw);
     if (!data || typeof data !== 'object') return null;
@@ -67,7 +69,7 @@ export function loadSetup(): TfSetup | null {
 
 export function saveSetup(setup: TfSetup) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(setup));
+    window.localStorage.setItem(profileKey(STORAGE_KEY), JSON.stringify(setup));
   } catch {
     // Storage may be unavailable (private mode, quota); setup still works without it.
   }

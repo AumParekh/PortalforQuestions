@@ -6,15 +6,18 @@
  * Formula Gym / Sense Check (formulas/storage.ts) and the notes games (games/srs.ts) all import it. It lives in
  * games/ because the games layer imports nothing from outside its own folder (its tests compile it on its own);
  * lib/ and formulas/ may import from games/. The date itself is owned by the Settings store (lib/settings.ts),
- * which pushes every change here through `setExamDate`.
+ * which pushes every change here through `setExamDate`. Each profile (games/profile.ts) has its own date.
  */
 
+import { PROFILES, activeProfileOrNull, profileKey } from './profile';
+
+/** The planned exam date when no profile is active (e.g. these modules compiled on their own for tests). */
 export const DEFAULT_EXAM_DATE = '2026-11-25';
 /** Next due dates never land after this many days before the exam (while the exam is still ahead). */
 export const CAP_DAYS_BEFORE_EXAM = 2;
-/** The Setup phase (build and deploy) only exists for the planned exam: it ends on 6 Oct 2026. */
+/** The Setup phase (build and deploy) only exists for the planned exams: it ends on 6 Oct 2026. */
 const SETUP_ENDS = '2026-10-06';
-/** Same key as SETTINGS_KEY in lib/settings.ts; read directly so this module stays free of the store. */
+/** Same key as SETTINGS_KEY in lib/settings.ts (per profile); read directly so this module stays free of the store. */
 const SETTINGS_KEY = 'frm.settings.v1';
 
 export type ExamPhase = 'setup' | 'learn' | 'consolidate' | 'final' | 'after';
@@ -56,19 +59,25 @@ export function daysBetween(from: string, to: string): number {
 
 let current: string | null = null;
 
+/** The active profile's starting exam date (Chelsi 24 Nov, Aum 25 Nov 2026): what Settings resets to. */
+export function defaultExamDate(): string {
+  return activeProfileOrNull()?.examDate ?? DEFAULT_EXAM_DATE;
+}
+
 function readStoredExamDate(): string {
+  const fallback = defaultExamDate();
   try {
-    if (typeof window === 'undefined' || !window.localStorage) return DEFAULT_EXAM_DATE;
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (typeof window === 'undefined' || !window.localStorage) return fallback;
+    const raw = window.localStorage.getItem(profileKey(SETTINGS_KEY));
     const v: unknown = raw ? JSON.parse(raw) : null;
     const d = v && typeof v === 'object' ? (v as Record<string, unknown>).examDate : undefined;
-    return isExamDay(d) ? d : DEFAULT_EXAM_DATE;
+    return isExamDay(d) ? d : fallback;
   } catch {
-    return DEFAULT_EXAM_DATE;
+    return fallback;
   }
 }
 
-/** The exam date in use (YYYY-MM-DD): the one set in Settings, or 25 Nov 2026. */
+/** The exam date in use (YYYY-MM-DD): the one set in Settings, or the active profile's default. */
 export function examDate(): string {
   if (current === null) current = readStoredExamDate();
   return current;
@@ -76,7 +85,7 @@ export function examDate(): string {
 
 /** Called by the Settings store on load and on every change; an invalid value falls back to the default. */
 export function setExamDate(day: unknown) {
-  current = isExamDay(day) ? day : DEFAULT_EXAM_DATE;
+  current = isExamDay(day) ? day : defaultExamDate();
 }
 
 /** Days from `today` to the exam: 0 on exam day, negative afterwards. */
@@ -85,16 +94,16 @@ export function daysToExam(today: string, exam: string = examDate()): number {
 }
 
 /**
- * The study phase on `today` (§0b, measured back from the exam): final review from exam − 9 (16 Nov) through exam
- * day, consolidate from exam − 23 (2 Nov) to exam − 10, learn before that. Setup (until 5 Oct) only applies to the
- * planned 25 Nov exam; with any other date, learn is the first phase.
+ * The study phase on `today` (§0b, measured back from the exam): final review from exam − 9 (16 Nov for 25 Nov)
+ * through exam day, consolidate from exam − 23 (2 Nov) to exam − 10, learn before that. Setup (until 5 Oct) only
+ * applies to the planned exams (24 and 25 Nov, games/profile.ts); with any other date, learn is the first phase.
  */
 export function examPhase(today: string, exam: string = examDate()): ExamPhase {
   const d = daysBetween(today, exam);
   if (d < 0) return 'after';
   if (d <= 9) return 'final';
   if (d <= 23) return 'consolidate';
-  if (exam === DEFAULT_EXAM_DATE && today < SETUP_ENDS) return 'setup';
+  if ((exam === DEFAULT_EXAM_DATE || PROFILES.some((p) => p.examDate === exam)) && today < SETUP_ENDS) return 'setup';
   return 'learn';
 }
 
