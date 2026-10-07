@@ -6,8 +6,10 @@ import { profileKey } from '../games/profile';
 export type SetupChoice = SessionMode | 'sheet';
 
 export interface GymSetup {
+  /** 'shuffle' drills the chosen areas; 'chapters' drills only the chosen readings, whatever their area. */
+  scope: 'shuffle' | 'chapters';
   areas: string[];
-  /** Reading ids. An area with none of its readings listed contributes all of them. */
+  /** Reading ids, used when `scope` is 'chapters'. */
   readings: string[];
   mode: SetupChoice;
   size: SessionSize;
@@ -24,7 +26,7 @@ export const SIZE_OPTIONS: { value: SessionSize; label: string }[] = [
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const STORAGE_KEY = 'frm.formulaGym.v1';
 
-export const DEFAULT_SETUP: GymSetup = { areas: [], readings: [], mode: 'workout', size: 10, numbers: false };
+export const DEFAULT_SETUP: GymSetup = { scope: 'shuffle', areas: [], readings: [], mode: 'workout', size: 10, numbers: false };
 
 const MODES: SetupChoice[] = ['workout', 'sheet', ...GAMES.map((g) => g.id)];
 
@@ -40,9 +42,12 @@ export function loadSetup(): GymSetup | null {
     const d: unknown = JSON.parse(raw);
     if (!d || typeof d !== 'object') return null;
     const o = d as Record<string, unknown>;
+    const readings = strings(o.readings);
     return {
+      // Setups saved before the switch existed narrowed areas by reading: those open on their chapters.
+      scope: o.scope === 'chapters' ? 'chapters' : o.scope === 'shuffle' ? 'shuffle' : readings.length > 0 ? 'chapters' : 'shuffle',
       areas: strings(o.areas),
-      readings: strings(o.readings),
+      readings,
       mode: MODES.find((m) => m === o.mode) ?? DEFAULT_SETUP.mode,
       size: SIZE_OPTIONS.find((s) => s.value === o.size)?.value ?? DEFAULT_SETUP.size,
       numbers: o.numbers === true,
@@ -60,10 +65,12 @@ export function saveSetup(setup: GymSetup) {
   }
 }
 
-/** Formulas in the chosen areas, narrowed to the chosen readings of each area that has any. */
-export function scopeOf(formulas: Formula[], setup: Pick<GymSetup, 'areas' | 'readings'>): Formula[] {
+/** Formulas of the chosen chapters, or of the chosen areas when shuffling. */
+export function scopeOf(formulas: Formula[], setup: Pick<GymSetup, 'scope' | 'areas' | 'readings'>): Formula[] {
+  if (setup.scope === 'chapters') {
+    const readings = new Set(setup.readings);
+    return formulas.filter((f) => readings.has(f.readingId));
+  }
   const areas = new Set(setup.areas);
-  const readings = new Set(setup.readings);
-  const narrowed = new Set(setup.readings.map((r) => r.split('-')[0]));
-  return formulas.filter((f) => areas.has(f.area) && (!narrowed.has(f.area) || readings.has(f.readingId)));
+  return formulas.filter((f) => areas.has(f.area));
 }

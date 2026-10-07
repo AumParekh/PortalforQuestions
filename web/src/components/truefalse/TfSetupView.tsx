@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, Check, ChevronDown, Play } from 'lucide-react';
+import { ArrowLeft, Check, Play } from 'lucide-react';
 import { navigate } from '../../lib/router';
 import type { TFCard, TFState } from '../../types';
 import {
@@ -14,8 +14,11 @@ import {
   pct,
   saveSetup,
   subjectInfo,
+  topicKey,
 } from './deck';
 import type { StatusFilter, TfSetup } from './deck';
+import { ChapterPicker, ScopeSwitch } from '../setup/ChapterPicker';
+import type { ChapterGroup } from '../setup/ChapterPicker';
 
 function Segmented<T extends string | number>({
   label,
@@ -119,15 +122,48 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
     return {
       ...saved,
       subjects: kept.length > 0 ? kept : all.map((s) => s.subject),
-      topics: saved.topics.filter((k) => topicKeys.has(k) && kept.includes(k.slice(0, k.indexOf('::')))),
+      topics: saved.topics.filter((k) => topicKeys.has(k)),
     };
   });
-  const [topicsOpen, setTopicsOpen] = useState(() => setup.topics.length > 0);
 
   useEffect(() => saveSetup(setup), [setup]);
 
   const selected = useMemo(() => new Set(setup.subjects), [setup.subjects]);
-  const selectedTopics = useMemo(() => new Set(setup.topics), [setup.topics]);
+  const chapterGroups = useMemo((): ChapterGroup[] => {
+    // A topic's readings and objectives are searchable too, so "Hull" or "smile" finds it.
+    const extra = new Map<string, Set<string>>();
+    for (const c of cards) {
+      const k = topicKey(c.subject, c.topic);
+      const set = extra.get(k) ?? new Set<string>();
+      extra.set(k, set);
+      set.add(c.reading);
+      set.add(c.loText);
+    }
+    const seen = new Map<string, { seen: number; attempts: number; correct: number }>();
+    for (const c of cards) {
+      const st = states[c.id];
+      if (!st || st.totalAttempts === 0) continue;
+      const k = topicKey(c.subject, c.topic);
+      const t = seen.get(k) ?? { seen: 0, attempts: 0, correct: 0 };
+      seen.set(k, t);
+      t.seen += 1;
+      t.attempts += st.totalAttempts;
+      t.correct += st.totalCorrect;
+    }
+    return subjects.map((s) => ({
+      id: s.subject,
+      title: s.subject,
+      chapters: s.topics.map((t) => {
+        const p = seen.get(t.key);
+        return {
+          id: t.key,
+          label: t.topic,
+          keywords: [...(extra.get(t.key) ?? [])].join(' '),
+          detail: `${t.total} ${t.total === 1 ? 'statement' : 'statements'}${p ? ` · ${pct(p.correct, p.attempts)}% · ${p.seen} seen` : ' · not started'}`,
+        };
+      }),
+    }));
+  }, [cards, states, subjects]);
   const pool = useMemo(() => filterPool(cards, states, setup), [cards, states, setup]);
 
   const overall = useMemo(() => {
@@ -149,29 +185,23 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
   const update = (patch: Partial<TfSetup>) => setSetup((prev) => ({ ...prev, ...patch }));
 
   const toggleSubject = (subject: string) =>
-    setSetup((prev) =>
-      prev.subjects.includes(subject)
-        ? {
-            ...prev,
-            subjects: prev.subjects.filter((s) => s !== subject),
-            topics: prev.topics.filter((k) => !k.startsWith(`${subject}::`)),
-          }
-        : { ...prev, subjects: [...prev.subjects, subject] },
-    );
-
-  const toggleTopic = (key: string) =>
     setSetup((prev) => ({
       ...prev,
-      topics: prev.topics.includes(key) ? prev.topics.filter((k) => k !== key) : [...prev.topics, key],
+      subjects: prev.subjects.includes(subject) ? prev.subjects.filter((s) => s !== subject) : [...prev.subjects, subject],
     }));
+
+  const picking = setup.scope === 'chapters';
+  const nothingChosen = picking ? setup.topics.length === 0 : setup.subjects.length === 0;
 
   const setStatus = (status: StatusFilter) => update({ status });
 
   const deckCount = setup.size === 'all' ? pool.length : Math.min(setup.size, pool.length);
   const canStart = pool.length > 0;
   const counter =
-    setup.subjects.length === 0
-      ? 'No subject selected'
+    nothingChosen
+      ? picking
+        ? 'No chapter picked'
+        : 'No subject selected'
       : pool.length === 0
         ? 'No statements match'
         : deckCount === pool.length
@@ -183,7 +213,6 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
     onStart(buildDeck(cards, states, setup));
   };
 
-  const shownSubjects = subjects.filter((s) => selected.has(s.subject));
   const smallBtn =
     'min-h-[44px] rounded-xl border border-slate-200 px-3 text-[15px] font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800';
 
@@ -240,121 +269,65 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
           </p>
         )}
 
-        <section aria-labelledby="tf-subjects" className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="tf-subjects" className="text-base font-semibold">
-              Subjects
-            </h2>
-            <div className="flex gap-2">
-              <button type="button" className={smallBtn} onClick={() => update({ subjects: subjects.map((s) => s.subject) })}>
-                Select all
-              </button>
-              <button type="button" className={smallBtn} onClick={() => update({ subjects: [], topics: [] })}>
-                Clear
-              </button>
-            </div>
-          </div>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {subjects.map((s) => {
-              const on = selected.has(s.subject);
-              return (
-                <li key={s.subject}>
-                  <button
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleSubject(s.subject)}
-                    className={`flex min-h-[56px] w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none ${
-                      on
-                        ? 'border-primary bg-primary-50 dark:bg-primary/15'
-                        : 'border-slate-200 bg-card-light hover:bg-slate-50 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                        on ? 'border-primary bg-primary text-white' : 'border-slate-300 dark:border-slate-600'
-                      }`}
-                    >
-                      {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block break-words font-medium">{s.subject}</span>
-                      <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                        {s.total} statements
-                        {s.attempts > 0 ? ` · ${pct(s.correct, s.attempts)}% · ${s.seen} seen` : ' · not started'}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <section aria-label="What to practise" className="space-y-3">
+          <ScopeSwitch value={setup.scope} onChange={(scope) => update({ scope })} />
+          <p className="text-[15px] text-slate-600 dark:text-slate-400">
+            {picking ? 'Only statements from the chapters you pick.' : 'Statements from the subjects you choose, mixed together.'}
+          </p>
         </section>
 
-        {shownSubjects.length > 0 && (
-          <section className="rounded-2xl bg-card-light shadow-sm dark:bg-card-dark">
-            <button
-              type="button"
-              aria-expanded={topicsOpen}
-              aria-controls="tf-topics"
-              onClick={() => setTopicsOpen((v) => !v)}
-              className="flex min-h-[56px] w-full items-center justify-between gap-2 px-4 text-left"
-            >
-              <span className="min-w-0">
-                <span className="block text-base font-semibold">Topics</span>
-                <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                  {setup.topics.length === 0
-                    ? 'Optional: all topics of the chosen subjects'
-                    : `${setup.topics.length} ${setup.topics.length === 1 ? 'topic' : 'topics'} chosen`}
-                </span>
-              </span>
-              <ChevronDown
-                className={`h-5 w-5 shrink-0 transition-transform motion-reduce:transition-none ${topicsOpen ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
-            </button>
-            {topicsOpen && (
-              <div id="tf-topics" className="space-y-5 border-t border-slate-200 px-4 pb-4 pt-4 dark:border-slate-700">
-                <p className="text-[15px] text-slate-600 dark:text-slate-400">
-                  Pick topics to narrow a subject. A subject with no topic picked keeps all of its topics.
-                </p>
-                {shownSubjects.map((s) => (
-                  <div key={s.subject} className="space-y-2">
-                    <h3 className="text-[15px] font-semibold text-slate-800 dark:text-slate-200">{s.subject}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {s.topics.map((t) => {
-                        const on = selectedTopics.has(t.key);
-                        return (
-                          <button
-                            key={t.key}
-                            type="button"
-                            aria-pressed={on}
-                            onClick={() => toggleTopic(t.key)}
-                            className={`inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-2xl border px-3.5 py-1.5 text-left text-[15px] font-medium leading-snug transition-colors motion-reduce:transition-none ${
-                              on
-                                ? 'border-primary bg-primary text-white'
-                                : 'border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-                            }`}
-                          >
-                            <span className="min-w-0 break-words">{t.topic}</span>
-                            <span
-                              className={`shrink-0 rounded-full px-1.5 tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}
-                            >
-                              {t.total}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-                {setup.topics.length > 0 && (
-                  <button type="button" className={smallBtn} onClick={() => update({ topics: [] })}>
-                    Clear topics
-                  </button>
-                )}
+        {picking ? (
+          <ChapterPicker groups={chapterGroups} selected={setup.topics} onChange={(topics) => update({ topics })} idPrefix="tf" />
+        ) : (
+          <section aria-labelledby="tf-subjects" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="tf-subjects" className="text-base font-semibold">
+                Subjects
+              </h2>
+              <div className="flex gap-2">
+                <button type="button" className={smallBtn} onClick={() => update({ subjects: subjects.map((s) => s.subject) })}>
+                  Select all
+                </button>
+                <button type="button" className={smallBtn} onClick={() => update({ subjects: [] })}>
+                  Clear
+                </button>
               </div>
-            )}
+            </div>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {subjects.map((s) => {
+                const on = selected.has(s.subject);
+                return (
+                  <li key={s.subject}>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleSubject(s.subject)}
+                      className={`flex min-h-[56px] w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none ${
+                        on
+                          ? 'border-primary bg-primary-50 dark:bg-primary/15'
+                          : 'border-slate-200 bg-card-light hover:bg-slate-50 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                          on ? 'border-primary bg-primary text-white' : 'border-slate-300 dark:border-slate-600'
+                        }`}
+                      >
+                        {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-words font-medium">{s.subject}</span>
+                        <span className="block text-[15px] text-slate-600 dark:text-slate-400">
+                          {s.total} statements
+                          {s.attempts > 0 ? ` · ${pct(s.correct, s.attempts)}% · ${s.seen} seen` : ' · not started'}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </section>
         )}
 
@@ -375,7 +348,7 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
           )}
         </Field>
 
-        {setup.subjects.length > 0 && pool.length === 0 && setup.status !== 'all' && (
+        {!nothingChosen && pool.length === 0 && setup.status !== 'all' && (
           <div className="space-y-3 rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark">
             <p className="text-slate-700 dark:text-slate-300">
               No statements in this selection are{' '}

@@ -7,7 +7,6 @@ import {
   Brain,
   Calculator,
   Check,
-  ChevronDown,
   Dumbbell,
   Gauge,
   Gavel,
@@ -34,6 +33,8 @@ import type { GymSetup, SetupChoice } from './setup';
 import { isDue, isMastered, localDay } from './storage';
 import type { Formula, FormulaGame } from './types';
 import { btnPrimary, btnSmall } from './ui';
+import { ChapterPicker, ScopeSwitch } from '../components/setup/ChapterPicker';
+import type { ChapterGroup } from '../components/setup/ChapterPicker';
 
 const ICONS: Record<SetupChoice, ReactNode> = {
   workout: <Dumbbell className="h-5 w-5" aria-hidden="true" />,
@@ -162,9 +163,8 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
     if (!saved) return { ...DEFAULT_SETUP, areas: all };
     const kept = saved.areas.filter((a) => codes.has(a));
     const keptAreas = kept.length > 0 ? kept : all;
-    return { ...saved, areas: keptAreas, readings: saved.readings.filter((r) => readingIds.has(r) && keptAreas.includes(r.split('-')[0])) };
+    return { ...saved, areas: keptAreas, readings: saved.readings.filter((r) => readingIds.has(r)) };
   });
-  const [readingsOpen, setReadingsOpen] = useState(() => setup.readings.length > 0);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => saveSetup(setup), [setup]);
@@ -180,15 +180,28 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
     return out;
   }, [formulas]);
 
-  const readingsByArea = useMemo(() => {
-    const out: Record<string, { id: string; count: number }[]> = {};
-    for (const [area, list] of Object.entries(byArea)) {
-      const counts = new Map<string, number>();
-      for (const f of list) counts.set(f.readingId, (counts.get(f.readingId) ?? 0) + 1);
-      out[area] = [...counts.entries()].map(([id, count]) => ({ id, count })).sort((a, b) => compareReadings(a.id, b.id));
-    }
-    return out;
-  }, [byArea]);
+  const chapterGroups = useMemo((): ChapterGroup[] => {
+    return areas.map((a) => {
+      const byReading = new Map<string, Formula[]>();
+      for (const f of byArea[a.code] ?? []) byReading.set(f.readingId, [...(byReading.get(f.readingId) ?? []), f]);
+      return {
+        id: a.code,
+        title: a.name,
+        chapters: [...byReading.entries()]
+          .sort(([x], [y]) => compareReadings(x, y))
+          .map(([id, list]) => {
+            const t = tally(list, states, today);
+            const title = readingTitle(id);
+            return {
+              id,
+              label: title ? `${id} ${title}` : id,
+              keywords: list.map((f) => f.name).join(' '),
+              detail: `${t.total} ${t.total === 1 ? 'formula' : 'formulas'}${t.seen > 0 ? ` · ${t.due} due · ${pct(t.mastered, t.total)}% mastered` : ' · not started'}`,
+            };
+          }),
+      };
+    });
+  }, [areas, byArea, states, today]);
 
   const overall = useMemo(() => tally(formulas, states, today), [formulas, states, today]);
   const areaTallies = useMemo(() => {
@@ -206,13 +219,9 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
   }, [scope, index, setup.numbers]);
 
   const toggleArea = (code: string) =>
-    update(
-      setup.areas.includes(code)
-        ? { areas: setup.areas.filter((a) => a !== code), readings: setup.readings.filter((r) => r.split('-')[0] !== code) }
-        : { areas: [...setup.areas, code] },
-    );
-  const toggleReading = (id: string) =>
-    update({ readings: setup.readings.includes(id) ? setup.readings.filter((r) => r !== id) : [...setup.readings, id] });
+    update({ areas: setup.areas.includes(code) ? setup.areas.filter((a) => a !== code) : [...setup.areas, code] });
+  const picking = setup.scope === 'chapters';
+  const nothingChosen = picking ? setup.readings.length === 0 : setup.areas.length === 0;
 
   const mode = setup.mode;
   const game = mode === 'workout' || mode === 'sheet' ? null : GAME_BY_ID[mode];
@@ -221,8 +230,10 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
   const sessionCount = game?.timed ? Math.min(game.timed.rounds, playable) : setup.size === 'all' ? playable : Math.min(setup.size, playable);
 
   const counter =
-    setup.areas.length === 0
-      ? 'No area selected'
+    nothingChosen
+      ? picking
+        ? 'No chapter picked'
+        : 'No area selected'
       : !enough
         ? 'Nothing to play here'
         : mode === 'sheet'
@@ -241,8 +252,6 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
     }
     if (!onStart(setup)) setNotice('Couldn’t build a session from this selection. Try another game or a wider selection.');
   };
-
-  const shownAreas = areas.filter((a) => setup.areas.includes(a.code));
 
   return (
     <div className="min-h-screen">
@@ -277,126 +286,70 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
           </p>
         )}
 
-        <section aria-labelledby="fg-areas" className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="fg-areas" className="text-base font-semibold">
-              Areas
-            </h2>
-            <div className="flex gap-2">
-              <button type="button" className={btnSmall} onClick={() => update({ areas: areas.map((a) => a.code) })}>
-                Select all
-              </button>
-              <button type="button" className={btnSmall} onClick={() => update({ areas: [], readings: [] })}>
-                Clear
-              </button>
-            </div>
-          </div>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {areas.map((a) => {
-              const on = setup.areas.includes(a.code);
-              const t = areaTallies[a.code];
-              return (
-                <li key={a.code}>
-                  <button
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleArea(a.code)}
-                    className={`flex min-h-[56px] w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none ${
-                      on
-                        ? 'border-primary bg-primary-50 dark:bg-primary/15'
-                        : 'border-slate-200 bg-card-light hover:bg-slate-50 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                        on ? 'border-primary bg-primary text-white' : 'border-slate-300 dark:border-slate-600'
-                      }`}
-                    >
-                      {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block break-words font-medium">{a.name}</span>
-                      <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                        {t.total} {t.total === 1 ? 'formula' : 'formulas'}
-                        {t.seen > 0 ? ` · ${t.due} due · ${pct(t.mastered, t.total)}% mastered` : ' · not started'}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+        <section aria-label="What to practise" className="space-y-3">
+          <ScopeSwitch value={setup.scope} onChange={(scope) => update({ scope })} />
+          <p className="text-[15px] text-slate-600 dark:text-slate-400">
+            {picking ? 'Only the chapters you pick.' : 'Every formula of the areas you choose, mixed together.'}
+          </p>
         </section>
 
-        {shownAreas.length > 0 && (
-          <section className="rounded-2xl bg-card-light shadow-sm dark:bg-card-dark">
-            <button
-              type="button"
-              aria-expanded={readingsOpen}
-              aria-controls="fg-readings"
-              onClick={() => setReadingsOpen((v) => !v)}
-              className="flex min-h-[56px] w-full items-center justify-between gap-2 px-4 text-left"
-            >
-              <span className="min-w-0">
-                <span className="block text-base font-semibold">Readings</span>
-                <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                  {setup.readings.length === 0
-                    ? 'Optional: all readings of the chosen areas'
-                    : `${setup.readings.length} ${setup.readings.length === 1 ? 'reading' : 'readings'} chosen`}
-                </span>
-              </span>
-              <ChevronDown
-                className={`h-5 w-5 shrink-0 transition-transform motion-reduce:transition-none ${readingsOpen ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
-            </button>
-            {readingsOpen && (
-              <div id="fg-readings" className="space-y-5 border-t border-slate-200 px-4 pb-4 pt-4 dark:border-slate-700">
-                <p className="text-[15px] text-slate-600 dark:text-slate-400">
-                  Pick readings to narrow an area. An area with no reading picked keeps all of them.
-                </p>
-                {shownAreas.map((a) => (
-                  <div key={a.code} className="space-y-2">
-                    <h3 className="text-[15px] font-semibold text-slate-800 dark:text-slate-200">{a.name}</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {(readingsByArea[a.code] ?? []).map((r) => {
-                        const on = setup.readings.includes(r.id);
-                        const title = readingTitle(r.id);
-                        return (
-                          <button
-                            key={r.id}
-                            type="button"
-                            aria-pressed={on}
-                            onClick={() => toggleReading(r.id)}
-                            className={`inline-flex min-h-[44px] max-w-full items-center gap-2 rounded-2xl border px-3.5 py-1.5 text-left text-[15px] font-medium leading-snug transition-colors motion-reduce:transition-none ${
-                              on
-                                ? 'border-primary bg-primary text-white'
-                                : 'border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
-                            }`}
-                          >
-                            <span className="min-w-0 break-words">
-                              <span className="font-semibold">{r.id}</span>
-                              {title ? ` ${title}` : ''}
-                            </span>
-                            <span className={`shrink-0 rounded-full px-1.5 tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{r.count}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-                {setup.readings.length > 0 && (
-                  <button type="button" className={btnSmall} onClick={() => update({ readings: [] })}>
-                    Clear readings
-                  </button>
-                )}
+        {picking ? (
+          <ChapterPicker groups={chapterGroups} selected={setup.readings} onChange={(readings) => update({ readings })} idPrefix="fg" />
+        ) : (
+          <section aria-labelledby="fg-areas" className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="fg-areas" className="text-base font-semibold">
+                Areas
+              </h2>
+              <div className="flex gap-2">
+                <button type="button" className={btnSmall} onClick={() => update({ areas: areas.map((a) => a.code) })}>
+                  Select all
+                </button>
+                <button type="button" className={btnSmall} onClick={() => update({ areas: [] })}>
+                  Clear
+                </button>
               </div>
-            )}
+            </div>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {areas.map((a) => {
+                const on = setup.areas.includes(a.code);
+                const t = areaTallies[a.code];
+                return (
+                  <li key={a.code}>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleArea(a.code)}
+                      className={`flex min-h-[56px] w-full items-start gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors motion-reduce:transition-none ${
+                        on
+                          ? 'border-primary bg-primary-50 dark:bg-primary/15'
+                          : 'border-slate-200 bg-card-light hover:bg-slate-50 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                          on ? 'border-primary bg-primary text-white' : 'border-slate-300 dark:border-slate-600'
+                        }`}
+                      >
+                        {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block break-words font-medium">{a.name}</span>
+                        <span className="block text-[15px] text-slate-600 dark:text-slate-400">
+                          {t.total} {t.total === 1 ? 'formula' : 'formulas'}
+                          {t.seen > 0 ? ` · ${t.due} due · ${pct(t.mastered, t.total)}% mastered` : ' · not started'}
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </section>
         )}
 
-        {setup.areas.length > 0 && (
+        {!nothingChosen && (
           <p className="text-[15px] text-slate-600 dark:text-slate-400">
             In this selection: {scopeTally.total} {scopeTally.total === 1 ? 'formula' : 'formulas'}, {scopeTally.due} due, {pct(scopeTally.mastered, scopeTally.total)}% mastered.
           </p>
@@ -502,7 +455,7 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
           <p aria-live="polite" className="min-w-0 text-[15px] font-medium tabular-nums text-slate-700 dark:text-slate-300">
             {counter}
           </p>
-          <button type="button" onClick={start} disabled={!enough || setup.areas.length === 0} className={`${btnPrimary} shrink-0`}>
+          <button type="button" onClick={start} disabled={!enough || nothingChosen} className={`${btnPrimary} shrink-0`}>
             {mode === 'sheet' ? <BookOpen className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
             {mode === 'sheet' ? 'Open' : 'Start'}
           </button>

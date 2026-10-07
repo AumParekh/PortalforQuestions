@@ -79,6 +79,40 @@ function saveHistory(history: SenseHistory) {
   }
 }
 
+// ---- Chapter choice (localStorage; best effort) ----
+
+/** Per profile: stored under `profileKey(...)` (games/profile.ts). */
+const PICK_KEY = 'frm.senseCheck.pick.v1';
+
+export interface SensePick {
+  scope: 'shuffle' | 'chapters';
+  /** Scenario `reading` labels (the rotation key). */
+  readings: string[];
+}
+
+export function loadPick(): SensePick {
+  try {
+    const raw = window.localStorage.getItem(profileKey(PICK_KEY));
+    const o: unknown = raw ? JSON.parse(raw) : null;
+    if (!o || typeof o !== 'object') return { scope: 'shuffle', readings: [] };
+    const r = o as Record<string, unknown>;
+    return {
+      scope: r.scope === 'chapters' ? 'chapters' : 'shuffle',
+      readings: Array.isArray(r.readings) ? r.readings.filter((x): x is string => typeof x === 'string') : [],
+    };
+  } catch {
+    return { scope: 'shuffle', readings: [] };
+  }
+}
+
+export function savePick(pick: SensePick) {
+  try {
+    window.localStorage.setItem(profileKey(PICK_KEY), JSON.stringify(pick));
+  } catch {
+    // Private mode or storage full: the choice just isn't remembered.
+  }
+}
+
 // ---- Running session ----
 
 export interface SenseResult {

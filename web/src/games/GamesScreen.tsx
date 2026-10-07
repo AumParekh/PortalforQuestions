@@ -23,6 +23,12 @@ import { areaCoverage, categoryTotals, readingCoverage, rotationInput } from './
 import { SessionShell } from './arc/SessionShell';
 import { CopyButton, StabilityRows } from './arc/CloseScreen';
 import { GameButton, GameCard, NoteText } from './theme/primitives';
+import { ChapterSearch, Highlight, matchesQuery } from '../components/setup/ChapterSearch';
+
+/** Matches a reading by its id ("MR-5"), title and area. */
+function readingMatches(query: string, r: Reading): boolean {
+  return matchesQuery(query, r.reading_id, r.title, r.area, AREA_NAMES[r.area as keyof typeof AREA_NAMES]);
+}
 
 interface Setup {
   plugin: AnyMechanicPlugin;
@@ -254,6 +260,8 @@ function MechanicView({
   onBack: () => void;
 }) {
   const readings = useMemo(() => corpus.readings.filter((r) => supportsSafely(plugin, r, corpus)), [corpus, plugin]);
+  const [query, setQuery] = useState('');
+  const shown = useMemo(() => readings.filter((r) => readingMatches(query, r)), [readings, query]);
   return (
     <div className="g-enter space-y-6">
       <Header title={plugin.title} onBack={onBack} />
@@ -264,16 +272,22 @@ function MechanicView({
             <Play className="h-4 w-4" aria-hidden="true" /> Pick a reading for me
           </GameButton>
         </div>
+        {readings.length > 6 && <ChapterSearch value={query} onChange={setQuery} tone="game" />}
+        {query.trim() && shown.length === 0 && <p className="g-small g-muted">No readings match “{query.trim()}”.</p>}
         <ul className="divide-y" style={{ borderColor: 'var(--g-rule)' }}>
-          {readings.map((r) => (
+          {shown.map((r) => (
             <li key={r.reading_id}>
               <button
                 type="button"
                 className="flex w-full items-baseline gap-3 py-3 text-left"
                 onClick={() => onPlay({ namedReading: r.reading_id, namedMechanic: plugin.id })}
               >
-                <span className="g-strong w-16 shrink-0">{r.reading_id}</span>
-                <span className="g-serif">{r.title}</span>
+                <span className="g-strong w-16 shrink-0">
+                  <Highlight text={r.reading_id} query={query} />
+                </span>
+                <span className="g-serif">
+                  <Highlight text={r.title} query={query} />
+                </span>
               </button>
             </li>
           ))}
@@ -335,6 +349,17 @@ function Home({
   const coverage = useGameProgress((s) => s.coverage);
   const storage = useGameProgress((s) => s.status);
   const [tab, setTab] = useState<'readings' | 'mechanics'>('readings');
+  const [query, setQuery] = useState('');
+  const searching = query.trim().length > 0;
+  const shownByArea = useMemo(() => {
+    const out: Record<string, Reading[]> = {};
+    for (const a of Object.keys(corpus.readingsByArea)) {
+      const hits = corpus.readingsByArea[a].filter((r) => readingMatches(query, r));
+      if (hits.length > 0) out[a] = hits;
+    }
+    return out;
+  }, [corpus, query]);
+  const hitCount = useMemo(() => Object.values(shownByArea).reduce((n, list) => n + list.length, 0), [shownByArea]);
 
   const totals = useMemo(() => categoryTotals(sessions), [sessions]);
   const priority = useMemo(() => priorityCategory(sessions), [sessions]);
@@ -423,14 +448,25 @@ function Home({
           </GameButton>
         </div>
 
+        {tab === 'readings' && (
+          <div className="space-y-2">
+            <ChapterSearch value={query} onChange={setQuery} tone="game" placeholder="Search readings, e.g. VaR mapping or MR-5" label="Search readings" />
+            {searching && (
+              <p className="g-small g-muted" aria-live="polite">
+                {hitCount === 0 ? `No readings match “${query.trim()}”.` : `${hitCount} ${hitCount === 1 ? 'reading matches' : 'readings match'}. Tap one to play it.`}
+              </p>
+            )}
+          </div>
+        )}
+
         {tab === 'readings' &&
-          areas.map((a) => (
+          areas.filter((a) => shownByArea[a]).map((a) => (
             <GameCard key={a} className="space-y-2">
               <div className="g-kicker">
                 {a} · {AREA_NAMES[a as keyof typeof AREA_NAMES] ?? a}
               </div>
               <ul>
-                {corpus.readingsByArea[a].map((r) => {
+                {shownByArea[a].map((r) => {
                   const c = readingCoverage(r, coverage);
                   return (
                     <li key={r.reading_id} className="border-t first:border-t-0" style={{ borderColor: 'var(--g-rule)' }}>
@@ -439,8 +475,12 @@ function Home({
                         className="flex w-full flex-col gap-1 py-3 text-left sm:flex-row sm:items-baseline sm:gap-3"
                         onClick={() => go({ kind: 'reading', readingId: r.reading_id })}
                       >
-                        <span className="g-strong w-16 shrink-0">{r.reading_id}</span>
-                        <span className="g-serif flex-1">{r.title}</span>
+                        <span className="g-strong w-16 shrink-0">
+                          <Highlight text={r.reading_id} query={query} />
+                        </span>
+                        <span className="g-serif flex-1">
+                          <Highlight text={r.title} query={query} />
+                        </span>
                         <span className="g-small g-muted shrink-0">
                           {c.closed}/{c.total} closed · {(r.mechanics_supported ?? []).length} mechanics
                         </span>

@@ -100,6 +100,8 @@ export interface PlanOptions {
   today: string;
   rng?: () => number;
   rounds?: number;
+  /** False when the player picked the chapters: the every-third-session area rule then stays out of the way. */
+  areaRule?: boolean;
 }
 
 function shuffle<T>(items: T[], rng: () => number): T[] {
@@ -174,7 +176,7 @@ export function planSession(
   const size = options.rounds ?? SESSION_ROUNDS;
   if (scenarios.length === 0) return null;
   const n = history.count + 1;
-  const area = n % 3 === 0 ? nextArea(scenarios, history, Math.ceil(size / 2)) : null;
+  const area = options.areaRule !== false && n % 3 === 0 ? nextArea(scenarios, history, Math.ceil(size / 2)) : null;
   const pool = area ? scenarios.filter((s) => s.area === area) : scenarios;
   if (pool.length === 0) return null;
 
