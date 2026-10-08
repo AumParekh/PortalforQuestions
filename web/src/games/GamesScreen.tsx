@@ -388,56 +388,6 @@ function Home({
         </GameButton>
       </GameCard>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <GameCard className="space-y-4">
-          <div className="g-kicker">Trap stability</div>
-          <StabilityRows byCategory={byCategory} />
-          {priority && (
-            <p className="g-small">
-              <span className="g-strong">{priority}</span> has been missed three or more times running; the next session leads with it.
-            </p>
-          )}
-          <p className="g-small g-muted">
-            {due} {due === 1 ? 'item' : 'items'} due for review · {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'} played
-          </p>
-        </GameCard>
-        <GameCard className="space-y-4">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="g-kicker">Coverage</div>
-            <span className="g-small g-muted">
-              {overall.closed} of {overall.total} objectives
-            </span>
-          </div>
-          <ul className="space-y-3">
-            {areas.map((a) => {
-              const c = areaCoverage(corpus.readingsByArea[a], coverage);
-              return (
-                <li key={a}>
-                  <div className="flex justify-between gap-3 g-small">
-                    <span>
-                      <span className="g-strong">{a}</span> <span className="g-muted">{AREA_NAMES[a as keyof typeof AREA_NAMES] ?? ''}</span>
-                    </span>
-                    <span className="g-muted">
-                      {c.closed}/{c.total}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <CoverageBar closed={c.closed} total={c.total} />
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          <GameButton variant="quiet" onClick={() => go({ kind: 'log' })} className="!px-0">
-            <History className="h-4 w-4" aria-hidden="true" /> Game log
-          </GameButton>
-        </GameCard>
-      </div>
-
-      {storage === 'unavailable' && (
-        <p className="g-small g-muted">Browser storage is unavailable, so sessions and review schedules last only until this page closes.</p>
-      )}
-
       <section className="space-y-4">
         <div className="flex flex-wrap gap-2" role="group" aria-label="Browse">
           <GameButton selected={tab === 'readings'} onClick={() => setTab('readings')}>
@@ -529,6 +479,56 @@ function Home({
           </GameCard>
         )}
       </section>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <GameCard className="space-y-4">
+          <div className="g-kicker">Trap stability</div>
+          <StabilityRows byCategory={byCategory} />
+          {priority && (
+            <p className="g-small">
+              <span className="g-strong">{priority}</span> has been missed three or more times running; the next session leads with it.
+            </p>
+          )}
+          <p className="g-small g-muted">
+            {due} {due === 1 ? 'item' : 'items'} due for review · {sessions.length} {sessions.length === 1 ? 'session' : 'sessions'} played
+          </p>
+        </GameCard>
+        <GameCard className="space-y-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="g-kicker">Coverage</div>
+            <span className="g-small g-muted">
+              {overall.closed} of {overall.total} objectives
+            </span>
+          </div>
+          <ul className="space-y-3">
+            {areas.map((a) => {
+              const c = areaCoverage(corpus.readingsByArea[a], coverage);
+              return (
+                <li key={a}>
+                  <div className="flex justify-between gap-3 g-small">
+                    <span>
+                      <span className="g-strong">{a}</span> <span className="g-muted">{AREA_NAMES[a as keyof typeof AREA_NAMES] ?? ''}</span>
+                    </span>
+                    <span className="g-muted">
+                      {c.closed}/{c.total}
+                    </span>
+                  </div>
+                  <div className="mt-1">
+                    <CoverageBar closed={c.closed} total={c.total} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <GameButton variant="quiet" onClick={() => go({ kind: 'log' })} className="!px-0">
+            <History className="h-4 w-4" aria-hidden="true" /> Game log
+          </GameButton>
+        </GameCard>
+      </div>
+
+      {storage === 'unavailable' && (
+        <p className="g-small g-muted">Browser storage is unavailable, so sessions and review schedules last only until this page closes.</p>
+      )}
     </div>
   );
 }

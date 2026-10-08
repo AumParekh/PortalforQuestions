@@ -80,29 +80,31 @@ export function IntroView({ scenarios, states, attempts, progressUnavailable }: 
   const played = MODES.some((m) => lifetime[m].total > 0);
   const review = plan ? plan.rounds.filter((s) => priorityTier(states[s.id], today) >= 3).length : 0;
 
+  const explainer = (
+    <section className={card}>
+      <div className="flex items-center gap-3">
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary/15 dark:text-primary-100">
+          <Gauge className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <h2 className="text-xl font-semibold leading-snug">Size it before you solve it</h2>
+      </div>
+      <p className="mt-3 text-base leading-relaxed text-slate-700 dark:text-slate-300">
+        {SESSION_SECONDS / 60} minutes, {SESSION_ROUNDS} rounds. Make the call on instinct, then see the full working. The clock pauses while you read it.
+      </p>
+      <ul className="mt-4 space-y-3">
+        {MODES.map((m) => (
+          <li key={m} className="space-y-1">
+            <ModeTag mode={m} />
+            <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300">{MODE_BLURB[m]}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+
   return (
     <Shell>
       <div className="space-y-5">
-        <section className={card}>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-primary/15 dark:text-primary-100">
-              <Gauge className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <h2 className="text-xl font-semibold leading-snug">Size it before you solve it</h2>
-          </div>
-          <p className="mt-3 text-base leading-relaxed text-slate-700 dark:text-slate-300">
-            {SESSION_SECONDS / 60} minutes, {SESSION_ROUNDS} rounds. Make the call on instinct, then see the full working. The clock pauses while you read it.
-          </p>
-          <ul className="mt-4 space-y-3">
-            {MODES.map((m) => (
-              <li key={m} className="space-y-1">
-                <ModeTag mode={m} />
-                <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300">{MODE_BLURB[m]}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-
         <section aria-label="What to practise" className="space-y-3">
           <ScopeSwitch value={pick.scope} onChange={(scope) => setPick((p) => ({ ...p, scope }))} />
           <p className="text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
@@ -112,6 +114,8 @@ export function IntroView({ scenarios, states, attempts, progressUnavailable }: 
           </p>
           {picking && <ChapterPicker groups={groups} selected={chosen} onChange={(readings) => setPick((p) => ({ ...p, readings }))} idPrefix="sc" />}
         </section>
+
+        {!picking && explainer}
 
         {plan && picking && (
           <section aria-label="This session" className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
@@ -177,6 +181,8 @@ export function IntroView({ scenarios, states, attempts, progressUnavailable }: 
           <Play className="h-5 w-5" aria-hidden="true" />
           Start
         </button>
+
+        {picking && explainer}
       </div>
     </Shell>
   );

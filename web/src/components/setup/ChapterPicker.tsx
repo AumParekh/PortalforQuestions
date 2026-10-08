@@ -39,16 +39,19 @@ export function ChapterPicker({
   const [open, setOpen] = useState<Set<string>>(() => new Set(groups.filter((g) => g.chapters.some((c) => chosen.has(c.id))).map((g) => g.id)));
 
   const searching = query.trim().length > 0;
-  const shown = useMemo(
-    () =>
-      groups
-        .map((g) => ({
-          ...g,
-          chapters: searching ? g.chapters.filter((c) => matchesQuery(query, c.label, c.keywords, g.title)) : g.chapters,
-        }))
-        .filter((g) => g.chapters.length > 0),
-    [groups, query, searching],
-  );
+  const shown = useMemo(() => {
+    if (!searching) return groups;
+    // Chapters whose own name matches come before those matched only through their group or extra keywords, and
+    // groups holding such a chapter come first; otherwise the usual order is kept (sort is stable).
+    const named = (c: ChapterItem) => (matchesQuery(query, c.label) ? 0 : 1);
+    return groups
+      .map((g) => ({
+        ...g,
+        chapters: g.chapters.filter((c) => matchesQuery(query, c.label, c.keywords, g.title)).sort((a, b) => named(a) - named(b)),
+      }))
+      .filter((g) => g.chapters.length > 0)
+      .sort((a, b) => named(a.chapters[0]) - named(b.chapters[0]));
+  }, [groups, query, searching]);
   const shownIds = useMemo(() => shown.flatMap((g) => g.chapters.map((c) => c.id)), [shown]);
   const byId = useMemo(() => new Map(groups.flatMap((g) => g.chapters.map((c) => [c.id, c] as const))), [groups]);
   const chosenItems = selected.map((id) => byId.get(id)).filter((c): c is ChapterItem => !!c);
