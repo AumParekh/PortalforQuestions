@@ -22,8 +22,13 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
     subject: q.subject,
     searchable: [
       q.topic,
+      // The LO id as printed ("MR-2 c") and without the space ("MR-2c"), and the priority band ("P1").
+      q.lo,
+      q.lo.replace(' ', ''),
+      q.band ?? '',
       q.loText,
       q.reading,
+      q.source ?? '',
       q.question,
       ...q.options.map((o) => o.text),
       q.solution,
@@ -37,10 +42,31 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
   return index;
 }
 
-/** Case-insensitive substring AND-match over every term. Returns ids in source order, or null for an empty query. */
+/** "MR-2 c", "mr2c", "MR 2.c" (one LO) or "MR-2" (a whole chapter). */
+const LO_QUERY = /^([a-z]{2,3})[-\s]?(\d{1,2})(?:[\s.]?([a-z]))?$/;
+
+/** True when the query is an LO or chapter code rather than words to look for. */
+export function isCodeQuery(query: string): boolean {
+  return LO_QUERY.test(query.toLowerCase().trim());
+}
+
+/**
+ * Case-insensitive substring AND-match over every term. A query that is an LO or chapter code matches the questions
+ * tagged with it instead (falling back to the text match when no question carries that code).
+ * Returns ids in source order, or null for an empty query.
+ */
 export function search(query: string, index: SearchEntry[]): string[] | null {
   const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return null;
+  const code = LO_QUERY.exec(query.toLowerCase().trim());
+  if (code) {
+    const prefix = `${code[1]}-${code[2]} `;
+    const hits = index.filter((e) => {
+      const lo = e.lo.toLowerCase();
+      return code[3] ? lo === prefix + code[3] : lo.startsWith(prefix);
+    });
+    if (hits.length > 0) return hits.map((e) => e.id);
+  }
   return index.filter((e) => terms.every((t) => e.searchable.includes(t))).map((e) => e.id);
 }
 

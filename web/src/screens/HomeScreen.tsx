@@ -67,7 +67,6 @@ function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
 }
 
 function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: FileProgress; onOpen: () => void }) {
-  const tierCount = file.tiers?.length ?? 0;
   const total = file.questionIds.length;
   return (
     <button
@@ -84,8 +83,7 @@ function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: Fil
           <AccuracyChip accuracy={progress.accuracy} />
         </span>
         <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
-          {total} questions
-          {tierCount > 0 && ` · ${tierCount} ${tierCount === 1 ? 'tier' : 'tiers'}`}
+          {total.toLocaleString()} questions
         </span>
         <span className="mt-2 flex items-center gap-3">
           <ProgressBar value={total ? progress.attempted / total : 0} label={`${file.name} attempted`} />

@@ -17,6 +17,9 @@ export type TrapOperator =
 
 export type LoType = 'Numerical' | 'Non-Numerical' | 'Qualitative';
 
+/** Priority of a learning objective in the Master LO Map: P1 most important … P4 not flagged (still examinable). */
+export type Band = 'P1' | 'P2' | 'P3' | 'P4';
+
 export interface QuestionOption {
   key: OptionKey;
   text: string;
@@ -31,10 +34,17 @@ export interface Question {
   id: string;
   subject: string;
   tier: string;
+  /** Official LO id, e.g. "MR-2 c" (reading MR-2, objective c). */
   lo: string;
+  /** Official LO wording (GARP 2026). */
   loText: string;
+  /** Official chapter: "MR-2: Non-Parametric Approaches". */
   reading: string;
   topic: string;
+  /** Priority band of the question's LO. */
+  band?: Band;
+  /** Where the question comes from, as printed in its source (question-bank and workbook questions). */
+  source?: string;
   question: string;
   options: QuestionOption[];
   answer: OptionKey;
@@ -67,6 +77,10 @@ export interface CatalogItem {
   label: string;
   sublabel?: string;
   subject: string;
+  /** Short code shown before the label: the LO id ("MR-2 c"). */
+  code?: string;
+  /** Priority bands of the item's questions, most important first (one for an LO, several for a chapter or subject). */
+  bands?: Band[];
   questionIds: string[];
 }
 
@@ -94,6 +108,8 @@ export type TimeTarget = 'fast' | 'medium' | 'slow';
 
 /** Structured filters from the Session Setup sheet; all combine with the scope selection and search using AND. */
 export interface SessionFilters {
+  /** Priority bands to include; empty means all. */
+  bands?: Band[];
   status: ProgressFilter[];
   trapOperators: TrapOperator[];
   hasTrap: boolean | null;

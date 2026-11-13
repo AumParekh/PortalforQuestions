@@ -49,7 +49,8 @@ function contentPlugin(): Plugin {
         this.emitFile({
           type: 'asset',
           fileName: `content/${rel}`,
-          source: fs.readFileSync(path.join(CONTENT_DIR, rel)),
+          // The bank files are kept indented in the repo for readable diffs; ship them compact.
+          source: JSON.stringify(JSON.parse(fs.readFileSync(path.join(CONTENT_DIR, rel), 'utf8'))),
         });
       }
       this.emitFile({ type: 'asset', fileName: 'content/manifest.json', source: JSON.stringify(files) });

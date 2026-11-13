@@ -1,6 +1,7 @@
 import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, Clock, Flag, ListChecks, MinusCircle, XCircle } from 'lucide-react';
 import type { AnswerRecord, Question } from '../types';
 import { Markdown } from './Markdown';
+import { BandBadge } from './setup/BandBadge';
 
 interface Props {
   question: Question;
@@ -59,6 +60,16 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
           Solution
         </h2>
         <Markdown>{question.solution}</Markdown>
+        {question.band && (
+          <div className="mt-4 space-y-1 border-t border-slate-200 pt-3 text-[15px] leading-snug dark:border-slate-700">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">Learning objective {question.lo}</span>
+              <BandBadge band={question.band} />
+            </p>
+            <p className="text-slate-700 dark:text-slate-300">{question.loText}</p>
+            <p className="text-slate-600 dark:text-slate-400">{question.reading}</p>
+          </div>
+        )}
       </div>
 
       <div className={CARD}>

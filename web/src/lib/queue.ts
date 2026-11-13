@@ -35,6 +35,7 @@ function shapeOf(q: Question): { table: boolean; formula: boolean } {
 export function hasActiveFilters(f: SessionFilters | undefined): boolean {
   if (!f) return false;
   return (
+    (f.bands?.length ?? 0) > 0 ||
     f.status.length > 0 ||
     f.trapOperators.length > 0 ||
     f.hasTrap !== null ||
@@ -54,6 +55,7 @@ export function searchHits(query: string | undefined, questions: Question[]): Se
 
 export function matchesFilters(q: Question, s: QuestionState | undefined, f: SessionFilters, today = localToday()): boolean {
   const attempted = !!s && s.totalAttempts > 0;
+  if (f.bands && f.bands.length > 0 && !(q.band && f.bands.includes(q.band))) return false;
   if (f.status.length > 0) {
     const hit = f.status.some((st) => {
       switch (st) {

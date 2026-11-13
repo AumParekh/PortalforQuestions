@@ -1,3 +1,4 @@
+import { loLabel } from '../lib/catalog';
 import { useMemo, useState } from 'react';
 import { useToday } from '../hooks/useToday';
 import {
@@ -180,7 +181,7 @@ export function ReviewWrongScreen() {
         q,
         state,
         lastMissed: lastMissedById.get(q.id) ?? (state.lastResult === 'wrong' ? state.lastAttempted : null),
-        loKey: q.loText || q.lo,
+        loKey: loLabel(q),
         stillWrong: state.lastResult === 'wrong',
       });
     }

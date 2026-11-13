@@ -1,4 +1,5 @@
 import type { AttemptRecord, Question, QuestionState } from '../types';
+import { loKey, loLabel } from './catalog';
 
 export type QuestionProgress = 'new' | 'correct' | 'wrong';
 
@@ -117,9 +118,9 @@ export function groupProgress(
   return [...groups.values()];
 }
 
-/** Lowest-accuracy LOs among those with at least `minAttempts` answers. Keyed by LO text, matching the session catalog. */
+/** Lowest-accuracy LOs among those with at least `minAttempts` answers. Keyed like the session catalog's LO items. */
 export function weakestLos(questions: Question[], states: Record<string, QuestionState>, limit = 5, minAttempts = 2): GroupProgress[] {
-  return groupProgress(questions, states, (q) => ({ key: `${q.subject}::${q.loText || q.lo}`, label: q.loText || q.lo }))
+  return groupProgress(questions, states, (q) => ({ key: loKey(q), label: loLabel(q) }))
     .filter((g) => g.attempts >= minAttempts && g.accuracy !== null)
     .sort((a, b) => (a.accuracy ?? 1) - (b.accuracy ?? 1) || b.attempts - a.attempts)
     .slice(0, limit);

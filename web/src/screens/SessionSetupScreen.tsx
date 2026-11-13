@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeft, Check, ChevronDown, Play, X } from 'lucide-react';
-import type { CatalogItem, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
+import type { Band, CatalogItem, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useSession } from '../store/session';
@@ -11,10 +11,12 @@ import { buildQueue, countAvailable, hasActiveFilters, localToday, matchesFilter
 import { isQuestionDue } from '../lib/srs';
 import { groupProgress } from '../lib/stats';
 import type { GroupProgress } from '../lib/stats';
+import { isCodeQuery } from '../lib/search';
 import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
 import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
-import { EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
+import { BAND_OPTIONS, EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
+import { BandBadge } from '../components/setup/BandBadge';
 import { profileKey } from '../games/profile';
 
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
@@ -43,10 +45,10 @@ interface Stored {
   filters: SessionFilters;
 }
 
+// Chapters and LOs carry their official names; the old "topic" grouping is now the chapter itself.
 const SCOPES: { value: ScopeKind; label: string }[] = [
   { value: 'subject', label: 'Subject' },
-  { value: 'reading', label: 'Reading' },
-  { value: 'topic', label: 'Topic' },
+  { value: 'reading', label: 'Chapter' },
   { value: 'lo', label: 'LO' },
 ];
 const COUNTS: { value: Count; label: string }[] = [
@@ -73,7 +75,7 @@ const ROW_CHIPS: { value: RowChip; label: string }[] = [
   { value: 'due', label: 'Due for review' },
   { value: 'trap', label: 'Has trap cards' },
 ];
-const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'readings', topic: 'topics', lo: 'LOs' };
+const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'chapters', topic: 'topics', lo: 'LOs' };
 
 const DEFAULTS: Stored = {
   scopeKind: 'subject',
@@ -297,8 +299,19 @@ function ItemRow({
         {selected && <Check className="h-4 w-4" strokeWidth={3} />}
       </span>
       <span className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+        {(item.code || (item.kind !== 'subject' && item.bands && item.bands.length > 0)) && (
+          <span className="mb-1 flex flex-wrap items-center gap-1.5">
+            {item.code && (
+              <span className="text-[15px] font-semibold text-primary-700 dark:text-primary-100">
+                <Highlight text={item.code} query={query} />
+              </span>
+            )}
+            {item.kind !== 'subject' && item.bands?.map((b) => <BandBadge key={b} band={b} />)}
+          </span>
+        )}
         <span className="block text-base leading-snug">
-          <Highlight text={item.label} query={query} />
+          {/* A code query ("MR-2 c") names the item; its letters are not words to mark in the wording. */}
+          <Highlight text={item.label} query={isCodeQuery(query) ? '' : query} />
         </span>
         {item.sublabel && (
           <span className="mt-0.5 block text-[15px] text-slate-600 dark:text-slate-400">{item.sublabel}</span>
@@ -347,6 +360,14 @@ export function SessionSetupScreen() {
 
   const searchActive = query.trim().length > 0;
   const filtersActive = hasActiveFilters(filters);
+  const bands = useMemo(() => filters.bands ?? [], [filters.bands]);
+  const toggleBand = (b: Band) =>
+    setFilters((f) => {
+      const cur = f.bands ?? [];
+      // Kept in P1…P4 order whatever order they were tapped in.
+      const next = cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b];
+      return { ...f, bands: BAND_OPTIONS.map((o) => o.value).filter((v) => next.includes(v)) };
+    });
   const filterCount = activeFilterCount(filters);
 
   const matchedIds = useMemo(() => {
@@ -563,7 +584,23 @@ export function SessionSetupScreen() {
             onOpenFilters={() => setFiltersOpen(true)}
           />
 
-          {(searchActive || filtersActive) && (
+          <div className="space-y-2">
+            <div role="group" aria-label="Priority" className="flex flex-wrap items-center gap-2">
+              <span className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Priority</span>
+              {BAND_OPTIONS.map((b) => (
+                <FilterChip key={b.value} active={bands.includes(b.value)} title={b.hint} onClick={() => toggleBand(b.value)}>
+                  {b.label}
+                </FilterChip>
+              ))}
+            </div>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400">
+              {bands.length === 0
+                ? 'All priorities. P1 is most important; P4 is not flagged but still examinable.'
+                : `Only ${bands.join(', ')} questions go into the session.`}
+            </p>
+          </div>
+
+          {(searchActive || filterCount > 0) && (
             <div className="flex flex-wrap gap-2">
               {searchActive && (
                 <button type="button" onClick={clearSearch} className={pillClass}>
@@ -571,8 +608,8 @@ export function SessionSetupScreen() {
                   Clear search
                 </button>
               )}
-              {filtersActive && (
-                <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className={pillClass}>
+              {filterCount > 0 && (
+                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands })} className={pillClass}>
                   <X className="h-4 w-4" aria-hidden="true" />
                   Clear {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
                 </button>

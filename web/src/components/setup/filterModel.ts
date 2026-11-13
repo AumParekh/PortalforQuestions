@@ -1,6 +1,7 @@
-import type { ProgressFilter, SessionFilters, TimeTarget, TrapOperator } from '../../types';
+import type { Band, ProgressFilter, SessionFilters, TimeTarget, TrapOperator } from '../../types';
 
 export const EMPTY_FILTERS: SessionFilters = {
+  bands: [],
   status: [],
   trapOperators: [],
   hasTrap: null,
@@ -10,6 +11,13 @@ export const EMPTY_FILTERS: SessionFilters = {
   minCorrect: 0,
   minWrong: 0,
 };
+
+export const BAND_OPTIONS: { value: Band; label: string; hint: string }[] = [
+  { value: 'P1', label: 'P1', hint: 'Most important' },
+  { value: 'P2', label: 'P2', hint: 'Important' },
+  { value: 'P3', label: 'P3', hint: 'Worth covering' },
+  { value: 'P4', label: 'P4', hint: 'Not flagged, still examinable' },
+];
 
 export const STATUS_OPTIONS: { value: ProgressFilter; label: string }[] = [
   { value: 'new', label: 'Never attempted' },
@@ -43,6 +51,7 @@ export const TIME_OPTIONS: { value: TimeTarget; label: string }[] = [
 export const MAX_THRESHOLD = 20;
 
 export function activeFilterCount(f: SessionFilters): number {
+  // Priority bands have their own chips on the setup screen and are not counted here.
   return (
     (f.status.length > 0 ? 1 : 0) +
     (f.trapOperators.length > 0 ? 1 : 0) +
@@ -73,6 +82,7 @@ export function sanitizeFilters(value: unknown): SessionFilters {
   if (!value || typeof value !== 'object') return EMPTY_FILTERS;
   const v = value as Record<string, unknown>;
   return {
+    bands: members(v.bands, BAND_OPTIONS),
     status: members(v.status, STATUS_OPTIONS),
     trapOperators: members(v.trapOperators, TRAP_OPTIONS),
     hasTrap: triState(v.hasTrap),

@@ -1,3 +1,4 @@
+import { BandBadge } from '../components/setup/BandBadge';
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, LayoutGrid, SkipForward } from 'lucide-react';
 import { useSession } from '../store/session';
@@ -199,7 +200,15 @@ export function QuestionScreen() {
             </div>
           </div>
           {q && (
-            <p className="break-words pb-2 text-[15px] leading-snug text-slate-600 dark:text-slate-400">{q.topic}</p>
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 break-words pb-2 text-[15px] leading-snug text-slate-600 dark:text-slate-400">
+              {q.band && (
+                <>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">{q.lo}</span>
+                  <BandBadge band={q.band} />
+                </>
+              )}
+              <span className="min-w-0">{q.topic}</span>
+            </p>
           )}
         </div>
         <div
