@@ -1,11 +1,39 @@
-import type { Band, CatalogItem, Question, ScopeKind } from '../types';
+import type { Band, CatalogItem, Question, RecallTier, ScopeKind } from '../types';
+import { RECALL_SECTIONS, RECALL_TIERS } from './recallTiers';
+import type { RecallSection } from './recallTiers';
 
 export const BANDS: Band[] = ['P1', 'P2', 'P3', 'P4'];
 
 /** Official ids look like "MR-2 c" (LO) and "MR-2: Title" (chapter). */
 const OFFICIAL = /^([A-Z]+)-(\d+)(?: ([a-z]))?/;
 
-function keyFor(kind: ScopeKind, q: Question): { key: string; label: string; sublabel?: string; code?: string } {
+/** Catalog key of a recall-workbook section: "section::A13". */
+function sectionKey(id: string): string {
+  return `section::${id}`;
+}
+
+/** Recall tiers a question belongs to (those of its sections), Tier A first. Tiers overlap: a question can be in several. */
+export function tiersOf(q: Pick<Question, 'sections'>): RecallTier[] {
+  const sections = q.sections;
+  if (!sections || sections.length === 0) return [];
+  return RECALL_TIERS.filter((t) => sections.some((id) => id.startsWith(t.id))).map((t) => t.id);
+}
+
+/** A question's recall-workbook sections with their titles, in workbook order. */
+export function recallSectionsOf(q: Pick<Question, 'sections'>): RecallSection[] {
+  const sections = q.sections;
+  if (!sections || sections.length === 0) return [];
+  return RECALL_SECTIONS.filter((s) => sections.includes(s.id));
+}
+
+/** Group heading of a tier's sections in Session Setup: "Tier A · August 2026 Recall and Core Topics". */
+function tierHeading(tier: RecallTier): string {
+  const info = RECALL_TIERS.find((t) => t.id === tier);
+  return info ? `${info.name} · ${info.description}` : `Tier ${tier}`;
+}
+
+// Sections are handled apart: a question has one key in every other scope, but can sit in several sections.
+function keyFor(kind: Exclude<ScopeKind, 'section'>, q: Question): { key: string; label: string; sublabel?: string; code?: string } {
   switch (kind) {
     case 'subject':
       return { key: q.subject, label: q.subject };
@@ -38,10 +66,45 @@ function syllabusRank(id: string): number {
 }
 
 /**
+ * Recall-workbook sections that have at least one question, in workbook order, grouped under their tier. A question
+ * is listed under every section it sits in.
+ */
+function buildSectionCatalog(questions: Question[]): CatalogItem[] {
+  const found = new Map<string, { questionIds: string[]; seen: Set<Band> }>();
+  for (const q of questions) {
+    for (const id of new Set(q.sections)) {
+      let hit = found.get(id);
+      if (!hit) {
+        hit = { questionIds: [], seen: new Set() };
+        found.set(id, hit);
+      }
+      hit.questionIds.push(q.id);
+      if (q.band) hit.seen.add(q.band);
+    }
+  }
+  const items: CatalogItem[] = [];
+  for (const s of RECALL_SECTIONS) {
+    const hit = found.get(s.id);
+    if (!hit) continue;
+    items.push({
+      key: sectionKey(s.id),
+      kind: 'section',
+      label: s.title,
+      code: s.id,
+      subject: tierHeading(s.tier),
+      bands: BANDS.filter((b) => hit.seen.has(b)),
+      questionIds: hit.questionIds,
+    });
+  }
+  return items;
+}
+
+/**
  * Groups questions into selectable items for a scope. Subjects keep their source order; chapters and LOs follow the
- * syllabus (reading number, then LO letter) within each subject.
+ * syllabus (reading number, then LO letter) within each subject; recall sections follow the workbook.
  */
 export function buildCatalog(questions: Question[], kind: ScopeKind): CatalogItem[] {
+  if (kind === 'section') return buildSectionCatalog(questions);
   const items = new Map<string, CatalogItem & { rank: number; subjectRank: number; seen: Set<Band> }>();
   const subjects = new Map<string, number>();
   for (const q of questions) {
@@ -65,5 +128,9 @@ export function buildCatalog(questions: Question[], kind: ScopeKind): CatalogIte
 /** Resolves selected catalog keys to question ids, de-duplicated, in source order. */
 export function resolveSelection(questions: Question[], kind: ScopeKind, selectedKeys: string[]): string[] {
   const wanted = new Set(selectedKeys);
+  // The union of the selected sections: a question in two of them still appears once.
+  if (kind === 'section') {
+    return questions.filter((q) => q.sections?.some((id) => wanted.has(sectionKey(id)))).map((q) => q.id);
+  }
   return questions.filter((q) => wanted.has(keyFor(kind, q).key)).map((q) => q.id);
 }

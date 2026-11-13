@@ -6,13 +6,16 @@ import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
 import { ExamCountdown, TodaysPlan } from '../components/dashboard/ExamPlan';
 import type { PlanRow, PlanSection } from '../components/dashboard/ExamPlan';
-import { QUEST_GOAL, startDueReview, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
+import { QUEST_GOAL, openSetupWith, startDueReview, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
 import { MockCard, MockResumeBanners } from '../components/dashboard/MockCard';
 import { AccuracyChip, ProgressBar } from '../components/dashboard/ProgressBar';
 import { SearchBox } from '../components/dashboard/SearchBox';
 import { StatTile } from '../components/dashboard/StatTile';
 import { TopicMap } from '../components/dashboard/TopicMap';
 import { WeakLos } from '../components/dashboard/WeakLos';
+import { buildCatalog, tiersOf } from '../lib/catalog';
+import { RECALL_TIERS } from '../lib/recallTiers';
+import type { RecallTierInfo } from '../lib/recallTiers';
 import { navigate } from '../lib/router';
 import type { Route } from '../lib/router';
 import { daysToExam, examPhase } from '../games/examDate';
@@ -37,7 +40,7 @@ interface FileProgress {
   accuracy: number | null;
 }
 
-function fileProgress(file: ContentFile, states: Record<string, QuestionState>): FileProgress {
+function fileProgress(file: Pick<ContentFile, 'questionIds'>, states: Record<string, QuestionState>): FileProgress {
   let attempted = 0;
   let correct = 0;
   let attempts = 0;
@@ -93,6 +96,52 @@ function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: Fil
         </span>
         <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
           Quick 20 · shuffled
+        </span>
+      </span>
+      <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
+    </button>
+  );
+}
+
+/** One recall-workbook tier: its questions (tiers overlap) and the Session Setup keys of its sections. */
+interface TierGroup {
+  info: RecallTierInfo;
+  questionIds: string[];
+  sectionKeys: string[];
+}
+
+function TierCard({ tier, progress, onOpen }: { tier: TierGroup; progress: FileProgress; onOpen: () => void }) {
+  const total = tier.questionIds.length;
+  const sections = tier.sectionKeys.length;
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex min-h-[44px] w-full items-start gap-3 rounded-2xl border border-transparent bg-card-light p-4 text-left shadow-sm transition hover:border-primary-100 hover:shadow-md dark:bg-card-dark dark:hover:border-slate-600 sm:p-5"
+    >
+      <span
+        aria-hidden="true"
+        className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-lg font-bold text-primary-600 dark:bg-slate-800 dark:text-primary-100"
+      >
+        {tier.info.id}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-start justify-between gap-2">
+          <span className="block font-semibold leading-snug">{tier.info.name}</span>
+          <AccuracyChip accuracy={progress.accuracy} />
+        </span>
+        <span className="mt-0.5 block text-[15px] leading-snug text-slate-700 dark:text-slate-300">{tier.info.description}</span>
+        <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
+          {total.toLocaleString()} questions · {sections} {sections === 1 ? 'section' : 'sections'}
+        </span>
+        <span className="mt-2 flex items-center gap-3">
+          <ProgressBar value={total ? progress.attempted / total : 0} label={`${tier.info.name} attempted`} />
+          <span className="shrink-0 text-[15px] tabular-nums text-slate-600 dark:text-slate-400">
+            {progress.attempted}/{total}
+          </span>
+        </span>
+        <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
+          Practise this tier
         </span>
       </span>
       <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
@@ -257,6 +306,17 @@ export function HomeScreen() {
     for (const f of files) out[f.path] = fileProgress(f, states);
     return out;
   }, [files, states]);
+
+  // Recall-workbook tiers: a question belongs to every tier one of its sections is in.
+  const tierGroups = useMemo((): TierGroup[] => {
+    const sections = buildCatalog(subjectQuestions, 'section');
+    return RECALL_TIERS.map((info) => ({
+      info,
+      questionIds: subjectQuestions.filter((q) => tiersOf(q).includes(info.id)).map((q) => q.id),
+      sectionKeys: sections.filter((it) => it.code?.startsWith(info.id)).map((it) => it.key),
+    })).filter((t) => t.questionIds.length > 0);
+  }, [subjectQuestions]);
+  const progressByTier = useMemo(() => tierGroups.map((t) => fileProgress(t, states)), [tierGroups, states]);
 
   const questDone = today >= QUEST_GOAL;
 
@@ -460,7 +520,7 @@ export function HomeScreen() {
             primary
             icon={<Play className="h-5 w-5" aria-hidden="true" />}
             title="New Session"
-            detail="Pick subjects, readings or LOs"
+            detail="Pick subjects, chapters, LOs or tiers"
             onClick={() => navigate('/setup')}
           />
           <QuickAction
@@ -545,6 +605,20 @@ export function HomeScreen() {
           <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">Tap a topic for a 20-question drill.</p>
           <div className="mt-3">
             <TopicMap subjectFiles={subjectFiles} byId={byId} states={states} />
+          </div>
+        </section>
+      )}
+
+      {tierGroups.length > 0 && (
+        <section className="mt-10" aria-labelledby="tiers-title">
+          <SectionTitle id="tiers-title">Tiers</SectionTitle>
+          <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">
+            Recall workbook sections, Tier A first. Tap a tier to practise its sections; a question can sit in more than one tier.
+          </p>
+          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {tierGroups.map((t, i) => (
+              <TierCard key={t.info.id} tier={t} progress={progressByTier[i]} onOpen={() => openSetupWith('section', t.sectionKeys)} />
+            ))}
           </div>
         </section>
       )}

@@ -1,4 +1,5 @@
 import { BandBadge } from '../components/setup/BandBadge';
+import { TierBadge } from '../components/setup/TierBadge';
 import { useCallback, useEffect, useState } from 'react';
 import { ArrowLeft, ChevronLeft, ChevronRight, Flag, LayoutGrid, SkipForward } from 'lucide-react';
 import { useSession } from '../store/session';
@@ -207,6 +208,7 @@ export function QuestionScreen() {
                   <BandBadge band={q.band} />
                 </>
               )}
+              {q.recallTier && <TierBadge tier={q.recallTier} />}
               <span className="min-w-0">{q.topic}</span>
             </p>
           )}

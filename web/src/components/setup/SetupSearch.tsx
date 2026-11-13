@@ -24,7 +24,7 @@ export function SetupSearch({
           type="search"
           value={value}
           onChange={(e: { currentTarget: HTMLInputElement }) => onChange(e.currentTarget.value)}
-          placeholder="Search, or an LO code: MR-2 c"
+          placeholder="Search, MR-2 c, A13"
           aria-label="Search questions"
           enterKeyHint="search"
           autoComplete="off"

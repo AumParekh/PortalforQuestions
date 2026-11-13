@@ -11,7 +11,7 @@ import { buildQueue, countAvailable, hasActiveFilters, localToday, matchesFilter
 import { isQuestionDue } from '../lib/srs';
 import { groupProgress } from '../lib/stats';
 import type { GroupProgress } from '../lib/stats';
-import { isCodeQuery } from '../lib/search';
+import { isCodeQuery, sectionCodeOf } from '../lib/search';
 import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
 import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
@@ -46,10 +46,12 @@ interface Stored {
 }
 
 // Chapters and LOs carry their official names; the old "topic" grouping is now the chapter itself.
+// "Tier" lists the recall-workbook sections, grouped under Tier A to Tier D.
 const SCOPES: { value: ScopeKind; label: string }[] = [
   { value: 'subject', label: 'Subject' },
   { value: 'reading', label: 'Chapter' },
   { value: 'lo', label: 'LO' },
+  { value: 'section', label: 'Tier' },
 ];
 const COUNTS: { value: Count; label: string }[] = [
   { value: 10, label: '10' },
@@ -75,7 +77,7 @@ const ROW_CHIPS: { value: RowChip; label: string }[] = [
   { value: 'due', label: 'Due for review' },
   { value: 'trap', label: 'Has trap cards' },
 ];
-const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'chapters', topic: 'topics', lo: 'LOs' };
+const SCOPE_NOUN: Record<ScopeKind, string> = { subject: 'subjects', reading: 'chapters', topic: 'topics', lo: 'LOs', section: 'sections' };
 
 const DEFAULTS: Stored = {
   scopeKind: 'subject',
@@ -338,7 +340,9 @@ export function SessionSetupScreen() {
   // Mock exams run through their own flow; setup only draws from subject banks.
   const questions = useContent((s) => s.subjectQuestions);
 
-  const [initial] = useState(loadStored);
+  const pendingSelection = useUi((s) => s.pendingSetupSelection);
+  // A scope and selection handed over by the dashboard (a tier card) replace the saved ones; options and filters stay.
+  const [initial] = useState((): Stored => ({ ...loadStored(), ...useUi.getState().pendingSetupSelection }));
   const [scopeKind, setScopeKind] = useState<ScopeKind>(initial.scopeKind);
   const [selectedKeys, setSelectedKeys] = useState<string[]>(initial.selectedKeys);
   const [rowChips, setRowChips] = useState<RowChip[]>(initial.rowChips);
@@ -411,11 +415,18 @@ export function SessionSetupScreen() {
     return new Set(catalog.filter((it) => it.questionIds.some((id) => isQuestionDue(states[id], today))).map((it) => it.key));
   }, [catalog, states, rowChips]);
 
+  // In the Tier scope a section code names one row. Its questions also sit in other sections, which would match too.
+  const namedSection = useMemo(() => {
+    const code = scopeKind === 'section' ? sectionCodeOf(query) : null;
+    return code !== null && catalog.some((it) => it.code === code) ? code : null;
+  }, [scopeKind, query, catalog]);
+
   const visible = useMemo(() => {
     const notStarted = rowChips.includes('not-started');
     const weak = rowChips.includes('weak');
     const trap = rowChips.includes('trap');
     return catalog.filter((it) => {
+      if (namedSection !== null && it.code !== namedSection) return false;
       if (matchCounts && (matchCounts.get(it.key) ?? 0) === 0) return false;
       if (trap && !trapItemKeys.has(it.key)) return false;
       // Progress chips (not started / weak / due) match any of the selected: "not started" and "due" can't both hold.
@@ -427,7 +438,7 @@ export function SessionSetupScreen() {
       }
       return true;
     });
-  }, [catalog, rowChips, matchCounts, trapItemKeys, dueItemKeys, progressByKey]);
+  }, [catalog, rowChips, namedSection, matchCounts, trapItemKeys, dueItemKeys, progressByKey]);
 
   const groups = useMemo(() => {
     if (scopeKind === 'subject') return [{ subject: '', items: visible }];
@@ -459,6 +470,15 @@ export function SessionSetupScreen() {
     autoSelectRef.current = pendingQuery;
     useUi.getState().setPendingSetupQuery(null);
   }, [pendingQuery]);
+
+  useEffect(() => {
+    if (pendingSelection === null) return;
+    setScopeKind(pendingSelection.scopeKind);
+    setSelectedKeys(pendingSelection.selectedKeys);
+    useUi.getState().setPendingSetupSelection(null);
+    // The tier cards sit well down the dashboard and the page keeps its scroll position: show the list from its top.
+    window.scrollTo({ top: 0 });
+  }, [pendingSelection]);
 
   // Arriving from the dashboard with a query: make "start with these" a single tap unless the saved selection already covers matches.
   useEffect(() => {
@@ -598,6 +618,13 @@ export function SessionSetupScreen() {
                 ? 'All priorities. P1 is most important; P4 is not flagged but still examinable.'
                 : `Only ${bands.join(', ')} questions go into the session.`}
             </p>
+            <FilterChip
+              active={filters.recallOnly === true}
+              title="The 199 questions printed in the Recall workbooks (Tier A to D)"
+              onClick={() => setFilters((f) => ({ ...f, recallOnly: !f.recallOnly }))}
+            >
+              Recall workbook questions only
+            </FilterChip>
           </div>
 
           {(searchActive || filterCount > 0) && (
@@ -609,7 +636,7 @@ export function SessionSetupScreen() {
                 </button>
               )}
               {filterCount > 0 && (
-                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands })} className={pillClass}>
+                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands, recallOnly: filters.recallOnly })} className={pillClass}>
                   <X className="h-4 w-4" aria-hidden="true" />
                   Clear {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
                 </button>

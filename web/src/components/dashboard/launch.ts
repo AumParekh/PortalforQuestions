@@ -2,7 +2,8 @@ import { navigate } from '../../lib/router';
 import { DUE_SESSION_CAP, dueQuestionIds } from '../../lib/srs';
 import { questionProgress } from '../../lib/stats';
 import { useSession } from '../../store/session';
-import type { ContentFile, Question, QuestionState, SessionConfig } from '../../types';
+import { useUi } from '../../store/ui';
+import type { ContentFile, Question, QuestionState, ScopeKind, SessionConfig } from '../../types';
 
 export const QUEST_GOAL = 20;
 
@@ -84,4 +85,10 @@ export function startSubjectQuick(subject: string, file: ContentFile) {
     { ...BASE, scopeKind: 'subject', selectedKeys: [subject], count: 20, order: 'shuffled', mode: 'drill' },
     shuffle(file.questionIds).slice(0, 20),
   );
+}
+
+/** Opens Session Setup on a scope with these rows already selected, replacing the saved scope and selection. */
+export function openSetupWith(scopeKind: ScopeKind, selectedKeys: string[]) {
+  useUi.getState().setPendingSetupSelection({ scopeKind, selectedKeys });
+  navigate('/setup');
 }

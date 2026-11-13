@@ -37,6 +37,8 @@ class Item:
     anchor: float | None = None
     #: A bracket drawn taller than the text around it.
     big: bool = False
+    #: A math-font glyph whose ASCII letters are italic variables (TeX's math italic), not upright text.
+    mathit: bool = False
 
     @property
     def cy(self) -> float:
@@ -98,11 +100,11 @@ MATH_SYMBOL = {
     '‖': r'\|', '%': r'\%', '$': r'\$', '&': r'\&', '#': r'\#', '{': r'\{', '}': r'\}', '_': r'\_', '~': r'\sim ',
     '^': r'\hat{}', '\\': r'\backslash ', '‑': '-', '–': '-', '—': '-', '’': "'", '‘': "'", '“': r'\text{“}',
     '”': r'\text{”}', '€': r'\text{€}', '£': r'\text{£}', '¥': r'\text{¥}', '§': r'\S ', '•': r'\bullet ',
-    '∶': ':', '⊗': r'\otimes ', '⊕': r'\oplus ', '∴': r'\therefore ', '∵': r'\because ', '≅': r'\cong ', '⊥': r'\perp ',
+    '∶': ':', 'µ': r'\mu ', '̸': r'\not ', '⊤': r'\top ', '⇐': r'\Leftarrow ', '⊗': r'\otimes ', '⊕': r'\oplus ', '∴': r'\therefore ', '∵': r'\because ', '≅': r'\cong ', '⊥': r'\perp ',
     '∠': r'\angle ', '½': r'\tfrac{1}{2}', '¼': r'\tfrac{1}{4}', '¾': r'\tfrac{3}{4}', '²': '^2', '³': '^3',
     '¹': '^1', ' ': r'\,', ' ': ' ',
 }
-COMBINING = {'̄': 'bar', '̂': 'hat', '̃': 'tilde', '̇': 'dot', '̈': 'ddot', '⃗': 'vec', '̅': 'bar'}
+COMBINING = {'̄': 'bar', '̂': 'hat', '̃': 'tilde', '̇': 'dot', '̈': 'ddot', '⃗': 'vec', '̅': 'bar', '¯': 'bar', 'ˆ': 'hat', '˜': 'tilde'}
 OPERATOR_NAMES = {
     'ln', 'log', 'exp', 'max', 'min', 'sin', 'cos', 'tan', 'lim', 'sup', 'inf', 'det', 'arg', 'Pr', 'cov', 'var',
     'sinh', 'cosh', 'tanh', 'gcd', 'dim', 'ker', 'deg',
@@ -117,13 +119,14 @@ OPENERS = {'(': ')', '[': ']', '\\{': '\\}'}
 _CID = re.compile(r'^\(cid:(\d+)\)$')
 
 
-def math_char(ch: str) -> str:
-    """LaTeX for one character typeset in math mode."""
+def math_char(ch: str, italic: bool = False) -> str:
+    """LaTeX for one character typeset in math mode. `italic`: the font sets ASCII letters as italic variables."""
     if ch in MATH_SYMBOL:
         return MATH_SYMBOL[ch]
     if ch.isascii():
-        # Upright letters in math (VaR, exp, ES) are marked; italic variables arrive as their own code points.
-        return UPRIGHT + ch if ch.isalpha() else ch
+        # Upright letters in math (VaR, exp, ES) are marked; italic variables arrive as their own code points,
+        # or as plain letters of a math-italic font.
+        return UPRIGHT + ch if ch.isalpha() and not italic else ch
     name = unicodedata.name(ch, '')
     m = re.match(r'MATHEMATICAL (BOLD ITALIC|BOLD|ITALIC|SANS-SERIF(?: BOLD)?(?: ITALIC)?|SCRIPT|BOLD SCRIPT|DOUBLE-STRUCK|FRAKTUR|MONOSPACE) (CAPITAL|SMALL|DIGIT)? ?(.+)$', name)
     if m:
@@ -185,6 +188,16 @@ def _font(name: str) -> str:
     return name.split('+')[-1]
 
 
+def MATH_FONT(font: str) -> bool:
+    """True for fonts that only set math; a document family may replace this."""
+    return 'math' in font.lower()
+
+
+def MATH_ITALIC_FONT(font: str) -> bool:
+    """True for math fonts whose plain ASCII letters are italic variables; a document family may replace this."""
+    return False
+
+
 def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bool = False) -> list:
     """Glyphs of a page as Items. `cid_text` maps (font, cid) to text for glyphs the PDF gives no Unicode for."""
     out = []
@@ -202,8 +215,12 @@ def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bo
                 if unknown is not None:
                     unknown.setdefault(key, []).append(page.page_number)
                 text = '�'
-        # Private-use code points some fonts use for ordinary punctuation.
+        # Private-use code points some fonts use for ordinary punctuation, and legacy math fonts whose slots mean
+        # something other than the letter they report (a root sign, a sum, a bracket).
         text = cid_text.get(('char', text), text)
+        if (font, text) in cid_text:
+            text = cid_text[(font, text)]
+            big = text in BRACKETS
         if c['size'] < 1:
             continue
         if text.isspace() or (not text and not keep_empty):
@@ -217,7 +234,8 @@ def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bo
                 x0=c['x0'], x1=c['x1'], top=c['top'], bottom=c['bottom'], size=c['size'], text=text,
                 bold='bold' in low or low.endswith('-bd') or 'semibold' in low or 'black' in low,
                 italic='italic' in low or 'oblique' in low or low.endswith('-it'),
-                math='math' in low,
+                math=MATH_FONT(font),
+                mathit=MATH_ITALIC_FONT(font),
                 color=tuple(round(float(x), 2) for x in color),
                 big=big,
             )
@@ -333,6 +351,16 @@ def _render(items: list, force_math: bool = False) -> tuple:
             prev = max(items[k:j], key=lambda i: i.x1)
             k = j
             continue
+        if it.latex is None and it.text in COMBINING and (it.math or force_math) and k + 1 < len(items) and items[k + 1].latex is None and items[k + 1].x0 - 0.5 <= it.cx <= items[k + 1].x1 + 0.5 and (prev is None or not (prev.x0 - 0.5 <= it.cx <= prev.x1 + 0.5)):
+            # TeX sets an accent before the letter it sits on: wrap the next glyph.
+            nxt = items[k + 1]
+            if prev is not None and _gap_is_space(prev, nxt):
+                tokens.append(('s',))
+            inner = math_char(nxt.text, nxt.mathit or not nxt.math).replace(UPRIGHT, '').strip()
+            tokens.append(('m', '\\' + COMBINING[it.text] + '{' + inner + '}', True, False))
+            prev = nxt
+            k += 2
+            continue
         if it.latex is None and it.text in COMBINING and (it.math or force_math):
             # An accent glyph follows the letter it sits on (possibly after what looks like a gap).
             while tokens and tokens[-1][0] == 's':
@@ -358,7 +386,7 @@ def _render(items: list, force_math: bool = False) -> tuple:
             elif it.math and it.big:
                 tokens.append(('m', BIG + BRACKETS[ch], True, False))
             elif it.math:
-                tokens.append(('m', math_char(ch), ch.isalpha() or not ch.isascii() and unicodedata.category(ch)[0] == 'L', it.bold, ch))
+                tokens.append(('m', math_char(ch, it.mathit), ch.isalpha() or not ch.isascii() and unicodedata.category(ch)[0] == 'L', it.bold, ch))
             else:
                 tokens.append(('t', it))
         else:

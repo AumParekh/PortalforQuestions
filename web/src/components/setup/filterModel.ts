@@ -2,6 +2,7 @@ import type { Band, ProgressFilter, SessionFilters, TimeTarget, TrapOperator } f
 
 export const EMPTY_FILTERS: SessionFilters = {
   bands: [],
+  recallOnly: false,
   status: [],
   trapOperators: [],
   hasTrap: null,
@@ -83,6 +84,7 @@ export function sanitizeFilters(value: unknown): SessionFilters {
   const v = value as Record<string, unknown>;
   return {
     bands: members(v.bands, BAND_OPTIONS),
+    recallOnly: v.recallOnly === true,
     status: members(v.status, STATUS_OPTIONS),
     trapOperators: members(v.trapOperators, TRAP_OPTIONS),
     hasTrap: triState(v.hasTrap),

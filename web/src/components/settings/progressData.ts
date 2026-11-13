@@ -106,7 +106,7 @@ type Rec = Record<string, unknown>;
 
 const OPTION_KEYS: readonly string[] = ['a', 'b', 'c', 'd', 'e'];
 const MODES: readonly string[] = ['drill', 'review-wrong', 'review-due', 'quest', 'mock'];
-const SCOPES: readonly string[] = ['subject', 'reading', 'topic', 'lo'];
+const SCOPES: readonly string[] = ['subject', 'reading', 'topic', 'lo', 'section'];
 const GYM_KINDS: readonly string[] = ['formula', 'scenario'];
 const MOCK_END: readonly string[] = ['submit', 'time'];
 

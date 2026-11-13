@@ -107,6 +107,11 @@ def join_pair(a: str, b: str, vocab: Counter) -> str:
     return a + ' ' + b
 
 
+def _is_heading(ln) -> bool:
+    bp = getattr(ln, 'bold_prefix', '')
+    return bool(bp) and (bp == _unbold(ln.text.strip()) or bool(re.match(r'^Step \d+ [–-] ', bp)))
+
+
 class Para:
     def __init__(self, kind: str, text: str, marker: str = ''):
         self.kind = kind  # 'p' | 'bullet' | 'enum' | 'table' | 'display'
@@ -139,9 +144,15 @@ def paragraphs(lines: list, vocab: Counter, flags: list, left: float | None = No
             continue
         bullet = text.startswith('• ') or text == '•'
         enum = _ENUM.match(text)
+        # A line set wholly in bold is a heading: its own paragraph, whatever the lines around it look like.
+        # (A "Step 2 – EPE × marginal PD" heading has its math signs in another font, so go by its opening too.)
+        heading = _is_heading(ln)
+        after_heading = prev is not None and _is_heading(prev)
         starts_new = (
             prev is None
             or bullet
+            or heading
+            or after_heading
             or text.startswith('⇒')
             or (enum and ln.x0 < prev.x0 + 4 and (out and out[-1].kind == 'enum' or enum.group(1) == '1' or ln.x0 > LEFT_MARGIN + 2.5))
             or bool(_ROMAN.match(text))

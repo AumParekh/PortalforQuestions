@@ -5,6 +5,8 @@ export interface SearchEntry {
   topic: string;
   lo: string;
   subject: string;
+  /** Recall-workbook section ids of the question, lower-cased ("a13"). */
+  sections: string[];
   searchable: string;
 }
 
@@ -20,15 +22,18 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
     topic: q.topic,
     lo: q.lo,
     subject: q.subject,
+    sections: (q.sections ?? []).map((s) => s.toLowerCase()),
     searchable: [
       q.topic,
-      // The LO id as printed ("MR-2 c") and without the space ("MR-2c"), and the priority band ("P1").
+      // The LO id as printed ("MR-2 c") and without the space ("MR-2c"), the priority band ("P1") and the recall sections ("A13").
       q.lo,
       q.lo.replace(' ', ''),
       q.band ?? '',
+      ...(q.sections ?? []),
       q.loText,
       q.reading,
       q.source ?? '',
+      q.recall ?? '',
       q.question,
       ...q.options.map((o) => o.text),
       q.solution,
@@ -45,19 +50,33 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
 /** "MR-2 c", "mr2c", "MR 2.c" (one LO) or "MR-2" (a whole chapter). */
 const LO_QUERY = /^([a-z]{2,3})[-\s]?(\d{1,2})(?:[\s.]?([a-z]))?$/;
 
-/** True when the query is an LO or chapter code rather than words to look for. */
+/** A recall-workbook section id: "A13". */
+const SECTION_QUERY = /^[a-d]\d{1,2}$/i;
+
+/** The section id a query names ("a13" gives "A13"), or null when the query is not a section code. */
+export function sectionCodeOf(query: string): string | null {
+  const q = query.trim();
+  return SECTION_QUERY.test(q) ? q.toUpperCase() : null;
+}
+
+/** True when the query is an LO, chapter or recall-section code rather than words to look for. */
 export function isCodeQuery(query: string): boolean {
-  return LO_QUERY.test(query.toLowerCase().trim());
+  return LO_QUERY.test(query.toLowerCase().trim()) || sectionCodeOf(query) !== null;
 }
 
 /**
- * Case-insensitive substring AND-match over every term. A query that is an LO or chapter code matches the questions
- * tagged with it instead (falling back to the text match when no question carries that code).
+ * Case-insensitive substring AND-match over every term. A query that is an LO, chapter or recall-section code matches
+ * the questions tagged with it instead (falling back to the text match when no question carries that code).
  * Returns ids in source order, or null for an empty query.
  */
 export function search(query: string, index: SearchEntry[]): string[] | null {
   const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
   if (terms.length === 0) return null;
+  const section = sectionCodeOf(query)?.toLowerCase();
+  if (section) {
+    const hits = index.filter((e) => e.sections.includes(section));
+    if (hits.length > 0) return hits.map((e) => e.id);
+  }
   const code = LO_QUERY.exec(query.toLowerCase().trim());
   if (code) {
     const prefix = `${code[1]}-${code[2]} `;

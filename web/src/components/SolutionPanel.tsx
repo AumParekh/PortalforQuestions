@@ -1,5 +1,6 @@
 import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, Clock, Flag, ListChecks, MinusCircle, XCircle } from 'lucide-react';
 import type { AnswerRecord, Question } from '../types';
+import { recallSectionsOf } from '../lib/catalog';
 import { Markdown } from './Markdown';
 import { BandBadge } from './setup/BandBadge';
 
@@ -21,6 +22,7 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
   const { operators, explanation } = question.trap;
   const hasTrap = operators.length > 0;
   const notAnswered = record.selected === '' && !record.timedOut;
+  const recallSections = recallSectionsOf(question);
 
   return (
     <section className="space-y-4" aria-label="Solution">
@@ -68,6 +70,15 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
             </p>
             <p className="text-slate-700 dark:text-slate-300">{question.loText}</p>
             <p className="text-slate-600 dark:text-slate-400">{question.reading}</p>
+            {/* Where the LO sits in the recall workbook: one line per section, "Tier A · A13 Lognormal VaR". */}
+            {recallSections.map((s) => (
+              <p key={s.id} className="text-slate-600 dark:text-slate-400">
+                <span className="font-medium text-slate-700 dark:text-slate-300">
+                  Tier {s.tier} · {s.id}
+                </span>{' '}
+                {s.title}
+              </p>
+            ))}
           </div>
         )}
       </div>

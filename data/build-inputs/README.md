@@ -9,6 +9,7 @@ be rebuilt or corrected without regenerating it.
 | `sense/{bank,notes}-*.json` | `content/games/sensecheck.json` | `python3 tools/games/build_sensecheck.py data/build-inputs/sense` |
 | `traps/t*.json` | traps in `content/games/game-blocks.json` | `python3 tools/notes/extract.py` then `python3 tools/notes/merge_traps.py data/build-inputs/traps` |
 | `lo-map/FRM_P2_Master_LO_Map_v3.pdf` | `lo-map/lo-map.json` (107 readings, 591 LOs, P1–P4 bands) | `python3 tools/content/build_lo_map.py` |
+| `question-banks/pdf/FRM_Workbook_Vol1_TierA.pdf`, `FRM_Workbook_Vol2_TiersB-D.pdf` | `lo-map/tiers.json` (76 recall-workbook sections, the tier A–D of each LO) | `python3 tools/content/build_tiers.py` |
 | `question-banks/pdf/*.pdf`, `question-banks/overrides.json`, `lo-map/lo-map.json`, `lo-map/existing-lo-map.json` | the question-bank and workbook questions in `content/{IR,MR,CR,LR,OR,CI}.json`, and the official LO tags of every question | `python3 tools/content/build_question_bank.py --extract` |
 
 `audit/` is the record of the September 2026 content audit (see `docs/content-audit.md`):
@@ -35,3 +36,15 @@ needs `pdfplumber` and poppler's `pdftotext`).
   written by the build.
 - `lo-map/existing-lo-map.json`: the official LO chosen for each question that was already in
   the portal, with the old label and the reason where the wording did not match exactly.
+
+## Recall tiers (November 2026)
+
+The two Recall + Priority Map volumes (Tier A; Tiers B to D) each carry a "Syllabus map (2026 LOs)"
+that lists the official readings and LO letters every section covers. `build_tiers.py` turns it into
+`lo-map/tiers.json`; the question-bank build then gives each question its `sections` (the sections
+covering its LO) and `recallTier` (the highest of their tiers), and writes the names the portal shows
+to `web/src/lib/recallTiers.ts`. Sections the volumes mark as outside the 2026 LOs (B5, D17) are left out.
+
+All 199 questions printed in the two volumes are also printed in the subject workbooks, under their
+LO, and reach the bank from there; they carry `recall` (their number in the volumes, e.g. "A13.2").
+`extract_recall.py` reads the volumes only so the build can confirm that none is missing.

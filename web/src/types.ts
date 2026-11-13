@@ -20,6 +20,9 @@ export type LoType = 'Numerical' | 'Non-Numerical' | 'Qualitative';
 /** Priority of a learning objective in the Master LO Map: P1 most important … P4 not flagged (still examinable). */
 export type Band = 'P1' | 'P2' | 'P3' | 'P4';
 
+/** Tier of the recall workbook: A is the August 2026 recall and core topics … D has thin evidence (lib/recallTiers.ts). */
+export type RecallTier = 'A' | 'B' | 'C' | 'D';
+
 export interface QuestionOption {
   key: OptionKey;
   text: string;
@@ -43,8 +46,14 @@ export interface Question {
   topic: string;
   /** Priority band of the question's LO. */
   band?: Band;
+  /** Best (highest) recall-workbook tier of the question's LO. */
+  recallTier?: RecallTier;
+  /** Ids of the recall-workbook sections that cover the question's LO, e.g. ["A13", "B2"]; they can span tiers. */
+  sections?: string[];
   /** Where the question comes from, as printed in its source (question-bank and workbook questions). */
   source?: string;
+  /** Its number in the Recall + Priority Map workbooks ("A13.2"), for the questions printed there. */
+  recall?: string;
   question: string;
   options: QuestionOption[];
   answer: OptionKey;
@@ -69,15 +78,17 @@ export interface ContentFile {
   questionIds: string[];
 }
 
-export type ScopeKind = 'subject' | 'reading' | 'topic' | 'lo';
+/** 'section' is a recall-workbook section ("A13"); a question can sit in several of them. */
+export type ScopeKind = 'subject' | 'reading' | 'topic' | 'lo' | 'section';
 
 export interface CatalogItem {
   key: string;
   kind: ScopeKind;
   label: string;
   sublabel?: string;
+  /** Heading the item is grouped under in Session Setup: its subject, or for a recall section its tier. */
   subject: string;
-  /** Short code shown before the label: the LO id ("MR-2 c"). */
+  /** Short code shown before the label: the LO id ("MR-2 c") or the recall section id ("A13"). */
   code?: string;
   /** Priority bands of the item's questions, most important first (one for an LO, several for a chapter or subject). */
   bands?: Band[];
@@ -110,6 +121,8 @@ export type TimeTarget = 'fast' | 'medium' | 'slow';
 export interface SessionFilters {
   /** Priority bands to include; empty means all. */
   bands?: Band[];
+  /** Only the questions printed in the Recall + Priority Map workbooks. */
+  recallOnly?: boolean;
   status: ProgressFilter[];
   trapOperators: TrapOperator[];
   hasTrap: boolean | null;
