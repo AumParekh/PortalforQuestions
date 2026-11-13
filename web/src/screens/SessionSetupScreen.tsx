@@ -272,6 +272,7 @@ function ItemRow({
   query,
   matched,
   progress,
+  showSublabel = true,
 }: {
   item: CatalogItem;
   selected: boolean;
@@ -279,6 +280,8 @@ function ItemRow({
   query: string;
   matched: number | null;
   progress: GroupProgress | undefined;
+  /** False inside a folded group whose heading already says it. */
+  showSublabel?: boolean;
 }) {
   const n = item.questionIds.length;
   return (
@@ -315,7 +318,7 @@ function ItemRow({
           {/* A code query ("MR-2 c") names the item; its letters are not words to mark in the wording. */}
           <Highlight text={item.label} query={isCodeQuery(query) ? '' : query} />
         </span>
-        {item.sublabel && (
+        {item.sublabel && showSublabel && (
           <span className="mt-0.5 block text-[15px] text-slate-600 dark:text-slate-400">{item.sublabel}</span>
         )}
         <ProgressLine progress={progress} />
@@ -330,6 +333,100 @@ function ItemRow({
         </span>
       )}
     </button>
+  );
+}
+
+interface ListGroup {
+  key: string;
+  title: string;
+  items: CatalogItem[];
+  subgroups: { key: string; title: string; items: CatalogItem[] }[];
+}
+
+function groupKey(scope: ScopeKind, subject: string, chapter?: string): string {
+  return chapter === undefined ? `${scope}|${subject}` : `${scope}|${subject}|${chapter}`;
+}
+
+/** Chapter an LO row folds under ('' when the row has no official id). */
+function chapterOf(item: CatalogItem): string {
+  return item.code ? (item.sublabel ?? '') : '';
+}
+
+const COUNT_NOUN: Record<ScopeKind, [string, string]> = {
+  subject: ['subject', 'subjects'],
+  reading: ['chapter', 'chapters'],
+  topic: ['topic', 'topics'],
+  lo: ['LO', 'LOs'],
+  section: ['section', 'sections'],
+};
+
+function countOf(n: number, kind: ScopeKind): string {
+  return `${n} ${COUNT_NOUN[kind][n === 1 ? 0 : 1]}`;
+}
+
+/** Heading of a foldable group of rows: tap to fold or unfold; "Select" ticks every row in it. */
+function GroupHeader({
+  title,
+  detail,
+  items,
+  selectedSet,
+  open,
+  locked,
+  nested = false,
+  onToggle,
+  onSetAll,
+}: {
+  title: string;
+  detail: string;
+  items: CatalogItem[];
+  selectedSet: Set<string>;
+  open: boolean;
+  /** While a search is typed every group with a match stays open. */
+  locked: boolean;
+  nested?: boolean;
+  onToggle: () => void;
+  onSetAll: (on: boolean) => void;
+}) {
+  const picked = items.reduce((n, it) => n + (selectedSet.has(it.key) ? 1 : 0), 0);
+  const allOn = picked === items.length;
+  return (
+    <div
+      className={`flex items-stretch gap-1 rounded-xl border ${
+        picked > 0
+          ? 'border-primary/40 bg-primary-50/60 dark:border-primary/40 dark:bg-primary/10'
+          : 'border-slate-200 bg-card-light dark:border-slate-700 dark:bg-card-dark'
+      }`}
+    >
+      <button
+        type="button"
+        aria-expanded={open}
+        disabled={locked}
+        onClick={onToggle}
+        className="flex min-h-[52px] min-w-0 flex-1 items-center gap-2 rounded-xl px-3 py-2 text-left hover:bg-slate-50 disabled:cursor-default disabled:hover:bg-transparent dark:hover:bg-slate-800"
+      >
+        <ChevronDown
+          className={`h-5 w-5 shrink-0 text-slate-500 transition-transform motion-reduce:transition-none dark:text-slate-400 ${open ? '' : '-rotate-90'}`}
+          aria-hidden="true"
+        />
+        <span className="min-w-0 [overflow-wrap:anywhere]">
+          <span className={`block leading-snug text-slate-900 dark:text-slate-100 ${nested ? 'text-[15px] font-medium' : 'text-base font-semibold'}`}>
+            {title}
+          </span>
+          <span className="block text-[15px] text-slate-600 dark:text-slate-400">
+            {detail}
+            {picked > 0 && ` · ${picked} selected`}
+          </span>
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => onSetAll(!allOn)}
+        aria-label={`${allOn ? 'Clear' : 'Select'} all in ${title}`}
+        className="min-h-[44px] shrink-0 rounded-xl px-3 text-[15px] font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
+      >
+        {allOn ? 'Clear' : 'Select'}
+      </button>
+    </div>
   );
 }
 
@@ -440,21 +537,64 @@ export function SessionSetupScreen() {
     });
   }, [catalog, rowChips, namedSection, matchCounts, trapItemKeys, dueItemKeys, progressByKey]);
 
-  const groups = useMemo(() => {
-    if (scopeKind === 'subject') return [{ subject: '', items: visible }];
+  // Rows fold under their subject (or tier); in the LO scope they fold once more under their chapter.
+  const groups = useMemo((): ListGroup[] => {
+    if (scopeKind === 'subject') return [{ key: '', title: '', items: visible, subgroups: [] }];
     const map = new Map<string, CatalogItem[]>();
     for (const it of visible) {
       const list = map.get(it.subject);
       if (list) list.push(it);
       else map.set(it.subject, [it]);
     }
-    return [...map.entries()].map(([subject, items]) => ({ subject, items }));
+    return [...map.entries()].map(([subject, items]) => {
+      const chapters = new Map<string, CatalogItem[]>();
+      if (scopeKind === 'lo') {
+        for (const it of items) {
+          const chapter = chapterOf(it);
+          const list = chapters.get(chapter);
+          if (list) list.push(it);
+          else chapters.set(chapter, [it]);
+        }
+      }
+      // LOs without an official id have no chapter to fold under: the subject then lists its rows directly.
+      const nested = chapters.size > 0 && !chapters.has('');
+      return {
+        key: groupKey(scopeKind, subject),
+        title: subject,
+        items,
+        subgroups: nested ? [...chapters.entries()].map(([title, list]) => ({ key: groupKey(scopeKind, subject, title), title, items: list })) : [],
+      };
+    });
   }, [visible, scopeKind]);
 
   const selectedSet = useMemo(() => {
     const valid = new Set(catalog.map((it) => it.key));
     return new Set(selectedKeys.filter((k) => valid.has(k)));
   }, [catalog, selectedKeys]);
+
+  // Groups start folded, except those that hold something already selected; a text search unfolds every match.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set());
+  const openedFor = useRef<ScopeKind | null>(null);
+  useEffect(() => {
+    if (openedFor.current === scopeKind || catalog.length === 0) return;
+    openedFor.current = scopeKind;
+    const next = new Set<string>();
+    for (const it of catalog) {
+      if (!selectedSet.has(it.key)) continue;
+      next.add(groupKey(scopeKind, it.subject));
+      if (scopeKind === 'lo' && chapterOf(it)) next.add(groupKey(scopeKind, it.subject, chapterOf(it)));
+    }
+    setOpenGroups(next);
+  }, [scopeKind, catalog, selectedSet]);
+  const toggleGroup = (key: string) =>
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const allGroupKeys = useMemo(() => groups.flatMap((g) => [g.key, ...g.subgroups.map((sg) => sg.key)]).filter(Boolean), [groups]);
+  const allOpen = allGroupKeys.length > 0 && allGroupKeys.every((k) => openGroups.has(k));
 
   const hiddenSelected = useMemo(() => {
     const shown = new Set(visible.map((it) => it.key));
@@ -681,6 +821,18 @@ export function SessionSetupScreen() {
             </div>
           </div>
 
+          {allGroupKeys.length > 0 && !searchActive && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setOpenGroups(allOpen ? new Set() : new Set(allGroupKeys))}
+                className="min-h-[44px] rounded-lg px-2 text-[15px] font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
+              >
+                {allOpen ? 'Collapse all' : 'Expand all'}
+              </button>
+            </div>
+          )}
+
           {visible.length === 0 ? (
             <div className="space-y-3 rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark">
               <p className="text-slate-600 dark:text-slate-400">
@@ -707,37 +859,69 @@ export function SessionSetupScreen() {
               </div>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-3">
               {groups.map((g) => {
-                const allOn = g.items.every((it) => selectedSet.has(it.key));
+                const rows = (items: CatalogItem[]) => (
+                  <ul className="space-y-2">
+                    {items.map((it) => (
+                      <li key={it.key}>
+                        <ItemRow
+                          item={it}
+                          selected={selectedSet.has(it.key)}
+                          onToggle={() => toggleItem(it.key)}
+                          query={searchActive ? query : ''}
+                          matched={matchCounts ? (matchCounts.get(it.key) ?? 0) : null}
+                          progress={progressByKey.get(it.key)}
+                          showSublabel={!g.title}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                );
+                if (!g.title) return <div key="all">{rows(g.items)}</div>;
+                const open = searchActive || openGroups.has(g.key);
                 return (
-                  <div key={g.subject || 'all'} className="space-y-2">
-                    {g.subject && (
-                      <div className="flex items-center justify-between gap-2 pt-1">
-                        <h2 className="text-[15px] font-semibold text-slate-800 dark:text-slate-200">{g.subject}</h2>
-                        <button
-                          type="button"
-                          onClick={() => setMany(g.items.map((it) => it.key), !allOn)}
-                          className="min-h-[44px] shrink-0 rounded-lg px-2 text-[15px] font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
-                        >
-                          {allOn ? 'Clear group' : 'Select group'}
-                        </button>
-                      </div>
-                    )}
-                    <ul className="space-y-2">
-                      {g.items.map((it) => (
-                        <li key={it.key}>
-                          <ItemRow
-                            item={it}
-                            selected={selectedSet.has(it.key)}
-                            onToggle={() => toggleItem(it.key)}
-                            query={searchActive ? query : ''}
-                            matched={matchCounts ? (matchCounts.get(it.key) ?? 0) : null}
-                            progress={progressByKey.get(it.key)}
-                          />
-                        </li>
+                  <div key={g.key} className="space-y-2">
+                    <GroupHeader
+                      title={g.title}
+                      detail={
+                        g.subgroups.length > 0
+                          ? `${countOf(g.items.length, scopeKind)} in ${countOf(g.subgroups.length, 'reading')}`
+                          : countOf(g.items.length, scopeKind)
+                      }
+                      items={g.items}
+                      selectedSet={selectedSet}
+                      open={open}
+                      locked={searchActive}
+                      onToggle={() => toggleGroup(g.key)}
+                      onSetAll={(on) => setMany(g.items.map((it) => it.key), on)}
+                    />
+                    {open &&
+                      (g.subgroups.length === 0 ? (
+                        rows(g.items)
+                      ) : (
+                        <div className="space-y-2 border-l-2 border-slate-200 pl-3 dark:border-slate-700">
+                          {g.subgroups.map((sg) => {
+                            const subOpen = searchActive || openGroups.has(sg.key);
+                            return (
+                              <div key={sg.key} className="space-y-2">
+                                <GroupHeader
+                                  title={sg.title}
+                                  detail={countOf(sg.items.length, 'lo')}
+                                  items={sg.items}
+                                  selectedSet={selectedSet}
+                                  open={subOpen}
+                                  locked={searchActive}
+                                  nested
+                                  onToggle={() => toggleGroup(sg.key)}
+                                  onSetAll={(on) => setMany(sg.items.map((it) => it.key), on)}
+                                />
+                                {subOpen && rows(sg.items)}
+                              </div>
+                            );
+                          })}
+                        </div>
                       ))}
-                    </ul>
                   </div>
                 );
               })}
