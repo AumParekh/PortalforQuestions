@@ -114,6 +114,7 @@ export function buildCatalog(questions: Question[], kind: ScopeKind): CatalogIte
     if (!item) {
       const rank = kind === 'lo' ? syllabusRank(q.lo) : kind === 'reading' ? syllabusRank(q.reading) : items.size;
       item = { key, kind, label, sublabel, code, subject: q.subject, questionIds: [], rank, subjectRank: subjects.get(q.subject) ?? 0, seen: new Set() };
+      if (kind === 'lo') item.loKind = q.loKind;
       items.set(key, item);
     }
     item.questionIds.push(q.id);

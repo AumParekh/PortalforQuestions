@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeft, Check, ChevronDown, Play, X } from 'lucide-react';
-import type { Band, CatalogItem, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
+import type { Band, CatalogItem, LoKind, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useSession } from '../store/session';
@@ -15,8 +15,8 @@ import { isCodeQuery, sectionCodeOf } from '../lib/search';
 import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
 import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
-import { BAND_OPTIONS, EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
-import { BandBadge } from '../components/setup/BandBadge';
+import { BAND_OPTIONS, EMPTY_FILTERS, KIND_OPTIONS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
+import { BandBadge, KindBadge } from '../components/setup/BandBadge';
 import { profileKey } from '../games/profile';
 
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
@@ -312,6 +312,7 @@ function ItemRow({
               </span>
             )}
             {item.kind !== 'subject' && item.bands?.map((b) => <BandBadge key={b} band={b} />)}
+            {item.loKind && <KindBadge kind={item.loKind} />}
           </span>
         )}
         <span className="block text-base leading-snug">
@@ -468,6 +469,13 @@ export function SessionSetupScreen() {
       // Kept in P1…P4 order whatever order they were tapped in.
       const next = cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b];
       return { ...f, bands: BAND_OPTIONS.map((o) => o.value).filter((v) => next.includes(v)) };
+    });
+  const kinds = useMemo(() => filters.kinds ?? [], [filters.kinds]);
+  const toggleKind = (k: LoKind) =>
+    setFilters((f) => {
+      const cur = f.kinds ?? [];
+      const next = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k];
+      return { ...f, kinds: KIND_OPTIONS.map((o) => o.value).filter((v) => next.includes(v)) };
     });
   const filterCount = activeFilterCount(filters);
 
@@ -758,6 +766,19 @@ export function SessionSetupScreen() {
                 ? 'All priorities. P1 is most important; P4 is not flagged but still examinable.'
                 : `Only ${bands.join(', ')} questions go into the session.`}
             </p>
+            <div role="group" aria-label="Type" className="flex flex-wrap items-center gap-2">
+              <span className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Type</span>
+              {KIND_OPTIONS.map((k) => (
+                <FilterChip key={k.value} active={kinds.includes(k.value)} title={k.hint} onClick={() => toggleKind(k.value)}>
+                  {k.label}
+                </FilterChip>
+              ))}
+            </div>
+            <p className="text-[15px] text-slate-600 dark:text-slate-400">
+              {kinds.length === 0
+                ? 'All types. Each learning objective is Numerical (a calculation), Conceptual (describe or explain) or Both.'
+                : `Only questions from ${kinds.join(' and ')} learning objectives go into the session.`}
+            </p>
             <FilterChip
               active={filters.recallOnly === true}
               title="The 199 questions printed in the Recall workbooks (Tier A to D)"
@@ -776,7 +797,7 @@ export function SessionSetupScreen() {
                 </button>
               )}
               {filterCount > 0 && (
-                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands, recallOnly: filters.recallOnly })} className={pillClass}>
+                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands, kinds, recallOnly: filters.recallOnly })} className={pillClass}>
                   <X className="h-4 w-4" aria-hidden="true" />
                   Clear {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
                 </button>

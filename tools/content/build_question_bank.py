@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Adds the question-bank and workbook questions to content/*.json and tags every question with its official
-chapter, learning objective and priority band.
+chapter, learning objective, priority band and LO type (Numerical, Conceptual or Both).
 
     build_question_bank.py [--extract]
 
 Inputs (data/build-inputs/):
-  lo-map/lo-map.json                 official readings, LO wording and P1-P4 band (build_lo_map.py)
+  lo-map/lo-map.json                 official readings, LO wording, P1-P4 band and LO type by wording (build_lo_map.py)
   lo-map/existing-lo-map.json        official LO of each question that was in the portal before this import
   lo-map/tiers.json                  recall-workbook sections and the tier (A-D) of each LO (build_tiers.py)
   question-banks/pdf/*.pdf           the source PDFs
@@ -68,13 +68,13 @@ def norm(text: str) -> str:
 
 
 def official_index(lo_map: dict) -> dict:
-    """LO id -> {id, text, band, reading (label), readingTitle, area}."""
+    """LO id -> {id, text, band, kind, reading (label), readingTitle, area}."""
     out = {}
     for area in lo_map['areas']:
         for r in area['readings']:
             for lo in r['los']:
                 out[lo['id']] = {
-                    'id': lo['id'], 'text': lo['text'], 'band': lo['band'], 'reading': f"{r['id']}: {r['title']}",
+                    'id': lo['id'], 'text': lo['text'], 'band': lo['band'], 'kind': lo['kind'], 'reading': f"{r['id']}: {r['title']}",
                     'readingTitle': r['title'], 'area': area['code'],
                 }
     return out
@@ -103,6 +103,11 @@ def apply_override(q: dict, ov: dict, key: str) -> tuple:
             sys.exit(f"override {key}: the passage to replace is not in {r['field']} (the extraction changed)")
         q[r['field']] = q[r['field']].replace(r['old'], r['new'])
     return q, [f for f in q['flags'] if f not in ov.get('clear', [])]
+
+
+# A conceptually worded LO counts as Both once this many of its questions, and this share of them, are calculations.
+KIND_MIN_NUMERICAL = 3
+KIND_MIN_SHARE = 0.3
 
 
 def lo_type(options: list) -> str:
@@ -215,6 +220,28 @@ def tag_tier(q: dict, lo_tiers: dict):
         q['sections'] = hit['sections']
 
 
+def tag_kinds(questions: list, lo_index: dict, kinds: dict, numerical: Counter):
+    """Sets each question's loKind: the type of its LO (Numerical, Conceptual or Both).
+
+    The LO's wording decides (build_lo_map.py), with one correction from the bank itself: an LO worded as conceptual
+    ("Describe CDS spreads and explain how they can be used to estimate hazard rates") whose questions are often
+    calculations is examined both ways, so it counts as Both.
+    """
+    total = Counter(q['lo'] for q in questions)
+    for q in questions:
+        if q['notes']['loType'] == 'Numerical':
+            numerical[q['lo']] += 1
+    for q in questions:
+        q.pop('loKind', None)
+        lo = lo_index.get(q['lo'])
+        if lo is None:
+            continue
+        kind = lo['kind']
+        if kind == 'Conceptual' and numerical[q['lo']] >= KIND_MIN_NUMERICAL and numerical[q['lo']] >= KIND_MIN_SHARE * total[q['lo']]:
+            kind = 'Both'
+        kinds[q['lo']] = q['loKind'] = kind
+
+
 def write_tiers_module(tiers: dict):
     """web/src/lib/recallTiers.ts: tier and section names for the portal (generated; do not edit by hand)."""
     lines = [
@@ -277,6 +304,7 @@ def main():
     write_tiers_module(tiers)
     report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
     coverage = Counter()
+    kinds, numerical = {}, Counter()
     totals = OrderedDict()
     seen_text = {}
     for code, (area, bank, offset, workbook, label) in SUBJECTS.items():
@@ -313,6 +341,7 @@ def main():
         content['questions'] = kept + final
         for q in content['questions']:
             tag_tier(q, tiers['los'])
+        tag_kinds(content['questions'], lo_index, kinds, numerical)
         content['tiers'] = [t for t in content.get('tiers', []) if t not in (BANK_TIER, WORKBOOK_TIER)] + sorted({q['tier'] for q in final})
         with open(path, 'w', encoding='utf8') as f:
             json.dump(content, f, ensure_ascii=False, indent=1)
@@ -323,9 +352,9 @@ def main():
 
     with open(os.path.join(QB, 'lo-coverage.csv'), 'w', newline='', encoding='utf8') as f:
         w = csv.writer(f)
-        w.writerow(['lo', 'band', 'reading', 'learning objective', 'questions'])
+        w.writerow(['lo', 'band', 'type', 'type by wording', 'reading', 'learning objective', 'questions', 'numerical questions'])
         for lo in lo_index.values():
-            w.writerow([lo['id'], lo['band'], lo['reading'], lo['text'], coverage.get(lo['id'], 0)])
+            w.writerow([lo['id'], lo['band'], kinds.get(lo['id'], lo['kind']), lo['kind'], lo['reading'], lo['text'], coverage.get(lo['id'], 0), numerical.get(lo['id'], 0)])
 
     print('file   already-there  bank  workbook  total')
     for code, (a, b, c) in totals.items():
@@ -336,6 +365,11 @@ def main():
         if lo_id in lo_index:
             bands[lo_index[lo_id]['band']] += n
     print('questions by band:', dict(sorted(bands.items())))
+    by_kind, lo_kinds = Counter(), Counter(kinds.get(lo['id'], lo['kind']) for lo in lo_index.values())
+    for lo_id, n in coverage.items():
+        if lo_id in kinds:
+            by_kind[kinds[lo_id]] += n
+    print('LOs by type:', dict(sorted(lo_kinds.items())), '| questions by LO type:', dict(sorted(by_kind.items())))
     print('official LOs with no question:', sum(1 for lo in lo_index if not coverage.get(lo)), 'of', len(lo_index))
     print(f"open-ended bank questions left out: {len(report['open-ended'])}; workbook repeats of bank questions skipped: {report['bank-repeat']}")
     # Every question of the two recall volumes reaches the bank through the subject workbooks; say so if one does not.

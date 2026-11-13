@@ -20,6 +20,13 @@ export type LoType = 'Numerical' | 'Non-Numerical' | 'Qualitative';
 /** Priority of a learning objective in the Master LO Map: P1 most important … P4 not flagged (still examinable). */
 export type Band = 'P1' | 'P2' | 'P3' | 'P4';
 
+/**
+ * What a learning objective asks for: a calculation, an explanation, or both. Read off the official wording
+ * ("Calculate…", "Describe…", "Define and calculate…"); a conceptually worded LO whose questions are often
+ * calculations counts as Both (tools/content/build_question_bank.py).
+ */
+export type LoKind = 'Numerical' | 'Conceptual' | 'Both';
+
 /** Tier of the recall workbook: A is the August 2026 recall and core topics … D has thin evidence (lib/recallTiers.ts). */
 export type RecallTier = 'A' | 'B' | 'C' | 'D';
 
@@ -46,6 +53,8 @@ export interface Question {
   topic: string;
   /** Priority band of the question's LO. */
   band?: Band;
+  /** Type of the question's LO: Numerical, Conceptual or Both. */
+  loKind?: LoKind;
   /** Best (highest) recall-workbook tier of the question's LO. */
   recallTier?: RecallTier;
   /** Ids of the recall-workbook sections that cover the question's LO, e.g. ["A13", "B2"]; they can span tiers. */
@@ -92,6 +101,8 @@ export interface CatalogItem {
   code?: string;
   /** Priority bands of the item's questions, most important first (one for an LO, several for a chapter or subject). */
   bands?: Band[];
+  /** For an LO: its type (Numerical, Conceptual or Both). */
+  loKind?: LoKind;
   questionIds: string[];
 }
 
@@ -121,6 +132,8 @@ export type TimeTarget = 'fast' | 'medium' | 'slow';
 export interface SessionFilters {
   /** Priority bands to include; empty means all. */
   bands?: Band[];
+  /** LO types to include (Numerical, Conceptual, Both); empty means all. */
+  kinds?: LoKind[];
   /** Only the questions printed in the Recall + Priority Map workbooks. */
   recallOnly?: boolean;
   status: ProgressFilter[];

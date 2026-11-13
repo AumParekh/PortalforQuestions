@@ -1,4 +1,4 @@
-import type { Band } from '../../types';
+import type { Band, LoKind } from '../../types';
 
 const TONE: Record<Band, string> = {
   P1: 'bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-200',
@@ -23,6 +23,25 @@ export function BandBadge({ band }: { band: Band }) {
     >
       {band}
       <span className="sr-only"> ({BAND_MEANING[band]})</span>
+    </span>
+  );
+}
+
+export const KIND_MEANING: Record<LoKind, string> = {
+  Numerical: 'the learning objective asks for a calculation',
+  Conceptual: 'the learning objective asks to describe or explain',
+  Both: 'the learning objective is examined as a calculation and as a concept',
+};
+
+/** Type of a learning objective: Numerical, Conceptual or Both. */
+export function KindBadge({ kind }: { kind: LoKind }) {
+  return (
+    <span
+      title={KIND_MEANING[kind]}
+      className="inline-flex shrink-0 items-center rounded-md border border-slate-300 px-1.5 py-0.5 text-[13px] font-medium leading-none text-slate-700 dark:border-slate-600 dark:text-slate-300"
+    >
+      {kind}
+      <span className="sr-only"> ({KIND_MEANING[kind]})</span>
     </span>
   );
 }

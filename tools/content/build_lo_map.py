@@ -4,6 +4,11 @@
 The map is the reference for chapter (reading) names, learning-objective wording and the P1-P4 priority band of
 every LO: 107 readings and 591 LOs in syllabus order, wording verbatim from the GARP 2026 learning objectives.
 
+Each LO also gets a `kind` read off that wording (the map prints no such label): Numerical when it only asks for a
+calculation ("Calculate", "Estimate", "Construct", "Apply"), Conceptual when it only asks to describe or explain, Both
+when it asks for the two ("Define and calculate"). build_question_bank.py later moves a Conceptual LO to Both when the
+bank's own questions on it are often calculations.
+
 Usage: build_lo_map.py            (needs pdftotext from poppler)
 """
 import json
@@ -37,6 +42,34 @@ SUPPLEMENT = {
         }
     ],
 }
+
+# Command verbs of the GARP wording. "Determine" and "evaluate" ask for a judgement far more often than a number.
+NUMERICAL_VERBS = {'calculate', 'compute', 'estimate', 'construct', 'apply'}
+CONCEPTUAL_VERBS = {
+    'describe', 'explain', 'identify', 'compare', 'contrast', 'define', 'discuss', 'evaluate', 'assess', 'differentiate',
+    'summarize', 'provide', 'analyze', 'interpret', 'distinguish', 'examine', 'classify', 'determine', 'give',
+}
+# A command verb opens the LO or follows a comma, a dash or "and"; "used to calculate" and "how to estimate" are not commands.
+COMMAND = re.compile(r'(?:^|[,;:] (?:and )?| and |- )([A-Za-z]+)\b')
+# Where the verb alone misleads: "apply" a taxonomy or a strategy is not a calculation; a t-statistic is.
+KIND_OVERRIDES = {
+    'ORR-3 c': 'Conceptual',
+    'ORR-3 d': 'Conceptual',
+    'LTR-4 c': 'Both',
+    'IM-5 c': 'Both',
+    'IM-7 d': 'Numerical',
+}
+KINDS = ('Numerical', 'Conceptual', 'Both')
+
+
+def wording_kind(lo_id, text):
+    if lo_id in KIND_OVERRIDES:
+        return KIND_OVERRIDES[lo_id]
+    verbs = [m.group(1).lower() for m in COMMAND.finditer(text)]
+    numerical = any(v in NUMERICAL_VERBS for v in verbs)
+    conceptual = any(v in CONCEPTUAL_VERBS for v in verbs)
+    return 'Both' if numerical and conceptual else 'Numerical' if numerical else 'Conceptual'
+
 
 READING = re.compile(r'^ {1,6}((?:MR|CR|ORR|LTR|IM|CI)-\d+) +([A-Z“"(\d].*?)\s*$')
 LO = re.compile(r'^ {1,6}P([1-4]) +([a-z]) +(\S.*?)\s*$')
@@ -104,7 +137,7 @@ def main():
     for r in readings:
         have = {lo['letter'] for lo in r['los']}
         r['los'] += [lo for lo in SUPPLEMENT.get(r['id'], []) if lo['letter'] not in have]
-    areas, n_los, bands = [], 0, {}
+    areas, n_los, bands, kinds = [], 0, {}, {}
     for code, name in AREAS:
         rs = []
         for r in readings:
@@ -112,13 +145,17 @@ def main():
                 continue
             los = []
             for lo in r['los']:
-                los.append({'id': f"{r['id']} {lo['letter']}", 'letter': lo['letter'], 'band': lo['band'], 'text': clean(lo['text'])})
+                lo_id, text = f"{r['id']} {lo['letter']}", clean(lo['text'])
+                los.append({'id': lo_id, 'letter': lo['letter'], 'band': lo['band'], 'kind': wording_kind(lo_id, text), 'text': text})
                 bands[lo['band']] = bands.get(lo['band'], 0) + 1
+                kinds[los[-1]['kind']] = kinds.get(los[-1]['kind'], 0) + 1
             n_los += len(los)
             rs.append({'id': r['id'], 'number': int(r['id'].split('-')[1]), 'title': clean(r['title']), 'los': los})
         areas.append({'code': code, 'name': name, 'readings': rs})
     got = {'readings': sum(len(a['readings']) for a in areas), 'los': n_los, **bands}
     problems = [f'{k}: expected {v}, got {got.get(k, 0)}' for k, v in EXPECTED.items() if got.get(k, 0) != v]
+    ids = {f"{r['id']} {lo['letter']}" for r in readings for lo in r['los']}
+    problems += [f'kind override for an unknown LO: {k}' for k in KIND_OVERRIDES if k not in ids]
     for a in areas:
         for r in a['readings']:
             letters = [lo['letter'] for lo in r['los']]
@@ -139,12 +176,14 @@ def main():
             'P3': 'Worth covering',
             'P4': 'Not flagged; still examinable',
         },
+        'kinds': 'By the wording of the LO: Numerical (calculate), Conceptual (describe, explain) or Both.',
         'areas': areas,
     }
     with open(OUT, 'w', encoding='utf8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
         f.write('\n')
     print(got)
+    print('by wording:', {k: kinds.get(k, 0) for k in KINDS})
     for p in problems:
         print('PROBLEM', p)
     sys.exit(1 if problems else 0)

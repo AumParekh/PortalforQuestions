@@ -1,7 +1,8 @@
-import type { Band, ProgressFilter, SessionFilters, TimeTarget, TrapOperator } from '../../types';
+import type { Band, LoKind, ProgressFilter, SessionFilters, TimeTarget, TrapOperator } from '../../types';
 
 export const EMPTY_FILTERS: SessionFilters = {
   bands: [],
+  kinds: [],
   recallOnly: false,
   status: [],
   trapOperators: [],
@@ -18,6 +19,12 @@ export const BAND_OPTIONS: { value: Band; label: string; hint: string }[] = [
   { value: 'P2', label: 'P2', hint: 'Important' },
   { value: 'P3', label: 'P3', hint: 'Worth covering' },
   { value: 'P4', label: 'P4', hint: 'Not flagged, still examinable' },
+];
+
+export const KIND_OPTIONS: { value: LoKind; label: string; hint: string }[] = [
+  { value: 'Numerical', label: 'Numerical', hint: 'The LO asks for a calculation' },
+  { value: 'Conceptual', label: 'Conceptual', hint: 'The LO asks to describe or explain' },
+  { value: 'Both', label: 'Both', hint: 'The LO is examined both ways' },
 ];
 
 export const STATUS_OPTIONS: { value: ProgressFilter; label: string }[] = [
@@ -52,7 +59,7 @@ export const TIME_OPTIONS: { value: TimeTarget; label: string }[] = [
 export const MAX_THRESHOLD = 20;
 
 export function activeFilterCount(f: SessionFilters): number {
-  // Priority bands have their own chips on the setup screen and are not counted here.
+  // Priority bands and LO types have their own chips on the setup screen and are not counted here.
   return (
     (f.status.length > 0 ? 1 : 0) +
     (f.trapOperators.length > 0 ? 1 : 0) +
@@ -84,6 +91,7 @@ export function sanitizeFilters(value: unknown): SessionFilters {
   const v = value as Record<string, unknown>;
   return {
     bands: members(v.bands, BAND_OPTIONS),
+    kinds: members(v.kinds, KIND_OPTIONS),
     recallOnly: v.recallOnly === true,
     status: members(v.status, STATUS_OPTIONS),
     trapOperators: members(v.trapOperators, TRAP_OPTIONS),

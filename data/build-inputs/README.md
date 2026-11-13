@@ -8,7 +8,7 @@ be rebuilt or corrected without regenerating it.
 | `formulas/s*.json`, `formula-twins.json`, `enrich/e*.json` | `content/games/formulas.json` | `python3 tools/games/build_formulas.py data/build-inputs/formulas data/build-inputs/formula-twins.json data/build-inputs/enrich` |
 | `sense/{bank,notes}-*.json` | `content/games/sensecheck.json` | `python3 tools/games/build_sensecheck.py data/build-inputs/sense` |
 | `traps/t*.json` | traps in `content/games/game-blocks.json` | `python3 tools/notes/extract.py` then `python3 tools/notes/merge_traps.py data/build-inputs/traps` |
-| `lo-map/FRM_P2_Master_LO_Map_v3.pdf` | `lo-map/lo-map.json` (107 readings, 591 LOs, P1–P4 bands) | `python3 tools/content/build_lo_map.py` |
+| `lo-map/FRM_P2_Master_LO_Map_v3.pdf` | `lo-map/lo-map.json` (107 readings, 591 LOs, P1–P4 bands, LO type by wording) | `python3 tools/content/build_lo_map.py` |
 | `question-banks/pdf/FRM_Workbook_Vol1_TierA.pdf`, `FRM_Workbook_Vol2_TiersB-D.pdf` | `lo-map/tiers.json` (76 recall-workbook sections, the tier A–D of each LO) | `python3 tools/content/build_tiers.py` |
 | `question-banks/pdf/*.pdf`, `question-banks/overrides.json`, `lo-map/lo-map.json`, `lo-map/existing-lo-map.json` | the question-bank and workbook questions in `content/{IR,MR,CR,LR,OR,CI}.json`, and the official LO tags of every question | `python3 tools/content/build_question_bank.py --extract` |
 
@@ -32,6 +32,10 @@ needs `pdfplumber` and poppler's `pdftotext`).
 - `question-banks/overrides.json`: hand transcriptions for the layouts the extractor cannot express.
 - `question-banks/vocab.txt`: words seen in the PDFs, used to tell a hyphenated compound from a
   word broken at a line end.
+- LO type (`loKind` on each question: Numerical, Conceptual or Both). The map prints no such label, so
+  `build_lo_map.py` reads it off the official wording ("Calculate" / "Describe" / "Define and calculate") and
+  `build_question_bank.py` moves a conceptually worded LO to Both when at least 3 and 30% of its questions are
+  calculations. `lo-coverage.csv` lists both the final type and the type by wording.
 - `question-banks/import-report.json` and `lo-coverage.csv` (questions per official LO) are
   written by the build.
 - `lo-map/existing-lo-map.json`: the official LO chosen for each question that was already in
