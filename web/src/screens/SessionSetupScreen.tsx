@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowLeft, Check, ChevronDown, Play, X } from 'lucide-react';
-import type { Band, CatalogItem, LoKind, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
+import type { CatalogItem, Question, ScopeKind, SessionConfig, SessionFilters, SessionOrder } from '../types';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useSession } from '../store/session';
@@ -15,8 +15,9 @@ import { isCodeQuery, sectionCodeOf } from '../lib/search';
 import { navigate } from '../lib/router';
 import { SetupSearch, Highlight } from '../components/setup/SetupSearch';
 import { FilterChip, FilterSheet } from '../components/setup/FilterSheet';
-import { BAND_OPTIONS, EMPTY_FILTERS, KIND_OPTIONS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
+import { EMPTY_FILTERS, activeFilterCount, sanitizeFilters } from '../components/setup/filterModel';
 import { BandBadge, KindBadge } from '../components/setup/BandBadge';
+import { ScopeChips } from '../components/setup/ScopeChips';
 import { profileKey } from '../games/profile';
 
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
@@ -102,6 +103,12 @@ function pick<T>(value: unknown, allowed: { value: T }[], fallback: T): T {
 
 function bool(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback;
+}
+
+/** The timer the user last chose on Session Setup, for sessions started elsewhere. */
+export function savedTimer(): { timerEnabled: boolean; timerSeconds: number } {
+  const { timerEnabled, timerMinutes } = loadStored().options;
+  return { timerEnabled, timerSeconds: timerMinutes * 60 };
 }
 
 function loadStored(): Stored {
@@ -242,7 +249,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function ProgressLine({ progress }: { progress: GroupProgress | undefined }) {
+export function ProgressLine({ progress }: { progress: GroupProgress | undefined }) {
   if (!progress || progress.attempted === 0) {
     return <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">Not started</span>;
   }
@@ -463,20 +470,7 @@ export function SessionSetupScreen() {
   const searchActive = query.trim().length > 0;
   const filtersActive = hasActiveFilters(filters);
   const bands = useMemo(() => filters.bands ?? [], [filters.bands]);
-  const toggleBand = (b: Band) =>
-    setFilters((f) => {
-      const cur = f.bands ?? [];
-      // Kept in P1…P4 order whatever order they were tapped in.
-      const next = cur.includes(b) ? cur.filter((x) => x !== b) : [...cur, b];
-      return { ...f, bands: BAND_OPTIONS.map((o) => o.value).filter((v) => next.includes(v)) };
-    });
   const kinds = useMemo(() => filters.kinds ?? [], [filters.kinds]);
-  const toggleKind = (k: LoKind) =>
-    setFilters((f) => {
-      const cur = f.kinds ?? [];
-      const next = cur.includes(k) ? cur.filter((x) => x !== k) : [...cur, k];
-      return { ...f, kinds: KIND_OPTIONS.map((o) => o.value).filter((v) => next.includes(v)) };
-    });
   const filterCount = activeFilterCount(filters);
 
   const matchedIds = useMemo(() => {
@@ -752,41 +746,7 @@ export function SessionSetupScreen() {
             onOpenFilters={() => setFiltersOpen(true)}
           />
 
-          <div className="space-y-2">
-            <div role="group" aria-label="Priority" className="flex flex-wrap items-center gap-2">
-              <span className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Priority</span>
-              {BAND_OPTIONS.map((b) => (
-                <FilterChip key={b.value} active={bands.includes(b.value)} title={b.hint} onClick={() => toggleBand(b.value)}>
-                  {b.label}
-                </FilterChip>
-              ))}
-            </div>
-            <p className="text-[15px] text-slate-600 dark:text-slate-400">
-              {bands.length === 0
-                ? 'All priorities. P1 is most important; P4 is not flagged but still examinable.'
-                : `Only ${bands.join(', ')} questions go into the session.`}
-            </p>
-            <div role="group" aria-label="Type" className="flex flex-wrap items-center gap-2">
-              <span className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Type</span>
-              {KIND_OPTIONS.map((k) => (
-                <FilterChip key={k.value} active={kinds.includes(k.value)} title={k.hint} onClick={() => toggleKind(k.value)}>
-                  {k.label}
-                </FilterChip>
-              ))}
-            </div>
-            <p className="text-[15px] text-slate-600 dark:text-slate-400">
-              {kinds.length === 0
-                ? 'All types. Each learning objective is Numerical (a calculation), Conceptual (describe or explain) or Both.'
-                : `Only questions from ${kinds.join(' and ')} learning objectives go into the session.`}
-            </p>
-            <FilterChip
-              active={filters.recallOnly === true}
-              title="The 199 questions printed in the Recall workbooks (Tier A to D)"
-              onClick={() => setFilters((f) => ({ ...f, recallOnly: !f.recallOnly }))}
-            >
-              Recall workbook questions only
-            </FilterChip>
-          </div>
+          <ScopeChips filters={filters} onChange={setFilters} />
 
           {(searchActive || filterCount > 0) && (
             <div className="flex flex-wrap gap-2">

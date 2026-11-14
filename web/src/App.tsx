@@ -6,6 +6,7 @@ import { initPersistence } from './lib/persistence';
 import { useUi } from './store/ui';
 import { HomeScreen } from './screens/HomeScreen';
 import { SessionSetupScreen } from './screens/SessionSetupScreen';
+import { LibraryScreen } from './screens/LibraryScreen';
 import { QuestionScreen } from './screens/QuestionScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
@@ -155,6 +156,8 @@ function Routes() {
   switch (route) {
     case '/setup':
       return <SessionSetupScreen />;
+    case '/library':
+      return <LibraryScreen />;
     case '/session':
       return sessionStatus === 'idle' ? <Skeleton /> : <QuestionScreen />;
     case '/summary':

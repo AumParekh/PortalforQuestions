@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, CalendarDays, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
+import { BarChart3, BookOpen, CalendarDays, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Library, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { AccuracyRing } from '../components/dashboard/AccuracyRing';
@@ -522,6 +522,13 @@ export function HomeScreen() {
             title="New Session"
             detail="Pick subjects, chapters, LOs or tiers"
             onClick={() => navigate('/setup')}
+          />
+          <QuickAction
+            icon={<Library className="h-5 w-5" aria-hidden="true" />}
+            title="Question library"
+            detail="Open a learning objective and solve every question in it"
+            onClick={() => navigate('/library')}
+            disabled={subjectQuestions.length === 0}
           />
           <QuickAction
             icon={<Dices className="h-5 w-5" aria-hidden="true" />}

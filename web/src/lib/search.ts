@@ -50,6 +50,17 @@ export function getSearchIndex(questions: Question[]): SearchEntry[] {
 /** "MR-2 c", "mr2c", "MR 2.c" (one LO) or "MR-2" (a whole chapter). */
 const LO_QUERY = /^([a-z]{2,3})[-\s]?(\d{1,2})(?:[\s.]?([a-z]))?$/;
 
+/**
+ * For a query that is an LO or chapter code ("MR-2 c", "mr2c", "MR-2"), a test for the LO ids it names
+ * ("MR-2" names every LO of that chapter); null for any other query.
+ */
+export function loCodeTest(query: string): ((lo: string) => boolean) | null {
+  const code = LO_QUERY.exec(query.toLowerCase().trim());
+  if (!code) return null;
+  const prefix = `${code[1]}-${code[2]} `;
+  return (lo) => (code[3] ? lo.toLowerCase() === prefix + code[3] : lo.toLowerCase().startsWith(prefix));
+}
+
 /** A recall-workbook section id: "A13". */
 const SECTION_QUERY = /^[a-d]\d{1,2}$/i;
 

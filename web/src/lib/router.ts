@@ -5,6 +5,7 @@ import { useSyncExternalStore } from 'react';
 export type Route =
   | '/'
   | '/setup'
+  | '/library'
   | '/session'
   | '/summary'
   | '/review'

@@ -119,8 +119,9 @@ export function QuestionScreen() {
       return;
     }
     if (!window.confirm('Leave this session?')) return;
+    const back = useSession.getState().config?.origin === 'library' ? '/library' : '/setup';
     useSession.getState().reset();
-    navigate('/setup');
+    navigate(back);
   };
 
   useEffect(() => {

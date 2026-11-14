@@ -7,11 +7,15 @@ export function SetupSearch({
   onChange,
   filterCount,
   onOpenFilters,
+  placeholder = 'Search, MR-2 c, A13',
+  label = 'Search questions',
 }: {
   value: string;
   onChange: (v: string) => void;
   filterCount: number;
   onOpenFilters: () => void;
+  placeholder?: string;
+  label?: string;
 }) {
   return (
     <div className="flex items-stretch gap-2">
@@ -24,8 +28,8 @@ export function SetupSearch({
           type="search"
           value={value}
           onChange={(e: { currentTarget: HTMLInputElement }) => onChange(e.currentTarget.value)}
-          placeholder="Search, MR-2 c, A13"
-          aria-label="Search questions"
+          placeholder={placeholder}
+          aria-label={label}
           enterKeyHint="search"
           autoComplete="off"
           spellCheck={false}

@@ -96,9 +96,10 @@ export function SummaryScreen() {
     navigate('/session');
   };
 
+  const fromLibrary = config?.origin === 'library';
   const goSetup = () => {
     useSession.getState().reset();
-    navigate('/setup');
+    navigate(fromLibrary ? '/library' : '/setup');
   };
 
   const goHome = () => {
@@ -135,7 +136,7 @@ export function SummaryScreen() {
           className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 font-medium text-white shadow-sm transition hover:bg-primary-600"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
-          New session
+          {fromLibrary ? 'Back to library' : 'New session'}
         </button>
         {wrongIds.length > 0 && (
           <button
