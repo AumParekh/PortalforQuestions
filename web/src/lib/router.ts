@@ -4,6 +4,10 @@ import { useSyncExternalStore } from 'react';
 // Mock exams take a slug and sub-view: /mock/<slug>[/exam | /results/<id>[/<n>]] (mock/model.ts builds them).
 export type Route =
   | '/'
+  | '/practice'
+  | '/drills'
+  | '/mocks'
+  | '/progress'
   | '/setup'
   | '/library'
   | '/session'

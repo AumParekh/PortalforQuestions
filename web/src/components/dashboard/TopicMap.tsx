@@ -9,10 +9,12 @@ interface Props {
   subjectFiles: ContentFile[];
   byId: Record<string, Question>;
   states: Record<string, QuestionState>;
+  /** Whether the first subject starts unfolded (default) or every subject starts folded. */
+  startOpen?: boolean;
 }
 
-export function TopicMap({ subjectFiles, byId, states }: Props) {
-  const [open, setOpen] = useState<Record<string, boolean>>(() => (subjectFiles[0] ? { [subjectFiles[0].path]: true } : {}));
+export function TopicMap({ subjectFiles, byId, states, startOpen = true }: Props) {
+  const [open, setOpen] = useState<Record<string, boolean>>(() => (startOpen && subjectFiles[0] ? { [subjectFiles[0].path]: true } : {}));
 
   const sections = useMemo(
     () =>

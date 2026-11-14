@@ -35,9 +35,9 @@ function Skeleton() {
 }
 
 const HomeButton = () => (
-  <button type="button" onClick={() => navigate('/')} className={btnSecondary}>
+  <button type="button" onClick={() => navigate('/drills')} className={btnSecondary}>
     <Home className="h-4 w-4" aria-hidden="true" />
-    Home
+    Back to Drills
   </button>
 );
 

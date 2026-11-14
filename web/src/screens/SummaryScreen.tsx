@@ -154,7 +154,7 @@ export function SummaryScreen() {
           className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-card-light px-4 font-medium transition hover:bg-slate-100 dark:border-slate-700 dark:bg-card-dark dark:hover:bg-slate-700"
         >
           <Home className="h-5 w-5" aria-hidden="true" />
-          Home
+          Today
         </button>
       </div>
 

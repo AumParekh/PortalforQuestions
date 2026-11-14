@@ -144,12 +144,12 @@ export function TfSummaryView() {
             type="button"
             onClick={() => {
               useTfRun.getState().toSetup();
-              navigate('/');
+              navigate('/drills');
             }}
             className={`${btn} border border-slate-200 text-slate-800 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800`}
           >
             <Home className="h-4 w-4" aria-hidden="true" />
-            Home
+            Back to Drills
           </button>
         </div>
 

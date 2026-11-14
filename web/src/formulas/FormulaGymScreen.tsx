@@ -20,8 +20,8 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-[720px] items-center gap-2 px-2 py-2">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            aria-label="Back to home"
+            onClick={() => navigate('/drills')}
+            aria-label="Back to Drills"
             className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -106,9 +106,9 @@ export function FormulaGymScreen() {
           <RefreshCw className="h-4 w-4" aria-hidden="true" />
           Retry
         </button>
-        <button type="button" onClick={() => navigate('/')} className={btnSecondary}>
+        <button type="button" onClick={() => navigate('/drills')} className={btnSecondary}>
           <Home className="h-4 w-4" aria-hidden="true" />
-          Home
+          Back to Drills
         </button>
       </Message>
     );
@@ -123,9 +123,9 @@ export function FormulaGymScreen() {
         title="The formula deck is being prepared"
         body="Formulas from the notes are still being extracted and checked. Check back soon."
       >
-        <button type="button" onClick={() => navigate('/')} className={btnSecondary}>
+        <button type="button" onClick={() => navigate('/drills')} className={btnSecondary}>
           <Home className="h-4 w-4" aria-hidden="true" />
-          Home
+          Back to Drills
         </button>
       </Message>
     );

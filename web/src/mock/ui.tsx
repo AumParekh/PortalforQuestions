@@ -17,12 +17,12 @@ export const iconButton =
   'flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800';
 
 /** Page frame with a back button (Home unless `onBack` is given). */
-export function Shell({ title, onBack, backLabel = 'Back to home', children }: { title: string; onBack?: () => void; backLabel?: string; children: ReactNode }) {
+export function Shell({ title, onBack, backLabel = 'Back to Mocks', children }: { title: string; onBack?: () => void; backLabel?: string; children: ReactNode }) {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-surface-light/85 pt-[env(safe-area-inset-top)] backdrop-blur dark:border-slate-700 dark:bg-surface-dark/85">
         <div className="mx-auto flex max-w-[720px] items-center gap-2 px-2 py-2">
-          <button type="button" onClick={onBack ?? (() => navigate('/'))} aria-label={backLabel} className={iconButton}>
+          <button type="button" onClick={onBack ?? (() => navigate('/mocks'))} aria-label={backLabel} className={iconButton}>
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />
           </button>
           <h1 className="min-w-0 break-words text-lg font-semibold leading-snug">{title}</h1>

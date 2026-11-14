@@ -7,6 +7,10 @@ import { useUi } from './store/ui';
 import { HomeScreen } from './screens/HomeScreen';
 import { SessionSetupScreen } from './screens/SessionSetupScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
+import { PracticeScreen } from './screens/PracticeScreen';
+import { DrillsScreen } from './screens/DrillsScreen';
+import { MocksScreen } from './screens/MocksScreen';
+import { ProgressScreen } from './screens/ProgressScreen';
 import { QuestionScreen } from './screens/QuestionScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { ReviewWrongScreen } from './screens/ReviewWrongScreen';
@@ -154,6 +158,14 @@ function Routes() {
   }
 
   switch (route) {
+    case '/practice':
+      return <PracticeScreen />;
+    case '/drills':
+      return <DrillsScreen />;
+    case '/mocks':
+      return <MocksScreen />;
+    case '/progress':
+      return <ProgressScreen />;
     case '/setup':
       return <SessionSetupScreen />;
     case '/library':

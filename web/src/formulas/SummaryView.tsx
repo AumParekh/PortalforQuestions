@@ -119,12 +119,12 @@ export function SummaryView() {
             type="button"
             onClick={() => {
               useGymRun.getState().toSetup();
-              navigate('/');
+              navigate('/drills');
             }}
             className={btnSecondary}
           >
             <Home className="h-4 w-4" aria-hidden="true" />
-            Home
+            Back to Drills
           </button>
         </div>
 

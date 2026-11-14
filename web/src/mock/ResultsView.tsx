@@ -76,7 +76,7 @@ export function ResultsView({ slug, resultId }: { slug: string; resultId: string
   const shown = result.items.map((item, index) => ({ item, index })).filter(({ item }) => matchesFilter(item, filter));
 
   return (
-    <Shell title={`${result.name}: results`} onBack={back} backLabel={hasFile ? 'Back to the mock' : 'Back to home'}>
+    <Shell title={`${result.name}: results`} onBack={back} backLabel={hasFile ? 'Back to the mock' : 'Back to Mocks'}>
       <div className="space-y-6">
         <section className={card} aria-label="Score">
           <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
@@ -139,9 +139,9 @@ export function ResultsView({ slug, resultId }: { slug: string; resultId: string
               Mock page and history
             </button>
           )}
-          <button type="button" onClick={() => navigate('/')} className={btnSecondary}>
+          <button type="button" onClick={() => navigate('/mocks')} className={btnSecondary}>
             <Home className="h-5 w-5" aria-hidden="true" />
-            Home
+            Back to Mocks
           </button>
         </div>
 

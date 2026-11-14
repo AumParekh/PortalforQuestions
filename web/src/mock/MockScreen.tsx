@@ -15,9 +15,9 @@ function Missing({ title, body }: { title: string; body: string }) {
       <div className={`${card} mt-2 text-center`}>
         <p className="text-lg font-semibold">{title}</p>
         <p className="mt-2 break-words text-slate-600 dark:text-slate-400">{body}</p>
-        <button type="button" onClick={() => navigate('/')} className={`${btnSecondary} mt-5`}>
+        <button type="button" onClick={() => navigate('/mocks')} className={`${btnSecondary} mt-5`}>
           <Home className="h-4 w-4" aria-hidden="true" />
-          Home
+          Back to Mocks
         </button>
       </div>
     </Shell>

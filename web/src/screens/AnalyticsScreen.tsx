@@ -24,8 +24,8 @@ function TopBar() {
       <div className="mx-auto flex w-full max-w-[720px] items-center gap-2 px-4 py-1">
         <button
           type="button"
-          onClick={() => navigate('/')}
-          aria-label="Back to home"
+          onClick={() => navigate('/progress')}
+          aria-label="Back to Progress"
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />

@@ -1,199 +1,28 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useToday } from '../hooks/useToday';
-import { BarChart3, BookOpen, CalendarDays, Gamepad2, CheckCircle2, CheckSquare, ChevronRight, ClipboardList, Dices, Flame, Gauge, History, Info, Library, Play, PlayCircle, Settings, Sigma, Trophy, Zap } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { ThemeToggle } from '../components/ThemeToggle';
-import { AccuracyRing } from '../components/dashboard/AccuracyRing';
+import { CheckCircle2, ChevronRight, Flame, Info, Play, PlayCircle, Trophy, Zap } from 'lucide-react';
+import { TabShell } from '../components/shell/TabShell';
 import { ExamCountdown, TodaysPlan } from '../components/dashboard/ExamPlan';
 import type { PlanRow, PlanSection } from '../components/dashboard/ExamPlan';
-import { QUEST_GOAL, openSetupWith, startDueReview, startQuest, startRandomDrill, startSubjectQuick } from '../components/dashboard/launch';
-import { MockCard, MockResumeBanners } from '../components/dashboard/MockCard';
-import { AccuracyChip, ProgressBar } from '../components/dashboard/ProgressBar';
-import { SearchBox } from '../components/dashboard/SearchBox';
-import { StatTile } from '../components/dashboard/StatTile';
-import { TopicMap } from '../components/dashboard/TopicMap';
-import { WeakLos } from '../components/dashboard/WeakLos';
-import { buildCatalog, tiersOf } from '../lib/catalog';
-import { RECALL_TIERS } from '../lib/recallTiers';
-import type { RecallTierInfo } from '../lib/recallTiers';
+import { QUEST_GOAL, startDueReview, startQuest } from '../components/dashboard/launch';
+import { MockResumeBanners } from '../components/dashboard/MockCard';
+import { ProgressBar } from '../components/dashboard/ProgressBar';
 import { navigate } from '../lib/router';
 import type { Route } from '../lib/router';
 import { daysToExam, examPhase } from '../games/examDate';
 import type { ExamPhase } from '../games/examDate';
 import { useSettings } from '../lib/settings';
 import { activeProfile, switchProfile } from '../games/profile';
-import { DUE_SESSION_CAP, dueQuestionIds, nextDue } from '../lib/srs';
-import { accuracyOf, answeredToday, overallStats, streaks, weakestLos, wrongQuestionStates } from '../lib/stats';
+import { DUE_SESSION_CAP, dueQuestionIds } from '../lib/srs';
+import { answeredToday, streaks } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useTf } from '../store/tf';
-import { addDays, isDue, localDay, useGym } from '../formulas/storage';
+import { isDue, localDay, useGym } from '../formulas/storage';
 import { useGameProgress } from '../games/progress';
 import { dueItemIds } from '../games/srs';
 import { useSession } from '../store/session';
-import { mockSlug } from '../mock/model';
-import { resultsFor, useMock } from '../mock/store';
-import type { ContentFile, QuestionState } from '../types';
-
-interface FileProgress {
-  attempted: number;
-  accuracy: number | null;
-}
-
-function fileProgress(file: Pick<ContentFile, 'questionIds'>, states: Record<string, QuestionState>): FileProgress {
-  let attempted = 0;
-  let correct = 0;
-  let attempts = 0;
-  for (const id of file.questionIds) {
-    const s = states[id];
-    if (!s || s.totalAttempts === 0) continue;
-    attempted++;
-    correct += s.totalCorrect;
-    attempts += s.totalAttempts;
-  }
-  return { attempted, accuracy: accuracyOf(correct, attempts) };
-}
-
-function formatDuration(seconds: number): string {
-  const total = Math.round(seconds / 60);
-  const h = Math.floor(total / 60);
-  const m = total % 60;
-  return h > 0 ? `${h}h ${m}m` : `${m}m`;
-}
-
-function SectionTitle({ children, id }: { children: ReactNode; id?: string }) {
-  return (
-    <h2 id={id} className="text-[15px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
-      {children}
-    </h2>
-  );
-}
-
-function FileCard({ file, progress, onOpen }: { file: ContentFile; progress: FileProgress; onOpen: () => void }) {
-  const total = file.questionIds.length;
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex min-h-[44px] w-full items-start gap-3 rounded-2xl border border-transparent bg-card-light p-4 text-left shadow-sm transition hover:border-primary-100 hover:shadow-md dark:bg-card-dark dark:hover:border-slate-600 sm:p-5"
-    >
-      <span className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-600 dark:bg-slate-800 dark:text-primary-100">
-        <BookOpen className="h-5 w-5" aria-hidden="true" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-start justify-between gap-2">
-          <span className="block font-semibold leading-snug">{file.name}</span>
-          <AccuracyChip accuracy={progress.accuracy} />
-        </span>
-        <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
-          {total.toLocaleString()} questions
-        </span>
-        <span className="mt-2 flex items-center gap-3">
-          <ProgressBar value={total ? progress.attempted / total : 0} label={`${file.name} attempted`} />
-          <span className="shrink-0 text-[15px] tabular-nums text-slate-600 dark:text-slate-400">
-            {progress.attempted}/{total}
-          </span>
-        </span>
-        <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
-          Quick 20 · shuffled
-        </span>
-      </span>
-      <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
-    </button>
-  );
-}
-
-/** One recall-workbook tier: its questions (tiers overlap) and the Session Setup keys of its sections. */
-interface TierGroup {
-  info: RecallTierInfo;
-  questionIds: string[];
-  sectionKeys: string[];
-}
-
-function TierCard({ tier, progress, onOpen }: { tier: TierGroup; progress: FileProgress; onOpen: () => void }) {
-  const total = tier.questionIds.length;
-  const sections = tier.sectionKeys.length;
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="flex min-h-[44px] w-full items-start gap-3 rounded-2xl border border-transparent bg-card-light p-4 text-left shadow-sm transition hover:border-primary-100 hover:shadow-md dark:bg-card-dark dark:hover:border-slate-600 sm:p-5"
-    >
-      <span
-        aria-hidden="true"
-        className="mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-lg font-bold text-primary-600 dark:bg-slate-800 dark:text-primary-100"
-      >
-        {tier.info.id}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-start justify-between gap-2">
-          <span className="block font-semibold leading-snug">{tier.info.name}</span>
-          <AccuracyChip accuracy={progress.accuracy} />
-        </span>
-        <span className="mt-0.5 block text-[15px] leading-snug text-slate-700 dark:text-slate-300">{tier.info.description}</span>
-        <span className="mt-1 block text-[15px] text-slate-600 dark:text-slate-400">
-          {total.toLocaleString()} questions · {sections} {sections === 1 ? 'section' : 'sections'}
-        </span>
-        <span className="mt-2 flex items-center gap-3">
-          <ProgressBar value={total ? progress.attempted / total : 0} label={`${tier.info.name} attempted`} />
-          <span className="shrink-0 text-[15px] tabular-nums text-slate-600 dark:text-slate-400">
-            {progress.attempted}/{total}
-          </span>
-        </span>
-        <span className="mt-2 block text-[15px] font-medium text-primary-600 dark:text-primary-100">
-          Practise this tier
-        </span>
-      </span>
-      <ChevronRight className="mt-2 h-5 w-5 shrink-0 text-slate-400" aria-hidden="true" />
-    </button>
-  );
-}
-
-function QuickAction({
-  icon,
-  title,
-  detail,
-  onClick,
-  disabled = false,
-  primary = false,
-}: {
-  icon: ReactNode;
-  title: string;
-  detail: string;
-  onClick: () => void;
-  disabled?: boolean;
-  primary?: boolean;
-}) {
-  const tone = primary
-    ? 'bg-primary text-white hover:bg-primary-600'
-    : 'bg-card-light text-slate-900 hover:border-primary-100 hover:shadow-md dark:bg-card-dark dark:text-slate-100 dark:hover:border-slate-600';
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={`flex min-h-[64px] w-full items-start gap-3 rounded-2xl border border-transparent p-4 text-left shadow-sm transition disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:border-transparent disabled:hover:shadow-sm ${tone}`}
-    >
-      <span
-        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-          primary ? 'bg-white/15' : 'bg-primary-50 text-primary-600 dark:bg-slate-800 dark:text-primary-100'
-        }`}
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-semibold leading-snug">{title}</span>
-        <span className={`mt-0.5 block text-[15px] ${primary ? 'text-white/85' : 'text-slate-600 dark:text-slate-400'}`}>{detail}</span>
-      </span>
-    </button>
-  );
-}
-
-/** A local YYYY-MM-DD at midday, so a DST change at midnight can't move it to another day. */
-function dayAtNoon(day: string): Date {
-  const [y, m, d] = day.split('-').map(Number);
-  return new Date(y, m - 1, d, 12);
-}
+import { useMock } from '../mock/store';
 
 /** Suggested order of today's reviews by phase: the formula sheet leads in the final review. */
 const PLAN_ORDER: Record<ExamPhase, PlanSection[]> = {
@@ -211,28 +40,17 @@ const PLAN_ROUTE: Record<Exclude<PlanSection, 'questions'>, Route> = {
   games: '/games',
 };
 
-function dueDetail(count: number, today: string, next: { day: string; count: number } | null): string {
-  if (count > 0) {
-    return count > DUE_SESSION_CAP
-      ? `Spaced review: the ${DUE_SESSION_CAP} most overdue of ${count} due questions`
-      : `Spaced review of ${count} ${count === 1 ? 'question' : 'questions'} due today`;
-  }
-  if (!next) return 'Nothing due yet: answered questions come back here on a spaced schedule';
-  const when =
-    next.day === addDays(today, 1)
-      ? 'tomorrow'
-      : dayAtNoon(next.day).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  return `Nothing due today. Next: ${next.count} ${next.count === 1 ? 'question' : 'questions'} ${when}`;
-}
-
+/**
+ * Today: the first screen of a study day. What is still open (a session or a mock in progress), how far the exam is,
+ * what is due for review, and the daily goal. Everything else lives under its own tab (components/shell/TabShell).
+ */
 export function HomeScreen() {
   const files = useContent((s) => s.files);
-  const questions = useContent((s) => s.questions);
+  const subjectQuestions = useContent((s) => s.subjectQuestions);
   const byId = useContent((s) => s.byId);
   const states = useProgress((s) => s.states);
   const attempts = useProgress((s) => s.attempts);
   const tfAttempts = useTf((s) => s.attempts);
-  const tfCount = useTf((s) => s.cards.length);
   const gymAttempts = useGym((s) => s.attempts);
   const gameSessions = useGameProgress((s) => s.sessions);
   const gymStates = useGym((s) => s.states);
@@ -250,19 +68,9 @@ export function HomeScreen() {
   const sessionStatus = useSession((s) => s.status);
   const answeredCount = useSession((s) => Object.keys(s.answers).length);
   const queueLength = useSession((s) => s.queue.length);
-  const mocksRef = useRef<HTMLElement>(null);
-  const mockResults = useMock((s) => s.results);
   const mockAttempts = useMock((s) => s.attempts);
-
-  const subjectFiles = useMemo(() => files.filter((f) => f.type === 'subject'), [files]);
   const mockFiles = useMemo(() => files.filter((f) => f.type === 'mock'), [files]);
-  const subjectQuestions = useMemo(() => {
-    const paths = new Set(subjectFiles.map((f) => f.path));
-    return questions.filter((q) => paths.has(q.file));
-  }, [questions, subjectFiles]);
-  const subjectIds = useMemo(() => new Set(subjectQuestions.map((q) => q.id)), [subjectQuestions]);
 
-  const stats = useMemo(() => overallStats(states, attempts), [states, attempts]);
   const day = useToday();
   const streak = useMemo(() => streaks(streakEvents), [streakEvents, day]);
   const today = useMemo(() => answeredToday(studyEvents), [studyEvents, day]);
@@ -277,7 +85,6 @@ export function HomeScreen() {
     }
     return { formula, scenario };
   }, [gymStates, day, exam]);
-  const formulasDue = gymDue.formula;
   // True/False has no schedule: a card counts until it is answered correctly again (only cards still in the deck
   // once the deck has loaded).
   const tfMissed = useMemo(
@@ -290,39 +97,13 @@ export function HomeScreen() {
     return { days: daysToExam(d, exam), phase: examPhase(d, exam) };
   }, [exam, day]);
   // Spaced-repetition reviews: attempted questions whose due date is today or earlier.
-  const questionDue = useMemo(() => {
-    const d = localDay();
-    const known = (id: string) => !!byId[id];
-    return { today: d, count: dueQuestionIds(states, d, known).length, next: nextDue(states, d, known) };
-  }, [states, byId, day, exam]);
-  const weak = useMemo(() => weakestLos(subjectQuestions, states, 5), [subjectQuestions, states]);
-  // Matches Review Wrong's default "Still wrong only" view.
-  const wrongCount = useMemo(
-    () => wrongQuestionStates(states).filter((s) => s.lastResult === 'wrong' && byId[s.questionId]).length,
-    [states, byId],
-  );
-  const progressByPath = useMemo(() => {
-    const out: Record<string, FileProgress> = {};
-    for (const f of files) out[f.path] = fileProgress(f, states);
-    return out;
-  }, [files, states]);
-
-  // Recall-workbook tiers: a question belongs to every tier one of its sections is in.
-  const tierGroups = useMemo((): TierGroup[] => {
-    const sections = buildCatalog(subjectQuestions, 'section');
-    return RECALL_TIERS.map((info) => ({
-      info,
-      questionIds: subjectQuestions.filter((q) => tiersOf(q).includes(info.id)).map((q) => q.id),
-      sectionKeys: sections.filter((it) => it.code?.startsWith(info.id)).map((it) => it.key),
-    })).filter((t) => t.questionIds.length > 0);
-  }, [subjectQuestions]);
-  const progressByTier = useMemo(() => tierGroups.map((t) => fileProgress(t, states)), [tierGroups, states]);
+  const questionsDue = useMemo(() => dueQuestionIds(states, localDay(), (id) => !!byId[id]).length, [states, byId, day, exam]);
 
   const questDone = today >= QUEST_GOAL;
 
   const planRows = useMemo((): PlanRow[] => {
     const counts: Record<PlanSection, number> = {
-      questions: questionDue.count,
+      questions: questionsDue,
       formulas: gymDue.formula,
       sense: gymDue.scenario,
       truefalse: tfMissed,
@@ -335,51 +116,28 @@ export function HomeScreen() {
       perSession: key === 'questions' ? DUE_SESSION_CAP : undefined,
       onOpen:
         key === 'questions'
-          ? () => (questionDue.count > 0 ? startDueReview(states, byId, localDay()) : navigate('/setup'))
+          ? () => (questionsDue > 0 ? startDueReview(states, byId, localDay()) : navigate('/setup'))
           : () => navigate(PLAN_ROUTE[key]),
     }));
-  }, [questionDue.count, gymDue, tfMissed, gamesDue, examInfo.phase, states, byId]);
-
-  const scrollToMocks = () => mocksRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [questionsDue, gymDue, tfMissed, gamesDue, examInfo.phase, states, byId]);
 
   return (
-    <div className="mx-auto max-w-[720px] px-4 pb-16 pt-[max(1rem,env(safe-area-inset-top))]">
-      <header className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <span className="block text-lg font-bold leading-tight tracking-tight">FRM Part II</span>
-          {/* Each person has their own progress; switching reloads into the picker (games/profile.ts). */}
-          <button
-            type="button"
-            onClick={switchProfile}
-            aria-label={`Hi, ${profile.name} · Switch user`}
-            className="-mx-1 flex min-h-[32px] max-w-full items-center gap-1 rounded-lg px-1 text-[15px] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-          >
-            <span className="truncate">Hi, {profile.name}</span>
-            <span aria-hidden="true">·</span>
-            <span className="shrink-0 font-medium text-primary-600 dark:text-primary-100">Switch</span>
-          </button>
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => navigate('/analytics')}
-            aria-label="Analytics"
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            <BarChart3 className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate('/settings')}
-            aria-label="Settings"
-            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            <Settings className="h-5 w-5" aria-hidden="true" />
-          </button>
-          <ThemeToggle />
-        </div>
-      </header>
-
+    <TabShell
+      title="Today"
+      lead={
+        // Each person has their own progress; switching reloads into the picker (games/profile.ts).
+        <button
+          type="button"
+          onClick={switchProfile}
+          aria-label={`Hi, ${profile.name} · Switch user`}
+          className="-mx-1 flex min-h-[32px] max-w-full items-center gap-1 rounded-lg px-1 hover:text-slate-900 dark:hover:text-slate-100"
+        >
+          <span className="truncate">Hi, {profile.name}</span>
+          <span aria-hidden="true">·</span>
+          <span className="shrink-0 font-medium text-primary-600 dark:text-primary-100">Switch</span>
+        </button>
+      }
+    >
       {sessionStatus === 'active' && (
         <button
           type="button"
@@ -412,27 +170,15 @@ export function HomeScreen() {
 
       {/* Below Resume session, so a session in progress stays the first thing on the page. */}
       <ExamCountdown days={examInfo.days} phase={examInfo.phase} exam={exam} onOpenSettings={() => navigate('/settings')} />
-      <TodaysPlan rows={planRows} phase={examInfo.phase} />
 
       {progressStatus === 'unavailable' && (
-        <p className="mt-4 flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-2 text-[15px] text-slate-600 dark:border-slate-700 dark:text-slate-400">
+        <p className="mt-3 flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-2 text-[15px] text-slate-600 dark:border-slate-700 dark:text-slate-400">
           <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           Progress can't be saved in this browser (private mode?).
         </p>
       )}
 
-      <section className="mt-8">
-        <h1 className="text-3xl font-bold tracking-tight">Ready to study?</h1>
-        <p className="mt-1 text-slate-600 dark:text-slate-400">
-          {questions.length} questions across {files.length} {files.length === 1 ? 'set' : 'sets'}.
-        </p>
-      </section>
-
-      <section className="mt-6">
-        <SearchBox questions={questions} allowedIds={subjectIds} />
-      </section>
-
-      <section className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <section className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label="Daily goal">
         <div className="flex flex-col rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark sm:p-5">
           <div className="flex items-center gap-2">
             {questDone ? (
@@ -446,11 +192,7 @@ export function HomeScreen() {
             {questDone ? 'Goal reached. Extra practice still counts.' : `Answer ${QUEST_GOAL} questions today. Recent mistakes come first, then new ones.`}
           </p>
           <div className="mt-3 flex items-center gap-3">
-            <ProgressBar
-              value={today / QUEST_GOAL}
-              label="Today's quest progress"
-              tone={questDone ? 'bg-emerald-500' : 'bg-primary'}
-            />
+            <ProgressBar value={today / QUEST_GOAL} label="Today's quest progress" tone={questDone ? 'bg-emerald-500' : 'bg-primary'} />
             <span className="shrink-0 text-[15px] font-medium tabular-nums">
               {Math.min(today, QUEST_GOAL)}/{QUEST_GOAL}
             </span>
@@ -479,12 +221,12 @@ export function HomeScreen() {
           <p className="mt-2 flex items-baseline gap-2">
             <span className="text-4xl font-bold tabular-nums">{streak.current}</span>
             <span className="text-slate-600 dark:text-slate-400">{streak.current === 1 ? 'day' : 'days'}</span>
-          </p>
-          <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">
-            Longest: {streak.longest} {streak.longest === 1 ? 'day' : 'days'}
+            <span className="ml-auto text-[15px] text-slate-600 dark:text-slate-400">
+              Longest: {streak.longest} {streak.longest === 1 ? 'day' : 'days'}
+            </span>
           </p>
           <p
-            className={`mt-3 flex items-start gap-2 text-[15px] ${
+            className={`mt-2 flex items-start gap-2 text-[15px] ${
               streak.studiedToday ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'
             }`}
           >
@@ -498,165 +240,7 @@ export function HomeScreen() {
         </div>
       </section>
 
-      <section className="mt-3 rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark sm:p-5" aria-labelledby="overview-title">
-        <h2 id="overview-title" className="sr-only">
-          Overall progress
-        </h2>
-        <div className="flex flex-col items-center gap-5 sm:flex-row">
-          <AccuracyRing accuracy={stats.accuracy} />
-          <div className="grid w-full flex-1 grid-cols-2 gap-2">
-            <StatTile label="Attempted" value={`${stats.questionsAttempted}/${questions.length}`} />
-            <StatTile label="Time studied" value={formatDuration(stats.secondsStudied)} />
-            <StatTile label="Correct" value={stats.correct} className="text-emerald-600 dark:text-emerald-400" />
-            <StatTile label="Wrong" value={stats.wrong} className="text-red-600 dark:text-red-400" />
-          </div>
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <SectionTitle>Quick start</SectionTitle>
-        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <QuickAction
-            primary
-            icon={<Play className="h-5 w-5" aria-hidden="true" />}
-            title="New Session"
-            detail="Pick subjects, chapters, LOs or tiers"
-            onClick={() => navigate('/setup')}
-          />
-          <QuickAction
-            icon={<Library className="h-5 w-5" aria-hidden="true" />}
-            title="Question library"
-            detail="Open a learning objective and solve every question in it"
-            onClick={() => navigate('/library')}
-            disabled={subjectQuestions.length === 0}
-          />
-          <QuickAction
-            icon={<Dices className="h-5 w-5" aria-hidden="true" />}
-            title="Random Drill"
-            detail="20 random questions, all subjects"
-            onClick={() => startRandomDrill(subjectQuestions)}
-            disabled={subjectQuestions.length === 0}
-          />
-          <QuickAction
-            icon={<History className="h-5 w-5" aria-hidden="true" />}
-            title={wrongCount > 0 ? `Review Wrong (${wrongCount})` : 'Review Wrong'}
-            detail={wrongCount > 0 ? 'Every question you have missed' : 'Nothing to review yet: questions you miss land here'}
-            onClick={() => navigate('/review')}
-            disabled={wrongCount === 0}
-          />
-          <QuickAction
-            icon={<CalendarDays className="h-5 w-5" aria-hidden="true" />}
-            title={questionDue.count > 0 ? `Due for review (${questionDue.count})` : 'Due for review'}
-            detail={dueDetail(questionDue.count, questionDue.today, questionDue.next)}
-            onClick={() => startDueReview(states, byId, localDay())}
-            disabled={questionDue.count === 0}
-          />
-          <QuickAction
-            icon={<CheckSquare className="h-5 w-5" aria-hidden="true" />}
-            title="True / False"
-            detail={tfCount > 0 ? `${tfCount.toLocaleString()} statements to judge` : 'Judge statements from your question bank'}
-            onClick={() => navigate('/truefalse')}
-          />
-          <QuickAction
-            icon={<Sigma className="h-5 w-5" aria-hidden="true" />}
-            title="Formula Gym"
-            detail={formulasDue > 0 ? `${formulasDue} ${formulasDue === 1 ? 'formula' : 'formulas'} due for review` : 'Recall, rebuild and apply every formula in the notes'}
-            onClick={() => navigate('/formulas')}
-          />
-          <QuickAction
-            icon={<Gamepad2 className="h-5 w-5" aria-hidden="true" />}
-            title="Notes Games"
-            detail="Play the notes: traps, tables, sequences, curves, trees and more"
-            onClick={() => navigate('/games')}
-          />
-          <QuickAction
-            icon={<Gauge className="h-5 w-5" aria-hidden="true" />}
-            title="Sense Check"
-            detail="3-minute rounds: size and sign an answer before computing it"
-            onClick={() => navigate('/sense')}
-          />
-          <QuickAction
-            icon={<BarChart3 className="h-5 w-5" aria-hidden="true" />}
-            title="Analytics"
-            detail="Accuracy over time, weak topics, trap types"
-            onClick={() => navigate('/analytics')}
-          />
-          {mockFiles.length > 0 && (
-            <QuickAction
-              icon={<ClipboardList className="h-5 w-5" aria-hidden="true" />}
-              title="Mock Exam"
-              detail={
-                Object.keys(mockAttempts).length > 0
-                  ? 'Timed, exam conditions · an attempt is in progress'
-                  : `${mockFiles.length} timed ${mockFiles.length === 1 ? 'exam' : 'exams'} under exam conditions`
-              }
-              onClick={scrollToMocks}
-            />
-          )}
-        </div>
-      </section>
-
-      <section className="mt-10">
-        <SectionTitle>Weakest learning objectives</SectionTitle>
-        <div className="mt-3">
-          <WeakLos groups={weak} />
-        </div>
-      </section>
-
-      {subjectFiles.length > 0 && (
-        <section className="mt-10">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-slate-500 dark:text-slate-400" aria-hidden="true" />
-            <SectionTitle>Topic map</SectionTitle>
-          </div>
-          <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">Tap a topic for a 20-question drill.</p>
-          <div className="mt-3">
-            <TopicMap subjectFiles={subjectFiles} byId={byId} states={states} />
-          </div>
-        </section>
-      )}
-
-      {tierGroups.length > 0 && (
-        <section className="mt-10" aria-labelledby="tiers-title">
-          <SectionTitle id="tiers-title">Tiers</SectionTitle>
-          <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">
-            Recall workbook sections, Tier A first. Tap a tier to practise its sections; a question can sit in more than one tier.
-          </p>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {tierGroups.map((t, i) => (
-              <TierCard key={t.info.id} tier={t} progress={progressByTier[i]} onOpen={() => openSetupWith('section', t.sectionKeys)} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {subjectFiles.length > 0 && (
-        <section className="mt-10">
-          <SectionTitle>Subjects</SectionTitle>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {subjectFiles.map((f) => (
-              <FileCard
-                key={f.path}
-                file={f}
-                progress={progressByPath[f.path]}
-                onOpen={() => startSubjectQuick(byId[f.questionIds[0]]?.subject ?? f.name, f)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {mockFiles.length > 0 && (
-        <section ref={mocksRef} className="mt-10 scroll-mt-4">
-          <SectionTitle>Mock exams</SectionTitle>
-          <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {mockFiles.map((f) => {
-              const slug = mockSlug(f.path);
-              return <MockCard key={f.path} file={f} results={resultsFor(mockResults, slug)} attempt={mockAttempts[slug]} />;
-            })}
-          </div>
-        </section>
-      )}
-    </div>
+      <TodaysPlan rows={planRows} phase={examInfo.phase} />
+    </TabShell>
   );
 }

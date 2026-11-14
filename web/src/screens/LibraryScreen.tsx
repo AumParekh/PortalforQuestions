@@ -295,8 +295,8 @@ export function LibraryScreen() {
         <div className="mx-auto flex max-w-[720px] items-center gap-2 px-2 py-2">
           <button
             type="button"
-            onClick={() => navigate('/')}
-            aria-label="Back to home"
+            onClick={() => navigate('/practice')}
+            aria-label="Back to Practice"
             className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" />

@@ -374,7 +374,7 @@ function Home({
 
   return (
     <div className="g-enter space-y-8">
-      <Header title="Notes games" onBack={() => navigate('/')} />
+      <Header title="Notes games" onBack={() => navigate('/drills')} />
 
       <GameCard tone="navy" className="flex flex-col gap-5 py-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">

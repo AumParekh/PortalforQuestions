@@ -63,8 +63,8 @@ export function Shell({ children, onBack, title = 'Sense Check' }: { children: R
         <div className="mx-auto flex max-w-[720px] items-center gap-2 px-2 py-2">
           <button
             type="button"
-            onClick={onBack ?? (() => navigate('/'))}
-            aria-label={onBack ? 'Back' : 'Back to home'}
+            onClick={onBack ?? (() => navigate('/drills'))}
+            aria-label={onBack ? 'Back' : 'Back to Drills'}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />

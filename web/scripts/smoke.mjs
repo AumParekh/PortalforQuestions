@@ -7,7 +7,7 @@
 import { chromium } from 'playwright';
 
 const BASE = (process.env.BASE ?? 'http://localhost:4173').replace(/\/$/, '');
-const ROUTES = ['/', '/setup', '/library', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/sense', '/games'];
+const ROUTES = ['/', '/practice', '/drills', '/mocks', '/progress', '/setup', '/library', '/truefalse', '/analytics', '/settings', '/review', '/formulas', '/sense', '/games'];
 // Sections with a Start button that can be played from the keyboard.
 const PLAYABLE = [
   { route: '/truefalse', buttons: [/^\s*Start\s*$/], required: true },

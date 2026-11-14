@@ -93,7 +93,7 @@ export function SettingsScreen() {
           <button
             type="button"
             onClick={() => navigate('/')}
-            aria-label="Back to home"
+            aria-label="Back to Today"
             className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-slate-200/70 dark:hover:bg-slate-800"
           >
             <ArrowLeft className="h-5 w-5" aria-hidden="true" />
