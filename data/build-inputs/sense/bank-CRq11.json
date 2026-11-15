@@ -1,0 +1,1715 @@
+[
+ {
+  "id": "SC-bank-CRq11-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0898"
+  },
+  "trap_category": "Sign",
+  "setup": "Freecone pays 3.0% fixed and receives six-month SOFR on USD 50.0m, semi-annually, with 1.25 years left (payments in 0.25, 0.75 and 1.25 years). The next floating rate was set at 2.40%. The SOFR curve is flat at 2.60% continuously compounded, and SOFR is also the discount rate.",
+  "ask": "Freecone's current exposure on the swap (the positive part of its mark-to-market) is:",
+  "options": [
+   {
+    "label": "Zero: the mark-to-market is negative, so exposure floors at 0",
+    "correct": true
+   },
+   {
+    "label": "About +USD 0.34m: the swap is an asset to Freecone",
+    "correct": false,
+    "why": "Flipped the sign of the mark-to-market. Freecone receives floating (2.4%, then about 2.6%) and pays 3.0%, so every net payment is a small outflow."
+   },
+   {
+    "label": "About USD 0.34m: the size of the mark-to-market, whatever its sign",
+    "correct": false,
+    "why": "Used the absolute value. Exposure is $\\max(V, 0)$: a negative mark-to-market is what the bank owes, not what it stands to lose."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fixed leg per period",
+    "display": "$50{,}000{,}000 \\times 3.0\\%/2 = 750{,}000$",
+    "value": 750000
+   },
+   {
+    "label": "Floating, later periods",
+    "display": "$50\\text{m} \\times (e^{0.026 \\times 0.5} - 1) \\approx 654{,}243$",
+    "value": 654243.0
+   },
+   {
+    "label": "Net PVs (float minus fixed)",
+    "display": "$-149{,}028 - 93{,}907 - 92{,}695$",
+    "value": -335630.0
+   },
+   {
+    "label": "Exposure",
+    "display": "$\\max(-335{,}600,\\ 0) = 0$",
+    "value": 0
+   }
+  ],
+  "takeaway": "Paying 3.0% against floating rates of 2.4% to 2.6% means the swap is out of the money, so current exposure is zero however large the negative value.",
+  "check": {
+   "inputs": {
+    "N": 50000000.0,
+    "cf": 0.03,
+    "r": 0.026,
+    "c0": 0.024
+   },
+   "steps": [
+    {
+     "name": "fix",
+     "expr": "N*cf/2",
+     "value": 750000.0
+    },
+    {
+     "name": "flo1",
+     "expr": "N*c0/2",
+     "value": 600000.0
+    },
+    {
+     "name": "flo",
+     "expr": "N*(exp(r*0.5)-1)",
+     "value": 654243.37
+    },
+    {
+     "name": "pv1",
+     "expr": "(flo1-fix)*exp(-r*0.25)",
+     "value": -149028.16
+    },
+    {
+     "name": "pv2",
+     "expr": "(flo-fix)*exp(-r*0.75)",
+     "value": -93907.466
+    },
+    {
+     "name": "pv3",
+     "expr": "(flo-fix)*exp(-r*1.25)",
+     "value": -92694.57
+    },
+    {
+     "name": "mtm",
+     "expr": "pv1+pv2+pv3",
+     "value": -335630.2
+    },
+    {
+     "name": "exposure",
+     "expr": "max(mtm,0)",
+     "value": 0.0
+    },
+    {
+     "name": "slip_abs",
+     "expr": "abs(mtm)",
+     "value": 335630.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-02",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0904"
+  },
+  "trap_category": "Formula",
+  "setup": "A portfolio's future value is normally distributed with mean USD 0 and standard deviation USD 10m. The 95% one-sided normal quantile is 1.645.",
+  "ask": "95% potential future exposure (PFE) is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.6m",
+    "correct": false,
+    "why": "Left out $\\sigma$: used the 1.645 z-score as if it were already in dollars."
+   },
+   {
+    "label": "≈ USD 4.0m",
+    "correct": false,
+    "why": "Gave the expected exposure $\\sigma\\phi(0) = 0.399 \\times 10$ instead of the 95th percentile."
+   },
+   {
+    "label": "≈ USD 16m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 165m",
+    "correct": false,
+    "why": "Multiplied the z-score by the variance (100) instead of the standard deviation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Quantile",
+    "display": "$PFE_{95\\%} = \\mu + 1.645\\,\\sigma$",
+    "value": null
+   },
+   {
+    "label": "PFE",
+    "display": "$0 + 1.645 \\times 10 = 16.45$",
+    "value": 16.45
+   }
+  ],
+  "takeaway": "PFE is a high percentile of the future value (about 1.6 standard deviations here); expected exposure is only about 0.4 standard deviations.",
+  "check": {
+   "inputs": {
+    "sig": 10,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "pfe",
+     "expr": "z*sig",
+     "value": 16.45
+    },
+    {
+     "name": "slip_no_sigma",
+     "expr": "z",
+     "value": 1.645
+    },
+    {
+     "name": "slip_ee",
+     "expr": "0.3989*sig",
+     "value": 3.989
+    },
+    {
+     "name": "slip_var",
+     "expr": "z*sig^2",
+     "value": 164.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-03",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0911"
+  },
+  "trap_category": "Definition",
+  "setup": "A one-year trade has expected exposure (USD m) of 0.20, 0.35, 0.30, 0.40 and 0.25 at t = 0.2, 0.4, 0.6, 0.8 and 1.0 years. Effective EE is the non-decreasing version of EE: at each date it is the larger of that date's EE and the previous effective EE.",
+  "ask": "Effective EE at t = 1.0 year is:",
+  "options": [
+   {
+    "label": "USD 0.40m",
+    "correct": true
+   },
+   {
+    "label": "USD 0.25m",
+    "correct": false,
+    "why": "Read off the raw EE at t = 1.0. Effective EE never falls below an earlier value, and EE already reached 0.40 at t = 0.8."
+   },
+   {
+    "label": "USD 0.34m",
+    "correct": false,
+    "why": "Averaged the effective EE path (that is the effective EPE, one number for the whole profile), not the value at one date."
+   },
+   {
+    "label": "USD 0.35m",
+    "correct": false,
+    "why": "Stopped the running maximum at the 0.4-year peak and missed the new high of 0.40 at t = 0.8."
+   }
+  ],
+  "working": [
+   {
+    "label": "t = 0.4",
+    "display": "$\\max(0.20, 0.35) = 0.35$",
+    "value": 0.35
+   },
+   {
+    "label": "t = 0.6",
+    "display": "$\\max(0.35, 0.30) = 0.35$",
+    "value": 0.35
+   },
+   {
+    "label": "t = 0.8",
+    "display": "$\\max(0.35, 0.40) = 0.40$",
+    "value": 0.4
+   },
+   {
+    "label": "t = 1.0",
+    "display": "$\\max(0.40, 0.25) = 0.40$",
+    "value": 0.4
+   }
+  ],
+  "takeaway": "Effective EE is a running maximum: once exposure has peaked, the effective figure holds that level for the rest of the profile.",
+  "check": {
+   "inputs": {
+    "e1": 0.2,
+    "e2": 0.35,
+    "e3": 0.3,
+    "e4": 0.4,
+    "e5": 0.25
+   },
+   "steps": [
+    {
+     "name": "f2",
+     "expr": "max(e1,e2)",
+     "value": 0.35
+    },
+    {
+     "name": "f3",
+     "expr": "max(f2,e3)",
+     "value": 0.35
+    },
+    {
+     "name": "f4",
+     "expr": "max(f3,e4)",
+     "value": 0.4
+    },
+    {
+     "name": "f5",
+     "expr": "max(f4,e5)",
+     "value": 0.4
+    },
+    {
+     "name": "avg",
+     "expr": "(e1+e2+e3+e4+e5)/5",
+     "value": 0.3
+    },
+    {
+     "name": "eff_avg",
+     "expr": "(e1+f2+f3+f4+f5)/5",
+     "value": 0.34
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-04",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0914"
+  },
+  "trap_category": "Formula",
+  "setup": "For a zero-mean normal mark-to-market, expected exposure is approximately $EE(t) \\approx 0.4\\,\\sigma\\sqrt{t}$. The exposure has volatility $\\sigma = 9.0\\%$ per annum, with 250 trading days per year.",
+  "ask": "Expected exposure after 10 trading days is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.14%",
+    "correct": false,
+    "why": "Used $t = 0.04$ without the square root: $0.4 \\times 9.0\\% \\times 0.04$."
+   },
+   {
+    "label": "≈ 0.72%",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.6%",
+    "correct": false,
+    "why": "Left out the time factor altogether: $0.4 \\times 9.0\\%$ is the one-year figure."
+   },
+   {
+    "label": "≈ 11%",
+    "correct": false,
+    "why": "Put 10 (days) in as if it were years: $\\sqrt{10} = 3.16$ instead of $\\sqrt{0.04} = 0.2$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Time in years",
+    "display": "$t = 10/250 = 0.04$",
+    "value": 0.04
+   },
+   {
+    "label": "Root of time",
+    "display": "$\\sqrt{0.04} = 0.20$",
+    "value": 0.2
+   },
+   {
+    "label": "EE",
+    "display": "$0.4 \\times 9.0\\% \\times 0.20 = 0.72\\%$",
+    "value": 0.72
+   }
+  ],
+  "takeaway": "Exposure grows with the square root of time, and the clock must be in years: 10 days is a fifth of a one-year EE, not 4% of it.",
+  "check": {
+   "inputs": {
+    "sig": 9.0,
+    "d": 10,
+    "y": 250
+   },
+   "steps": [
+    {
+     "name": "t",
+     "expr": "d/y",
+     "value": 0.04
+    },
+    {
+     "name": "ee",
+     "expr": "0.4*sig*sqrt(t)",
+     "value": 0.72
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "0.4*sig*t",
+     "value": 0.144
+    },
+    {
+     "name": "slip_no_time",
+     "expr": "0.4*sig",
+     "value": 3.6
+    },
+    {
+     "name": "slip_10yrs",
+     "expr": "0.4*sig*sqrt(d)",
+     "value": 11.3842
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0919"
+  },
+  "trap_category": "Definition",
+  "setup": "A derivative's future value (USD m) is +10, +6, +3, +1, −1, −3, −6 or −10 with probabilities 5%, 10%, 15%, 20%, 20%, 15%, 10% and 5%. The distribution is symmetric, so its mean is zero.",
+  "ask": "The expected exposure (EE) of the position is:",
+  "options": [
+   {
+    "label": "Positive: only the gains count, so the average cannot be zero",
+    "correct": true
+   },
+   {
+    "label": "Zero: gains and losses cancel in a symmetric distribution",
+    "correct": false,
+    "why": "Averaged the future value instead of the exposure. The expected value is zero, but exposure is $\\max(V, 0)$, and the losses are floored at 0 rather than netted."
+   }
+  ],
+  "working": [
+   {
+    "label": "Positive part of each outcome",
+    "display": "$\\max(V, 0)$: 10, 6, 3, 1, then 0 for all four losses",
+    "value": null
+   },
+   {
+    "label": "EE",
+    "display": "$0.05(10) + 0.10(6) + 0.15(3) + 0.20(1) = 1.75$",
+    "value": 1.75
+   }
+  ],
+  "takeaway": "Expected exposure is the mean of the positive part, so it is positive whenever any outcome is positive, even when the expected value is zero.",
+  "check": {
+   "inputs": {
+    "p1": 0.05,
+    "p2": 0.1,
+    "p3": 0.15,
+    "p4": 0.2,
+    "v1": 10,
+    "v2": 6,
+    "v3": 3,
+    "v4": 1
+   },
+   "steps": [
+    {
+     "name": "mean",
+     "expr": "0",
+     "value": 0.0
+    },
+    {
+     "name": "ee",
+     "expr": "p1*v1+p2*v2+p3*v3+p4*v4",
+     "value": 1.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-06",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0924"
+  },
+  "trap_category": "Scope",
+  "setup": "An exposure profile has EE (USD m) of 3, 5, 8, 6 and 2, each held constant over the interval ending at dates 0.5, 1, 2, 3 and 5 years (interval lengths 0.5, 0.5, 1, 1 and 2 years). The plain average of the five EE figures is 4.8.",
+  "ask": "The time-weighted EPE over the five years is:",
+  "options": [
+   {
+    "label": "Below 4.8",
+    "correct": true
+   },
+   {
+    "label": "Above 4.8",
+    "correct": false,
+    "why": "Assumed the peak of 8 pulls the average up. But the low EE of 2 sits in the longest interval (2 years), while the 3 and 5 last only half a year each."
+   },
+   {
+    "label": "Equal to 4.8",
+    "correct": false,
+    "why": "Used the plain average of the five numbers, which treats a 6-month interval and a 2-year interval as equal weights."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total time",
+    "display": "$0.5 + 0.5 + 1 + 1 + 2 = 5$ years",
+    "value": 5
+   },
+   {
+    "label": "Weighted sum",
+    "display": "$3(0.5) + 5(0.5) + 8(1) + 6(1) + 2(2) = 22$",
+    "value": 22
+   },
+   {
+    "label": "EPE",
+    "display": "$22/5 = 4.4$",
+    "value": 4.4
+   }
+  ],
+  "takeaway": "EPE averages over time, not over observation dates: the longer an exposure level lasts, the more it counts.",
+  "check": {
+   "inputs": {
+    "a1": 3,
+    "a2": 5,
+    "a3": 8,
+    "a4": 6,
+    "a5": 2,
+    "l1": 0.5,
+    "l2": 0.5,
+    "l3": 1,
+    "l4": 1,
+    "l5": 2
+   },
+   "steps": [
+    {
+     "name": "simple",
+     "expr": "(a1+a2+a3+a4+a5)/5",
+     "value": 4.8
+    },
+    {
+     "name": "tot",
+     "expr": "l1+l2+l3+l4+l5",
+     "value": 5.0
+    },
+    {
+     "name": "wsum",
+     "expr": "a1*l1+a2*l2+a3*l3+a4*l4+a5*l5",
+     "value": 22.0
+    },
+    {
+     "name": "epe",
+     "expr": "wsum/tot",
+     "value": 4.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-07",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0928"
+  },
+  "trap_category": "Scope",
+  "setup": "At one future date a netting set has five equally likely mark-to-market outcomes to the bank (USD m): +40, +20, 0, −20, −30.",
+  "ask": "Expected exposure (EE) at that date is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2m",
+    "correct": false,
+    "why": "Averaged the raw outcomes, losses included: that is the expected mark-to-market, $(40 + 20 + 0 - 20 - 30)/5$."
+   },
+   {
+    "label": "≈ USD 12m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 30m",
+    "correct": false,
+    "why": "Averaged only the positive outcomes, $(40 + 20)/2$. The three scenarios with zero exposure still carry weight in the average."
+   },
+   {
+    "label": "≈ USD 110m",
+    "correct": false,
+    "why": "Added up the sizes of all five outcomes, positive and negative, and never divided by 5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exposure per outcome",
+    "display": "$\\max(V, 0)$: 40, 20, 0, 0, 0",
+    "value": null
+   },
+   {
+    "label": "EE",
+    "display": "$(40 + 20 + 0 + 0 + 0)/5 = 12$",
+    "value": 12
+   }
+  ],
+  "takeaway": "EE is the probability-weighted average of the positive part over all outcomes: losses count as zero exposure but keep their probability weight.",
+  "check": {
+   "inputs": {
+    "v1": 40,
+    "v2": 20,
+    "v3": 0,
+    "v4": -20,
+    "v5": -30
+   },
+   "steps": [
+    {
+     "name": "ee",
+     "expr": "(max(v1,0)+max(v2,0)+max(v3,0)+max(v4,0)+max(v5,0))/5",
+     "value": 12.0
+    },
+    {
+     "name": "slip_mean",
+     "expr": "(v1+v2+v3+v4+v5)/5",
+     "value": 2.0
+    },
+    {
+     "name": "slip_pos_only",
+     "expr": "(v1+v2)/2",
+     "value": 30.0
+    },
+    {
+     "name": "slip_sum_abs",
+     "expr": "abs(v1)+abs(v2)+abs(v3)+abs(v4)+abs(v5)",
+     "value": 110.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1164"
+  },
+  "trap_category": "Sign",
+  "setup": "A CLO waterfall is run on 1,000 simulated default threads. For the mezzanine bond the mean loss is USD 0.62m, the 10th-highest loss is USD 3.40m and the 50th-highest is USD 1.90m. Credit VaR is measured as the loss quantile minus the expected loss.",
+  "ask": "The 99% credit VaR, compared with USD 3.40m, is:",
+  "options": [
+   {
+    "label": "Below USD 3.40m: the expected loss comes off the quantile",
+    "correct": true
+   },
+   {
+    "label": "Equal to USD 3.40m: the quantile is the VaR",
+    "correct": false,
+    "why": "Reported the 99% loss quantile (10th of 1,000 is the top 1%) without netting off the 0.62 expected loss, as this definition requires."
+   },
+   {
+    "label": "Above USD 3.40m: the expected loss is added on",
+    "correct": false,
+    "why": "Added the expected loss instead of subtracting it. VaR here is the unexpected part of the loss."
+   }
+  ],
+  "working": [
+   {
+    "label": "99% quantile",
+    "display": "$1{,}000 \\times 1\\% = 10$th highest $= 3.40$",
+    "value": 3.4
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$3.40 - 0.62 = 2.78$",
+    "value": 2.78
+   }
+  ],
+  "takeaway": "Credit VaR on this definition is the quantile loss less the expected loss, so it sits below the raw tail loss.",
+  "check": {
+   "inputs": {
+    "q99": 3.4,
+    "q95": 1.9,
+    "el": 0.62
+   },
+   "steps": [
+    {
+     "name": "cvar",
+     "expr": "q99-el",
+     "value": 2.78
+    },
+    {
+     "name": "slip_95",
+     "expr": "q95-el",
+     "value": 1.28
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-09",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-12c-3"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A CVA analyst has counterparty credit spreads of 90, 110 and 130bp at 1, 2 and 3 years, with 40% recovery. The average hazard rate to maturity $T$ is spread/(1 − R) and survival is $e^{-\\bar\\lambda T}$. The 3-year average hazard is $\\bar\\lambda(3) = 2.17\\%$ and $V(2) = 0.964$. The probability of default in year 3 is $q_3 = V(2) - V(3)$.",
+  "ask": "$q_3$ compared with the 3-year average hazard of 2.17% is:",
+  "options": [
+   {
+    "label": "Above 2.17%",
+    "correct": true
+   },
+   {
+    "label": "Below 2.17%",
+    "correct": false,
+    "why": "Took the 2.17% average and shrank it for survival to year 2 (2.17% × 0.964 ≈ 2.09%). But the year-3 hazard is not the average: on a rising curve it is about 2.83%."
+   },
+   {
+    "label": "Equal to 2.17%",
+    "correct": false,
+    "why": "Used the average hazard to year 3 as if it were the default rate inside year 3. With spreads still widening, year 3's own hazard is higher."
+   }
+  ],
+  "working": [
+   {
+    "label": "Hazard to year 2",
+    "display": "$110/0.60 = 1.833\\%$",
+    "value": 1.8333
+   },
+   {
+    "label": "Survival to years 2 and 3",
+    "display": "$V(2) = e^{-0.01833 \\times 2} = 0.9640,\\ V(3) = e^{-0.02167 \\times 3} = 0.9371$",
+    "value": 0.93707
+   },
+   {
+    "label": "Year-3 default probability",
+    "display": "$0.9640 - 0.9371 = 2.69\\%$",
+    "value": 2.693
+   }
+  ],
+  "takeaway": "A rising spread curve means the forward hazard in a later year (here about 2.8%) is above the average hazard to that date; the interval default probability follows the forward rate.",
+  "check": {
+   "inputs": {
+    "s2": 0.011,
+    "s3": 0.013,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "lam2",
+     "expr": "s2/(1-R)",
+     "value": 0.018333333
+    },
+    {
+     "name": "lam3",
+     "expr": "s3/(1-R)",
+     "value": 0.021666667
+    },
+    {
+     "name": "V2",
+     "expr": "exp(-lam2*2)",
+     "value": 0.96399741
+    },
+    {
+     "name": "V3",
+     "expr": "exp(-lam3*3)",
+     "value": 0.93706746
+    },
+    {
+     "name": "q3",
+     "expr": "V2-V3",
+     "value": 0.026929951
+    },
+    {
+     "name": "fwd",
+     "expr": "3*lam3-2*lam2",
+     "value": 0.028333333
+    },
+    {
+     "name": "slip_shrunk",
+     "expr": "lam3*V2",
+     "value": 0.020886611
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-10",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-12c-4"
+  },
+  "trap_category": "Formula",
+  "setup": "An issuer has one zero-coupon bond: face JPY 50.0bn, 4 years to maturity. A calibrated Merton model gives firm assets of JPY 68.0bn and equity of JPY 24.5bn. The risk-free rate is 1.5% continuously compounded. The credit spread is the debt's continuously compounded yield $y$ (from $D = Fe^{-yT}$) minus the risk-free rate.",
+  "ask": "The credit spread on the debt is closest to:",
+  "options": [
+   {
+    "label": "≈ 20 bps",
+    "correct": false,
+    "why": "Scale slip (1/10): treated 1.98% as 0.198%."
+   },
+   {
+    "label": "≈ 198 bps",
+    "correct": true
+   },
+   {
+    "label": "≈ 498 bps",
+    "correct": false,
+    "why": "Added the risk-free rate to the 3.48% yield instead of subtracting it."
+   },
+   {
+    "label": "≈ 1,243 bps",
+    "correct": false,
+    "why": "Forgot to divide the log by $T = 4$: $0.1393 - 0.015$ gives 12.4%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Debt value",
+    "display": "$D = 68.0 - 24.5 = 43.5$",
+    "value": 43.5
+   },
+   {
+    "label": "Yield",
+    "display": "$y = -\\tfrac14 \\ln(43.5/50.0) = 3.48\\%$",
+    "value": 3.4816
+   },
+   {
+    "label": "Spread",
+    "display": "$3.48\\% - 1.5\\% = 1.98\\% = 198$ bps",
+    "value": 198.16
+   }
+  ],
+  "takeaway": "Debt = assets minus equity; the spread is the extra yield over risk-free, and the log of the debt-to-face ratio must be annualised by $T$.",
+  "check": {
+   "inputs": {
+    "V0": 68.0,
+    "E0": 24.5,
+    "F": 50.0,
+    "T": 4,
+    "rf": 0.015
+   },
+   "steps": [
+    {
+     "name": "D",
+     "expr": "V0-E0",
+     "value": 43.5
+    },
+    {
+     "name": "y",
+     "expr": "-log(D/F)/T",
+     "value": 0.034815517
+    },
+    {
+     "name": "cs_bp",
+     "expr": "(y-rf)*10000",
+     "value": 198.15517
+    },
+    {
+     "name": "slip_add_bp",
+     "expr": "(y+rf)*10000",
+     "value": 498.15517
+    },
+    {
+     "name": "slip_noT_bp",
+     "expr": "(-log(D/F)-rf)*10000",
+     "value": 1242.6207
+    },
+    {
+     "name": "slip_scale_bp",
+     "expr": "cs_bp/10",
+     "value": 19.815517
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-11",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-12c-6"
+  },
+  "trap_category": "Role",
+  "setup": "Two one-year zero-coupon bonds of the same issuer, with the same default probability and risk-neutral pricing. Risk-free rate 3.0%. The senior bond yields 5.5% with a 45% recovery rate; the subordinated bond recovers only 15%.",
+  "ask": "The subordinated bond's yield spread over the risk-free rate is closest to:",
+  "options": [
+   {
+    "label": "2.5%, the same as the senior bond",
+    "correct": false,
+    "why": "Same default probability does not mean same spread. The spread prices expected loss, PD × LGD, and the subordinated bond's LGD is higher."
+   },
+   {
+    "label": "3.9%",
+    "correct": true
+   },
+   {
+    "label": "4.7%",
+    "correct": false,
+    "why": "Scaled the senior 2.5% by 85/45. The senior LGD is 1 − 45% = 55%, so the ratio is 85/55 = 1.55."
+   },
+   {
+    "label": "7.5%",
+    "correct": false,
+    "why": "Scaled by the ratio of recovery rates (45/15 = 3). Spreads follow loss given default (55% vs 85%), not recovery."
+   }
+  ],
+  "working": [
+   {
+    "label": "Senior expected loss rate",
+    "display": "$1 - 1.03/1.055 = 2.37\\%$",
+    "value": 2.37
+   },
+   {
+    "label": "Issuer PD",
+    "display": "$2.37\\%/0.55 = 4.31\\%$",
+    "value": 4.308
+   },
+   {
+    "label": "Subordinated yield",
+    "display": "$1.03/(1 - 0.0431 \\times 0.85) - 1 = 6.92\\%$",
+    "value": 6.915
+   },
+   {
+    "label": "Spread over 3.0%",
+    "display": "$6.92\\% - 3.0\\% \\approx 3.9\\%$",
+    "value": 3.915
+   }
+  ],
+  "takeaway": "With one default probability, spreads scale with LGD: here 85/55 ≈ 1.55 times the senior spread.",
+  "check": {
+   "inputs": {
+    "rf": 0.03,
+    "ys": 0.055,
+    "Rs": 0.45,
+    "Rb": 0.15
+   },
+   "steps": [
+    {
+     "name": "L",
+     "expr": "1-(1+rf)/(1+ys)",
+     "value": 0.023696682
+    },
+    {
+     "name": "pd",
+     "expr": "L/(1-Rs)",
+     "value": 0.043084877
+    },
+    {
+     "name": "Lb",
+     "expr": "pd*(1-Rb)",
+     "value": 0.036622146
+    },
+    {
+     "name": "yb",
+     "expr": "(1+rf)/(1-Lb)-1",
+     "value": 0.069154741
+    },
+    {
+     "name": "sp_s",
+     "expr": "ys-rf",
+     "value": 0.025
+    },
+    {
+     "name": "sp_b",
+     "expr": "yb-rf",
+     "value": 0.039154741
+    },
+    {
+     "name": "slip_lgd",
+     "expr": "sp_s*(1-Rb)/Rs",
+     "value": 0.047222222
+    },
+    {
+     "name": "slip_rec",
+     "expr": "sp_s*Rs/Rb",
+     "value": 0.075
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-12",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-12g-3"
+  },
+  "trap_category": "Formula",
+  "setup": "One-factor Gaussian copula for a granular loan book: average one-year PD 1.5%, correlation $\\rho = 0.12$, 99.9% confidence. Worst-case default rate $= N\\!\\left(\\frac{N^{-1}(PD) + \\sqrt{\\rho}\\,N^{-1}(0.999)}{\\sqrt{1-\\rho}}\\right)$, with $N^{-1}(0.015) = -2.170$ and $N^{-1}(0.999) = 3.090$.",
+  "ask": "The 99.9% worst-case default rate is about how many times the 1.5% average?",
+  "options": [
+   {
+    "label": "About 1×: the same as the average",
+    "correct": false,
+    "why": "Dropped the correlation term. With $\\rho = 0$ the argument is just $N^{-1}(PD)$ and the worst case equals the average PD."
+   },
+   {
+    "label": "About 2×",
+    "correct": false,
+    "why": "Used $\\rho = 0.12$ in place of $\\sqrt{\\rho} = 0.346$, so the stress term was far too small: the argument is −1.92, giving about 2.8%."
+   },
+   {
+    "label": "About 8×",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Argument of N",
+    "display": "$(-2.170 + 0.346 \\times 3.090)/0.938 = -1.172$",
+    "value": -1.1722
+   },
+   {
+    "label": "Worst-case default rate",
+    "display": "$N(-1.172) \\approx 12.1\\%$",
+    "value": 0.12055790323537402
+   },
+   {
+    "label": "Multiple of average",
+    "display": "$12.1\\%/1.5\\% \\approx 8$",
+    "value": 8.037
+   }
+  ],
+  "takeaway": "Correlation makes the 1-in-1,000 default rate a multiple of the average, here about 8 times. Note the factor loading is $\\sqrt{\\rho}$, not $\\rho$.",
+  "check": {
+   "inputs": {
+    "pd": 0.015,
+    "rho": 0.12,
+    "z1": -2.1701,
+    "z2": 3.0902
+   },
+   "steps": [
+    {
+     "name": "arg",
+     "expr": "(z1+sqrt(rho)*z2)/sqrt(1-rho)",
+     "value": -1.1722024
+    },
+    {
+     "name": "wcdr",
+     "expr": "0.12056",
+     "value": 0.12056
+    },
+    {
+     "name": "mult",
+     "expr": "wcdr/pd",
+     "value": 8.0373333
+    },
+    {
+     "name": "arg_slip",
+     "expr": "(z1+rho*z2)/sqrt(1-rho)",
+     "value": -1.9180347
+    },
+    {
+     "name": "wcdr_slip",
+     "expr": "0.02755",
+     "value": 0.02755
+    },
+    {
+     "name": "mult_slip",
+     "expr": "wcdr_slip/pd",
+     "value": 1.8366667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-1: Fundamentals of Credit Risk",
+  "reading_id": "CR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0019"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Firm A has assets of USD 1,000m funded by USD 600m of debt at 4% and USD 400m of equity. EBIT is USD 90m before credit losses of USD 50m. Tax is 25% of positive pre-tax income.",
+  "ask": "Firm A's ROE after credit losses is closest to:",
+  "options": [
+   {
+    "label": "12.4%",
+    "correct": false,
+    "why": "Ignored the credit losses: $(90 - 24) \\times 0.75 / 400$."
+   },
+   {
+    "label": "7.5%",
+    "correct": false,
+    "why": "Forgot the interest on the debt: $(90 - 50) \\times 0.75 / 400$."
+   },
+   {
+    "label": "4.0%",
+    "correct": false,
+    "why": "Skipped the tax: pre-tax income of 16 over equity of 400."
+   },
+   {
+    "label": "3.0%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest",
+    "display": "$600 \\times 4\\% = 24$",
+    "value": 24
+   },
+   {
+    "label": "Pre-tax income",
+    "display": "$90 - 50 - 24 = 16$",
+    "value": 16
+   },
+   {
+    "label": "Net income",
+    "display": "$16 \\times 0.75 = 12$",
+    "value": 12
+   },
+   {
+    "label": "ROE",
+    "display": "$12/400 = 3.0\\%$",
+    "value": 3.0
+   }
+  ],
+  "takeaway": "Leverage amplifies ROE only if the asset return exceeds the cost of debt; credit losses and tax come off before dividing by equity.",
+  "check": {
+   "inputs": {
+    "ebit": 90,
+    "loss": 50,
+    "debt": 600,
+    "i": 0.04,
+    "eq": 400,
+    "tax": 0.25
+   },
+   "steps": [
+    {
+     "name": "int",
+     "expr": "debt*i",
+     "value": 24.0
+    },
+    {
+     "name": "pretax",
+     "expr": "ebit-loss-int",
+     "value": 16.0
+    },
+    {
+     "name": "ni",
+     "expr": "pretax*(1-tax)",
+     "value": 12.0
+    },
+    {
+     "name": "roe",
+     "expr": "ni/eq*100",
+     "value": 3.0
+    },
+    {
+     "name": "slip_no_tax",
+     "expr": "pretax/eq*100",
+     "value": 4.0
+    },
+    {
+     "name": "slip_no_int",
+     "expr": "(ebit-loss)*(1-tax)/eq*100",
+     "value": 7.5
+    },
+    {
+     "name": "slip_no_loss",
+     "expr": "(ebit-int)*(1-tax)/eq*100",
+     "value": 12.375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-14",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-3: Credit Risk Management",
+  "reading_id": "CR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0075"
+  },
+  "trap_category": "Role",
+  "setup": "A revolving facility has a USD 5.0m limit, of which USD 2.5m is drawn today. For the next 12 months the analyst sets PD at 2%, expects the drawn balance at default to be USD 3.2m, and expects to recover 55% of a defaulted balance.",
+  "ask": "Which amount belongs in $EL = PD \\times EAD \\times LGD$ as EAD?",
+  "options": [
+   {
+    "label": "USD 3.2m, the balance expected at default",
+    "correct": true
+   },
+   {
+    "label": "USD 2.5m, today's drawn balance",
+    "correct": false,
+    "why": "Used the current balance. Borrowers tend to draw more as they approach default, so EAD is the expected drawn amount at default; this would give EL = USD 22,500."
+   },
+   {
+    "label": "USD 5.0m, the full limit",
+    "correct": false,
+    "why": "Assumed the line is fully drawn at default. That ignores the analyst's estimate of USD 3.2m and would overstate EL at USD 45,000."
+   }
+  ],
+  "working": [
+   {
+    "label": "LGD",
+    "display": "$1 - 55\\% = 45\\%$",
+    "value": 0.45
+   },
+   {
+    "label": "Expected loss",
+    "display": "$0.02 \\times 3{,}200{,}000 \\times 0.45 = 28{,}800$",
+    "value": 28800
+   }
+  ],
+  "takeaway": "EAD is the exposure expected at default, not today's drawn amount and not the limit.",
+  "check": {
+   "inputs": {
+    "pd": 0.02,
+    "lgd": 0.45,
+    "drawn": 2500000.0,
+    "ead": 3200000.0,
+    "limit": 5000000.0
+   },
+   "steps": [
+    {
+     "name": "el",
+     "expr": "pd*ead*lgd",
+     "value": 28800.0
+    },
+    {
+     "name": "slip_drawn",
+     "expr": "pd*drawn*lgd",
+     "value": 22500.0
+    },
+    {
+     "name": "slip_limit",
+     "expr": "pd*limit*lgd",
+     "value": 45000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-15",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-7: Credit Scoring and Retail Credit Risk Management",
+  "reading_id": "CR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0270"
+  },
+  "trap_category": "Formula",
+  "setup": "A mortgage score band has a historical annual loss rate of 2.4%, where loss rate = PD × LGD, and an LGD of 60%.",
+  "ask": "The implied PD of the band is:",
+  "options": [
+   {
+    "label": "Above 2.4%",
+    "correct": true
+   },
+   {
+    "label": "Below 2.4% (about 1.4%)",
+    "correct": false,
+    "why": "Multiplied the loss rate by LGD: $2.4\\% \\times 0.6 = 1.44\\%$. That is applying LGD twice, since the loss rate already includes it."
+   },
+   {
+    "label": "Equal to 2.4%",
+    "correct": false,
+    "why": "Treated the loss rate as if it were the default rate, which holds only if LGD were 100%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rearrange",
+    "display": "$PD = \\text{loss rate}/LGD$",
+    "value": null
+   },
+   {
+    "label": "PD",
+    "display": "$2.4\\%/0.60 = 4.0\\%$",
+    "value": 4.0
+   }
+  ],
+  "takeaway": "Loss rate is PD scaled down by LGD, so going back to PD must scale up: any LGD below 100% puts PD above the loss rate.",
+  "check": {
+   "inputs": {
+    "lr": 0.024,
+    "lgd": 0.6
+   },
+   "steps": [
+    {
+     "name": "pd",
+     "expr": "lr/lgd",
+     "value": 0.04
+    },
+    {
+     "name": "slip",
+     "expr": "lr*lgd",
+     "value": 0.0144
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-16",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0437"
+  },
+  "trap_category": "Sequence",
+  "setup": "One-year transitions: a B-rated credit goes to A with 10%, stays B with 70% and defaults with 20%; an A-rated credit stays A with 80% and falls to B with 20% (A cannot default directly); default is absorbing. Years are independent. A USD 15.0m loan to a B-rated borrower runs for three years.",
+  "ask": "The three-year cumulative probability of default for the B-rated borrower is closest to:",
+  "options": [
+   {
+    "label": "20%",
+    "correct": false,
+    "why": "Used the one-year default probability and ignored that the borrower can default in year 2 or 3."
+   },
+   {
+    "label": "44%",
+    "correct": true
+   },
+   {
+    "label": "60%",
+    "correct": false,
+    "why": "Added three years of 20%. Only the borrowers who have not yet defaulted can default later, and some of the 20% each year is already gone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Default in year 1",
+    "display": "$0.20$",
+    "value": 0.2
+   },
+   {
+    "label": "B, then default in year 2",
+    "display": "$0.70 \\times 0.20 = 0.14$",
+    "value": 0.14
+   },
+   {
+    "label": "Year 3 paths",
+    "display": "$B{\\to}B{\\to}B{\\to}D = 0.098$ and $B{\\to}A{\\to}B{\\to}D = 0.004$",
+    "value": 0.102
+   },
+   {
+    "label": "Cumulative PD",
+    "display": "$0.20 + 0.14 + 0.098 + 0.004 = 44.2\\%$",
+    "value": 0.442
+   }
+  ],
+  "takeaway": "Cumulative PD sums default paths over the years, each weighted by survival; it is well below the sum of the annual rates. EL on the loan is $15.0 \\times 44.2\\% \\times 60\\% = $ USD 3.98m.",
+  "check": {
+   "inputs": {
+    "pBA": 0.1,
+    "pBB": 0.7,
+    "pBD": 0.2,
+    "pAA": 0.8,
+    "pAB": 0.2
+   },
+   "steps": [
+    {
+     "name": "y1",
+     "expr": "pBD",
+     "value": 0.2
+    },
+    {
+     "name": "y2",
+     "expr": "pBB*pBD",
+     "value": 0.14
+    },
+    {
+     "name": "y3a",
+     "expr": "pBB*pBB*pBD",
+     "value": 0.098
+    },
+    {
+     "name": "y3b",
+     "expr": "pBA*pAB*pBD",
+     "value": 0.004
+    },
+    {
+     "name": "cum",
+     "expr": "y1+y2+y3a+y3b",
+     "value": 0.442
+    },
+    {
+     "name": "slip_triple",
+     "expr": "3*pBD",
+     "value": 0.6
+    },
+    {
+     "name": "el",
+     "expr": "15*cum*0.6",
+     "value": 3.978
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-17",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0438"
+  },
+  "trap_category": "Formula",
+  "setup": "A BBB-rated company has a 91.93% chance of keeping its rating over one year, and rating changes in different years are independent. Taking off 8.07 points for each of four years would give 67.7%.",
+  "ask": "The true four-year probability of still being BBB is:",
+  "options": [
+   {
+    "label": "Above 67.7%",
+    "correct": true
+   },
+   {
+    "label": "Below 67.7%",
+    "correct": false,
+    "why": "Thought risks pile up faster than a straight line. But each year's 8.07% loss applies only to the shrinking share still BBB, so the later losses are smaller than 8.07 points."
+   }
+  ],
+  "working": [
+   {
+    "label": "Compound the retention",
+    "display": "$0.9193^4 = 0.7142$",
+    "value": 0.7142
+   },
+   {
+    "label": "Straight-line figure",
+    "display": "$100\\% - 4 \\times 8.07\\% = 67.7\\%$",
+    "value": 67.7
+   }
+  ],
+  "takeaway": "Independent annual retention compounds multiplicatively: $p^n$, which stays above the straight-line $1 - n(1-p)$.",
+  "check": {
+   "inputs": {
+    "p": 0.9193
+   },
+   "steps": [
+    {
+     "name": "t4",
+     "expr": "p^4*100",
+     "value": 71.421512
+    },
+    {
+     "name": "lin",
+     "expr": "(1-4*(1-p))*100",
+     "value": 67.72
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-18",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0490"
+  },
+  "trap_category": "Formula",
+  "setup": "In a default-correlation framework each of eight firms either defaults or survives over the horizon. A joint outcome says which of the eight firms defaulted.",
+  "ask": "The number of distinct joint default/survival outcomes is closest to:",
+  "options": [
+   {
+    "label": "≈ 16",
+    "correct": false,
+    "why": "Added instead of multiplied: $2 \\times 8$."
+   },
+   {
+    "label": "≈ 64",
+    "correct": false,
+    "why": "Squared the number of firms: $8^2$."
+   },
+   {
+    "label": "≈ 256",
+    "correct": true
+   },
+   {
+    "label": "≈ 40,000",
+    "correct": false,
+    "why": "Counted orderings of the firms, $8! = 40{,}320$, rather than default/survive states."
+   }
+  ],
+  "working": [
+   {
+    "label": "Two states per firm",
+    "display": "$2 \\times 2 \\times \\dots \\times 2$ (eight times)",
+    "value": null
+   },
+   {
+    "label": "Outcomes",
+    "display": "$2^8 = 256$",
+    "value": 256
+   }
+  ],
+  "takeaway": "Binary outcomes multiply: $n$ firms give $2^n$ joint outcomes, which is why default-correlation frameworks explode in size.",
+  "check": {
+   "inputs": {
+    "n": 8
+   },
+   "steps": [
+    {
+     "name": "outcomes",
+     "expr": "2^n",
+     "value": 256.0
+    },
+    {
+     "name": "slip_2n",
+     "expr": "2*n",
+     "value": 16.0
+    },
+    {
+     "name": "slip_sq",
+     "expr": "n^2",
+     "value": 64.0
+    },
+    {
+     "name": "slip_fact",
+     "expr": "8*7*6*5*4*3*2*1",
+     "value": 40320.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-19",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0515"
+  },
+  "trap_category": "Role",
+  "setup": "In a single-factor model each firm's asset return is $a_i = \\beta_i m + \\sqrt{1-\\beta_i^2}\\,\\epsilon_i$, with $m$ and every $\\epsilon_i$ independent standard normals. Firm X has $\\beta = 0.8$ and Firm Y has $\\beta = 0.9$.",
+  "ask": "The correlation between the asset returns of X and Y is:",
+  "options": [
+   {
+    "label": "Below 0.80",
+    "correct": true
+   },
+   {
+    "label": "Between 0.80 and 0.90",
+    "correct": false,
+    "why": "Averaged the two betas (0.85). The only link between the firms is the common factor, so the correlation is the product, not a mean."
+   },
+   {
+    "label": "Above 0.90",
+    "correct": false,
+    "why": "Added the betas (1.7) or took the larger one. A correlation cannot exceed 1, and betas below 1 multiply to something smaller than either."
+   }
+  ],
+  "working": [
+   {
+    "label": "Covariance via the common factor",
+    "display": "$\\text{Cov}(a_X, a_Y) = \\beta_X \\beta_Y \\text{Var}(m)$",
+    "value": null
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.8 \\times 0.9 = 0.72$",
+    "value": 0.72
+   }
+  ],
+  "takeaway": "In the single-factor model, correlation is the product of the two betas, so it is below both of them.",
+  "check": {
+   "inputs": {
+    "bx": 0.8,
+    "by": 0.9
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "bx*by",
+     "value": 0.72
+    },
+    {
+     "name": "avg",
+     "expr": "(bx+by)/2",
+     "value": 0.85
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-20",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0517"
+  },
+  "trap_category": "Formula",
+  "setup": "In the single-factor model two firms in the same industry share the same beta to the market factor, and the correlation between their asset returns is estimated at 0.36.",
+  "ask": "The beta of each firm is closest to:",
+  "options": [
+   {
+    "label": "0.13",
+    "correct": false,
+    "why": "Squared the correlation instead of taking its root."
+   },
+   {
+    "label": "0.18",
+    "correct": false,
+    "why": "Split the correlation between the two firms, $0.36/2$. Betas multiply, they do not add."
+   },
+   {
+    "label": "0.36",
+    "correct": false,
+    "why": "Set beta equal to the correlation. That would give $\\rho = 0.36^2 = 0.13$."
+   },
+   {
+    "label": "0.60",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Equal betas",
+    "display": "$\\rho = \\beta \\times \\beta = \\beta^2$",
+    "value": null
+   },
+   {
+    "label": "Beta",
+    "display": "$\\beta = \\sqrt{0.36} = 0.60$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "With equal betas, asset correlation is $\\beta^2$, so each beta is the square root of the correlation, and larger than it.",
+  "check": {
+   "inputs": {
+    "rho": 0.36
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "sqrt(rho)",
+     "value": 0.6
+    },
+    {
+     "name": "slip_sq",
+     "expr": "rho^2",
+     "value": 0.1296
+    },
+    {
+     "name": "slip_half",
+     "expr": "rho/2",
+     "value": 0.18
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq11-21",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0523"
+  },
+  "trap_category": "Scope",
+  "setup": "A copula simulation of two USD 1.0m loans gives 1,000 one-year scenarios. Portfolio loss is USD 1.0m in 8 scenarios, USD 0.6m in 22, USD 0.4m in 40 and zero in the other 930.",
+  "ask": "Counting from the worst scenario, the loss of the 10th-worst scenario (the 99% level) is:",
+  "options": [
+   {
+    "label": "USD 1.0m",
+    "correct": false,
+    "why": "Took the maximum loss. Only the 8 worst scenarios (0.8%) lose 1.0m; the 10th worst is already past them."
+   },
+   {
+    "label": "USD 0.6m",
+    "correct": true
+   },
+   {
+    "label": "USD 0.4m",
+    "correct": false,
+    "why": "Went too far into the tail: the 10th worst is within the 22 scenarios at 0.6m (ranks 9 to 30). Losses of 0.4m start at rank 31."
+   }
+  ],
+  "working": [
+   {
+    "label": "1% of scenarios",
+    "display": "$1{,}000 \\times 1\\% = 10$",
+    "value": 10
+   },
+   {
+    "label": "Ranks by loss",
+    "display": "ranks 1–8 lose 1.0m; ranks 9–30 lose 0.6m; ranks 31–70 lose 0.4m",
+    "value": null
+   },
+   {
+    "label": "99% credit VaR",
+    "display": "rank 10 is in the 0.6m group $\\Rightarrow$ USD 0.6m",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "Quantile from a simulation: rank the losses from the worst and read the entry at the tail-probability mark.",
+  "check": {
+   "inputs": {
+    "n": 1000,
+    "conf": 0.99,
+    "c1": 8,
+    "c2": 22,
+    "c3": 40
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "n*(1-conf)",
+     "value": 10.0
+    },
+    {
+     "name": "cum1",
+     "expr": "c1",
+     "value": 8.0
+    },
+    {
+     "name": "cum2",
+     "expr": "c1+c2",
+     "value": 30.0
+    },
+    {
+     "name": "cum3",
+     "expr": "c1+c2+c3",
+     "value": 70.0
+    }
+   ]
+  }
+ }
+]

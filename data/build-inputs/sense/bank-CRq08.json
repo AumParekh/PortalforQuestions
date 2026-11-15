@@ -1,0 +1,1301 @@
+[
+ {
+  "id": "SC-bank-CRq08-01",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0479"
+  },
+  "trap_category": "Formula",
+  "setup": "Two credits: a BBB+ name with a 1-year default probability of 0.65% and a BBB- name with 1.25%. Were their defaults independent, the joint default probability would be only about 0.008%. In fact their default correlation is 9% (0.09).",
+  "ask": "The joint default probability is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.00008",
+    "correct": false,
+    "why": "Used the independence value $\\pi_1\\pi_2$ and ignored the correlation term altogether."
+   },
+   {
+    "label": "≈ 0.0009",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.009",
+    "correct": false,
+    "why": "Added $\\sigma_1\\sigma_2 = 0.0089$ without multiplying by $\\rho$: the covariance term needs the 0.09."
+   },
+   {
+    "label": "≈ 0.08",
+    "correct": false,
+    "why": "Typed the correlation as 9 instead of 0.09 (percent as decimal), which makes the covariance term 100 times too big."
+   }
+  ],
+  "working": [
+   {
+    "label": "Product of standard deviations",
+    "display": "$\\sqrt{0.0065 \\times 0.9935} \\times \\sqrt{0.0125 \\times 0.9875} = 0.0804 \\times 0.1111 = 0.00893$",
+    "value": 0.00893
+   },
+   {
+    "label": "Correlation term",
+    "display": "$0.09 \\times 0.00893 = 0.000804$",
+    "value": 0.000804
+   },
+   {
+    "label": "Independence term",
+    "display": "$0.0065 \\times 0.0125 = 0.0000813$",
+    "value": 8.13e-05
+   },
+   {
+    "label": "Joint default probability",
+    "display": "$0.000804 + 0.0000813 \\approx 0.00089$",
+    "value": 0.000885
+   }
+  ],
+  "takeaway": "Joint PD $= \\rho\\sigma_1\\sigma_2 + \\pi_1\\pi_2$. Even 9% correlation makes joint default about ten times the independent figure.",
+  "check": {
+   "inputs": {
+    "p1": 0.0065,
+    "p2": 0.0125,
+    "rho": 0.09
+   },
+   "steps": [
+    {
+     "name": "sdprod",
+     "expr": "sqrt(p1*(1-p1))*sqrt(p2*(1-p2))",
+     "value": 0.00892821
+    },
+    {
+     "name": "corr_term",
+     "expr": "rho*sdprod",
+     "value": 0.000803538
+    },
+    {
+     "name": "indep",
+     "expr": "p1*p2",
+     "value": 8.125e-05
+    },
+    {
+     "name": "joint",
+     "expr": "corr_term+indep",
+     "value": 0.000884788
+    },
+    {
+     "name": "slip_no_corr",
+     "expr": "indep",
+     "value": 8.125e-05
+    },
+    {
+     "name": "slip_no_rho",
+     "expr": "sdprod+indep",
+     "value": 0.00900946
+    },
+    {
+     "name": "slip_rho_9",
+     "expr": "9*sdprod+indep",
+     "value": 0.0804351
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-02",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0481"
+  },
+  "trap_category": "Formula",
+  "setup": "Two credits (A- and BBB+) have 1-year default probabilities of 2.5% and 3.3%, and the probability that both default is 0.8%. Default correlation is the covariance $\\pi_{12} - \\pi_1\\pi_2$ divided by the product of the two Bernoulli standard deviations $\\sqrt{\\pi(1-\\pi)}$.",
+  "ask": "The implied default correlation is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.72%",
+    "correct": false,
+    "why": "Stopped at the covariance (0.007175) and never divided by the standard deviations."
+   },
+   {
+    "label": "≈ 2.1%",
+    "correct": false,
+    "why": "Divided by the sum of the two standard deviations instead of their product."
+   },
+   {
+    "label": "≈ 26%",
+    "correct": true
+   },
+   {
+    "label": "≈ 920%",
+    "correct": false,
+    "why": "Divided by the product of the variances $\\pi(1-\\pi)$ instead of the standard deviations; a correlation can never exceed 100%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Covariance",
+    "display": "$0.008 - 0.025 \\times 0.033 = 0.007175$",
+    "value": 0.007175
+   },
+   {
+    "label": "Standard deviations",
+    "display": "$\\sqrt{0.025 \\times 0.975} = 0.156$, $\\sqrt{0.033 \\times 0.967} = 0.179$",
+    "value": null
+   },
+   {
+    "label": "Product",
+    "display": "$0.156 \\times 0.179 = 0.0279$",
+    "value": 0.02789
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.007175 / 0.0279 \\approx 0.257$",
+    "value": 0.2573
+   }
+  ],
+  "takeaway": "Default correlation divides by the standard deviations, not the variances: with small $\\pi$, $\\sigma \\approx \\sqrt{\\pi}$ is far bigger than $\\pi$.",
+  "check": {
+   "inputs": {
+    "p1": 0.025,
+    "p2": 0.033,
+    "j": 0.008
+   },
+   "steps": [
+    {
+     "name": "cov",
+     "expr": "j-p1*p2",
+     "value": 0.007175
+    },
+    {
+     "name": "s1",
+     "expr": "sqrt(p1*(1-p1))",
+     "value": 0.156125
+    },
+    {
+     "name": "s2",
+     "expr": "sqrt(p2*(1-p2))",
+     "value": 0.178637
+    },
+    {
+     "name": "rho",
+     "expr": "cov/(s1*s2)",
+     "value": 0.257264
+    },
+    {
+     "name": "slip_cov_only",
+     "expr": "cov",
+     "value": 0.007175
+    },
+    {
+     "name": "slip_sum_sd",
+     "expr": "cov/(s1+s2)",
+     "value": 0.0214332
+    },
+    {
+     "name": "slip_variances",
+     "expr": "cov/(p1*(1-p1)*p2*(1-p2))",
+     "value": 9.22437
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-03",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0482"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A BBB credit (default probability 0.3%) and a CCC credit (0.5%) have a joint default probability of 0.02% over the horizon. You have the covariance, $0.0002 - 0.003 \\times 0.005 = 0.000185$, and still need the divisor of the default-correlation formula, $\\sigma_1\\sigma_2 = \\sqrt{\\pi_1(1-\\pi_1)\\pi_2(1-\\pi_2)}$.",
+  "ask": "The divisor $\\sigma_1\\sigma_2$ is closest to:",
+  "options": [
+   {
+    "label": "0.000015",
+    "correct": false,
+    "why": "Multiplied the two variances $\\pi(1-\\pi)$ and forgot the final square root (this is about $\\pi_1\\pi_2$)."
+   },
+   {
+    "label": "0.0039",
+    "correct": true
+   },
+   {
+    "label": "0.125",
+    "correct": false,
+    "why": "Added the two standard deviations (0.0547 + 0.0705) instead of multiplying them."
+   }
+  ],
+  "working": [
+   {
+    "label": "Standard deviations",
+    "display": "$\\sqrt{0.003 \\times 0.997} = 0.0547$, $\\sqrt{0.005 \\times 0.995} = 0.0705$",
+    "value": null
+   },
+   {
+    "label": "Divisor",
+    "display": "$0.0547 \\times 0.0705 \\approx 0.00386$",
+    "value": 0.003857
+   },
+   {
+    "label": "Default correlation",
+    "display": "$0.000185 / 0.00386 \\approx 0.048$",
+    "value": 0.04796
+   }
+  ],
+  "takeaway": "The divisor is a product of standard deviations, a few thousandths here; the answer is a correlation near 0.05, not 0.5 or 5.",
+  "check": {
+   "inputs": {
+    "p1": 0.003,
+    "p2": 0.005,
+    "j": 0.0002
+   },
+   "steps": [
+    {
+     "name": "cov",
+     "expr": "j-p1*p2",
+     "value": 0.000185
+    },
+    {
+     "name": "s1",
+     "expr": "sqrt(p1*(1-p1))",
+     "value": 0.05469
+    },
+    {
+     "name": "s2",
+     "expr": "sqrt(p2*(1-p2))",
+     "value": 0.0705337
+    },
+    {
+     "name": "div",
+     "expr": "s1*s2",
+     "value": 0.00385749
+    },
+    {
+     "name": "rho",
+     "expr": "cov/div",
+     "value": 0.0479587
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "p1*(1-p1)*p2*(1-p2)",
+     "value": 1.48802e-05
+    },
+    {
+     "name": "slip_sum",
+     "expr": "s1+s2",
+     "value": 0.125224
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-04",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0485"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two prime counterparties each have a 1-year default probability of 5.0%, modelled as Bernoulli events with default correlation 0.5. The joint default probability is the sum of a correlation term $\\rho\\sigma_1\\sigma_2$ and an independence term $\\pi_1\\pi_2$.",
+  "ask": "Which term dominates the joint default probability?",
+  "options": [
+   {
+    "label": "The correlation term, by a wide margin",
+    "correct": true
+   },
+   {
+    "label": "The independence term $\\pi_1\\pi_2$",
+    "correct": false,
+    "why": "$\\pi_1\\pi_2 = 0.0025$ is the product of two small numbers; the correlation term is $0.5 \\times 0.0475 = 0.02375$, about ten times larger."
+   },
+   {
+    "label": "They are about equal",
+    "correct": false,
+    "why": "Roughly equal would need $\\rho$ near 0.05 (the correlation term would then be about 0.0024)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Correlation term",
+    "display": "$0.5 \\times \\sqrt{0.05 \\times 0.95}^{\\,2} = 0.5 \\times 0.0475 = 0.02375$",
+    "value": 0.02375
+   },
+   {
+    "label": "Independence term",
+    "display": "$0.05 \\times 0.05 = 0.0025$",
+    "value": 0.0025
+   },
+   {
+    "label": "Joint default probability",
+    "display": "$0.02375 + 0.0025 = 2.625\\%$",
+    "value": 0.02625
+   }
+  ],
+  "takeaway": "At moderate correlation the covariance term swamps $\\pi_1\\pi_2$: a 5% name pair with $\\rho = 0.5$ defaults jointly about 2.6% of the time, not 0.25%.",
+  "check": {
+   "inputs": {
+    "p": 0.05,
+    "rho": 0.5
+   },
+   "steps": [
+    {
+     "name": "corr_term",
+     "expr": "rho*p*(1-p)",
+     "value": 0.02375
+    },
+    {
+     "name": "indep",
+     "expr": "p*p",
+     "value": 0.0025
+    },
+    {
+     "name": "ratio",
+     "expr": "corr_term/indep",
+     "value": 9.5
+    },
+    {
+     "name": "joint",
+     "expr": "corr_term+indep",
+     "value": 0.02625
+    },
+    {
+     "name": "slip_rho_005",
+     "expr": "0.05*p*(1-p)",
+     "value": 0.002375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0518"
+  },
+  "trap_category": "Definition",
+  "setup": "Two credits each have a 1-year default probability of 2.0%. In a single-factor model with asset correlation 0.25, their joint default probability is 0.136%. Default correlation is $(\\pi_{12} - \\pi^2) / (\\pi(1-\\pi))$.",
+  "ask": "Compared with the asset correlation of 0.25, the implied default correlation is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "About the same",
+    "correct": false,
+    "why": "Treated asset correlation and default correlation as one quantity. They differ: default correlation sits well below asset correlation."
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Saw the joint probability (0.136%) is over three times the independent 0.04% and read that as a bigger correlation; the ratio is not the correlation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independent level",
+    "display": "$\\pi^2 = 0.02^2 = 0.0004$ (0.040%)",
+    "value": 0.0004
+   },
+   {
+    "label": "Excess joint probability",
+    "display": "$0.00136 - 0.0004 = 0.00096$",
+    "value": 0.00096
+   },
+   {
+    "label": "Divide by $\\pi(1-\\pi)$",
+    "display": "$0.00096 / (0.02 \\times 0.98) = 0.049$",
+    "value": 0.049
+   }
+  ],
+  "takeaway": "Default correlation is much smaller than the asset correlation that produces it: here 0.25 of asset correlation gives only about 0.05 of default correlation.",
+  "check": {
+   "inputs": {
+    "pi": 0.02,
+    "j": 0.00136,
+    "asset": 0.25
+   },
+   "steps": [
+    {
+     "name": "excess",
+     "expr": "j-pi*pi",
+     "value": 0.00096
+    },
+    {
+     "name": "rho_def",
+     "expr": "excess/(pi*(1-pi))",
+     "value": 0.0489796
+    },
+    {
+     "name": "gap",
+     "expr": "asset-rho_def",
+     "value": 0.20102
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-06",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0491"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 1 million portfolio holds 100 equal credits, each with a 3% default probability and zero recovery. Defaults are independent, so the number of defaults is binomial with $n = 100$, $\\pi = 0.03$ (mean 3). The 95th percentile of the number of defaults is 6.",
+  "ask": "The 95th-percentile portfolio loss is:",
+  "options": [
+   {
+    "label": "USD 30,000",
+    "correct": false,
+    "why": "Used the expected number of defaults (3) instead of the 95th percentile (6); that is the expected loss, not the loss quantile."
+   },
+   {
+    "label": "USD 60,000",
+    "correct": true
+   },
+   {
+    "label": "USD 600,000",
+    "correct": false,
+    "why": "Sized each credit at USD 100,000 (divided by 10 instead of 100) before multiplying by 6 defaults."
+   }
+  ],
+  "working": [
+   {
+    "label": "Position size",
+    "display": "$1{,}000{,}000 / 100 = 10{,}000$",
+    "value": 10000
+   },
+   {
+    "label": "95th percentile loss",
+    "display": "$6 \\times 10{,}000 = 60{,}000$",
+    "value": 60000
+   },
+   {
+    "label": "Expected loss",
+    "display": "$0.03 \\times 1{,}000{,}000 = 30{,}000$",
+    "value": 30000
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$60{,}000 - 30{,}000 = 30{,}000$",
+    "value": 30000
+   }
+  ],
+  "takeaway": "Credit VaR is the loss quantile minus expected loss. Here 6 defaults against a mean of 3 gives a VaR equal to the expected loss.",
+  "check": {
+   "inputs": {
+    "V": 1000000,
+    "n": 100,
+    "p": 0.03,
+    "k95": 6
+   },
+   "steps": [
+    {
+     "name": "pos",
+     "expr": "V/n",
+     "value": 10000.0
+    },
+    {
+     "name": "q",
+     "expr": "k95*pos",
+     "value": 60000.0
+    },
+    {
+     "name": "EL",
+     "expr": "V*p",
+     "value": 30000.0
+    },
+    {
+     "name": "VaR",
+     "expr": "q-EL",
+     "value": 30000.0
+    },
+    {
+     "name": "slip_mean",
+     "expr": "p*n*pos",
+     "value": 30000.0
+    },
+    {
+     "name": "slip_pos",
+     "expr": "k95*V/10",
+     "value": 600000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0493"
+  },
+  "trap_category": "Scope",
+  "setup": "A USD 1,000,000 portfolio has 20 positions, each with a 2% default probability and zero recovery. All 20 are obligations of the same obligor, so default correlation is 1 and the portfolio behaves like one credit: a 2% chance of losing everything, 98% of losing nothing.",
+  "ask": "The 99th-percentile portfolio loss is:",
+  "options": [
+   {
+    "label": "USD 0",
+    "correct": false,
+    "why": "Read the 98% chance of no loss as covering the 99% level; but the worst 1% of outcomes lies inside the 2% default scenario."
+   },
+   {
+    "label": "USD 20,000",
+    "correct": false,
+    "why": "Quoted the expected loss ($0.02 \\times$ 1,000,000), which is the mean, not a quantile."
+   },
+   {
+    "label": "USD 1,000,000",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail to cover",
+    "display": "$1 - 0.99 = 1\\%$",
+    "value": 0.01
+   },
+   {
+    "label": "Compare with default probability",
+    "display": "$2\\% > 1\\%$, so the 1% tail sits inside the default outcome",
+    "value": null
+   },
+   {
+    "label": "99th percentile loss",
+    "display": "full portfolio, USD 1,000,000",
+    "value": 1000000
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$1{,}000{,}000 - 20{,}000 = 980{,}000$",
+    "value": 980000
+   }
+  ],
+  "takeaway": "At correlation 1, if the default probability exceeds the tail (1 minus the confidence level), the loss quantile is the whole portfolio.",
+  "check": {
+   "inputs": {
+    "V": 1000000,
+    "p": 0.02,
+    "tail": 0.01
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "p-tail",
+     "value": 0.01
+    },
+    {
+     "name": "EL",
+     "expr": "V*p",
+     "value": 20000.0
+    },
+    {
+     "name": "q",
+     "expr": "V",
+     "value": 1000000.0
+    },
+    {
+     "name": "VaR",
+     "expr": "q-EL",
+     "value": 980000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0497"
+  },
+  "trap_category": "Sign",
+  "setup": "A USD 100 million portfolio of credits that all behave identically (default correlation 1). Each has a 2% default probability and zero recovery. Credit VaR is the loss quantile at the confidence level minus the expected loss.",
+  "ask": "At 95% confidence the credit VaR is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Took the 95th-percentile loss as the full USD 100 million. But default has only a 2% chance, below the 5% tail, so the quantile is not the full loss."
+   },
+   {
+    "label": "Exactly zero",
+    "correct": false,
+    "why": "Stopped at the zero loss quantile and did not subtract the USD 2 million expected loss."
+   },
+   {
+    "label": "Negative",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail to cover",
+    "display": "$1 - 0.95 = 5\\%$, larger than the 2% default probability",
+    "value": 0.05
+   },
+   {
+    "label": "95th percentile loss",
+    "display": "0, because 98% of outcomes have no loss",
+    "value": 0
+   },
+   {
+    "label": "Expected loss",
+    "display": "$0.02 \\times 100 = \\text{USD } 2\\text{m}$",
+    "value": 2.0
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$0 - 2 = -\\text{USD } 2\\text{m}$",
+    "value": -2.0
+   }
+  ],
+  "takeaway": "Credit VaR is a quantile minus the mean, so it can be negative when the default probability is below the tail probability.",
+  "check": {
+   "inputs": {
+    "V": 100,
+    "p": 0.02,
+    "tail": 0.05,
+    "q": 0
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "tail-p",
+     "value": 0.03
+    },
+    {
+     "name": "EL",
+     "expr": "V*p",
+     "value": 2.0
+    },
+    {
+     "name": "VaR",
+     "expr": "q-EL",
+     "value": -2.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-09",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0503"
+  },
+  "trap_category": "Sequence",
+  "setup": "A USD 1,000,000 portfolio holds 50 equal credits, each with a 2% default probability and zero recovery. With default correlation 0 the 99th percentile is 4 defaults. With correlation 1 the portfolio acts as one credit that defaults entirely with probability 2%.",
+  "ask": "Moving correlation from 0 to 1 raises the 99% credit VaR by about:",
+  "options": [
+   {
+    "label": "≈ USD 20,000",
+    "correct": false,
+    "why": "Quoted the expected loss; it is the same in both cases, so it cancels out of the change."
+   },
+   {
+    "label": "≈ USD 60,000",
+    "correct": false,
+    "why": "Reported the correlation-0 VaR (80,000 - 20,000) rather than the change."
+   },
+   {
+    "label": "≈ USD 920,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 9,200,000",
+    "correct": false,
+    "why": "Scale slip (10×): the change cannot exceed the USD 1,000,000 portfolio."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR at correlation 0",
+    "display": "$4 \\times 20{,}000 - 20{,}000 = 60{,}000$",
+    "value": 60000
+   },
+   {
+    "label": "VaR at correlation 1",
+    "display": "$1{,}000{,}000 - 20{,}000 = 980{,}000$",
+    "value": 980000
+   },
+   {
+    "label": "Increase",
+    "display": "$980{,}000 - 60{,}000 = 920{,}000$",
+    "value": 920000
+   }
+  ],
+  "takeaway": "Expected loss is unchanged by correlation; only the tail moves. Going from 0 to 1 takes VaR from about 6% to about 98% of the portfolio.",
+  "check": {
+   "inputs": {
+    "V": 1000000,
+    "n": 50,
+    "p": 0.02,
+    "k99": 4
+   },
+   "steps": [
+    {
+     "name": "EL",
+     "expr": "V*p",
+     "value": 20000.0
+    },
+    {
+     "name": "VaR0",
+     "expr": "k99*V/n-EL",
+     "value": 60000.0
+    },
+    {
+     "name": "VaR1",
+     "expr": "V-EL",
+     "value": 980000.0
+    },
+    {
+     "name": "inc",
+     "expr": "VaR1-VaR0",
+     "value": 920000.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "inc*10",
+     "value": 9200000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-10",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0504"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 600 million portfolio holds 40 equal credits, each with a 3.0% default probability and loss given default 80%. Default correlation is 0. The 99th percentile of the number of defaults is 4. You are building credit VaR as the 99th-percentile loss minus expected loss.",
+  "ask": "The expected loss is closest to:",
+  "options": [
+   {
+    "label": "USD 14.4m",
+    "correct": true
+   },
+   {
+    "label": "USD 18m",
+    "correct": false,
+    "why": "Left out the 80% loss given default: $600 \\times 0.03 = 18$."
+   },
+   {
+    "label": "USD 12m",
+    "correct": false,
+    "why": "Took the loss on a single default ($15 \\times 0.8$) instead of scaling by the number of expected defaults."
+   },
+   {
+    "label": "USD 48m",
+    "correct": false,
+    "why": "That is the 99th-percentile loss (4 defaults), not the expected loss."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exposure per credit",
+    "display": "$600 / 40 = 15$",
+    "value": 15
+   },
+   {
+    "label": "Expected loss",
+    "display": "$600 \\times 0.03 \\times 0.80 = 14.4$",
+    "value": 14.4
+   },
+   {
+    "label": "99th percentile loss",
+    "display": "$4 \\times 15 \\times 0.80 = 48.0$",
+    "value": 48.0
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$48.0 - 14.4 = 33.6$",
+    "value": 33.6
+   }
+  ],
+  "takeaway": "Expected loss uses PD $\\times$ LGD $\\times$ exposure; the quantile loss uses the defaults count $\\times$ LGD $\\times$ exposure. VaR is the gap.",
+  "check": {
+   "inputs": {
+    "V": 600,
+    "n": 40,
+    "p": 0.03,
+    "lgd": 0.8,
+    "k99": 4
+   },
+   "steps": [
+    {
+     "name": "pos",
+     "expr": "V/n",
+     "value": 15.0
+    },
+    {
+     "name": "EL",
+     "expr": "V*p*lgd",
+     "value": 14.4
+    },
+    {
+     "name": "q",
+     "expr": "k99*pos*lgd",
+     "value": 48.0
+    },
+    {
+     "name": "VaR",
+     "expr": "q-EL",
+     "value": 33.6
+    },
+    {
+     "name": "slip_no_lgd",
+     "expr": "V*p",
+     "value": 18.0
+    },
+    {
+     "name": "slip_one",
+     "expr": "pos*lgd",
+     "value": 12.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-11",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0506"
+  },
+  "trap_category": "Sign",
+  "setup": "Single-factor credit model. A position has $\\beta = 0.8$ and default probability 1%, so $k = N^{-1}(0.01) = -2.33$. For a loss level $x = 0.01$, also $N^{-1}(x) = -2.33$. The market value that produces that loss level is $m = [k - \\sqrt{1-\\beta^2}\\,N^{-1}(x)]/\\beta$.",
+  "ask": "The market-factor value $m$ is:",
+  "options": [
+   {
+    "label": "Between -2.33 and 0",
+    "correct": true
+   },
+   {
+    "label": "Below -2.33",
+    "correct": false,
+    "why": "Added the second term instead of subtracting it: $(-2.33 - 1.398)/0.8 = -4.66$."
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Flipped the sign of $k$ (used +2.33), which gives $m = +4.66$; a bad market outcome must be negative."
+   }
+  ],
+  "working": [
+   {
+    "label": "Idiosyncratic weight",
+    "display": "$\\sqrt{1 - 0.8^2} = 0.6$",
+    "value": 0.6
+   },
+   {
+    "label": "Numerator",
+    "display": "$-2.33 - 0.6 \\times (-2.33) = -0.932$",
+    "value": -0.932
+   },
+   {
+    "label": "Market value",
+    "display": "$-0.932 / 0.8 = -1.165$",
+    "value": -1.165
+   }
+  ],
+  "takeaway": "Subtracting a negative term pulls the numerator toward zero, so $m$ is a milder bad draw than $k$ itself.",
+  "check": {
+   "inputs": {
+    "beta": 0.8,
+    "k": -2.33,
+    "nx": -2.33
+   },
+   "steps": [
+    {
+     "name": "root",
+     "expr": "sqrt(1-beta^2)",
+     "value": 0.6
+    },
+    {
+     "name": "num",
+     "expr": "k-root*nx",
+     "value": -0.932
+    },
+    {
+     "name": "m",
+     "expr": "num/beta",
+     "value": -1.165
+    },
+    {
+     "name": "slip_add",
+     "expr": "(k+root*nx)/beta",
+     "value": -4.66
+    },
+    {
+     "name": "slip_k_sign",
+     "expr": "(-k-root*nx)/beta",
+     "value": 4.66
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-12",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0508"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Single-factor model: conditional default probability $p(m) = N[(k - \\beta m)/\\sqrt{1-\\beta^2}]$. A firm has $\\beta = 0.60$ and $k = -1.645$ (unconditional PD 5.0%). In a downturn the market factor is $m = -1.41$.",
+  "ask": "The argument of $N(\\cdot)$ is closest to:",
+  "options": [
+   {
+    "label": "-0.80",
+    "correct": false,
+    "why": "Left out the division by $\\sqrt{1-\\beta^2} = 0.8$: the numerator alone is $-0.799$."
+   },
+   {
+    "label": "-1.00",
+    "correct": true
+   },
+   {
+    "label": "-2.06",
+    "correct": false,
+    "why": "Ignored the downturn: $-1.645 / 0.8 = -2.06$ is just the unconditional threshold rescaled."
+   },
+   {
+    "label": "-3.11",
+    "correct": false,
+    "why": "Used $m = +1.41$ (sign slip), giving $(-1.645 - 0.846)/0.8 = -3.11$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Idiosyncratic weight",
+    "display": "$\\sqrt{1 - 0.36} = 0.80$",
+    "value": 0.8
+   },
+   {
+    "label": "Numerator",
+    "display": "$-1.645 - 0.60 \\times (-1.41) = -0.799$",
+    "value": -0.799
+   },
+   {
+    "label": "Argument",
+    "display": "$-0.799 / 0.80 \\approx -1.00$",
+    "value": -0.9988
+   },
+   {
+    "label": "Conditional PD",
+    "display": "$N(-1.00) \\approx 15.9\\%$, up from 5.0%",
+    "value": null
+   }
+  ],
+  "takeaway": "A bad factor draw ($m < 0$) shifts the numerator toward zero; the rescaled argument near $-1$ means roughly a 16% default probability, triple the 5% baseline.",
+  "check": {
+   "inputs": {
+    "beta": 0.6,
+    "k": -1.645,
+    "m": -1.41
+   },
+   "steps": [
+    {
+     "name": "root",
+     "expr": "sqrt(1-beta^2)",
+     "value": 0.8
+    },
+    {
+     "name": "num",
+     "expr": "k-beta*m",
+     "value": -0.799
+    },
+    {
+     "name": "arg",
+     "expr": "num/root",
+     "value": -0.99875
+    },
+    {
+     "name": "slip_no_root",
+     "expr": "num",
+     "value": -0.799
+    },
+    {
+     "name": "slip_no_shift",
+     "expr": "k/root",
+     "value": -2.05625
+    },
+    {
+     "name": "slip_m_sign",
+     "expr": "(k+beta*m)/root",
+     "value": -3.11375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0510"
+  },
+  "trap_category": "Definition",
+  "setup": "Single-factor model: asset return $a = \\beta m + \\sqrt{1-\\beta^2}\\,\\epsilon$, with $m$ (market) and $\\epsilon$ (idiosyncratic) independent standard normals. A firm's systematic risk is 70% of its return variance and idiosyncratic risk the other 30%.",
+  "ask": "The loading $\\beta$ is closest to:",
+  "options": [
+   {
+    "label": "0.30",
+    "correct": false,
+    "why": "Used the idiosyncratic share (30%) instead of the systematic share."
+   },
+   {
+    "label": "0.55",
+    "correct": false,
+    "why": "Took the square root of the idiosyncratic share, $\\sqrt{0.30} = 0.55$."
+   },
+   {
+    "label": "0.70",
+    "correct": false,
+    "why": "Treated the variance share as the loading itself; $\\beta^2$ is the share, so $\\beta$ needs a square root."
+   },
+   {
+    "label": "0.84",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance share",
+    "display": "$\\beta^2 = 0.70$",
+    "value": 0.7
+   },
+   {
+    "label": "Loading",
+    "display": "$\\beta = \\sqrt{0.70} \\approx 0.84$",
+    "value": 0.8367
+   },
+   {
+    "label": "Check",
+    "display": "$\\sqrt{1-\\beta^2} = \\sqrt{0.30} = 0.55$ is the idiosyncratic weight",
+    "value": 0.5477
+   }
+  ],
+  "takeaway": "The loading $\\beta$ is the square root of the systematic variance share; $\\beta^2$ is the share itself.",
+  "check": {
+   "inputs": {
+    "sys": 0.7
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "sqrt(sys)",
+     "value": 0.83666
+    },
+    {
+     "name": "idio",
+     "expr": "sqrt(1-sys)",
+     "value": 0.547723
+    },
+    {
+     "name": "slip_idio_share",
+     "expr": "1-sys",
+     "value": 0.3
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-14",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0548"
+  },
+  "trap_category": "Formula",
+  "setup": "One-factor Gaussian copula with common copula correlation 0.25, so each loading is $a = \\sqrt{0.25} = 0.5$. Each company has a 10% 5-year default probability ($N^{-1}(0.10) = -1.2816$). The common factor is at its 1st percentile, $F = -2.326$. Conditional PD is $N[(N^{-1}(Q) - aF)/\\sqrt{1-a^2}]$.",
+  "ask": "The conditional 5-year default probability is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.24%",
+    "correct": false,
+    "why": "Added $aF$ instead of subtracting it, pushing the argument to $-2.82$ and the PD far below the unconditional 10%."
+   },
+   {
+    "label": "≈ 1%",
+    "correct": false,
+    "why": "Read the factor's 1st percentile as the default probability."
+   },
+   {
+    "label": "≈ 10%",
+    "correct": false,
+    "why": "Ignored the factor shock and quoted the unconditional PD."
+   },
+   {
+    "label": "≈ 45%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Factor effect",
+    "display": "$aF = 0.5 \\times (-2.326) = -1.163$",
+    "value": -1.163
+   },
+   {
+    "label": "Numerator",
+    "display": "$-1.2816 - (-1.163) = -0.1184$",
+    "value": -0.1186
+   },
+   {
+    "label": "Argument",
+    "display": "$-0.1184 / \\sqrt{0.75} = -0.137$",
+    "value": -0.1369
+   },
+   {
+    "label": "Conditional PD",
+    "display": "$N(-0.137) \\approx 44.6\\%$ (just under 50%)",
+    "value": null
+   }
+  ],
+  "takeaway": "A 1st-percentile factor almost cancels the firm's default threshold, so the conditional PD lands just under 50% even though the unconditional PD is 10%.",
+  "check": {
+   "inputs": {
+    "Q": -1.2816,
+    "rho": 0.25,
+    "F": -2.326
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "sqrt(rho)",
+     "value": 0.5
+    },
+    {
+     "name": "num",
+     "expr": "Q-a*F",
+     "value": -0.1186
+    },
+    {
+     "name": "arg",
+     "expr": "num/sqrt(1-a^2)",
+     "value": -0.136947
+    },
+    {
+     "name": "slip_sign_arg",
+     "expr": "(Q+a*F)/sqrt(1-a^2)",
+     "value": -2.82278
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq08-15",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0549"
+  },
+  "trap_category": "Sequence",
+  "setup": "A Gaussian-copula simulation tracks default over 5 years. A company's cumulative default probabilities at years 1 to 5 are 1%, 3%, 6%, 10% and 15%. Its simulated standard normal draw is $x = -1.60$, and $N(-1.60) = 5.5\\%$. The company defaults in the first year whose cumulative probability exceeds that figure.",
+  "ask": "In which year does it default?",
+  "options": [
+   {
+    "label": "Year 2",
+    "correct": false,
+    "why": "Picked the last year whose cumulative probability (3%) is still below 5.5%, which is the year it survives, not the year it defaults."
+   },
+   {
+    "label": "Year 3",
+    "correct": true
+   },
+   {
+    "label": "No default within 5 years",
+    "correct": false,
+    "why": "Thought $x$ must fall below the 1% threshold ($-2.33$); the draw only has to fall below the year-3 threshold."
+   }
+  ],
+  "working": [
+   {
+    "label": "Draw as probability",
+    "display": "$N(-1.60) = 5.5\\%$",
+    "value": 0.055
+   },
+   {
+    "label": "Year 2 cumulative",
+    "display": "$3\\% < 5.5\\%$: still alive",
+    "value": 0.03
+   },
+   {
+    "label": "Year 3 cumulative",
+    "display": "$6\\% > 5.5\\%$: defaults in year 3",
+    "value": 0.06
+   }
+  ],
+  "takeaway": "Compare the draw with the cumulative thresholds: default happens in the first year whose cumulative probability exceeds $N(x)$.",
+  "check": {
+   "inputs": {
+    "u": 0.055,
+    "c1": 0.01,
+    "c2": 0.03,
+    "c3": 0.06,
+    "c4": 0.1
+   },
+   "steps": [
+    {
+     "name": "alive_y2",
+     "expr": "c2-u",
+     "value": -0.025
+    },
+    {
+     "name": "dead_y3",
+     "expr": "c3-u",
+     "value": 0.005
+    }
+   ]
+  }
+ }
+]

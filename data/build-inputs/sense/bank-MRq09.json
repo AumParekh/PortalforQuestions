@@ -1,0 +1,1822 @@
+[
+ {
+  "id": "SC-bank-MRq09-01",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0005"
+  },
+  "trap_category": "Sequence",
+  "setup": "Historical-simulation 95% VaR, 260-day window, cut-off = the $(\\alpha n + 1)$th worst return. Yesterday's worst 1-day returns (%) at ranks 12 to 15: $-6.40, -6.25, -6.05, -5.99$. Today the stock falls 10%, a new worst return, and a mild $-3\\%$ return leaves the window (it was never in the tail).",
+  "ask": "Today's cut-off return is closest to:",
+  "options": [
+   {
+    "label": "−6.40%",
+    "correct": false,
+    "why": "Shifted the cut-off two ranks down, as if a second extreme return had entered. Only one did."
+   },
+   {
+    "label": "−6.25%",
+    "correct": true
+   },
+   {
+    "label": "−6.05%",
+    "correct": false,
+    "why": "Kept yesterday's cut-off. The new $-10\\%$ becomes the worst return and pushes every tail return down one rank."
+   },
+   {
+    "label": "−5.99%",
+    "correct": false,
+    "why": "Moved the cut-off the wrong way, as if the leaving $-3\\%$ return had been in the tail. It was not, so nothing moves up."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cut-off rank",
+    "display": "$0.05 \\times 260 + 1 = 14$",
+    "value": 14
+   },
+   {
+    "label": "Effect of the new worst return",
+    "display": "Yesterday's 13th worst ($-6.25\\%$) is now the 14th worst",
+    "value": 13
+   },
+   {
+    "label": "Today's cut-off",
+    "display": "$-6.25\\%$ (the leaving $-3\\%$ changes nothing in the tail)",
+    "value": -6.25
+   }
+  ],
+  "takeaway": "A new extreme return enters the tail and shifts every rank down by one, so the cut-off becomes yesterday's one-rank-earlier return. A mild return leaving the window changes nothing.",
+  "check": {
+   "inputs": {
+    "alpha": 0.05,
+    "n": 260,
+    "r13": -6.25,
+    "r14": -6.05
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "alpha*n+1",
+     "value": 14.0
+    },
+    {
+     "name": "old_rank",
+     "expr": "k-1",
+     "value": 13.0
+    },
+    {
+     "name": "shift",
+     "expr": "r13-r14",
+     "value": -0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-02",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0006"
+  },
+  "trap_category": "Polarity",
+  "setup": "Stock A's last 260 daily returns are strongly negatively skewed: a long left tail (large losses) and a short right tail (large gains). Portfolio P1 is long a given amount of A and P2 is short the same amount. Both use 99% historical-simulation VaR.",
+  "ask": "Which portfolio has the larger 99% VaR?",
+  "options": [
+   {
+    "label": "P1 (long)",
+    "correct": true
+   },
+   {
+    "label": "P2 (short)",
+    "correct": false,
+    "why": "Matched the short position to the long left tail. The short loses when A rises, so it is exposed to the short right tail."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Assumed equal position size means equal VaR. HS reads the tail of the actual return distribution, and each side faces a different tail."
+   }
+  ],
+  "working": [
+   {
+    "label": "Long portfolio's loss tail",
+    "display": "The long loses when returns fall, so its VaR sits in the long left tail",
+    "value": null
+   },
+   {
+    "label": "Short portfolio's loss tail",
+    "display": "The short loses when returns rise, so its VaR sits in the short right tail",
+    "value": null
+   },
+   {
+    "label": "Compare",
+    "display": "The left tail is the more extreme one, so the long portfolio has the larger VaR",
+    "value": null
+   }
+  ],
+  "takeaway": "For HS VaR, read the tail on the side where the position loses. Negative skew punishes the long, not the short."
+ },
+ {
+  "id": "SC-bank-MRq09-03",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0007"
+  },
+  "trap_category": "Scope",
+  "setup": "95% historical-simulation VaR, 260-day window, cut-off = 14th worst return $= -6.05\\%$. Yesterday the position was worth USD 100, so VaR was USD 6.05. Today the stock rises 10%. Today's rally does not enter the left tail and the return leaving the window is not in the tail either.",
+  "ask": "Today's USD VaR, compared with yesterday's USD 6.05, is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Kept the cut-off return $-6.05\\%$ and the old USD 100 base. The percentage is unchanged, but it applies to today's larger position."
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Took a rally to mean less risk. VaR is a loss percentage times the current position value, and the position just got bigger."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cut-off return",
+    "display": "Unchanged at $-6.05\\%$",
+    "value": 6.05
+   },
+   {
+    "label": "New position value",
+    "display": "$100 \\times 1.10 = 110$",
+    "value": 110
+   },
+   {
+    "label": "Today's VaR",
+    "display": "$6.05\\% \\times 110 = \\text{USD } 6.655$",
+    "value": 6.655
+   }
+  ],
+  "takeaway": "In HS VaR the percentage cut-off comes from the return history, but the dollar figure is scaled by today's position value.",
+  "check": {
+   "inputs": {
+    "V0": 100,
+    "g": 0.1,
+    "c": 6.05
+   },
+   "steps": [
+    {
+     "name": "V1",
+     "expr": "V0*(1+g)",
+     "value": 110.0
+    },
+    {
+     "name": "yesterday",
+     "expr": "c/100*V0",
+     "value": 6.05
+    },
+    {
+     "name": "today",
+     "expr": "c/100*V1",
+     "value": 6.655
+    },
+    {
+     "name": "diff",
+     "expr": "today-yesterday",
+     "value": 0.605
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-04",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0008"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "An asset is worth USD 100 at the start of the year and USD 112 at the end, and pays a USD 1.00 interim dividend (treat it as received at year-end). The discount rate is 3.0%. The discounted P/L is $(P_1 + D)/(1+d) - P_0$.",
+  "ask": "The discounted year-end proceeds $(112 + 1)/1.03$ are closest to:",
+  "options": [
+   {
+    "label": "USD 109.7",
+    "correct": true
+   },
+   {
+    "label": "USD 113.0",
+    "correct": false,
+    "why": "Left the proceeds undiscounted. The 3% rate must reduce a year-end amount."
+   },
+   {
+    "label": "USD 116.4",
+    "correct": false,
+    "why": "Compounded instead of discounting: $113 \\times 1.03$. Discounting divides by $1+d$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-end proceeds",
+    "display": "$112 + 1 = 113$",
+    "value": 113
+   },
+   {
+    "label": "Discounted",
+    "display": "$113 / 1.03 = 109.71$",
+    "value": 109.71
+   },
+   {
+    "label": "PV of profit",
+    "display": "$109.71 - 100 = \\text{USD } 9.71$",
+    "value": 9.71
+   }
+  ],
+  "takeaway": "Discount the year-end value plus the dividend first, then subtract the starting value. Proceeds land just under 110 and the profit just under 10.",
+  "check": {
+   "inputs": {
+    "P1": 112,
+    "D": 1,
+    "d": 0.03,
+    "P0": 100
+   },
+   "steps": [
+    {
+     "name": "proceeds",
+     "expr": "P1+D",
+     "value": 113.0
+    },
+    {
+     "name": "pv",
+     "expr": "proceeds/(1+d)",
+     "value": 109.709
+    },
+    {
+     "name": "profit",
+     "expr": "pv-P0",
+     "value": 9.70874
+    },
+    {
+     "name": "slip_undisc",
+     "expr": "proceeds",
+     "value": 113.0
+    },
+    {
+     "name": "slip_compound",
+     "expr": "proceeds*(1+d)",
+     "value": 116.39
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-05",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0058"
+  },
+  "trap_category": "Definition",
+  "setup": "Expected shortfall can be written as a weighted average of loss quantiles, with weights that sum (integrate) to 1. For 95% ES, quantiles outside the worst 5% get zero weight and every quantile inside the 5% tail gets the same constant weight.",
+  "ask": "That constant tail weight is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.05",
+    "correct": false,
+    "why": "Used the tail probability itself as the weight. The tail would then carry only $0.05 \\times 0.05 = 0.0025$ of the total weight."
+   },
+   {
+    "label": "≈ 1",
+    "correct": false,
+    "why": "Gave each tail quantile weight 1, as in a plain average. That carries only $0.05$ of total weight, not 1."
+   },
+   {
+    "label": "≈ 5",
+    "correct": false,
+    "why": "Read 5% as 5. The tail would then carry $0.05 \\times 5 = 0.25$ of the total weight."
+   },
+   {
+    "label": "≈ 20",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail probability",
+    "display": "$1 - 0.95 = 0.05$",
+    "value": 0.05
+   },
+   {
+    "label": "Constant weight",
+    "display": "$1 / 0.05 = 20$",
+    "value": 20
+   },
+   {
+    "label": "Check",
+    "display": "$0.05 \\times 20 = 1$, so the weights sum to 1",
+    "value": 1
+   }
+  ],
+  "takeaway": "ES weight is $1/(1-c)$ on each tail quantile, so the weights re-total to 1. A thin tail needs a large weight.",
+  "check": {
+   "inputs": {
+    "c": 0.95
+   },
+   "steps": [
+    {
+     "name": "tail",
+     "expr": "1-c",
+     "value": 0.05
+    },
+    {
+     "name": "w",
+     "expr": "1/tail",
+     "value": 20.0
+    },
+    {
+     "name": "total",
+     "expr": "w*tail",
+     "value": 1.0
+    },
+    {
+     "name": "slip_alpha",
+     "expr": "tail",
+     "value": 0.05
+    },
+    {
+     "name": "slip_one",
+     "expr": "1",
+     "value": 1.0
+    },
+    {
+     "name": "slip_five",
+     "expr": "tail*100",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-06",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0068"
+  },
+  "trap_category": "Formula",
+  "setup": "Estimating 95% ES for a standard normal loss by slicing the 5% tail into five equal-probability slices gives four tail VaRs: 96%: 1.75, 97%: 1.88, 98%: 2.05, 99%: 2.33. The ES estimate is their simple average. The midpoint of the lowest and highest is $(1.75 + 2.33)/2 = 2.04$.",
+  "ask": "Compared with that midpoint, the average of the four tail VaRs is:",
+  "options": [
+   {
+    "label": "Below 2.04",
+    "correct": true
+   },
+   {
+    "label": "Above 2.04",
+    "correct": false,
+    "why": "Expected a fatter tail to push the average above the midpoint. The tail VaRs are not evenly spaced: the gaps widen (0.13, 0.17, 0.28), so more of them sit near the low end."
+   },
+   {
+    "label": "Equal to 2.04",
+    "correct": false,
+    "why": "Assumed the four tail VaRs are evenly spaced, as in a straight line. Normal quantiles climb faster further out."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sum",
+    "display": "$1.75 + 1.88 + 2.05 + 2.33 = 8.01$",
+    "value": 8.01
+   },
+   {
+    "label": "Average",
+    "display": "$8.01 / 4 = 2.00$",
+    "value": 2.0025
+   },
+   {
+    "label": "Midpoint",
+    "display": "$(1.75 + 2.33)/2 = 2.04$",
+    "value": 2.04
+   },
+   {
+    "label": "Gap",
+    "display": "$2.00 - 2.04 < 0$: below the midpoint",
+    "value": -0.0375
+   }
+  ],
+  "takeaway": "Normal tail quantiles speed up as you go out, so their average sits below the midpoint of the lowest and highest. The estimate is about 2.00.",
+  "check": {
+   "inputs": {
+    "q1": 1.75,
+    "q2": 1.88,
+    "q3": 2.05,
+    "q4": 2.33
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(q1+q2+q3+q4)/4",
+     "value": 2.0025
+    },
+    {
+     "name": "mid",
+     "expr": "(q1+q4)/2",
+     "value": 2.04
+    },
+    {
+     "name": "gap",
+     "expr": "avg-mid",
+     "value": -0.0375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-07",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0245"
+  },
+  "trap_category": "Formula",
+  "setup": "An equity portfolio holds $N = 3{,}000$ stocks, each treated as its own risk factor, so a full covariance matrix has $N^2 = 9{,}000{,}000$ cells. Each distinct pair of different factors needs one covariance term.",
+  "ask": "The number of distinct covariance terms between different factors is about:",
+  "options": [
+   {
+    "label": "Half of $N^2$ (about 4.5 million)",
+    "correct": true
+   },
+   {
+    "label": "All of $N^2$ (about 9 million)",
+    "correct": false,
+    "why": "Counted both $(i,j)$ and $(j,i)$, and the diagonal. A covariance between two factors is one number, and the diagonal holds variances."
+   },
+   {
+    "label": "About $N$ (3,000)",
+    "correct": false,
+    "why": "Counted one term per factor and left out the cross terms. Every pair of factors needs its own covariance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pairs",
+    "display": "$N(N-1)/2 = 3{,}000 \\times 2{,}999 / 2$",
+    "value": 4498500
+   },
+   {
+    "label": "Compared with $N^2$",
+    "display": "$4.50\\text{m} / 9.00\\text{m} \\approx 0.5$",
+    "value": 0.4998
+   }
+  ],
+  "takeaway": "Distinct pairs number $N(N-1)/2$, about half of $N^2$. That explosion is why large books are mapped onto a few general factors.",
+  "check": {
+   "inputs": {
+    "N": 3000
+   },
+   "steps": [
+    {
+     "name": "pairs",
+     "expr": "N*(N-1)/2",
+     "value": 4498500.0
+    },
+    {
+     "name": "sq",
+     "expr": "N**2",
+     "value": 9000000.0
+    },
+    {
+     "name": "ratio",
+     "expr": "pairs/sq",
+     "value": 0.499833
+    },
+    {
+     "name": "slip_ordered",
+     "expr": "N*(N-1)",
+     "value": 8997000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-08",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0263"
+  },
+  "trap_category": "Formula",
+  "setup": "Four stocks, 25% each, all mapped to the market. Portfolio beta $0.90$, market volatility 2.0% per day, each stock's idiosyncratic volatility 3.0% per day, uncorrelated with the market and with each other. $V(R_p) = \\beta_p^2 V(R_m) + \\sum w_i^2 \\sigma_{\\epsilon i}^2$.",
+  "ask": "The specific (idiosyncratic) variance term $\\sum w_i^2\\sigma_{\\epsilon i}^2$, in $(\\%)^2$, is closest to:",
+  "options": [
+   {
+    "label": "0.56",
+    "correct": false,
+    "why": "Used only one stock: $0.25^2 \\times 3^2 = 0.5625$. The sum runs over all four."
+   },
+   {
+    "label": "2.25",
+    "correct": true
+   },
+   {
+    "label": "9.0",
+    "correct": false,
+    "why": "Dropped the weights and took one stock's $3^2$. With four 25% stakes the weights shrink the term to a quarter."
+   }
+  ],
+  "working": [
+   {
+    "label": "One stock's term",
+    "display": "$0.25^2 \\times 3^2 = 0.5625$",
+    "value": 0.5625
+   },
+   {
+    "label": "Four stocks",
+    "display": "$4 \\times 0.5625 = 2.25\\ (\\%)^2$",
+    "value": 2.25
+   },
+   {
+    "label": "Market term",
+    "display": "$0.90^2 \\times 2^2 = 3.24\\ (\\%)^2$, still the larger",
+    "value": 3.24
+   }
+  ],
+  "takeaway": "Diversifying across four independent names cuts specific variance to a quarter of one stock's. The market term, $\\beta^2\\sigma_m^2$, is what remains.",
+  "check": {
+   "inputs": {
+    "w": 0.25,
+    "s": 3,
+    "N": 4,
+    "b": 0.9,
+    "sm": 2
+   },
+   "steps": [
+    {
+     "name": "one",
+     "expr": "w**2*s**2",
+     "value": 0.5625
+    },
+    {
+     "name": "spec",
+     "expr": "N*one",
+     "value": 2.25
+    },
+    {
+     "name": "mkt",
+     "expr": "b**2*sm**2",
+     "value": 3.24
+    },
+    {
+     "name": "slip_unweighted",
+     "expr": "s**2",
+     "value": 9.0
+    },
+    {
+     "name": "vol",
+     "expr": "sqrt(spec+mkt)",
+     "value": 2.34307
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-09",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0266"
+  },
+  "trap_category": "Scope",
+  "setup": "An USD 80m equity book has four equal USD 20m positions with betas 0.50, 0.90, 1.10 and 1.30 to the market. Market volatility is 1.0% per day. Returns are zero-mean normal and specific risk is zero.",
+  "ask": "The one-day 95% VaR ($z = 1.645$) is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.31m",
+    "correct": false,
+    "why": "Applied the average beta $0.95$ to one USD 20m position instead of to the whole book."
+   },
+   {
+    "label": "≈ USD 1.25m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 5.0m",
+    "correct": false,
+    "why": "Multiplied the sum of betas (3.80) by the full USD 80m. Each beta only scales its own USD 20m."
+   },
+   {
+    "label": "≈ USD 19.8m",
+    "correct": false,
+    "why": "Annualised the daily volatility with $\\sqrt{252}$ even though the horizon is one day."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta-weighted exposure",
+    "display": "$20 \\times (0.50 + 0.90 + 1.10 + 1.30) = 76.0$",
+    "value": 76
+   },
+   {
+    "label": "Daily market move at 95%",
+    "display": "$1.645 \\times 1.0\\% = 1.645\\%$",
+    "value": 0.01645
+   },
+   {
+    "label": "VaR",
+    "display": "$76.0 \\times 1.645\\% = \\text{USD } 1.25\\text{m}$",
+    "value": 1.2502
+   }
+  ],
+  "takeaway": "Beta-weight each position's dollars first, add them up, then multiply by the market's $z\\sigma$.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "b1": 0.5,
+    "b2": 0.9,
+    "b3": 1.1,
+    "b4": 1.3,
+    "z": 1.645,
+    "s": 0.01
+   },
+   "steps": [
+    {
+     "name": "expo",
+     "expr": "V*(b1+b2+b3+b4)",
+     "value": 76.0
+    },
+    {
+     "name": "var",
+     "expr": "z*s*expo",
+     "value": 1.2502
+    },
+    {
+     "name": "slip_avgbeta",
+     "expr": "z*s*V*(b1+b2+b3+b4)/4",
+     "value": 0.31255
+    },
+    {
+     "name": "slip_sumbeta80",
+     "expr": "z*s*80*(b1+b2+b3+b4)",
+     "value": 5.0008
+    },
+    {
+     "name": "slip_annual",
+     "expr": "var*sqrt(252)",
+     "value": 19.8463
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0286"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A two-bond book is cash-flow mapped to zero vertices, with perfectly correlated zero rates, so vertex VaRs add. Each zero's VaR is $PV \\times z \\times \\sigma \\times T/(1+y)$ with $z = 2.326$, yield volatility $\\sigma = 1.0\\%$. The 1-year vertex has PV USD 104.85m at $y = 3.0\\%$. The 5-year vertex has PV USD 87.14m at $y = 3.8\\%$.",
+  "ask": "Which of these two vertices contributes the larger dollar VaR?",
+  "options": [
+   {
+    "label": "The 1-year vertex",
+    "correct": false,
+    "why": "Went by the larger PV (104.85 vs 87.14). The VaR rate grows with $T$, so the 5-year zero's rate is about five times the 1-year's."
+   },
+   {
+    "label": "The 5-year vertex",
+    "correct": true
+   },
+   {
+    "label": "About equal",
+    "correct": false,
+    "why": "Saw similar PVs and stopped. The $T/(1+y)$ factor differs by a factor of about 4.9 between the two vertices."
+   }
+  ],
+  "working": [
+   {
+    "label": "1-year VaR rate",
+    "display": "$2.326 \\times 1.0\\% \\times 1/1.030 = 2.26\\%$",
+    "value": 0.02258
+   },
+   {
+    "label": "5-year VaR rate",
+    "display": "$2.326 \\times 1.0\\% \\times 5/1.038 = 11.20\\%$",
+    "value": 0.11204
+   },
+   {
+    "label": "1-year vertex VaR",
+    "display": "$104.85 \\times 2.26\\% = 2.37$",
+    "value": 2.368
+   },
+   {
+    "label": "5-year vertex VaR",
+    "display": "$87.14 \\times 11.20\\% = 9.76$",
+    "value": 9.763
+   }
+  ],
+  "takeaway": "A vertex's VaR is its PV times a rate that rises with maturity. A smaller PV far out the curve usually beats a bigger PV near the front.",
+  "check": {
+   "inputs": {
+    "z": 2.326,
+    "sg": 0.01,
+    "pv1": 104.85,
+    "y1": 0.03,
+    "pv5": 87.14,
+    "y5": 0.038
+   },
+   "steps": [
+    {
+     "name": "r1",
+     "expr": "z*sg*1/(1+y1)",
+     "value": 0.0225825
+    },
+    {
+     "name": "r5",
+     "expr": "z*sg*5/(1+y5)",
+     "value": 0.112042
+    },
+    {
+     "name": "v1",
+     "expr": "pv1*r1",
+     "value": 2.36778
+    },
+    {
+     "name": "v5",
+     "expr": "pv5*r5",
+     "value": 9.76337
+    },
+    {
+     "name": "ratio",
+     "expr": "v5/v1",
+     "value": 4.12343
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-11",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0301"
+  },
+  "trap_category": "Formula",
+  "setup": "USD 100m 7-year pay-fixed swap. Fixed-leg modified duration 5.90; the floating leg has just reset, with duration about 1.0. Flat curve, annual yield volatility 100 bp, normal approximation ($z = 2.326$ at 99%), square-root-of-time scaling.",
+  "ask": "The one-month 99% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.67m",
+    "correct": false,
+    "why": "Used only the floater's duration of 1.0. A pay-fixed swap is short the fixed leg and long the floater, so the net duration is $5.90 - 1.00$."
+   },
+   {
+    "label": "≈ USD 3.29m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 11.4m",
+    "correct": false,
+    "why": "Used the full annual 100 bp volatility for a one-month horizon. It must be scaled by $\\sqrt{1/12}$."
+   },
+   {
+    "label": "≈ USD 39.5m",
+    "correct": false,
+    "why": "Scaled the volatility up by $\\sqrt{12}$ instead of down."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net duration",
+    "display": "$5.90 - 1.00 = 4.90$ years",
+    "value": 4.9
+   },
+   {
+    "label": "Monthly yield vol",
+    "display": "$1.00\\% \\times \\sqrt{1/12} = 0.2887\\%$",
+    "value": 0.2887
+   },
+   {
+    "label": "VaR",
+    "display": "$2.326 \\times 4.90 \\times 0.2887\\% \\times 100 = \\text{USD } 3.29\\text{m}$",
+    "value": 3.29
+   }
+  ],
+  "takeaway": "Swap duration is the fixed leg minus the floater. Scale annual yield volatility down by $\\sqrt{12}$ for one month.",
+  "check": {
+   "inputs": {
+    "N": 100,
+    "Df": 5.9,
+    "Dfl": 1.0,
+    "z": 2.326,
+    "sa": 1.0
+   },
+   "steps": [
+    {
+     "name": "D",
+     "expr": "Df-Dfl",
+     "value": 4.9
+    },
+    {
+     "name": "sm",
+     "expr": "sa*sqrt(1/12)",
+     "value": 0.288675
+    },
+    {
+     "name": "var",
+     "expr": "z*D*sm/100*N",
+     "value": 3.29015
+    },
+    {
+     "name": "slip_floater",
+     "expr": "z*Dfl*sm/100*N",
+     "value": 0.671458
+    },
+    {
+     "name": "slip_annual",
+     "expr": "z*D*sa/100*N",
+     "value": 11.3974
+    },
+    {
+     "name": "slip_up",
+     "expr": "z*D*sa*sqrt(12)/100*N",
+     "value": 39.4818
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-12",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0307"
+  },
+  "trap_category": "Scope",
+  "setup": "A fund holds 5,000 deep in-the-money calls, 20,000 deep out-of-the-money calls and 10,000 forwards on TUV (no dividends), one share each. TUV trades at USD 52 with volatility 12% per year. Use 252 trading days.",
+  "ask": "The one-day 99% VaR ($z = 2.326$) is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 860",
+    "correct": false,
+    "why": "Divided the annual volatility by 252 instead of $\\sqrt{252}$."
+   },
+   {
+    "label": "≈ USD 4,600",
+    "correct": false,
+    "why": "Dropped the 10,000 forwards. A forward has delta 1, so they add as much exposure as the deep ITM calls and more."
+   },
+   {
+    "label": "≈ USD 13,700",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 218,000",
+    "correct": false,
+    "why": "Used the 12% annual volatility for a one-day horizon."
+   }
+  ],
+  "working": [
+   {
+    "label": "Delta-equivalent shares",
+    "display": "$5{,}000(1) + 20{,}000(0) + 10{,}000(1) = 15{,}000$",
+    "value": 15000
+   },
+   {
+    "label": "Exposure",
+    "display": "$15{,}000 \\times 52 = \\text{USD } 780{,}000$",
+    "value": 780000
+   },
+   {
+    "label": "Daily volatility",
+    "display": "$12\\% / \\sqrt{252} = 0.756\\%$",
+    "value": 0.007559
+   },
+   {
+    "label": "VaR",
+    "display": "$2.326 \\times 0.756\\% \\times 780{,}000 \\approx \\text{USD } 13{,}700$",
+    "value": 13715
+   }
+  ],
+  "takeaway": "Deep ITM options and forwards count at delta 1, deep OTM options at about 0. Scale annual volatility by $\\sqrt{252}$, not 252.",
+  "check": {
+   "inputs": {
+    "nI": 5000,
+    "nO": 20000,
+    "nF": 10000,
+    "dI": 1,
+    "dO": 0,
+    "dF": 1,
+    "S": 52,
+    "sa": 0.12,
+    "z": 2.326
+   },
+   "steps": [
+    {
+     "name": "sh",
+     "expr": "nI*dI+nO*dO+nF*dF",
+     "value": 15000.0
+    },
+    {
+     "name": "expo",
+     "expr": "sh*S",
+     "value": 780000.0
+    },
+    {
+     "name": "sd",
+     "expr": "sa/sqrt(252)",
+     "value": 0.00755929
+    },
+    {
+     "name": "var",
+     "expr": "z*sd*expo",
+     "value": 13714.7
+    },
+    {
+     "name": "slip_252",
+     "expr": "z*(sa/252)*expo",
+     "value": 863.943
+    },
+    {
+     "name": "slip_nofwd",
+     "expr": "z*sd*nI*dI*S",
+     "value": 4571.56
+    },
+    {
+     "name": "slip_annual",
+     "expr": "z*sa*expo",
+     "value": 217714.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-13",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0311"
+  },
+  "trap_category": "Sign",
+  "setup": "A company is long (buys) a 6-month FRA, notional USD 10m, contract rate 4.00%: it locks in a borrowing rate. At the start of the period the 6-month reference rate is 4.60% (simple, semiannual accrual). Settlement is paid at the start of the period, discounted at the reference rate.",
+  "ask": "The buyer's settlement is:",
+  "options": [
+   {
+    "label": "Receives, a little under USD 30,000",
+    "correct": true
+   },
+   {
+    "label": "Receives the full USD 30,000",
+    "correct": false,
+    "why": "Left the payment undiscounted. Settling at the start of the period instead of the end means dividing by $1 + 0.046 \\times 0.5$."
+   },
+   {
+    "label": "Pays about USD 29,000",
+    "correct": false,
+    "why": "Flipped the sign. The reference rate (4.60%) is above the contract rate (4.00%), so the borrower who locked in 4.00% gains."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undiscounted payoff",
+    "display": "$10\\text{m} \\times (4.60\\% - 4.00\\%) \\times 0.5 = 30{,}000$",
+    "value": 30000
+   },
+   {
+    "label": "Discount",
+    "display": "$30{,}000 / (1 + 0.046 \\times 0.5) = 29{,}326$",
+    "value": 29326
+   }
+  ],
+  "takeaway": "The FRA buyer gains when the reference rate ends above the contract rate. Payment at the start of the period shrinks the end-of-period amount by the discount factor.",
+  "check": {
+   "inputs": {
+    "N": 10000000,
+    "K": 0.04,
+    "R": 0.046,
+    "t": 0.5
+   },
+   "steps": [
+    {
+     "name": "payoff",
+     "expr": "N*(R-K)*t",
+     "value": 30000.0
+    },
+    {
+     "name": "settle",
+     "expr": "payoff/(1+R*t)",
+     "value": 29325.5
+    },
+    {
+     "name": "disc",
+     "expr": "payoff-settle",
+     "value": 674.487
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-14",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0312"
+  },
+  "trap_category": "Polarity",
+  "setup": "EUR spot is USD 1.3988 per EUR. The 1-year EUR interest rate is 2.28% and the 1-year USD rate is 3.33% (annual compounding).",
+  "ask": "The one-year forward rate (USD per EUR) is:",
+  "options": [
+   {
+    "label": "Above 1.3988",
+    "correct": true
+   },
+   {
+    "label": "Below 1.3988",
+    "correct": false,
+    "why": "Put the EUR rate in the numerator: $1.3988 \\times 1.0228/1.0333 = 1.3846$. The currency with the higher interest rate trades at a forward discount, and USD is the high-rate side here."
+   },
+   {
+    "label": "Equal to 1.3988",
+    "correct": false,
+    "why": "Ignored the rate gap. Forwards equal spot only when both rates are equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rate ratio",
+    "display": "$1.0333 / 1.0228 = 1.0103$",
+    "value": 1.01027
+   },
+   {
+    "label": "Forward",
+    "display": "$1.3988 \\times 1.0103 = 1.4132$",
+    "value": 1.4132
+   }
+  ],
+  "takeaway": "Forward = spot $\\times (1 + r_{\\text{quote}})/(1 + r_{\\text{base}})$. The base currency (EUR) is at a forward premium when the quote currency (USD) has the higher rate.",
+  "check": {
+   "inputs": {
+    "S": 1.3988,
+    "rE": 0.0228,
+    "rU": 0.0333
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "(1+rU)/(1+rE)",
+     "value": 1.01027
+    },
+    {
+     "name": "F",
+     "expr": "S*ratio",
+     "value": 1.41316
+    },
+    {
+     "name": "slip_inv",
+     "expr": "S/ratio",
+     "value": 1.38459
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-15",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0313"
+  },
+  "trap_category": "Sign",
+  "setup": "An asset has spot price 1.22. The domestic risk-free rate is 3.70% and the asset's income yield is 1.92%, both continuously compounded. The forward price is $F = S e^{(r-y)T}$ with $T = 1$ year.",
+  "ask": "The carry exponent $(r - y)T$ is:",
+  "options": [
+   {
+    "label": "+0.0178",
+    "correct": true
+   },
+   {
+    "label": "+0.0562",
+    "correct": false,
+    "why": "Added the yield to the rate. Income earned on the asset lowers the forward, so it is subtracted."
+   },
+   {
+    "label": "−0.0178",
+    "correct": false,
+    "why": "Flipped to $y - r$. The financing cost (3.70%) exceeds the income (1.92%), so net carry is positive."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$0.0370 - 0.0192 = +0.0178$",
+    "value": 0.0178
+   },
+   {
+    "label": "Growth factor",
+    "display": "$e^{0.0178} = 1.0180$",
+    "value": 1.01796
+   },
+   {
+    "label": "Forward",
+    "display": "$1.22 \\times 1.0180 = 1.24$",
+    "value": 1.2419
+   }
+  ],
+  "takeaway": "A forward costs financing minus income. Net carry is positive here, so the forward sits above spot.",
+  "check": {
+   "inputs": {
+    "S": 1.22,
+    "r": 0.037,
+    "y": 0.0192,
+    "T": 1
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "(r-y)*T",
+     "value": 0.0178
+    },
+    {
+     "name": "g",
+     "expr": "exp(x)",
+     "value": 1.01796
+    },
+    {
+     "name": "F",
+     "expr": "S*g",
+     "value": 1.24191
+    },
+    {
+     "name": "slip_add",
+     "expr": "(r+y)*T",
+     "value": 0.0562
+    },
+    {
+     "name": "slip_flip",
+     "expr": "(y-r)*T",
+     "value": -0.0178
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-16",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0396"
+  },
+  "trap_category": "Sign",
+  "setup": "Seven paired observations. A: 3, 4, 4, 6, 8, 9, 7. B: 5, 4, 7, 4, 2, 2, 1. Means: $E(A) = 5.857$, $E(B) = 3.571$. The mean of the products is $E(AB) = 17.714$.",
+  "ask": "$\\text{Cov}(A,B) = E(AB) - E(A)E(B)$ is closest to:",
+  "options": [
+   {
+    "label": "−3.20",
+    "correct": true
+   },
+   {
+    "label": "+3.20",
+    "correct": false,
+    "why": "Subtracted the other way round: $E(A)E(B) - E(AB)$. Large A values pair with small B values, so the covariance is negative."
+   },
+   {
+    "label": "+17.7",
+    "correct": false,
+    "why": "Used $E(AB)$ alone and forgot to subtract the product of the means."
+   }
+  ],
+  "working": [
+   {
+    "label": "Product of means",
+    "display": "$5.857 \\times 3.571 = 20.92$",
+    "value": 20.918
+   },
+   {
+    "label": "Covariance",
+    "display": "$17.714 - 20.918 = -3.20$",
+    "value": -3.204
+   }
+  ],
+  "takeaway": "Covariance is the mean of the products minus the product of the means. When A is high and B is low it comes out negative (here $\\rho \\approx -0.80$).",
+  "check": {
+   "inputs": {
+    "EA": 5.857,
+    "EB": 3.571,
+    "EAB": 17.714
+   },
+   "steps": [
+    {
+     "name": "prod",
+     "expr": "EA*EB",
+     "value": 20.9153
+    },
+    {
+     "name": "cov",
+     "expr": "EAB-prod",
+     "value": -3.20135
+    },
+    {
+     "name": "slip_flip",
+     "expr": "prod-EAB",
+     "value": 3.20135
+    },
+    {
+     "name": "slip_noprod",
+     "expr": "EAB",
+     "value": 17.714
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-17",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0437"
+  },
+  "trap_category": "Formula",
+  "setup": "A two-asset portfolio holds USD 7m of A (daily standard deviation 2%) and USD 5m of B (daily standard deviation 1%). The correlation is 0.4.",
+  "ask": "The 10-day 99% VaR ($z = 2.33$) is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.12m",
+    "correct": false,
+    "why": "Divided by $\\sqrt{10}$ instead of multiplying: the horizon grows risk."
+   },
+   {
+    "label": "≈ USD 0.39m",
+    "correct": false,
+    "why": "Stopped at the one-day VaR and forgot the $\\sqrt{10}$ scaling."
+   },
+   {
+    "label": "≈ USD 1.23m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.9m",
+    "correct": false,
+    "why": "Scaled the one-day VaR by 10 instead of $\\sqrt{10}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Position volatilities",
+    "display": "$7 \\times 2\\% = 0.14$; $5 \\times 1\\% = 0.05$ (USD m)",
+    "value": null
+   },
+   {
+    "label": "Portfolio variance",
+    "display": "$0.14^2 + 0.05^2 + 2(0.4)(0.14)(0.05) = 0.0277$",
+    "value": 0.0277
+   },
+   {
+    "label": "Daily portfolio volatility",
+    "display": "$\\sqrt{0.0277} = 0.1664$",
+    "value": 0.1664
+   },
+   {
+    "label": "10-day VaR",
+    "display": "$2.33 \\times 0.1664 \\times \\sqrt{10} = \\text{USD } 1.23\\text{m}$",
+    "value": 1.2263
+   }
+  ],
+  "takeaway": "Combine position volatilities with the correlation first, then scale by $z$ and by $\\sqrt{\\text{days}}$.",
+  "check": {
+   "inputs": {
+    "a": 0.14,
+    "b": 0.05,
+    "rho": 0.4,
+    "z": 2.33,
+    "T": 10
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "a**2+b**2+2*rho*a*b",
+     "value": 0.0277
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 0.166433
+    },
+    {
+     "name": "v1",
+     "expr": "z*sd",
+     "value": 0.387789
+    },
+    {
+     "name": "VaR",
+     "expr": "v1*sqrt(T)",
+     "value": 1.2263
+    },
+    {
+     "name": "slip_div",
+     "expr": "v1/sqrt(T)",
+     "value": 0.12263
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "v1",
+     "value": 0.387789
+    },
+    {
+     "name": "slip_ten",
+     "expr": "v1*T",
+     "value": 3.87789
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-18",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0442"
+  },
+  "trap_category": "Formula",
+  "setup": "A portfolio has two positions whose stand-alone VaRs are USD 10m and USD 40m. Their returns are uncorrelated.",
+  "ask": "The portfolio VaR lies:",
+  "options": [
+   {
+    "label": "Above 40m but below 50m",
+    "correct": true
+   },
+   {
+    "label": "Below 40m",
+    "correct": false,
+    "why": "Applied a diversification benefit to the larger VaR. Uncorrelated risks still add in quadrature, so the total exceeds its largest part."
+   },
+   {
+    "label": "At 50m",
+    "correct": false,
+    "why": "Added the two VaRs in a straight line, which assumes perfect correlation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Quadrature",
+    "display": "$\\sqrt{10^2 + 40^2} = \\sqrt{1700}$",
+    "value": 41.23
+   },
+   {
+    "label": "Bounds",
+    "display": "Above $40$ (the largest part), below $50$ (the straight sum)",
+    "value": null
+   }
+  ],
+  "takeaway": "Uncorrelated VaRs combine as $\\sqrt{a^2 + b^2}$: always above the biggest part, below the straight sum.",
+  "check": {
+   "inputs": {
+    "a": 10,
+    "b": 40
+   },
+   "steps": [
+    {
+     "name": "port",
+     "expr": "sqrt(a**2+b**2)",
+     "value": 41.2311
+    },
+    {
+     "name": "sum",
+     "expr": "a+b",
+     "value": 50.0
+    },
+    {
+     "name": "gap",
+     "expr": "port-b",
+     "value": 1.23106
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-19",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0445"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Equally weighted two-asset portfolio of USD 20m, each asset with daily volatility 2%, correlation $\\rho$. $\\sigma_P = \\sigma\\sqrt{0.5(1+\\rho)}$. The 10-day 99% VaR ($z = 2.33$) is USD 2.33m.",
+  "ask": "The correlation $\\rho$ implied by that VaR is:",
+  "options": [
+   {
+    "label": "0.25",
+    "correct": true
+   },
+   {
+    "label": "0.50",
+    "correct": false,
+    "why": "This is the doubled correlation, the end of the chain. The question needs the starting value first."
+   },
+   {
+    "label": "0.0",
+    "correct": false,
+    "why": "Assumed uncorrelated assets. That would give a VaR of about USD 2.08m, not 2.33m."
+   },
+   {
+    "label": "1.0",
+    "correct": false,
+    "why": "Assumed perfect correlation. That would give a VaR of about USD 2.95m, not 2.33m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Implied portfolio volatility",
+    "display": "$2.33 / (20 \\times 2.33 \\times \\sqrt{10}) = 1.581\\%$",
+    "value": 0.015811
+   },
+   {
+    "label": "Solve for $\\rho$",
+    "display": "$0.5(1+\\rho) = (1.581/2)^2 = 0.625$, so $\\\\rho = 0.25$",
+    "value": 0.25
+   }
+  ],
+  "takeaway": "Strip the VaR back to a daily portfolio volatility and compare it with $\\sigma\\sqrt{0.5}$ ($\\rho=0$) and $\\sigma$ ($\\rho=1$). Here $\\rho$ sits at 0.25.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "s": 0.02,
+    "z": 2.33,
+    "T": 10,
+    "VaR": 2.33
+   },
+   "steps": [
+    {
+     "name": "sp",
+     "expr": "VaR/(V*z*sqrt(T))",
+     "value": 0.0158114
+    },
+    {
+     "name": "rho",
+     "expr": "2*(sp/s)**2-1",
+     "value": 0.25
+    },
+    {
+     "name": "slip_zero",
+     "expr": "V*s*sqrt(0.5)*z*sqrt(T)",
+     "value": 2.08402
+    },
+    {
+     "name": "slip_one",
+     "expr": "V*s*z*sqrt(T)",
+     "value": 2.94724
+    },
+    {
+     "name": "doubled",
+     "expr": "2*rho",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-20",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0452"
+  },
+  "trap_category": "Scope",
+  "setup": "Two borrowers have default probabilities of 5% (A) and 10% (B). The binomial default correlation is $+0.6$.",
+  "ask": "The joint default probability $P(A \\cap B)$ lies:",
+  "options": [
+   {
+    "label": "Between 0.5% and 5%",
+    "correct": true
+   },
+   {
+    "label": "Below 0.5%",
+    "correct": false,
+    "why": "Treated positive correlation as lowering the joint probability. Independence gives $5\\% \\times 10\\% = 0.5\\%$, and positive correlation lifts it above that."
+   },
+   {
+    "label": "Above 5%",
+    "correct": false,
+    "why": "Read $\\rho = 0.6$ as a 60% joint probability. Joint default can never exceed the smaller marginal PD, 5%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independent benchmark",
+    "display": "$5\\% \\times 10\\% = 0.5\\%$",
+    "value": 0.005
+   },
+   {
+    "label": "Upper limit",
+    "display": "$\\min(5\\%, 10\\%) = 5\\%$",
+    "value": 0.05
+   },
+   {
+    "label": "Actual",
+    "display": "$0.6\\sqrt{0.05 \\times 0.95 \\times 0.10 \\times 0.90} + 0.005 = 4.42\\%$",
+    "value": 0.04423
+   }
+  ],
+  "takeaway": "Positive default correlation puts the joint PD above $P_A P_B$ and always under $\\min(P_A, P_B)$.",
+  "check": {
+   "inputs": {
+    "pA": 0.05,
+    "pB": 0.1,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "indep",
+     "expr": "pA*pB",
+     "value": 0.005
+    },
+    {
+     "name": "cap",
+     "expr": "min(pA,pB)",
+     "value": 0.05
+    },
+    {
+     "name": "joint",
+     "expr": "rho*sqrt(pA*(1-pA)*pB*(1-pB))+indep",
+     "value": 0.0442301
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-21",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0453"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two loans: $PD(X) = 10.0\\%$, $PD(Y) = 4.0\\%$, joint default probability $PD(X \\text{ and } Y) = 3.930\\%$.",
+  "ask": "The numerator of the binomial default correlation, $P(X \\cap Y) - P_X P_Y$, is closest to:",
+  "options": [
+   {
+    "label": "3.53%",
+    "correct": true
+   },
+   {
+    "label": "3.93%",
+    "correct": false,
+    "why": "Took the joint probability as the numerator. The benchmark $P_X P_Y$ must be taken out first."
+   },
+   {
+    "label": "0.40%",
+    "correct": false,
+    "why": "Used the independence benchmark $P_X P_Y = 10\\% \\times 4\\%$ alone and dropped the joint probability."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independence benchmark",
+    "display": "$10.0\\% \\times 4.0\\% = 0.40\\%$",
+    "value": 0.004
+   },
+   {
+    "label": "Excess joint default",
+    "display": "$3.93\\% - 0.40\\% = 3.53\\%$",
+    "value": 0.0353
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.0353 / (0.3000 \\times 0.1960) = 0.60$",
+    "value": 0.6004
+   }
+  ],
+  "takeaway": "Default correlation measures joint default above what independence would give. Take $P_X P_Y$ off first, then divide by the product of the standard deviations.",
+  "check": {
+   "inputs": {
+    "pX": 0.1,
+    "pY": 0.04,
+    "pXY": 0.0393
+   },
+   "steps": [
+    {
+     "name": "bench",
+     "expr": "pX*pY",
+     "value": 0.004
+    },
+    {
+     "name": "num",
+     "expr": "pXY-bench",
+     "value": 0.0353
+    },
+    {
+     "name": "den",
+     "expr": "sqrt(pX*(1-pX))*sqrt(pY*(1-pY))",
+     "value": 0.0587878
+    },
+    {
+     "name": "rho",
+     "expr": "num/den",
+     "value": 0.600465
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-22",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0546"
+  },
+  "trap_category": "Formula",
+  "setup": "A trader buys USD 100m face of the 20-year Treasury and hedges by selling 10-year and 30-year bonds. A regression of 20-year yield changes on 10-year and 30-year changes gives $\\beta_{10} = 0.53$ and $\\beta_{30} = 0.74$. Each hedge leg is sized so that its DV01 equals its $\\beta$ times the 20-year position's DV01.",
+  "ask": "Total DV01 of the two hedge legs, compared with the 20-year position's DV01, is:",
+  "options": [
+   {
+    "label": "Larger",
+    "correct": true
+   },
+   {
+    "label": "Smaller",
+    "correct": false,
+    "why": "Averaged the betas ($0.635$) instead of adding them. The two legs together hedge the same yield move, so their DV01s add."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Assumed a regression hedge is DV01-neutral. It minimises residual variance, not DV01 difference, and the betas need not sum to 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sum of betas",
+    "display": "$0.53 + 0.74 = 1.27$",
+    "value": 1.27
+   },
+   {
+    "label": "Hedge DV01 relative to the 20-year DV01",
+    "display": "$1.27 \\times \\text{DV01}_{20}$, about 27% larger",
+    "value": 1.27
+   }
+  ],
+  "takeaway": "In a two-factor regression hedge the DV01 ratio equals $\\beta_{10} + \\beta_{30}$. Nothing forces it to be 1.",
+  "check": {
+   "inputs": {
+    "b10": 0.53,
+    "b30": 0.74
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "b10+b30",
+     "value": 1.27
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(b10+b30)/2",
+     "value": 0.635
+    },
+    {
+     "name": "more",
+     "expr": "ratio-1",
+     "value": 0.27
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq09-23",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0547"
+  },
+  "trap_category": "Role",
+  "setup": "A market maker is receiving fixed on USD 100m of a 20-year swap and hedges with 10-year and 30-year swaps. DV01 per 100 face: 10-year 0.030, 20-year 0.090, 30-year 0.150. Regression betas of 20-year rate changes: $\\beta_{10} = 0.2221$ and $\\beta_{30} = 0.7765$. Hedge face $F_i = F_{20} \\times (DV01_{20}/DV01_i) \\times \\beta_i$.",
+  "ask": "Which hedge leg needs the larger face amount?",
+  "options": [
+   {
+    "label": "The 10-year swap",
+    "correct": true
+   },
+   {
+    "label": "The 30-year swap",
+    "correct": false,
+    "why": "Followed the larger beta (0.78 vs 0.22) and ignored the DV01 ratio. A 10-year swap has one fifth of a 30-year swap's DV01, so it needs far more face per unit of DV01."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Assumed equal DV01 contributions mean equal face. Face amounts differ because each swap's DV01 per 100 differs."
+   }
+  ],
+  "working": [
+   {
+    "label": "10-year face",
+    "display": "$100 \\times (0.090/0.030) \\times 0.2221 = 66.63$",
+    "value": 66.63
+   },
+   {
+    "label": "30-year face",
+    "display": "$100 \\times (0.090/0.150) \\times 0.7765 = 46.59$",
+    "value": 46.59
+   }
+  ],
+  "takeaway": "A bond with a small DV01 per 100 needs a big face to carry a given DV01. Beta alone does not set the face amount.",
+  "check": {
+   "inputs": {
+    "F": 100,
+    "d10": 0.03,
+    "d20": 0.09,
+    "d30": 0.15,
+    "b10": 0.2221,
+    "b30": 0.7765
+   },
+   "steps": [
+    {
+     "name": "F10",
+     "expr": "F*(d20/d10)*b10",
+     "value": 66.63
+    },
+    {
+     "name": "F30",
+     "expr": "F*(d20/d30)*b30",
+     "value": 46.59
+    },
+    {
+     "name": "diff",
+     "expr": "F10-F30",
+     "value": 20.04
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,2078 @@
+[
+ {
+  "id": "SC-bank-CRq09-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-16: Netting, Close-out and Related Aspects",
+  "reading_id": "CR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0765"
+  },
+  "trap_category": "Role",
+  "setup": "Four CDS trades on the same reference credit and maturity, all compressed into one contract. The bank is long protection (it bought) on notionals of USD 300,000 and USD 900,000, and short protection (it sold) on USD 800,000 and USD 250,000.",
+  "ask": "The single compressed contract is:",
+  "options": [
+   {
+    "label": "Long protection",
+    "correct": true
+   },
+   {
+    "label": "Short protection",
+    "correct": false,
+    "why": "Swapped the labels: long protection is the bought side, and the bought trades (USD 1,200,000) outweigh the sold ones (USD 1,050,000)."
+   },
+   {
+    "label": "Flat: the trades cancel completely",
+    "correct": false,
+    "why": "Compression offsets only the overlapping notional. The legs are USD 1,200,000 and USD 1,050,000, so USD 150,000 survives."
+   }
+  ],
+  "working": [
+   {
+    "label": "Long-protection leg",
+    "display": "$300{,}000 + 900{,}000 = 1{,}200{,}000$",
+    "value": 1200000
+   },
+   {
+    "label": "Short-protection leg",
+    "display": "$800{,}000 + 250{,}000 = 1{,}050{,}000$",
+    "value": 1050000
+   },
+   {
+    "label": "Net contract",
+    "display": "$1{,}200{,}000 - 1{,}050{,}000 = +150{,}000$ long protection",
+    "value": 150000
+   }
+  ],
+  "takeaway": "Compression nets same-credit, same-maturity trades into one position on the bigger side: here USD 150,000 of long protection replaces four trades.",
+  "check": {
+   "inputs": {
+    "a": 300,
+    "b": 900,
+    "c": 800,
+    "d": 250
+   },
+   "steps": [
+    {
+     "name": "longleg",
+     "expr": "a+b",
+     "value": 1200.0
+    },
+    {
+     "name": "shortleg",
+     "expr": "c+d",
+     "value": 1050.0
+    },
+    {
+     "name": "net",
+     "expr": "longleg-shortleg",
+     "value": 150.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-02",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-16: Netting, Close-out and Related Aspects",
+  "reading_id": "CR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0771"
+  },
+  "trap_category": "Scope",
+  "setup": "Three single-name CDS trades, same maturity, different counterparties and coupons. The bank is long protection EUR 9m on NUMU, long protection EUR 6m on WKL, and short protection EUR 7m on NUMU. Trades are compressed by reference credit only.",
+  "ask": "Total notional across the contracts left after compression is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 22m",
+    "correct": false,
+    "why": "No compression: just the gross sum $9 + 6 + 7$. The NUMU long and short legs must be offset."
+   },
+   {
+    "label": "≈ EUR 8m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 2m",
+    "correct": false,
+    "why": "Netted NUMU ($9 - 7 = 2$) but dropped the WKL EUR 6m, which has nothing to offset against and stays on the books."
+   },
+   {
+    "label": "≈ EUR 0.8m",
+    "correct": false,
+    "why": "Scale slip (1/10). The total cannot fall below the untouched WKL position of 6."
+   }
+  ],
+  "working": [
+   {
+    "label": "NUMU net",
+    "display": "$9 - 7 = 2$ long protection",
+    "value": 2
+   },
+   {
+    "label": "WKL stays",
+    "display": "no offsetting trade: $6$",
+    "value": 6
+   },
+   {
+    "label": "Total",
+    "display": "$2 + 6 = \\text{EUR } 8\\text{m}$ (down from 22)",
+    "value": 8
+   }
+  ],
+  "takeaway": "Compress by reference credit and maturity; counterparty and coupon do not matter. Positions on a credit with nothing to offset stay in the total.",
+  "check": {
+   "inputs": {
+    "a": 9,
+    "b": 6,
+    "c": 7
+   },
+   "steps": [
+    {
+     "name": "numu",
+     "expr": "a-c",
+     "value": 2.0
+    },
+    {
+     "name": "total",
+     "expr": "numu+b",
+     "value": 8.0
+    },
+    {
+     "name": "slip_gross",
+     "expr": "a+b+c",
+     "value": 22.0
+    },
+    {
+     "name": "slip_numu_only",
+     "expr": "numu",
+     "value": 2.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "total/10",
+     "value": 0.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-03",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0937"
+  },
+  "trap_category": "Role",
+  "setup": "A firm writes a European call: spot EUR 67, strike EUR 45, 9 months. The option is deep in the money and worth roughly EUR 23. The buyer paid the full premium at inception and owes nothing further.",
+  "ask": "The firm's counterparty credit exposure on this trade is:",
+  "options": [
+   {
+    "label": "Zero",
+    "correct": true
+   },
+   {
+    "label": "About EUR 23, the option's value",
+    "correct": false,
+    "why": "That is the exposure of the option buyer. For the writer the option is a liability, $V = -c$, and exposure is $\\max(V, 0)$."
+   },
+   {
+    "label": "Negative, about −EUR 23",
+    "correct": false,
+    "why": "Exposure is floored at zero. A negative mark-to-market is what the firm owes, not something a counterparty's default can take from it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Writer's value",
+    "display": "$V = -c \\approx -23.02$",
+    "value": -23.02
+   },
+   {
+    "label": "Exposure",
+    "display": "$\\max(V, 0) = 0$",
+    "value": 0
+   }
+  ],
+  "takeaway": "Only the holder of a long option faces counterparty exposure once the premium is paid; the writer's exposure is zero however deep in the money the option is.",
+  "check": {
+   "inputs": {
+    "c": 23.02
+   },
+   "steps": [
+    {
+     "name": "V",
+     "expr": "-c",
+     "value": -23.02
+    },
+    {
+     "name": "exposure",
+     "expr": "max(V,0)",
+     "value": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-04",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0956"
+  },
+  "trap_category": "Formula",
+  "setup": "21 exposures sit in one netting set. They are jointly normal with equal volatility and an average pairwise correlation of 0.3. The netting factor (net over gross exposure) is $\\sqrt{n + n(n-1)\\bar\\rho}\\,/\\,n$.",
+  "ask": "The netting factor is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.048",
+    "correct": false,
+    "why": "Used $1/n$, the factor for perfectly offsetting exposures. A positive average correlation keeps the factor far above that."
+   },
+   {
+    "label": "≈ 0.22",
+    "correct": false,
+    "why": "Set $\\bar\\rho = 0$ (independent exposures), giving $1/\\sqrt{21}$. The 0.3 correlation raises it from there."
+   },
+   {
+    "label": "≈ 0.58",
+    "correct": true
+   },
+   {
+    "label": "≈ 7.0",
+    "correct": false,
+    "why": "Left out the square root: $147/21 = 7.0$. A netting factor cannot exceed 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pair term",
+    "display": "$n(n-1)\\bar\\rho = 21 \\times 20 \\times 0.3 = 126$",
+    "value": 126
+   },
+   {
+    "label": "Under the root",
+    "display": "$21 + 126 = 147$",
+    "value": 147
+   },
+   {
+    "label": "Netting factor",
+    "display": "$\\sqrt{147}/21 = 12.12/21 \\approx 0.577$",
+    "value": 0.577
+   }
+  ],
+  "takeaway": "The factor runs from $1/\\sqrt{n}$ (independent) up to 1 (perfectly correlated). With $\\bar\\rho = 0.3$ it sits well above the independent case.",
+  "check": {
+   "inputs": {
+    "n": 21,
+    "rho": 0.3
+   },
+   "steps": [
+    {
+     "name": "inner",
+     "expr": "n+n*(n-1)*rho",
+     "value": 147.0
+    },
+    {
+     "name": "nf",
+     "expr": "sqrt(inner)/n",
+     "value": 0.57735
+    },
+    {
+     "name": "slip_inv_n",
+     "expr": "1/n",
+     "value": 0.047619
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "1/sqrt(n)",
+     "value": 0.218218
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "inner/n",
+     "value": 7.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0958"
+  },
+  "trap_category": "Formula",
+  "setup": "Eight independent exposures with equal volatility sit in one netting set. The netting factor is net exposure divided by gross exposure, so 100% means no netting benefit.",
+  "ask": "The netting factor is:",
+  "options": [
+   {
+    "label": "Below 50%",
+    "correct": true
+   },
+   {
+    "label": "Between 50% and 100%",
+    "correct": false,
+    "why": "Took $1 - 1/n = 87.5\\%$, as if each extra exposure removed only a sliver. Independent standard deviations add in quadrature: $\\sqrt{n}\\sigma$ against $n\\sigma$."
+   },
+   {
+    "label": "100%",
+    "correct": false,
+    "why": "Added the volatilities in a straight line, which is the perfectly correlated case. Independence gives a large benefit."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net vs gross",
+    "display": "$\\sqrt{8}\\,\\sigma \\;/\\; 8\\sigma = 1/\\sqrt{8}$",
+    "value": null
+   },
+   {
+    "label": "Value",
+    "display": "$1/2.828 \\approx 35.4\\%$",
+    "value": 0.354
+   }
+  ],
+  "takeaway": "For independent equal-volatility exposures the netting factor is $1/\\sqrt{n}$: already about 35% at $n = 8$.",
+  "check": {
+   "inputs": {
+    "n": 8
+   },
+   "steps": [
+    {
+     "name": "nf",
+     "expr": "sqrt(n)/n",
+     "value": 0.353553
+    },
+    {
+     "name": "slip_linear",
+     "expr": "1-1/n",
+     "value": 0.875
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-06",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0959"
+  },
+  "trap_category": "Sequence",
+  "setup": "Two trades under five equally likely scenarios. Trade 1: 20, 14, 3, −5, −15. Trade 2: −15, −5, 3, −10, −30. Exposure is the positive part of value. With netting, the two values are added first and then floored at zero.",
+  "ask": "Netting removes the most exposure in:",
+  "options": [
+   {
+    "label": "Scenario 1 (20 and −15)",
+    "correct": true
+   },
+   {
+    "label": "Scenario 3 (3 and 3)",
+    "correct": false,
+    "why": "Both trades are positive, so the sum equals the gross exposure: nothing offsets. Netting helps only when values have opposite signs."
+   },
+   {
+    "label": "Scenario 5 (−15 and −30)",
+    "correct": false,
+    "why": "Both trades are negative: gross and netted exposure are already zero, so there is nothing left to remove."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scenario 1 gross",
+    "display": "$\\max(20,0) + \\max(-15,0) = 20$",
+    "value": 20
+   },
+   {
+    "label": "Scenario 1 netted",
+    "display": "$\\max(20 - 15, 0) = 5$",
+    "value": 5
+   },
+   {
+    "label": "Scenario 3",
+    "display": "gross $6$, netted $6$: saves 0",
+    "value": 0
+   }
+  ],
+  "takeaway": "Add the trade values first, then take the positive part. Netting reduces exposure only where one trade is in the money and the other out of it.",
+  "check": {
+   "inputs": {
+    "t1": 20,
+    "t2": -15,
+    "u1": 3,
+    "u2": 3,
+    "v1": -15,
+    "v2": -30
+   },
+   "steps": [
+    {
+     "name": "gross1",
+     "expr": "max(t1,0)+max(t2,0)",
+     "value": 20.0
+    },
+    {
+     "name": "net1",
+     "expr": "max(t1+t2,0)",
+     "value": 5.0
+    },
+    {
+     "name": "saved1",
+     "expr": "gross1-net1",
+     "value": 15.0
+    },
+    {
+     "name": "saved3",
+     "expr": "max(u1,0)+max(u2,0)-max(u1+u2,0)",
+     "value": 0.0
+    },
+    {
+     "name": "saved5",
+     "expr": "max(v1,0)+max(v2,0)-max(v1+v2,0)",
+     "value": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-07",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1030"
+  },
+  "trap_category": "Definition",
+  "setup": "A bank holds a swap with a client under an enforceable netting agreement; the CVA charge on it is EUR 410,000. A second trade with the same client would carry a standalone charge of EUR 360,000. With both trades in the netting set the CVA charge is EUR 280,000.",
+  "ask": "The second trade's incremental CVA charge is:",
+  "options": [
+   {
+    "label": "Negative: it lowers the total charge",
+    "correct": true
+   },
+   {
+    "label": "Positive, equal to its standalone EUR 360,000",
+    "correct": false,
+    "why": "Used the standalone charge, which ignores netting with the swap already held. Incremental CVA is the netting-set charge after minus before."
+   },
+   {
+    "label": "Positive, equal to EUR 280,000",
+    "correct": false,
+    "why": "Took the new netting-set charge as the increment without subtracting the EUR 410,000 already being carried."
+   }
+  ],
+  "working": [
+   {
+    "label": "Before",
+    "display": "netting-set CVA $= 410{,}000$",
+    "value": 410000
+   },
+   {
+    "label": "After",
+    "display": "netting-set CVA $= 280{,}000$",
+    "value": 280000
+   },
+   {
+    "label": "Incremental",
+    "display": "$280{,}000 - 410{,}000 = -130{,}000$",
+    "value": -130000
+   }
+  ],
+  "takeaway": "Incremental CVA is after minus before. A trade that offsets existing exposure can lower the charge even though its standalone CVA is positive.",
+  "check": {
+   "inputs": {
+    "before": 410,
+    "after": 280,
+    "standalone": 360
+   },
+   "steps": [
+    {
+     "name": "incr",
+     "expr": "after-before",
+     "value": -130.0
+    },
+    {
+     "name": "slip_standalone",
+     "expr": "standalone",
+     "value": 360.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-08",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1096"
+  },
+  "trap_category": "Scope",
+  "setup": "Stress loss is stressed EL minus current EL, with EL = value × PD × (1 − recovery). Taylor bond: USD 7m, PD 6% rising to 12%, recovery 80%. Simon bond: USD 9m, PD 5% rising to 18%, recovery 90%.",
+  "ask": "Which bond adds more to the portfolio's stress loss?",
+  "options": [
+   {
+    "label": "Simon",
+    "correct": true
+   },
+   {
+    "label": "Taylor",
+    "correct": false,
+    "why": "Went by the bigger loss given default (20% against 10%) and the higher starting PD. The stress loss is the rise in EL: Simon's PD jumps 13 points against Taylor's 6, on a larger bond."
+   },
+   {
+    "label": "They are about equal",
+    "correct": false,
+    "why": "Compared the stressed ELs (USD 168,000 against USD 162,000), which are close. The stress loss uses the increase over each current EL: USD 84,000 against USD 117,000."
+   }
+  ],
+  "working": [
+   {
+    "label": "Taylor increase",
+    "display": "$7\\text{m} \\times (12\\% - 6\\%) \\times 20\\% = 84{,}000$",
+    "value": 84000
+   },
+   {
+    "label": "Simon increase",
+    "display": "$9\\text{m} \\times (18\\% - 5\\%) \\times 10\\% = 117{,}000$",
+    "value": 117000
+   },
+   {
+    "label": "Portfolio stress loss",
+    "display": "$84{,}000 + 117{,}000 = 201{,}000$",
+    "value": 201000
+   }
+  ],
+  "takeaway": "Stress loss is the change in EL, so compare the increases, not the stressed levels: the larger PD jump outweighs the smaller LGD.",
+  "check": {
+   "inputs": {
+    "vt": 7000000.0,
+    "vs": 9000000.0
+   },
+   "steps": [
+    {
+     "name": "dT",
+     "expr": "vt*(0.12-0.06)*0.2",
+     "value": 84000.0
+    },
+    {
+     "name": "dS",
+     "expr": "vs*(0.18-0.05)*0.1",
+     "value": 117000.0
+    },
+    {
+     "name": "total",
+     "expr": "dT+dS",
+     "value": 201000.0
+    },
+    {
+     "name": "slip_levelT",
+     "expr": "vt*0.12*0.2",
+     "value": 168000.0
+    },
+    {
+     "name": "slip_levelS",
+     "expr": "vs*0.18*0.1",
+     "value": 162000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-09",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1098"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Expected loss is EPE × LGD × PD for each counterparty. A: PD 3% to 4%, LGD 5% to 10%, EPE USD 4.37m to USD 5.46m. B: PD 18% to 23%, LGD 20% to 40%, EPE USD 3.99m to USD 4.99m. Suppose only one of the three inputs is stressed.",
+  "ask": "Which single stressed input would add the most to the portfolio's expected loss?",
+  "options": [
+   {
+    "label": "LGD",
+    "correct": true
+   },
+   {
+    "label": "PD",
+    "correct": false,
+    "why": "PD is the headline input, but it rises only about a third at A and a quarter at B. Adds roughly USD 42,000."
+   },
+   {
+    "label": "EPE",
+    "correct": false,
+    "why": "EPE rises about 25% at both counterparties, less than a doubling. Adds roughly USD 38,000."
+   }
+  ],
+  "working": [
+   {
+    "label": "Base EL",
+    "display": "$0.00656 + 0.14364 \\approx 0.150\\text{m}$",
+    "value": 0.150195
+   },
+   {
+    "label": "LGD only",
+    "display": "LGD doubles at both, so EL doubles: $+0.150\\text{m}$",
+    "value": 0.150195
+   },
+   {
+    "label": "PD only",
+    "display": "$+0.042\\text{m}$",
+    "value": 0.042085
+   },
+   {
+    "label": "EPE only",
+    "display": "$+0.038\\text{m}$",
+    "value": 0.037635
+   }
+  ],
+  "takeaway": "Compare proportional moves: LGD doubles for both counterparties, while PD and EPE rise by only a quarter to a third. The biggest multiplier dominates.",
+  "check": {
+   "inputs": {
+    "pa": 0.03,
+    "pb": 0.18,
+    "sa": 0.04,
+    "sb": 0.23,
+    "la": 0.05,
+    "lb": 0.2,
+    "lsa": 0.1,
+    "lsb": 0.4,
+    "ea": 4.37,
+    "eb": 3.99,
+    "esa": 5.46,
+    "esb": 4.99
+   },
+   "steps": [
+    {
+     "name": "el",
+     "expr": "ea*la*pa+eb*lb*pb",
+     "value": 0.150195
+    },
+    {
+     "name": "d_lgd",
+     "expr": "ea*lsa*pa+eb*lsb*pb-el",
+     "value": 0.150195
+    },
+    {
+     "name": "d_pd",
+     "expr": "ea*la*sa+eb*lb*sb-el",
+     "value": 0.042085
+    },
+    {
+     "name": "d_epe",
+     "expr": "esa*la*pa+esb*lb*pb-el",
+     "value": 0.037635
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-10",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1099"
+  },
+  "trap_category": "Formula",
+  "setup": "Counterparty DD: EPE USD 300m, LGD 65%, default probability 1.00% now and 1.60% under stress. Expected loss is PD × EPE × LGD, and the stress loss is stressed EL minus current EL.",
+  "ask": "DD's stress loss is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.117m",
+    "correct": false,
+    "why": "Scale slip (1/10). A PD rise of 0.6% on EPE × LGD of 195 is already over 1."
+   },
+   {
+    "label": "≈ USD 1.17m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.12m",
+    "correct": false,
+    "why": "Reported the stressed EL itself ($0.016 \\times 300 \\times 0.65$) without subtracting the current EL."
+   },
+   {
+    "label": "≈ USD 117m",
+    "correct": false,
+    "why": "Used the PD change as 0.6 instead of 0.006 (percent entered as a whole number)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Current EL",
+    "display": "$0.010 \\times 300 \\times 0.65 = 1.95$",
+    "value": 1.95
+   },
+   {
+    "label": "Stressed EL",
+    "display": "$0.016 \\times 300 \\times 0.65 = 3.12$",
+    "value": 3.12
+   },
+   {
+    "label": "Stress loss",
+    "display": "$3.12 - 1.95 = 1.17\\text{m}$",
+    "value": 1.17
+   }
+  ],
+  "takeaway": "Stress loss is the increase in EL, not the stressed EL: here 1.17 against 3.12.",
+  "check": {
+   "inputs": {
+    "epe": 300,
+    "lgd": 0.65,
+    "p0": 0.01,
+    "p1": 0.016
+   },
+   "steps": [
+    {
+     "name": "el0",
+     "expr": "p0*epe*lgd",
+     "value": 1.95
+    },
+    {
+     "name": "el1",
+     "expr": "p1*epe*lgd",
+     "value": 3.12
+    },
+    {
+     "name": "loss",
+     "expr": "el1-el0",
+     "value": 1.17
+    },
+    {
+     "name": "slip_scale",
+     "expr": "loss/10",
+     "value": 0.117
+    },
+    {
+     "name": "slip_percent",
+     "expr": "(p1-p0)*100*epe*lgd",
+     "value": 117.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-11",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1101"
+  },
+  "trap_category": "Scope",
+  "setup": "A loan book of USD 250m has recovery 60%. PD is 2.5% in normal conditions and 7.0% under stress, and the asset correlation is 0.25. The stress loss is defined as stressed expected loss minus current expected loss.",
+  "ask": "If the correlation were raised to 0.60, with PDs unchanged, the stress loss would:",
+  "options": [
+   {
+    "label": "Stay the same",
+    "correct": true
+   },
+   {
+    "label": "Rise",
+    "correct": false,
+    "why": "Treated correlation as a driver of expected loss. It shapes the tail of the loss distribution, but $\\text{EL} = \\text{EAD} \\times \\text{PD} \\times \\text{LGD}$ has no correlation term."
+   },
+   {
+    "label": "Fall",
+    "correct": false,
+    "why": "Read higher correlation as a diversification effect on the expected loss. Either way, correlation does not enter EL."
+   }
+  ],
+  "working": [
+   {
+    "label": "LGD",
+    "display": "$1 - 0.60 = 40\\%$",
+    "value": 0.4
+   },
+   {
+    "label": "Current and stressed EL",
+    "display": "$250 \\times 0.025 \\times 0.40 = 2.5$ and $250 \\times 0.07 \\times 0.40 = 7.0$",
+    "value": null
+   },
+   {
+    "label": "Stress loss",
+    "display": "$7.0 - 2.5 = \\text{USD } 4.5\\text{m}$",
+    "value": 4.5
+   }
+  ],
+  "takeaway": "Stress loss on an expected-loss basis is $\\text{EL}^S - \\text{EL}$. Correlation matters for unexpected loss, not here.",
+  "check": {
+   "inputs": {
+    "ead": 250,
+    "lgd": 0.4,
+    "p0": 0.025,
+    "p1": 0.07
+   },
+   "steps": [
+    {
+     "name": "el0",
+     "expr": "ead*p0*lgd",
+     "value": 2.5
+    },
+    {
+     "name": "el1",
+     "expr": "ead*p1*lgd",
+     "value": 7.0
+    },
+    {
+     "name": "loss",
+     "expr": "el1-el0",
+     "value": 4.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-12",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1108"
+  },
+  "trap_category": "Definition",
+  "setup": "CVA = LGD × EE × $q^*$. Exposure is USD 5m with LGD 60%. After a shock the marginal default probability $q^*$ doubles from 1.5% to 3.0%; exposure is unchanged.",
+  "ask": "The stress loss on the CVA, as a percentage of the initial CVA, is:",
+  "options": [
+   {
+    "label": "100%",
+    "correct": true
+   },
+   {
+    "label": "50%",
+    "correct": false,
+    "why": "Divided the increase by the stressed CVA ($45{,}000 / 90{,}000$) instead of the initial CVA."
+   },
+   {
+    "label": "200%",
+    "correct": false,
+    "why": "Gave the ratio stressed CVA over initial CVA. The stress loss is the excess, which is one times the initial."
+   }
+  ],
+  "working": [
+   {
+    "label": "Initial CVA",
+    "display": "$0.60 \\times 5{,}000{,}000 \\times 1.5\\% = 45{,}000$",
+    "value": 45000
+   },
+   {
+    "label": "Stressed CVA",
+    "display": "$0.60 \\times 5{,}000{,}000 \\times 3.0\\% = 90{,}000$",
+    "value": 90000
+   },
+   {
+    "label": "Stress loss",
+    "display": "$90{,}000 - 45{,}000 = 45{,}000$, which is $100\\%$ of the initial",
+    "value": 45000
+   }
+  ],
+  "takeaway": "CVA is linear in $q^*$ at fixed exposure, so doubling $q^*$ doubles CVA: the stress loss equals the initial charge.",
+  "check": {
+   "inputs": {
+    "lgd": 0.6,
+    "ee": 5000000.0,
+    "q0": 0.015,
+    "q1": 0.03
+   },
+   "steps": [
+    {
+     "name": "c0",
+     "expr": "lgd*ee*q0",
+     "value": 45000.0
+    },
+    {
+     "name": "c1",
+     "expr": "lgd*ee*q1",
+     "value": 90000.0
+    },
+    {
+     "name": "loss",
+     "expr": "c1-c0",
+     "value": 45000.0
+    },
+    {
+     "name": "pct",
+     "expr": "loss/c0*100",
+     "value": 100.0
+    },
+    {
+     "name": "slip_vs_stressed",
+     "expr": "loss/c1*100",
+     "value": 50.0
+    },
+    {
+     "name": "slip_ratio",
+     "expr": "c1/c0*100",
+     "value": 200.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-13",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1113"
+  },
+  "trap_category": "Sign",
+  "setup": "$\\text{BCVA} = \\text{LGD}_n \\cdot EE \\cdot q_n S_I - \\text{LGD}_I \\cdot NEE \\cdot q_I S_n$. Counterparty: LGD 60%, EE USD 150m, $q_n = 2\\%$, $S_n = 0.97$. Bank: LGD 50%, NEE USD 100m. Under stress the bank's own $q_I$ rises 1% to 5% and $S_I$ falls 0.98 to 0.94. Counterparty inputs are unchanged.",
+  "ask": "For the bank, the stress is a:",
+  "options": [
+   {
+    "label": "Gain: the net BCVA charge falls by about USD 2m",
+    "correct": true
+   },
+   {
+    "label": "Loss: the net BCVA charge rises",
+    "correct": false,
+    "why": "Assumed wider spreads are bad news. The bank's own widening enlarges the second (own-default) term, which reduces the net charge."
+   },
+   {
+    "label": "No effect: counterparty inputs are unchanged",
+    "correct": false,
+    "why": "The bank's own $q_I$ and $S_I$ enter the formula: they drive the second term and scale the first."
+   }
+  ],
+  "working": [
+   {
+    "label": "Current BCVA",
+    "display": "$0.6 \\times 150 \\times 0.02 \\times 0.98 - 0.5 \\times 100 \\times 0.01 \\times 0.97 = 1.764 - 0.485 = 1.279$",
+    "value": 1.279
+   },
+   {
+    "label": "Stressed BCVA",
+    "display": "$0.6 \\times 150 \\times 0.02 \\times 0.94 - 0.5 \\times 100 \\times 0.05 \\times 0.97 = 1.692 - 2.425 = -0.733$",
+    "value": -0.733
+   },
+   {
+    "label": "Change",
+    "display": "$-0.733 - 1.279 = -2.01$: the charge falls by about USD 2.01m",
+    "value": -2.012
+   }
+  ],
+  "takeaway": "The own-default (DVA) leg grows with the bank's own spread, so widening can turn a charge into a gain. A negative 'stress loss' means a gain.",
+  "check": {
+   "inputs": {
+    "lgdn": 0.6,
+    "ee": 150,
+    "qn": 0.02,
+    "sn": 0.97,
+    "lgdi": 0.5,
+    "nee": 100,
+    "qi0": 0.01,
+    "si0": 0.98,
+    "qi1": 0.05,
+    "si1": 0.94
+   },
+   "steps": [
+    {
+     "name": "b0",
+     "expr": "lgdn*ee*qn*si0-lgdi*nee*qi0*sn",
+     "value": 1.279
+    },
+    {
+     "name": "b1",
+     "expr": "lgdn*ee*qn*si1-lgdi*nee*qi1*sn",
+     "value": -0.733
+    },
+    {
+     "name": "chg",
+     "expr": "b1-b0",
+     "value": -2.012
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-14",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9j-2"
+  },
+  "trap_category": "Polarity",
+  "setup": "B-rated issuers: 7-year cumulative default probability 20.99%, average 7-year credit spread 481 bp, recovery 40%. The spread-implied average hazard rate $s/(1-R)$ is 8.02% a year.",
+  "ask": "The historical average hazard rate, $-\\ln(1 - 0.2099)/7$, compared with 8.02% is:",
+  "options": [
+   {
+    "label": "Less than half of it",
+    "correct": true
+   },
+   {
+    "label": "About the same",
+    "correct": false,
+    "why": "Took $20.99\\%/7 = 3.0\\%$ and the spread as the same thing; either way the historical figure is far below 8.02%."
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Assumed real-world defaults must exceed what the market prices. The spread includes a risk premium, so the spread-implied rate is the larger one."
+   }
+  ],
+  "working": [
+   {
+    "label": "Log term",
+    "display": "$-\\ln(0.7901) = 0.2356$",
+    "value": 0.2356
+   },
+   {
+    "label": "Historical hazard",
+    "display": "$0.2356/7 \\approx 3.37\\%$",
+    "value": 0.0337
+   },
+   {
+    "label": "Versus spread-implied",
+    "display": "$3.37\\% / 8.02\\% \\approx 42\\%$",
+    "value": 0.42
+   }
+  ],
+  "takeaway": "Spread-implied (risk-neutral) default intensities exceed historical (real-world) ones: here the historical rate is about 42% of the spread-implied one.",
+  "check": {
+   "inputs": {
+    "cum": 0.2099,
+    "T": 7,
+    "s": 0.0481,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "hist",
+     "expr": "-ln(1-cum)/T",
+     "value": 0.0336565
+    },
+    {
+     "name": "spread_implied",
+     "expr": "s/(1-R)",
+     "value": 0.0801667
+    },
+    {
+     "name": "ratio",
+     "expr": "hist/spread_implied",
+     "value": 0.419832
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-15",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9j-4"
+  },
+  "trap_category": "Formula",
+  "setup": "A BBB-type issuer class has a 7-year average credit spread of 150 bp and an expected recovery rate of 40%. The 7-year cumulative historical default probability is 2.80%.",
+  "ask": "The spread-implied (risk-neutral) average hazard rate $s/(1-R)$ is:",
+  "options": [
+   {
+    "label": "0.90% a year",
+    "correct": false,
+    "why": "Multiplied the spread by $1 - R$ instead of dividing: $1.5\\% \\times 0.6$."
+   },
+   {
+    "label": "1.50% a year",
+    "correct": false,
+    "why": "Used the spread as the hazard rate, forgetting that the spread compensates for loss given default, not for default alone."
+   },
+   {
+    "label": "2.50% a year",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss rate",
+    "display": "spread $= 1.50\\%$ compensates for PD $\\times$ LGD",
+    "value": null
+   },
+   {
+    "label": "LGD",
+    "display": "$1 - 0.40 = 0.60$",
+    "value": 0.6
+   },
+   {
+    "label": "Hazard",
+    "display": "$1.50\\% / 0.60 = 2.50\\%$",
+    "value": 0.025
+   }
+  ],
+  "takeaway": "Spread $\\approx$ hazard $\\times$ LGD, so hazard $\\approx s/(1-R)$: always above the spread itself when recovery is positive.",
+  "check": {
+   "inputs": {
+    "s": 0.015,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "lam",
+     "expr": "s/(1-R)",
+     "value": 0.025
+    },
+    {
+     "name": "slip_mult",
+     "expr": "s*(1-R)",
+     "value": 0.009
+    },
+    {
+     "name": "slip_spread",
+     "expr": "s",
+     "value": 0.015
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-16",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9j-7"
+  },
+  "trap_category": "Role",
+  "setup": "One-year zero-coupon bonds, risk-free rate 3.0%, one possible default date at maturity. Issuer P yields 6.0% with recovery 60%. Issuer Q yields 7.0% with recovery 20%. Issuer R yields 6.5% with recovery 40%.",
+  "ask": "Which issuer has the highest implied one-year default probability?",
+  "options": [
+   {
+    "label": "P",
+    "correct": true
+   },
+   {
+    "label": "Q",
+    "correct": false,
+    "why": "Ranked by yield. The spread prices PD × LGD, and Q's 3.74% loss rate divides by a large LGD of 80%, leaving only 4.67%."
+   },
+   {
+    "label": "R",
+    "correct": false,
+    "why": "Picked the middle yield. R's loss rate of 3.29% over LGD 60% gives 5.48%, below P's 7.08%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss rate $= 1 - (1+r_f)/(1+y)$",
+    "display": "P $2.83\\%$, Q $3.74\\%$, R $3.29\\%$",
+    "value": null
+   },
+   {
+    "label": "Divide by LGD",
+    "display": "P $2.83/0.40 = 7.08\\%$; Q $3.74/0.80 = 4.67\\%$; R $3.29/0.60 = 5.48\\%$",
+    "value": null
+   }
+  ],
+  "takeaway": "A spread prices expected loss, PD × LGD. Strip out LGD before ranking default probabilities: the widest spread need not be the riskiest PD.",
+  "check": {
+   "inputs": {
+    "rf": 0.03,
+    "yp": 0.06,
+    "yq": 0.07,
+    "yr": 0.065,
+    "lp": 0.4,
+    "lq": 0.8,
+    "lr": 0.6
+   },
+   "steps": [
+    {
+     "name": "pdp",
+     "expr": "(1-(1+rf)/(1+yp))/lp",
+     "value": 0.0707547
+    },
+    {
+     "name": "pdq",
+     "expr": "(1-(1+rf)/(1+yq))/lq",
+     "value": 0.046729
+    },
+    {
+     "name": "pdr",
+     "expr": "(1-(1+rf)/(1+yr))/lr",
+     "value": 0.0547731
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-17",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-10b-8"
+  },
+  "trap_category": "Definition",
+  "setup": "A book of 40 loans of CAD 10m each, independent, PD 3%, recovery 40%. Cumulative probability of the number of defaults: $P(\\le 2) = 0.8822$, $P(\\le 3) = 0.9686$, $P(\\le 4) = 0.9933$, $P(\\le 5) = 0.9988$.",
+  "ask": "The 99% quantile of the number of defaults is:",
+  "options": [
+   {
+    "label": "3 defaults",
+    "correct": false,
+    "why": "Took the last count with cumulative probability below 99% (0.9686). The quantile is the smallest count whose cumulative probability reaches 99%."
+   },
+   {
+    "label": "4 defaults",
+    "correct": true
+   },
+   {
+    "label": "5 defaults",
+    "correct": false,
+    "why": "Went one step past the first count at or above 99%: $P(\\le 4) = 0.9933$ already clears 0.99."
+   }
+  ],
+  "working": [
+   {
+    "label": "99% quantile",
+    "display": "$P(\\le 3) = 0.9686 < 0.99 \\le 0.9933 = P(\\le 4)$, so 4",
+    "value": 4
+   },
+   {
+    "label": "Loss at 99%",
+    "display": "$4 \\times 10 \\times 0.60 = 24.0$",
+    "value": 24
+   },
+   {
+    "label": "Expected loss",
+    "display": "$400 \\times 3\\% \\times 0.60 = 7.2$",
+    "value": 7.2
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$24.0 - 7.2 = \\text{CAD } 16.8\\text{m}$",
+    "value": 16.8
+   }
+  ],
+  "takeaway": "Quantile = first count whose cumulative probability reaches the confidence level. Credit VaR is that loss minus expected loss (4 defaults gives 16.8).",
+  "check": {
+   "inputs": {
+    "n": 40,
+    "x": 10,
+    "pd": 0.03,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "loss99",
+     "expr": "4*x*(1-R)",
+     "value": 24.0
+    },
+    {
+     "name": "el",
+     "expr": "n*x*pd*(1-R)",
+     "value": 7.2
+    },
+    {
+     "name": "var",
+     "expr": "loss99-el",
+     "value": 16.8
+    },
+    {
+     "name": "slip_three",
+     "expr": "3*x*(1-R)",
+     "value": 18.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-18",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-11a-6"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two borrowers have one-year default probabilities of 6% and 10%. The probability that neither defaults during the year is 86.5%.",
+  "ask": "The probability that both default is:",
+  "options": [
+   {
+    "label": "0.6%",
+    "correct": false,
+    "why": "Assumed independence ($0.06 \\times 0.10$). The stated 86.5% implies the defaults cluster."
+   },
+   {
+    "label": "2.5%",
+    "correct": true
+   },
+   {
+    "label": "13.5%",
+    "correct": false,
+    "why": "Took $1 - 0.865$, the probability that at least one defaults, not both."
+   },
+   {
+    "label": "16%",
+    "correct": false,
+    "why": "Added the two PDs, counting the joint-default case twice."
+   }
+  ],
+  "working": [
+   {
+    "label": "At least one defaults",
+    "display": "$1 - 0.865 = 13.5\\%$",
+    "value": 0.135
+   },
+   {
+    "label": "Overlap",
+    "display": "$6\\% + 10\\% - 13.5\\% = 2.5\\%$",
+    "value": 0.025
+   },
+   {
+    "label": "Independence benchmark",
+    "display": "$0.06 \\times 0.10 = 0.6\\%$",
+    "value": 0.006
+   }
+  ],
+  "takeaway": "$P(\\text{neither}) = 1 - \\pi_1 - \\pi_2 + \\pi_{12}$, so the joint probability is the overlap of the two PDs beyond what 'at least one' accounts for.",
+  "check": {
+   "inputs": {
+    "p1": 0.06,
+    "p2": 0.1,
+    "none": 0.865
+   },
+   "steps": [
+    {
+     "name": "atleast",
+     "expr": "1-none",
+     "value": 0.135
+    },
+    {
+     "name": "joint",
+     "expr": "p1+p2-atleast",
+     "value": 0.025
+    },
+    {
+     "name": "slip_indep",
+     "expr": "p1*p2",
+     "value": 0.006
+    },
+    {
+     "name": "slip_sum",
+     "expr": "p1+p2",
+     "value": 0.16
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-19",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-11d-7"
+  },
+  "trap_category": "Sign",
+  "setup": "Single-factor model: conditional PD $= \\Phi\\big((k - \\beta m)/\\sqrt{1-\\beta^2}\\big)$ with $k = \\Phi^{-1}(p)$. A borrower has $p = 2\\%$, so $k = -2.054$, and $\\beta = 0.60$. A mild slowdown sets the market factor at $m = -0.5$.",
+  "ask": "The conditional default probability is:",
+  "options": [
+   {
+    "label": "Below 2%",
+    "correct": true
+   },
+   {
+    "label": "Above 2%",
+    "correct": false,
+    "why": "Assumed any slowdown raises PD. The argument $(k - \\beta m)/0.8 = -2.19$ lies further in the tail than $k = -2.054$, so the probability is smaller."
+   },
+   {
+    "label": "Exactly 2%",
+    "correct": false,
+    "why": "Assumed a mild shock leaves PD unchanged. The factor shifts the argument and also narrows the conditional spread by $\\sqrt{1-\\beta^2}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Numerator",
+    "display": "$k - \\beta m = -2.054 + 0.30 = -1.754$",
+    "value": -1.754
+   },
+   {
+    "label": "Denominator",
+    "display": "$\\sqrt{1 - 0.36} = 0.80$",
+    "value": 0.8
+   },
+   {
+    "label": "Argument",
+    "display": "$-1.754/0.80 = -2.19 < -2.054$, so PD $\\approx 1.4\\% < 2\\%$",
+    "value": -2.19
+   }
+  ],
+  "takeaway": "Conditioning narrows the distribution by $\\sqrt{1-\\beta^2}$: a mild negative factor can still leave the conditional PD below the unconditional one.",
+  "check": {
+   "inputs": {
+    "k": -2.054,
+    "b": 0.6,
+    "m": -0.5
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "k-b*m",
+     "value": -1.754
+    },
+    {
+     "name": "den",
+     "expr": "sqrt(1-b**2)",
+     "value": 0.8
+    },
+    {
+     "name": "z",
+     "expr": "num/den",
+     "value": -2.1925
+    },
+    {
+     "name": "gap",
+     "expr": "z-k",
+     "value": -0.1385
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-20",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-12f-6"
+  },
+  "trap_category": "Role",
+  "setup": "One-factor Gaussian copula: conditional PD $= N\\big((N^{-1}(p) - aF)/\\sqrt{1-a^2}\\big)$. Two borrowers each have $p = 2\\%$ ($N^{-1}(p) = -2.054$). K is a copper miner with loading $a = 0.6$; L is a water utility with $a = 0.2$. In the recession scenario $F = -1.5$.",
+  "ask": "In the recession, which borrower has the higher conditional PD?",
+  "options": [
+   {
+    "label": "K",
+    "correct": true
+   },
+   {
+    "label": "L",
+    "correct": false,
+    "why": "Read the loading as firm-specific risk, so the low-$a$ utility looked more exposed. A high loading means more sensitivity to the common factor."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "The unconditional PDs are equal (2%), but the loadings differ, so the conditional PDs do too."
+   }
+  ],
+  "working": [
+   {
+    "label": "K argument",
+    "display": "$(-2.054 + 0.6 \\times 1.5)/0.80 = -1.44$",
+    "value": -1.44
+   },
+   {
+    "label": "L argument",
+    "display": "$(-2.054 + 0.2 \\times 1.5)/0.98 = -1.79$",
+    "value": -1.79
+   },
+   {
+    "label": "Compare",
+    "display": "$-1.44 > -1.79$, so K's PD ($\\approx 7.5\\%$) exceeds L's ($\\approx 3.7\\%$)",
+    "value": null
+   }
+  ],
+  "takeaway": "In a recession the high-loading name takes the larger jump: the argument is shifted up by $|aF|$ and a larger share of its risk is systematic.",
+  "check": {
+   "inputs": {
+    "k": -2.054,
+    "aK": 0.6,
+    "aL": 0.2,
+    "F": -1.5
+   },
+   "steps": [
+    {
+     "name": "zK",
+     "expr": "(k-aK*F)/sqrt(1-aK**2)",
+     "value": -1.4425
+    },
+    {
+     "name": "zL",
+     "expr": "(k-aL*F)/sqrt(1-aL**2)",
+     "value": -1.79017
+    },
+    {
+     "name": "diff",
+     "expr": "zK-zL",
+     "value": 0.347669
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-21",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20d-3"
+  },
+  "trap_category": "Scope",
+  "setup": "Gregory's approximation: running unilateral CVA $\\approx -\\text{average EPE} \\times \\text{CDS spread}$. Average EPE is 3.5% of notional in both months. The client's 5-year CDS spread widens from 140 bp to 220 bp, and the assumed recovery is cut from 40% to 20%.",
+  "ask": "Within the approximation, the recovery cut on its own changes today's running CVA by:",
+  "options": [
+   {
+    "label": "Nothing",
+    "correct": true
+   },
+   {
+    "label": "About +33% in size",
+    "correct": false,
+    "why": "Scaled by LGD (60% to 80%). The spread already embeds LGD, and the formula takes the spread directly with no LGD input."
+   },
+   {
+    "label": "About −50% in size",
+    "correct": false,
+    "why": "Scaled by the recovery ratio (40% to 20%). Recovery does not appear in the formula."
+   }
+  ],
+  "working": [
+   {
+    "label": "Last month",
+    "display": "$-0.035 \\times 140 = -4.90\\text{ bp}$",
+    "value": -4.9
+   },
+   {
+    "label": "Today",
+    "display": "$-0.035 \\times 220 = -7.70\\text{ bp}$",
+    "value": -7.7
+   },
+   {
+    "label": "Change",
+    "display": "$-7.70 - (-4.90) = -2.80\\text{ bp}$: all from the spread",
+    "value": -2.8
+   }
+  ],
+  "takeaway": "The approximation has no recovery input, so the whole change in running CVA (−2.80 bp) comes from the spread.",
+  "check": {
+   "inputs": {
+    "epe": 0.035,
+    "s0": 140,
+    "s1": 220
+   },
+   "steps": [
+    {
+     "name": "c0",
+     "expr": "-epe*s0",
+     "value": -4.9
+    },
+    {
+     "name": "c1",
+     "expr": "-epe*s1",
+     "value": -7.7
+    },
+    {
+     "name": "chg",
+     "expr": "c1-c0",
+     "value": -2.8
+    },
+    {
+     "name": "slip_lgd",
+     "expr": "c1*0.8/0.6",
+     "value": -10.2667
+    },
+    {
+     "name": "slip_rec",
+     "expr": "c1*20/40",
+     "value": -3.85
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-22",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20d-7"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Unilateral CVA on a 5-year EUR 400m swap. The CDS curve is flat at 300 bp and does not move. Hazard rate $\\lambda = s/\\text{LGD}$, and the same LGD measures the loss. The recovery estimate is revised from 40% to 25%, so LGD rises from 60% to 75%. Discounted EPE (% of notional), years 1–5: 1.5, 2.4, 2.8, 2.4, 1.4.",
+  "ask": "After the revision the CVA charge is:",
+  "options": [
+   {
+    "label": "About 25% larger",
+    "correct": false,
+    "why": "Raised the loss by 75/60 but kept the old default probabilities. The hazard rate $s/\\text{LGD}$ falls when LGD rises."
+   },
+   {
+    "label": "About 20% smaller",
+    "correct": false,
+    "why": "Cut the hazard rate to 4% but kept the loss at 60%. The loss given default is now 75%."
+   },
+   {
+    "label": "Roughly unchanged",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Hazard rates",
+    "display": "$3\\%/0.60 = 5.00\\%$ before, $3\\%/0.75 = 4.00\\%$ after",
+    "value": null
+   },
+   {
+    "label": "CVA before",
+    "display": "$0.60 \\times 0.004647 \\times 400 \\approx 1.115$",
+    "value": 1.115
+   },
+   {
+    "label": "CVA after",
+    "display": "$0.75 \\times 0.003808 \\times 400 \\approx 1.142$",
+    "value": 1.142
+   },
+   {
+    "label": "Change",
+    "display": "$1.142 / 1.115 \\approx +2.4\\%$",
+    "value": 0.024
+   }
+  ],
+  "takeaway": "LGD enters twice: it lowers the implied PD and raises the loss, and the two nearly cancel. The CVA moves by only about 2%.",
+  "check": {
+   "inputs": {
+    "s": 0.03,
+    "N": 400,
+    "E1": 1.5,
+    "E2": 2.4,
+    "E3": 2.8,
+    "E4": 2.4,
+    "E5": 1.4
+   },
+   "steps": [
+    {
+     "name": "lam0",
+     "expr": "s/0.6",
+     "value": 0.05
+    },
+    {
+     "name": "lam1",
+     "expr": "s/0.75",
+     "value": 0.04
+    },
+    {
+     "name": "sum0",
+     "expr": "E1*(exp(-lam0*0)-exp(-lam0*1))+E2*(exp(-lam0*1)-exp(-lam0*2))+E3*(exp(-lam0*2)-exp(-lam0*3))+E4*(exp(-lam0*3)-exp(-lam0*4))+E5*(exp(-lam0*4)-exp(-lam0*5))",
+     "value": 0.464706
+    },
+    {
+     "name": "sum1",
+     "expr": "E1*(exp(-lam1*0)-exp(-lam1*1))+E2*(exp(-lam1*1)-exp(-lam1*2))+E3*(exp(-lam1*2)-exp(-lam1*3))+E4*(exp(-lam1*3)-exp(-lam1*4))+E5*(exp(-lam1*4)-exp(-lam1*5))",
+     "value": 0.380822
+    },
+    {
+     "name": "cva0",
+     "expr": "0.6*sum0*N/100",
+     "value": 1.1153
+    },
+    {
+     "name": "cva1",
+     "expr": "0.75*sum1*N/100",
+     "value": 1.14247
+    },
+    {
+     "name": "chg",
+     "expr": "cva1/cva0-1",
+     "value": 0.0243619
+    },
+    {
+     "name": "slip_loss_only",
+     "expr": "0.75/0.6-1",
+     "value": 0.25
+    },
+    {
+     "name": "slip_pd_only",
+     "expr": "0.6*sum1*N/100/cva0-1",
+     "value": -0.180511
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-23",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20d-8"
+  },
+  "trap_category": "Role",
+  "setup": "A 4-year swap with a project vehicle that has no CDS. The bank uses a proxy curve flat at 240 bp, calibrated at the market 40% recovery. The swap ranks as senior secured, so the credit team expects 75% recovery on it. Default probabilities come from the proxy curve with a constant hazard rate; the swap's own recovery sets the loss.",
+  "ask": "The constant hazard rate to use for the default probabilities is:",
+  "options": [
+   {
+    "label": "2.4%",
+    "correct": false,
+    "why": "Used the spread as the hazard rate, ignoring that it compensates for default times the market LGD."
+   },
+   {
+    "label": "4.0%",
+    "correct": true
+   },
+   {
+    "label": "9.6%",
+    "correct": false,
+    "why": "Divided the spread by the swap's own LGD of 25%. The proxy curve's market LGD of 60% is what links its spread to default probability."
+   }
+  ],
+  "working": [
+   {
+    "label": "Hazard",
+    "display": "$0.024/0.60 = 4.00\\%$",
+    "value": 0.04
+   },
+   {
+    "label": "EPE × PD, years 1–4",
+    "display": "$10(3.92\\%) + 14(3.77\\%) + 12(3.62\\%) + 6(3.48\\%) \\approx 1.56$",
+    "value": 1.5625
+   },
+   {
+    "label": "CVA with actual LGD",
+    "display": "$-(1 - 0.75) \\times 1.5625 \\approx -\\text{GBP } 0.39\\text{m}$",
+    "value": -0.39
+   }
+  ],
+  "takeaway": "PD comes from the market curve with the market LGD; the swap's own LGD is applied only to the loss.",
+  "check": {
+   "inputs": {
+    "s": 0.024,
+    "E1": 10,
+    "E2": 14,
+    "E3": 12,
+    "E4": 6
+   },
+   "steps": [
+    {
+     "name": "lam",
+     "expr": "s/0.6",
+     "value": 0.04
+    },
+    {
+     "name": "slip_spread",
+     "expr": "s",
+     "value": 0.024
+    },
+    {
+     "name": "slip_ownlgd",
+     "expr": "s/0.25",
+     "value": 0.096
+    },
+    {
+     "name": "epepd",
+     "expr": "E1*(exp(-lam*0)-exp(-lam*1))+E2*(exp(-lam*1)-exp(-lam*2))+E3*(exp(-lam*2)-exp(-lam*3))+E4*(exp(-lam*3)-exp(-lam*4))",
+     "value": 1.56254
+    },
+    {
+     "name": "cva",
+     "expr": "-0.25*epepd",
+     "value": -0.390635
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-24",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-21d-6"
+  },
+  "trap_category": "Sign",
+  "setup": "Derivative exposure enters the credit stress as $\\alpha \\times \\text{EPE}$ with $\\alpha = 1.2$ and LGD 60% unchanged. Under the stress, counterparty Y's EPE falls from CAD 40m to CAD 35m while its PD rises from 2.0% to 2.5%.",
+  "ask": "Y's expected loss under stress, compared with now, is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Counted only the 12.5% fall in EPE. The PD rises by 25%, a bigger proportional move, so the product increases."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Assumed the opposing moves cancel. $0.875 \\times 1.25 = 1.09$, not 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "EL now",
+    "display": "$1.2 \\times 0.020 \\times 40 \\times 0.60 = 0.576$",
+    "value": 0.576
+   },
+   {
+    "label": "EL stressed",
+    "display": "$1.2 \\times 0.025 \\times 35 \\times 0.60 = 0.630$",
+    "value": 0.63
+   },
+   {
+    "label": "Stress loss",
+    "display": "$0.630 - 0.576 = +0.054$",
+    "value": 0.054
+   }
+  ],
+  "takeaway": "EL is a product, so compare proportional moves: EPE $\\times 0.875$ and PD $\\times 1.25$ give EL up about 9%.",
+  "check": {
+   "inputs": {
+    "alpha": 1.2,
+    "lgd": 0.6
+   },
+   "steps": [
+    {
+     "name": "el0",
+     "expr": "alpha*0.02*40*lgd",
+     "value": 0.576
+    },
+    {
+     "name": "el1",
+     "expr": "alpha*0.025*35*lgd",
+     "value": 0.63
+    },
+    {
+     "name": "loss",
+     "expr": "el1-el0",
+     "value": 0.054
+    },
+    {
+     "name": "factor",
+     "expr": "(35/40)*(0.025/0.02)",
+     "value": 1.09375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-25",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-21f-5"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A 2-year swap's counterparty has a flat CDS spread that doubles from 180 bp to 360 bp; recovery is 40%, so the hazard rate $\\lambda = s/(1-R)$ goes from 3% to 6%. Discounted exposures are USD 12m (year 1) and USD 15m (year 2), unchanged. CVA $= 0.60 \\times \\sum EE \\times (\\text{marginal PD})$.",
+  "ask": "The stressed CVA is:",
+  "options": [
+   {
+    "label": "Less than double the base CVA",
+    "correct": true
+   },
+   {
+    "label": "Exactly double",
+    "correct": false,
+    "why": "Assumed CVA is proportional to the spread. Marginal PDs are $e^{-\\lambda(t-1)} - e^{-\\lambda t}$: a higher hazard rate shrinks later years' PDs through lower survival."
+   },
+   {
+    "label": "More than double",
+    "correct": false,
+    "why": "Expected compounding in the tail. Here the opposite happens: survival falls, so later marginal PDs rise by less than 2×."
+   }
+  ],
+  "working": [
+   {
+    "label": "Base CVA",
+    "display": "$0.60 \\times (12 \\times 2.955\\% + 15 \\times 2.868\\%) \\approx 0.471$",
+    "value": 0.4709
+   },
+   {
+    "label": "Stressed CVA",
+    "display": "$0.60 \\times (12 \\times 5.824\\% + 15 \\times 5.484\\%) \\approx 0.913$",
+    "value": 0.9129
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.913 / 0.471 \\approx 1.94 < 2$",
+    "value": 1.94
+   }
+  ],
+  "takeaway": "Doubling the spread slightly less than doubles CVA: the extra default probability in year 1 reduces the survival-weighted default probability later.",
+  "check": {
+   "inputs": {
+    "E1": 12,
+    "E2": 15,
+    "R": 0.4,
+    "s0": 0.018,
+    "s1": 0.036
+   },
+   "steps": [
+    {
+     "name": "l0",
+     "expr": "s0/(1-R)",
+     "value": 0.03
+    },
+    {
+     "name": "l1",
+     "expr": "s1/(1-R)",
+     "value": 0.06
+    },
+    {
+     "name": "c0",
+     "expr": "(1-R)*(E1*(1-exp(-l0))+E2*(exp(-l0)-exp(-2*l0)))",
+     "value": 0.470921
+    },
+    {
+     "name": "c1",
+     "expr": "(1-R)*(E1*(1-exp(-l1))+E2*(exp(-l1)-exp(-2*l1)))",
+     "value": 0.912892
+    },
+    {
+     "name": "ratio",
+     "expr": "c1/c0",
+     "value": 1.93852
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq09-26",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-21: The Evolution of Stress Testing Counterparty Exposures",
+  "reading_id": "CR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-21f-6"
+  },
+  "trap_category": "Scope",
+  "setup": "CVA $= \\text{LGD} \\times \\sum EE \\times q^*$ with both EE and $q^*$ stressed. P (LGD 60%): year 1 EE 20 to 26, $q^*$ 1.0% to 2.0%; year 2 EE 25 to 30, $q^*$ 1.1% to 2.2%. Q (LGD 75%): year 1 EE 10 to 9, $q^*$ 2.5% to 3.5%; year 2 EE 8 to 6, $q^*$ 2.4% to 3.4%. USD m.",
+  "ask": "Which counterparty accounts for most of the portfolio's stress loss on CVA?",
+  "options": [
+   {
+    "label": "P",
+    "correct": true
+   },
+   {
+    "label": "Q",
+    "correct": false,
+    "why": "Looked at Q's higher LGD and higher $q^*$ levels. The stress loss is the change, and Q's falling exposure offsets part of its spread rise."
+   },
+   {
+    "label": "About equal",
+    "correct": false,
+    "why": "Compared how much both $q^*$ rise (one point each). P's exposures rise too, so its terms multiply up, while Q's partly offset."
+   }
+  ],
+  "working": [
+   {
+    "label": "P",
+    "display": "$0.60(26 \\times 0.020 + 30 \\times 0.022) - 0.285 = 0.708 - 0.285 = 0.423$",
+    "value": 0.423
+   },
+   {
+    "label": "Q",
+    "display": "$0.75(9 \\times 0.035 + 6 \\times 0.034) - 0.3315 = 0.389 - 0.3315 = 0.058$",
+    "value": 0.0578
+   },
+   {
+    "label": "Portfolio",
+    "display": "$0.423 + 0.058 \\approx \\text{USD } 0.481\\text{m}$",
+    "value": 0.481
+   }
+  ],
+  "takeaway": "Both inputs rising multiply up (P); one rising and one falling partly cancel (Q). Compare changes, not levels.",
+  "check": {
+   "inputs": {
+    "lp": 0.6,
+    "lq": 0.75
+   },
+   "steps": [
+    {
+     "name": "p0",
+     "expr": "lp*(20*0.010+25*0.011)",
+     "value": 0.285
+    },
+    {
+     "name": "p1",
+     "expr": "lp*(26*0.020+30*0.022)",
+     "value": 0.708
+    },
+    {
+     "name": "q0",
+     "expr": "lq*(10*0.025+8*0.024)",
+     "value": 0.3315
+    },
+    {
+     "name": "q1",
+     "expr": "lq*(9*0.035+6*0.034)",
+     "value": 0.38925
+    },
+    {
+     "name": "dp",
+     "expr": "p1-p0",
+     "value": 0.423
+    },
+    {
+     "name": "dq",
+     "expr": "q1-q0",
+     "value": 0.05775
+    },
+    {
+     "name": "total",
+     "expr": "dp+dq",
+     "value": 0.48075
+    }
+   ]
+  }
+ }
+]
