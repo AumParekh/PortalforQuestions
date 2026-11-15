@@ -55,6 +55,66 @@ BLOCKING = {
 }
 
 
+SOURCE_LINE = re.compile(r'\n*\*\*Source:\*\* [^\n]*\s*$')
+# The banks and workbooks abbreviate their providers; a source line spells them out.
+SPELL_OUT = [
+    (re.compile(r'\bBT answers\b'), 'Bionic Turtle answers'),
+    (re.compile(r'\bBT notes\b'), 'Bionic Turtle notes'),
+    (re.compile(r'\bBT Mock\b'), 'Bionic Turtle mock'),
+    (re.compile(r'\bAP Mock\b'), 'AnalystPrep mock'),
+    (re.compile(r'\bGARP PE(\d+)\b'), r'GARP practice exam \1'),
+    # "Mock AP Mock 3 Q31" and "Mock Mock 1 Q39" double the word as printed.
+    (re.compile(r'\bMock (?=AnalystPrep mock|Mock )'), ''),
+    (re.compile(r'\bCI QB VI\b'), 'the Current Issues question bank (Very Important set)'),
+    (re.compile(r'\bCI QB Imp\b'), 'the Current Issues question bank (Important set)'),
+]
+
+
+def spell_out(text: str) -> str:
+    for pattern, full in SPELL_OUT:
+        text = pattern.sub(full, text)
+    return text.strip().rstrip('.')
+
+
+def workbook_name(label: str, workbook: str) -> str:
+    return f"{label} {'P1–P3 workbook' if 'P1-P3' in workbook else 'workbook'}"
+
+
+def bank_source(raw: str, label: str, n: int) -> str:
+    """The closing line of a question-bank solution: who the question is from, then where it was printed."""
+    where = f'Printed in the {label} question bank as Q{n}.'
+    new = re.match(r'New question written for this bank\s*(?:\((.*)\))?$', raw.strip())
+    if new:
+        style = f' ({new.group(1)})' if new.group(1) else ''
+        return f'**Source:** Written new for the {label} question bank{style}, where it is Q{n}.'
+    return f'**Source:** {spell_out(raw)}. {where}'
+
+
+def workbook_source(raw: str, name: str, qid: str, sections: dict) -> str:
+    """The closing line of a workbook solution. `sections` maps a tier-workbook section id to its title."""
+    where = f'Printed in the {name} as question {qid}.'
+    parts = [x.strip() for x in re.split(r'\s[•·]\s', raw.strip()) if x.strip()]
+    recall = RECALL_SOURCE.match(raw.strip())
+    if recall:
+        section = recall.group(1).split('.')[0]
+        title = f', {sections[section]}' if section in sections else ''
+        august = ' It is one of the questions recalled from the August 2026 exam.' if 'Aug-2026' in parts else ''
+        return f'**Source:** Tier workbook, Tier {section[0]}, section {section}{title} (question {recall.group(1)}).{august} {where}'
+    # "New • built from GARP Ch.5 • S3": the trailing "S3" tags are exam-shape numbers, not a source.
+    detail = [x for x in parts[1:] if not re.fullmatch(r'(S\d+(, ?S\d+)*|Map #\d+|Aug-\d{4}|shape [A-D]\d+·S\d+)', x)]
+    if parts and re.fullmatch(r'New|self-gen(erated)?', parts[0]):
+        built = f", {spell_out(' • '.join(detail))}" if detail else ''
+        return f'**Source:** Written new for the {name} (question {qid}){built}.'
+    return f'**Source:** {spell_out(raw)}. {where}'
+
+
+def earlier_source(q: dict, code: str) -> str:
+    """Questions that were in the portal before the import carry no printed source."""
+    if code == 'CI':
+        return f"**Source:** Current Issues question bank ({q['tier']} set)."
+    return f"**Source:** The portal's first question set ({q['tier']}). No outside source was recorded for it."
+
+
 def load(path):
     with open(path, encoding='utf8') as f:
         return json.load(f)
@@ -169,9 +229,9 @@ def from_bank(code: str, area: str, offset: int, label: str, subject: str, data:
             parts.append('**Key correction:** ' + q['key'])
         if q['steps']:
             parts.append('**Step by step**\n\n' + q['steps'])
-        parts.append(f"**Source:** {q['source']} ({label} Question Bank, Q{q['n']})")
         if q['note']:
             parts.append(q['note'])
+        parts.append(bank_source(q['source'], label, q['n']))
         reasons = dict(q['others'])
         # Where the bank gives a note on the right option too ("this is the false statement"), it follows the reason.
         reasons[q['answer']] = ' '.join(x for x in (q['why'], q['others'].get(q['answer'], '')) if x)
@@ -179,7 +239,7 @@ def from_bank(code: str, area: str, offset: int, label: str, subject: str, data:
     return out
 
 
-def from_workbook(code: str, area: str, label: str, subject: str, data: dict, lo_index: dict, overrides: dict, report: dict) -> list:
+def from_workbook(code: str, area: str, name: str, sections: dict, subject: str, data: dict, lo_index: dict, overrides: dict, report: dict) -> list:
     out = []
     for q in data['questions']:
         if q['source'].startswith('Bank'):
@@ -199,7 +259,7 @@ def from_workbook(code: str, area: str, label: str, subject: str, data: dict, lo
         parts = [q['solution']]
         if q['reference']:
             parts.append(q['reference'])
-        parts.append(f"**Source:** {q['source']} ({label} Workbook, Question {q['id']})")
+        parts.append(workbook_source(q['source'], name, q['id'], sections))
         item = question(key, subject, WORKBOOK_TIER, lo, q['stem'], q['options'], q['answer'], '\n\n'.join(p for p in parts if p), dict(q['others']), q['source'])
         # A question the workbook took from the Recall + Priority Map volumes keeps its number there ("A13.2").
         recall = RECALL_SOURCE.match(q['source'])
@@ -302,6 +362,7 @@ def main():
     overrides = load(os.path.join(QB, 'overrides.json'))
     tiers = load(os.path.join(INPUTS, 'lo-map', 'tiers.json'))
     write_tiers_module(tiers)
+    section_titles = {sec['id']: sec['title'] for sec in tiers['sections']}
     report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
     coverage = Counter()
     kinds, numerical = {}, Counter()
@@ -320,11 +381,13 @@ def main():
                 report['unmapped-existing'].append(q['id'])
             else:
                 q['lo'], q['loText'], q['reading'], q['band'] = new_lo['id'], new_lo['text'], new_lo['reading'], new_lo['band']
+            # Every solution closes with where the question is from; re-running replaces the line rather than adding one.
+            q['solution'] = SOURCE_LINE.sub('', q['solution']) + '\n\n' + earlier_source(q, code)
             kept.append(q)
         added = []
         if bank:
             added += from_bank(code, area, offset, label, subject, load(os.path.join(EXTRACTED, f'{code}-bank.json')), lo_index, overrides, report)
-        added += from_workbook(code, area, label, subject, load(os.path.join(EXTRACTED, f'{code}-workbook.json')), lo_index, overrides, report)
+        added += from_workbook(code, area, workbook_name(label, workbook), section_titles, subject, load(os.path.join(EXTRACTED, f'{code}-workbook.json')), lo_index, overrides, report)
         final = []
         for q in added:
             bad = check(q)
