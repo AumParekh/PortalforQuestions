@@ -105,7 +105,7 @@ export function PlayView() {
   if (!run || !scenario) return null;
 
   const isLast = index + 1 >= total;
-  const fraction = Math.max(0, Math.min(1, left / SESSION_SECONDS));
+  const fraction = Math.max(0, Math.min(1, left / run.seconds));
   // Soft pace marker: where the clock would stand at the end of this round on an even pace.
   const pace = Math.max(0, 1 - (index + 1) / Math.max(1, total));
 
@@ -141,7 +141,7 @@ export function PlayView() {
           role="progressbar"
           aria-label="Session time left"
           aria-valuemin={0}
-          aria-valuemax={SESSION_SECONDS}
+          aria-valuemax={run.seconds}
           aria-valuenow={Math.ceil(left)}
         >
           <div

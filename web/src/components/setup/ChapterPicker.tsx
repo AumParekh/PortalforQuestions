@@ -198,14 +198,16 @@ export function ScopeSwitch({
   value,
   onChange,
   shuffleLabel = 'Shuffle',
+  pickLabel = 'Pick chapters',
 }: {
   value: ChapterScope;
   onChange: (v: ChapterScope) => void;
   shuffleLabel?: string;
+  pickLabel?: string;
 }) {
   const options: { value: ChapterScope; label: string }[] = [
     { value: 'shuffle', label: shuffleLabel },
-    { value: 'chapters', label: 'Pick chapters' },
+    { value: 'chapters', label: pickLabel },
   ];
   return (
     <div role="group" aria-label="What to practise" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">

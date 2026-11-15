@@ -17,8 +17,9 @@ import {
   topicKey,
 } from './deck';
 import type { StatusFilter, TfSetup } from './deck';
-import { ChapterPicker, ScopeSwitch } from '../setup/ChapterPicker';
-import type { ChapterGroup } from '../setup/ChapterPicker';
+import { ScopeSwitch } from '../setup/ChapterPicker';
+import { LoPicker } from '../setup/LoPicker';
+import type { LoSubject } from '../setup/LoPicker';
 
 function Segmented<T extends string | number>({
   label,
@@ -115,53 +116,57 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
   const [setup, setSetup] = useState<TfSetup>(() => {
     const all = subjectInfo(cards, {});
     const names = new Set(all.map((s) => s.subject));
-    const topicKeys = new Set(all.flatMap((s) => s.topics.map((t) => t.key)));
     const saved = loadSetup();
     if (!saved) return { ...DEFAULT_SETUP, subjects: all.map((s) => s.subject) };
     const kept = saved.subjects.filter((s) => names.has(s));
+    const known = new Set(cards.map((c) => c.lo));
+    // Chapters picked before LOs could be: every LO of those chapters.
+    const fromChapters = new Set(saved.topics);
+    const migrated = saved.los.length === 0 && fromChapters.size > 0 ? [...new Set(cards.filter((c) => fromChapters.has(topicKey(c.subject, c.topic))).map((c) => c.lo))] : saved.los;
     return {
       ...saved,
       subjects: kept.length > 0 ? kept : all.map((s) => s.subject),
-      topics: saved.topics.filter((k) => topicKeys.has(k)),
+      topics: [],
+      los: migrated.filter((lo) => known.has(lo)),
     };
   });
 
   useEffect(() => saveSetup(setup), [setup]);
 
   const selected = useMemo(() => new Set(setup.subjects), [setup.subjects]);
-  const chapterGroups = useMemo((): ChapterGroup[] => {
-    // A topic's readings and objectives are searchable too, so "Hull" or "smile" finds it.
-    const extra = new Map<string, Set<string>>();
+  // Subject → chapter → learning objective, each LO with its statements and how they have gone so far.
+  const loSubjects = useMemo((): LoSubject[] => {
+    const byLo = new Map<string, { subject: string; topic: string; lo: string; loText: string; total: number; seen: number; attempts: number; correct: number }>();
     for (const c of cards) {
-      const k = topicKey(c.subject, c.topic);
-      const set = extra.get(k) ?? new Set<string>();
-      extra.set(k, set);
-      set.add(c.reading);
-      set.add(c.loText);
-    }
-    const seen = new Map<string, { seen: number; attempts: number; correct: number }>();
-    for (const c of cards) {
+      let l = byLo.get(c.lo);
+      if (!l) {
+        l = { subject: c.subject, topic: c.topic, lo: c.lo, loText: c.loText, total: 0, seen: 0, attempts: 0, correct: 0 };
+        byLo.set(c.lo, l);
+      }
+      l.total += 1;
       const st = states[c.id];
-      if (!st || st.totalAttempts === 0) continue;
-      const k = topicKey(c.subject, c.topic);
-      const t = seen.get(k) ?? { seen: 0, attempts: 0, correct: 0 };
-      seen.set(k, t);
-      t.seen += 1;
-      t.attempts += st.totalAttempts;
-      t.correct += st.totalCorrect;
+      if (st && st.totalAttempts > 0) {
+        l.seen += 1;
+        l.attempts += st.totalAttempts;
+        l.correct += st.totalCorrect;
+      }
     }
+    const los = [...byLo.values()].sort((a, b) => a.lo.localeCompare(b.lo, undefined, { numeric: true }));
     return subjects.map((s) => ({
       id: s.subject,
       title: s.subject,
-      chapters: s.topics.map((t) => {
-        const p = seen.get(t.key);
-        return {
-          id: t.key,
-          label: t.topic,
-          keywords: [...(extra.get(t.key) ?? [])].join(' '),
-          detail: `${t.total} ${t.total === 1 ? 'statement' : 'statements'}${p ? ` · ${pct(p.correct, p.attempts)}% · ${p.seen} seen` : ' · not started'}`,
-        };
-      }),
+      chapters: s.topics.map((t) => ({
+        id: t.key,
+        label: t.topic,
+        los: los
+          .filter((l) => l.subject === s.subject && l.topic === t.topic)
+          .map((l) => ({
+            id: l.lo,
+            code: l.lo,
+            label: l.loText,
+            detail: `${l.total} ${l.total === 1 ? 'statement' : 'statements'}${l.seen > 0 ? ` · ${pct(l.correct, l.attempts)}% · ${l.seen} seen` : ' · not started'}`,
+          })),
+      })),
     }));
   }, [cards, states, subjects]);
   const pool = useMemo(() => filterPool(cards, states, setup), [cards, states, setup]);
@@ -191,7 +196,7 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
     }));
 
   const picking = setup.scope === 'chapters';
-  const nothingChosen = picking ? setup.topics.length === 0 : setup.subjects.length === 0;
+  const nothingChosen = picking ? setup.los.length === 0 : setup.subjects.length === 0;
 
   const setStatus = (status: StatusFilter) => update({ status });
 
@@ -200,7 +205,7 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
   const counter =
     nothingChosen
       ? picking
-        ? 'No chapter picked'
+        ? 'No learning objective picked'
         : 'No subject selected'
       : pool.length === 0
         ? 'No statements match'
@@ -270,14 +275,16 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
         )}
 
         <section aria-label="What to practise" className="space-y-3">
-          <ScopeSwitch value={setup.scope} onChange={(scope) => update({ scope })} />
+          <ScopeSwitch value={setup.scope} onChange={(scope) => update({ scope })} pickLabel="Chapters and LOs" />
           <p className="text-[15px] text-slate-600 dark:text-slate-400">
-            {picking ? 'Only statements from the chapters you pick.' : 'Statements from the subjects you choose, mixed together.'}
+            {picking
+              ? 'Only statements from the learning objectives you pick. Open a subject, then a chapter; a chapter\'s Select button takes all of its LOs.'
+              : 'Statements from the subjects you choose, mixed together.'}
           </p>
         </section>
 
         {picking ? (
-          <ChapterPicker groups={chapterGroups} selected={setup.topics} onChange={(topics) => update({ topics })} idPrefix="tf" />
+          <LoPicker subjects={loSubjects} selected={setup.los} onChange={(los) => update({ los })} idPrefix="tf" />
         ) : (
           <section aria-labelledby="tf-subjects" className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">

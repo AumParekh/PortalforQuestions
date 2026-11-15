@@ -26,6 +26,9 @@ export interface Scenario {
   /** Reading label; the rotation key. */
   reading: string;
   readingId: string | null;
+  /** Learning objective of the bank question the scenario was built from ("MR-14 b"); null for scenarios from the notes. */
+  lo: string | null;
+  loText: string | null;
   source: ScenarioSource;
   trapCategory: string | null;
   setup: string;

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { newId } from '../store/session';
 import { gradeFor, recordGymAnswer } from '../formulas/storage';
 import { parseSenseDeck } from './parse';
-import { EMPTY_HISTORY, SESSION_SECONDS, parseHistory, withSession } from './rotation';
+import { EMPTY_HISTORY, SESSION_SECONDS, parseHistory, sessionSeconds, withSession } from './rotation';
 import type { SenseHistory, SessionPlan } from './rotation';
 import type { Scenario, SenseMode } from './types';
 import { profileKey } from '../games/profile';
@@ -84,24 +84,46 @@ function saveHistory(history: SenseHistory) {
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const PICK_KEY = 'frm.senseCheck.pick.v1';
 
+/** Rounds in a session: the standard 10, longer, or every scenario of the choice. */
+export type RoundsChoice = 10 | 20 | 40 | 'all';
+export const ROUNDS_OPTIONS: { value: RoundsChoice; label: string }[] = [
+  { value: 10, label: '10' },
+  { value: 20, label: '20' },
+  { value: 40, label: '40' },
+  { value: 'all', label: 'All' },
+];
+
 export interface SensePick {
   scope: 'shuffle' | 'chapters';
-  /** Scenario `reading` labels (the rotation key). */
+  /** Chapters picked before LOs could be (scenario `reading` ids): turned into their LOs when the screen opens. */
   readings: string[];
+  /** Leaf keys of the picker (see `leafKey`), used when `scope` is 'chapters'. */
+  los: string[];
+  rounds: RoundsChoice;
+}
+
+const DEFAULT_PICK: SensePick = { scope: 'shuffle', readings: [], los: [], rounds: 10 };
+
+/** What a scenario is picked by: its learning objective, or for one written from the notes, its chapter's notes. */
+export function leafKey(s: Pick<Scenario, 'lo' | 'reading'>): string {
+  return s.lo ?? `${s.reading}::notes`;
 }
 
 export function loadPick(): SensePick {
   try {
     const raw = window.localStorage.getItem(profileKey(PICK_KEY));
     const o: unknown = raw ? JSON.parse(raw) : null;
-    if (!o || typeof o !== 'object') return { scope: 'shuffle', readings: [] };
+    if (!o || typeof o !== 'object') return DEFAULT_PICK;
     const r = o as Record<string, unknown>;
+    const strings = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
     return {
       scope: r.scope === 'chapters' ? 'chapters' : 'shuffle',
-      readings: Array.isArray(r.readings) ? r.readings.filter((x): x is string => typeof x === 'string') : [],
+      readings: strings(r.readings),
+      los: strings(r.los),
+      rounds: ROUNDS_OPTIONS.find((x) => x.value === r.rounds)?.value ?? 10,
     };
   } catch {
-    return { scope: 'shuffle', readings: [] };
+    return DEFAULT_PICK;
   }
 }
 
@@ -136,11 +158,13 @@ export interface SenseRun {
   /** Set while the clock is suspended mid-round (screen left or tab hidden); `resume` picks up from here. */
   suspendedAt: number | null;
   timedOut: boolean;
+  /** The session's clock in seconds: longer sessions get the same pace per round. */
+  seconds: number;
 }
 
 export function remainingMs(run: SenseRun, now: number): number {
   const used = run.usedMs + (run.runningSince !== null ? now - run.runningSince : 0);
-  return Math.max(0, SESSION_SECONDS * 1000 - used);
+  return Math.max(0, (run.seconds ?? SESSION_SECONDS) * 1000 - used);
 }
 
 interface RunStore {
@@ -168,7 +192,7 @@ export const useSenseRun = create<RunStore>((set, get) => ({
     const now = Date.now();
     set({
       phase: 'play',
-      run: { sessionId: newId('scs'), plan, index: 0, results: [], usedMs: 0, runningSince: now, roundStartedAt: now, suspendedAt: null, timedOut: false },
+      run: { sessionId: newId('scs'), plan, index: 0, results: [], usedMs: 0, runningSince: now, roundStartedAt: now, suspendedAt: null, timedOut: false, seconds: sessionSeconds(plan.rounds.length) },
     });
   },
 

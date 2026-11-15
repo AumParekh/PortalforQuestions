@@ -62,6 +62,8 @@ export function parseScenario(v: unknown): Scenario | null {
     area,
     reading: str(v.reading) || readingId || area,
     readingId,
+    lo: str(v.lo) || null,
+    loText: str(v.lo_text) || null,
     source: sourceOf(v.source) ?? { kind: 'notes', file: '', line: null },
     trapCategory: str(v.trap_category) || null,
     setup,

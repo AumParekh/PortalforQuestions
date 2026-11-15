@@ -159,13 +159,13 @@ def place_correct(s):
 
 
 def question_chapters():
-    """Question id -> official reading id ("MR-14") of its chapter."""
+    """Question id -> (official reading id "MR-14", LO id "MR-14 b", LO wording) of its question."""
     out = {}
     for code in ('IR', 'MR', 'CR', 'LR', 'OR', 'CI'):
         for q in json.load(open(os.path.join(ROOT, 'content', f'{code}.json'), encoding='utf8'))['questions']:
             m = re.match(r'[A-Z]+-\d+(?=:)', q.get('reading', ''))
             if m:
-                out[q['id']] = m.group(0)
+                out[q['id']] = (m.group(0), q.get('lo'), q.get('loText'))
     return out
 
 
@@ -201,9 +201,12 @@ def main():
                 continue
             src = s.get('source') or {}
             if src.get('kind') == 'bank':
-                chapter = chapters.get(src.get('questionId'))
-                if chapter:
-                    s['reading'] = s['reading_id'] = chapter
+                filed = chapters.get(src.get('questionId'))
+                if filed:
+                    s['reading'] = s['reading_id'] = filed[0]
+                    # The learning objective of the question the scenario was built from, so it can be picked by LO.
+                    if filed[1] and filed[1].startswith(filed[0] + ' '):
+                        s['lo'], s['lo_text'] = filed[1], filed[2]
                 else:
                     unfiled += 1
             # One key per chapter: the bare reading id, which the screen labels with the official title.

@@ -102,6 +102,16 @@ export interface PlanOptions {
   rounds?: number;
   /** False when the player picked the chapters: the every-third-session area rule then stays out of the way. */
   areaRule?: boolean;
+  /**
+   * True for "play all": once every question has supplied one round, its other rounds are let in too (normally two
+   * rounds on the same question never share a session, as each gives the other away).
+   */
+  allowRepeats?: boolean;
+}
+
+/** Clock for a session of this many rounds: the standard session's pace, and never less than the standard session. */
+export function sessionSeconds(rounds: number): number {
+  return Math.max(SESSION_SECONDS, Math.round((SESSION_SECONDS / SESSION_ROUNDS) * rounds));
 }
 
 function shuffle<T>(items: T[], rng: () => number): T[] {
@@ -244,17 +254,18 @@ export function planSession(
   // Pass 1 keeps the mode mix and skips scenarios already seen and not due, so a due or weak scenario from a later
   // reading beats a merely-seen one from an earlier reading; pass 2 lets those in; pass 3 tops up whatever the mix
   // couldn't fill.
-  const passes: { respectQuota: boolean; minTier: number }[] = [
+  const passes: { respectQuota: boolean; minTier: number; repeats?: boolean }[] = [
     { respectQuota: true, minTier: 2 },
     { respectQuota: true, minTier: 0 },
     { respectQuota: false, minTier: 0 },
+    ...(options.allowRepeats ? [{ respectQuota: false, minTier: 0, repeats: true }] : []),
   ];
-  for (const { respectQuota, minTier } of passes) {
+  for (const { respectQuota, minTier, repeats } of passes) {
     for (const r of order) {
       for (const s of byReading.get(r) ?? []) {
         if (picked.length >= size) break;
         // Rounds built on the same question would give each other's answers away.
-        if (usedIds.has(s.id) || usedSources.has(sourceKey(s))) continue;
+        if (usedIds.has(s.id) || (!repeats && usedSources.has(sourceKey(s)))) continue;
         if (respectQuota && quota[s.mode] <= 0) continue;
         if (tierOf(s) < minTier) continue;
         take(s);

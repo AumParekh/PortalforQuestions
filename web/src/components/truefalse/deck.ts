@@ -9,8 +9,10 @@ export interface TfSetup {
   /** 'shuffle' deals from the chosen subjects; 'chapters' only from the chosen topics, whatever their subject. */
   scope: 'shuffle' | 'chapters';
   subjects: string[];
-  /** `${subject}::${topic}` keys, used when `scope` is 'chapters'. */
+  /** Chapters picked before LOs could be (`${subject}::${topic}` keys): turned into their LOs when the setup opens. */
   topics: string[];
+  /** LO ids ("MR-2 c"), used when `scope` is 'chapters'. */
+  los: string[];
   status: StatusFilter;
   size: DeckSize;
   order: DeckOrder;
@@ -38,7 +40,7 @@ export const ORDER_OPTIONS: { value: DeckOrder; label: string }[] = [
 /** Per profile: stored under `profileKey(...)` (games/profile.ts). */
 const STORAGE_KEY = 'frm.truefalse.v1';
 
-export const DEFAULT_SETUP: TfSetup = { scope: 'shuffle', subjects: [], topics: [], status: 'all', size: 20, order: 'shuffled' };
+export const DEFAULT_SETUP: TfSetup = { scope: 'shuffle', subjects: [], topics: [], los: [], status: 'all', size: 20, order: 'shuffled' };
 
 function pick<T>(value: unknown, allowed: { value: T }[], fallback: T): T {
   const hit = allowed.find((a) => a.value === value);
@@ -58,11 +60,13 @@ export function loadSetup(): TfSetup | null {
     if (!data || typeof data !== 'object') return null;
     const d = data as Record<string, unknown>;
     const topics = strings(d.topics);
+    const los = strings(d.los);
     return {
       // Setups saved before the switch existed narrowed subjects by topic: those open on their chapters.
       scope: d.scope === 'chapters' ? 'chapters' : d.scope === 'shuffle' ? 'shuffle' : topics.length > 0 ? 'chapters' : 'shuffle',
       subjects: strings(d.subjects),
       topics,
+      los,
       status: pick(d.status, STATUS_OPTIONS, DEFAULT_SETUP.status),
       size: pick(d.size, SIZE_OPTIONS, DEFAULT_SETUP.size),
       order: pick(d.order, ORDER_OPTIONS, DEFAULT_SETUP.order),
@@ -137,11 +141,11 @@ export function matchesStatus(state: TFState | undefined, status: StatusFilter):
   }
 }
 
-/** Cards matching the setup's chapters (or subjects, when shuffling) and status (before ordering and sizing). */
+/** Cards matching the setup's learning objectives (or subjects, when shuffling) and status (before ordering and sizing). */
 export function filterPool(cards: TFCard[], states: Record<string, TFState>, setup: TfSetup): TFCard[] {
   const subjects = new Set(setup.subjects);
-  const topics = new Set(setup.topics);
-  const inScope = setup.scope === 'chapters' ? (c: TFCard) => topics.has(topicKey(c.subject, c.topic)) : (c: TFCard) => subjects.has(c.subject);
+  const los = new Set(setup.los);
+  const inScope = setup.scope === 'chapters' ? (c: TFCard) => los.has(c.lo) : (c: TFCard) => subjects.has(c.subject);
   return cards.filter((c) => inScope(c) && matchesStatus(states[c.id], setup.status));
 }
 
