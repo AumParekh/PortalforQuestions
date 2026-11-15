@@ -16,6 +16,9 @@ interface UiState {
   /** A scope and selection handed from the dashboard to Session Setup (a tier card), consumed once on arrival. */
   pendingSetupSelection: SetupSelection | null;
   setPendingSetupSelection: (s: SetupSelection | null) => void;
+  /** Which view the Question library should open on (handed over by a dashboard card), consumed once on arrival. */
+  pendingLibraryView: 'all' | 'marked' | null;
+  setPendingLibraryView: (v: 'all' | 'marked' | null) => void;
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -24,4 +27,6 @@ export const useUi = create<UiState>((set) => ({
   setPendingSetupQuery: (q) => set({ pendingSetupQuery: q }),
   pendingSetupSelection: null,
   setPendingSetupSelection: (s) => set({ pendingSetupSelection: s }),
+  pendingLibraryView: null,
+  setPendingLibraryView: (v) => set({ pendingLibraryView: v }),
 }));

@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ChevronDown, Play, X } from 'lucide-react';
+import { ArrowLeft, ChevronDown, Flag, Play, X } from 'lucide-react';
 import type { CatalogItem, Question, SessionConfig, SessionFilters } from '../types';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useSession } from '../store/session';
+import { useUi } from '../store/ui';
 import { buildCatalog } from '../lib/catalog';
-import { buildQueue, hasActiveFilters, localToday, matchesFilters } from '../lib/queue';
+import { hasActiveFilters, localToday, matchesFilters } from '../lib/queue';
+import { shuffle as shuffled } from '../components/dashboard/launch';
 import { groupProgress } from '../lib/stats';
 import type { GroupProgress } from '../lib/stats';
 import { loCodeTest } from '../lib/search';
@@ -23,7 +25,11 @@ import { profileKey } from '../games/profile';
 const STORAGE_KEY = 'frm.library.v1';
 const SEARCH_DEBOUNCE_MS = 150;
 
+/** The whole bank, or only the questions flagged for review (the flag on the question screen). */
+type LibraryView = 'all' | 'marked';
+
 interface Stored {
+  view: LibraryView;
   filters: SessionFilters;
   shuffle: boolean;
   /** Keys of the unfolded subjects and chapters. */
@@ -32,7 +38,7 @@ interface Stored {
   lastKey: string | null;
 }
 
-const DEFAULTS: Stored = { filters: EMPTY_FILTERS, shuffle: false, open: [], lastKey: null };
+const DEFAULTS: Stored = { view: 'all', filters: EMPTY_FILTERS, shuffle: false, open: [], lastKey: null };
 
 function loadStored(): Stored {
   try {
@@ -41,6 +47,7 @@ function loadStored(): Stored {
     const d = JSON.parse(raw) as Record<string, unknown> | null;
     if (!d || typeof d !== 'object') return DEFAULTS;
     return {
+      view: d.view === 'marked' ? 'marked' : 'all',
       filters: sanitizeFilters(d.filters),
       shuffle: d.shuffle === true,
       open: Array.isArray(d.open) ? d.open.filter((k): k is string => typeof k === 'string') : [],
@@ -88,6 +95,7 @@ function LoRow({
   row,
   query,
   filtered,
+  marked,
   progress,
   last,
   onStart,
@@ -95,6 +103,8 @@ function LoRow({
   row: Row;
   query: string;
   filtered: boolean;
+  /** In the "Marked for review" view the count is of flagged questions. */
+  marked: boolean;
   progress: GroupProgress | undefined;
   last: boolean;
   onStart: () => void;
@@ -108,7 +118,7 @@ function LoRow({
       type="button"
       onClick={onStart}
       data-library-key={item.key}
-      aria-label={`Solve all ${plural(ids.length, 'question', 'questions')} of ${item.code ?? item.label}`}
+      aria-label={`Solve all ${plural(ids.length, marked ? 'marked question' : 'question', marked ? 'marked questions' : 'questions')} of ${item.code ?? item.label}`}
       className={`flex min-h-[56px] w-full items-start gap-3 rounded-xl border px-3 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
         last
           ? 'border-primary/50 bg-primary-50/60 dark:border-primary/50 dark:bg-primary/10'
@@ -134,12 +144,12 @@ function LoRow({
       <span className="flex shrink-0 flex-col items-end gap-2">
         <span
           className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[15px] font-medium tabular-nums ${
-            filtered && ids.length !== total
+            marked || (filtered && ids.length !== total)
               ? 'bg-yellow-100 text-yellow-900 dark:bg-yellow-500/20 dark:text-yellow-100'
               : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
           }`}
         >
-          {filtered && ids.length !== total ? `${ids.length} of ${total}` : `${total} ${total === 1 ? 'Q' : 'Qs'}`}
+          {marked ? `${ids.length} marked` : filtered && ids.length !== total ? `${ids.length} of ${total}` : `${total} ${total === 1 ? 'Q' : 'Qs'}`}
         </span>
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-white" aria-hidden="true">
           <Play className="h-4 w-4" />
@@ -160,6 +170,14 @@ export function LibraryScreen() {
   // Mock exams run through their own flow; the library only lists the subject banks.
   const questions = useContent((s) => s.subjectQuestions);
   const [initial] = useState(loadStored);
+  // A dashboard card can ask for a view; otherwise the library reopens on the one used last.
+  const [view, setView] = useState<LibraryView>(() => useUi.getState().pendingLibraryView ?? initial.view);
+  useEffect(() => {
+    useUi.getState().setPendingLibraryView(null);
+  }, []);
+  const markedView = view === 'marked';
+  // In the marked view everything listed is worth seeing, so groups start unfolded; this holds the ones folded by hand.
+  const [foldedMarked, setFoldedMarked] = useState<Set<string>>(() => new Set());
   const [filters, setFilters] = useState<SessionFilters>(initial.filters);
   const [shuffle, setShuffle] = useState(initial.shuffle);
   const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(initial.open));
@@ -175,8 +193,8 @@ export function LibraryScreen() {
   }, [searchText, query]);
 
   useEffect(() => {
-    saveStored({ filters, shuffle, open: [...openGroups], lastKey });
-  }, [filters, shuffle, openGroups, lastKey]);
+    saveStored({ view, filters, shuffle, open: [...openGroups], lastKey });
+  }, [view, filters, shuffle, openGroups, lastKey]);
 
   const catalog = useMemo(() => buildCatalog(questions, 'lo'), [questions]);
   const searchActive = query.trim().length > 0;
@@ -192,13 +210,21 @@ export function LibraryScreen() {
   }, [catalog, searchActive, query]);
 
   const rowsFor = (f: SessionFilters): Row[] => {
-    if (!hasActiveFilters(f)) return named.map((item) => ({ item, ids: item.questionIds }));
+    const active = hasActiveFilters(f);
+    if (!active && !markedView) return named.map((item) => ({ item, ids: item.questionIds }));
     const today = localToday();
     return named
-      .map((item) => ({ item, ids: item.questionIds.filter((id) => byId[id] && matchesFilters(byId[id], states[id], f, today)) }))
+      .map((item) => ({
+        item,
+        ids: item.questionIds.filter(
+          (id) => byId[id] && (!markedView || states[id]?.markedForReview) && (!active || matchesFilters(byId[id], states[id], f, today)),
+        ),
+      }))
       .filter((r) => r.ids.length > 0);
   };
-  const rows = useMemo(() => rowsFor(filters), [named, filters, byId, states]); // eslint-disable-line react-hooks/exhaustive-deps
+  const rows = useMemo(() => rowsFor(filters), [named, filters, byId, states, markedView]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Every flagged question of the bank, whatever the search and filters say: the number on the view switch.
+  const markedTotal = useMemo(() => questions.reduce((n, q) => n + (states[q.id]?.markedForReview ? 1 : 0), 0), [questions, states]);
 
   const subjects = useMemo((): Subject[] => {
     const out = new Map<string, Subject>();
@@ -233,14 +259,20 @@ export function LibraryScreen() {
   }, [catalog, byId, states]);
 
   const allGroupKeys = useMemo(() => subjects.flatMap((s) => [s.key, ...s.chapters.map((c) => c.key)]), [subjects]);
-  const allOpen = allGroupKeys.length > 0 && allGroupKeys.every((k) => openGroups.has(k));
+  const isOpen = (key: string) => searchActive || (markedView ? !foldedMarked.has(key) : openGroups.has(key));
+  const allOpen = allGroupKeys.length > 0 && allGroupKeys.every(isOpen);
   const toggleGroup = (key: string) =>
-    setOpenGroups((prev) => {
+    (markedView ? setFoldedMarked : setOpenGroups)((prev) => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
+  const setAllOpen = (open: boolean) => {
+    if (markedView) setFoldedMarked(open ? new Set() : new Set(allGroupKeys));
+    else setOpenGroups(open ? new Set(allGroupKeys) : new Set());
+  };
+  const noun: [string, string] = markedView ? ['marked question', 'marked questions'] : ['question', 'questions'];
 
   // Coming back from a session: bring the LO opened last into view, once the list is there. Otherwise start at the
   // top (the page keeps the scroll position of the screen it came from).
@@ -271,10 +303,11 @@ export function LibraryScreen() {
       origin: 'library',
     };
     // In order: one LO after another as the syllabus lists them, each in bank order.
-    const queue = shuffle ? buildQueue(base, questions, states) : picked.flatMap((r) => r.ids);
+    const ids = picked.flatMap((r) => r.ids);
+    const queue = shuffle ? shuffled(ids) : ids;
     if (queue.length === 0) return;
     // Saved before leaving the screen, so the list reopens here after the session.
-    saveStored({ filters, shuffle, open: [...openGroups], lastKey: key });
+    saveStored({ view, filters, shuffle, open: [...openGroups], lastKey: key });
     // start() returns false when the user keeps a session already in progress.
     if (!useSession.getState().start(base, queue)) return;
     setLastKey(key);
@@ -307,8 +340,33 @@ export function LibraryScreen() {
 
       <main className="mx-auto max-w-[720px] space-y-5 px-4 pb-16 pt-4">
         <section aria-label="Find a learning objective" className="space-y-3">
+          <div role="group" aria-label="Show" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+            {(
+              [
+                ['all', 'All questions'],
+                ['marked', `Marked for review (${markedTotal.toLocaleString()})`],
+              ] as [LibraryView, string][]
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={view === value}
+                onClick={() => setView(value)}
+                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-[15px] font-medium leading-tight transition-colors ${
+                  view === value
+                    ? 'bg-card-light text-primary-700 shadow-sm dark:bg-card-dark dark:text-primary-100'
+                    : 'text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-700/60'
+                }`}
+              >
+                {value === 'marked' && <Flag className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                {label}
+              </button>
+            ))}
+          </div>
           <p className="text-[15px] text-slate-600 dark:text-slate-400">
-            Open a subject, then a chapter, and tap a learning objective to solve every question in it.
+            {markedView
+              ? 'The questions you flagged, by subject, chapter and learning objective. Tap one to go through its flagged questions; un-flag a question while solving it to take it off this list.'
+              : 'Open a subject, then a chapter, and tap a learning objective to solve every question in it.'}
           </p>
           <SetupSearch
             value={searchText}
@@ -347,12 +405,12 @@ export function LibraryScreen() {
         <section aria-label="Learning objectives" className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p aria-live="polite" className="text-[15px] text-slate-600 dark:text-slate-400">
-              {plural(rows.length, 'learning objective', 'learning objectives')} · {plural(totalQuestions, 'question', 'questions')}
+              {plural(rows.length, 'learning objective', 'learning objectives')} · {plural(totalQuestions, noun[0], noun[1])}
             </p>
             {allGroupKeys.length > 0 && !searchActive && (
               <button
                 type="button"
-                onClick={() => setOpenGroups(allOpen ? new Set() : new Set(allGroupKeys))}
+                onClick={() => setAllOpen(!allOpen)}
                 className="min-h-[44px] rounded-lg px-2 text-[15px] font-medium text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
               >
                 {allOpen ? 'Collapse all' : 'Expand all'}
@@ -363,9 +421,13 @@ export function LibraryScreen() {
           {rows.length === 0 ? (
             <div className="space-y-3 rounded-2xl bg-card-light p-4 shadow-sm dark:bg-card-dark">
               <p className="text-slate-600 dark:text-slate-400">
-                {searchActive && named.length === 0
-                  ? `No learning objective or chapter matches “${query.trim()}”.`
-                  : 'No questions match the current filters.'}
+                {markedView && markedTotal === 0
+                  ? 'Nothing is marked for review yet. Tap the flag at the top of a question while solving it, and it will be kept here.'
+                  : searchActive && named.length === 0
+                    ? `No learning objective or chapter matches “${query.trim()}”.`
+                    : markedView
+                      ? 'No marked question matches the current search and filters.'
+                      : 'No questions match the current filters.'}
               </p>
               <div className="flex flex-wrap gap-2">
                 {searchActive && (
@@ -382,7 +444,7 @@ export function LibraryScreen() {
             </div>
           ) : (
             subjects.map((s) => {
-              const subjectOpen = searchActive || openGroups.has(s.key);
+              const subjectOpen = isOpen(s.key);
               return (
                 <div key={s.key} className="space-y-2">
                   <button
@@ -399,14 +461,14 @@ export function LibraryScreen() {
                     <span className="min-w-0 [overflow-wrap:anywhere]">
                       <span className="block text-base font-semibold leading-snug text-slate-900 dark:text-slate-100">{s.title}</span>
                       <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                        {plural(s.chapters.length, 'chapter', 'chapters')} · {plural(s.count, 'question', 'questions')}
+                        {plural(s.chapters.length, 'chapter', 'chapters')} · {plural(s.count, noun[0], noun[1])}
                       </span>
                     </span>
                   </button>
                   {subjectOpen && (
                     <div className="space-y-2 border-l-2 border-slate-200 pl-3 dark:border-slate-700">
                       {s.chapters.map((c) => {
-                        const chapterOpen = searchActive || openGroups.has(c.key);
+                        const chapterOpen = isOpen(c.key);
                         const last = lastKey === c.key;
                         return (
                           <div key={c.key} className="space-y-2">
@@ -432,7 +494,7 @@ export function LibraryScreen() {
                                     <Highlight text={c.title} query={loCodeTest(query) ? '' : query} />
                                   </span>
                                   <span className="block text-[15px] text-slate-600 dark:text-slate-400">
-                                    {plural(c.rows.length, 'LO', 'LOs')} · {plural(c.count, 'question', 'questions')}
+                                    {plural(c.rows.length, 'LO', 'LOs')} · {plural(c.count, noun[0], noun[1])}
                                     {last && ' · last opened'}
                                   </span>
                                 </span>
@@ -440,7 +502,7 @@ export function LibraryScreen() {
                               <button
                                 type="button"
                                 onClick={() => start(c.rows, c.key)}
-                                aria-label={`Solve all ${plural(c.count, 'question', 'questions')} of ${c.title}`}
+                                aria-label={`Solve all ${plural(c.count, noun[0], noun[1])} of ${c.title}`}
                                 className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl px-3 text-[15px] font-medium tabular-nums text-primary-600 hover:bg-primary-50 dark:text-primary-100 dark:hover:bg-primary/15"
                               >
                                 <Play className="h-4 w-4" aria-hidden="true" />
@@ -455,6 +517,7 @@ export function LibraryScreen() {
                                       row={row}
                                       query={searchActive ? query : ''}
                                       filtered={filtersActive}
+                                      marked={markedView}
                                       progress={progressByKey.get(row.item.key)}
                                       last={lastKey === row.item.key}
                                       onStart={() => start([row], row.item.key)}

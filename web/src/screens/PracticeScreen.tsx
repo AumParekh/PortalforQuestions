@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useToday } from '../hooks/useToday';
-import { CalendarDays, Dices, History, Library, Play } from 'lucide-react';
+import { CalendarDays, Dices, Flag, History, Library, Play } from 'lucide-react';
 import { CardGrid, Section, TabShell } from '../components/shell/TabShell';
 import { ActionCard, FileCard, TierCard, fileProgress } from '../components/dashboard/Cards';
 import type { TierGroup } from '../components/dashboard/Cards';
@@ -14,6 +14,7 @@ import { DUE_SESSION_CAP, dueQuestionIds, nextDue } from '../lib/srs';
 import { wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
+import { useUi } from '../store/ui';
 import { addDays, localDay } from '../formulas/storage';
 
 /** A local YYYY-MM-DD at midday, so a DST change at midnight can't move it to another day. */
@@ -62,6 +63,7 @@ export function PracticeScreen() {
     () => wrongQuestionStates(states).filter((s) => s.lastResult === 'wrong' && byId[s.questionId]).length,
     [states, byId],
   );
+  const markedCount = useMemo(() => subjectQuestions.reduce((n, q) => n + (states[q.id]?.markedForReview ? 1 : 0), 0), [subjectQuestions, states]);
   const progressByPath = useMemo(() => {
     const out: Record<string, ReturnType<typeof fileProgress>> = {};
     for (const f of subjectFiles) out[f.path] = fileProgress(f, states);
@@ -102,7 +104,10 @@ export function PracticeScreen() {
             icon={<Library className="h-5 w-5" aria-hidden="true" />}
             title="Question library"
             detail="Open a learning objective and solve every question in it"
-            onClick={() => navigate('/library')}
+            onClick={() => {
+              useUi.getState().setPendingLibraryView('all');
+              navigate('/library');
+            }}
             disabled={none}
           />
           <ActionCard
@@ -130,6 +135,20 @@ export function PracticeScreen() {
             detail={wrongCount > 0 ? 'Every question you have missed' : 'Nothing to review yet: questions you miss land here'}
             onClick={() => navigate('/review')}
             disabled={wrongCount === 0}
+          />
+          <ActionCard
+            icon={<Flag className="h-5 w-5" aria-hidden="true" />}
+            title={markedCount > 0 ? `Marked for review (${markedCount})` : 'Marked for review'}
+            detail={
+              markedCount > 0
+                ? 'The questions you flagged, by subject, chapter and learning objective'
+                : 'Nothing flagged yet: tap the flag on a question to keep it here'
+            }
+            onClick={() => {
+              useUi.getState().setPendingLibraryView('marked');
+              navigate('/library');
+            }}
+            disabled={markedCount === 0}
           />
         </CardGrid>
       </Section>
