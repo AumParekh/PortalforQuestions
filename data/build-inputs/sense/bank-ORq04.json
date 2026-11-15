@@ -1,0 +1,1628 @@
+[
+ {
+  "id": "SC-bank-ORq04-01",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0548"
+  },
+  "trap_category": "Role",
+  "setup": "Basel I capital, EUR: ordinary equity 150m, subordinated debt with original maturity over 5 years 50m, and perpetual cumulative preferred stock 20m. No noncumulative preferred is held.",
+  "ask": "Tier 2 capital is:",
+  "options": [
+   {
+    "label": "EUR 50m",
+    "correct": false,
+    "why": "Put the cumulative preferred into Tier 1 (giving Tier 1 = 170m) and left only the subordinated debt in Tier 2."
+   },
+   {
+    "label": "EUR 70m",
+    "correct": true
+   },
+   {
+    "label": "EUR 20m",
+    "correct": false,
+    "why": "Counted only the preferred and dropped the subordinated debt, which is also Tier 2."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tier 1",
+    "display": "Equity only: $150$",
+    "value": 150
+   },
+   {
+    "label": "Tier 2",
+    "display": "$50 + 20 = 70$",
+    "value": 70
+   },
+   {
+    "label": "Limit check",
+    "display": "Tier 2 of 70 is below half of total capital (110 of 220), so all of it counts",
+    "value": null
+   }
+  ],
+  "takeaway": "Basel I: only equity and noncumulative perpetual preferred are Tier 1. Cumulative preferred sits in Tier 2 with qualifying subordinated debt.",
+  "check": {
+   "inputs": {
+    "eq": 150,
+    "sub": 50,
+    "pref": 20
+   },
+   "steps": [
+    {
+     "name": "T2",
+     "expr": "sub+pref",
+     "value": 70
+    },
+    {
+     "name": "T1",
+     "expr": "eq",
+     "value": 150
+    },
+    {
+     "name": "half",
+     "expr": "(T1+T2)/2",
+     "value": 110.0
+    },
+    {
+     "name": "slip_pref_in_T1",
+     "expr": "sub",
+     "value": 50
+    },
+    {
+     "name": "slip_pref_only",
+     "expr": "pref",
+     "value": 20
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-02",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0570"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel II capital adequacy. A bank has Tier 1 capital of USD 200m, Tier 2 capital of USD 100m and risk-weighted assets of USD 2 billion.",
+  "ask": "The capital adequacy ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.15%",
+    "correct": false,
+    "why": "Left the ratio as the decimal 0.15 and then wrote a percent sign."
+   },
+   {
+    "label": "≈ 15%",
+    "correct": true
+   },
+   {
+    "label": "≈ 150%",
+    "correct": false,
+    "why": "Read RWA as USD 200m (dropped a zero from 2 billion), so 300 / 200."
+   },
+   {
+    "label": "≈ 667%",
+    "correct": false,
+    "why": "Inverted the ratio: RWA / capital = 2,000 / 300."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total capital",
+    "display": "$200 + 100 = 300$ (USD m)",
+    "value": 300
+   },
+   {
+    "label": "RWA",
+    "display": "USD 2 billion $= 2{,}000$ m",
+    "value": 2000
+   },
+   {
+    "label": "CAR",
+    "display": "$300 / 2{,}000 = 15\\%$",
+    "value": 15
+   }
+  ],
+  "takeaway": "CAR uses total capital (Tier 1 + Tier 2) over RWA. Keep millions and billions on the same scale before dividing.",
+  "check": {
+   "inputs": {
+    "T1": 200,
+    "T2": 100,
+    "rwa": 2000
+   },
+   "steps": [
+    {
+     "name": "capital",
+     "expr": "T1+T2",
+     "value": 300
+    },
+    {
+     "name": "car",
+     "expr": "capital/rwa*100",
+     "value": 15.0
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "car/100",
+     "value": 0.15
+    },
+    {
+     "name": "slip_rwa_200",
+     "expr": "capital/(rwa/10)*100",
+     "value": 150.0
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "rwa/capital*100",
+     "value": 666.666667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-03",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0641"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Basel 2.5 standardized charges for a correlation book. Positions: a USD 60m AA securitization tranche (1.6%), a USD 25m BBB re-securitization tranche (18% on the re-securitization schedule) and an USD 8m unrated securitization tranche (100%).",
+  "ask": "Which position carries the largest capital charge?",
+  "options": [
+   {
+    "label": "The USD 60m AA tranche",
+    "correct": false,
+    "why": "Followed the largest notional. At 1.6% it charges only USD 0.96m."
+   },
+   {
+    "label": "The USD 25m BBB re-securitization",
+    "correct": false,
+    "why": "Looked at the middle size and rating: 25 × 18% = USD 4.50m, still short of the unrated tranche."
+   },
+   {
+    "label": "The USD 8m unrated tranche",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "AA tranche",
+    "display": "$60 \\times 1.6\\% = 0.96$",
+    "value": 0.96
+   },
+   {
+    "label": "BBB re-securitization",
+    "display": "$25 \\times 18\\% = 4.50$",
+    "value": 4.5
+   },
+   {
+    "label": "Unrated tranche",
+    "display": "$8 \\times 100\\% = 8.00$",
+    "value": 8.0
+   },
+   {
+    "label": "Total",
+    "display": "$0.96 + 4.50 + 8.00 = \\text{USD } 13.46\\text{m}$",
+    "value": 13.46
+   }
+  ],
+  "takeaway": "Unrated and below-BB positions are charged dollar for dollar, so the smallest position can dominate the capital charge.",
+  "check": {
+   "inputs": {
+    "a": 60,
+    "b": 25,
+    "c": 8,
+    "ra": 0.016,
+    "rb": 0.18,
+    "rc": 1.0
+   },
+   "steps": [
+    {
+     "name": "capA",
+     "expr": "a*ra",
+     "value": 0.96
+    },
+    {
+     "name": "capB",
+     "expr": "b*rb",
+     "value": 4.5
+    },
+    {
+     "name": "capC",
+     "expr": "c*rc",
+     "value": 8.0
+    },
+    {
+     "name": "total",
+     "expr": "capA+capB+capC",
+     "value": 13.46
+    },
+    {
+     "name": "gap",
+     "expr": "capC-capB",
+     "value": 3.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-04",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0649"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel III bank, USD m: common stock 730, unrealized gain on long-term marketable equity securities 33, five-year subordinated debt 28, goodwill 92. Tier 1 is common stock plus the unrealized gain, less goodwill.",
+  "ask": "Tier 1 capital compared with the USD 730m of common stock is:",
+  "options": [
+   {
+    "label": "Below USD 730m",
+    "correct": true
+   },
+   {
+    "label": "Above USD 730m",
+    "correct": false,
+    "why": "Added the gain and forgot that goodwill is deducted, or even added it: 730 + 33 = 763."
+   },
+   {
+    "label": "Equal to USD 730m",
+    "correct": false,
+    "why": "Treated the gain and the goodwill as offsetting. They are 33 up against 92 down."
+   }
+  ],
+  "working": [
+   {
+    "label": "Adjustments",
+    "display": "$+33 - 92 = -59$",
+    "value": -59
+   },
+   {
+    "label": "Tier 1",
+    "display": "$730 - 59 = 671$",
+    "value": 671
+   },
+   {
+    "label": "Tier 2",
+    "display": "Five-year subordinated debt: $28$",
+    "value": 28
+   }
+  ],
+  "takeaway": "Goodwill is deducted from Tier 1, and here it outweighs the unrealized gain, so Tier 1 sits below common stock.",
+  "check": {
+   "inputs": {
+    "cs": 730,
+    "gain": 33,
+    "gw": 92
+   },
+   "steps": [
+    {
+     "name": "T1",
+     "expr": "cs+gain-gw",
+     "value": 671
+    },
+    {
+     "name": "adj",
+     "expr": "T1-cs",
+     "value": -59
+    },
+    {
+     "name": "slip_no_gw",
+     "expr": "cs+gain",
+     "value": 763
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-05",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0659"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel III balance sheet, EUR m: common equity 2,010; non-callable preferred equity 500; subordinated debt 1,500; retained earnings 3,210; goodwill 850. RWA are EUR 49,700m.",
+  "ask": "The Core Tier 1 (CET1) capital in the numerator is:",
+  "options": [
+   {
+    "label": "EUR 4,370m",
+    "correct": true
+   },
+   {
+    "label": "EUR 4,870m",
+    "correct": false,
+    "why": "Counted the preferred equity, which is Additional Tier 1, not CET1."
+   },
+   {
+    "label": "EUR 5,220m",
+    "correct": false,
+    "why": "Forgot to deduct goodwill: 2,010 + 3,210."
+   },
+   {
+    "label": "EUR 6,370m",
+    "correct": false,
+    "why": "Counted the preferred equity and the subordinated debt (Tier 2) as well."
+   }
+  ],
+  "working": [
+   {
+    "label": "Common items",
+    "display": "$2{,}010 + 3{,}210 = 5{,}220$",
+    "value": 5220
+   },
+   {
+    "label": "CET1 capital",
+    "display": "$5{,}220 - 850 = 4{,}370$",
+    "value": 4370
+   },
+   {
+    "label": "CET1 ratio",
+    "display": "$4{,}370 / 49{,}700 \\approx 8.79\\%$",
+    "value": 8.79
+   }
+  ],
+  "takeaway": "CET1 is common equity plus retained earnings, less goodwill and intangibles. Preferred shares and subordinated debt belong to other tiers.",
+  "check": {
+   "inputs": {
+    "ce": 2010,
+    "pref": 500,
+    "sub": 1500,
+    "re": 3210,
+    "gw": 850,
+    "rwa": 49700
+   },
+   "steps": [
+    {
+     "name": "cet1",
+     "expr": "ce+re-gw",
+     "value": 4370
+    },
+    {
+     "name": "ratio",
+     "expr": "cet1/rwa*100",
+     "value": 8.792757
+    },
+    {
+     "name": "slip_pref",
+     "expr": "cet1+pref",
+     "value": 4870
+    },
+    {
+     "name": "slip_no_gw",
+     "expr": "ce+re",
+     "value": 5220
+    },
+    {
+     "name": "slip_all",
+     "expr": "cet1+pref+sub",
+     "value": 6370
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-06",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0661"
+  },
+  "trap_category": "Sequence",
+  "setup": "Prime Bank has RWA of USD 200m. Under fully phased-in Basel III it must meet the CET1 minimum plus the capital conservation buffer (ignore any G-SIB or countercyclical buffer).",
+  "ask": "The CET1 ratio it must hold is:",
+  "options": [
+   {
+    "label": "4.5%",
+    "correct": false,
+    "why": "Used the CET1 minimum alone and left the conservation buffer out."
+   },
+   {
+    "label": "7.0%",
+    "correct": true
+   },
+   {
+    "label": "8.5%",
+    "correct": false,
+    "why": "Built on the 6% Tier 1 minimum instead of the 4.5% CET1 minimum: 6.0% + 2.5%."
+   },
+   {
+    "label": "10.5%",
+    "correct": false,
+    "why": "Built on the 8% total capital minimum: 8.0% + 2.5%."
+   }
+  ],
+  "working": [
+   {
+    "label": "CET1 minimum",
+    "display": "$4.5\\%$",
+    "value": 4.5
+   },
+   {
+    "label": "Conservation buffer",
+    "display": "$+ 2.5\\%$, met with CET1",
+    "value": 2.5
+   },
+   {
+    "label": "Required ratio",
+    "display": "$4.5\\% + 2.5\\% = 7.0\\%$",
+    "value": 7.0
+   },
+   {
+    "label": "Capital",
+    "display": "$7.0\\% \\times 200 = \\text{USD } 14\\text{m}$",
+    "value": 14
+   }
+  ],
+  "takeaway": "The conservation buffer is stacked on the CET1 minimum and must itself be CET1, so the requirement is 7.0%, not a total-capital figure.",
+  "check": {
+   "inputs": {
+    "cet1min": 4.5,
+    "ccb": 2.5,
+    "rwa": 200,
+    "t1min": 6.0,
+    "totmin": 8.0
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "cet1min+ccb",
+     "value": 7.0
+    },
+    {
+     "name": "amt",
+     "expr": "req/100*rwa",
+     "value": 14.0
+    },
+    {
+     "name": "slip_t1",
+     "expr": "t1min+ccb",
+     "value": 8.5
+    },
+    {
+     "name": "slip_total",
+     "expr": "totmin+ccb",
+     "value": 10.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-07",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0665"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel III CET1 buffer zone: with a 2.5% conservation buffer it runs from 4.5% to 7.0%, split into four equal quartiles. Minimum earnings retained, lowest to highest quartile: 100%, 80%, 60%, 40% (0% above the zone). A bank has CET1 of 6.0%. A 2.5% countercyclical buffer is then switched on, widening the zone to 4.5%–9.5%.",
+  "ask": "Its maximum dividend, as a percent of earnings, compared with before the switch-on:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Assumed a larger buffer means more room. The same 6.0% now sits in a lower quartile of a wider zone."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "Kept the old quartile width of 0.625%. With the wider zone each quartile is 1.25%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Before: zone 4.5%–7.0%",
+    "display": "Quartiles of 0.625%; 6.0% is in the 3rd, so retain 60% and pay up to 40%",
+    "value": 0.4
+   },
+   {
+    "label": "After: zone 4.5%–9.5%",
+    "display": "Quartiles of 1.25%; 6.0% is in the 2nd, so retain 80% and pay up to 20%",
+    "value": 0.2
+   },
+   {
+    "label": "Change",
+    "display": "$20\\% - 40\\% = -20$ percentage points",
+    "value": -0.2
+   }
+  ],
+  "takeaway": "A bigger buffer stretches the zone, so the same CET1 ratio falls into a lower quartile and the payout allowed shrinks.",
+  "check": {
+   "inputs": {
+    "floor": 4.5,
+    "c": 6.0,
+    "w0": 2.5,
+    "w1": 5.0,
+    "r3": 0.6,
+    "r2": 0.8
+   },
+   "steps": [
+    {
+     "name": "pos0",
+     "expr": "(c-floor)/(w0/4)",
+     "value": 2.4
+    },
+    {
+     "name": "pos1",
+     "expr": "(c-floor)/(w1/4)",
+     "value": 1.2
+    },
+    {
+     "name": "div0",
+     "expr": "1-r3",
+     "value": 0.4
+    },
+    {
+     "name": "div1",
+     "expr": "1-r2",
+     "value": 0.2
+    },
+    {
+     "name": "chg",
+     "expr": "div1-div0",
+     "value": -0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-08",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0745"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel operational loss event. Gross loss USD 5,000,000. Forgone revenue (opportunity cost) USD 3,000,000. An estimated recovery of USD 1,500,000, 50% likely, none received yet. Insurance premiums of USD 12,500 paid while the event ran.",
+  "ask": "The operational loss recorded for the event compared with the USD 5.0m gross loss is:",
+  "options": [
+   {
+    "label": "Equal to the gross loss",
+    "correct": true
+   },
+   {
+    "label": "Above the gross loss",
+    "correct": false,
+    "why": "Added the forgone revenue. Opportunity cost is not a P&L charge, expense or provision, so it is not in the loss."
+   },
+   {
+    "label": "Below the gross loss",
+    "correct": false,
+    "why": "Netted the recovery, even probability-weighted (5.00 − 0.75 = 4.25). A recovery only reduces the loss once it is received."
+   }
+  ],
+  "working": [
+   {
+    "label": "Forgone revenue",
+    "display": "Excluded (not a direct charge)",
+    "value": 0
+   },
+   {
+    "label": "Expected recovery",
+    "display": "Excluded (not yet received)",
+    "value": 0
+   },
+   {
+    "label": "Insurance premiums",
+    "display": "Excluded by definition",
+    "value": 0
+   },
+   {
+    "label": "Operational loss",
+    "display": "$5{,}000{,}000 - 0 = \\text{USD } 5{,}000{,}000$",
+    "value": 5000000
+   }
+  ],
+  "takeaway": "Gross loss counts direct charges only: no opportunity cost, no premiums, and no recovery until the cash is in.",
+  "check": {
+   "inputs": {
+    "gross": 5000000,
+    "forgone": 3000000,
+    "rec": 1500000,
+    "p": 0.5
+   },
+   "steps": [
+    {
+     "name": "loss",
+     "expr": "gross",
+     "value": 5000000
+    },
+    {
+     "name": "slip_above",
+     "expr": "gross+forgone",
+     "value": 8000000
+    },
+    {
+     "name": "slip_below",
+     "expr": "gross-p*rec",
+     "value": 4250000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-09",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-4: Risk Measurement and Assessment",
+  "reading_id": "ORR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0105"
+  },
+  "trap_category": "Scope",
+  "setup": "Fault tree for a rogue trader. Five independent conditions must ALL occur: 20%, 1%, 30%, 30% and 50%. A rogue event costs USD 100m. The firm has 1,000 traders, each with the same probabilities.",
+  "ask": "Expected annual loss for the firm is closest to:",
+  "options": [
+   {
+    "label": "USD 9,000",
+    "correct": false,
+    "why": "Stopped at one trader and forgot to scale to 1,000 traders."
+   },
+   {
+    "label": "USD 9,000,000",
+    "correct": true
+   },
+   {
+    "label": "USD 50,000,000",
+    "correct": false,
+    "why": "Used only the last condition: 50% × USD 100m. All five conditions must hold together, so the probabilities multiply."
+   },
+   {
+    "label": "USD 900,000,000",
+    "correct": false,
+    "why": "Read the joint probability 0.009% as 0.9%, a factor of 100 too large."
+   }
+  ],
+  "working": [
+   {
+    "label": "Joint probability",
+    "display": "$0.20 \\times 0.01 \\times 0.30 \\times 0.30 \\times 0.50 = 0.00009$",
+    "value": 9e-05
+   },
+   {
+    "label": "Loss per trader",
+    "display": "$0.00009 \\times 100\\text{m} = \\text{USD } 9{,}000$",
+    "value": 9000
+   },
+   {
+    "label": "Firm",
+    "display": "$9{,}000 \\times 1{,}000 = \\text{USD } 9\\text{m}$",
+    "value": 9000000
+   }
+  ],
+  "takeaway": "In an AND gate the probabilities multiply, so five conditions shrink the odds fast; then scale by the number of traders.",
+  "check": {
+   "inputs": {
+    "p1": 0.2,
+    "p2": 0.01,
+    "p3": 0.3,
+    "p4": 0.3,
+    "p5": 0.5,
+    "L": 100000000,
+    "n": 1000
+   },
+   "steps": [
+    {
+     "name": "p",
+     "expr": "p1*p2*p3*p4*p5",
+     "value": 9e-05
+    },
+    {
+     "name": "perTrader",
+     "expr": "p*L",
+     "value": 9000.0
+    },
+    {
+     "name": "firm",
+     "expr": "perTrader*n",
+     "value": 9000000.0
+    },
+    {
+     "name": "slip_one_trader",
+     "expr": "perTrader",
+     "value": 9000.0
+    },
+    {
+     "name": "slip_last_only",
+     "expr": "p5*L",
+     "value": 50000000.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "firm*100",
+     "value": 900000000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-10",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-4: Risk Measurement and Assessment",
+  "reading_id": "ORR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0106"
+  },
+  "trap_category": "Polarity",
+  "setup": "Fault tree for a phishing-driven data leak, all events independent. The phishing email arrives: 99%. The firewall works as intended: 95%. The leak path needs the email to arrive AND to get past the firewall, before the later nodes (employee, detective controls, leak) are applied.",
+  "ask": "After those first two nodes the running probability is closest to:",
+  "options": [
+   {
+    "label": "≈ 5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 94%",
+    "correct": false,
+    "why": "Used the firewall's success probability (0.95) instead of its failure probability (0.05): 0.99 × 0.95."
+   },
+   {
+    "label": "≈ 99%",
+    "correct": false,
+    "why": "Ignored the firewall node altogether."
+   }
+  ],
+  "working": [
+   {
+    "label": "Firewall failure",
+    "display": "$1 - 0.95 = 0.05$",
+    "value": 0.05
+   },
+   {
+    "label": "Email arrives and gets through",
+    "display": "$0.99 \\times 0.05 = 0.0495 \\approx 5\\%$",
+    "value": 0.0495
+   }
+  ],
+  "takeaway": "A control node enters a fault tree through its failure probability, because the loss path needs the control to fail.",
+  "check": {
+   "inputs": {
+    "pe": 0.99,
+    "pf": 0.95
+   },
+   "steps": [
+    {
+     "name": "fail",
+     "expr": "1-pf",
+     "value": 0.05
+    },
+    {
+     "name": "run",
+     "expr": "pe*fail",
+     "value": 0.0495
+    },
+    {
+     "name": "slip_success",
+     "expr": "pe*pf",
+     "value": 0.9405
+    },
+    {
+     "name": "slip_ignored",
+     "expr": "pe",
+     "value": 0.99
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-11",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0600"
+  },
+  "trap_category": "Sign",
+  "setup": "Basel II standardized approach, Year 1 gross income (USD m): corporate finance 11.9 at a 17.99% multiplier, retail banking −26.2 at a 12.11% multiplier. The year's figure is the multiplier-weighted sum across the two lines.",
+  "ask": "The Year 1 weighted sum is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Dropped the sign on the retail loss and added it: 2.14 + 3.17 = +5.31."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Applied a floor at zero to the sum. The arithmetic itself gives a nonzero number: the loss line outweighs the profit line."
+   }
+  ],
+  "working": [
+   {
+    "label": "Corporate finance",
+    "display": "$0.1799 \\times 11.9 = +2.141$",
+    "value": 2.141
+   },
+   {
+    "label": "Retail banking",
+    "display": "$0.1211 \\times (-26.2) = -3.173$",
+    "value": -3.173
+   },
+   {
+    "label": "Year 1 sum",
+    "display": "$2.141 - 3.173 = -1.032$",
+    "value": -1.032
+   }
+  ],
+  "takeaway": "A negative business-line income offsets the other lines inside the year, and here it tips the year's total below zero.",
+  "check": {
+   "inputs": {
+    "g1": 11.9,
+    "m1": 0.1799,
+    "g2": -26.2,
+    "m2": 0.1211
+   },
+   "steps": [
+    {
+     "name": "cf",
+     "expr": "m1*g1",
+     "value": 2.14081
+    },
+    {
+     "name": "rb",
+     "expr": "m2*g2",
+     "value": -3.17282
+    },
+    {
+     "name": "yr",
+     "expr": "cf+rb",
+     "value": -1.03201
+    },
+    {
+     "name": "slip_abs",
+     "expr": "cf+abs(rb)",
+     "value": 5.31363
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-12",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0602"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel II basic indicator approach (alpha 15%). Total annual gross income across all business lines, USD m: Year 1 65, Year 2 71, Year 3 74, all positive.",
+  "ask": "Operational risk capital is closest to (USD m):",
+  "options": [
+   {
+    "label": "≈ 3.5",
+    "correct": false,
+    "why": "Averaged and then divided by 3 a second time."
+   },
+   {
+    "label": "≈ 10.5",
+    "correct": true
+   },
+   {
+    "label": "≈ 31.5",
+    "correct": false,
+    "why": "Applied 15% to the three-year sum without averaging."
+   },
+   {
+    "label": "≈ 105",
+    "correct": false,
+    "why": "Used alpha as 1.5 instead of 15%, a factor of 10 too large."
+   }
+  ],
+  "working": [
+   {
+    "label": "Three-year average",
+    "display": "$(65 + 71 + 74)/3 = 70$",
+    "value": 70
+   },
+   {
+    "label": "Capital",
+    "display": "$0.15 \\times 70 = \\text{USD } 10.5\\text{m}$",
+    "value": 10.5
+   }
+  ],
+  "takeaway": "The basic indicator approach is 15% of average positive gross income. Business-line multipliers belong to the standardized approach.",
+  "check": {
+   "inputs": {
+    "y1": 65,
+    "y2": 71,
+    "y3": 74,
+    "alpha": 0.15
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(y1+y2+y3)/3",
+     "value": 70.0
+    },
+    {
+     "name": "cap",
+     "expr": "alpha*avg",
+     "value": 10.5
+    },
+    {
+     "name": "slip_double_avg",
+     "expr": "cap/3",
+     "value": 3.5
+    },
+    {
+     "name": "slip_no_avg",
+     "expr": "alpha*(y1+y2+y3)",
+     "value": 31.5
+    },
+    {
+     "name": "slip_alpha",
+     "expr": "cap*10",
+     "value": 105.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-13",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0603"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel II standardized approach. A bank's multiplier-weighted capital by year (USD m): Year 1 +11.17, Year 2 −0.88, Year 3 +12.48. A year whose total is negative is ignored in the average, not entered as zero.",
+  "ask": "Required capital compared with the Year 1 figure of 11.17 is:",
+  "options": [
+   {
+    "label": "Above 11.17",
+    "correct": true
+   },
+   {
+    "label": "Below 11.17",
+    "correct": false,
+    "why": "Kept the negative year in the average: (11.17 − 0.88 + 12.48)/3 = 7.59. Entering zero instead would still give 7.88."
+   },
+   {
+    "label": "Equal to 11.17",
+    "correct": false,
+    "why": "Used the first year's figure alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Years kept",
+    "display": "Years 1 and 3 only",
+    "value": 2
+   },
+   {
+    "label": "Average",
+    "display": "$(11.17 + 12.48)/2 = 11.825$",
+    "value": 11.825
+   },
+   {
+    "label": "Versus Year 1",
+    "display": "$11.825 > 11.17$",
+    "value": null
+   }
+  ],
+  "takeaway": "Dropping the negative year raises the average to 11.83, whereas a three-year average with the negative year in it gives only 7.59.",
+  "check": {
+   "inputs": {
+    "y1": 11.17,
+    "y2": -0.88,
+    "y3": 12.48
+   },
+   "steps": [
+    {
+     "name": "cap",
+     "expr": "(y1+y3)/2",
+     "value": 11.825
+    },
+    {
+     "name": "diff",
+     "expr": "cap-y1",
+     "value": 0.655
+    },
+    {
+     "name": "slip_all_three",
+     "expr": "(y1+y2+y3)/3",
+     "value": 7.59
+    },
+    {
+     "name": "slip_zero",
+     "expr": "(y1+0+y3)/3",
+     "value": 7.883333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-14",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0703"
+  },
+  "trap_category": "Scope",
+  "setup": "EU securitization risk retention. A loan pool is tranched into a USD 320m senior, a USD 50m mezzanine and a USD 30m equity tranche. The originator must retain at least 5% of each tranche.",
+  "ask": "The minimum total retained is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.5m",
+    "correct": false,
+    "why": "Retained 5% of the equity tranche only."
+   },
+   {
+    "label": "≈ USD 4.0m",
+    "correct": false,
+    "why": "Applied 5% to the mezzanine and equity tranches only, leaving out the large senior tranche."
+   },
+   {
+    "label": "≈ USD 20m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 200m",
+    "correct": false,
+    "why": "Read 5% as 50% of the USD 400m pool."
+   }
+  ],
+  "working": [
+   {
+    "label": "Senior",
+    "display": "$320 \\times 5\\% = 16.0$",
+    "value": 16.0
+   },
+   {
+    "label": "Mezzanine",
+    "display": "$50 \\times 5\\% = 2.5$",
+    "value": 2.5
+   },
+   {
+    "label": "Equity",
+    "display": "$30 \\times 5\\% = 1.5$",
+    "value": 1.5
+   },
+   {
+    "label": "Total",
+    "display": "$16.0 + 2.5 + 1.5 = \\text{USD } 20.0\\text{m}$",
+    "value": 20.0
+   }
+  ],
+  "takeaway": "Retention of 5% of each tranche equals 5% of the whole pool, and the senior tranche is where most of it sits.",
+  "check": {
+   "inputs": {
+    "sr": 320,
+    "mz": 50,
+    "eq": 30,
+    "r": 0.05
+   },
+   "steps": [
+    {
+     "name": "total",
+     "expr": "r*(sr+mz+eq)",
+     "value": 20.0
+    },
+    {
+     "name": "slip_equity",
+     "expr": "r*eq",
+     "value": 1.5
+    },
+    {
+     "name": "slip_no_senior",
+     "expr": "r*(mz+eq)",
+     "value": 4.0
+    },
+    {
+     "name": "slip_50pct",
+     "expr": "10*total",
+     "value": 200.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-15",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0725"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel III standardized approach, business indicator, annual averages in EUR m: interest income 1,100; interest expense 380; interest-earning assets 40,000; dividend income 20. In the interest, leases and dividend component, absolute net interest income is capped at 2.25% of interest-earning assets, then dividend income is added.",
+  "ask": "The interest, leases and dividend component is:",
+  "options": [
+   {
+    "label": "EUR 740m",
+    "correct": true
+   },
+   {
+    "label": "EUR 920m",
+    "correct": false,
+    "why": "Took the cap (2.25% × 40,000 = 900) instead of the smaller net interest income of 720, then added 20."
+   },
+   {
+    "label": "EUR 1,120m",
+    "correct": false,
+    "why": "Used gross interest income of 1,100 (no expense netting, no cap), then added 20."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net interest income",
+    "display": "$|1{,}100 - 380| = 720$",
+    "value": 720
+   },
+   {
+    "label": "Cap",
+    "display": "$2.25\\% \\times 40{,}000 = 900$",
+    "value": 900
+   },
+   {
+    "label": "Component",
+    "display": "$\\min(720, 900) + 20 = 740$",
+    "value": 740
+   }
+  ],
+  "takeaway": "The cap only bites when net interest income exceeds 2.25% of assets. Here 720 is below 900, so it passes through unchanged.",
+  "check": {
+   "inputs": {
+    "ii": 1100,
+    "ie": 380,
+    "assets": 40000,
+    "div": 20
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "abs(ii-ie)",
+     "value": 720
+    },
+    {
+     "name": "cap",
+     "expr": "0.0225*assets",
+     "value": 900.0
+    },
+    {
+     "name": "ildc",
+     "expr": "min(net,cap)+div",
+     "value": 740
+    },
+    {
+     "name": "slip_cap",
+     "expr": "cap+div",
+     "value": 920.0
+    },
+    {
+     "name": "slip_gross",
+     "expr": "ii+div",
+     "value": 1120
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-16",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0726"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel III standardized operational risk. Ten-year average annual operating loss is EUR 80m (high-quality data) and the business indicator component BIC is EUR 900m. Loss component LC = 15 × average loss. ILM = ln[e − 1 + (LC/BIC)^0.8] and capital = BIC × ILM, with no supervisory override.",
+  "ask": "Capital compared with the BIC of EUR 900m is:",
+  "options": [
+   {
+    "label": "Above EUR 900m",
+    "correct": true
+   },
+   {
+    "label": "Below EUR 900m",
+    "correct": false,
+    "why": "Forgot the 15× and compared the raw EUR 80m loss with BIC: that would give ILM about 0.62 and capital about EUR 559m."
+   },
+   {
+    "label": "Equal to EUR 900m",
+    "correct": false,
+    "why": "ILM equals 1 only when LC = BIC. Here LC is 1,200, above BIC."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss component",
+    "display": "$15 \\times 80 = 1{,}200$",
+    "value": 1200
+   },
+   {
+    "label": "Ratio",
+    "display": "$1{,}200/900 = 1.333$, above 1, so ILM $> 1$",
+    "value": 1.3333
+   },
+   {
+    "label": "ILM",
+    "display": "$\\ln[1.7183 + 1.3333^{0.8}] = \\ln(2.9772) = 1.0909$",
+    "value": 1.0909
+   },
+   {
+    "label": "Capital",
+    "display": "$900 \\times 1.0909 \\approx \\text{EUR } 982\\text{m}$",
+    "value": 982
+   }
+  ],
+  "takeaway": "ILM is exactly 1 when LC equals BIC. A loss history that puts LC above BIC pushes capital above the BIC.",
+  "check": {
+   "inputs": {
+    "avg": 80,
+    "BIC": 900
+   },
+   "steps": [
+    {
+     "name": "LC",
+     "expr": "15*avg",
+     "value": 1200
+    },
+    {
+     "name": "ratio",
+     "expr": "LC/BIC",
+     "value": 1.333333
+    },
+    {
+     "name": "ILM",
+     "expr": "ln(exp(1)-1+ratio**0.8)",
+     "value": 1.090938
+    },
+    {
+     "name": "cap",
+     "expr": "BIC*ILM",
+     "value": 981.844178
+    },
+    {
+     "name": "slip_rawloss",
+     "expr": "BIC*ln(exp(1)-1+(avg/BIC)**0.8)",
+     "value": 559.737011
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-17",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0727"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel III business indicator for a European bank, EUR bn, years 20X6 to 20X9. ILDC: 0.95, 1.3, 1.8, 1.6. Services SC: 1.6, 2.2, 2.6, 1.8. Financial FC (absolute): 0.5, 1.1, 1.3, 1.5. BI is the sum of the three components, each averaged over the latest three years (ending 20X9).",
+  "ask": "The BI at 31 December 20X9 is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 1.7bn",
+    "correct": false,
+    "why": "Averaged the three components and then divided by 3 again."
+   },
+   {
+    "label": "≈ EUR 5.1bn",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 15bn",
+    "correct": false,
+    "why": "Summed the three years without averaging."
+   },
+   {
+    "label": "≈ EUR 51bn",
+    "correct": false,
+    "why": "Decimal slip: ten times the true figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "ILDC average",
+    "display": "$(1.3 + 1.8 + 1.6)/3 = 1.567$",
+    "value": 1.567
+   },
+   {
+    "label": "SC average",
+    "display": "$(2.2 + 2.6 + 1.8)/3 = 2.200$",
+    "value": 2.2
+   },
+   {
+    "label": "FC average",
+    "display": "$(1.1 + 1.3 + 1.5)/3 = 1.300$",
+    "value": 1.3
+   },
+   {
+    "label": "BI",
+    "display": "$1.567 + 2.200 + 1.300 = \\text{EUR } 5.07\\text{bn}$",
+    "value": 5.067
+   }
+  ],
+  "takeaway": "BI averages each component over the latest three years, so 20X6 drops out and the total is the sum of three averages.",
+  "check": {
+   "inputs": {
+    "i7": 1.3,
+    "i8": 1.8,
+    "i9": 1.6,
+    "s7": 2.2,
+    "s8": 2.6,
+    "s9": 1.8,
+    "f7": 1.1,
+    "f8": 1.3,
+    "f9": 1.5
+   },
+   "steps": [
+    {
+     "name": "ildc",
+     "expr": "(i7+i8+i9)/3",
+     "value": 1.566667
+    },
+    {
+     "name": "sc",
+     "expr": "(s7+s8+s9)/3",
+     "value": 2.2
+    },
+    {
+     "name": "fc",
+     "expr": "(f7+f8+f9)/3",
+     "value": 1.3
+    },
+    {
+     "name": "bi",
+     "expr": "ildc+sc+fc",
+     "value": 5.066667
+    },
+    {
+     "name": "slip_double",
+     "expr": "bi/3",
+     "value": 1.688889
+    },
+    {
+     "name": "slip_sum",
+     "expr": "i7+i8+i9+s7+s8+s9+f7+f8+f9",
+     "value": 15.2
+    },
+    {
+     "name": "slip_x10",
+     "expr": "bi*10",
+     "value": 50.666667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-18",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-21b-5"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel I off-balance-sheet items, EUR m: transaction-related standby letters of credit 80, counterparty an OECD bank (CCF 50%); undrawn two-year commitment to corporates 200 (CCF 20%); undrawn six-month commitment to corporates 150 (CCF 0%). Risk weights: OECD bank 20%, corporate 100%.",
+  "ask": "The off-balance-sheet RWA (EUR m) is closest to:",
+  "options": [
+   {
+    "label": "≈ 8",
+    "correct": false,
+    "why": "Counted only the standby letters of credit (40 × 20%) and dropped the two-year commitment."
+   },
+   {
+    "label": "≈ 48",
+    "correct": true
+   },
+   {
+    "label": "≈ 80",
+    "correct": false,
+    "why": "Put the standby letters of credit at the corporate 100% weight instead of the OECD-bank 20%: 40 + 40."
+   },
+   {
+    "label": "≈ 198",
+    "correct": false,
+    "why": "Counted the six-month commitments at 100% of face value. A 0% CCF removes them entirely."
+   }
+  ],
+  "working": [
+   {
+    "label": "Standby L/Cs",
+    "display": "$80 \\times 50\\% = 40$, then $\\times 20\\% = 8$",
+    "value": 8
+   },
+   {
+    "label": "Two-year commitment",
+    "display": "$200 \\times 20\\% = 40$, then $\\times 100\\% = 40$",
+    "value": 40
+   },
+   {
+    "label": "Six-month commitment",
+    "display": "$150 \\times 0\\% = 0$",
+    "value": 0
+   },
+   {
+    "label": "Total",
+    "display": "$8 + 40 + 0 = 48$",
+    "value": 48
+   }
+  ],
+  "takeaway": "Convert with the CCF first, then apply the counterparty's risk weight. Short commitments at 0% CCF add nothing.",
+  "check": {
+   "inputs": {
+    "sb": 80,
+    "c2": 200,
+    "c6": 150
+   },
+   "steps": [
+    {
+     "name": "sb_rwa",
+     "expr": "sb*0.5*0.2",
+     "value": 8.0
+    },
+    {
+     "name": "c2_rwa",
+     "expr": "c2*0.2*1.0",
+     "value": 40.0
+    },
+    {
+     "name": "c6_rwa",
+     "expr": "c6*0.0*1.0",
+     "value": 0.0
+    },
+    {
+     "name": "total",
+     "expr": "sb_rwa+c2_rwa+c6_rwa",
+     "value": 48.0
+    },
+    {
+     "name": "slip_sb_corp",
+     "expr": "sb*0.5*1.0+c2_rwa",
+     "value": 80.0
+    },
+    {
+     "name": "slip_no_ccf6",
+     "expr": "total+c6",
+     "value": 198.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq04-19",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-22e-7"
+  },
+  "trap_category": "Scope",
+  "setup": "A G-SIB's private-sector credit exposures and the countercyclical buffer (CCyB) rate of each country: home country X 50% of exposures at 1.0%; country Y 30% at 2.5%; country Z 20% at 0.0%.",
+  "ask": "The bank's CCyB add-on is:",
+  "options": [
+   {
+    "label": "1.00%",
+    "correct": false,
+    "why": "Used the home-country rate alone. The buffer follows where the exposures are, not where the bank is based."
+   },
+   {
+    "label": "1.25%",
+    "correct": true
+   },
+   {
+    "label": "1.17%",
+    "correct": false,
+    "why": "Took the simple average of the three national rates instead of weighting by exposure."
+   },
+   {
+    "label": "2.50%",
+    "correct": false,
+    "why": "Used the highest national rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted average",
+    "display": "$0.50(1.0\\%) + 0.30(2.5\\%) + 0.20(0\\%) = 1.25\\%$",
+    "value": 1.25
+   },
+   {
+    "label": "Fully buffered CET1",
+    "display": "$4.5 + 2.5 + 1.5 + 1.25 = 9.75\\%$",
+    "value": 9.75
+   },
+   {
+    "label": "Amount",
+    "display": "$9.75\\% \\times 400 = \\text{EUR } 39.0\\text{bn}$",
+    "value": 39.0
+   }
+  ],
+  "takeaway": "A bank's CCyB is the exposure-weighted average of the national buffers where its credit exposures sit.",
+  "check": {
+   "inputs": {
+    "wx": 0.5,
+    "wy": 0.3,
+    "wz": 0.2,
+    "rx": 1.0,
+    "ry": 2.5,
+    "rz": 0.0,
+    "rwa": 400
+   },
+   "steps": [
+    {
+     "name": "ccyb",
+     "expr": "wx*rx+wy*ry+wz*rz",
+     "value": 1.25
+    },
+    {
+     "name": "ratio",
+     "expr": "4.5+2.5+1.5+ccyb",
+     "value": 9.75
+    },
+    {
+     "name": "amt",
+     "expr": "ratio/100*rwa",
+     "value": 39.0
+    },
+    {
+     "name": "slip_simple",
+     "expr": "(rx+ry+rz)/3",
+     "value": 1.166667
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,2054 @@
+[
+ {
+  "id": "SC-bank-MRq03-01",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0666"
+  },
+  "trap_category": "Formula",
+  "setup": "Tuckman Model 1 (no drift): $dr = \\sigma\\,dw$ with $dw = Z\\sqrt{dt}$. The rate starts at 4.00%, annual basis-point volatility is 200 bp, the step is one month ($dt = 1/12$) and the first standard normal draw is $Z = 1.240$.",
+  "ask": "The change in the rate over the first month is closest to:",
+  "options": [
+   {
+    "label": "≈ 7 bp",
+    "correct": false,
+    "why": "Scale slip (1/10×): read the 200 bp as 20 bp."
+   },
+   {
+    "label": "≈ 21 bp",
+    "correct": false,
+    "why": "Scaled the shock by $dt$ instead of $\\sqrt{dt}$: $200 \\times 1.24/12$."
+   },
+   {
+    "label": "≈ 72 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 248 bp",
+    "correct": false,
+    "why": "Applied the full annual volatility: $200 \\times 1.24$, no time scaling at all."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaled shock",
+    "display": "$dw = 1.240 \\times \\sqrt{1/12} = 0.358$",
+    "value": 0.3579
+   },
+   {
+    "label": "Rate change",
+    "display": "$200 \\times 0.358 \\approx 71.6\\text{ bp}$",
+    "value": 71.58
+   }
+  ],
+  "takeaway": "Volatility scales with $\\sqrt{dt}$: a one-month move is roughly 29% of the annual figure, times the draw.",
+  "check": {
+   "inputs": {
+    "sig": 200,
+    "Z": 1.24,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "dw",
+     "expr": "Z*sqrt(dt)",
+     "value": 0.357957
+    },
+    {
+     "name": "dr",
+     "expr": "sig*dw",
+     "value": 71.5914
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*Z*dt",
+     "value": 20.6667
+    },
+    {
+     "name": "slip_none",
+     "expr": "sig*Z",
+     "value": 248.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "dr/10",
+     "value": 7.15914
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-02",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0672"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Ho-Lee tree from $r_0 = 4.00\\%$ with monthly steps, equally likely up and down moves of the same size, and annualised volatility of 200 bp. Annualised drifts are +100 bp in month 1 and +80 bp in month 2. The tree recombines.",
+  "ask": "After two months, the middle node (one up move, one down move) sits:",
+  "options": [
+   {
+    "label": "Above 4.00%",
+    "correct": true
+   },
+   {
+    "label": "At 4.00%",
+    "correct": false,
+    "why": "Let the up and down moves cancel and dropped the drift. The drift still accumulates: $(100+80)/12 = 15$ bp."
+   },
+   {
+    "label": "Below 4.00%",
+    "correct": false,
+    "why": "Treated the down move as the larger one. Equal-size shocks cancel, so only the positive drift is left."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative drift",
+    "display": "$(100 + 80)/12 = 15\\text{ bp}$",
+    "value": 15.0
+   },
+   {
+    "label": "Middle node",
+    "display": "$4.00\\% + 0.15\\% = 4.15\\%$",
+    "value": 4.15
+   }
+  ],
+  "takeaway": "In a recombining Ho-Lee tree the middle node is the start rate plus the cumulative drift; the shocks cancel.",
+  "check": {
+   "inputs": {
+    "d1": 100,
+    "d2": 80,
+    "dt": 0.08333333333333333,
+    "r0": 4.0
+   },
+   "steps": [
+    {
+     "name": "cum",
+     "expr": "(d1+d2)*dt",
+     "value": 15.0
+    },
+    {
+     "name": "mid",
+     "expr": "r0+cum/100",
+     "value": 4.15
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-03",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0673"
+  },
+  "trap_category": "Sign",
+  "setup": "Ho-Lee simulation, $dr = \\lambda\\,dt + \\sigma\\,dw$ with $dw = Z\\sqrt{dt}$, monthly steps. Start 4.000%, annual volatility 300 bp. Drifts: 110 bp (month 1) and 70 bp (month 2). Draws: $Z_1 = -0.52$, $Z_2 = +0.84$.",
+  "ask": "After two months the simulated rate is:",
+  "options": [
+   {
+    "label": "Above 4.00%",
+    "correct": true
+   },
+   {
+    "label": "Below 4.00%",
+    "correct": false,
+    "why": "Looked only at the first, negative draw. The second draw is bigger and positive, and the drift is positive too."
+   },
+   {
+    "label": "Exactly 4.00%",
+    "correct": false,
+    "why": "Assumed shocks of opposite sign cancel. They only partly offset: net draw $+0.32$, plus a positive drift."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative drift",
+    "display": "$(110+70)/12 = 15\\text{ bp}$",
+    "value": 15.0
+   },
+   {
+    "label": "Net shock",
+    "display": "$3.00\\% \\times \\sqrt{1/12} \\times 0.32 = 0.277\\%$",
+    "value": 0.2771
+   },
+   {
+    "label": "Rate",
+    "display": "$4.000 + 0.150 + 0.277 = 4.427\\%$",
+    "value": 4.427
+   }
+  ],
+  "takeaway": "Add the draws before scaling: the shocks net out to the sum of the $Z$'s times $\\sigma\\sqrt{dt}$, and the drift adds on top.",
+  "check": {
+   "inputs": {
+    "d1": 110,
+    "d2": 70,
+    "sg": 3.0,
+    "dt": 0.08333333333333333,
+    "Z1": -0.52,
+    "Z2": 0.84,
+    "r0": 4.0
+   },
+   "steps": [
+    {
+     "name": "cum",
+     "expr": "(d1+d2)*dt/100",
+     "value": 0.15
+    },
+    {
+     "name": "shock",
+     "expr": "sg*sqrt(dt)*(Z1+Z2)",
+     "value": 0.277128
+    },
+    {
+     "name": "r",
+     "expr": "r0+cum+shock",
+     "value": 4.42713
+    },
+    {
+     "name": "slip_first",
+     "expr": "r0+d1*dt/100+sg*sqrt(dt)*Z1",
+     "value": 3.64133
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0682"
+  },
+  "trap_category": "Sibling",
+  "setup": "Vasicek tree, monthly: $dr = k(\\theta - r)\\,dt + \\sigma\\,dw$ with $k = 0.60$, $\\theta = 3.00\\%$, $\\sigma\\sqrt{dt} = 0.5774\\%$. After month 1 the nodes are 8.3274% (up) and 7.1726% (down). In month 2 each node moves $\\pm 0.5774\\%$ around its own mean-reversion drift.",
+  "ask": "Of the two month-2 middle nodes (up-then-down and down-then-up), which is higher?",
+  "options": [
+   {
+    "label": "Down-then-up (from 7.1726%)",
+    "correct": true
+   },
+   {
+    "label": "Up-then-down (from 8.3274%)",
+    "correct": false,
+    "why": "Looked only at the higher starting level. It sits further above $\\theta$, so it is pulled down harder (drift $-0.266\\%$ against $-0.209\\%$)."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Assumed the tree recombines, as in Ho-Lee. Here the drift depends on the node, so the two paths end 5.8 bp apart."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift from up node",
+    "display": "$0.6 \\times (3 - 8.3274)/12 = -0.2664\\%$",
+    "value": -0.2664
+   },
+   {
+    "label": "Drift from down node",
+    "display": "$0.6 \\times (3 - 7.1726)/12 = -0.2086\\%$",
+    "value": -0.2086
+   },
+   {
+    "label": "Up-then-down",
+    "display": "$8.3274 - 0.2664 - 0.5774 = 7.4836\\%$",
+    "value": 7.4836
+   },
+   {
+    "label": "Down-then-up",
+    "display": "$7.1726 - 0.2086 + 0.5774 = 7.5414\\%$",
+    "value": 7.5414
+   }
+  ],
+  "takeaway": "With mean reversion the higher node reverts harder, so the up-down and down-up paths do not meet.",
+  "check": {
+   "inputs": {
+    "ru": 8.3274,
+    "rd": 7.1726,
+    "k": 0.6,
+    "th": 3.0,
+    "sv": 0.5774,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "du",
+     "expr": "k*(th-ru)*dt",
+     "value": -0.26637
+    },
+    {
+     "name": "dd",
+     "expr": "k*(th-rd)*dt",
+     "value": -0.20863
+    },
+    {
+     "name": "ud",
+     "expr": "ru+du-sv",
+     "value": 7.48363
+    },
+    {
+     "name": "dnup",
+     "expr": "rd+dd+sv",
+     "value": 7.54137
+    },
+    {
+     "name": "gap",
+     "expr": "dnup-ud",
+     "value": 0.05774
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-05",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0683"
+  },
+  "trap_category": "Formula",
+  "setup": "Vasicek with a risk premium: the risk-neutral long-run level is $\\theta = r_\\infty + \\lambda/k$. The true long-run rate is $r_\\infty = 5.5\\%$, the risk-premium drift is $\\lambda = 0.32\\%$ per year and the speed of mean reversion is $k = 0.04$.",
+  "ask": "Compared with $r_\\infty = 5.5\\%$, the risk-neutral level $\\theta$ is:",
+  "options": [
+   {
+    "label": "Higher by several percentage points",
+    "correct": true
+   },
+   {
+    "label": "Higher by well under one percentage point",
+    "correct": false,
+    "why": "Added $\\lambda = 0.32\\%$ directly and never divided by $k$."
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Flipped the sign of the premium. $\\theta = r_\\infty + \\lambda/k$ adds it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Premium add-on",
+    "display": "$\\lambda/k = 0.32\\%/0.04 = 8.0\\%$",
+    "value": 8.0
+   },
+   {
+    "label": "Risk-neutral level",
+    "display": "$\\theta = 5.5\\% + 8.0\\% = 13.5\\%$",
+    "value": 13.5
+   }
+  ],
+  "takeaway": "A small $\\lambda$ over a small $k$ is a big number: the risk-neutral level can sit far from the true one.",
+  "check": {
+   "inputs": {
+    "lam": 0.32,
+    "k": 0.04,
+    "rinf": 5.5
+   },
+   "steps": [
+    {
+     "name": "add",
+     "expr": "lam/k",
+     "value": 8.0
+    },
+    {
+     "name": "theta",
+     "expr": "rinf+add",
+     "value": 13.5
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "rinf+lam",
+     "value": 5.82
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-06",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0684"
+  },
+  "trap_category": "Sign",
+  "setup": "Vasicek, one-month tree ($dt = 1/12$). Current rate 5.2%, volatility 3.5%, long-run level $\\theta = 14.2\\%$, speed $k = 0.4$. The two nodes are $r_0 + k(\\theta - r_0)dt \\pm \\sigma\\sqrt{dt}$.",
+  "ask": "The midpoint of the up and down nodes is:",
+  "options": [
+   {
+    "label": "Above 5.2%",
+    "correct": true
+   },
+   {
+    "label": "At 5.2%",
+    "correct": false,
+    "why": "Treated the tree as symmetric around $r_0$, as in a no-drift model. The mean-reversion drift shifts both nodes."
+   },
+   {
+    "label": "Below 5.2%",
+    "correct": false,
+    "why": "Flipped the sign of $\\theta - r_0$. The rate is below $\\theta$, so the pull is upward."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift",
+    "display": "$0.4 \\times (14.2 - 5.2)/12 = +0.30\\%$",
+    "value": 0.3
+   },
+   {
+    "label": "Midpoint",
+    "display": "$5.2\\% + 0.30\\% = 5.50\\%$",
+    "value": 5.5
+   }
+  ],
+  "takeaway": "The midpoint of a one-step tree is the current rate plus drift; volatility only sets the spread.",
+  "check": {
+   "inputs": {
+    "k": 0.4,
+    "th": 14.2,
+    "r0": 5.2,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "k*(th-r0)*dt",
+     "value": 0.3
+    },
+    {
+     "name": "mid",
+     "expr": "r0+drift",
+     "value": 5.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-07",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0686"
+  },
+  "trap_category": "Scope",
+  "setup": "Vasicek, monthly step ($dt = 1/12$): current rate 6.2%, long-run level $\\theta = 14.2\\%$, speed $k = 0.4$, volatility $\\sigma = 2.5\\%$. Each month-1 node is $r_0$ plus the mean-reversion drift $k(\\theta - r_0)dt$, then $\\pm\\sigma\\sqrt{dt}$.",
+  "ask": "The mean-reversion drift for the month is closest to:",
+  "options": [
+   {
+    "label": "≈ 3 bp",
+    "correct": false,
+    "why": "Scale slip (1/10×): read the gap of 8.0 points as 0.8."
+   },
+   {
+    "label": "≈ 27 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 72 bp",
+    "correct": false,
+    "why": "Reported the volatility step $\\sigma\\sqrt{dt}$ instead of the drift."
+   },
+   {
+    "label": "≈ 320 bp",
+    "correct": false,
+    "why": "Left out $dt$: $0.4 \\times 8.0\\% = 3.2\\%$ is an annual figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap to $\\theta$",
+    "display": "$14.2\\% - 6.2\\% = 8.0\\%$",
+    "value": 8.0
+   },
+   {
+    "label": "Monthly drift",
+    "display": "$0.4 \\times 8.0\\% \\times 1/12 = 0.267\\% \\approx 27\\text{ bp}$",
+    "value": 26.67
+   }
+  ],
+  "takeaway": "The drift is $k(\\theta-r)$ per YEAR; scale by $dt$ before comparing it with a one-month tree step.",
+  "check": {
+   "inputs": {
+    "k": 0.4,
+    "th": 14.2,
+    "r0": 6.2,
+    "sg": 2.5,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "k*(th-r0)*dt*100",
+     "value": 26.6667
+    },
+    {
+     "name": "slip_vol",
+     "expr": "sg*sqrt(dt)*100",
+     "value": 72.1688
+    },
+    {
+     "name": "slip_nodt",
+     "expr": "k*(th-r0)*100",
+     "value": 320.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "drift/10",
+     "value": 2.66667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-08",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0689"
+  },
+  "trap_category": "Formula",
+  "setup": "Vasicek with speed $k = 0.025$ and annual volatility 126 bp. The standard deviation of the short rate after $T$ years is $\\sqrt{\\frac{\\sigma^2}{2k}\\left(1 - e^{-2kT}\\right)}$. Take $T = 10$.",
+  "ask": "The standard deviation of the short rate in 10 years is closest to:",
+  "options": [
+   {
+    "label": "≈ 3.5 bp",
+    "correct": false,
+    "why": "Unit slip: the answer 3.53 (in %) read as basis points."
+   },
+   {
+    "label": "≈ 126 bp",
+    "correct": false,
+    "why": "Used the one-year volatility $\\sigma$ and ignored the accumulation over 10 years."
+   },
+   {
+    "label": "≈ 353 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 1,249 bp",
+    "correct": false,
+    "why": "Stopped at the variance, 12.49 (%²), and read it as 12.49% = 1,249 bp."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$\\frac{1.26^2}{0.05}(1 - e^{-0.5}) = 31.75 \\times 0.3935 = 12.49$",
+    "value": 12.49
+   },
+   {
+    "label": "Standard deviation",
+    "display": "$\\sqrt{12.49} = 3.535\\% \\approx 353\\text{ bp}$",
+    "value": 3.535
+   }
+  ],
+  "takeaway": "Mean reversion caps the spread: after 10 years the s.d. is about 2.8 times $\\sigma$, well below the $\\sigma\\sqrt{T} = 398$ bp of a no-reversion model.",
+  "check": {
+   "inputs": {
+    "sg": 1.26,
+    "k": 0.025,
+    "T": 10
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "sg^2/(2*k)*(1-exp(-2*k*T))",
+     "value": 12.4934
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 3.53461
+    },
+    {
+     "name": "sd_bp",
+     "expr": "sd*100",
+     "value": 353.461
+    },
+    {
+     "name": "slip_sigma",
+     "expr": "sg*100",
+     "value": 126.0
+    },
+    {
+     "name": "slip_var",
+     "expr": "var*100",
+     "value": 1249.34
+    },
+    {
+     "name": "slip_unit",
+     "expr": "sd",
+     "value": 3.53461
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-09",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0690"
+  },
+  "trap_category": "Formula",
+  "setup": "Vasicek with risk-neutral level $\\theta = r_\\infty + \\lambda/k$. The true long-run rate is $r_\\infty = 2\\%$, $\\theta = 4\\%$, and the risk-premium drift is $\\lambda = 0.1\\%$ per year.",
+  "ask": "The speed of mean reversion $k$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.0005",
+    "correct": false,
+    "why": "Mixed units: $\\lambda$ as 0.001 (decimal) divided by the 2 percentage-point gap."
+   },
+   {
+    "label": "≈ 0.05",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.5",
+    "correct": false,
+    "why": "Scale slip (10×): misplaced a decimal in $0.1/2$."
+   },
+   {
+    "label": "≈ 20",
+    "correct": false,
+    "why": "Inverted the ratio: $(\\theta - r_\\infty)/\\lambda = 2/0.1$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Premium add-on",
+    "display": "$\\theta - r_\\infty = 4\\% - 2\\% = 2\\%$",
+    "value": 2.0
+   },
+   {
+    "label": "Solve for $k$",
+    "display": "$k = 0.1\\%/2\\% = 0.05$",
+    "value": 0.05
+   }
+  ],
+  "takeaway": "$\\lambda/k$ is the gap between the two long-run levels, so $k = \\lambda/(\\theta - r_\\infty)$, a small number here.",
+  "check": {
+   "inputs": {
+    "rinf": 2.0,
+    "th": 4.0,
+    "lam": 0.1
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "th-rinf",
+     "value": 2.0
+    },
+    {
+     "name": "k",
+     "expr": "lam/gap",
+     "value": 0.05
+    },
+    {
+     "name": "slip_inv",
+     "expr": "gap/lam",
+     "value": 20.0
+    },
+    {
+     "name": "slip_units",
+     "expr": "(lam/100)/gap",
+     "value": 0.0005
+    },
+    {
+     "name": "slip_scale",
+     "expr": "k*10",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0691"
+  },
+  "trap_category": "Scope",
+  "setup": "Vasicek, one-month step ($dt = 1/12$): speed $k = 0.42$, risk-neutral level $\\theta = 5.8955\\%$, current rate 4.256%, volatility $\\sigma = 2.07\\%$ per year.",
+  "ask": "Over the month, which is bigger: the expected change $k(\\theta - r)dt$ or the standard deviation $\\sigma\\sqrt{dt}$?",
+  "options": [
+   {
+    "label": "The standard deviation, by roughly 10 times",
+    "correct": true
+   },
+   {
+    "label": "The expected change",
+    "correct": false,
+    "why": "Forgot $dt$ in the drift: the annual drift $0.42 \\times 1.64\\% \\approx 69$ bp looks larger than 60 bp."
+   },
+   {
+    "label": "About equal",
+    "correct": false,
+    "why": "Saw the unscaled drift (69 bp) and the s.d. (60 bp) as a match. After $dt = 1/12$ the drift is only 5.7 bp."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected change",
+    "display": "$0.42 \\times (5.8955 - 4.256)\\% \\times 1/12 = 5.74\\text{ bp}$",
+    "value": 5.74
+   },
+   {
+    "label": "Standard deviation",
+    "display": "$207 \\times \\sqrt{1/12} = 59.8\\text{ bp}$",
+    "value": 59.76
+   },
+   {
+    "label": "Ratio",
+    "display": "$59.8/5.74 \\approx 10$",
+    "value": 10.4
+   }
+  ],
+  "takeaway": "Drift scales with $dt$, dispersion with $\\sqrt{dt}$: over a short step the random part dominates.",
+  "check": {
+   "inputs": {
+    "k": 0.42,
+    "th": 5.8955,
+    "r": 4.256,
+    "sg": 2.07,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "k*(th-r)*dt*100",
+     "value": 5.73825
+    },
+    {
+     "name": "sd",
+     "expr": "sg*sqrt(dt)*100",
+     "value": 59.7558
+    },
+    {
+     "name": "ratio",
+     "expr": "sd/drift",
+     "value": 10.4136
+    },
+    {
+     "name": "slip_nodt",
+     "expr": "k*(th-r)*100",
+     "value": 68.859
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-11",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0692"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Vasicek with $k = 0.37$ and annual volatility 197 bp. The s.d. of the short rate after $T$ years is $\\sqrt{\\frac{\\sigma^2}{2k}\\left(1 - e^{-2kT}\\right)}$, with $T = 5$.",
+  "ask": "The factor $1 - e^{-2kT}$ in that formula is:",
+  "options": [
+   {
+    "label": "Above 0.9",
+    "correct": true
+   },
+   {
+    "label": "Between 0.5 and 0.9",
+    "correct": false,
+    "why": "Used $e^{-kT}$ instead of $e^{-2kT}$: $1 - e^{-1.85} = 0.84$."
+   },
+   {
+    "label": "Below 0.5",
+    "correct": false,
+    "why": "Computed $e^{-2kT} = 0.025$ and forgot to subtract it from 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$2kT = 2 \\times 0.37 \\times 5 = 3.7$",
+    "value": 3.7
+   },
+   {
+    "label": "Factor",
+    "display": "$1 - e^{-3.7} = 1 - 0.025 = 0.975$",
+    "value": 0.9753
+   },
+   {
+    "label": "Resulting s.d.",
+    "display": "$\\sqrt{0.000524 \\times 0.975} = 2.26\\%$",
+    "value": 0.02262
+   }
+  ],
+  "takeaway": "When $2kT$ is well above 1 the factor is near 1: the s.d. has essentially reached its long-run level $\\sigma/\\sqrt{2k}$.",
+  "check": {
+   "inputs": {
+    "k": 0.37,
+    "sg": 0.0197,
+    "T": 5
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "2*k*T",
+     "value": 3.7
+    },
+    {
+     "name": "e",
+     "expr": "exp(-x)",
+     "value": 0.0247235
+    },
+    {
+     "name": "f",
+     "expr": "1-e",
+     "value": 0.975276
+    },
+    {
+     "name": "var",
+     "expr": "sg^2/(2*k)",
+     "value": 0.000524446
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var*f)",
+     "value": 0.0226159
+    },
+    {
+     "name": "slip_half",
+     "expr": "1-exp(-k*T)",
+     "value": 0.842763
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0693"
+  },
+  "trap_category": "Scope",
+  "setup": "Vasicek: $k = 0.03$, current rate 5.0%, true long-run rate 6%, risk-premium drift $\\lambda = 0.35\\%$ per year, so $\\theta = r_\\infty + \\lambda/k$. Expected rate: $E[r_T] = r_0 e^{-kT} + \\theta(1 - e^{-kT})$, with $T = 10$ years.",
+  "ask": "In ten years the expected short rate is:",
+  "options": [
+   {
+    "label": "Nearer today's 5.0% than to $\\theta$",
+    "correct": true
+   },
+   {
+    "label": "Nearer to $\\theta$ than to 5.0%",
+    "correct": false,
+    "why": "Assumed ten years is long enough for most of the reversion. With $k = 0.03$ only about 26% of the gap closes."
+   },
+   {
+    "label": "About halfway between them",
+    "correct": false,
+    "why": "Treated ten years as the half-life. The half-life is $\\ln 2/0.03 \\approx 23$ years."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral level",
+    "display": "$\\theta = 6\\% + 0.35\\%/0.03 = 17.67\\%$",
+    "value": 17.667
+   },
+   {
+    "label": "Decay factor",
+    "display": "$e^{-0.3} = 0.741$",
+    "value": 0.7408
+   },
+   {
+    "label": "Expected rate",
+    "display": "$5.0 \\times 0.741 + 17.67 \\times 0.259 = 8.28\\%$",
+    "value": 8.28
+   }
+  ],
+  "takeaway": "Compare $kT$ with $\\ln 2 \\approx 0.69$: below that, less than half the gap has closed.",
+  "check": {
+   "inputs": {
+    "k": 0.03,
+    "r0": 5.0,
+    "rinf": 6.0,
+    "lam": 0.35,
+    "T": 10
+   },
+   "steps": [
+    {
+     "name": "th",
+     "expr": "rinf+lam/k",
+     "value": 17.6667
+    },
+    {
+     "name": "d",
+     "expr": "exp(-k*T)",
+     "value": 0.740818
+    },
+    {
+     "name": "E",
+     "expr": "r0*d+th*(1-d)",
+     "value": 8.28297
+    },
+    {
+     "name": "to_r0",
+     "expr": "E-r0",
+     "value": 3.28297
+    },
+    {
+     "name": "to_th",
+     "expr": "th-E",
+     "value": 9.3837
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-13",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0694"
+  },
+  "trap_category": "Formula",
+  "setup": "Vasicek with speed of mean reversion $k = 0.05$ per year (volatility 150 bp, current rate 5%, long-run rate 6% and drift 0.4% are also quoted). The half-life is the time for the gap to the long-run level to shrink by half.",
+  "ask": "The half-life is closest to (years):",
+  "options": [
+   {
+    "label": "≈ 0.035",
+    "correct": false,
+    "why": "Multiplied instead of divided: $k \\ln 2$."
+   },
+   {
+    "label": "≈ 0.14",
+    "correct": false,
+    "why": "Read $k$ as 5 rather than 0.05: $\\ln 2/5$."
+   },
+   {
+    "label": "≈ 14",
+    "correct": true
+   },
+   {
+    "label": "≈ 139",
+    "correct": false,
+    "why": "Read $k$ as 0.5% = 0.005: $\\ln 2/0.005$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Half-life",
+    "display": "$\\ln 2/k = 0.693/0.05 = 13.9\\text{ years}$",
+    "value": 13.86
+   }
+  ],
+  "takeaway": "Half-life $= \\ln 2/k$ depends on the speed alone; volatility, rates and drift do not enter.",
+  "check": {
+   "inputs": {
+    "k": 0.05
+   },
+   "steps": [
+    {
+     "name": "hl",
+     "expr": "ln(2)/k",
+     "value": 13.8629
+    },
+    {
+     "name": "slip_mult",
+     "expr": "k*ln(2)",
+     "value": 0.0346574
+    },
+    {
+     "name": "slip_k5",
+     "expr": "ln(2)/5",
+     "value": 0.138629
+    },
+    {
+     "name": "slip_k005",
+     "expr": "ln(2)/0.005",
+     "value": 138.629
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-14",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-15: The Art of Term Structure Models: Volatility and Distribution",
+  "reading_id": "MR-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0707"
+  },
+  "trap_category": "Formula",
+  "setup": "Tuckman Model 3: $dr = \\lambda\\,dt + \\sigma e^{-\\alpha t}dw$. Here $\\sigma = 3.00\\%$ per year and $\\alpha = 0.380$. It is month 60, so $t = 5.0$ years, and this month's time-scaled draw is $dw = -0.2430$.",
+  "ask": "The effective volatility $\\sigma e^{-\\alpha t}$ at $t = 5$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.11%",
+    "correct": false,
+    "why": "Reported the month's shock term, volatility $\\times\\,dw$, instead of the volatility itself."
+   },
+   {
+    "label": "≈ 0.45%",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.0%",
+    "correct": false,
+    "why": "Ignored the decay term and used $\\sigma$ unchanged."
+   },
+   {
+    "label": "≈ 20%",
+    "correct": false,
+    "why": "Flipped the exponent sign: $e^{+\\alpha t}$ grows instead of decays."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$\\alpha t = 0.380 \\times 5 = 1.9$",
+    "value": 1.9
+   },
+   {
+    "label": "Effective volatility",
+    "display": "$3.00\\% \\times e^{-1.9} = 3.00\\% \\times 0.1496 = 0.449\\%$",
+    "value": 0.4487
+   }
+  ],
+  "takeaway": "Model 3 volatility decays exponentially; by year 5 it is only about 15% of $\\sigma$, so the drift can rival the shock.",
+  "check": {
+   "inputs": {
+    "sg": 3.0,
+    "a": 0.38,
+    "t": 5,
+    "dw": 0.243
+   },
+   "steps": [
+    {
+     "name": "vol",
+     "expr": "sg*exp(-a*t)",
+     "value": 0.448706
+    },
+    {
+     "name": "slip_shock",
+     "expr": "vol*dw",
+     "value": 0.109036
+    },
+    {
+     "name": "slip_nodecay",
+     "expr": "sg",
+     "value": 3.0
+    },
+    {
+     "name": "slip_grow",
+     "expr": "sg*exp(a*t)",
+     "value": 20.0577
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-15",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-15: The Art of Term Structure Models: Volatility and Distribution",
+  "reading_id": "MR-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0708"
+  },
+  "trap_category": "Formula",
+  "setup": "Monthly binomial tree ($dt = 1/12$), up moves of $\\lambda\\,dt + \\sigma\\sqrt{dt}$. Start rate 2.75%. Annual drifts: $\\lambda_1 = 0.0018$, $\\lambda_2 = 0.0030$. Annualised volatilities: $\\sigma_1 = 0.0050$, $\\sigma_2 = 0.0080$.",
+  "ask": "The rise from date 0 to the node after two up moves is closest to:",
+  "options": [
+   {
+    "label": "≈ 4 bp",
+    "correct": false,
+    "why": "Counted only the two drift terms: $(0.0018 + 0.0030)/12$."
+   },
+   {
+    "label": "≈ 15 bp",
+    "correct": false,
+    "why": "Scaled volatility by $dt$ instead of $\\sqrt{dt}$."
+   },
+   {
+    "label": "≈ 42 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 178 bp",
+    "correct": false,
+    "why": "Added the annual drifts and volatilities with no time scaling."
+   }
+  ],
+  "working": [
+   {
+    "label": "First up move",
+    "display": "$0.0018/12 + 0.0050 \\times \\sqrt{1/12} = 15.9\\text{ bp}$",
+    "value": 15.93
+   },
+   {
+    "label": "Second up move",
+    "display": "$0.0030/12 + 0.0080 \\times \\sqrt{1/12} = 25.6\\text{ bp}$",
+    "value": 25.59
+   },
+   {
+    "label": "Total rise",
+    "display": "$15.9 + 25.6 \\approx 42\\text{ bp}$",
+    "value": 41.53
+   }
+  ],
+  "takeaway": "Each up move is drift times $dt$ plus volatility times $\\sqrt{dt}$; the volatility part is about 90% of it.",
+  "check": {
+   "inputs": {
+    "l1": 0.0018,
+    "l2": 0.003,
+    "s1": 0.005,
+    "s2": 0.008,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "u1",
+     "expr": "(l1*dt+s1*sqrt(dt))*10000",
+     "value": 15.9338
+    },
+    {
+     "name": "u2",
+     "expr": "(l2*dt+s2*sqrt(dt))*10000",
+     "value": 25.594
+    },
+    {
+     "name": "tot",
+     "expr": "u1+u2",
+     "value": 41.5278
+    },
+    {
+     "name": "slip_drift",
+     "expr": "(l1+l2)*dt*10000",
+     "value": 4.0
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "(l1+s1+l2+s2)*dt*10000",
+     "value": 14.8333
+    },
+    {
+     "name": "slip_none",
+     "expr": "(l1+s1+l2+s2)*10000",
+     "value": 178.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-16",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0739"
+  },
+  "trap_category": "Definition",
+  "setup": "Gauss+ shocks. Medium factor: $\\sigma_m(\\rho\\,dW^1 + \\sqrt{1-\\rho^2}\\,dW^2)$. Long factor: $\\sigma_l\\,dW^1$. $dW^1$ and $dW^2$ are independent. $\\rho = 0.6$, $\\sigma_m = 0.01$, $\\sigma_l = 0.005$.",
+  "ask": "The correlation between the two factors' shocks is:",
+  "options": [
+   {
+    "label": "0.60",
+    "correct": true
+   },
+   {
+    "label": "0.36",
+    "correct": false,
+    "why": "Squared the loading: $\\rho^2$ is the share of variance from $dW^1$, not the correlation."
+   },
+   {
+    "label": "0.80",
+    "correct": false,
+    "why": "Took the loading on the independent $dW^2$: $\\sqrt{1 - \\rho^2}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Covariance per $dt$",
+    "display": "$0.01 \\times 0.005 \\times 0.6 = 0.00003$",
+    "value": 3e-05
+   },
+   {
+    "label": "Standard deviations",
+    "display": "$\\sigma_m\\sqrt{dt}$ and $\\sigma_l\\sqrt{dt}$, since $\\rho^2 + (1-\\rho^2) = 1$",
+    "value": null
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.00003/(0.01 \\times 0.005) = 0.6 = \\rho$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "Only the shared $dW^1$ links the factors, and the loading $\\rho$ on it is exactly their correlation.",
+  "check": {
+   "inputs": {
+    "sm": 0.01,
+    "sl": 0.005,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "cov",
+     "expr": "sm*sl*rho",
+     "value": 3e-05
+    },
+    {
+     "name": "var_m",
+     "expr": "sm^2*(rho^2+(1-rho^2))",
+     "value": 0.0001
+    },
+    {
+     "name": "corr",
+     "expr": "cov/(sqrt(var_m)*sl)",
+     "value": 0.6
+    },
+    {
+     "name": "slip_sq",
+     "expr": "rho^2",
+     "value": 0.36
+    },
+    {
+     "name": "slip_perp",
+     "expr": "sqrt(1-rho^2)",
+     "value": 0.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-17",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0756"
+  },
+  "trap_category": "Formula",
+  "setup": "Gauss+ short-term factor: $dr = a_r(m - r)\\,dt$ plus a shock with zero mean. $a_r = 0.6$, $m = 2.7\\%$, $r = 2.0\\%$, time step $dt = 0.01$ years.",
+  "ask": "The expected change in the short-term factor over the step is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.04 bp",
+    "correct": false,
+    "why": "Unit slip (1/10×): read the 0.7-point gap as 0.07."
+   },
+   {
+    "label": "≈ 0.42 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.5 bp",
+    "correct": false,
+    "why": "Used a monthly step $dt = 1/12$ out of habit instead of the stated 0.01."
+   },
+   {
+    "label": "≈ 42 bp",
+    "correct": false,
+    "why": "Left out $dt$: $0.6 \\times 70\\text{ bp}$ is an annual rate of drift."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap",
+    "display": "$m - r = 0.027 - 0.020 = 0.007$",
+    "value": 0.007
+   },
+   {
+    "label": "Expected change",
+    "display": "$0.6 \\times 0.007 \\times 0.01 = 0.000042 = 0.42\\text{ bp}$",
+    "value": 4.2e-05
+   }
+  ],
+  "takeaway": "Zero-mean shocks drop out of an expectation; what is left is speed times gap times $dt$, a tiny number for a short step.",
+  "check": {
+   "inputs": {
+    "a": 0.6,
+    "m": 0.027,
+    "r": 0.02,
+    "dt": 0.01
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "m-r",
+     "value": 0.007
+    },
+    {
+     "name": "e",
+     "expr": "a*gap*dt*10000",
+     "value": 0.42
+    },
+    {
+     "name": "slip_nodt",
+     "expr": "a*gap*10000",
+     "value": 42.0
+    },
+    {
+     "name": "slip_month",
+     "expr": "a*gap/12*10000",
+     "value": 3.5
+    },
+    {
+     "name": "slip_unit",
+     "expr": "e/10",
+     "value": 0.042
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-18",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0757"
+  },
+  "trap_category": "Scope",
+  "setup": "Gauss+ long-term factor: $dl = a_l(\\mu - l)\\,dt + \\sigma_l\\,dW_l$. $a_l = 0.3$, $l = 0.045$, $\\mu = 0.04$, $\\sigma_l = 0.025$, $dt = 0.01$. The realised shock is $dW_l = 0.03$ (already a draw, so no extra $\\sqrt{dt}$).",
+  "ask": "In this step, which term dominates the change in $l$?",
+  "options": [
+   {
+    "label": "The shock term, by a wide margin",
+    "correct": true
+   },
+   {
+    "label": "The mean-reversion drift",
+    "correct": false,
+    "why": "Dropped $dt$ from the drift: $0.3 \\times 0.005 = 0.0015$ looks twice the shock of 0.00075."
+   },
+   {
+    "label": "About equal",
+    "correct": false,
+    "why": "Compared the unscaled drift 0.0015 with 0.00075 and saw the same order of size. With $dt = 0.01$ the drift is only $-0.000015$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift",
+    "display": "$0.3 \\times (0.04 - 0.045) \\times 0.01 = -0.000015$",
+    "value": -1.5e-05
+   },
+   {
+    "label": "Shock",
+    "display": "$0.025 \\times 0.03 = 0.00075$",
+    "value": 0.00075
+   },
+   {
+    "label": "Net change",
+    "display": "$-0.000015 + 0.00075 = 0.000735$",
+    "value": 0.000735
+   }
+  ],
+  "takeaway": "Check the scale of each term: a drift multiplied by a small $dt$ is dwarfed by a realised shock of ordinary size.",
+  "check": {
+   "inputs": {
+    "a": 0.3,
+    "l": 0.045,
+    "mu": 0.04,
+    "sg": 0.025,
+    "dW": 0.03,
+    "dt": 0.01
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "a*(mu-l)*dt",
+     "value": -1.5e-05
+    },
+    {
+     "name": "shock",
+     "expr": "sg*dW",
+     "value": 0.00075
+    },
+    {
+     "name": "ratio",
+     "expr": "shock/abs(drift)",
+     "value": 50.0
+    },
+    {
+     "name": "net",
+     "expr": "drift+shock",
+     "value": 0.000735
+    },
+    {
+     "name": "slip_nodt",
+     "expr": "abs(a*(mu-l))",
+     "value": 0.0015
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-19",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0758"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Gauss+ with the medium factor held constant at $m = 3\\%$: $dr = -a_r(r - m)\\,dt$, which solves to $r_t = m + (r_0 - m)e^{-a_r t}$. $r_0 = 2\\%$, $a_r = 0.67$ per year.",
+  "ask": "After 6 months, the share of the original 1-point gap to $m$ that is still open is about:",
+  "options": [
+   {
+    "label": "70%",
+    "correct": true
+   },
+   {
+    "label": "30%",
+    "correct": false,
+    "why": "Reported the share already closed, $1 - 0.715$, instead of the share still open."
+   },
+   {
+    "label": "50%",
+    "correct": false,
+    "why": "Treated 6 months as the half-life. The half-life is $\\ln 2/0.67 \\approx 1.03$ years."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay factor",
+    "display": "$e^{-0.67 \\times 0.5} = e^{-0.335} = 0.715$",
+    "value": 0.7153
+   },
+   {
+    "label": "Expected rate",
+    "display": "$3\\% - 1\\% \\times 0.715 = 2.28\\%$",
+    "value": 2.2847
+   }
+  ],
+  "takeaway": "The factor $e^{-at}$ is the share of the gap that remains; half a year at $a = 0.67$ leaves about 70%.",
+  "check": {
+   "inputs": {
+    "a": 0.67,
+    "t": 0.5,
+    "m": 3.0,
+    "r0": 2.0
+   },
+   "steps": [
+    {
+     "name": "open",
+     "expr": "exp(-a*t)",
+     "value": 0.715338
+    },
+    {
+     "name": "closed",
+     "expr": "1-open",
+     "value": 0.284662
+    },
+    {
+     "name": "r",
+     "expr": "m+(r0-m)*open",
+     "value": 2.28466
+    },
+    {
+     "name": "hl",
+     "expr": "ln(2)/a",
+     "value": 1.03455
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-20",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0759"
+  },
+  "trap_category": "Formula",
+  "setup": "Gauss+ medium factor shock: $\\sigma_m(\\rho\\,dW_1 + \\sqrt{1-\\rho^2}\\,dW_2)$ with $\\sigma_m = 0.01$ per year, $\\rho = 0.6$, $dt = 1/252$. On one day $dW_1 = \\sqrt{dt}$ and $dW_2 = 0$.",
+  "ask": "The diffusion contribution to that day's change in $m$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.24 bp",
+    "correct": false,
+    "why": "Scaled by $dt$ instead of $\\sqrt{dt}$."
+   },
+   {
+    "label": "≈ 3.8 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 60 bp",
+    "correct": false,
+    "why": "Used the annual figure $\\sigma_m\\rho$ with no daily scaling."
+   },
+   {
+    "label": "≈ 950 bp",
+    "correct": false,
+    "why": "Divided by $\\sqrt{dt}$ instead of multiplying by it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily scale",
+    "display": "$\\sqrt{1/252} = 0.0630$",
+    "value": 0.063
+   },
+   {
+    "label": "Contribution",
+    "display": "$0.01 \\times 0.6 \\times 0.0630 = 0.000378 \\approx 3.8\\text{ bp}$",
+    "value": 0.000378
+   }
+  ],
+  "takeaway": "With $dW_2 = 0$ only the $\\rho\\,dW_1$ leg is active: annual volatility times $\\rho$ times $\\sqrt{dt}$.",
+  "check": {
+   "inputs": {
+    "sm": 0.01,
+    "rho": 0.6,
+    "dt": 0.003968253968253968
+   },
+   "steps": [
+    {
+     "name": "c",
+     "expr": "sm*rho*sqrt(dt)*10000",
+     "value": 3.77964
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sm*rho*dt*10000",
+     "value": 0.238095
+    },
+    {
+     "name": "slip_none",
+     "expr": "sm*rho*10000",
+     "value": 60.0
+    },
+    {
+     "name": "slip_div",
+     "expr": "sm*rho/sqrt(dt)*10000",
+     "value": 952.47
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-21",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0761"
+  },
+  "trap_category": "Scope",
+  "setup": "Gauss+ short-term factor: $dr = -a_r(r - m)\\,dt$. The short rate is 5.0%, the medium-term rate $m$ is 6.0%, $a_r = 1.3$ per year, and the step is three months.",
+  "ask": "Over the step the short rate:",
+  "options": [
+   {
+    "label": "Rises, by less than the 1.0-point gap",
+    "correct": true
+   },
+   {
+    "label": "Rises, by more than the 1.0-point gap",
+    "correct": false,
+    "why": "Left out $dt$: $1.3 \\times 1.0 = 1.3$ points would overshoot $m$."
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Read $-a_r(r - m)$ as pulling away from $m$. With $r < m$ the product is positive: the rate is pulled up."
+   }
+  ],
+  "working": [
+   {
+    "label": "Change",
+    "display": "$-1.3 \\times (5.0 - 6.0)\\% \\times 0.25 = +0.325\\%$",
+    "value": 0.325
+   }
+  ],
+  "takeaway": "Mean reversion closes only a fraction $a\\,dt$ of the gap per step: here 32.5%, never more than the gap.",
+  "check": {
+   "inputs": {
+    "a": 1.3,
+    "r": 5.0,
+    "m": 6.0,
+    "dt": 0.25
+   },
+   "steps": [
+    {
+     "name": "dr",
+     "expr": "-a*(r-m)*dt",
+     "value": 0.325
+    },
+    {
+     "name": "slip_nodt",
+     "expr": "-a*(r-m)",
+     "value": 1.3
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-22",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-17: Volatility Smiles",
+  "reading_id": "MR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0777"
+  },
+  "trap_category": "Sibling",
+  "setup": "Currency options, continuous rates: USD 4%, foreign 8%. Spot USD 0.55; one-year European options with strike USD 0.57. The call trades at USD 0.0325. Parity: $p = c + Ke^{-r_dT} - S_0e^{-r_fT}$.",
+  "ask": "Compared with the call, the same-strike put is priced:",
+  "options": [
+   {
+    "label": "Higher than USD 0.0325",
+    "correct": true
+   },
+   {
+    "label": "Lower than USD 0.0325",
+    "correct": false,
+    "why": "Assumed the high foreign rate makes puts cheap. It pulls the forward below the strike, which helps the put."
+   },
+   {
+    "label": "Equal to USD 0.0325",
+    "correct": false,
+    "why": "Parity ties the DIFFERENCE $p - c$ to $Ke^{-r_dT} - S_0e^{-r_fT}$; it does not make the two prices equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "PV of strike",
+    "display": "$0.57 e^{-0.04} = 0.5476$",
+    "value": 0.5476
+   },
+   {
+    "label": "Adjusted spot",
+    "display": "$0.55 e^{-0.08} = 0.5077$",
+    "value": 0.5077
+   },
+   {
+    "label": "Put",
+    "display": "$0.0325 + 0.5476 - 0.5077 = 0.0724$",
+    "value": 0.0724
+   }
+  ],
+  "takeaway": "Put minus call equals the PV of the strike less the yield-adjusted spot: compare those two before pricing anything.",
+  "check": {
+   "inputs": {
+    "S": 0.55,
+    "K": 0.57,
+    "rd": 0.04,
+    "rf": 0.08,
+    "c": 0.0325
+   },
+   "steps": [
+    {
+     "name": "pvk",
+     "expr": "K*exp(-rd)",
+     "value": 0.54765
+    },
+    {
+     "name": "pvs",
+     "expr": "S*exp(-rf)",
+     "value": 0.507714
+    },
+    {
+     "name": "gap",
+     "expr": "pvk-pvs",
+     "value": 0.039936
+    },
+    {
+     "name": "p",
+     "expr": "c+gap",
+     "value": 0.072436
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-23",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-17: Volatility Smiles",
+  "reading_id": "MR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0779"
+  },
+  "trap_category": "Formula",
+  "setup": "Currency options, continuous rates: USD 5%, foreign 3%. Spot USD 1.60, strike USD 1.55, one year. The European call trades at USD 0.12. Parity: $p = c + Ke^{-r_dT} - S_0e^{-r_fT}$.",
+  "ask": "The price of the same-strike put is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.004",
+    "correct": false,
+    "why": "Scale slip (1/10×): slipped a decimal when subtracting the two present values."
+   },
+   {
+    "label": "≈ USD 0.042",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 0.12",
+    "correct": false,
+    "why": "Assumed the put costs the same as the call."
+   },
+   {
+    "label": "≈ USD 1.59",
+    "correct": false,
+    "why": "Left out the spot leg: $c + Ke^{-r_dT} = 0.12 + 1.474$."
+   }
+  ],
+  "working": [
+   {
+    "label": "PV of strike",
+    "display": "$1.55 e^{-0.05} = 1.4744$",
+    "value": 1.4744
+   },
+   {
+    "label": "Adjusted spot",
+    "display": "$1.60 e^{-0.03} = 1.5527$",
+    "value": 1.5527
+   },
+   {
+    "label": "Put",
+    "display": "$0.12 + 1.4744 - 1.5527 = 0.0417$",
+    "value": 0.0417
+   }
+  ],
+  "takeaway": "Here $Ke^{-r_dT} < S_0e^{-r_fT}$, so the put must be cheaper than the call, by about 8 cents.",
+  "check": {
+   "inputs": {
+    "S": 1.6,
+    "K": 1.55,
+    "rd": 0.05,
+    "rf": 0.03,
+    "c": 0.12
+   },
+   "steps": [
+    {
+     "name": "pvk",
+     "expr": "K*exp(-rd)",
+     "value": 1.47441
+    },
+    {
+     "name": "pvs",
+     "expr": "S*exp(-rf)",
+     "value": 1.55271
+    },
+    {
+     "name": "p",
+     "expr": "c+pvk-pvs",
+     "value": 0.0416928
+    },
+    {
+     "name": "slip_nospot",
+     "expr": "c+pvk",
+     "value": 1.59441
+    },
+    {
+     "name": "slip_scale",
+     "expr": "p/10",
+     "value": 0.00416928
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-24",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-17: Volatility Smiles",
+  "reading_id": "MR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0784"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Non-dividend stock at USD 15. One-year European options, strike USD 10, $r = 4\\%$ continuous. The BSM call is USD 5.50. The put trades in the market at USD 0.60.",
+  "ask": "The BSM put value implied by parity with the BSM call is closest to:",
+  "options": [
+   {
+    "label": "About USD 0.11",
+    "correct": true
+   },
+   {
+    "label": "About USD 0.50",
+    "correct": false,
+    "why": "Left the strike undiscounted: $5.50 + 10 - 15$."
+   },
+   {
+    "label": "About USD 0.60",
+    "correct": false,
+    "why": "Used the market put price as the BSM value. That price is what we are comparing against."
+   }
+  ],
+  "working": [
+   {
+    "label": "BSM put",
+    "display": "$5.50 + 10e^{-0.04} - 15 = 5.50 + 9.608 - 15 = 0.108$",
+    "value": 0.108
+   },
+   {
+    "label": "Put deviation",
+    "display": "$0.60 - 0.108 = 0.492$",
+    "value": 0.492
+   },
+   {
+    "label": "Market call",
+    "display": "$5.50 + 0.492 = \\text{USD } 5.99$",
+    "value": 5.99
+   }
+  ],
+  "takeaway": "Parity applies to model prices and to market prices alike, so a mispricing in the put carries over one-for-one to the call.",
+  "check": {
+   "inputs": {
+    "c": 5.5,
+    "K": 10,
+    "S": 15,
+    "r": 0.04,
+    "pm": 0.6
+   },
+   "steps": [
+    {
+     "name": "pvk",
+     "expr": "K*exp(-r)",
+     "value": 9.60789
+    },
+    {
+     "name": "pB",
+     "expr": "c+pvk-S",
+     "value": 0.107894
+    },
+    {
+     "name": "dev",
+     "expr": "pm-pB",
+     "value": 0.492106
+    },
+    {
+     "name": "cm",
+     "expr": "c+dev",
+     "value": 5.99211
+    },
+    {
+     "name": "slip_nodisc",
+     "expr": "c+K-S",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-25",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-18: Fundamental Review of the Trading Book",
+  "reading_id": "MR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0853"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel II.5 market risk capital, 99% row (CAD m, 10-day): latest VaR 970, latest stressed VaR 2,200; 60-day averages VaR 900 and stressed VaR 2,460. Each leg equals the larger of the latest figure and 4 times its 60-day average; the two legs are added.",
+  "ask": "Total market risk capital is closest to:",
+  "options": [
+   {
+    "label": "≈ CAD 970m",
+    "correct": false,
+    "why": "Kept only the latest VaR and dropped the stressed leg and the multiplier."
+   },
+   {
+    "label": "≈ CAD 3,170m",
+    "correct": false,
+    "why": "Added the two latest figures with no multiplier or averages."
+   },
+   {
+    "label": "≈ CAD 13,440m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 53,760m",
+    "correct": false,
+    "why": "Applied the multiplier twice: $4 \\times 4 \\times (900 + 2{,}460)$."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR leg",
+    "display": "$\\max(970,\\ 4 \\times 900) = 3{,}600$",
+    "value": 3600
+   },
+   {
+    "label": "Stressed leg",
+    "display": "$\\max(2200,\\ 4 \\times 2460) = 9{,}840$",
+    "value": 9840
+   },
+   {
+    "label": "Total",
+    "display": "$3{,}600 + 9{,}840 = \\text{CAD } 13{,}440\\text{m}$",
+    "value": 13440
+   }
+  ],
+  "takeaway": "With a multiplier of 4, the 60-day average usually beats the latest figure; the stressed leg is the larger of the two.",
+  "check": {
+   "inputs": {
+    "vl": 970,
+    "sl": 2200,
+    "va": 900,
+    "sa": 2460,
+    "m": 4
+   },
+   "steps": [
+    {
+     "name": "v",
+     "expr": "max(vl,m*va)",
+     "value": 3600.0
+    },
+    {
+     "name": "s",
+     "expr": "max(sl,m*sa)",
+     "value": 9840.0
+    },
+    {
+     "name": "tot",
+     "expr": "v+s",
+     "value": 13440.0
+    },
+    {
+     "name": "slip_latest",
+     "expr": "vl+sl",
+     "value": 3170.0
+    },
+    {
+     "name": "slip_twice",
+     "expr": "m*m*(va+sa)",
+     "value": 53760.0
+    },
+    {
+     "name": "slip_var",
+     "expr": "vl",
+     "value": 970.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq03-26",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-18: Fundamental Review of the Trading Book",
+  "reading_id": "MR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0859"
+  },
+  "trap_category": "Definition",
+  "setup": "FRTB. A portfolio's loss is normal with mean 0 and $\\sigma = \\text{USD } 4.0$m. The 99% VaR is USD 9.30m ($2.326\\sigma$). The reading gives the 97.5% expected shortfall as $\\mu + 2.338\\sigma$.",
+  "ask": "Compared with the 99% VaR, the 97.5% ES is:",
+  "options": [
+   {
+    "label": "Slightly higher (under 1%)",
+    "correct": true
+   },
+   {
+    "label": "Much higher (over 10%)",
+    "correct": false,
+    "why": "Assumed ES, as a tail average, must dwarf VaR. For a normal loss the 97.5% ES is calibrated to match the 99% VaR."
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Compared only the confidence levels: 97.5% is less than 99%. ES averages the tail beyond its quantile, which lifts it back up."
+   }
+  ],
+  "working": [
+   {
+    "label": "97.5% ES",
+    "display": "$2.338 \\times 4.0 = \\text{USD } 9.35\\text{m}$",
+    "value": 9.352
+   },
+   {
+    "label": "Versus VaR",
+    "display": "$9.35/9.30 = 1.005$, about 0.5% higher",
+    "value": 1.0057
+   }
+  ],
+  "takeaway": "Under normality 97.5% ES and 99% VaR nearly coincide, so FRTB's switch changes the measure's shape more than its size.",
+  "check": {
+   "inputs": {
+    "sg": 4.0,
+    "var": 9.3,
+    "z": 2.338
+   },
+   "steps": [
+    {
+     "name": "es",
+     "expr": "z*sg",
+     "value": 9.352
+    },
+    {
+     "name": "ratio",
+     "expr": "es/var",
+     "value": 1.00559
+    }
+   ]
+  }
+ }
+]

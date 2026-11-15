@@ -1,0 +1,1052 @@
+[
+ {
+  "id": "SC-bank-MRq06-01",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-17: Volatility Smiles",
+  "reading_id": "MR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0838"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "FX call, 7 months, $K/S_0 = 1.075$. The strike pass is done: interpolating between $K/S_0 = 1.05$ and $1.10$ gives an implied vol of 9.275% on the 6-month row and 9.65% on the 1-year row. Only the time pass is left.",
+  "ask": "The weight on the 1-year row in that last pass is closest to:",
+  "options": [
+   {
+    "label": "5/6 ≈ 0.83",
+    "correct": false,
+    "why": "Reversed the weights: 7 months is 1 month past the 6-month row but 5 months short of the 1-year row, so the 1-year row gets the small weight."
+   },
+   {
+    "label": "1/6 ≈ 0.17",
+    "correct": true
+   },
+   {
+    "label": "7/12 ≈ 0.58",
+    "correct": false,
+    "why": "Measured 7 months from zero instead of from the lower bracket at 6 months: $7/12$ ignores that the grid starts the bracket at 6 months."
+   },
+   {
+    "label": "1/2",
+    "correct": false,
+    "why": "Treated the target as midway; the midpoint of 6 and 12 months is 9 months, not 7."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight on 1-year row",
+    "display": "$(7-6)/(12-6) = 0.167$",
+    "value": 0.1667
+   },
+   {
+    "label": "Time interpolation",
+    "display": "$9.275 + 0.167 \\times (9.65 - 9.275) = 9.34\\%$",
+    "value": 9.3375
+   }
+  ],
+  "takeaway": "Interpolate inside the bracket: the weight is the distance from the lower grid point divided by the bracket width, so 7 months in a 6-to-12 bracket sits close to the 6-month row.",
+  "check": {
+   "inputs": {
+    "t": 7,
+    "t0": 6,
+    "t1": 12,
+    "v0": 9.275,
+    "v1": 9.65
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "(t-t0)/(t1-t0)",
+     "value": 0.16667
+    },
+    {
+     "name": "v",
+     "expr": "v0+w*(v1-v0)",
+     "value": 9.3375
+    },
+    {
+     "name": "slip_zero",
+     "expr": "t/t1",
+     "value": 0.58333
+    },
+    {
+     "name": "slip_rev",
+     "expr": "1-w",
+     "value": 0.83333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-02",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-1e-4"
+  },
+  "trap_category": "Formula",
+  "setup": "Standardised P/L, $n = 1{,}000$ observations, 99% VaR estimate $q = 2.326$. The bin around $q$ runs from 2.226 to 2.426. The probability of a loss beyond 2.426 is $p = 0.0076$ and the probability of an outcome below 2.226 is 0.9870. Take $f(q)$ as the probability mass inside the bin.",
+  "ask": "The standard error $\\sqrt{p(1-p)/n}\\,/\\,f(q)$ of the VaR estimate is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.0027",
+    "correct": false,
+    "why": "Stopped at the numerator $\\sqrt{p(1-p)/n} = 0.00275$ and never divided by $f(q)$."
+   },
+   {
+    "label": "≈ 16",
+    "correct": false,
+    "why": "Left the $n$ out of the square root: $\\sqrt{0.0076 \\times 0.9924}/0.0054 \\approx 16$."
+   },
+   {
+    "label": "≈ 0.051",
+    "correct": false,
+    "why": "Read the bin mass as 0.054 instead of 0.0054, a decimal slip that makes the answer ten times too small."
+   },
+   {
+    "label": "≈ 0.51",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Bin mass",
+    "display": "$f(q) = 1 - 0.0076 - 0.9870 = 0.0054$",
+    "value": 0.0054
+   },
+   {
+    "label": "Numerator",
+    "display": "$\\sqrt{0.0076 \\times 0.9924 / 1000} = 0.002746$",
+    "value": 0.002746
+   },
+   {
+    "label": "Standard error",
+    "display": "$0.002746 / 0.0054 \\approx 0.51$",
+    "value": 0.5086
+   }
+  ],
+  "takeaway": "A tail quantile is estimated imprecisely: a tiny bin mass in the denominator blows the standard error up, here to about 0.5 on a VaR of 2.3.",
+  "check": {
+   "inputs": {
+    "p": 0.0076,
+    "pl": 0.987,
+    "n": 1000
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "1-p-pl",
+     "value": 0.0054
+    },
+    {
+     "name": "num",
+     "expr": "sqrt(p*(1-p)/n)",
+     "value": 0.002746
+    },
+    {
+     "name": "se",
+     "expr": "num/f",
+     "value": 0.5086
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "num",
+     "value": 0.002746
+    },
+    {
+     "name": "slip_f10",
+     "expr": "num/(f*10)",
+     "value": 0.05086
+    },
+    {
+     "name": "slip_non",
+     "expr": "sqrt(p*(1-p))/f",
+     "value": 16.08
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-03",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-10: Financial Correlation Modeling – Bottom-Up Approaches",
+  "reading_id": "MR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-10b-4"
+  },
+  "trap_category": "Sign",
+  "setup": "Gaussian default-time copula with correlation $+0.4$. Borrower B has a cumulative default probability of 21.03% by year 3. Borrower Caa has 60.09% by year 5. Each is read at its own horizon.",
+  "ask": "The probability that B has defaulted by year 3 AND Caa by year 5, against the independence benchmark (the product of the two), is:",
+  "options": [
+   {
+    "label": "Above the benchmark",
+    "correct": true
+   },
+   {
+    "label": "Below the benchmark",
+    "correct": false,
+    "why": "Applied the correlation with the wrong sign. A positive copula correlation makes joint defaults more likely than independence implies."
+   },
+   {
+    "label": "Equal to the benchmark",
+    "correct": false,
+    "why": "Independence only holds at zero correlation; with $+0.4$ the joint probability is lifted above the product."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independence benchmark",
+    "display": "$0.2103 \\times 0.6009 = 12.64\\%$",
+    "value": 0.1264
+   },
+   {
+    "label": "With correlation $+0.4$",
+    "display": "joint (software) $= 16.93\\%$, above 12.64%",
+    "value": 0.1693
+   }
+  ],
+  "takeaway": "Positive correlation lifts the joint default probability above the product of the marginals, but it can never exceed the smaller marginal (21.03% here).",
+  "check": {
+   "inputs": {
+    "QB": 0.2103,
+    "QC": 0.6009,
+    "joint": 0.1693
+   },
+   "steps": [
+    {
+     "name": "prod",
+     "expr": "QB*QC",
+     "value": 0.12637
+    },
+    {
+     "name": "lift",
+     "expr": "joint-prod",
+     "value": 0.0429
+    },
+    {
+     "name": "cap",
+     "expr": "min(QB,QC)",
+     "value": 0.2103
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-04",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-15: The Art of Term Structure Models: Volatility and Distribution",
+  "reading_id": "MR-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-15e-5"
+  },
+  "trap_category": "Formula",
+  "setup": "Risk-neutral CIR short rate: $dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$, with $r = 3.60\\%$, $\\theta = 5.00\\%$, $k = 0.40$ and $\\sigma = 0.05$. The step is one month, $dt = 1/12$.",
+  "ask": "The annualised basis-point volatility of the short rate at the start of the month is closest to:",
+  "options": [
+   {
+    "label": "≈ 4.7 bp",
+    "correct": false,
+    "why": "Took the drift over the month, $0.40 \\times 1.4\\% / 12 = 4.7$ bp, which is the expected move, not the volatility."
+   },
+   {
+    "label": "≈ 27 bp",
+    "correct": false,
+    "why": "Scaled the annual figure down by $\\sqrt{1/12}$ to a monthly volatility; the question asks for the annualised one."
+   },
+   {
+    "label": "≈ 95 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 500 bp",
+    "correct": false,
+    "why": "Read $\\sigma = 0.05$ as the volatility itself and skipped the $\\sqrt{r}$ factor."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rate volatility",
+    "display": "$0.05 \\times \\sqrt{0.036} = 0.00949$",
+    "value": 0.009487
+   },
+   {
+    "label": "In basis points",
+    "display": "$0.00949 \\to 94.9$ bp",
+    "value": 94.87
+   }
+  ],
+  "takeaway": "In CIR the basis-point volatility is $\\sigma\\sqrt{r}$: at a 3.6% rate the parameter 0.05 means about 95 bp, not 500 bp, and it shrinks as the rate falls.",
+  "check": {
+   "inputs": {
+    "r": 0.036,
+    "th": 0.05,
+    "k": 0.4,
+    "s": 0.05
+   },
+   "steps": [
+    {
+     "name": "bp",
+     "expr": "s*sqrt(r)*10000",
+     "value": 94.87
+    },
+    {
+     "name": "slip_drift",
+     "expr": "k*(th-r)/12*10000",
+     "value": 4.667
+    },
+    {
+     "name": "slip_monthly",
+     "expr": "bp*sqrt(1/12)",
+     "value": 27.39
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "s*10000",
+     "value": 500
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-05",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-4: Backtesting VaR",
+  "reading_id": "MR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0200"
+  },
+  "trap_category": "Scope",
+  "setup": "Backtest of a one-day 99.5% VaR over 252 trading days. The test is two-tailed at 99% (critical value 2.576), using the normal approximation to the binomial. The model records 5 exceptions.",
+  "ask": "The test will:",
+  "options": [
+   {
+    "label": "Accept the model: 5 exceptions is within the band",
+    "correct": false,
+    "why": "Ignored how small the standard deviation is at a 0.5% tail (about 1.1): the band around 1.26 expected exceptions only reaches about 4.1."
+   },
+   {
+    "label": "Reject the model: 5 exceptions is too many",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected and spread",
+    "display": "$252 \\times 0.005 = 1.26$; $\\sqrt{252 \\times 0.005 \\times 0.995} = 1.12$",
+    "value": 1.12
+   },
+   {
+    "label": "z-score of 5",
+    "display": "$(5 - 1.26)/1.12 = 3.34 > 2.576$",
+    "value": 3.34
+   }
+  ],
+  "takeaway": "At a high confidence level the expected count and its spread are tiny, so even a handful of exceptions can sit more than three standard deviations out.",
+  "check": {
+   "inputs": {
+    "p": 0.005,
+    "T": 252,
+    "x": 5,
+    "zc": 2.576
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "p*T",
+     "value": 1.26
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(p*(1-p)*T)",
+     "value": 1.1197
+    },
+    {
+     "name": "z",
+     "expr": "(x-m)/sd",
+     "value": 3.34
+    },
+    {
+     "name": "bound",
+     "expr": "m+zc*sd",
+     "value": 4.144
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-06",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-4: Backtesting VaR",
+  "reading_id": "MR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0223"
+  },
+  "trap_category": "Polarity",
+  "setup": "Basel traffic-light test on 250 days of a 99% VaR model that is in fact correct. Today the model is rejected at 5 or more exceptions, which gives a Type I error probability of 10.8%. The Committee moves the cut-off so that only 6 or more exceptions reject it.",
+  "ask": "The Type I error probability will:",
+  "options": [
+   {
+    "label": "Fall",
+    "correct": true
+   },
+   {
+    "label": "Rise",
+    "correct": false,
+    "why": "Mixed up the two errors. Accepting more outcomes raises the Type II error (accepting a bad model); the Type I error shrinks with the rejection region."
+   },
+   {
+    "label": "Stay at 10.8%",
+    "correct": false,
+    "why": "The rejection region lost the 5-exception outcome, and that outcome has positive probability under the correct model, so the figure must change."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dropped outcome",
+    "display": "$P(X = 5) \\approx 6.7\\%$ leaves the rejection region",
+    "value": 0.0666
+   },
+   {
+    "label": "New Type I error",
+    "display": "$P(X \\ge 6) = 1 - 0.9588 = 4.1\\%$",
+    "value": 0.0412
+   }
+  ],
+  "takeaway": "Type I error is the probability of rejecting a correct model. Shrinking the rejection region lowers it, at the cost of a higher Type II error.",
+  "check": {
+   "inputs": {
+    "old": 0.1078,
+    "cdf5": 0.9588
+   },
+   "steps": [
+    {
+     "name": "new",
+     "expr": "1-cdf5",
+     "value": 0.0412
+    },
+    {
+     "name": "drop",
+     "expr": "old-new",
+     "value": 0.0666
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-07",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-4: Backtesting VaR",
+  "reading_id": "MR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0227"
+  },
+  "trap_category": "Polarity",
+  "setup": "A 99% VaR model is backtested over 500 days and rejected at 9 or more exceptions. Suppose its true coverage is wrong. If true coverage is 98% (expected 10 exceptions) the chance of at most 8 exceptions is 33.05%. If it is 97% (expected 15 exceptions) that chance is 3.54%.",
+  "ask": "A bad model is more likely to slip through (Type II error) when its true coverage is:",
+  "options": [
+   {
+    "label": "97%, because it is the worse model",
+    "correct": false,
+    "why": "Assumed a worse model passes more often. At 97% the model averages 15 exceptions, far above the cut-off of 9, so it is almost always rejected."
+   },
+   {
+    "label": "98%, because it sits closer to the cut-off",
+    "correct": true
+   },
+   {
+    "label": "The two are about equal",
+    "correct": false,
+    "why": "The two figures differ by a factor of about nine (33.05% against 3.54%)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected exceptions",
+    "display": "$500 \\times 0.02 = 10$ against $500 \\times 0.03 = 15$; cut-off is 9",
+    "value": 10
+   },
+   {
+    "label": "Chance of passing",
+    "display": "$P(X \\le 8)$: 33.05% at 98% against 3.54% at 97%",
+    "value": 0.3305
+   }
+  ],
+  "takeaway": "The nearer a bad model's expected exceptions are to the cut-off, the more often it is accepted, so mild miscalibration is the hard case to catch.",
+  "check": {
+   "inputs": {
+    "c98": 0.3305,
+    "c97": 0.0354,
+    "T": 500
+   },
+   "steps": [
+    {
+     "name": "e98",
+     "expr": "T*0.02",
+     "value": 10
+    },
+    {
+     "name": "e97",
+     "expr": "T*0.03",
+     "value": 15
+    },
+    {
+     "name": "ratio",
+     "expr": "c98/c97",
+     "value": 9.336
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-08",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-4: Backtesting VaR",
+  "reading_id": "MR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0241"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Internal-models capital charge $\\max(\\text{VaR}_{t-1},\\, k \\times \\text{VaR}_{avg})$. The bank's own 1-day 95% VaR is USD 40,000 for the previous day and USD 22,000 on a 60-day average. The backtest is in the red zone, so $k = 4$. Both VaRs are scaled to 99% and 10 days with $z = 1.65$ and $2.33$ and the square-root-of-time rule (factor about 4.47).",
+  "ask": "Which term wins the max?",
+  "options": [
+   {
+    "label": "The scaled previous-day VaR (about USD 179,000)",
+    "correct": false,
+    "why": "Compared 40,000 with 22,000 and picked the larger, forgetting that $k = 4$ lifts the average-VaR term to 88,000 before scaling."
+   },
+   {
+    "label": "$k$ times the scaled average VaR (about USD 393,000)",
+    "correct": true
+   },
+   {
+    "label": "They tie",
+    "correct": false,
+    "why": "Nothing makes the two terms equal: the $k$ term is roughly 2.2 times the other."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaling factor",
+    "display": "$(2.33/1.65)\\sqrt{10} = 4.466$",
+    "value": 4.4655
+   },
+   {
+    "label": "Previous-day term",
+    "display": "$40{,}000 \\times 4.466 = 178{,}621$",
+    "value": 178621
+   },
+   {
+    "label": "Average-VaR term",
+    "display": "$4 \\times 22{,}000 \\times 4.466 = 392{,}966$",
+    "value": 392966
+   }
+  ],
+  "takeaway": "In the red zone $k = 4$ multiplies the 60-day average, which usually dominates the latest VaR, so the charge is $k \\times$ the scaled average.",
+  "check": {
+   "inputs": {
+    "z95": 1.65,
+    "z99": 2.33,
+    "v1": 40000,
+    "va": 22000,
+    "k": 4
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "z99/z95*sqrt(10)",
+     "value": 4.4655
+    },
+    {
+     "name": "t1",
+     "expr": "v1*f",
+     "value": 178621
+    },
+    {
+     "name": "t2",
+     "expr": "k*va*f",
+     "value": 392966
+    },
+    {
+     "name": "slip_nok",
+     "expr": "va*f",
+     "value": 98241
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-09",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0273"
+  },
+  "trap_category": "Definition",
+  "setup": "Two par bonds, each USD 100m, flat 4% curve, 4% annual coupons: one matures in 1 year, the other in 5 years. Principal mapping puts the whole USD 200m at the average maturity of 3 years. Duration mapping instead puts it at the portfolio's Macaulay duration. The 1-year bond has duration 1.0.",
+  "ask": "Compared with principal mapping, the duration-mapped 95% VaR will be:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Thought coupons add risk beyond the principal-only maturity. Coupons come earlier, which shortens duration and lowers rate risk."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Equated duration with maturity, which holds only for zero-coupon bonds."
+   },
+   {
+    "label": "Lower",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "5-year duration",
+    "display": "$\\tfrac{1.04}{0.04}(1 - 1.04^{-5}) = 4.63$ years, below 5",
+    "value": 4.63
+   },
+   {
+    "label": "Portfolio duration",
+    "display": "$(1 + 4.63)/2 = 2.81$ years, below the 3-year principal map",
+    "value": 2.815
+   }
+  ],
+  "takeaway": "Coupons pull duration below maturity, so duration mapping lands on an earlier vertex and shows a smaller VaR than principal mapping.",
+  "check": {
+   "inputs": {
+    "y": 0.04,
+    "n": 5
+   },
+   "steps": [
+    {
+     "name": "D5",
+     "expr": "(1+y)/y*(1-(1+y)^(-n))",
+     "value": 4.6299
+    },
+    {
+     "name": "Dp",
+     "expr": "(1+D5)/2",
+     "value": 2.8149
+    },
+    {
+     "name": "gap",
+     "expr": "3-Dp",
+     "value": 0.1851
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0275"
+  },
+  "trap_category": "Definition",
+  "setup": "Portfolio of USD 200m: USD 100m in a 5-year 5% par bond and USD 100m in a 3-year 3% par bond (annual coupons). The risk table gives a returns VaR of 8.92% at the 4-year vertex (and other values at other vertices).",
+  "ask": "Under principal mapping, the whole portfolio is mapped to a single zero at which maturity?",
+  "options": [
+   {
+    "label": "3 years, the shorter bond",
+    "correct": false,
+    "why": "Mapped to one bond's maturity instead of averaging by principal."
+   },
+   {
+    "label": "4 years, the principal-weighted average",
+    "correct": true
+   },
+   {
+    "label": "5 years, the longer bond",
+    "correct": false,
+    "why": "Took the longest maturity as the conservative vertex; principal mapping uses the weighted average."
+   }
+  ],
+  "working": [
+   {
+    "label": "Average maturity",
+    "display": "$0.5 \\times 5 + 0.5 \\times 3 = 4$ years",
+    "value": 4
+   },
+   {
+    "label": "VaR at that vertex",
+    "display": "$200 \\times 8.92\\% = 17.84$ (USD m)",
+    "value": 17.84
+   }
+  ],
+  "takeaway": "Principal mapping ignores coupons and puts all principal at its weighted-average maturity: equal principals at 5 and 3 years give 4 years.",
+  "check": {
+   "inputs": {
+    "w1": 0.5,
+    "w2": 0.5,
+    "m1": 5,
+    "m2": 3,
+    "V": 200,
+    "r4": 0.0892
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "w1*m1+w2*m2",
+     "value": 4
+    },
+    {
+     "name": "var",
+     "expr": "V*r4",
+     "value": 17.84
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-11",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0283"
+  },
+  "trap_category": "Formula",
+  "setup": "Two bonds under duration mapping onto one yield factor. 7-year bond: price 103.0, modified duration 5.80, 300 held. 20-year bond: price 96.0, modified duration 16.50, 500 held. Yield volatility is 50 basis points; ignore specific risk.",
+  "ask": "The volatility of the portfolio value is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 900",
+    "correct": false,
+    "why": "Left out the 20-year bond: $179{,}220 \\times 0.005 \\approx 896$."
+   },
+   {
+    "label": "≈ USD 4,860",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 48,600",
+    "correct": false,
+    "why": "Read 50 bp as 5% (0.05) instead of 0.0050."
+   },
+   {
+    "label": "≈ USD 971,000",
+    "correct": false,
+    "why": "Stopped at the dollar duration and never multiplied by the yield volatility."
+   }
+  ],
+  "working": [
+   {
+    "label": "7-year position",
+    "display": "$103 \\times 300 \\times 5.80 = 179{,}220$",
+    "value": 179220
+   },
+   {
+    "label": "20-year position",
+    "display": "$96 \\times 500 \\times 16.50 = 792{,}000$",
+    "value": 792000
+   },
+   {
+    "label": "Dollar duration",
+    "display": "$179{,}220 + 792{,}000 = 971{,}220$",
+    "value": 971220
+   },
+   {
+    "label": "Volatility",
+    "display": "$971{,}220 \\times 0.0050 \\approx 4{,}856$",
+    "value": 4856.1
+   }
+  ],
+  "takeaway": "Dollar duration times yield volatility gives the value volatility. The long bond carries about 80% of it.",
+  "check": {
+   "inputs": {
+    "P1": 103,
+    "N1": 300,
+    "D1": 5.8,
+    "P2": 96,
+    "N2": 500,
+    "D2": 16.5,
+    "vol": 0.005
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "P1*N1*D1",
+     "value": 179220
+    },
+    {
+     "name": "b",
+     "expr": "P2*N2*D2",
+     "value": 792000
+    },
+    {
+     "name": "dd",
+     "expr": "a+b",
+     "value": 971220
+    },
+    {
+     "name": "sd",
+     "expr": "dd*vol",
+     "value": 4856.1
+    },
+    {
+     "name": "slip_one",
+     "expr": "a*vol",
+     "value": 896.1
+    },
+    {
+     "name": "slip_pct",
+     "expr": "dd*0.05",
+     "value": 48561
+    },
+    {
+     "name": "slip_novol",
+     "expr": "dd",
+     "value": 971220
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-12",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0284"
+  },
+  "trap_category": "Sign",
+  "setup": "Short USD 150m face of a 1-year bond with a 6% coupon paid semiannually. Zero rates (semiannual compounding): 3% at 6 months and 4.1% at 12 months. The bond is decomposed into a 6-month and a 12-month zero position (cash flows USD 4.5m and USD 154.5m).",
+  "ask": "The total present value of the decomposed position is:",
+  "options": [
+   {
+    "label": "Negative, and larger in size than USD 150m",
+    "correct": true
+   },
+   {
+    "label": "Positive, and larger than USD 150m",
+    "correct": false,
+    "why": "Priced the bond correctly but ignored that the position is short, so the sign flips."
+   },
+   {
+    "label": "Negative, but smaller in size than USD 150m",
+    "correct": false,
+    "why": "Assumed discounting always pushes value below face. The 6% coupon exceeds both zero rates, so the bond prices above par."
+   }
+  ],
+  "working": [
+   {
+    "label": "6-month flow",
+    "display": "$4.5\\text{m}/1.015 = 4.43\\text{m}$",
+    "value": 4433498
+   },
+   {
+    "label": "12-month flow",
+    "display": "$154.5\\text{m}/1.0205^2 = 148.36\\text{m}$",
+    "value": 148355095
+   },
+   {
+    "label": "Short position",
+    "display": "$-(4.43 + 148.36) = -152.79\\text{m}$",
+    "value": -152788592
+   }
+  ],
+  "takeaway": "A coupon above the discount rates puts the price above par, and a short position flips the sign: about $-$USD 152.8m.",
+  "check": {
+   "inputs": {
+    "F": 150000000,
+    "c": 0.06,
+    "r1": 0.03,
+    "r2": 0.041
+   },
+   "steps": [
+    {
+     "name": "cf1",
+     "expr": "F*c/2",
+     "value": 4500000
+    },
+    {
+     "name": "cf2",
+     "expr": "F*c/2+F",
+     "value": 154500000
+    },
+    {
+     "name": "pv1",
+     "expr": "cf1/(1+r1/2)",
+     "value": 4433497.5
+    },
+    {
+     "name": "pv2",
+     "expr": "cf2/(1+r2/2)^2",
+     "value": 148355094.9
+    },
+    {
+     "name": "pos",
+     "expr": "-(pv1+pv2)",
+     "value": -152788592.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-13",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0290"
+  },
+  "trap_category": "Formula",
+  "setup": "A zero-coupon portfolio is benchmarked to an index whose absolute 95% VaR is USD 2.080m. The portfolio's tracking-error VaR against the index is USD 1.09m, about 52% of the index VaR. Variance improvement is $1 - (\\text{TE VaR}/\\text{VaR}_{index})^2$, like an R-squared.",
+  "ask": "The variance improvement is:",
+  "options": [
+   {
+    "label": "Above 50%",
+    "correct": true
+   },
+   {
+    "label": "Below 50%",
+    "correct": false,
+    "why": "Forgot to square the ratio: $1 - 0.524 = 47.6\\%$. Variance scales with the square of the VaR."
+   },
+   {
+    "label": "About 50%",
+    "correct": false,
+    "why": "Equated risk of about half with variance of about half; squaring 0.52 leaves only about 27% of the variance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Ratio",
+    "display": "$1.09/2.080 = 0.524$",
+    "value": 0.524
+   },
+   {
+    "label": "Squared",
+    "display": "$0.524^2 = 0.275$",
+    "value": 0.2746
+   },
+   {
+    "label": "Improvement",
+    "display": "$1 - 0.275 = 72.5\\%$",
+    "value": 0.7254
+   }
+  ],
+  "takeaway": "Variance improvement uses the squared ratio: halving the risk removes about three quarters of the variance.",
+  "check": {
+   "inputs": {
+    "te": 1.09,
+    "vi": 2.08
+   },
+   "steps": [
+    {
+     "name": "r",
+     "expr": "te/vi",
+     "value": 0.52404
+    },
+    {
+     "name": "r2",
+     "expr": "r^2",
+     "value": 0.27461
+    },
+    {
+     "name": "vimp",
+     "expr": "1-r2",
+     "value": 0.72539
+    },
+    {
+     "name": "slip_nosq",
+     "expr": "1-r",
+     "value": 0.47596
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq06-14",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0294"
+  },
+  "trap_category": "Role",
+  "setup": "USD 10m fund benchmarked to an index. Fund volatility 10.0%, benchmark volatility 5.0%, active risk (tracking error) 8.0%, all normal. 95% one-tailed multiplier 1.645.",
+  "ask": "The fund's 95% tracking-error VaR, compared with its own absolute 95% VaR (using the 10.0% volatility), is:",
+  "options": [
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Combined 10% and 5% (or otherwise inflated the volatility); tracking error is the volatility of fund minus benchmark, here 8%, not a sum."
+   },
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Used the fund's own volatility; tracking-error VaR must use the active-return volatility of 8%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Absolute VaR",
+    "display": "$1.645 \\times 10\\% \\times 10\\text{m} = 1.645\\text{m}$",
+    "value": 1.645
+   },
+   {
+    "label": "TE VaR",
+    "display": "$1.645 \\times 8\\% \\times 10\\text{m} = 1.316\\text{m}$",
+    "value": 1.316
+   }
+  ],
+  "takeaway": "Tracking-error VaR is driven by the active-return volatility alone. At 8% against 10% it comes out smaller than the fund's absolute VaR.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "sf": 0.1,
+    "te": 0.08,
+    "V": 10
+   },
+   "steps": [
+    {
+     "name": "abs",
+     "expr": "z*sf*V",
+     "value": 1.645
+    },
+    {
+     "name": "tev",
+     "expr": "z*te*V",
+     "value": 1.316
+    }
+   ]
+  }
+ }
+]

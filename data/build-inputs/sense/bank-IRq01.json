@@ -1,0 +1,1504 @@
+[
+ {
+  "id": "SC-bank-IRq01-01",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0091"
+  },
+  "trap_category": "Definition",
+  "setup": "A USD 1m equity portfolio is tracked against an index. Over one year the portfolio grows to USD 1.12m, while the index rises from 2000 to 2180 points. Tracking error is 4%.",
+  "ask": "The portfolio's active return (alpha) for the year is:",
+  "options": [
+   {
+    "label": "+3 percentage points",
+    "correct": true
+   },
+   {
+    "label": "-3 percentage points",
+    "correct": false,
+    "why": "Subtracted the wrong way round (benchmark minus portfolio). The portfolio beat its index, so active return is positive."
+   },
+   {
+    "label": "+12 percentage points",
+    "correct": false,
+    "why": "Used the portfolio's own return and forgot to take off the benchmark's 9%."
+   },
+   {
+    "label": "+21 percentage points",
+    "correct": false,
+    "why": "Added the two returns (12% + 9%) instead of subtracting them."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio return",
+    "display": "$1.12/1.00 - 1 = 12\\%$",
+    "value": 12
+   },
+   {
+    "label": "Benchmark return",
+    "display": "$2180/2000 - 1 = 9\\%$",
+    "value": 9
+   },
+   {
+    "label": "Active return",
+    "display": "$12\\% - 9\\% = +3\\%$",
+    "value": 3
+   },
+   {
+    "label": "Information ratio",
+    "display": "$3\\%/4\\% = 0.75$",
+    "value": 0.75
+   }
+  ],
+  "takeaway": "Active return is portfolio minus benchmark, both as percentage returns. Index points must be turned into a return first.",
+  "check": {
+   "inputs": {
+    "P0": 1,
+    "P1": 1.12,
+    "B0": 2000,
+    "B1": 2180,
+    "TE": 4
+   },
+   "steps": [
+    {
+     "name": "rp",
+     "expr": "(P1/P0-1)*100",
+     "value": 12
+    },
+    {
+     "name": "rb",
+     "expr": "(B1/B0-1)*100",
+     "value": 9
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-rb",
+     "value": 3
+    },
+    {
+     "name": "slip_rev",
+     "expr": "rb-rp",
+     "value": -3
+    },
+    {
+     "name": "slip_add",
+     "expr": "rp+rb",
+     "value": 21
+    },
+    {
+     "name": "ir",
+     "expr": "alpha/TE",
+     "value": 0.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-02",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0093"
+  },
+  "trap_category": "Role",
+  "setup": "A portfolio's excess returns are regressed on the benchmark's excess returns (60 observations). Portfolio average excess return 3.29%, benchmark average excess return 0.98%, slope 1.5237. The raw active return is $3.29 - 0.98 = 2.31\\%$.",
+  "ask": "The regression alpha (the intercept) is:",
+  "options": [
+   {
+    "label": "Below 2.31%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 2.31%",
+    "correct": false,
+    "why": "Treated the slope as 1, which turns alpha back into the raw active return. The slope here is 1.52, so the benchmark must be scaled up."
+   },
+   {
+    "label": "Above 2.31%",
+    "correct": false,
+    "why": "Added $\\beta \\times 0.98\\%$ to the portfolio's return instead of subtracting it (giving about 4.8%)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta-scaled benchmark",
+    "display": "$1.5237 \\times 0.98\\% = 1.49\\%$",
+    "value": 1.4932
+   },
+   {
+    "label": "Alpha",
+    "display": "$3.29\\% - 1.49\\% = 1.80\\%$",
+    "value": 1.7968
+   },
+   {
+    "label": "Against raw active return",
+    "display": "$1.80\\% < 2.31\\%$",
+    "value": -0.5132
+   }
+  ],
+  "takeaway": "Alpha strips out the beta-scaled benchmark return. With beta above 1 and a positive benchmark, it lands below the raw active return. The numerator of the IR is alpha, not the raw difference.",
+  "check": {
+   "inputs": {
+    "rp": 3.29,
+    "rb": 0.98,
+    "beta": 1.5237
+   },
+   "steps": [
+    {
+     "name": "bm",
+     "expr": "beta*rb",
+     "value": 1.4932
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-bm",
+     "value": 1.7968
+    },
+    {
+     "name": "raw",
+     "expr": "rp-rb",
+     "value": 2.31
+    },
+    {
+     "name": "gap",
+     "expr": "alpha-raw",
+     "value": -0.5132
+    },
+    {
+     "name": "slip_plus",
+     "expr": "rp+bm",
+     "value": 4.7832
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-03",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0097"
+  },
+  "trap_category": "Formula",
+  "setup": "For 2017 a fund averaged a 32% return with beta 1.15. The market averaged 25% and the T-bill rate was 6%.",
+  "ask": "The return that the fund's beta justifies under CAPM is closest to:",
+  "options": [
+   {
+    "label": "≈ 27.9%",
+    "correct": true
+   },
+   {
+    "label": "≈ 21.9%",
+    "correct": false,
+    "why": "Multiplied beta by the market premium (19%) but left out the 6% T-bill rate."
+   },
+   {
+    "label": "≈ 34.8%",
+    "correct": false,
+    "why": "Applied beta to the whole market return (25%) instead of the premium over the T-bill rate."
+   },
+   {
+    "label": "≈ 25.0%",
+    "correct": false,
+    "why": "Ignored beta and used the market return as the benchmark. At beta 1.15 the justified return is higher."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market premium",
+    "display": "$25\\% - 6\\% = 19\\%$",
+    "value": 19
+   },
+   {
+    "label": "Justified return",
+    "display": "$6\\% + 1.15 \\times 19\\% = 27.85\\%$",
+    "value": 27.85
+   },
+   {
+    "label": "Alpha",
+    "display": "$32\\% - 27.85\\% = +4.15\\%$",
+    "value": 4.15
+   }
+  ],
+  "takeaway": "Benchmark-adjust with $r_f + \\beta(R_m - r_f)$, then alpha is actual minus that. Apply beta to the premium only.",
+  "check": {
+   "inputs": {
+    "Rp": 32,
+    "Rm": 25,
+    "rf": 6,
+    "b": 1.15
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "Rm-rf",
+     "value": 19
+    },
+    {
+     "name": "capm",
+     "expr": "rf+b*prem",
+     "value": 27.85
+    },
+    {
+     "name": "alpha",
+     "expr": "Rp-capm",
+     "value": 4.15
+    },
+    {
+     "name": "slip_norf",
+     "expr": "b*prem",
+     "value": 21.85
+    },
+    {
+     "name": "slip_total",
+     "expr": "rf+b*Rm",
+     "value": 34.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-04",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0098"
+  },
+  "trap_category": "Role",
+  "setup": "A fund returned 11% in a year. The risk-free rate was 3% and the S&P 500 returned 9%. The regression beta to the S&P 500 is 0.80 and the tracking error is 5%. A naive comparison with the raw index gives $(11 - 9)/5 = 0.40$.",
+  "ask": "Measured against the beta-adjusted benchmark, the information ratio is:",
+  "options": [
+   {
+    "label": "Higher than 0.40",
+    "correct": true
+   },
+   {
+    "label": "Lower than 0.40",
+    "correct": false,
+    "why": "Assumed that adjusting for beta can only shrink alpha. With beta below 1 the benchmark is expected to earn less than 9%, so alpha grows."
+   },
+   {
+    "label": "The same, 0.40",
+    "correct": false,
+    "why": "Ignored the beta of 0.80 and kept the raw index as the benchmark."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta-adjusted benchmark",
+    "display": "$3\\% + 0.80 \\times (9\\% - 3\\%) = 7.8\\%$",
+    "value": 7.8
+   },
+   {
+    "label": "Alpha",
+    "display": "$11\\% - 7.8\\% = 3.2\\%$",
+    "value": 3.2
+   },
+   {
+    "label": "Information ratio",
+    "display": "$3.2\\%/5\\% = 0.64$",
+    "value": 0.64
+   }
+  ],
+  "takeaway": "A beta below 1 lowers the benchmark return that the fund is expected to earn, so alpha and the IR rise against the beta-adjusted benchmark.",
+  "check": {
+   "inputs": {
+    "Rp": 11,
+    "rf": 3,
+    "Rm": 9,
+    "b": 0.8,
+    "TE": 5
+   },
+   "steps": [
+    {
+     "name": "bench",
+     "expr": "rf+b*(Rm-rf)",
+     "value": 7.8
+    },
+    {
+     "name": "alpha",
+     "expr": "Rp-bench",
+     "value": 3.2
+    },
+    {
+     "name": "ir",
+     "expr": "alpha/TE",
+     "value": 0.64
+    },
+    {
+     "name": "naive",
+     "expr": "(Rp-Rm)/TE",
+     "value": 0.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-05",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0099"
+  },
+  "trap_category": "Definition",
+  "setup": "Over five years a manager's active returns (portfolio minus benchmark, in %) were $+0.2,\\ -0.2,\\ +0.5,\\ 0.0,\\ +1.5$. The mean is $+0.40\\%$. Tracking error is the sample standard deviation of these active returns.",
+  "ask": "Is the information ratio (mean active return / tracking error) above or below 1?",
+  "options": [
+   {
+    "label": "Below 1",
+    "correct": true
+   },
+   {
+    "label": "Above 1",
+    "correct": false,
+    "why": "Treated the 0.40% mean as larger than the spread. The 1.5% year alone sits 1.1 points from the mean, so the standard deviation (0.67%) exceeds 0.40%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Mean",
+    "display": "$(0.2 - 0.2 + 0.5 + 0 + 1.5)/5 = 0.40\\%$",
+    "value": 0.4
+   },
+   {
+    "label": "Sum of squared deviations",
+    "display": "$0.04 + 0.36 + 0.01 + 0.16 + 1.21 = 1.78$",
+    "value": 1.78
+   },
+   {
+    "label": "Tracking error",
+    "display": "$\\sqrt{1.78/4} = 0.667\\%$",
+    "value": 0.6671
+   },
+   {
+    "label": "Information ratio",
+    "display": "$0.40/0.667 = 0.60$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "The IR is below 1 whenever the tracking error exceeds the mean active return. The betas in the table play no part.",
+  "check": {
+   "inputs": {
+    "a1": 0.2,
+    "a2": -0.2,
+    "a3": 0.5,
+    "a4": 0.0,
+    "a5": 1.5
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "(a1+a2+a3+a4+a5)/5",
+     "value": 0.4
+    },
+    {
+     "name": "ss",
+     "expr": "(a1-m)^2+(a2-m)^2+(a3-m)^2+(a4-m)^2+(a5-m)^2",
+     "value": 1.78
+    },
+    {
+     "name": "te",
+     "expr": "sqrt(ss/4)",
+     "value": 0.6671
+    },
+    {
+     "name": "ir",
+     "expr": "m/te",
+     "value": 0.5997
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-06",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0109"
+  },
+  "trap_category": "Formula",
+  "setup": "A firm lets each manager make at most 100 independent transactions (bets) a year. One manager wants an information ratio of 0.75. Use the fundamental law, $IR = IC \\times \\sqrt{BR}$.",
+  "ask": "The information coefficient she needs is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.075",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.75",
+    "correct": false,
+    "why": "Set IC equal to the IR, ignoring breadth altogether."
+   },
+   {
+    "label": "≈ 0.0075",
+    "correct": false,
+    "why": "Divided by $BR = 100$ instead of by $\\sqrt{100} = 10$."
+   },
+   {
+    "label": "≈ 7.5",
+    "correct": false,
+    "why": "Multiplied by $\\sqrt{BR}$ instead of dividing. An IC above 1 is impossible."
+   }
+  ],
+  "working": [
+   {
+    "label": "Root of breadth",
+    "display": "$\\sqrt{100} = 10$",
+    "value": 10
+   },
+   {
+    "label": "Required IC",
+    "display": "$IC = 0.75/10 = 0.075$",
+    "value": 0.075
+   }
+  ],
+  "takeaway": "Breadth enters under a square root, so 100 bets cut the skill needed by a factor of 10, not 100.",
+  "check": {
+   "inputs": {
+    "IR": 0.75,
+    "BR": 100
+   },
+   "steps": [
+    {
+     "name": "ic",
+     "expr": "IR/sqrt(BR)",
+     "value": 0.075
+    },
+    {
+     "name": "slip_noBR",
+     "expr": "IR",
+     "value": 0.75
+    },
+    {
+     "name": "slip_BR",
+     "expr": "IR/BR",
+     "value": 0.0075
+    },
+    {
+     "name": "slip_mult",
+     "expr": "IR*sqrt(BR)",
+     "value": 7.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-07",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0119"
+  },
+  "trap_category": "Polarity",
+  "setup": "A fund targets an IR of 0.60 and uses the fundamental law with $TC = 1$. Analyst 1 would place 250 independent bets a year; Analyst 2 only 25.",
+  "ask": "To just reach the target, which analyst needs the higher information coefficient?",
+  "options": [
+   {
+    "label": "Analyst 2 (25 bets)",
+    "correct": true
+   },
+   {
+    "label": "Analyst 1 (250 bets)",
+    "correct": false,
+    "why": "Read more bets as demanding more skill. Breadth and skill trade off: with more bets, each can be less accurate."
+   },
+   {
+    "label": "Both the same",
+    "correct": false,
+    "why": "Overlooked that $IC = IR/\\sqrt{BR}$ falls as breadth rises. The target is the same, the breadth is not."
+   }
+  ],
+  "working": [
+   {
+    "label": "Analyst 1",
+    "display": "$0.60/\\sqrt{250} = 0.0379$",
+    "value": 0.0379
+   },
+   {
+    "label": "Analyst 2",
+    "display": "$0.60/\\sqrt{25} = 0.120$",
+    "value": 0.12
+   }
+  ],
+  "takeaway": "Fewer bets mean each must be better: for the same IR, required IC is inversely proportional to $\\sqrt{BR}$.",
+  "check": {
+   "inputs": {
+    "IR": 0.6,
+    "B1": 250,
+    "B2": 25
+   },
+   "steps": [
+    {
+     "name": "ic1",
+     "expr": "IR/sqrt(B1)",
+     "value": 0.0379
+    },
+    {
+     "name": "ic2",
+     "expr": "IR/sqrt(B2)",
+     "value": 0.12
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-08",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0120"
+  },
+  "trap_category": "Scope",
+  "setup": "A quant fund forecasts alphas every month across a 3,000-stock universe, making 25 independent forecasts each month. Its model has an information coefficient of 0.15.",
+  "ask": "The annual information ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.6",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.75",
+    "correct": false,
+    "why": "Used a single month's breadth (25) and never annualised: $0.15 \\times \\sqrt{25}$."
+   },
+   {
+    "label": "≈ 8.2",
+    "correct": false,
+    "why": "Used the 3,000-stock universe as breadth ($0.15 \\times \\sqrt{3000}$). Only independent forecasts count."
+   },
+   {
+    "label": "≈ 28.5",
+    "correct": false,
+    "why": "Combined both errors: 3,000 stocks times 12 months as breadth ($0.15 \\times \\sqrt{36000}$)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual breadth",
+    "display": "$25 \\times 12 = 300$",
+    "value": 300
+   },
+   {
+    "label": "Annual IR",
+    "display": "$0.15 \\times \\sqrt{300} = 2.60$",
+    "value": 2.598
+   }
+  ],
+  "takeaway": "Breadth is the number of independent bets per year, not the universe size: annualise by multiplying the monthly count by 12.",
+  "check": {
+   "inputs": {
+    "IC": 0.15,
+    "n": 25,
+    "U": 3000
+   },
+   "steps": [
+    {
+     "name": "BR",
+     "expr": "n*12",
+     "value": 300
+    },
+    {
+     "name": "ir",
+     "expr": "IC*sqrt(BR)",
+     "value": 2.598
+    },
+    {
+     "name": "slip_month",
+     "expr": "IC*sqrt(n)",
+     "value": 0.75
+    },
+    {
+     "name": "slip_univ",
+     "expr": "IC*sqrt(U)",
+     "value": 8.216
+    },
+    {
+     "name": "slip_both",
+     "expr": "IC*sqrt(U*12)",
+     "value": 28.46
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-09",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0114"
+  },
+  "trap_category": "Formula",
+  "setup": "A company runs three independent, equally weighted active strategies. Each has an expected alpha of 5% and a tracking error of 8.4%, so each has the same IR.",
+  "ask": "Compared with one manager's IR, the combined IR is:",
+  "options": [
+   {
+    "label": "Above one manager's IR but below three times it",
+    "correct": true
+   },
+   {
+    "label": "Three times one manager's IR",
+    "correct": false,
+    "why": "Added the IRs linearly. That holds only for perfectly correlated strategies; independent ones combine as $\\sqrt{3}$."
+   },
+   {
+    "label": "Equal to one manager's IR",
+    "correct": false,
+    "why": "Averaged the three strategies and ignored the diversification gain from independence."
+   }
+  ],
+  "working": [
+   {
+    "label": "Single IR",
+    "display": "$5\\%/8.4\\% = 0.595$",
+    "value": 0.5952
+   },
+   {
+    "label": "Combined IR",
+    "display": "$0.595 \\times \\sqrt{3} = 1.031$",
+    "value": 1.031
+   },
+   {
+    "label": "Three times single",
+    "display": "$3 \\times 0.595 = 1.79$",
+    "value": 1.786
+   }
+  ],
+  "takeaway": "Independent equal-IR strategies combine as $IR\\sqrt{N}$: better than one, well short of $N$ times.",
+  "check": {
+   "inputs": {
+    "a": 5,
+    "te": 8.4,
+    "N": 3
+   },
+   "steps": [
+    {
+     "name": "ir1",
+     "expr": "a/te",
+     "value": 0.5952
+    },
+    {
+     "name": "tot",
+     "expr": "ir1*sqrt(N)",
+     "value": 1.031
+    },
+    {
+     "name": "slip_lin",
+     "expr": "ir1*N",
+     "value": 1.786
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-10",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0179"
+  },
+  "trap_category": "Role",
+  "setup": "A fund holds Goodman and HiEdge, whose returns are uncorrelated. The whole portfolio's annual 95% VaR is USD 7.2m and Goodman's alone is USD 5m.",
+  "ask": "HiEdge's annual 95% VaR is:",
+  "options": [
+   {
+    "label": "Between USD 5m and USD 7.2m",
+    "correct": true
+   },
+   {
+    "label": "About USD 2.2m",
+    "correct": false,
+    "why": "Subtracted the VaRs ($7.2 - 5$). That treats them as adding linearly, which holds only at correlation 1."
+   },
+   {
+    "label": "Above USD 7.2m",
+    "correct": false,
+    "why": "With zero correlation the portfolio VaR is the root of the sum of squares, so it exceeds each part. HiEdge alone cannot exceed the total."
+   }
+  ],
+  "working": [
+   {
+    "label": "HiEdge annual VaR",
+    "display": "$\\sqrt{7.2^2 - 5^2} = \\sqrt{26.84} = 5.18$m",
+    "value": 5.1807
+   },
+   {
+    "label": "Daily (250 days)",
+    "display": "$5{,}180{,}700/\\sqrt{250} \\approx 327{,}700$",
+    "value": 327660
+   }
+  ],
+  "takeaway": "At zero correlation VaRs add in quadrature: the missing leg is $\\sqrt{\\text{total}^2 - \\text{known}^2}$, slightly above the known one when the total is only modestly larger.",
+  "check": {
+   "inputs": {
+    "Vp": 7.2,
+    "Vg": 5,
+    "days": 250
+   },
+   "steps": [
+    {
+     "name": "vh",
+     "expr": "sqrt(Vp^2-Vg^2)",
+     "value": 5.1807
+    },
+    {
+     "name": "daily",
+     "expr": "vh*1000000/sqrt(days)",
+     "value": 327660
+    },
+    {
+     "name": "slip_diff",
+     "expr": "Vp-Vg",
+     "value": 2.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-11",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0180"
+  },
+  "trap_category": "Definition",
+  "setup": "A USD 100m portfolio P has 10% annual volatility. A manager considers adding a USD 40m position A with 20% annual volatility; the correlation of A with P is 0.5. Normal returns, 95% confidence, $z = 1.65$.",
+  "ask": "Which is larger: A's incremental VaR (full revaluation, with and without A) or A's standalone VaR?",
+  "options": [
+   {
+    "label": "Standalone VaR",
+    "correct": true
+   },
+   {
+    "label": "Incremental VaR",
+    "correct": false,
+    "why": "Expected the added position to raise portfolio VaR by more than its own VaR. With correlation below 1, diversification means the increase is smaller."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Assumed correlation of 1, where VaRs add exactly. At 0.5 there is a diversification gain."
+   }
+  ],
+  "working": [
+   {
+    "label": "Standalone VaR of A",
+    "display": "$1.65 \\times 0.20 \\times 40 = 13.2$m",
+    "value": 13.2
+   },
+   {
+    "label": "New portfolio sigma",
+    "display": "$\\sqrt{10^2 + 8^2 + 2(0.5)(10)(8)} = 15.62$m",
+    "value": 15.62
+   },
+   {
+    "label": "Incremental VaR",
+    "display": "$1.65 \\times 15.62 - 1.65 \\times 10 = 9.27$m",
+    "value": 9.27
+   }
+  ],
+  "takeaway": "Incremental VaR never exceeds standalone VaR for a normal portfolio: it equals it only at correlation 1.",
+  "check": {
+   "inputs": {
+    "z": 1.65,
+    "sP": 10,
+    "sA": 8,
+    "rho": 0.5
+   },
+   "steps": [
+    {
+     "name": "standalone",
+     "expr": "z*sA",
+     "value": 13.2
+    },
+    {
+     "name": "sNew",
+     "expr": "sqrt(sP^2+sA^2+2*rho*sP*sA)",
+     "value": 15.62
+    },
+    {
+     "name": "inc",
+     "expr": "z*sNew-z*sP",
+     "value": 9.27
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-12",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0183"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 200m portfolio holds USD 18m of Alphabet. Annual volatilities: Alphabet 22%, portfolio 27%. The correlation between Alphabet and the portfolio is 0.54. Normal returns, 99% VaR with $z = 2.33$.",
+  "ask": "Alphabet's beta to the portfolio, $\\rho\\sigma_A/\\sigma_P$, is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.44",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.54",
+    "correct": false,
+    "why": "Used the correlation as the beta. Beta also scales by the ratio of volatilities."
+   },
+   {
+    "label": "≈ 0.66",
+    "correct": false,
+    "why": "Inverted the volatility ratio ($\\rho\\sigma_P/\\sigma_A$)."
+   },
+   {
+    "label": "≈ 0.82",
+    "correct": false,
+    "why": "Dropped the correlation and used only $\\sigma_A/\\sigma_P$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta",
+    "display": "$0.54 \\times 0.22/0.27 = 0.44$",
+    "value": 0.44
+   },
+   {
+    "label": "Marginal VaR per USD",
+    "display": "$2.33 \\times 0.27 \\times 0.44 = 0.2768$",
+    "value": 0.2768
+   },
+   {
+    "label": "Component VaR",
+    "display": "$0.2768 \\times 18 = \\text{USD } 4.98$m",
+    "value": 4.982
+   }
+  ],
+  "takeaway": "Beta to the portfolio is $\\rho \\times \\sigma_{asset}/\\sigma_{portfolio}$; the asset's own volatility goes on top, the portfolio's underneath.",
+  "check": {
+   "inputs": {
+    "rho": 0.54,
+    "sA": 0.22,
+    "sP": 0.27,
+    "z": 2.33,
+    "pos": 18
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "rho*sA/sP",
+     "value": 0.44
+    },
+    {
+     "name": "mv",
+     "expr": "z*sP*beta",
+     "value": 0.2768
+    },
+    {
+     "name": "cv",
+     "expr": "mv*pos",
+     "value": 4.982
+    },
+    {
+     "name": "slip_swap",
+     "expr": "rho*sP/sA",
+     "value": 0.6627
+    },
+    {
+     "name": "slip_norho",
+     "expr": "sA/sP",
+     "value": 0.8148
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-13",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0185"
+  },
+  "trap_category": "Scope",
+  "setup": "Two airline stocks, annual volatilities: Venus USD 450m at 16%, Mars USD 250m at 11%. The USD 700m portfolio has volatility 14%. Use 95% confidence with $z = 1.645$.",
+  "ask": "The diversification benefit (undiversified VaR minus diversified VaR) is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2.5m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 161m",
+    "correct": false,
+    "why": "Reported the diversified VaR itself ($1.645 \\times 0.14 \\times 700$) instead of the difference."
+   },
+   {
+    "label": "≈ USD 25m",
+    "correct": false,
+    "why": "Scale slip (10 times): the two VaRs are both about 162, and their gap is 2.5, not 25."
+   },
+   {
+    "label": "≈ USD 0.25m",
+    "correct": false,
+    "why": "Scale slip (1/10): the gap between 163.7 and 161.2 is 2.5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Diversified VaR",
+    "display": "$1.645 \\times 0.14 \\times 700 = 161.2$m",
+    "value": 161.21
+   },
+   {
+    "label": "Undiversified VaR",
+    "display": "$1.645 \\times (450 \\times 0.16 + 250 \\times 0.11) = 163.7$m",
+    "value": 163.68
+   },
+   {
+    "label": "Benefit",
+    "display": "$163.7 - 161.2 = 2.5$m",
+    "value": 2.47
+   }
+  ],
+  "takeaway": "When the portfolio volatility (14%) is almost the weighted average of the parts (14.2%), the diversification benefit is tiny.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "v1": 450,
+    "s1": 0.16,
+    "v2": 250,
+    "s2": 0.11,
+    "V": 700,
+    "sp": 0.14
+   },
+   "steps": [
+    {
+     "name": "div",
+     "expr": "z*sp*V",
+     "value": 161.21
+    },
+    {
+     "name": "undiv",
+     "expr": "z*(v1*s1+v2*s2)",
+     "value": 163.68
+    },
+    {
+     "name": "ben",
+     "expr": "undiv-div",
+     "value": 2.47
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-14",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0186"
+  },
+  "trap_category": "Role",
+  "setup": "A portfolio holds USD 2.5m of asset A (volatility 6%, beta to the portfolio 0.97) and USD 1.0m of asset B (volatility 10%, beta 1.075). A is 71.4% of portfolio value.",
+  "ask": "A's share of portfolio VaR (component VaR / portfolio VaR) is:",
+  "options": [
+   {
+    "label": "Below 71.4%",
+    "correct": true
+   },
+   {
+    "label": "Above 71.4%",
+    "correct": false,
+    "why": "Let the larger position dominate the risk. The share is weight times beta, and A's beta is below 1."
+   },
+   {
+    "label": "Exactly 71.4%",
+    "correct": false,
+    "why": "Used the weight alone and ignored beta, which measures how much each position loads on the portfolio's risk."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight of A",
+    "display": "$2.5/3.5 = 0.7143$",
+    "value": 0.7143
+   },
+   {
+    "label": "Share of VaR",
+    "display": "$0.7143 \\times 0.97 = 69.3\\%$",
+    "value": 69.29
+   },
+   {
+    "label": "Share of B",
+    "display": "$0.2857 \\times 1.075 = 30.7\\%$",
+    "value": 30.71
+   }
+  ],
+  "takeaway": "Share of portfolio VaR is weight times beta. A beta below 1 puts the share below the weight, and the shares always sum to 100%.",
+  "check": {
+   "inputs": {
+    "vA": 2.5,
+    "vB": 1.0,
+    "bA": 0.97,
+    "bB": 1.075
+   },
+   "steps": [
+    {
+     "name": "wA",
+     "expr": "vA/(vA+vB)",
+     "value": 0.7143
+    },
+    {
+     "name": "shA",
+     "expr": "wA*bA*100",
+     "value": 69.29
+    },
+    {
+     "name": "shB",
+     "expr": "(1-wA)*bB*100",
+     "value": 30.71
+    },
+    {
+     "name": "tot",
+     "expr": "shA+shB",
+     "value": 100
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-15",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0189"
+  },
+  "trap_category": "Formula",
+  "setup": "An FX portfolio holds USD 26m in sterling and USD 40m in lira. Betas to the portfolio: sterling 0.80, lira 1.13. The diversified portfolio VaR is USD 7m.",
+  "ask": "The component VaR of the sterling position is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 0.085m",
+    "correct": false,
+    "why": "Stopped at the marginal VaR per dollar ($7/66 \\times 0.80 = 0.085$) and read it as a dollar figure."
+   },
+   {
+    "label": "≈ USD 5.6m",
+    "correct": false,
+    "why": "Multiplied portfolio VaR by the beta ($7 \\times 0.80$) and left out the position's weight."
+   },
+   {
+    "label": "≈ USD 21m",
+    "correct": false,
+    "why": "Took position times beta ($26 \\times 0.80$) with no VaR-to-value scaling, so the result is not a VaR at all."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio value",
+    "display": "$26 + 40 = 66$m",
+    "value": 66
+   },
+   {
+    "label": "Marginal VaR (per USD)",
+    "display": "$(7/66) \\times 0.80 = 0.0848$",
+    "value": 0.0848
+   },
+   {
+    "label": "Component VaR",
+    "display": "$0.0848 \\times 26 = \\text{USD } 2.2$m",
+    "value": 2.205
+   }
+  ],
+  "takeaway": "Component VaR = marginal VaR per dollar times the position. Check it is well below the total VaR of 7m before trusting it.",
+  "check": {
+   "inputs": {
+    "V": 7,
+    "a": 26,
+    "b": 40,
+    "beta": 0.8
+   },
+   "steps": [
+    {
+     "name": "W",
+     "expr": "a+b",
+     "value": 66
+    },
+    {
+     "name": "mv",
+     "expr": "V/W*beta",
+     "value": 0.0848
+    },
+    {
+     "name": "cv",
+     "expr": "mv*a",
+     "value": 2.205
+    },
+    {
+     "name": "slip_w",
+     "expr": "V*beta",
+     "value": 5.6
+    },
+    {
+     "name": "slip_pos",
+     "expr": "a*beta",
+     "value": 20.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-16",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0190"
+  },
+  "trap_category": "Polarity",
+  "setup": "Portfolio X has a VaR of USD 100,000 and holds five equally weighted assets A to E. Asset C has a beta of 1.5. Its pro-rata share of VaR would be USD 20,000.",
+  "ask": "Asset C's component VaR is:",
+  "options": [
+   {
+    "label": "Above USD 20,000",
+    "correct": true
+   },
+   {
+    "label": "Below USD 20,000",
+    "correct": false,
+    "why": "Treated the high beta as a diversifier. A beta above 1 means C adds more than its weight to portfolio risk."
+   },
+   {
+    "label": "Exactly USD 20,000",
+    "correct": false,
+    "why": "Ignored beta and split the VaR equally across five assets."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight",
+    "display": "$1/5 = 0.20$",
+    "value": 0.2
+   },
+   {
+    "label": "Component VaR",
+    "display": "$100{,}000 \\times 1.5 \\times 0.20 = 30{,}000$",
+    "value": 30000
+   }
+  ],
+  "takeaway": "Component VaR = portfolio VaR times weight times beta, so beta above 1 puts it above the pro-rata share.",
+  "check": {
+   "inputs": {
+    "V": 100000,
+    "n": 5,
+    "beta": 1.5
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "1/n",
+     "value": 0.2
+    },
+    {
+     "name": "cv",
+     "expr": "V*beta*w",
+     "value": 30000
+    },
+    {
+     "name": "pro",
+     "expr": "V*w",
+     "value": 20000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-17",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0192"
+  },
+  "trap_category": "Scope",
+  "setup": "A USD 1m portfolio holds USD 300,000 in A (daily volatility 3%) and USD 700,000 in B (daily volatility 5%). The correlation between A and B is 0.4. The dollar volatilities are USD 9,000 and USD 35,000.",
+  "ask": "The portfolio's 1-day dollar standard deviation lies:",
+  "options": [
+   {
+    "label": "Between USD 35,000 and USD 44,000",
+    "correct": true
+   },
+   {
+    "label": "Below USD 35,000",
+    "correct": false,
+    "why": "Expected diversification to push risk below the bigger leg. That needs negative correlation; even at zero correlation the total is about 36,100."
+   },
+   {
+    "label": "Above USD 44,000",
+    "correct": false,
+    "why": "Went beyond the perfect-correlation ceiling ($9,000 + 35,000 = 44,000$), for instance by leaving the square root off the variance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$9000^2 + 35000^2 + 2(0.4)(9000)(35000) = 1.558 \\times 10^9$",
+    "value": 1558000000
+   },
+   {
+    "label": "Standard deviation",
+    "display": "$\\sqrt{1.558 \\times 10^9} \\approx 39{,}470$",
+    "value": 39472
+   },
+   {
+    "label": "99% VaR",
+    "display": "$2.33 \\times 39{,}470 \\approx 92{,}000$",
+    "value": 91969
+   }
+  ],
+  "takeaway": "Portfolio volatility sits between the root-sum-of-squares (zero correlation) and the straight sum (correlation 1); a positive correlation puts it in that band above the larger leg.",
+  "check": {
+   "inputs": {
+    "sA": 9000,
+    "sB": 35000,
+    "rho": 0.4,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "sA^2+sB^2+2*rho*sA*sB",
+     "value": 1558000000
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 39472
+    },
+    {
+     "name": "var99",
+     "expr": "z*sd",
+     "value": 91969
+    },
+    {
+     "name": "rho0",
+     "expr": "sqrt(sA^2+sB^2)",
+     "value": 36106
+    },
+    {
+     "name": "rho1",
+     "expr": "sA+sB",
+     "value": 44000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-18",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0196"
+  },
+  "trap_category": "Formula",
+  "setup": "A portfolio of four equal positions of USD 10m has a VaR of USD 8m. Burki Refinery's beta to the portfolio is 1.4.",
+  "ask": "Burki's marginal VaR (VaR change per dollar invested) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.28",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.07",
+    "correct": false,
+    "why": "Multiplied by the 25% weight as well, double-counting the position size."
+   },
+   {
+    "label": "≈ 1.12",
+    "correct": false,
+    "why": "Divided VaR by a single USD 10m position instead of the USD 40m portfolio."
+   },
+   {
+    "label": "≈ 11",
+    "correct": false,
+    "why": "Multiplied VaR by beta ($8 \\times 1.4$) and never divided by portfolio value."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio value",
+    "display": "$4 \\times 10 = 40$m",
+    "value": 40
+   },
+   {
+    "label": "VaR per dollar",
+    "display": "$8/40 = 0.20$",
+    "value": 0.2
+   },
+   {
+    "label": "Marginal VaR",
+    "display": "$0.20 \\times 1.4 = 0.28$",
+    "value": 0.28
+   }
+  ],
+  "takeaway": "Marginal VaR = (portfolio VaR / portfolio value) times beta. It is per dollar, so a number near 0.3, not millions.",
+  "check": {
+   "inputs": {
+    "V": 8,
+    "pos": 10,
+    "n": 4,
+    "beta": 1.4
+   },
+   "steps": [
+    {
+     "name": "W",
+     "expr": "pos*n",
+     "value": 40
+    },
+    {
+     "name": "r",
+     "expr": "V/W",
+     "value": 0.2
+    },
+    {
+     "name": "mv",
+     "expr": "r*beta",
+     "value": 0.28
+    },
+    {
+     "name": "slip_wt",
+     "expr": "mv/n",
+     "value": 0.07
+    },
+    {
+     "name": "slip_one",
+     "expr": "V/pos*beta",
+     "value": 1.12
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "V*beta",
+     "value": 11.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq01-19",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0202"
+  },
+  "trap_category": "Scope",
+  "setup": "Two perfectly correlated assets: A is USD 2.5m with 6% volatility, B is USD 1.0m with 10% volatility. Use $z = 1.65$ (95%).",
+  "ask": "Which asset has the larger individual 95% VaR?",
+  "options": [
+   {
+    "label": "Asset A",
+    "correct": true
+   },
+   {
+    "label": "Asset B",
+    "correct": false,
+    "why": "Compared volatilities alone. A's position is 2.5 times B's, which outweighs B's higher percentage volatility."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Thought perfect correlation equalises the two. Correlation affects the portfolio VaR only, not an asset's own VaR."
+   }
+  ],
+  "working": [
+   {
+    "label": "Asset A",
+    "display": "$2.5\\text{m} \\times 1.65 \\times 0.06 = 247{,}500$",
+    "value": 247500
+   },
+   {
+    "label": "Asset B",
+    "display": "$1.0\\text{m} \\times 1.65 \\times 0.10 = 165{,}000$",
+    "value": 165000
+   }
+  ],
+  "takeaway": "Individual VaR = position times z times volatility; size matters as much as volatility, and correlation is irrelevant at this stage.",
+  "check": {
+   "inputs": {
+    "vA": 2500000,
+    "sA": 0.06,
+    "vB": 1000000,
+    "sB": 0.1,
+    "z": 1.65
+   },
+   "steps": [
+    {
+     "name": "VA",
+     "expr": "vA*z*sA",
+     "value": 247500
+    },
+    {
+     "name": "VB",
+     "expr": "vB*z*sB",
+     "value": 165000
+    }
+   ]
+  }
+ }
+]

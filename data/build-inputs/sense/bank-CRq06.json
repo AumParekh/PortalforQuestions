@@ -1,0 +1,1979 @@
+[
+ {
+  "id": "SC-bank-CRq06-01",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-5g-9"
+  },
+  "trap_category": "Role",
+  "setup": "RAROC on a EUR 80m one-year loan. After-tax net income is already done: EUR 0.63m. The bank sets capital at risk as unexpected loss, $\\alpha \\times LGD \\times EAD$, with $\\alpha = 6\\sigma$ and $\\sigma = 2.0\\%$ (standard deviation of historical default rates). $LGD = 40\\%$, $PD = 1.0\\%$. The regulator requires EUR 6.4m of capital for the loan.",
+  "ask": "The RAROC denominator, capital at risk, is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 3.8m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 6.4m",
+    "correct": false,
+    "why": "Used the regulatory capital requirement. The bank's own capital at risk is the unexpected loss $\\alpha \\times LGD \\times EAD$, so the regulatory figure is a distractor."
+   },
+   {
+    "label": "≈ EUR 9.6m",
+    "correct": false,
+    "why": "Applied $\\alpha = 12\\%$ to the whole exposure and forgot to multiply by LGD: $0.12 \\times 80 = 9.6$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unexpected default rate",
+    "display": "$\\alpha = 6 \\times 2.0\\% = 12\\%$",
+    "value": 12.0
+   },
+   {
+    "label": "Capital at risk",
+    "display": "$12\\% \\times 0.40 \\times 80 = \\text{EUR } 3.84\\text{m}$",
+    "value": 3.84
+   },
+   {
+    "label": "RAROC",
+    "display": "$0.63 / 3.84 = 16.4\\%$",
+    "value": 16.4
+   }
+  ],
+  "takeaway": "RAROC divides after-tax risk-adjusted income by the bank's own unexpected loss (here 12% of the 40% loss slice of EAD), not by the regulatory capital figure.",
+  "check": {
+   "inputs": {
+    "k": 6,
+    "sig": 0.02,
+    "lgd": 0.4,
+    "ead": 80,
+    "ni": 0.63,
+    "reg": 6.4
+   },
+   "steps": [
+    {
+     "name": "alpha",
+     "expr": "k*sig",
+     "value": 0.12
+    },
+    {
+     "name": "cap",
+     "expr": "alpha*lgd*ead",
+     "value": 3.84
+    },
+    {
+     "name": "raroc",
+     "expr": "ni/cap",
+     "value": 0.164062
+    },
+    {
+     "name": "slip_reg",
+     "expr": "reg",
+     "value": 6.4
+    },
+    {
+     "name": "slip_nolgd",
+     "expr": "alpha*ead",
+     "value": 9.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9b-3"
+  },
+  "trap_category": "Definition",
+  "setup": "Altman Z-score for a listed Canadian manufacturer (CAD m): total assets 600, total liabilities 390, book value of equity 210, market value of equity 330.",
+  "ask": "In Altman's formula, $X_4$ (the equity-to-debt term) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.85",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.54",
+    "correct": false,
+    "why": "Used the book value of equity, $210/390$. Altman's $X_4$ is built on the MARKET value of equity."
+   },
+   {
+    "label": "≈ 1.57",
+    "correct": false,
+    "why": "Divided market equity by book equity, $330/210$, instead of by total liabilities."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market equity over liabilities",
+    "display": "$X_4 = 330 / 390 = 0.846$",
+    "value": 0.846
+   },
+   {
+    "label": "Weighted contribution",
+    "display": "$0.6 \\times 0.846 = 0.508$",
+    "value": 0.508
+   }
+  ],
+  "takeaway": "Altman's $X_4$ = market value of equity / total liabilities. The book equity figure in the table is a distractor.",
+  "check": {
+   "inputs": {
+    "mv": 330,
+    "tl": 390,
+    "bv": 210
+   },
+   "steps": [
+    {
+     "name": "x4",
+     "expr": "mv/tl",
+     "value": 0.846154
+    },
+    {
+     "name": "contrib",
+     "expr": "0.6*x4",
+     "value": 0.507692
+    },
+    {
+     "name": "slip_book",
+     "expr": "bv/tl",
+     "value": 0.538462
+    },
+    {
+     "name": "slip_mb",
+     "expr": "mv/bv",
+     "value": 1.57143
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-03",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9b-6"
+  },
+  "trap_category": "Formula",
+  "setup": "Altman $Z = 1.2X_1 + 1.4X_2 + 3.3X_3 + 0.6X_4 + 0.999X_5$, with $X_3 = \\text{EBIT}/\\text{total assets}$. A textile firm has total assets INR 400 crore and EBIT INR 170 crore. The other four terms are held fixed and add up to 1.7471, so $Z = 3.15$. The 'unlikely to default' zone is $Z > 3.0$.",
+  "ask": "The largest EBIT fall that keeps the firm in the zone is closest to:",
+  "options": [
+   {
+    "label": "≈ INR 0.045 crore",
+    "correct": false,
+    "why": "Stopped at the change in the ratio $X_3$ (0.0453) and never multiplied by total assets of 400."
+   },
+   {
+    "label": "≈ INR 18 crore",
+    "correct": true
+   },
+   {
+    "label": "≈ INR 60 crore",
+    "correct": false,
+    "why": "Multiplied the 0.15 gap in Z by assets without dividing by the 3.3 weight on $X_3$."
+   },
+   {
+    "label": "≈ INR 152 crore",
+    "correct": false,
+    "why": "Reported the EBIT level at which $Z = 3.0$ rather than the fall from 170 to that level."
+   }
+  ],
+  "working": [
+   {
+    "label": "Current Z",
+    "display": "$1.7471 + 3.3 \\times 0.425 = 3.150$",
+    "value": 3.1496
+   },
+   {
+    "label": "Gap above 3.0",
+    "display": "$3.150 - 3.0 = 0.150$",
+    "value": 0.1496
+   },
+   {
+    "label": "Gap in $X_3$",
+    "display": "$0.150 / 3.3 = 0.0453$",
+    "value": 0.0453
+   },
+   {
+    "label": "EBIT fall",
+    "display": "$0.0453 \\times 400 \\approx \\text{INR } 18.1$ crore",
+    "value": 18.1
+   }
+  ],
+  "takeaway": "A Z-gap is turned into dollars by dividing by the term's weight and then multiplying by total assets. The 3.3 weight on EBIT makes small EBIT falls matter a lot.",
+  "check": {
+   "inputs": {
+    "zex": 1.7471,
+    "w": 3.3,
+    "A": 400,
+    "E": 170,
+    "b": 3.0
+   },
+   "steps": [
+    {
+     "name": "z0",
+     "expr": "zex+w*E/A",
+     "value": 3.1496
+    },
+    {
+     "name": "gap",
+     "expr": "z0-b",
+     "value": 0.1496
+    },
+    {
+     "name": "dx",
+     "expr": "gap/w",
+     "value": 0.0453333
+    },
+    {
+     "name": "fall",
+     "expr": "dx*A",
+     "value": 18.1333
+    },
+    {
+     "name": "slip_noW",
+     "expr": "gap*A",
+     "value": 59.84
+    },
+    {
+     "name": "slip_level",
+     "expr": "(b-zex)/w*A",
+     "value": 151.867
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-04",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9d-5"
+  },
+  "trap_category": "Definition",
+  "setup": "A rating agency's cumulative default rates for B-rated issuers are 7.40% by year 2 and 11.20% by year 3. Seen from today, the chance of defaulting during year 3 is $11.20 - 7.40 = 3.80\\%$.",
+  "ask": "The probability of defaulting in year 3 GIVEN survival through year 2, compared with 3.80%, is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Divided the wrong way. Conditioning on survival divides 3.80% by the survival rate (92.6%), which is below 1, so the figure grows."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Treated $C_3 - C_2$ as if it were already conditional. It is the unconditional view from time zero."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unconditional year-3 PD",
+    "display": "$11.20 - 7.40 = 3.80\\%$",
+    "value": 3.8
+   },
+   {
+    "label": "Survival to start of year 3",
+    "display": "$100 - 7.40 = 92.60\\%$",
+    "value": 92.6
+   },
+   {
+    "label": "Conditional PD",
+    "display": "$3.80 / 92.60 = 4.10\\%$",
+    "value": 4.1
+   }
+  ],
+  "takeaway": "Conditional PD = marginal PD / survival to the start of the year, so it always exceeds the unconditional figure once defaults have occurred.",
+  "check": {
+   "inputs": {
+    "c2": 7.4,
+    "c3": 11.2
+   },
+   "steps": [
+    {
+     "name": "unc",
+     "expr": "c3-c2",
+     "value": 3.8
+    },
+    {
+     "name": "surv",
+     "expr": "100-c2",
+     "value": 92.6
+    },
+    {
+     "name": "cond",
+     "expr": "unc/surv*100",
+     "value": 4.10367
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9d-8"
+  },
+  "trap_category": "Scope",
+  "setup": "One-year rating migration matrix, years independent. Row X: 92% stay in X, 6% move to Y, 2% default. Row Y: 8% move to X, 82% stay in Y, 10% default. An issuer is rated X today.",
+  "ask": "Its unconditional probability of default during year 2, compared with the 2% year-1 PD, is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Scaled 2% by the 98% that survive year 1 (1.96%), as if survivors kept the same 2% default rate. That ignores the 6% that migrate to Y."
+   },
+   {
+    "label": "Equal to 2%",
+    "correct": false,
+    "why": "Assumed a constant default rate. The matrix moves some issuers into Y, where default risk is five times higher."
+   }
+  ],
+  "working": [
+   {
+    "label": "Defaults from X after staying in X",
+    "display": "$0.92 \\times 0.02 = 0.0184$",
+    "value": 0.0184
+   },
+   {
+    "label": "Defaults after migrating to Y",
+    "display": "$0.06 \\times 0.10 = 0.0060$",
+    "value": 0.006
+   },
+   {
+    "label": "Year-2 marginal PD",
+    "display": "$0.0184 + 0.0060 = 2.44\\%$",
+    "value": 2.44
+   }
+  ],
+  "takeaway": "For good grades the marginal PD rises with time because migration feeds the riskier grades. Cumulative two-year PD is 4.44%.",
+  "check": {
+   "inputs": {
+    "pXX": 0.92,
+    "pXY": 0.06,
+    "pXD": 0.02,
+    "pYD": 0.1
+   },
+   "steps": [
+    {
+     "name": "stay",
+     "expr": "pXX*pXD",
+     "value": 0.0184
+    },
+    {
+     "name": "mig",
+     "expr": "pXY*pYD",
+     "value": 0.006
+    },
+    {
+     "name": "y2",
+     "expr": "stay+mig",
+     "value": 0.0244
+    },
+    {
+     "name": "slip_surv",
+     "expr": "(1-pXD)*pXD",
+     "value": 0.0196
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-06",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9e-7"
+  },
+  "trap_category": "Formula",
+  "setup": "Merton model over a 3-year horizon, with the risk-free rate as asset drift: $d_2 = 1.60$, so the risk-neutral PD by year 3 is $N(-1.60) = 5.48\\%$. The firm's expected asset return is 9%. A CVA system needs one constant average hazard rate.",
+  "ask": "The hazard rate to enter, per year, is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.63%",
+    "correct": false,
+    "why": "Divided $-\\ln(1-0.0548) = 0.0564$ by $T^2 = 9$ instead of by $T = 3$."
+   },
+   {
+    "label": "≈ 1.9%",
+    "correct": true
+   },
+   {
+    "label": "≈ 5.5%",
+    "correct": false,
+    "why": "Entered the 3-year cumulative PD as if it were an annual rate."
+   },
+   {
+    "label": "≈ 19%",
+    "correct": false,
+    "why": "Scale slip (10×). A 19% annual hazard would imply about 43% default within three years."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative PD",
+    "display": "$N(-1.60) = 5.48\\%$",
+    "value": 5.48
+   },
+   {
+    "label": "Average hazard",
+    "display": "$-\\ln(1 - 0.0548)/3 = 0.0564/3 = 1.88\\%$",
+    "value": 1.88
+   }
+  ],
+  "takeaway": "Average hazard = $-\\ln(1-Q(T))/T$. The 9% expected return would give a real-world PD, not the risk-neutral one a CVA system needs.",
+  "check": {
+   "inputs": {
+    "q": 0.0548,
+    "T": 3
+   },
+   "steps": [
+    {
+     "name": "lam",
+     "expr": "-ln(1-q)/T",
+     "value": 0.0187862
+    },
+    {
+     "name": "slip_cum",
+     "expr": "q",
+     "value": 0.0548
+    },
+    {
+     "name": "slip_T2",
+     "expr": "-ln(1-q)/T^2",
+     "value": 0.00626208
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*lam",
+     "value": 0.187862
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-07",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9h-1"
+  },
+  "trap_category": "Formula",
+  "setup": "A five-year CDS on a mining company trades at 180 bp, with expected recovery of 35%. The average hazard rate follows from $s = \\bar\\lambda\\,(1-R)$.",
+  "ask": "The implied average hazard rate, compared with the 1.80% spread, is:",
+  "options": [
+   {
+    "label": "Higher than 1.80%",
+    "correct": true
+   },
+   {
+    "label": "Lower than 1.80%",
+    "correct": false,
+    "why": "Multiplied the spread by $(1-R)$ instead of dividing: $1.80\\% \\times 0.65 = 1.17\\%$."
+   },
+   {
+    "label": "Equal to 1.80%",
+    "correct": false,
+    "why": "Ignored recovery, which is only valid when the loss given default is 100%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Spread",
+    "display": "$180\\text{ bp} = 1.80\\%$",
+    "value": 1.8
+   },
+   {
+    "label": "Loss given default",
+    "display": "$1 - 0.35 = 0.65$",
+    "value": 0.65
+   },
+   {
+    "label": "Hazard rate",
+    "display": "$1.80\\% / 0.65 = 2.77\\%$",
+    "value": 2.77
+   }
+  ],
+  "takeaway": "The spread pays for expected loss, $\\lambda \\times LGD$, so the hazard rate is always above the spread when recovery is positive.",
+  "check": {
+   "inputs": {
+    "s": 0.018,
+    "R": 0.35
+   },
+   "steps": [
+    {
+     "name": "lgd",
+     "expr": "1-R",
+     "value": 0.65
+    },
+    {
+     "name": "lam",
+     "expr": "s/lgd",
+     "value": 0.0276923
+    },
+    {
+     "name": "slip_mult",
+     "expr": "s*lgd",
+     "value": 0.0117
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-08",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9h-7"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "CDS spreads on one name, recovery 40%: 3-year 400 bp, 5-year 350 bp. The average hazard rate to each maturity is $s/(1-R)$, giving 6.67% to year 3 and 5.83% to year 5.",
+  "ask": "The average hazard rate between year 3 and year 5 must be:",
+  "options": [
+   {
+    "label": "Below 5.83%",
+    "correct": true
+   },
+   {
+    "label": "Between 5.83% and 6.67%",
+    "correct": false,
+    "why": "Averaged the two figures (6.25%). The 5-year number already contains the 3-year hazard, so the forward rate must lie on the far side of it."
+   },
+   {
+    "label": "Above 6.67%",
+    "correct": false,
+    "why": "Swapped the averages in the bootstrap, $(5 \\times 6.67 - 3 \\times 5.83)/2 = 7.9\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "3-year average",
+    "display": "$0.0400 / 0.60 = 6.67\\%$",
+    "value": 6.667
+   },
+   {
+    "label": "5-year average",
+    "display": "$0.0350 / 0.60 = 5.83\\%$",
+    "value": 5.833
+   },
+   {
+    "label": "Forward hazard",
+    "display": "$(5 \\times 5.83 - 3 \\times 6.67)/2 = 4.58\\%$",
+    "value": 4.583
+   }
+  ],
+  "takeaway": "An average that falls as the horizon lengthens means the forward hazard is below the longer average. An inverted CDS curve signals near-term distress.",
+  "check": {
+   "inputs": {
+    "s3": 0.04,
+    "s5": 0.035,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "l3",
+     "expr": "s3/(1-R)",
+     "value": 0.0666667
+    },
+    {
+     "name": "l5",
+     "expr": "s5/(1-R)",
+     "value": 0.0583333
+    },
+    {
+     "name": "fwd",
+     "expr": "(5*l5-3*l3)/2",
+     "value": 0.0458333
+    },
+    {
+     "name": "slip_mid",
+     "expr": "(l3+l5)/2",
+     "value": 0.0625
+    },
+    {
+     "name": "slip_swap",
+     "expr": "(5*l3-3*l5)/2",
+     "value": 0.0791667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-09",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9k-6"
+  },
+  "trap_category": "Role",
+  "setup": "Merton model, one year: asset value JPY 800bn, debt due 600bn, asset volatility 20%, risk-free rate 4%, expected asset return 10% (continuous). With the risk-free drift the distance to default is 1.54, a risk-neutral PD of 6.2%. A stress scenario needs the real-world PD.",
+  "ask": "The real-world PD, compared with 6.2%, is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Read the higher expected return as extra risk. A higher drift pushes assets further above the debt, so distance to default widens and PD shrinks."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Only the drift changes between the two cases, but the drift enters the numerator of the distance to default."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral DD",
+    "display": "$(\\ln(800/600) + (0.04 - 0.02))/0.20 = 1.54$",
+    "value": 1.538
+   },
+   {
+    "label": "Real-world DD",
+    "display": "$(0.2877 + (0.10 - 0.02))/0.20 = 1.84$",
+    "value": 1.838
+   },
+   {
+    "label": "PD",
+    "display": "$N(-1.84) \\approx 3.3\\% < N(-1.54) = 6.2\\%$",
+    "value": null
+   }
+  ],
+  "takeaway": "Real-world PD uses the expected return $\\mu$ as drift; risk-neutral uses $r$. When $\\mu > r$ the real-world PD is the smaller one.",
+  "check": {
+   "inputs": {
+    "V": 800,
+    "D": 600,
+    "s": 0.2,
+    "r": 0.04,
+    "mu": 0.1
+   },
+   "steps": [
+    {
+     "name": "ddrn",
+     "expr": "(ln(V/D)+(r-s^2/2))/s",
+     "value": 1.53841
+    },
+    {
+     "name": "ddrw",
+     "expr": "(ln(V/D)+(mu-s^2/2))/s",
+     "value": 1.83841
+    },
+    {
+     "name": "diff",
+     "expr": "ddrw-ddrn",
+     "value": 0.3
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-10",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-9m-3"
+  },
+  "trap_category": "Scope",
+  "setup": "Merton distance to default $d_2$, computed with the risk-free rate over the whole life of the debt. Borrower (KRW bn): assets 500, zero-coupon debt 300 due in 2 years, asset volatility 22%, risk-free rate 4%. Bands: DD 3.0 or more A; 2.0 to below 3.0 BBB; 1.0 to below 2.0 BB; below 1.0 B.",
+  "ask": "The borrower's band is:",
+  "options": [
+   {
+    "label": "BB",
+    "correct": true
+   },
+   {
+    "label": "BBB",
+    "correct": false,
+    "why": "Used a one-year horizon (DD about 2.39). The debt runs for two years, so the numerator picks up two years of drift and the s.d. is $0.22\\sqrt{2}$."
+   },
+   {
+    "label": "B",
+    "correct": false,
+    "why": "Kept only the drift term and dropped $\\ln(A/D)$, which gives DD about 0.10."
+   }
+  ],
+  "working": [
+   {
+    "label": "Numerator",
+    "display": "$\\ln(500/300) + (0.04 - 0.0242) \\times 2 = 0.5424$",
+    "value": 0.5424
+   },
+   {
+    "label": "Two-year s.d.",
+    "display": "$0.22\\sqrt{2} = 0.3111$",
+    "value": 0.3111
+   },
+   {
+    "label": "Distance to default",
+    "display": "$0.5424/0.3111 = 1.74 \\Rightarrow \\text{BB}$",
+    "value": 1.74
+   }
+  ],
+  "takeaway": "Use the debt's own maturity in both the drift term and $\\sigma\\sqrt{T}$. The one-year short form would flatter the borrower by a full band.",
+  "check": {
+   "inputs": {
+    "A": 500,
+    "D": 300,
+    "s": 0.22,
+    "r": 0.04,
+    "T": 2
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "ln(A/D)+(r-s^2/2)*T",
+     "value": 0.542426
+    },
+    {
+     "name": "sd",
+     "expr": "s*sqrt(T)",
+     "value": 0.311127
+    },
+    {
+     "name": "dd",
+     "expr": "num/sd",
+     "value": 1.74342
+    },
+    {
+     "name": "slip_1y",
+     "expr": "(ln(A/D)+(r-s^2/2))/s",
+     "value": 2.39375
+    },
+    {
+     "name": "slip_nolog",
+     "expr": "(r-s^2/2)*T/sd",
+     "value": 0.101566
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-11",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-10d-8"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel II IRB on a residential mortgage book: EAD GBP 400m, PD 1.50%, LGD 25%, average remaining maturity 18 years, 99.9% confidence. Retail correlation is fixed at 0.15, which gives a worst-case default rate (WCDR) of 14.56%. Capital is $K = EAD \\times LGD \\times (WCDR - PD)$.",
+  "ask": "The risk-weighted assets are closest to:",
+  "options": [
+   {
+    "label": "≈ GBP 13m",
+    "correct": false,
+    "why": "Stopped at the capital charge $K$ and never multiplied by 12.5 to convert it into RWA."
+   },
+   {
+    "label": "≈ GBP 163m",
+    "correct": true
+   },
+   {
+    "label": "≈ GBP 575m",
+    "correct": false,
+    "why": "Applied a corporate-style maturity adjustment (about 3.5 for 18 years). Retail exposures carry no maturity adjustment."
+   },
+   {
+    "label": "≈ GBP 5,000m",
+    "correct": false,
+    "why": "Took RWA as $12.5 \\times EAD$ and skipped the capital formula altogether."
+   }
+  ],
+  "working": [
+   {
+    "label": "Capital",
+    "display": "$400 \\times 0.25 \\times (0.1456 - 0.0150) = \\text{GBP } 13.06\\text{m}$",
+    "value": 13.06
+   },
+   {
+    "label": "RWA",
+    "display": "$12.5 \\times 13.06 = \\text{GBP } 163.2\\text{m}$",
+    "value": 163.2
+   }
+  ],
+  "takeaway": "RWA = 12.5 × K. The 18-year maturity is a distractor for retail; the risk weight here is about 41% of EAD.",
+  "check": {
+   "inputs": {
+    "ead": 400,
+    "pd": 0.015,
+    "lgd": 0.25,
+    "w": 0.1456,
+    "M": 18
+   },
+   "steps": [
+    {
+     "name": "K",
+     "expr": "ead*lgd*(w-pd)",
+     "value": 13.06
+    },
+    {
+     "name": "rwa",
+     "expr": "12.5*K",
+     "value": 163.25
+    },
+    {
+     "name": "b",
+     "expr": "(0.11852-0.05478*ln(pd))^2",
+     "value": 0.121508
+    },
+    {
+     "name": "ma",
+     "expr": "(1+(M-2.5)*b)/(1-1.5*b)",
+     "value": 3.52603
+    },
+    {
+     "name": "slip_ma",
+     "expr": "rwa*ma",
+     "value": 575.625
+    },
+    {
+     "name": "slip_ead",
+     "expr": "12.5*ead",
+     "value": 5000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-12",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-10d-9"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel II advanced IRB, corporate loan of EUR 250m, $PD = 0.80\\%$, $LGD = 40\\%$, maturity $M = 4$ years. The maturity slope is $b = [0.11852 - 0.05478\\ln(PD)]^2 = 0.1467$, and the maturity adjustment is $MA = \\dfrac{1 + (M - 2.5)\\,b}{1 - 1.5\\,b}$.",
+  "ask": "The multiplier $MA$ applied to capital is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.56",
+    "correct": true
+   },
+   {
+    "label": "≈ 1.22",
+    "correct": false,
+    "why": "Computed the numerator $1 + 1.5 \\times 0.1467$ and forgot to divide by $1 - 1.5b = 0.78$."
+   },
+   {
+    "label": "≈ 1.00",
+    "correct": false,
+    "why": "Applied no maturity adjustment, as is correct for retail. A 4-year corporate loan can be downgraded, so capital is scaled up."
+   }
+  ],
+  "working": [
+   {
+    "label": "Numerator",
+    "display": "$1 + 1.5 \\times 0.1467 = 1.220$",
+    "value": 1.2201
+   },
+   {
+    "label": "Denominator",
+    "display": "$1 - 1.5 \\times 0.1467 = 0.780$",
+    "value": 0.7799
+   },
+   {
+    "label": "MA",
+    "display": "$1.220 / 0.780 = 1.56$",
+    "value": 1.564
+   }
+  ],
+  "takeaway": "For a 4-year corporate loan, capital is about 56% higher than the one-year figure because of the maturity adjustment.",
+  "check": {
+   "inputs": {
+    "b": 0.1467,
+    "M": 4
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "1+(M-2.5)*b",
+     "value": 1.22005
+    },
+    {
+     "name": "den",
+     "expr": "1-1.5*b",
+     "value": 0.77995
+    },
+    {
+     "name": "ma",
+     "expr": "num/den",
+     "value": 1.56427
+    },
+    {
+     "name": "slip_noden",
+     "expr": "num",
+     "value": 1.22005
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-17h-7"
+  },
+  "trap_category": "Scope",
+  "setup": "Two-way CSA. The portfolio is worth +USD 58.6m to the bank. The counterparty has just been downgraded from AA (threshold USD 50m) to AA- (threshold USD 25m). The bank's own threshold term is zero because the portfolio is in its favour. The bank already holds USD 8.0m of cash collateral.",
+  "ask": "The credit support amount, before the minimum transfer amount and rounding, is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 25.6m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 0.6m",
+    "correct": false,
+    "why": "Still used the old AA threshold of USD 50m: $58.6 - 50 - 8.0 = 0.6$."
+   },
+   {
+    "label": "≈ USD 33.6m",
+    "correct": false,
+    "why": "Subtracted the new threshold but forgot the USD 8.0m already held."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exposure above new threshold",
+    "display": "$\\max(58.6 - 25, 0) = 33.6$",
+    "value": 33.6
+   },
+   {
+    "label": "Less collateral held",
+    "display": "$33.6 - 8.0 = \\text{USD } 25.6\\text{m}$",
+    "value": 25.6
+   }
+  ],
+  "takeaway": "Thresholds are rating-linked: a downgrade lowers the threshold and the call jumps. Always net off collateral already held.",
+  "check": {
+   "inputs": {
+    "V": 58.6,
+    "K_old": 50,
+    "K_new": 25,
+    "held": 8.0
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "max(V-K_new,0)",
+     "value": 33.6
+    },
+    {
+     "name": "call",
+     "expr": "req-held",
+     "value": 25.6
+    },
+    {
+     "name": "slip_old",
+     "expr": "max(V-K_old,0)-held",
+     "value": 0.6
+    },
+    {
+     "name": "slip_held",
+     "expr": "req",
+     "value": 33.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-14",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20c-3"
+  },
+  "trap_category": "Formula",
+  "setup": "Unilateral CVA on an uncollateralised 5-year swap, notional USD 200m, counterparty recovery 40%, no wrong-way risk. Discounted EPE (% of notional), years 1 to 5: 2.0, 3.2, 3.6, 3.0, 1.6. Counterparty cumulative PD (%): 1.5, 3.2, 5.0, 6.9, 8.9. The dealer's own spread is 90 bp.",
+  "ask": "The size of the UCVA charge is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.0014m",
+    "correct": false,
+    "why": "Left out the USD 200m notional, so the answer stays a fraction of notional (0.143%)."
+   },
+   {
+    "label": "≈ USD 0.29m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 0.79m",
+    "correct": false,
+    "why": "Weighted EPE by CUMULATIVE PDs instead of the marginal PD of each year."
+   },
+   {
+    "label": "≈ USD 2.9m",
+    "correct": false,
+    "why": "Converted the percentage products with $10^{-3}$ instead of $10^{-4}$, a 10× decimal slip."
+   }
+  ],
+  "working": [
+   {
+    "label": "Marginal PDs (%)",
+    "display": "$1.5,\\ 1.7,\\ 1.8,\\ 1.9,\\ 2.0$",
+    "value": null
+   },
+   {
+    "label": "Sum of EPE × PD",
+    "display": "$3.00 + 5.44 + 6.48 + 5.70 + 3.20 = 23.82\\ (\\times 10^{-4})$",
+    "value": 23.82
+   },
+   {
+    "label": "UCVA",
+    "display": "$-0.60 \\times 0.002382 \\times 200 = -\\text{USD } 0.286\\text{m}$",
+    "value": -0.286
+   }
+  ],
+  "takeaway": "UCVA = −LGD × Σ EPE × marginal PD × notional. The dealer's own spread belongs to DVA, not UCVA.",
+  "check": {
+   "inputs": {
+    "N": 200,
+    "lgd": 0.6,
+    "e1": 2.0,
+    "e2": 3.2,
+    "e3": 3.6,
+    "e4": 3.0,
+    "e5": 1.6,
+    "c1": 1.5,
+    "c2": 3.2,
+    "c3": 5.0,
+    "c4": 6.9,
+    "c5": 8.9
+   },
+   "steps": [
+    {
+     "name": "s",
+     "expr": "e1*c1+e2*(c2-c1)+e3*(c3-c2)+e4*(c4-c3)+e5*(c5-c4)",
+     "value": 23.82
+    },
+    {
+     "name": "ucva",
+     "expr": "lgd*s*1e-4*N",
+     "value": 0.28584
+    },
+    {
+     "name": "slip_nonotional",
+     "expr": "lgd*s*1e-4",
+     "value": 0.0014292
+    },
+    {
+     "name": "slip_cum",
+     "expr": "lgd*(e1*c1+e2*c2+e3*c3+e4*c4+e5*c5)*1e-4*N",
+     "value": 0.79416
+    },
+    {
+     "name": "slip_dec",
+     "expr": "lgd*s*1e-3*N",
+     "value": 2.8584
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-15",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20e-6"
+  },
+  "trap_category": "Sign",
+  "setup": "Uncollateralised 5-year swap, notional EUR 150m, both LGDs 60%, survival adjustments ignored. $\\sum EPE \\times PD_C = 23.82 \\times 10^{-4}$ and $\\sum ENE \\times PD_P = -7.66 \\times 10^{-4}$ (ENE is negative). Convention: CVA negative, DVA positive, $BCVA = CVA + DVA$.",
+  "ask": "Compared with the CVA leg alone, the BCVA is:",
+  "options": [
+   {
+    "label": "Negative, but smaller in size",
+    "correct": true
+   },
+   {
+    "label": "Negative, and larger in size",
+    "correct": false,
+    "why": "Subtracted the DVA from the CVA ($-0.214 - 0.069 = -0.283$). DVA is a gain, so it is added with a positive sign."
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "The DVA leg (0.069) is only about a third of the CVA leg (0.214), so the net cannot turn positive."
+   }
+  ],
+  "working": [
+   {
+    "label": "CVA",
+    "display": "$-0.60 \\times 23.82\\times 10^{-4} \\times 150 = -0.214$",
+    "value": -0.2144
+   },
+   {
+    "label": "DVA",
+    "display": "$-0.60 \\times (-7.66\\times 10^{-4}) \\times 150 = +0.069$",
+    "value": 0.0689
+   },
+   {
+    "label": "BCVA",
+    "display": "$-0.214 + 0.069 = -\\text{EUR } 0.145\\text{m}$",
+    "value": -0.145
+   }
+  ],
+  "takeaway": "DVA offsets part of CVA but rarely all of it. Check the sign of ENE before multiplying: a negative ENE turns the DVA into a positive number.",
+  "check": {
+   "inputs": {
+    "N": 150,
+    "lgd": 0.6,
+    "sc": 23.82,
+    "sp": -7.66
+   },
+   "steps": [
+    {
+     "name": "cva",
+     "expr": "-lgd*sc*1e-4*N",
+     "value": -0.21438
+    },
+    {
+     "name": "dva",
+     "expr": "-lgd*sp*1e-4*N",
+     "value": 0.06894
+    },
+    {
+     "name": "bcva",
+     "expr": "cva+dva",
+     "value": -0.14544
+    },
+    {
+     "name": "slip_sub",
+     "expr": "cva-dva",
+     "value": -0.28332
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-16",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20g-4"
+  },
+  "trap_category": "Formula",
+  "setup": "Gregory's average-exposure approximation: $UCVA \\approx -\\overline{EPE} \\times s_C$, as a running spread. Undiscounted EPE (% of notional), years 1 to 5: 1.8, 2.6, 3.0, 2.8, 1.8. Counterparty 5-year spread 180 bp. LGD is 60%, but it is already inside the quoted spread.",
+  "ask": "The UCVA as a running spread is closest to:",
+  "options": [
+   {
+    "label": "≈ -4.3 bp p.a.",
+    "correct": true
+   },
+   {
+    "label": "≈ -2.6 bp p.a.",
+    "correct": false,
+    "why": "Applied the 60% LGD on top of a spread that already embeds it."
+   },
+   {
+    "label": "≈ -430 bp p.a.",
+    "correct": false,
+    "why": "Entered the average EPE as 2.4 instead of 0.024, a percent-as-decimal slip."
+   }
+  ],
+  "working": [
+   {
+    "label": "Average EPE",
+    "display": "$(1.8 + 2.6 + 3.0 + 2.8 + 1.8)/5 = 2.4\\%$",
+    "value": 2.4
+   },
+   {
+    "label": "UCVA",
+    "display": "$-0.024 \\times 180 = -4.32\\text{ bp}$",
+    "value": -4.32
+   }
+  ],
+  "takeaway": "Average EPE × credit spread gives CVA as a running spread. No LGD input is needed because the spread already prices it.",
+  "check": {
+   "inputs": {
+    "e1": 1.8,
+    "e2": 2.6,
+    "e3": 3.0,
+    "e4": 2.8,
+    "e5": 1.8,
+    "s": 180
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(e1+e2+e3+e4+e5)/5",
+     "value": 2.4
+    },
+    {
+     "name": "ucva",
+     "expr": "-avg/100*s",
+     "value": -4.32
+    },
+    {
+     "name": "slip_lgd",
+     "expr": "ucva*0.6",
+     "value": -2.592
+    },
+    {
+     "name": "slip_pct",
+     "expr": "-avg*s",
+     "value": -432.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-17",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20i-7"
+  },
+  "trap_category": "Scope",
+  "setup": "A new 5-year swap, notional EUR 150m, is added to an existing netting set with the same counterparty. CVA figures (EUR m, negative convention): existing netting set $-1.84$; netting set including the new swap $-2.27$; new swap on its own $-0.96$.",
+  "ask": "The upfront CVA to charge for the new swap is:",
+  "options": [
+   {
+    "label": "-EUR 0.43m",
+    "correct": true
+   },
+   {
+    "label": "-EUR 0.96m",
+    "correct": false,
+    "why": "Used the standalone CVA and ignored that the swap partly offsets the existing trades."
+   },
+   {
+    "label": "-EUR 2.27m",
+    "correct": false,
+    "why": "Charged the whole netting set's CVA to the new trade, including the part already booked."
+   }
+  ],
+  "working": [
+   {
+    "label": "Incremental CVA",
+    "display": "$-2.27 - (-1.84) = -\\text{EUR } 0.43\\text{m}$",
+    "value": -0.43
+   },
+   {
+    "label": "Versus standalone",
+    "display": "$0.43 < 0.96$: netting benefit of EUR 0.53m",
+    "value": 0.53
+   }
+  ],
+  "takeaway": "Price a new trade at its incremental CVA: the netting set with it, minus the netting set without it.",
+  "check": {
+   "inputs": {
+    "cw": -2.27,
+    "cwo": -1.84,
+    "alone": -0.96
+   },
+   "steps": [
+    {
+     "name": "inc",
+     "expr": "cw-cwo",
+     "value": -0.43
+    },
+    {
+     "name": "benefit",
+     "expr": "inc-alone",
+     "value": 0.53
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-18",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-20j-6"
+  },
+  "trap_category": "Formula",
+  "setup": "A two-way, zero-threshold CSA with daily margin on an 8-year netting set (uncollateralised CVA $-$EUR 4.2m, 250 business days a year). Best-case collateralised CVA is the uncollateralised CVA divided by $\\sqrt{\\text{maturity}/\\text{MPoR}}$. With over 5,000 trades the MPoR is 20 business days, not the usual 10.",
+  "ask": "The divisor $\\sqrt{\\text{maturity}/\\text{MPoR}}$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 10",
+    "correct": true
+   },
+   {
+    "label": "≈ 14",
+    "correct": false,
+    "why": "Used the standard 10-day MPoR, $\\sqrt{2000/10} = 14.1$. This netting set has 20 days."
+   },
+   {
+    "label": "≈ 100",
+    "correct": false,
+    "why": "Forgot the square root: $2000/20 = 100$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Maturity in days",
+    "display": "$8 \\times 250 = 2000$",
+    "value": 2000
+   },
+   {
+    "label": "Divisor",
+    "display": "$\\sqrt{2000/20} = 10$",
+    "value": 10
+   },
+   {
+    "label": "Collateralised CVA",
+    "display": "$-4.2/10 = -\\text{EUR } 0.42\\text{m}$",
+    "value": -0.42
+   }
+  ],
+  "takeaway": "A longer MPoR weakens the benefit of margining: the best case leaves about 10% of the CVA here, and reality is worse.",
+  "check": {
+   "inputs": {
+    "cva": -4.2,
+    "T": 2000,
+    "m": 20
+   },
+   "steps": [
+    {
+     "name": "div",
+     "expr": "sqrt(T/m)",
+     "value": 10.0
+    },
+    {
+     "name": "coll",
+     "expr": "cva/div",
+     "value": -0.42
+    },
+    {
+     "name": "slip_10d",
+     "expr": "sqrt(T/10)",
+     "value": 14.1421
+    },
+    {
+     "name": "slip_noroot",
+     "expr": "T/m",
+     "value": 100.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-19",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-22e-7"
+  },
+  "trap_category": "Sequence",
+  "setup": "Final year of a 5-year CLO of 100 loans of USD 1m at Libor + 350 bp, Libor flat at 5%. Senior USD 85m at Libor + 50 bp, mezzanine USD 10m at Libor + 500 bp. By year 4, 24 loans have defaulted; 6 more default in year 5 (40% recovery, paid at once). The 70 survivors pay final interest and repay at par. A recovery account (5% interest) holds USD 16.385m after year 4 and is released at maturity.",
+  "ask": "After the senior notes are paid in full (principal and final interest, USD 89.675m), the cash left for the mezzanine is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 5.9m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.5m",
+    "correct": false,
+    "why": "Left out the USD 2.4m of year-5 recoveries on the 6 new defaults."
+   },
+   {
+    "label": "≈ USD 10.0m",
+    "correct": false,
+    "why": "Counted 76 survivors, ignoring the 6 year-5 defaults. That overstates both interest and principal."
+   }
+  ],
+  "working": [
+   {
+    "label": "Recovery account",
+    "display": "$16.385 \\times 1.05 = 17.204$",
+    "value": 17.204
+   },
+   {
+    "label": "Survivor cash",
+    "display": "$70 \\times 0.085 + 70 = 75.950$",
+    "value": 75.95
+   },
+   {
+    "label": "Year-5 recoveries",
+    "display": "$0.4 \\times 6 = 2.400$",
+    "value": 2.4
+   },
+   {
+    "label": "Total funds, less senior",
+    "display": "$17.204 + 75.950 + 2.400 - 89.675 = 5.879$",
+    "value": 5.879
+   }
+  ],
+  "takeaway": "Waterfalls are paid top-down: with USD 5.9m left against USD 11.0m owed, the mezzanine loses about USD 5.1m.",
+  "check": {
+   "inputs": {
+    "oc": 16.385,
+    "surv": 70,
+    "rec": 2.4,
+    "sen": 89.675
+   },
+   "steps": [
+    {
+     "name": "oc1",
+     "expr": "oc*1.05",
+     "value": 17.2043
+    },
+    {
+     "name": "cash",
+     "expr": "surv*0.085+surv",
+     "value": 75.95
+    },
+    {
+     "name": "F",
+     "expr": "oc1+cash+rec",
+     "value": 95.5543
+    },
+    {
+     "name": "left",
+     "expr": "F-sen",
+     "value": 5.87925
+    },
+    {
+     "name": "loss",
+     "expr": "11-left",
+     "value": 5.12075
+    },
+    {
+     "name": "slip_norec",
+     "expr": "left-rec",
+     "value": 3.47925
+    },
+    {
+     "name": "slip_76",
+     "expr": "oc1+76*0.085+76-sen",
+     "value": 9.98925
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-20",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-23g-2"
+  },
+  "trap_category": "Definition",
+  "setup": "Credit card master trust, month-end receivables INR 48.0bn. Past due: 30-59 days 2.4bn; 60-89 days 1.5bn; 90-119 days 1.2bn; 120+ days 0.6bn. Receivables written off during the month: 0.36bn. For credit card ABS, a delinquent receivable is one more than 90 days past due.",
+  "ask": "The delinquency ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.04%",
+    "correct": false,
+    "why": "Divided 1.8 by 48.0 (0.0375) and wrote it as a percentage without multiplying by 100."
+   },
+   {
+    "label": "≈ 0.75%",
+    "correct": false,
+    "why": "Used the month's write-offs, $0.36/48.0$. Write-offs are the default ratio, not delinquency."
+   },
+   {
+    "label": "≈ 3.75%",
+    "correct": true
+   },
+   {
+    "label": "≈ 11.9%",
+    "correct": false,
+    "why": "Counted every past-due bucket from 30 days up ($5.7/48.0$) instead of only the 90-plus buckets."
+   }
+  ],
+  "working": [
+   {
+    "label": "Delinquent receivables",
+    "display": "$1.2 + 0.6 = \\text{INR } 1.8\\text{bn}$",
+    "value": 1.8
+   },
+   {
+    "label": "Ratio",
+    "display": "$1.8 / 48.0 = 3.75\\%$",
+    "value": 3.75
+   }
+  ],
+  "takeaway": "Delinquency ratio = 90+ day receivables / pool balance. It leads the default ratio, so a rise is an early warning for amortisation triggers.",
+  "check": {
+   "inputs": {
+    "d1": 1.2,
+    "d2": 0.6,
+    "P": 48.0,
+    "wo": 0.36,
+    "a": 2.4,
+    "b": 1.5
+   },
+   "steps": [
+    {
+     "name": "dq",
+     "expr": "d1+d2",
+     "value": 1.8
+    },
+    {
+     "name": "ratio",
+     "expr": "dq/P*100",
+     "value": 3.75
+    },
+    {
+     "name": "slip_dec",
+     "expr": "dq/P",
+     "value": 0.0375
+    },
+    {
+     "name": "slip_wo",
+     "expr": "wo/P*100",
+     "value": 0.75
+    },
+    {
+     "name": "slip_all",
+     "expr": "(a+b+d1+d2)/P*100",
+     "value": 11.875
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-21",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-23g-4"
+  },
+  "trap_category": "Definition",
+  "setup": "A credit card ABS has an early-amortisation trigger if the monthly payment rate (MPR) falls below 15.0%. MPR is the share of the pool repaid in the month, principal and interest together. This month: pool balance AUD 1,500m; principal collections 210m; finance-charge collections 27m; write-offs 6m; new receivables bought 180m.",
+  "ask": "The trigger is:",
+  "options": [
+   {
+    "label": "Not hit: MPR is just above 15%",
+    "correct": true
+   },
+   {
+    "label": "Hit: MPR is below 15%",
+    "correct": false,
+    "why": "Used principal collections only ($210/1500 = 14.0\\%$). MPR counts interest collections as well."
+   }
+  ],
+  "working": [
+   {
+    "label": "Collections",
+    "display": "$210 + 27 = \\text{AUD } 237\\text{m}$",
+    "value": 237
+   },
+   {
+    "label": "MPR",
+    "display": "$237 / 1500 = 15.8\\% \\ge 15.0\\%$",
+    "value": 15.8
+   }
+  ],
+  "takeaway": "MPR = (principal + finance-charge collections) / pool balance. Write-offs and new purchases do not enter it.",
+  "check": {
+   "inputs": {
+    "pc": 210,
+    "fc": 27,
+    "P": 1500,
+    "floor": 15.0
+   },
+   "steps": [
+    {
+     "name": "mpr",
+     "expr": "(pc+fc)/P*100",
+     "value": 15.8
+    },
+    {
+     "name": "margin",
+     "expr": "mpr-floor",
+     "value": 0.8
+    },
+    {
+     "name": "slip_prin",
+     "expr": "pc/P*100",
+     "value": 14.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-22",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-23g-5"
+  },
+  "trap_category": "Definition",
+  "setup": "An RMBS collateral pool has three loan groups: CAD 60m at 4.0% (300 months left), CAD 90m at 5.2% (240 months left) and CAD 150m at 6.0% (120 months left). The simple average of the three mortgage rates is 5.07%.",
+  "ask": "The pool's weighted average coupon (WAC), compared with 5.07%, is:",
+  "options": [
+   {
+    "label": "Above",
+    "correct": true
+   },
+   {
+    "label": "Below",
+    "correct": false,
+    "why": "The largest group (CAD 150m, half the pool) carries the highest rate, so the balance weights pull the average up, not down."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Treated the three groups as equal in size. WAC weights each rate by its balance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted interest",
+    "display": "$60(4.0\\%) + 90(5.2\\%) + 150(6.0\\%) = 16.08$",
+    "value": 16.08
+   },
+   {
+    "label": "WAC",
+    "display": "$16.08 / 300 = 5.36\\% > 5.07\\%$",
+    "value": 5.36
+   }
+  ],
+  "takeaway": "WAC weights by balance, not by group count. The remaining terms are irrelevant to WAC (they feed WAM).",
+  "check": {
+   "inputs": {
+    "b1": 60,
+    "r1": 4.0,
+    "b2": 90,
+    "r2": 5.2,
+    "b3": 150,
+    "r3": 6.0
+   },
+   "steps": [
+    {
+     "name": "wac",
+     "expr": "(b1*r1+b2*r2+b3*r3)/(b1+b2+b3)",
+     "value": 5.36
+    },
+    {
+     "name": "simple",
+     "expr": "(r1+r2+r3)/3",
+     "value": 5.06667
+    },
+    {
+     "name": "diff",
+     "expr": "wac-simple",
+     "value": 0.293333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-23",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-23h-5"
+  },
+  "trap_category": "Definition",
+  "setup": "An RMBS pool, 18 months after origination. Start-of-month balance USD 820.0m, scheduled principal 1.4m, prepayments 5.2m, so $SMM = 5.2/818.6 = 0.635\\%$ and $CPR = 7.36\\%$. To state the speed against PSA, you need the 100% PSA benchmark CPR for this month.",
+  "ask": "The 100% PSA CPR at month 18 is:",
+  "options": [
+   {
+    "label": "3.6%",
+    "correct": true
+   },
+   {
+    "label": "6.0%",
+    "correct": false,
+    "why": "Used the 6% plateau, which applies only from month 30. At month 18 the pool is still on the seasoning ramp."
+   },
+   {
+    "label": "0.2%",
+    "correct": false,
+    "why": "Used the ramp step of 0.2% per month without multiplying by the 18 months of seasoning."
+   }
+  ],
+  "working": [
+   {
+    "label": "SMM",
+    "display": "$5.2 / (820.0 - 1.4) = 0.635\\%$",
+    "value": 0.6352
+   },
+   {
+    "label": "CPR",
+    "display": "$1 - (1 - 0.00635)^{12} = 7.36\\%$",
+    "value": 7.36
+   },
+   {
+    "label": "Benchmark at month 18",
+    "display": "$0.2\\% \\times 18 = 3.6\\%$",
+    "value": 3.6
+   },
+   {
+    "label": "PSA speed",
+    "display": "$7.36/3.6 \\times 100 \\approx 204\\%\\text{ PSA}$",
+    "value": 204
+   }
+  ],
+  "takeaway": "100% PSA ramps 0.2% a month to 6% at month 30. Early in a pool's life that ramp, not 6%, is the denominator.",
+  "check": {
+   "inputs": {
+    "bal": 820.0,
+    "sch": 1.4,
+    "pre": 5.2,
+    "m": 18
+   },
+   "steps": [
+    {
+     "name": "smm",
+     "expr": "pre/(bal-sch)",
+     "value": 0.00635231
+    },
+    {
+     "name": "cpr",
+     "expr": "100*(1-(1-smm)^12)",
+     "value": 7.36201
+    },
+    {
+     "name": "bench",
+     "expr": "0.2*m",
+     "value": 3.6
+    },
+    {
+     "name": "psa",
+     "expr": "cpr/bench*100",
+     "value": 204.5
+    },
+    {
+     "name": "slip_plateau",
+     "expr": "cpr/6*100",
+     "value": 122.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-24",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0096"
+  },
+  "trap_category": "Scope",
+  "setup": "A portfolio of two bonds: A is GBP 1.0m (PD 4%, recovery 70%), B is GBP 0.8m (PD 6%, recovery 60%). Their default correlation is 25%, with joint default probability 1.45%. Correlation then rises to 50%.",
+  "ask": "The portfolio's expected credit loss:",
+  "options": [
+   {
+    "label": "Is unchanged",
+    "correct": true
+   },
+   {
+    "label": "Rises",
+    "correct": false,
+    "why": "Mixed up expected loss with unexpected loss. Correlation fattens the loss tail (VaR, UL) but expected loss is a sum of means."
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Same mix-up in the other direction: more correlation never lowers the sum of the individual expected losses."
+   }
+  ],
+  "working": [
+   {
+    "label": "EL of A",
+    "display": "$1{,}000{,}000 \\times 0.04 \\times 0.30 = 12{,}000$",
+    "value": 12000
+   },
+   {
+    "label": "EL of B",
+    "display": "$800{,}000 \\times 0.06 \\times 0.40 = 19{,}200$",
+    "value": 19200
+   },
+   {
+    "label": "Portfolio EL",
+    "display": "$12{,}000 + 19{,}200 = 31{,}200$, whatever the correlation",
+    "value": 31200
+   }
+  ],
+  "takeaway": "Expected loss is additive and does not depend on default correlation. Correlation drives the spread of losses, not their mean.",
+  "check": {
+   "inputs": {
+    "vA": 1000000,
+    "pA": 0.04,
+    "rA": 0.7,
+    "vB": 800000,
+    "pB": 0.06,
+    "rB": 0.6
+   },
+   "steps": [
+    {
+     "name": "elA",
+     "expr": "vA*pA*(1-rA)",
+     "value": 12000.0
+    },
+    {
+     "name": "elB",
+     "expr": "vB*pB*(1-rB)",
+     "value": 19200.0
+    },
+    {
+     "name": "el",
+     "expr": "elA+elB",
+     "value": 31200.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq06-25",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0097"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 200m bond portfolio: AA bonds USD 120m (1-year PD 4%, recovery 65%) and BB bonds USD 80m (PD 6%, recovery 40%). Defaults are independent.",
+  "ask": "Which bucket contributes more to the one-year expected loss?",
+  "options": [
+   {
+    "label": "BB, despite being the smaller holding",
+    "correct": true
+   },
+   {
+    "label": "AA, because it is the larger holding",
+    "correct": false,
+    "why": "Looked at exposure alone. BB has 1.5× the PD and 1.7× the loss rate (60% against 35%), which outweighs AA's 1.5× larger balance."
+   },
+   {
+    "label": "They contribute equally",
+    "correct": false,
+    "why": "Neither bucket's EL matches: 1.68m for AA against 2.88m for BB."
+   }
+  ],
+  "working": [
+   {
+    "label": "AA",
+    "display": "$120 \\times 0.04 \\times 0.35 = \\text{USD } 1.68\\text{m}$",
+    "value": 1.68
+   },
+   {
+    "label": "BB",
+    "display": "$80 \\times 0.06 \\times 0.60 = \\text{USD } 2.88\\text{m}$",
+    "value": 2.88
+   },
+   {
+    "label": "Portfolio EL",
+    "display": "$1.68 + 2.88 = \\text{USD } 4.56\\text{m}$",
+    "value": 4.56
+   }
+  ],
+  "takeaway": "Loss rate is 1 minus recovery, and EL = EAD × PD × loss rate for each bucket. A smaller, riskier bucket can dominate.",
+  "check": {
+   "inputs": {
+    "eA": 120,
+    "pA": 0.04,
+    "rA": 0.65,
+    "eB": 80,
+    "pB": 0.06,
+    "rB": 0.4
+   },
+   "steps": [
+    {
+     "name": "elA",
+     "expr": "eA*pA*(1-rA)",
+     "value": 1.68
+    },
+    {
+     "name": "elB",
+     "expr": "eB*pB*(1-rB)",
+     "value": 2.88
+    },
+    {
+     "name": "el",
+     "expr": "elA+elB",
+     "value": 4.56
+    },
+    {
+     "name": "slip_rec",
+     "expr": "eA*pA*rA+eB*pB*rB",
+     "value": 5.04
+    }
+   ]
+  }
+ }
+]

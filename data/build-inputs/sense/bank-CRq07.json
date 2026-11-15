@@ -1,0 +1,1693 @@
+[
+ {
+  "id": "SC-bank-CRq07-01",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0098"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 50m bond book holds USD 30m of AA paper (1-year PD 1%, recovery 80%) and USD 20m of BB paper (1-year PD 2.5%, recovery 60%). You are building the 1-year expected credit loss bucket by bucket.",
+  "ask": "Which bucket contributes more to the expected loss?",
+  "options": [
+   {
+    "label": "BB, roughly three times as much as AA",
+    "correct": true
+   },
+   {
+    "label": "AA, because it is the larger holding",
+    "correct": false,
+    "why": "Looked at exposure alone. BB has 2.5 times the default probability and twice the loss rate (40% against 20%), which more than offsets its smaller size."
+   },
+   {
+    "label": "About the same",
+    "correct": false,
+    "why": "Assumed the smaller BB position offsets its higher PD. Done properly it is USD 60,000 for AA against USD 200,000 for BB."
+   }
+  ],
+  "working": [
+   {
+    "label": "AA bucket",
+    "display": "$30\\text{m} \\times 1\\% \\times (1-0.80) = 60{,}000$",
+    "value": 60000.0
+   },
+   {
+    "label": "BB bucket",
+    "display": "$20\\text{m} \\times 2.5\\% \\times (1-0.60) = 200{,}000$",
+    "value": 200000.0
+   },
+   {
+    "label": "Ratio",
+    "display": "$200{,}000 / 60{,}000 \\approx 3.3$",
+    "value": 3.33333
+   }
+  ],
+  "takeaway": "Expected loss is exposure x PD x loss rate. A riskier name can dominate the total even when it is the smaller position.",
+  "check": {
+   "inputs": {
+    "xA": 30000000.0,
+    "xB": 20000000.0,
+    "pA": 0.01,
+    "pB": 0.025,
+    "rA": 0.8,
+    "rB": 0.6
+   },
+   "steps": [
+    {
+     "name": "elAA",
+     "expr": "xA*pA*(1-rA)",
+     "value": 60000.0
+    },
+    {
+     "name": "elBB",
+     "expr": "xB*pB*(1-rB)",
+     "value": 200000.0
+    },
+    {
+     "name": "ratio",
+     "expr": "elBB/elAA",
+     "value": 3.33333
+    },
+    {
+     "name": "total",
+     "expr": "elAA+elBB",
+     "value": 260000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-02",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0105"
+  },
+  "trap_category": "Formula",
+  "setup": "One-year bond portfolio: USD 7m of Taylor (PD 6%, recovery 80%) and USD 9m of Simon (PD 5%, recovery 90%).",
+  "ask": "Portfolio expected loss from default is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 45,000",
+    "correct": false,
+    "why": "Counted only Simon (9m x 5% x 10% = 45,000) and left out the Taylor leg."
+   },
+   {
+    "label": "≈ USD 130,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 870,000",
+    "correct": false,
+    "why": "Used exposure x PD and never applied the loss rate (1 - recovery): 420,000 + 450,000."
+   },
+   {
+    "label": "≈ USD 2,300,000",
+    "correct": false,
+    "why": "Used exposure x loss rate and never applied the default probability: 1.4m + 0.9m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Taylor",
+    "display": "$7\\text{m} \\times 6\\% \\times 20\\% = 84{,}000$",
+    "value": 84000.0
+   },
+   {
+    "label": "Simon",
+    "display": "$9\\text{m} \\times 5\\% \\times 10\\% = 45{,}000$",
+    "value": 45000.0
+   },
+   {
+    "label": "Portfolio",
+    "display": "$84{,}000 + 45{,}000 = 129{,}000$",
+    "value": 129000.0
+   }
+  ],
+  "takeaway": "EL needs all three ingredients (exposure, PD, 1 - recovery) and is additive across positions.",
+  "check": {
+   "inputs": {
+    "xT": 7000000.0,
+    "pT": 0.06,
+    "rT": 0.8,
+    "xS": 9000000.0,
+    "pS": 0.05,
+    "rS": 0.9
+   },
+   "steps": [
+    {
+     "name": "elT",
+     "expr": "xT*pT*(1-rT)",
+     "value": 84000.0
+    },
+    {
+     "name": "elS",
+     "expr": "xS*pS*(1-rS)",
+     "value": 45000.0
+    },
+    {
+     "name": "el",
+     "expr": "elT+elS",
+     "value": 129000.0
+    },
+    {
+     "name": "slip_one_leg",
+     "expr": "elS",
+     "value": 45000.0
+    },
+    {
+     "name": "slip_no_lgd",
+     "expr": "xT*pT+xS*pS",
+     "value": 870000.0
+    },
+    {
+     "name": "slip_no_pd",
+     "expr": "xT*(1-rT)+xS*(1-rS)",
+     "value": 2300000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-03",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0106"
+  },
+  "trap_category": "Scope",
+  "setup": "Two one-year bonds. Bond 1: USD 500,000, PD 5%, recovery 50%. Bond 2: USD 300,000, PD 3%, recovery 30%. The two default together with probability 2%, and their default correlation is 25%.",
+  "ask": "How does the portfolio expected loss compare with the sum of the two stand-alone expected losses?",
+  "options": [
+   {
+    "label": "Equal to the sum",
+    "correct": true
+   },
+   {
+    "label": "Higher than the sum, because the defaults are positively correlated",
+    "correct": false,
+    "why": "Mixed up expected loss with unexpected loss. Correlation fattens the tail of the loss distribution; it does not move the mean."
+   },
+   {
+    "label": "Lower than the sum, because joint defaults overlap",
+    "correct": false,
+    "why": "Treated the 2% joint default as double counting. Expectations add whatever the dependence, so nothing is netted off."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond 1",
+    "display": "$500{,}000 \\times 5\\% \\times 50\\% = 12{,}500$",
+    "value": 12500.0
+   },
+   {
+    "label": "Bond 2",
+    "display": "$300{,}000 \\times 3\\% \\times 70\\% = 6{,}300$",
+    "value": 6300.0
+   },
+   {
+    "label": "Portfolio",
+    "display": "$12{,}500 + 6{,}300 = 18{,}800$ (joint-default data not needed)",
+    "value": 18800.0
+   }
+  ],
+  "takeaway": "Expectation is linear: portfolio EL is the sum of the parts. Correlation matters for unexpected loss, not EL.",
+  "check": {
+   "inputs": {
+    "x1": 500000,
+    "p1": 0.05,
+    "r1": 0.5,
+    "x2": 300000,
+    "p2": 0.03,
+    "r2": 0.3
+   },
+   "steps": [
+    {
+     "name": "el1",
+     "expr": "x1*p1*(1-r1)",
+     "value": 12500.0
+    },
+    {
+     "name": "el2",
+     "expr": "x2*p2*(1-r2)",
+     "value": 6300.0
+    },
+    {
+     "name": "el",
+     "expr": "el1+el2",
+     "value": 18800.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-04",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0356"
+  },
+  "trap_category": "Sequence",
+  "setup": "A firm's only debt is a 5-year zero-coupon bond with face value USD 100m, trading at USD 88m. The risk-free rate is 1%, continuously compounded. You are partway through finding the credit spread.",
+  "ask": "The bond's continuously compounded yield, before the risk-free rate is taken off, is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.6% a year",
+    "correct": true
+   },
+   {
+    "label": "≈ 12.8% a year",
+    "correct": false,
+    "why": "Used $-\\ln(0.88)$ as it stands and forgot to divide by the 5 years, so the figure is a total over five years, not a yearly rate."
+   },
+   {
+    "label": "≈ 1.6% a year",
+    "correct": false,
+    "why": "That is the spread, not the yield. The risk-free 1% has already been subtracted, which is the last step."
+   }
+  ],
+  "working": [
+   {
+    "label": "Price ratio",
+    "display": "$88/100 = 0.88$",
+    "value": 0.88
+   },
+   {
+    "label": "Yield",
+    "display": "$y = -\\ln(0.88)/5 = 2.56\\%$",
+    "value": 0.0255667
+   },
+   {
+    "label": "Spread (next step)",
+    "display": "$2.56\\% - 1\\% = 1.56\\%$",
+    "value": 0.0155667
+   }
+  ],
+  "takeaway": "A zero-coupon yield is $-\\ln(P/F)/T$. Divide by T first, then subtract the risk-free rate.",
+  "check": {
+   "inputs": {
+    "P": 88,
+    "F": 100,
+    "T": 5,
+    "rf": 0.01
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "P/F",
+     "value": 0.88
+    },
+    {
+     "name": "y",
+     "expr": "-ln(ratio)/T",
+     "value": 0.0255667
+    },
+    {
+     "name": "spread",
+     "expr": "y-rf",
+     "value": 0.0155667
+    },
+    {
+     "name": "slip_no_T",
+     "expr": "-ln(ratio)",
+     "value": 0.127833
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-05",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0357"
+  },
+  "trap_category": "Formula",
+  "setup": "A firm's only debt is a 6-year zero-coupon bond with face value USD 200m, now worth USD 110m. The risk-free rate is 5%, continuously compounded.",
+  "ask": "The credit spread on the bond (continuous compounding) is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.7% a year",
+    "correct": false,
+    "why": "Divided by the 6 years twice: the 9.96% yield became 1.66%, and the risk-free rate was then ignored."
+   },
+   {
+    "label": "≈ 5.0% a year",
+    "correct": true
+   },
+   {
+    "label": "≈ 13.6% a year",
+    "correct": false,
+    "why": "Used simple growth, (200/110 - 1)/6, as the yield and never subtracted the 5% risk-free rate."
+   },
+   {
+    "label": "≈ 54.8% a year",
+    "correct": false,
+    "why": "Skipped the division by 6 years: $\\ln(200/110) - 5\\% = 54.8\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Log price ratio",
+    "display": "$\\ln(200/110) = 0.598$",
+    "value": 0.597837
+   },
+   {
+    "label": "Yield",
+    "display": "$0.598/6 = 9.96\\%$",
+    "value": 0.0996395
+   },
+   {
+    "label": "Spread",
+    "display": "$9.96\\% - 5\\% = 4.96\\%$",
+    "value": 0.0496395
+   }
+  ],
+  "takeaway": "Spread = $-\\ln(P/F)/T - r_f$. Both the 1/T and the subtraction are needed; a spread of tens of percent is a missing 1/T.",
+  "check": {
+   "inputs": {
+    "P": 110,
+    "F": 200,
+    "T": 6,
+    "rf": 0.05
+   },
+   "steps": [
+    {
+     "name": "L",
+     "expr": "ln(F/P)",
+     "value": 0.597837
+    },
+    {
+     "name": "y",
+     "expr": "L/T",
+     "value": 0.0996395
+    },
+    {
+     "name": "spread",
+     "expr": "y-rf",
+     "value": 0.0496395
+    },
+    {
+     "name": "slip_double_T",
+     "expr": "y/T",
+     "value": 0.0166066
+    },
+    {
+     "name": "slip_simple",
+     "expr": "(F/P-1)/T",
+     "value": 0.136364
+    },
+    {
+     "name": "slip_no_T",
+     "expr": "L-rf",
+     "value": 0.547837
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-06",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0359"
+  },
+  "trap_category": "Sign",
+  "setup": "Debt with 5 years to maturity has face value USD 1,000 and trades at USD 834. The risk-free rate is 2%, continuously compounded.",
+  "ask": "The credit spread on this debt is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Spread is zero only if the price equals the riskless value, $1000e^{-0.02 \\times 5} = 904.84$. The market price is well below that."
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Read the price discount to face (834 against 1,000) as a sign of a low yield. A lower price than the riskless value means a higher yield, so a positive spread."
+   }
+  ],
+  "working": [
+   {
+    "label": "Riskless price",
+    "display": "$1000e^{-0.02\\times5} = 904.84$",
+    "value": 904.837
+   },
+   {
+    "label": "Market price",
+    "display": "$834 < 904.84$, so the yield exceeds 2%",
+    "value": null
+   },
+   {
+    "label": "Spread",
+    "display": "$-\\ln(0.834)/5 - 2\\% = 1.63\\%$",
+    "value": 0.0163044
+   }
+  ],
+  "takeaway": "Price below the riskless value of the same cash flow means yield above the risk-free rate, so the spread is positive.",
+  "check": {
+   "inputs": {
+    "P": 834,
+    "F": 1000,
+    "T": 5,
+    "rf": 0.02
+   },
+   "steps": [
+    {
+     "name": "pRf",
+     "expr": "F*exp(-rf*T)",
+     "value": 904.837
+    },
+    {
+     "name": "spread",
+     "expr": "-ln(P/F)/T-rf",
+     "value": 0.0163044
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0358"
+  },
+  "trap_category": "Scope",
+  "setup": "A 5-year zero-coupon bond with face value USD 100m was issued two years ago and now trades at USD 80m. Its credit spread is 2%, continuously compounded. You want the risk-free rate implied by these data.",
+  "ask": "Which maturity goes into $y = -\\ln(P/F)/T$?",
+  "options": [
+   {
+    "label": "3 years, the time still remaining",
+    "correct": true
+   },
+   {
+    "label": "5 years, the original maturity",
+    "correct": false,
+    "why": "Used the original term. The price is today's, so T is what remains to maturity. This gives y = 4.46% and a risk-free rate of 2.46%."
+   },
+   {
+    "label": "2 years, the time elapsed since issue",
+    "correct": false,
+    "why": "Used the age of the bond. Age plays no part in discounting the remaining payment."
+   }
+  ],
+  "working": [
+   {
+    "label": "Remaining term",
+    "display": "$T = 5 - 2 = 3$ years",
+    "value": 3.0
+   },
+   {
+    "label": "Yield",
+    "display": "$y = -\\ln(0.80)/3 = 7.44\\%$",
+    "value": 0.0743812
+   },
+   {
+    "label": "Risk-free",
+    "display": "$7.44\\% - 2\\% = 5.44\\%$",
+    "value": 0.0543812
+   }
+  ],
+  "takeaway": "Discount over the time remaining, not the original term. The yield is 7.44% and the risk-free rate 5.44%.",
+  "check": {
+   "inputs": {
+    "P": 80,
+    "F": 100,
+    "life": 5,
+    "age": 2,
+    "sp": 0.02
+   },
+   "steps": [
+    {
+     "name": "T",
+     "expr": "life-age",
+     "value": 3.0
+    },
+    {
+     "name": "y",
+     "expr": "-ln(P/F)/T",
+     "value": 0.0743812
+    },
+    {
+     "name": "rf",
+     "expr": "y-sp",
+     "value": 0.0543812
+    },
+    {
+     "name": "slip_orig",
+     "expr": "-ln(P/F)/life-sp",
+     "value": 0.0246287
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0419"
+  },
+  "trap_category": "Definition",
+  "setup": "A firm's only debt is a 1-year zero-coupon bond with face value USD 800m. A Merton-type model gives an expected loss of USD 8.4m and a 0.1% quantile of the bond's future value of USD 503m. Credit VaR is defined as the 99.9th percentile loss in excess of the expected loss.",
+  "ask": "Compared with the 99.9th percentile loss of USD 297m (800 - 503), the credit VaR is:",
+  "options": [
+   {
+    "label": "Smaller, by the USD 8.4m expected loss",
+    "correct": true
+   },
+   {
+    "label": "Equal, since both measure the worst case",
+    "correct": false,
+    "why": "Ignored the \"in excess of the expected loss\" part of the definition. Credit VaR here is a deviation from the mean, not the raw tail loss."
+   },
+   {
+    "label": "Larger, by the USD 8.4m expected loss",
+    "correct": false,
+    "why": "Added EL instead of subtracting it: 297 + 8.4 = 305.4."
+   }
+  ],
+  "working": [
+   {
+    "label": "99.9th percentile loss",
+    "display": "$800 - 503 = 297$",
+    "value": 297.0
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$297 - 8.4 = 288.6$",
+    "value": 288.6
+   }
+  ],
+  "takeaway": "When credit VaR is defined as the tail loss in excess of EL, always take EL off the percentile loss.",
+  "check": {
+   "inputs": {
+    "F": 800,
+    "q": 503,
+    "el": 8.4
+   },
+   "steps": [
+    {
+     "name": "loss",
+     "expr": "F-q",
+     "value": 297.0
+    },
+    {
+     "name": "var",
+     "expr": "loss-el",
+     "value": 288.6
+    },
+    {
+     "name": "slip_add",
+     "expr": "loss+el",
+     "value": 305.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-09",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0424"
+  },
+  "trap_category": "Scope",
+  "setup": "A USD 1m credit book is cut into ten equal USD 100,000 positions, all of them claims on the same obligor. The obligor has a 1-year default probability of 5% and recovery is zero. Credit VaR is the 99th percentile loss minus the expected loss.",
+  "ask": "The 99th percentile loss is closest to:",
+  "options": [
+   {
+    "label": "USD 1,000,000",
+    "correct": true
+   },
+   {
+    "label": "USD 100,000",
+    "correct": false,
+    "why": "Assumed one position defaults at a time, as if diversified. All ten sit on one obligor and default together."
+   },
+   {
+    "label": "USD 50,000",
+    "correct": false,
+    "why": "That is the expected loss (5% x 1m), not a percentile."
+   },
+   {
+    "label": "USD 0",
+    "correct": false,
+    "why": "No loss occurs 95% of the time, but a 99th percentile needs 99% coverage. The loss only takes the values 0 and 1m, so the percentile is 1m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss distribution",
+    "display": "Loss = 0 with probability 95%, USD 1m with probability 5%",
+    "value": null
+   },
+   {
+    "label": "Percentile test",
+    "display": "$P(\\text{loss}=0) = 95\\% < 99\\%$, so the 99th percentile is USD 1m",
+    "value": 0.95
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$1{,}000{,}000 - 50{,}000 = 950{,}000$",
+    "value": 950000.0
+   }
+  ],
+  "takeaway": "One obligor means one perfectly correlated bet: the loss is all or nothing, and a 5% default chance puts the whole exposure at the 99th percentile.",
+  "check": {
+   "inputs": {
+    "X": 1000000,
+    "pd": 0.05,
+    "conf": 0.99
+   },
+   "steps": [
+    {
+     "name": "pz",
+     "expr": "1-pd",
+     "value": 0.95
+    },
+    {
+     "name": "el",
+     "expr": "X*pd",
+     "value": 50000.0
+    },
+    {
+     "name": "var",
+     "expr": "X-el",
+     "value": 950000.0
+    },
+    {
+     "name": "slip_el",
+     "expr": "el",
+     "value": 50000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-10",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0425"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A portfolio holds one 1-year zero-coupon bond with face value USD 6.5m. Its 1-year default probability is 7% and recovery is 88%. Credit VaR (99%) is the 99th percentile loss minus the expected loss.",
+  "ask": "The 99% credit VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 7,300",
+    "correct": false,
+    "why": "Scale slip (1/100): a percent-versus-decimal mix-up."
+   },
+   {
+    "label": "≈ USD 55,000",
+    "correct": false,
+    "why": "Reported the expected loss (7% x 780,000) instead of the percentile loss less EL."
+   },
+   {
+    "label": "≈ USD 725,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 6,045,000",
+    "correct": false,
+    "why": "Forgot the 88% recovery, so the loss on default was the full 6.5m: 6.5m - 455,000."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss on default",
+    "display": "$6.5\\text{m} \\times (1-0.88) = 780{,}000$",
+    "value": 780000.0
+   },
+   {
+    "label": "99th percentile loss",
+    "display": "7% > 1%, so the percentile loss is 780,000",
+    "value": null
+   },
+   {
+    "label": "Expected loss",
+    "display": "$7\\% \\times 780{,}000 = 54{,}600$",
+    "value": 54600.0
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$780{,}000 - 54{,}600 = 725{,}400$",
+    "value": 725400.0
+   }
+  ],
+  "takeaway": "With a single bond whose PD exceeds the tail probability, the percentile loss is the full loss given default; credit VaR is that minus EL.",
+  "check": {
+   "inputs": {
+    "F": 6500000,
+    "pd": 0.07,
+    "rec": 0.88
+   },
+   "steps": [
+    {
+     "name": "lgd",
+     "expr": "F*(1-rec)",
+     "value": 780000.0
+    },
+    {
+     "name": "el",
+     "expr": "pd*lgd",
+     "value": 54600.0
+    },
+    {
+     "name": "var",
+     "expr": "lgd-el",
+     "value": 725400.0
+    },
+    {
+     "name": "slip_no_rec",
+     "expr": "F-pd*F",
+     "value": 6045000.0
+    },
+    {
+     "name": "slip_el_only",
+     "expr": "el",
+     "value": 54600.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "var/100",
+     "value": 7254.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-11",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0428"
+  },
+  "trap_category": "Definition",
+  "setup": "A homogeneous loan book has EAD USD 350m, an expected default rate of 2.5% and recovery of 60%. The 99.9% worst-case default rate (WCDR) is 10.25%. Here credit VaR is defined as the loss not exceeded at 99.9%, namely WCDR x EAD x LGD.",
+  "ask": "Compared with the unexpected loss (worst-case loss minus expected loss), this credit VaR is:",
+  "options": [
+   {
+    "label": "Larger, by the expected loss (USD 3.5m)",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed credit VaR always nets off EL. Under this definition it is the whole worst-case loss, so EL stays inside it."
+   },
+   {
+    "label": "Smaller, by the expected loss",
+    "correct": false,
+    "why": "Reversed the comparison: the unexpected loss is the one with EL removed, so it is the smaller figure."
+   }
+  ],
+  "working": [
+   {
+    "label": "LGD",
+    "display": "$1 - 0.60 = 0.40$",
+    "value": 0.4
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$0.1025 \\times 350 \\times 0.40 = 14.35$",
+    "value": 14.35
+   },
+   {
+    "label": "Expected loss",
+    "display": "$0.025 \\times 350 \\times 0.40 = 3.50$",
+    "value": 3.5
+   },
+   {
+    "label": "Unexpected loss",
+    "display": "$14.35 - 3.50 = 10.85$",
+    "value": 10.85
+   }
+  ],
+  "takeaway": "Check which definition the question states: WCDR x EAD x LGD includes EL; the unexpected-loss version takes it off.",
+  "check": {
+   "inputs": {
+    "EAD": 350,
+    "pd": 0.025,
+    "rec": 0.6,
+    "wcdr": 0.1025
+   },
+   "steps": [
+    {
+     "name": "lgd",
+     "expr": "1-rec",
+     "value": 0.4
+    },
+    {
+     "name": "var",
+     "expr": "wcdr*EAD*lgd",
+     "value": 14.35
+    },
+    {
+     "name": "el",
+     "expr": "pd*EAD*lgd",
+     "value": 3.5
+    },
+    {
+     "name": "ul",
+     "expr": "var-el",
+     "value": 10.85
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-12",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0429"
+  },
+  "trap_category": "Formula",
+  "setup": "Two loans. Loan 1: EAD USD 200m, LGD 45%, PD 2%, 99.9% WCDR 8%. Loan 2: EAD USD 100m, LGD 60%, PD 3%, 99.9% WCDR 12%. Credit VaR is the sum of the loans' worst-case losses, WCDR x EAD x LGD.",
+  "ask": "The 1-year 99.9% credit VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.4 million",
+    "correct": false,
+    "why": "Decimal slip: entered the WCDRs as 0.8% and 1.2%, ten times too small."
+   },
+   {
+    "label": "≈ USD 3.6 million",
+    "correct": false,
+    "why": "Used the average PDs (2% and 3%) in place of the worst-case rates, which gives the expected loss."
+   },
+   {
+    "label": "≈ USD 14 million",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 36 million",
+    "correct": false,
+    "why": "Applied the 12% WCDR to the whole USD 300m and skipped LGD."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loan 1",
+    "display": "$0.08 \\times 200 \\times 0.45 = 7.2$",
+    "value": 7.2
+   },
+   {
+    "label": "Loan 2",
+    "display": "$0.12 \\times 100 \\times 0.60 = 7.2$",
+    "value": 7.2
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$7.2 + 7.2 = 14.4$",
+    "value": 14.4
+   }
+  ],
+  "takeaway": "Worst-case loss per loan is WCDR x EAD x LGD. Swap in PD and you get the expected loss, far below the tail figure.",
+  "check": {
+   "inputs": {
+    "e1": 200,
+    "l1": 0.45,
+    "p1": 0.02,
+    "w1": 0.08,
+    "e2": 100,
+    "l2": 0.6,
+    "p2": 0.03,
+    "w2": 0.12
+   },
+   "steps": [
+    {
+     "name": "v1",
+     "expr": "w1*e1*l1",
+     "value": 7.2
+    },
+    {
+     "name": "v2",
+     "expr": "w2*e2*l2",
+     "value": 7.2
+    },
+    {
+     "name": "var",
+     "expr": "v1+v2",
+     "value": 14.4
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "var/10",
+     "value": 1.44
+    },
+    {
+     "name": "slip_el",
+     "expr": "p1*e1*l1+p2*e2*l2",
+     "value": 3.6
+    },
+    {
+     "name": "slip_full_book",
+     "expr": "w2*(e1+e2)",
+     "value": 36.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-13",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0468"
+  },
+  "trap_category": "Formula",
+  "setup": "Two borrowers, A and B, each have a 9.0% probability of default. Their default correlation is 0.28.",
+  "ask": "The joint probability that both default is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.81%",
+    "correct": false,
+    "why": "Assumed independence: $0.09 \\times 0.09$. The positive correlation was ignored."
+   },
+   {
+    "label": "≈ 3.1%",
+    "correct": true
+   },
+   {
+    "label": "≈ 9.0%",
+    "correct": false,
+    "why": "Used the perfect-correlation limit, where B defaults whenever A does."
+   },
+   {
+    "label": "≈ 28%",
+    "correct": false,
+    "why": "Read the correlation 0.28 as the joint probability."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independent part",
+    "display": "$0.09 \\times 0.09 = 0.0081$",
+    "value": 0.0081
+   },
+   {
+    "label": "Correlation part",
+    "display": "$0.28 \\times 0.09 \\times 0.91 = 0.0229$",
+    "value": 0.022932
+   },
+   {
+    "label": "Joint PD",
+    "display": "$0.0081 + 0.0229 = 0.0310$",
+    "value": 0.031032
+   }
+  ],
+  "takeaway": "Joint PD = $\\pi_1\\pi_2 + \\rho\\sigma_1\\sigma_2$. At correlation 0.28 the covariance term is almost three times the independent one.",
+  "check": {
+   "inputs": {
+    "p": 0.09,
+    "rho": 0.28
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "p*p",
+     "value": 0.0081
+    },
+    {
+     "name": "cov",
+     "expr": "rho*p*(1-p)",
+     "value": 0.022932
+    },
+    {
+     "name": "joint",
+     "expr": "ind+cov",
+     "value": 0.031032
+    },
+    {
+     "name": "slip_indep",
+     "expr": "ind",
+     "value": 0.0081
+    },
+    {
+     "name": "slip_perfect",
+     "expr": "p",
+     "value": 0.09
+    },
+    {
+     "name": "slip_rho",
+     "expr": "rho",
+     "value": 0.28
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-14",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0472"
+  },
+  "trap_category": "Scope",
+  "setup": "Companies A and B have default probabilities of 5% and 10%. Their default correlation is 0.6, a high value.",
+  "ask": "The joint probability of default lies:",
+  "options": [
+   {
+    "label": "Between 0.5% and 5%",
+    "correct": true
+   },
+   {
+    "label": "Below 0.5%",
+    "correct": false,
+    "why": "Took 0.5% (the independent product 5% x 10%) as the ceiling. A positive correlation pushes the joint PD above it."
+   },
+   {
+    "label": "Above 5%",
+    "correct": false,
+    "why": "Added the PDs or let the correlation inflate it past A's own PD. Both must default, so it cannot exceed the smaller PD of 5%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Floor (independence)",
+    "display": "$0.05 \\times 0.10 = 0.5\\%$",
+    "value": 0.005
+   },
+   {
+    "label": "Cap",
+    "display": "$\\min(5\\%, 10\\%) = 5\\%$",
+    "value": 0.05
+   },
+   {
+    "label": "Joint PD at $\\rho = 0.6$",
+    "display": "$0.005 + 0.6\\sqrt{0.05 \\times 0.95 \\times 0.10 \\times 0.90} = 4.42\\%$",
+    "value": 0.0442301
+   }
+  ],
+  "takeaway": "Joint PD is bounded: at least the independent product (for positive correlation) and at most the smaller of the two PDs.",
+  "check": {
+   "inputs": {
+    "pA": 0.05,
+    "pB": 0.1,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "pA*pB",
+     "value": 0.005
+    },
+    {
+     "name": "cap",
+     "expr": "min(pA,pB)",
+     "value": 0.05
+    },
+    {
+     "name": "joint",
+     "expr": "ind+rho*sqrt(pA*(1-pA)*pB*(1-pB))",
+     "value": 0.0442301
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-15",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0477"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two credits have default probabilities of 0.4% and 1.0%, with default correlation 10%. You build the joint PD from two terms: the independent product $\\pi_1\\pi_2$ and the correlation term $\\rho\\sigma_1\\sigma_2$.",
+  "ask": "Which term is larger?",
+  "options": [
+   {
+    "label": "The correlation term, by roughly 15 times",
+    "correct": true
+   },
+   {
+    "label": "The independent product, because the PDs are small",
+    "correct": false,
+    "why": "Compared the PDs as small numbers. The standard deviations $\\sqrt{\\pi(1-\\pi)}$ are about 6% and 10%, far larger than the PDs, so the correlation term wins."
+   },
+   {
+    "label": "They are about equal",
+    "correct": false,
+    "why": "Neither term is close: 0.0628% against 0.004%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independent term",
+    "display": "$0.004 \\times 0.010 = 0.00004$",
+    "value": 4e-05
+   },
+   {
+    "label": "Std devs",
+    "display": "$\\sqrt{0.004 \\times 0.996}\\sqrt{0.010 \\times 0.990} = 0.00628$",
+    "value": 0.00628025
+   },
+   {
+    "label": "Correlation term",
+    "display": "$0.10 \\times 0.00628 = 0.000628$",
+    "value": 0.000628025
+   },
+   {
+    "label": "Joint PD",
+    "display": "$0.00004 + 0.000628 = 0.000668$",
+    "value": 0.000668025
+   }
+  ],
+  "takeaway": "For rare defaults the standard deviations are roughly the square roots of the PDs, so the correlation term dwarfs $\\pi_1\\pi_2$ even at modest correlation.",
+  "check": {
+   "inputs": {
+    "p1": 0.004,
+    "p2": 0.01,
+    "rho": 0.1
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "p1*p2",
+     "value": 4e-05
+    },
+    {
+     "name": "ss",
+     "expr": "sqrt(p1*(1-p1))*sqrt(p2*(1-p2))",
+     "value": 0.00628025
+    },
+    {
+     "name": "cor",
+     "expr": "rho*ss",
+     "value": 0.000628025
+    },
+    {
+     "name": "joint",
+     "expr": "ind+cor",
+     "value": 0.000668025
+    },
+    {
+     "name": "ratio",
+     "expr": "cor/ind",
+     "value": 15.7006
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-16",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0474"
+  },
+  "trap_category": "Definition",
+  "setup": "Loans to X and Y have default probabilities of 10% and 4%. The probability that both default is 3.93%. Independence would give 0.4%, and the largest possible joint probability is 4%.",
+  "ask": "The implied default correlation is:",
+  "options": [
+   {
+    "label": "High, above 0.5",
+    "correct": true
+   },
+   {
+    "label": "Close to zero",
+    "correct": false,
+    "why": "Looked at the small joint probability in absolute terms. It must be compared with the 0.4% independence benchmark, and it is almost ten times that."
+   },
+   {
+    "label": "Moderate, around 0.3",
+    "correct": false,
+    "why": "Took the midpoint of the range. The joint PD is 3.93% against a ceiling of 4%, which sits at the very top of the range."
+   }
+  ],
+  "working": [
+   {
+    "label": "Independence level",
+    "display": "$0.10 \\times 0.04 = 0.4\\%$",
+    "value": 0.004
+   },
+   {
+    "label": "Covariance",
+    "display": "$3.93\\% - 0.4\\% = 3.53\\%$",
+    "value": 0.0353
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.0353 / (0.3 \\times 0.196) = 0.60$",
+    "value": 0.600465
+   }
+  ],
+  "takeaway": "Judge a joint PD against its two benchmarks: the independent product (rho = 0) and the smaller PD (rho near 1).",
+  "check": {
+   "inputs": {
+    "pX": 0.1,
+    "pY": 0.04,
+    "j": 0.0393
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "pX*pY",
+     "value": 0.004
+    },
+    {
+     "name": "cov",
+     "expr": "j-ind",
+     "value": 0.0353
+    },
+    {
+     "name": "rho",
+     "expr": "cov/(sqrt(pX*(1-pX))*sqrt(pY*(1-pY)))",
+     "value": 0.600465
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-17",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0478"
+  },
+  "trap_category": "Formula",
+  "setup": "A CCC credit and a BBB credit have default probabilities of 0.8% and 0.4% over the horizon. The probability that both default is 0.035%.",
+  "ask": "The default correlation is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.32%",
+    "correct": false,
+    "why": "Stopped at the covariance ($0.00035 - 0.8\\% \\times 0.4\\% = 0.000318$) and never divided by the standard deviations."
+   },
+   {
+    "label": "≈ 5.7%",
+    "correct": true
+   },
+   {
+    "label": "≈ 57%",
+    "correct": false,
+    "why": "Decimal slip in the denominator: used 0.000562 instead of 0.00562 for $\\sigma_1\\sigma_2$."
+   },
+   {
+    "label": "≈ 990%",
+    "correct": false,
+    "why": "Divided the covariance by $\\pi_1\\pi_2$ instead of by $\\sigma_1\\sigma_2$. A correlation above 100% cannot be right."
+   }
+  ],
+  "working": [
+   {
+    "label": "Covariance",
+    "display": "$0.00035 - 0.008 \\times 0.004 = 0.000318$",
+    "value": 0.000318
+   },
+   {
+    "label": "Std dev product",
+    "display": "$0.0891 \\times 0.0631 = 0.00562$",
+    "value": 0.0056229
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.000318 / 0.00562 = 5.65\\%$",
+    "value": 0.0565544
+   }
+  ],
+  "takeaway": "Correlation = covariance / ($\\sigma_1\\sigma_2$), with $\\sigma = \\sqrt{\\pi(1-\\pi)}$. It can never leave the range -1 to +1.",
+  "check": {
+   "inputs": {
+    "p1": 0.008,
+    "p2": 0.004,
+    "j": 0.00035
+   },
+   "steps": [
+    {
+     "name": "cov",
+     "expr": "j-p1*p2",
+     "value": 0.000318
+    },
+    {
+     "name": "ss",
+     "expr": "sqrt(p1*(1-p1))*sqrt(p2*(1-p2))",
+     "value": 0.0056229
+    },
+    {
+     "name": "rho",
+     "expr": "cov/ss",
+     "value": 0.0565544
+    },
+    {
+     "name": "slip_cov",
+     "expr": "cov",
+     "value": 0.000318
+    },
+    {
+     "name": "slip_dec",
+     "expr": "cov/(ss/10)",
+     "value": 0.565544
+    },
+    {
+     "name": "slip_pp",
+     "expr": "cov/(p1*p2)",
+     "value": 9.9375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-18",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-11: Portfolio Credit Risk",
+  "reading_id": "CR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0475"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two credits have default probabilities of 0.3% and 0.4% and a joint default probability of 0.2%. Default correlation is covariance divided by $\\sigma_1\\sigma_2$, where $\\sigma = \\sqrt{\\pi(1-\\pi)}$.",
+  "ask": "The denominator $\\sigma_1\\sigma_2$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.0035",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.000012",
+    "correct": false,
+    "why": "Multiplied the two variances $\\pi(1-\\pi)$ and skipped the square roots."
+   },
+   {
+    "label": "≈ 0.12",
+    "correct": false,
+    "why": "Added the two standard deviations (0.055 + 0.063) instead of multiplying them."
+   }
+  ],
+  "working": [
+   {
+    "label": "Std dev 1",
+    "display": "$\\sqrt{0.003 \\times 0.997} = 0.0547$",
+    "value": 0.05469
+   },
+   {
+    "label": "Std dev 2",
+    "display": "$\\sqrt{0.004 \\times 0.996} = 0.0631$",
+    "value": 0.0631189
+   },
+   {
+    "label": "Product",
+    "display": "$0.0547 \\times 0.0631 = 0.00345$",
+    "value": 0.00345198
+   }
+  ],
+  "takeaway": "The denominator is a product of standard deviations, each about the square root of a small PD, so it is a few thousandths here.",
+  "check": {
+   "inputs": {
+    "p1": 0.003,
+    "p2": 0.004
+   },
+   "steps": [
+    {
+     "name": "s1",
+     "expr": "sqrt(p1*(1-p1))",
+     "value": 0.05469
+    },
+    {
+     "name": "s2",
+     "expr": "sqrt(p2*(1-p2))",
+     "value": 0.0631189
+    },
+    {
+     "name": "ss",
+     "expr": "s1*s2",
+     "value": 0.00345198
+    },
+    {
+     "name": "slip_var",
+     "expr": "p1*(1-p1)*p2*(1-p2)",
+     "value": 1.19161e-05
+    },
+    {
+     "name": "slip_sum",
+     "expr": "s1+s2",
+     "value": 0.117809
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-19",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0321"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "1,000 equal loans to borrowers all rated BB at the start of year 1. Cumulative default rates for BB: 0.63% after year 1, 1.93% after year 2, 3.46% after year 3. Ratings changes are ignored. You want the defaults that occur during year 3 only.",
+  "ask": "The year-3-only default rate is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.5%",
+    "correct": false,
+    "why": "Used the cumulative three-year figure, which includes defaults from years 1 and 2."
+   },
+   {
+    "label": "≈ 1.9%",
+    "correct": false,
+    "why": "Picked the year-2 cumulative figure instead of the year-3 increment."
+   },
+   {
+    "label": "≈ 0.6%",
+    "correct": false,
+    "why": "Used the year-1 figure, which is the first-year default rate, not year 3."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-3 increment",
+    "display": "$3.46\\% - 1.93\\% = 1.53\\%$",
+    "value": 0.0153
+   },
+   {
+    "label": "Defaults",
+    "display": "$1000 \\times 1.53\\% \\approx 15$",
+    "value": 15.3
+   }
+  ],
+  "takeaway": "Cumulative default rates need differencing: the default rate in a single year is the increase in the cumulative curve.",
+  "check": {
+   "inputs": {
+    "c1": 0.0063,
+    "c2": 0.0193,
+    "c3": 0.0346,
+    "N": 1000
+   },
+   "steps": [
+    {
+     "name": "marg",
+     "expr": "c3-c2",
+     "value": 0.0153
+    },
+    {
+     "name": "n",
+     "expr": "N*marg",
+     "value": 15.3
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-20",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0342"
+  },
+  "trap_category": "Sequence",
+  "setup": "A firm has USD 2.0m of senior debt and USD 0.5m of subordinated debt. In liquidation its assets realise USD 2.25m, distributed strictly by seniority.",
+  "ask": "The subordinated debt recovers:",
+  "options": [
+   {
+    "label": "Part of its face value",
+    "correct": true
+   },
+   {
+    "label": "Nothing",
+    "correct": false,
+    "why": "Assumed juniors are wiped out whenever assets fall short of total debt (2.5m). Assets still exceed the senior claim by 0.25m, which goes to the juniors."
+   },
+   {
+    "label": "All of its face value",
+    "correct": false,
+    "why": "Ignored that total debt (2.5m) exceeds the assets (2.25m), so someone takes a loss, and it is the junior class."
+   }
+  ],
+  "working": [
+   {
+    "label": "Senior paid first",
+    "display": "$\\min(2.25, 2.0) = 2.0$",
+    "value": 2.0
+   },
+   {
+    "label": "Left for subordinated",
+    "display": "$2.25 - 2.0 = 0.25$",
+    "value": 0.25
+   },
+   {
+    "label": "Recovery rate",
+    "display": "$0.25 / 0.5 = 50\\%$",
+    "value": 0.5
+   }
+  ],
+  "takeaway": "Pay senior first, then see what is left: junior debt takes the shortfall, here a 50% recovery.",
+  "check": {
+   "inputs": {
+    "A": 2.25,
+    "S": 2.0,
+    "J": 0.5
+   },
+   "steps": [
+    {
+     "name": "sen",
+     "expr": "min(A,S)",
+     "value": 2.0
+    },
+    {
+     "name": "rem",
+     "expr": "A-sen",
+     "value": 0.25
+    },
+    {
+     "name": "rec",
+     "expr": "min(rem,J)/J",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq07-21",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0343"
+  },
+  "trap_category": "Polarity",
+  "setup": "Expected loss rate = PD x (1 - recovery). In normal times PD is 2% and recovery 40%. In a recession stress PD rises to 5%, and historically recovery rates fall when default rates rise, to 30% here. Holding recovery at 40% would give a loss rate of 3.0%.",
+  "ask": "The stressed expected loss rate with 30% recovery is:",
+  "options": [
+   {
+    "label": "Higher than 3.0%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 3.0%",
+    "correct": false,
+    "why": "Kept recovery at its normal level. Defaults and recoveries move against each other, so the stress must lower recovery."
+   },
+   {
+    "label": "Lower than 3.0%",
+    "correct": false,
+    "why": "Read a lower recovery rate as a smaller loss. Lower recovery means a larger loss given default."
+   }
+  ],
+  "working": [
+   {
+    "label": "Held recovery",
+    "display": "$5\\% \\times (1 - 0.40) = 3.0\\%$",
+    "value": 0.03
+   },
+   {
+    "label": "Stressed recovery",
+    "display": "$5\\% \\times (1 - 0.30) = 3.5\\%$",
+    "value": 0.035
+   }
+  ],
+  "takeaway": "Recovery is negatively correlated with default. In a stress, raise PD and cut recovery together.",
+  "check": {
+   "inputs": {
+    "pd": 0.05,
+    "r0": 0.4,
+    "r1": 0.3
+   },
+   "steps": [
+    {
+     "name": "held",
+     "expr": "pd*(1-r0)",
+     "value": 0.03
+    },
+    {
+     "name": "stress",
+     "expr": "pd*(1-r1)",
+     "value": 0.035
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,1528 @@
+[
+ {
+  "id": "SC-bank-IRq04-01",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0132"
+  },
+  "trap_category": "Scope",
+  "setup": "Single-index model on excess returns. Security A: beta 0.80, residual volatility 15%. Security B: beta 1.10, residual volatility 30%. The market's volatility is 10%. All residuals are uncorrelated with each other and with the market. (The alphas do not matter here.)",
+  "ask": "Is the correlation between A and B low (below 0.25) or high (above 0.5)?",
+  "options": [
+   {
+    "label": "Low, below 0.25",
+    "correct": true
+   },
+   {
+    "label": "High, above 0.5",
+    "correct": false,
+    "why": "Treated the shared market factor as the whole story. With no residual risk the correlation would be 1.0, but residual variance is about 78% of A's total and 88% of B's, and it is not shared."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total variances",
+    "display": "$\\sigma_A^2 = 0.0064 + 0.0225 = 0.0289$; $\\sigma_B^2 = 0.0121 + 0.09 = 0.1021$",
+    "value": 0.1021
+   },
+   {
+    "label": "Covariance",
+    "display": "$0.8 \\times 1.1 \\times 0.10^2 = 0.0088$",
+    "value": 0.0088
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.0088 / (0.170 \\times 0.3195) \\approx 0.16$",
+    "value": 0.162
+   }
+  ],
+  "takeaway": "Only the market-factor part of risk is shared in a single-index model, so large residual variances pull the correlation down.",
+  "check": {
+   "inputs": {
+    "bA": 0.8,
+    "bB": 1.1,
+    "sM": 0.1,
+    "eA": 0.15,
+    "eB": 0.3
+   },
+   "steps": [
+    {
+     "name": "vA",
+     "expr": "bA^2*sM^2+eA^2",
+     "value": 0.0289
+    },
+    {
+     "name": "vB",
+     "expr": "bB^2*sM^2+eB^2",
+     "value": 0.1021
+    },
+    {
+     "name": "cov",
+     "expr": "bA*bB*sM^2",
+     "value": 0.0088
+    },
+    {
+     "name": "rho",
+     "expr": "cov/sqrt(vA*vB)",
+     "value": 0.162002
+    },
+    {
+     "name": "slip_no_resid",
+     "expr": "cov/sqrt(bA^2*sM^2*bB^2*sM^2)",
+     "value": 1.0
+    },
+    {
+     "name": "resid_share_A",
+     "expr": "eA^2/vA",
+     "value": 0.778547
+    },
+    {
+     "name": "resid_share_B",
+     "expr": "eB^2/vB",
+     "value": 0.881489
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-02",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0133"
+  },
+  "trap_category": "Definition",
+  "setup": "One-factor regression of a portfolio on the market, monthly data. Beta 0.63, market volatility 9.0%, residual volatility 5.0%. The 50 bp alpha does not enter this step.",
+  "ask": "What share of the portfolio's total variance does the market explain (R-squared)?",
+  "options": [
+   {
+    "label": "About 56%",
+    "correct": true
+   },
+   {
+    "label": "About 75%",
+    "correct": false,
+    "why": "Took the square root of $R^2$: that is the correlation with the market, not the explained share of variance."
+   },
+   {
+    "label": "About 63%",
+    "correct": false,
+    "why": "Read beta as if it were the explained share; beta is a slope, not a share of variance."
+   },
+   {
+    "label": "About 44%",
+    "correct": false,
+    "why": "Reported the residual share, $1 - R^2$, instead of the explained share."
+   }
+  ],
+  "working": [
+   {
+    "label": "Explained variance",
+    "display": "$0.63^2 \\times 0.09^2 = 0.003215$",
+    "value": 0.0032
+   },
+   {
+    "label": "Total variance",
+    "display": "$0.003215 + 0.05^2 = 0.005715$",
+    "value": 0.0057
+   },
+   {
+    "label": "R-squared",
+    "display": "$0.003215 / 0.005715 = 0.5625$",
+    "value": 0.5625
+   }
+  ],
+  "takeaway": "Explained variance over total variance is $R^2$; the correlation is its square root (0.75 here).",
+  "check": {
+   "inputs": {
+    "b": 0.63,
+    "sM": 0.09,
+    "e": 0.05
+   },
+   "steps": [
+    {
+     "name": "expl",
+     "expr": "b^2*sM^2",
+     "value": 0.003215
+    },
+    {
+     "name": "tot",
+     "expr": "expl+e^2",
+     "value": 0.005715
+    },
+    {
+     "name": "R2",
+     "expr": "expl/tot",
+     "value": 0.562546
+    },
+    {
+     "name": "slip_corr",
+     "expr": "sqrt(R2)",
+     "value": 0.750031
+    },
+    {
+     "name": "slip_beta",
+     "expr": "b",
+     "value": 0.63
+    },
+    {
+     "name": "slip_resid",
+     "expr": "1-R2",
+     "value": 0.437454
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-03",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0169"
+  },
+  "trap_category": "Scope",
+  "setup": "Trade/no-trade rule for a stock: do nothing while $-SC \\le \\alpha - m \\le PC$, where $m = 2\\lambda_A\\psi\\,\\text{MCAR}$ is the risk charge. Purchase cost PC = 0.30%, sales cost SC = 0.40%. At the start $m = 0.20\\%$, so the band for alpha is $-0.20\\%$ to $+0.50\\%$. The manager's active risk aversion $\\lambda_A$ now doubles; everything else is unchanged.",
+  "ask": "What happens to the no-trade band for alpha?",
+  "options": [
+   {
+    "label": "Same width, moved up",
+    "correct": true
+   },
+   {
+    "label": "Wider",
+    "correct": false,
+    "why": "Counted the bigger risk charge as widening the band. The width is always $PC + SC = 0.70\\%$; $m$ only slides the band."
+   },
+   {
+    "label": "Same width, moved down",
+    "correct": false,
+    "why": "Got the direction of the shift backwards: $m$ enters the bounds with a plus sign, so a bigger $m$ lifts both ends."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk charge doubles",
+    "display": "$m: 0.20\\% \\to 0.40\\%$",
+    "value": 0.4
+   },
+   {
+    "label": "New band",
+    "display": "$0.40 - 0.40 = 0.00\\%$ to $0.40 + 0.30 = 0.70\\%$",
+    "value": 0.7
+   },
+   {
+    "label": "Width",
+    "display": "$0.70\\% - 0.00\\% = 0.70\\% = PC + SC$ (unchanged)",
+    "value": 0.7
+   }
+  ],
+  "takeaway": "Risk aversion and MCAR shift the no-trade band; only trading costs set its width.",
+  "check": {
+   "inputs": {
+    "PC": 0.3,
+    "SC": 0.4,
+    "m0": 0.2
+   },
+   "steps": [
+    {
+     "name": "w0",
+     "expr": "(m0+PC)-(m0-SC)",
+     "value": 0.7
+    },
+    {
+     "name": "m1",
+     "expr": "2*m0",
+     "value": 0.4
+    },
+    {
+     "name": "hi1",
+     "expr": "m1+PC",
+     "value": 0.7
+    },
+    {
+     "name": "lo1",
+     "expr": "m1-SC",
+     "value": 0.0
+    },
+    {
+     "name": "w1",
+     "expr": "hi1-lo1",
+     "value": 0.7
+    },
+    {
+     "name": "shift",
+     "expr": "hi1-(m0+PC)",
+     "value": 0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-04",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0283"
+  },
+  "trap_category": "Formula",
+  "setup": "Pension fund, INR million. Assets 500, expected growth 8%, volatility 15%. Liabilities 410, expected growth 9%, volatility 8%. Asset return and liability growth are jointly normal with correlation 0.7. One-year horizon.",
+  "ask": "The volatility of the end-of-year surplus, in INR million, is closest to:",
+  "options": [
+   {
+    "label": "57",
+    "correct": true
+   },
+   {
+    "label": "82",
+    "correct": false,
+    "why": "Treated assets and liabilities as uncorrelated ($\\rho = 0$): $\\sqrt{75^2 + 32.8^2} = 81.9$."
+   },
+   {
+    "label": "101",
+    "correct": false,
+    "why": "Added the covariance term instead of subtracting it: $\\sqrt{75^2 + 32.8^2 + 2(0.7)(75)(32.8)} = 100.7$."
+   },
+   {
+    "label": "108",
+    "correct": false,
+    "why": "Added the two dollar volatilities in a straight line, $75 + 32.8$, ignoring correlation altogether."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dollar volatilities",
+    "display": "$\\sigma_A = 500 \\times 15\\% = 75$; $\\sigma_L = 410 \\times 8\\% = 32.8$",
+    "value": 75.0
+   },
+   {
+    "label": "Surplus variance",
+    "display": "$75^2 + 32.8^2 - 2(0.7)(75)(32.8) = 3256.8$",
+    "value": 3256.84
+   },
+   {
+    "label": "Surplus volatility",
+    "display": "$\\sqrt{3256.8} \\approx 57.1$",
+    "value": 57.0687
+   }
+  ],
+  "takeaway": "Surplus is assets minus liabilities, so the covariance term is subtracted: positive correlation shrinks surplus risk.",
+  "check": {
+   "inputs": {
+    "A": 500,
+    "L": 410,
+    "vA": 0.15,
+    "vL": 0.08,
+    "rho": 0.7
+   },
+   "steps": [
+    {
+     "name": "sA",
+     "expr": "A*vA",
+     "value": 75.0
+    },
+    {
+     "name": "sL",
+     "expr": "L*vL",
+     "value": 32.8
+    },
+    {
+     "name": "var",
+     "expr": "sA^2+sL^2-2*rho*sA*sL",
+     "value": 3256.84
+    },
+    {
+     "name": "sig",
+     "expr": "sqrt(var)",
+     "value": 57.06873
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "sqrt(sA^2+sL^2)",
+     "value": 81.858659
+    },
+    {
+     "name": "slip_plus",
+     "expr": "sqrt(sA^2+sL^2+2*rho*sA*sL)",
+     "value": 100.721596
+    },
+    {
+     "name": "slip_sum",
+     "expr": "sA+sL",
+     "value": 107.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-05",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0286"
+  },
+  "trap_category": "Sign",
+  "setup": "A fund's VaR decomposition, % of assets, same confidence level and horizon: policy-mix VaR 19.6%, active-management VaR 1.6%, total asset VaR 19.3%. Total VaR combines the two components as $\\text{VaR}_T^2 = \\text{VaR}_P^2 + \\text{VaR}_A^2 + 2\\rho\\,\\text{VaR}_P\\text{VaR}_A$.",
+  "ask": "The implied correlation between the policy-mix and active components is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "If the two were uncorrelated the total would be $\\sqrt{19.6^2 + 1.6^2} = 19.67\\%$, above the stated 19.3%."
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "A positive correlation pushes the total even higher than 19.67%, and the stated total is below the policy-mix VaR alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Uncorrelated benchmark",
+    "display": "$\\sqrt{19.6^2 + 1.6^2} = 19.67\\%$ vs stated 19.3%",
+    "value": 19.6652
+   },
+   {
+    "label": "Solve for $\\rho$",
+    "display": "$\\rho = (19.3^2 - 19.6^2 - 1.6^2) / (2 \\times 19.6 \\times 1.6) = -14.23/62.72 \\approx -0.23$",
+    "value": -0.2269
+   }
+  ],
+  "takeaway": "If total VaR is below even the larger component alone, the active bet must be diversifying: correlation is negative.",
+  "check": {
+   "inputs": {
+    "P": 19.6,
+    "A": 1.6,
+    "T": 19.3
+   },
+   "steps": [
+    {
+     "name": "indep",
+     "expr": "sqrt(P^2+A^2)",
+     "value": 19.665198
+    },
+    {
+     "name": "rho",
+     "expr": "(T^2-P^2-A^2)/(2*P*A)",
+     "value": -0.226881
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-06",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0298"
+  },
+  "trap_category": "Formula",
+  "setup": "Pension fund with USD 600m of assets and USD 600m of liabilities, so the current surplus is zero. Assets: expected return 8%, volatility 18%. Liabilities: expected growth 6%, volatility 14%. Correlation 0.60, both normal. Use $z = 1.645$.",
+  "ask": "The 95% absolute surplus at risk (worst shortfall against the current surplus of zero, after allowing for expected surplus growth) is closest to:",
+  "options": [
+   {
+    "label": "USD 12m",
+    "correct": false,
+    "why": "Stopped at the expected growth of the surplus ($48 - 36 = +12$), which is a gain, and never reached the risk term."
+   },
+   {
+    "label": "USD 40m",
+    "correct": false,
+    "why": "Combined the volatilities as a difference, $1.645 \\times (108 - 84) = 39.5$, as if assets and liabilities were perfectly correlated."
+   },
+   {
+    "label": "USD 134m",
+    "correct": true
+   },
+   {
+    "label": "USD 12,900m",
+    "correct": false,
+    "why": "Multiplied $z$ by the surplus variance (7,834) and forgot the square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dollar volatilities",
+    "display": "$\\sigma_A = 108$; $\\sigma_L = 84$",
+    "value": 108.0
+   },
+   {
+    "label": "Surplus volatility",
+    "display": "$\\sqrt{108^2 + 84^2 - 2(0.6)(108)(84)} = \\sqrt{7833.6} = 88.5$",
+    "value": 88.5076
+   },
+   {
+    "label": "Relative SaR",
+    "display": "$1.645 \\times 88.5 = 145.6$",
+    "value": 145.595
+   },
+   {
+    "label": "Less expected growth",
+    "display": "$145.6 - 12 = 133.6$",
+    "value": 133.595
+   }
+  ],
+  "takeaway": "Absolute SaR is the relative SaR minus the expected surplus growth: positive drift eats into the shortfall.",
+  "check": {
+   "inputs": {
+    "A": 600,
+    "L": 600,
+    "rA": 0.08,
+    "rL": 0.06,
+    "vA": 0.18,
+    "vL": 0.14,
+    "rho": 0.6,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "sA",
+     "expr": "A*vA",
+     "value": 108.0
+    },
+    {
+     "name": "sL",
+     "expr": "L*vL",
+     "value": 84.0
+    },
+    {
+     "name": "var",
+     "expr": "sA^2+sL^2-2*rho*sA*sL",
+     "value": 7833.6
+    },
+    {
+     "name": "sig",
+     "expr": "sqrt(var)",
+     "value": 88.507627
+    },
+    {
+     "name": "rel",
+     "expr": "z*sig",
+     "value": 145.595046
+    },
+    {
+     "name": "drift",
+     "expr": "A*rA-L*rL",
+     "value": 12.0
+    },
+    {
+     "name": "abs",
+     "expr": "rel-drift",
+     "value": 133.595046
+    },
+    {
+     "name": "slip_drift",
+     "expr": "drift",
+     "value": 12.0
+    },
+    {
+     "name": "slip_rho1",
+     "expr": "z*(sA-sL)",
+     "value": 39.48
+    },
+    {
+     "name": "slip_var",
+     "expr": "z*var",
+     "value": 12886.272
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-07",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0299"
+  },
+  "trap_category": "Scope",
+  "setup": "Pension fund with a 50/50 equity and fixed income policy mix, held exactly (no deviation). Benchmark returns: equity 7.0%, fixed income 5.0%. The fund's managers returned 4.0% in equity and 10.0% in fixed income.",
+  "ask": "The return attributable to active management is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Reasoned that holding the policy weights means no active effect. Weights match, but manager selection in each sleeve still adds or subtracts."
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Looked only at the equity sleeve, $0.5 \\times (4 - 7) = -1.5\\%$, and stopped before adding the fixed income sleeve."
+   }
+  ],
+  "working": [
+   {
+    "label": "Equity sleeve",
+    "display": "$0.5 \\times (4.0 - 7.0) = -1.5\\%$",
+    "value": -1.5
+   },
+   {
+    "label": "Fixed income sleeve",
+    "display": "$0.5 \\times (10.0 - 5.0) = +2.5\\%$",
+    "value": 2.5
+   },
+   {
+    "label": "Active return",
+    "display": "$-1.5 + 2.5 = +1.0\\%$",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "Active return is the sum of each sleeve's weight times its manager-minus-benchmark gap; a big win in one sleeve can outweigh a loss in the other.",
+  "check": {
+   "inputs": {
+    "w": 0.5,
+    "eM": 4.0,
+    "eB": 7.0,
+    "fM": 10.0,
+    "fB": 5.0
+   },
+   "steps": [
+    {
+     "name": "eq",
+     "expr": "w*(eM-eB)",
+     "value": -1.5
+    },
+    {
+     "name": "fi",
+     "expr": "w*(fM-fB)",
+     "value": 2.5
+    },
+    {
+     "name": "act",
+     "expr": "eq+fi",
+     "value": 1.0
+    },
+    {
+     "name": "fund",
+     "expr": "w*eM+w*fM",
+     "value": 7.0
+    },
+    {
+     "name": "policy",
+     "expr": "w*eB+w*fB",
+     "value": 6.0
+    },
+    {
+     "name": "act2",
+     "expr": "fund-policy",
+     "value": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-08",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0308"
+  },
+  "trap_category": "Sign",
+  "setup": "A pension plan has assets of USD 150m, all in equities, and liabilities of USD 120m with duration 14. Over the year the equity assets fall 30% and yields fall by 2 percentage points.",
+  "ask": "The change in the value of the liabilities is closest to:",
+  "options": [
+   {
+    "label": "+USD 33.6m",
+    "correct": true
+   },
+   {
+    "label": "-USD 33.6m",
+    "correct": false,
+    "why": "Sign error: liabilities behave like a bond, so a fall in yields raises their value."
+   },
+   {
+    "label": "+USD 3.4m",
+    "correct": false,
+    "why": "Entered the 2-point yield change as 0.2% (0.002) instead of 2% (0.02): scale error by a factor of 10."
+   }
+  ],
+  "working": [
+   {
+    "label": "Duration formula",
+    "display": "$\\Delta L = -D \\times L \\times \\Delta y = -14 \\times 120 \\times (-0.02)$",
+    "value": 33.6
+   },
+   {
+    "label": "Result",
+    "display": "$\\Delta L = +33.6$ (liabilities rise as yields fall)",
+    "value": 33.6
+   }
+  ],
+  "takeaway": "Liabilities are bond-like: yields down means liability value up, which hurts the surplus twice when assets also fall.",
+  "check": {
+   "inputs": {
+    "D": 14,
+    "L": 120,
+    "dy": 0.02
+   },
+   "steps": [
+    {
+     "name": "dL",
+     "expr": "D*L*dy",
+     "value": 33.6
+    },
+    {
+     "name": "slip_sign",
+     "expr": "-D*L*dy",
+     "value": -33.6
+    },
+    {
+     "name": "slip_scale",
+     "expr": "D*L*dy/10",
+     "value": 3.36
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-09",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0311"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 10m fund is benchmarked to an index. Fund volatility is 10.0%, benchmark volatility 5.0%, and the fund's tracking error (volatility of fund minus benchmark) is 8.0%. All normal; use $z = 1.645$ at 95%.",
+  "ask": "Compared with the fund's own absolute 95% VaR, its 95% tracking-error VaR is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Used the fund's 10% volatility for the relative VaR as well; relative VaR runs off the tracking error."
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Added the fund and benchmark volatilities (10% + 5%) instead of using the tracking error: $1.645 \\times 15\\% \\times 10 = 2.47$ (USD m)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Absolute VaR",
+    "display": "$1.645 \\times 10\\% \\times 10 = 1.645$ (USD m)",
+    "value": 1.645
+   },
+   {
+    "label": "Tracking-error VaR",
+    "display": "$1.645 \\times 8\\% \\times 10 = 1.316$ (USD m)",
+    "value": 1.316
+   }
+  ],
+  "takeaway": "Relative VaR uses the volatility of the excess return (tracking error), not the fund's or the benchmark's own volatility.",
+  "check": {
+   "inputs": {
+    "W": 10,
+    "sF": 0.1,
+    "sB": 0.05,
+    "te": 0.08,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "absv",
+     "expr": "z*sF*W",
+     "value": 1.645
+    },
+    {
+     "name": "tev",
+     "expr": "z*te*W",
+     "value": 1.316
+    },
+    {
+     "name": "slip_add",
+     "expr": "z*(sF+sB)*W",
+     "value": 2.4675
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-10",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0327"
+  },
+  "trap_category": "Formula",
+  "setup": "A fund splits USD 400m between two active managers with independent excess returns and an index fund (zero tracking error). It maximises its portfolio information ratio subject to a total tracking error of 4%. Manager 1: TEV 8%, IR 0.48. Manager 2: TEV 6%, IR 0.36.",
+  "ask": "The maximum portfolio information ratio is closest to:",
+  "options": [
+   {
+    "label": "0.60",
+    "correct": true
+   },
+   {
+    "label": "0.84",
+    "correct": false,
+    "why": "Added the two information ratios; independent alphas combine in quadrature, not linearly."
+   },
+   {
+    "label": "0.42",
+    "correct": false,
+    "why": "Averaged the two information ratios, $(0.48 + 0.36)/2$."
+   },
+   {
+    "label": "0.48",
+    "correct": false,
+    "why": "Took the better manager's IR alone; combining two independent managers must improve on that."
+   }
+  ],
+  "working": [
+   {
+    "label": "Quadrature",
+    "display": "$IR_P = \\sqrt{0.48^2 + 0.36^2} = \\sqrt{0.36}$",
+    "value": 0.6
+   },
+   {
+    "label": "Result",
+    "display": "$IR_P = 0.60$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "With independent managers the portfolio IR is the root of the sum of squared IRs, above the best single manager's IR.",
+  "check": {
+   "inputs": {
+    "i1": 0.48,
+    "i2": 0.36
+   },
+   "steps": [
+    {
+     "name": "irp",
+     "expr": "sqrt(i1^2+i2^2)",
+     "value": 0.6
+    },
+    {
+     "name": "slip_sum",
+     "expr": "i1+i2",
+     "value": 0.84
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(i1+i2)/2",
+     "value": 0.42
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-11",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0329"
+  },
+  "trap_category": "Formula",
+  "setup": "Pension fund allocating USD 300m across two independent active managers and an index fund, maximising portfolio IR (0.72) at a total TEV of 4%. Manager 1: TEV 6%, IR 0.60. Manager 2: TEV 8%, IR 0.40. Optimal weight: $w_i = (IR_i/IR_P)(TEV_P/TEV_i)$.",
+  "ask": "Manager 2's optimal allocation, compared with Manager 1's, is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed an equal split between the two active managers; the formula tilts toward higher IR and lower TEV."
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Saw the higher TEV and assumed more room for risk. TEV sits in the denominator, so it cuts the weight, and Manager 2's IR is lower too."
+   }
+  ],
+  "working": [
+   {
+    "label": "Manager 1",
+    "display": "$w_1 = (0.60/0.72)(4/6) = 0.556$",
+    "value": 0.5556
+   },
+   {
+    "label": "Manager 2",
+    "display": "$w_2 = (0.40/0.72)(4/8) = 0.278$",
+    "value": 0.2778
+   }
+  ],
+  "takeaway": "Optimal weight rises with IR and falls with TEV: a lower IR and a higher TEV both shrink the allocation.",
+  "check": {
+   "inputs": {
+    "irP": 0.72,
+    "teP": 4,
+    "i1": 0.6,
+    "t1": 6,
+    "i2": 0.4,
+    "t2": 8,
+    "cap": 300
+   },
+   "steps": [
+    {
+     "name": "w1",
+     "expr": "(i1/irP)*(teP/t1)",
+     "value": 0.555556
+    },
+    {
+     "name": "w2",
+     "expr": "(i2/irP)*(teP/t2)",
+     "value": 0.277778
+    },
+    {
+     "name": "ratio",
+     "expr": "w2/w1",
+     "value": 0.5
+    },
+    {
+     "name": "amt2",
+     "expr": "w2*cap",
+     "value": 83.333333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-12",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0331"
+  },
+  "trap_category": "Formula",
+  "setup": "Two equity managers each run USD 325m with volatility 15.8%; their returns have correlation 0.81. Using $z = 2.33$, each manager's VaR is $2.33 \\times 0.158 \\times 325 = 119.65$ (USD m). The fund's VaR for the USD 650m is $\\text{VaR}_1\\sqrt{2 + 2\\rho}$.",
+  "ask": "The factor $\\sqrt{2 + 2\\rho}$ that multiplies one manager's VaR is closest to:",
+  "options": [
+   {
+    "label": "1.90",
+    "correct": true
+   },
+   {
+    "label": "2.00",
+    "correct": false,
+    "why": "Assumed perfect correlation ($\\rho = 1$), which just adds the two VaRs in a straight line."
+   },
+   {
+    "label": "1.41",
+    "correct": false,
+    "why": "Assumed zero correlation, $\\sqrt{2}$."
+   },
+   {
+    "label": "3.62",
+    "correct": false,
+    "why": "Computed $2 + 2\\rho$ and forgot the square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inside the root",
+    "display": "$2 + 2(0.81) = 3.62$",
+    "value": 3.62
+   },
+   {
+    "label": "Factor",
+    "display": "$\\sqrt{3.62} = 1.90$",
+    "value": 1.9026
+   },
+   {
+    "label": "Fund VaR",
+    "display": "$119.65 \\times 1.90 \\approx 227.6$ (USD m)",
+    "value": 227.6411
+   }
+  ],
+  "takeaway": "Between the no-diversification factor 2.00 and the zero-correlation factor 1.41, a correlation of 0.81 sits close to the top.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "s": 0.158,
+    "W": 325,
+    "rho": 0.81
+   },
+   "steps": [
+    {
+     "name": "v1",
+     "expr": "z*s*W",
+     "value": 119.6455
+    },
+    {
+     "name": "inner",
+     "expr": "2+2*rho",
+     "value": 3.62
+    },
+    {
+     "name": "f",
+     "expr": "sqrt(inner)",
+     "value": 1.90263
+    },
+    {
+     "name": "tot",
+     "expr": "v1*f",
+     "value": 227.641089
+    },
+    {
+     "name": "slip_rho1",
+     "expr": "2",
+     "value": 2
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "sqrt(2)",
+     "value": 1.414214
+    },
+    {
+     "name": "slip_noroot",
+     "expr": "inner",
+     "value": 3.62
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-13",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0335"
+  },
+  "trap_category": "Scope",
+  "setup": "A pension fund holds USD 28.0bn in equities with volatility 14.0%. Its 95% one-year VaR (use $z = 1.645$) is $1.645 \\times 0.14 \\times 28.0 = 6.45$ (USD bn). The VaR is divided between two managers with identical budgets, whose returns have correlation 0.30.",
+  "ask": "Each manager's VaR budget, compared with half the fund VaR (USD 3.22bn), is:",
+  "options": [
+   {
+    "label": "More than half",
+    "correct": true
+   },
+   {
+    "label": "Exactly half",
+    "correct": false,
+    "why": "Assumed budgets simply add up, which is true only at correlation 1. At 0.30 the combination is smaller than the sum."
+   },
+   {
+    "label": "Less than half",
+    "correct": false,
+    "why": "Thought diversification shrinks each manager's budget; it does the opposite, since the two budgets must sum to more than the fund VaR."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fund VaR",
+    "display": "$1.645 \\times 0.14 \\times 28.0 = 6.45$",
+    "value": 6.4484
+   },
+   {
+    "label": "Combination",
+    "display": "$\\sqrt{V^2 + V^2 + 2(0.3)V^2} = 1.61V$",
+    "value": 1.6125
+   },
+   {
+    "label": "Each budget",
+    "display": "$V = 6.45 / 1.61 \\approx 4.0$ (above $3.22$)",
+    "value": 3.9991
+   }
+  ],
+  "takeaway": "With correlation below 1 the equal budgets sum to more than the fund VaR, so each exceeds half of it.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "s": 0.14,
+    "W": 28.0,
+    "rho": 0.3
+   },
+   "steps": [
+    {
+     "name": "tot",
+     "expr": "z*s*W",
+     "value": 6.4484
+    },
+    {
+     "name": "k",
+     "expr": "sqrt(2+2*rho)",
+     "value": 1.612452
+    },
+    {
+     "name": "V",
+     "expr": "tot/k",
+     "value": 3.999128
+    },
+    {
+     "name": "half",
+     "expr": "tot/2",
+     "value": 3.2242
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-14",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0338"
+  },
+  "trap_category": "Scope",
+  "setup": "Delta-normal VaR at 99% ($z = 2.326$) for a EUR 100m fund with a total volatility target of 5%. Four asset classes (weights 40%, 12%, 22%, 26%; volatilities 9.25%, 11.91%, 5.76%, 11.94%) with pairwise correlations between -0.07 and +0.02. A class's risk budget is its share of the diversified fund VaR. The four stand-alone VaRs add up to EUR 22.10m.",
+  "ask": "The four risk budgets together add up to:",
+  "options": [
+   {
+    "label": "Less than 22.10m",
+    "correct": true
+   },
+   {
+    "label": "Exactly 22.10m",
+    "correct": false,
+    "why": "Added the stand-alone VaRs. That ignores diversification, so it overstates the fund VaR the budgets must add up to."
+   },
+   {
+    "label": "More than 22.10m",
+    "correct": false,
+    "why": "Budgets cannot exceed the stand-alone total; with near-zero correlations they are smaller still."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fund VaR",
+    "display": "$2.326 \\times 5\\% \\times 100 = 11.63$",
+    "value": 11.63
+   },
+   {
+    "label": "Stand-alone sum",
+    "display": "$2.326 \\times 100 \\times (0.4 \\times 9.25\\% + \\dots) = 22.10$",
+    "value": 22.0989
+   }
+  ],
+  "takeaway": "Risk budgets decompose the diversified fund VaR, so they sum to it, well below the sum of stand-alone VaRs.",
+  "check": {
+   "inputs": {
+    "z": 2.326,
+    "V": 100,
+    "sP": 0.05,
+    "w1": 0.4,
+    "s1": 0.0925,
+    "w2": 0.12,
+    "s2": 0.1191,
+    "w3": 0.22,
+    "s3": 0.0576,
+    "w4": 0.26,
+    "s4": 0.1194
+   },
+   "steps": [
+    {
+     "name": "fund",
+     "expr": "z*sP*V",
+     "value": 11.63
+    },
+    {
+     "name": "sa",
+     "expr": "z*V*(w1*s1+w2*s2+w3*s3+w4*s4)",
+     "value": 22.098861
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-15",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0339"
+  },
+  "trap_category": "Scope",
+  "setup": "A fund uses three managers with uncorrelated active returns: A (50% of the fund, tracking error 4.0%), B (30%, 6.0%), C (20%, 3.0%). Fund tracking-error variance is the sum of each manager's (weight x TE)$^2$.",
+  "ask": "Which manager contributes the most to the fund's tracking-error variance?",
+  "options": [
+   {
+    "label": "Manager A",
+    "correct": true
+   },
+   {
+    "label": "Manager B",
+    "correct": false,
+    "why": "Ranked by raw tracking error (6.0%, the highest) and ignored weights: B contributes $(0.3 \\times 6)^2 = 3.24$ against A's 4.00."
+   },
+   {
+    "label": "Manager C",
+    "correct": false,
+    "why": "Reversed the ranking: C's $(0.2 \\times 3)^2 = 0.36$ is the smallest contribution."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted TEs",
+    "display": "$A: 2.00\\%$, $B: 1.80\\%$, $C: 0.60\\%$",
+    "value": 2.0
+   },
+   {
+    "label": "Variance contributions",
+    "display": "$4.00,\\ 3.24,\\ 0.36$",
+    "value": 4.0
+   },
+   {
+    "label": "Fund TE",
+    "display": "$\\sqrt{7.60} \\approx 2.76\\%$",
+    "value": 2.7568
+   }
+  ],
+  "takeaway": "Contribution to variance is (weight x TE) squared: a large weight can outweigh a higher stand-alone TE.",
+  "check": {
+   "inputs": {
+    "wA": 0.5,
+    "tA": 4.0,
+    "wB": 0.3,
+    "tB": 6.0,
+    "wC": 0.2,
+    "tC": 3.0
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "wA*tA",
+     "value": 2.0
+    },
+    {
+     "name": "b",
+     "expr": "wB*tB",
+     "value": 1.8
+    },
+    {
+     "name": "c",
+     "expr": "wC*tC",
+     "value": 0.6
+    },
+    {
+     "name": "va",
+     "expr": "a^2",
+     "value": 4.0
+    },
+    {
+     "name": "vb",
+     "expr": "b^2",
+     "value": 3.24
+    },
+    {
+     "name": "vc",
+     "expr": "c^2",
+     "value": 0.36
+    },
+    {
+     "name": "te",
+     "expr": "sqrt(va+vb+vc)",
+     "value": 2.75681
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-16",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0341"
+  },
+  "trap_category": "Formula",
+  "setup": "A fund grew from 100 to 175 over 30 months, so its geometric monthly return is 1.88%. Monthly returns are normal with a monthly standard deviation of 10.0%. The arithmetic mean is estimated as $R_A \\approx R_G + \\tfrac12\\sigma^2$.",
+  "ask": "The volatility term $\\tfrac12\\sigma^2$, per month, is closest to:",
+  "options": [
+   {
+    "label": "0.02%",
+    "correct": false,
+    "why": "Squared the 1.88% geometric return instead of the 10% volatility: $0.5 \\times (1.88\\%)^2 = 0.018\\%$."
+   },
+   {
+    "label": "0.5%",
+    "correct": true
+   },
+   {
+    "label": "5%",
+    "correct": false,
+    "why": "Halved the volatility instead of the variance: $0.5 \\times 10\\% = 5\\%$."
+   },
+   {
+    "label": "50%",
+    "correct": false,
+    "why": "Used $\\sigma = 10$ in percent units, squared it and halved it without rescaling: $0.5 \\times 10^2 = 50$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$\\sigma^2 = 0.10^2 = 0.01$",
+    "value": 0.01
+   },
+   {
+    "label": "Half of it",
+    "display": "$\\tfrac12 \\times 0.01 = 0.5\\%$ per month",
+    "value": 0.5
+   },
+   {
+    "label": "Arithmetic mean",
+    "display": "$1.88\\% + 0.50\\% \\approx 2.38\\%$",
+    "value": 2.3829
+   }
+  ],
+  "takeaway": "The arithmetic mean exceeds the geometric mean by about half the variance; with 10% monthly volatility that is 0.5% a month.",
+  "check": {
+   "inputs": {
+    "V0": 100,
+    "V1": 175,
+    "n": 30,
+    "s": 0.1
+   },
+   "steps": [
+    {
+     "name": "rg",
+     "expr": "(V1/V0)^(1/n)-1",
+     "value": 0.018829
+    },
+    {
+     "name": "var",
+     "expr": "s^2",
+     "value": 0.01
+    },
+    {
+     "name": "drag_pct",
+     "expr": "0.5*var*100",
+     "value": 0.5
+    },
+    {
+     "name": "ra",
+     "expr": "rg*100+drag_pct",
+     "value": 2.382893
+    },
+    {
+     "name": "slip_geo",
+     "expr": "0.5*(rg*100)^2/100",
+     "value": 0.017726
+    },
+    {
+     "name": "slip_halfsigma",
+     "expr": "0.5*s*100",
+     "value": 5.0
+    },
+    {
+     "name": "slip_units",
+     "expr": "0.5*(s*100)^2",
+     "value": 50.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-17",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0342"
+  },
+  "trap_category": "Sequence",
+  "setup": "Buy one share at USD 40. It pays a USD 4 dividend each year. At the end of year 1, after receiving that dividend, buy a second share at USD 42. At the end of year 2, collect the dividend on both shares and sell both at USD 43. We are building the cash-flow chain for the dollar-weighted return.",
+  "ask": "The net cash flow to the investor at the end of year 1 is:",
+  "options": [
+   {
+    "label": "-USD 38",
+    "correct": true
+   },
+   {
+    "label": "-USD 42",
+    "correct": false,
+    "why": "Counted only the purchase and left out the USD 4 dividend received at the same date."
+   },
+   {
+    "label": "-USD 46",
+    "correct": false,
+    "why": "Subtracted the dividend instead of adding it: $-42 - 4$."
+   },
+   {
+    "label": "+USD 4",
+    "correct": false,
+    "why": "Counted only the dividend and forgot the purchase of the second share."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dividend in",
+    "display": "$+4$",
+    "value": 4
+   },
+   {
+    "label": "Second share out",
+    "display": "$-42$",
+    "value": 42
+   },
+   {
+    "label": "Net at year 1",
+    "display": "$+4 - 42 = -38$",
+    "value": -38
+   }
+  ],
+  "takeaway": "Net all flows that fall on the same date before solving for the IRR: dividend in, purchase out.",
+  "check": {
+   "inputs": {
+    "div": 4,
+    "buy": 42
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "div-buy",
+     "value": -38
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "-buy",
+     "value": -42
+    },
+    {
+     "name": "slip_signdiv",
+     "expr": "-buy-div",
+     "value": -46
+    },
+    {
+     "name": "slip_nobuy",
+     "expr": "div",
+     "value": 4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq04-18",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0343"
+  },
+  "trap_category": "Formula",
+  "setup": "An investor bought 500 shares at USD 60 on 1 Jan 2016 and 500 more at USD 75 on 1 Jan 2017. A USD 5 per-share dividend was paid at the end of each year. All 1,000 shares were sold at USD 90 on 31 Dec 2017. The time-weighted return chains each year's holding-period return (HPR), measured per share.",
+  "ask": "The year-2 HPR (from USD 75 at the start of 2017) is closest to:",
+  "options": [
+   {
+    "label": "26.7%",
+    "correct": true
+   },
+   {
+    "label": "20.0%",
+    "correct": false,
+    "why": "Price gain only, $(90 - 75)/75$; the USD 5 dividend is left out."
+   },
+   {
+    "label": "22.2%",
+    "correct": false,
+    "why": "Divided the USD 20 gain by the ending price of USD 90 instead of the starting price of USD 75."
+   },
+   {
+    "label": "33.3%",
+    "correct": false,
+    "why": "That is the year-1 HPR, $(75 - 60 + 5)/60$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gain plus dividend",
+    "display": "$(90 - 75) + 5 = 20$",
+    "value": 20
+   },
+   {
+    "label": "Over starting value",
+    "display": "$20 / 75 = 26.7\\%$",
+    "value": 0.2667
+   }
+  ],
+  "takeaway": "An HPR is gain plus income over the starting value of that period, per share, so share count does not matter.",
+  "check": {
+   "inputs": {
+    "P0": 75,
+    "P1": 90,
+    "d": 5,
+    "Pold": 60
+   },
+   "steps": [
+    {
+     "name": "g",
+     "expr": "(P1-P0)+d",
+     "value": 20
+    },
+    {
+     "name": "hpr",
+     "expr": "g/P0",
+     "value": 0.266667
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "(P1-P0)/P0",
+     "value": 0.2
+    },
+    {
+     "name": "slip_end",
+     "expr": "g/P1",
+     "value": 0.222222
+    },
+    {
+     "name": "slip_y1",
+     "expr": "(P0-Pold+d)/Pold",
+     "value": 0.333333
+    }
+   ]
+  }
+ }
+]

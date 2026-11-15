@@ -1,0 +1,448 @@
+[
+ {
+  "id": "SC-bank-ORq05-01",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0729"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel III standardized approach for operational risk. Marginal coefficients on the Business Indicator (BI): 12% on the first EUR 1bn, 15% on the slice from EUR 1bn to EUR 30bn, 18% on everything above EUR 30bn. The bank's BI is EUR 40bn and the internal loss multiplier is set to 1.",
+  "ask": "Operational risk capital is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 630m",
+    "correct": false,
+    "why": "Decimal slip: the right figure is EUR 6.27bn, and 0.627 was read as EUR 627m (ten times too small)."
+   },
+   {
+    "label": "≈ EUR 1,800m",
+    "correct": false,
+    "why": "Charged only the top slice, 18% × EUR 10bn, and dropped the two lower slices (120 and 4,350)."
+   },
+   {
+    "label": "≈ EUR 6,300m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 40,000m",
+    "correct": false,
+    "why": "Took the BI itself as the charge and never applied the marginal coefficients."
+   }
+  ],
+  "working": [
+   {
+    "label": "Slice 1",
+    "display": "$12\\% \\times 1{,}000 = 120$",
+    "value": 120
+   },
+   {
+    "label": "Slice 2",
+    "display": "$15\\% \\times (30{,}000 - 1{,}000) = 4{,}350$",
+    "value": 4350
+   },
+   {
+    "label": "Slice 3",
+    "display": "$18\\% \\times (40{,}000 - 30{,}000) = 1{,}800$",
+    "value": 1800
+   },
+   {
+    "label": "Capital",
+    "display": "$(120 + 4{,}350 + 1{,}800) \\times 1 = \\text{EUR } 6{,}270\\text{m}$",
+    "value": 6270
+   }
+  ],
+  "takeaway": "Marginal coefficients apply slice by slice: the 15% middle slice does most of the work even for a very large bank.",
+  "check": {
+   "inputs": {
+    "BI": 40000,
+    "c1": 0.12,
+    "c2": 0.15,
+    "c3": 0.18,
+    "b1": 1000,
+    "b2": 30000,
+    "ILM": 1
+   },
+   "steps": [
+    {
+     "name": "s1",
+     "expr": "c1*b1",
+     "value": 120
+    },
+    {
+     "name": "s2",
+     "expr": "c2*(b2-b1)",
+     "value": 4350
+    },
+    {
+     "name": "s3",
+     "expr": "c3*(BI-b2)",
+     "value": 1800
+    },
+    {
+     "name": "ORC",
+     "expr": "(s1+s2+s3)*ILM",
+     "value": 6270
+    },
+    {
+     "name": "slip_scale",
+     "expr": "ORC/10",
+     "value": 627
+    },
+    {
+     "name": "slip_top_only",
+     "expr": "s3",
+     "value": 1800
+    },
+    {
+     "name": "slip_BI",
+     "expr": "BI",
+     "value": 40000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq05-02",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0731"
+  },
+  "trap_category": "Formula",
+  "setup": "Standardized approach, internal loss multiplier $ILM = \\ln[e - 1 + (LC/BIC)^{0.8}]$, where $LC = 15 \\times$ average annual loss. Ten years of verified losses (EUR bn): 3.8, 2.9, 2.8, 2.8, 0.6, 0.4, 0.1, 0.2, 0.1, 0.2. The Business Indicator Component is $BIC$ = EUR 18bn.",
+  "ask": "Is the ILM above 1, below 1, or exactly 1?",
+  "options": [
+   {
+    "label": "Above 1",
+    "correct": true
+   },
+   {
+    "label": "Below 1",
+    "correct": false,
+    "why": "Used the average loss of 1.39 as $LC$ and left out the factor of 15. Then $LC/BIC = 0.077$ and ILM $\\approx 0.61$."
+   },
+   {
+    "label": "Exactly 1",
+    "correct": false,
+    "why": "ILM equals 1 only when $LC = BIC$ (the bracket is then $e$). Here $LC = 20.85$ against $BIC = 18$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Average annual loss",
+    "display": "$13.9 / 10 = 1.39$",
+    "value": 1.39
+   },
+   {
+    "label": "Loss component",
+    "display": "$15 \\times 1.39 = 20.85$",
+    "value": 20.85
+   },
+   {
+    "label": "Ratio",
+    "display": "$20.85 / 18 = 1.158 > 1$",
+    "value": 1.1583
+   },
+   {
+    "label": "ILM",
+    "display": "$\\ln[e - 1 + 1.158^{0.8}] = \\ln(2.843) = 1.045$",
+    "value": 1.0449
+   }
+  ],
+  "takeaway": "ILM crosses 1 exactly where $LC = BIC$: a loss component above the BIC pushes capital above the BIC.",
+  "check": {
+   "inputs": {
+    "L1": 3.8,
+    "L2": 2.9,
+    "L3": 2.8,
+    "L4": 2.8,
+    "L5": 0.6,
+    "L6": 0.4,
+    "L7": 0.1,
+    "L8": 0.2,
+    "L9": 0.1,
+    "L10": 0.2,
+    "BIC": 18
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(L1+L2+L3+L4+L5+L6+L7+L8+L9+L10)/10",
+     "value": 1.39
+    },
+    {
+     "name": "LC",
+     "expr": "15*avg",
+     "value": 20.85
+    },
+    {
+     "name": "ratio",
+     "expr": "LC/BIC",
+     "value": 1.1583
+    },
+    {
+     "name": "ILM",
+     "expr": "ln(exp(1)-1+ratio^0.8)",
+     "value": 1.0449
+    },
+    {
+     "name": "slip_noLC15",
+     "expr": "ln(exp(1)-1+(avg/BIC)^0.8)",
+     "value": 0.6137
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq05-03",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0732"
+  },
+  "trap_category": "Scope",
+  "setup": "Default Basel rules, no national discretion. A bank has a Business Indicator of EUR 960m and ten years of annual losses averaging EUR 352m (peak EUR 0.9bn). Coefficients: 12% up to EUR 1bn. In the lowest BI bucket the internal loss multiplier is not driven by the loss history. The loss component is $15 \\times$ average loss.",
+  "ask": "Operational risk capital is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 12m",
+    "correct": false,
+    "why": "Coefficient slip: applied 1.2% instead of 12%, ten times too small."
+   },
+   {
+    "label": "≈ EUR 115m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 360m",
+    "correct": false,
+    "why": "Pushed the heavy loss history through the ILM formula. In bucket 1 the ILM is fixed at 1, so losses do not enter."
+   },
+   {
+    "label": "≈ EUR 5,300m",
+    "correct": false,
+    "why": "Reported the loss component ($15 \\times 352$) as if it were the capital requirement."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bucket",
+    "display": "$960\\text{m} \\le 1\\text{bn}$: bucket 1, so $ILM = 1$",
+    "value": null
+   },
+   {
+    "label": "BIC",
+    "display": "$12\\% \\times 960 = 115.2$",
+    "value": 115.2
+   },
+   {
+    "label": "Capital",
+    "display": "$115.2 \\times 1 = \\text{EUR } 115.2\\text{m}$",
+    "value": 115.2
+   }
+  ],
+  "takeaway": "Below EUR 1bn of BI, capital is just 12% of BI. Loss history only matters from bucket 2 up.",
+  "check": {
+   "inputs": {
+    "BI": 960,
+    "c": 0.12,
+    "avg": 352
+   },
+   "steps": [
+    {
+     "name": "ORC",
+     "expr": "c*BI",
+     "value": 115.2
+    },
+    {
+     "name": "slip_pct",
+     "expr": "0.012*BI",
+     "value": 11.52
+    },
+    {
+     "name": "LC",
+     "expr": "15*avg",
+     "value": 5280
+    },
+    {
+     "name": "slip_ILM",
+     "expr": "ORC*ln(exp(1)-1+(LC/ORC)^0.8)",
+     "value": 361.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq05-04",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0733"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank has a Business Indicator of EUR 34.5bn. The marginal coefficients are 12% on the first EUR 1bn, 15% on the slice from EUR 1bn to EUR 30bn and 18% on the part above EUR 30bn. The Business Indicator Component is the sum of the three slices.",
+  "ask": "Which of the three slices contributes most to the BIC?",
+  "options": [
+   {
+    "label": "The 12% slice (first EUR 1bn)",
+    "correct": false,
+    "why": "It has the smallest rate and the narrowest band: $12\\% \\times 1 = 0.12$bn."
+   },
+   {
+    "label": "The 15% slice (EUR 1bn to EUR 30bn)",
+    "correct": true
+   },
+   {
+    "label": "The 18% slice (above EUR 30bn)",
+    "correct": false,
+    "why": "The 18% rate is the highest, but it only applies to EUR 4.5bn of BI: $18\\% \\times 4.5 = 0.81$bn."
+   }
+  ],
+  "working": [
+   {
+    "label": "12% slice",
+    "display": "$12\\% \\times 1 = 0.12$",
+    "value": 0.12
+   },
+   {
+    "label": "15% slice",
+    "display": "$15\\% \\times 29 = 4.35$",
+    "value": 4.35
+   },
+   {
+    "label": "18% slice",
+    "display": "$18\\% \\times 4.5 = 0.81$",
+    "value": 0.81
+   },
+   {
+    "label": "BIC",
+    "display": "$0.12 + 4.35 + 0.81 = \\text{EUR } 5.28\\text{bn}$",
+    "value": 5.28
+   }
+  ],
+  "takeaway": "A slice's contribution is rate times width. The middle slice is 29 times wider than the first, so it dominates.",
+  "check": {
+   "inputs": {
+    "BI": 34.5,
+    "c1": 0.12,
+    "c2": 0.15,
+    "c3": 0.18,
+    "b1": 1,
+    "b2": 30
+   },
+   "steps": [
+    {
+     "name": "s1",
+     "expr": "c1*b1",
+     "value": 0.12
+    },
+    {
+     "name": "s2",
+     "expr": "c2*(b2-b1)",
+     "value": 4.35
+    },
+    {
+     "name": "s3",
+     "expr": "c3*(BI-b2)",
+     "value": 0.81
+    },
+    {
+     "name": "BIC",
+     "expr": "s1+s2+s3",
+     "value": 5.28
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq05-05",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-24: Basel III: Finalising Post-Crisis Reforms",
+  "reading_id": "ORR-24",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0738"
+  },
+  "trap_category": "Scope",
+  "setup": "Standardized approach. Marginal coefficients: 12% on the first EUR 1bn of BI, 15% on the slice from EUR 1bn to EUR 30bn, 18% above. A bank has a Business Indicator of EUR 13bn, so $12\\% \\times 13 = 1.56$ and $15\\% \\times 13 = 1.95$ (EUR bn).",
+  "ask": "Where does the BIC fall?",
+  "options": [
+   {
+    "label": "Above 15% of BI (above EUR 1.95bn)",
+    "correct": false,
+    "why": "No slice is charged above 15%, and part of BI is charged at only 12%, so the blended rate cannot exceed 15%."
+   },
+   {
+    "label": "Between 12% and 15% of BI, just under the 15% end",
+    "correct": true
+   },
+   {
+    "label": "Below 12% of BI (under EUR 1.56bn)",
+    "correct": false,
+    "why": "The lowest coefficient is 12% and it applies to just EUR 1bn. The other EUR 12bn is charged at 15%, so the blended rate is well above 12%."
+   }
+  ],
+  "working": [
+   {
+    "label": "First slice",
+    "display": "$12\\% \\times 1 = 0.12$",
+    "value": 0.12
+   },
+   {
+    "label": "Second slice",
+    "display": "$15\\% \\times 12 = 1.80$",
+    "value": 1.8
+   },
+   {
+    "label": "BIC",
+    "display": "$0.12 + 1.80 = 1.92$, i.e. $14.8\\%$ of BI",
+    "value": 1.92
+   }
+  ],
+  "takeaway": "The blended rate is a weighted average of the marginal rates. It sits between them and moves toward the top rate as BI grows.",
+  "check": {
+   "inputs": {
+    "BI": 13,
+    "c1": 0.12,
+    "c2": 0.15,
+    "b1": 1
+   },
+   "steps": [
+    {
+     "name": "BIC",
+     "expr": "c1*b1+c2*(BI-b1)",
+     "value": 1.92
+    },
+    {
+     "name": "rate",
+     "expr": "BIC/BI",
+     "value": 0.1477
+    },
+    {
+     "name": "flat12",
+     "expr": "c1*BI",
+     "value": 1.56
+    },
+    {
+     "name": "flat15",
+     "expr": "c2*BI",
+     "value": 1.95
+    }
+   ]
+  }
+ }
+]

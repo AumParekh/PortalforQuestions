@@ -1,0 +1,1457 @@
+[
+ {
+  "id": "SC-bank-MRq08-01",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0001"
+  },
+  "trap_category": "Sequence",
+  "setup": "Historical simulation on 100 daily returns. The ten worst, in %: $-3.2, -2.6, -2.4, -2.0, -1.9, -1.7, -1.5, -1.5, -1.2, -0.7$. The VaR is the $(\\alpha n + 1)$th worst observation. Returns are i.i.d. and a month has 20 trading days.",
+  "ask": "The 95% one-month VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.38%",
+    "correct": false,
+    "why": "Divided the daily VaR by $\\sqrt{20}$ instead of multiplying: $1.70 / 4.47 = 0.38\\%$. Time scaling makes the longer-horizon VaR bigger."
+   },
+   {
+    "label": "≈ 1.7%",
+    "correct": false,
+    "why": "Stopped at the daily VaR and never scaled it to a month."
+   },
+   {
+    "label": "≈ 7.6%",
+    "correct": true
+   },
+   {
+    "label": "≈ 34%",
+    "correct": false,
+    "why": "Multiplied by 20 days instead of $\\sqrt{20}$: $1.70 \\times 20 = 34\\%$. Independent daily returns add in variance, not in a straight line."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cut-off rank",
+    "display": "$\\alpha n + 1 = 0.05 \\times 100 + 1 = 6$",
+    "value": 6
+   },
+   {
+    "label": "Daily VaR",
+    "display": "6th worst return $= -1.7\\%$, so VaR $= 1.7\\%$",
+    "value": 1.7
+   },
+   {
+    "label": "Monthly VaR",
+    "display": "$1.7\\% \\times \\sqrt{20} = 1.7 \\times 4.47 = 7.6\\%$",
+    "value": 7.6
+   }
+  ],
+  "takeaway": "Rank first (the $(\\alpha n+1)$th worst is the cut-off), then scale by $\\sqrt{\\text{days}}$, not by the number of days.",
+  "check": {
+   "inputs": {
+    "n": 100,
+    "a": 0.05,
+    "daily": 1.7,
+    "days": 20
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "a*n+1",
+     "value": 6.0
+    },
+    {
+     "name": "monthly",
+     "expr": "daily*sqrt(days)",
+     "value": 7.60263
+    },
+    {
+     "name": "slip_divide",
+     "expr": "daily/sqrt(days)",
+     "value": 0.380132
+    },
+    {
+     "name": "slip_linear",
+     "expr": "daily*days",
+     "value": 34.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-02",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0002"
+  },
+  "trap_category": "Definition",
+  "setup": "Historical simulation on 100 monthly returns. The ten worst, in %: $-12, -7, -32, -26, -24, -20, -19, -17, -15, -14$. The VaR is the $(\\alpha n + 1)$th worst observation. The data are already monthly.",
+  "ask": "The 95% monthly VaR (as a loss) is:",
+  "options": [
+   {
+    "label": "19%",
+    "correct": false,
+    "why": "Took the 5th worst ($\\alpha n = 5$) and dropped the $+1$ in $(\\alpha n + 1)$."
+   },
+   {
+    "label": "17%",
+    "correct": true
+   },
+   {
+    "label": "18%",
+    "correct": false,
+    "why": "Averaged the 5th and 6th worst. The convention here picks a single observation, the 6th."
+   },
+   {
+    "label": "32%",
+    "correct": false,
+    "why": "Used the single worst return, which is the 100% (maximum loss) end, not the 95% quantile."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sort from worst",
+    "display": "$32, 26, 24, 20, 19, 17, 15, 14, 12, 7$",
+    "value": null
+   },
+   {
+    "label": "Cut-off rank",
+    "display": "$\\alpha n + 1 = 0.05 \\times 100 + 1 = 6$",
+    "value": 6
+   },
+   {
+    "label": "6th worst",
+    "display": "$17\\%$, no time scaling needed",
+    "value": 17
+   }
+  ],
+  "takeaway": "Count ranks from the worst loss: 5% of 100 observations is 5, and the convention reads the next one, the 6th.",
+  "check": {
+   "inputs": {
+    "n": 100,
+    "a": 0.05,
+    "o5": 19,
+    "o6": 17,
+    "o1": 32
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "a*n+1",
+     "value": 6.0
+    },
+    {
+     "name": "slip_5th",
+     "expr": "o5",
+     "value": 19.0
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(o5+o6)/2",
+     "value": 18.0
+    },
+    {
+     "name": "VaR",
+     "expr": "o6",
+     "value": 17.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0621"
+  },
+  "trap_category": "Formula",
+  "setup": "Annually compounded spot rates: 1-year 4%, 2-year 9%. A 1-year investment today followed by a 1-year investment at the forward rate $f$ must match the 2-year spot investment, $(1+s_2)^2 = (1+s_1)(1+f)$.",
+  "ask": "The forward rate for the year starting one year from now is:",
+  "options": [
+   {
+    "label": "Between 4% and 9%",
+    "correct": false,
+    "why": "Took the simple difference $9\\% - 4\\% = 5\\%$ (or an average). The two years of 9% must be earned in total, so a weak first year forces a much stronger second."
+   },
+   {
+    "label": "Above 9%",
+    "correct": true
+   },
+   {
+    "label": "Below 4%",
+    "correct": false,
+    "why": "Inverted the ratio: $1.04^2/1.09 - 1 = -0.8\\%$. The 2-year growth factor goes in the numerator."
+   }
+  ],
+  "working": [
+   {
+    "label": "Two-year growth",
+    "display": "$1.09^2 = 1.1881$",
+    "value": 1.1881
+   },
+   {
+    "label": "Forward growth",
+    "display": "$1.1881 / 1.04 = 1.1424$",
+    "value": 1.1424
+   },
+   {
+    "label": "Forward rate",
+    "display": "$f = 14.24\\%$",
+    "value": 14.24
+   }
+  ],
+  "takeaway": "A forward rate is the rate that closes the gap between two spot rates, so with a low 1-year rate it lands above the 2-year spot (roughly $2s_2 - s_1$).",
+  "check": {
+   "inputs": {
+    "s1": 0.04,
+    "s2": 0.09
+   },
+   "steps": [
+    {
+     "name": "g2",
+     "expr": "(1+s2)^2",
+     "value": 1.1881
+    },
+    {
+     "name": "fwd",
+     "expr": "g2/(1+s1)-1",
+     "value": 0.142404
+    },
+    {
+     "name": "slip_diff",
+     "expr": "s2-s1",
+     "value": 0.05
+    },
+    {
+     "name": "slip_inv",
+     "expr": "(1+s1)^2/(1+s2)-1",
+     "value": -0.00770642
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-04",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0622"
+  },
+  "trap_category": "Formula",
+  "setup": "Pure expectations with certainty. The one-year rate is 11.316% today and will be 13.457% next year and 15.658% the year after (annual compounding). The 2-year spot rate has already been found: 12.38%.",
+  "ask": "The 3-year spot rate is closest to:",
+  "options": [
+   {
+    "label": "≈ 12.4%",
+    "correct": false,
+    "why": "Stopped at the 2-year spot rate; the third year's rate was never brought in."
+   },
+   {
+    "label": "≈ 13.5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 15.7%",
+    "correct": false,
+    "why": "Took the last one-year rate as the 3-year spot. A spot rate averages all three years."
+   },
+   {
+    "label": "≈ 46%",
+    "correct": false,
+    "why": "Reported the total three-year growth $1.46071 - 1$ and never took the cube root."
+   }
+  ],
+  "working": [
+   {
+    "label": "2-year growth",
+    "display": "$1.11316 \\times 1.13457 = 1.26296$",
+    "value": 1.26296
+   },
+   {
+    "label": "3-year growth",
+    "display": "$1.26296 \\times 1.15658 = 1.46071$",
+    "value": 1.46071
+   },
+   {
+    "label": "3-year spot",
+    "display": "$1.46071^{1/3} - 1 = 13.46\\%$",
+    "value": 13.46
+   }
+  ],
+  "takeaway": "Spot rate = geometric average of the one-year rates, so it sits between the lowest and highest rate and below their total growth.",
+  "check": {
+   "inputs": {
+    "y1": 1.11316,
+    "y2": 1.13457,
+    "y3": 1.15658
+   },
+   "steps": [
+    {
+     "name": "g2",
+     "expr": "y1*y2",
+     "value": 1.26296
+    },
+    {
+     "name": "s2",
+     "expr": "sqrt(g2)-1",
+     "value": 0.123814
+    },
+    {
+     "name": "g3",
+     "expr": "g2*y3",
+     "value": 1.46071
+    },
+    {
+     "name": "s3",
+     "expr": "g3^(1/3)-1",
+     "value": 0.134632
+    },
+    {
+     "name": "slip_cum",
+     "expr": "g3-1",
+     "value": 0.460712
+    },
+    {
+     "name": "slip_last",
+     "expr": "y3-1",
+     "value": 0.15658
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-05",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0624"
+  },
+  "trap_category": "Definition",
+  "setup": "All investors expect the one-year rate to be 6% now, 8% next year and 10% the year after. The 3-year spot rate is the annualised rate over those three years (annual compounding). The simple average of the three rates is 8.00%.",
+  "ask": "Compared with 8.00%, the 3-year spot rate is:",
+  "options": [
+   {
+    "label": "Above 8.00%",
+    "correct": false,
+    "why": "Reasoned that compounding makes the total growth exceed $3 \\times 8\\%$ (25.93% against 24%). Annualising takes a cube root, and a geometric mean never exceeds the arithmetic mean."
+   },
+   {
+    "label": "Exactly 8.00%",
+    "correct": false,
+    "why": "Used the simple average of the rates. The gap is small (about 1.2 bp) but the geometric mean is strictly lower when the rates differ."
+   },
+   {
+    "label": "Slightly below 8.00%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "3-year growth",
+    "display": "$1.06 \\times 1.08 \\times 1.10 = 1.25928$",
+    "value": 1.25928
+   },
+   {
+    "label": "3-year spot",
+    "display": "$1.25928^{1/3} - 1 = 7.988\\%$",
+    "value": 7.988
+   },
+   {
+    "label": "Against the average",
+    "display": "$7.988\\% < 8.000\\%$",
+    "value": -0.012
+   }
+  ],
+  "takeaway": "The geometric mean of the one-year rates is always a touch below their arithmetic mean; the more dispersed the rates, the bigger the gap.",
+  "check": {
+   "inputs": {
+    "r1": 0.06,
+    "r2": 0.08,
+    "r3": 0.1
+   },
+   "steps": [
+    {
+     "name": "g",
+     "expr": "(1+r1)*(1+r2)*(1+r3)",
+     "value": 1.25928
+    },
+    {
+     "name": "s3",
+     "expr": "g^(1/3)-1",
+     "value": 0.0798765
+    },
+    {
+     "name": "avg",
+     "expr": "(r1+r2+r3)/3",
+     "value": 0.08
+    },
+    {
+     "name": "gap",
+     "expr": "s3-avg",
+     "value": -0.000123471
+    },
+    {
+     "name": "slip_cum",
+     "expr": "g-1",
+     "value": 0.25928
+    },
+    {
+     "name": "slip_sum",
+     "expr": "3*avg",
+     "value": 0.24
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-06",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0625"
+  },
+  "trap_category": "Polarity",
+  "setup": "Risk-neutral investors, no risk premium. The one-year rate is 8% today and will be 11% or 5% in a year, each with probability 50% (expected rate 8%). A two-year zero pays USD 1,000.",
+  "ask": "The tree price of the two-year zero, against USD 1,000/1.08$^2$ = USD 857.34 (priced at the expected rate), is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Treated rate uncertainty as a cost. Bond prices are convex in rates, so the up-move loses less than the down-move gains."
+   },
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed the expected rate gives the expected price. That holds only if price were linear in the rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Up node",
+    "display": "$1000/1.11 = 900.90$",
+    "value": 900.9
+   },
+   {
+    "label": "Down node",
+    "display": "$1000/1.05 = 952.38$",
+    "value": 952.38
+   },
+   {
+    "label": "Tree price",
+    "display": "$0.5(900.90 + 952.38)/1.08 = 858.00$",
+    "value": 858.0
+   },
+   {
+    "label": "Against flat",
+    "display": "$858.00 > 857.34$",
+    "value": 0.66
+   }
+  ],
+  "takeaway": "Jensen's inequality: $E[1/(1+r)] > 1/(1+E[r])$, so a risk-neutral tree prices above the flat-rate price.",
+  "check": {
+   "inputs": {
+    "F": 1000,
+    "r0": 0.08,
+    "ru": 0.11,
+    "rd": 0.05
+   },
+   "steps": [
+    {
+     "name": "pu",
+     "expr": "F/(1+ru)",
+     "value": 900.901
+    },
+    {
+     "name": "pd",
+     "expr": "F/(1+rd)",
+     "value": 952.381
+    },
+    {
+     "name": "ev",
+     "expr": "0.5*(pu+pd)",
+     "value": 926.641
+    },
+    {
+     "name": "P",
+     "expr": "ev/(1+r0)",
+     "value": 858.001
+    },
+    {
+     "name": "flat",
+     "expr": "F/(1+r0)^2",
+     "value": 857.339
+    },
+    {
+     "name": "gap",
+     "expr": "P-flat",
+     "value": 0.662038
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-07",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-13c-6"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Risk-neutral tree, 50% on every branch. One-year rate: 8% today; 10% or 6% in one year; 12%, 8% or 4% in two years. The value of convexity (8% less the implied spot rate) is 1.85 bp for the two-year zero.",
+  "ask": "For the three-year zero it is closest to:",
+  "options": [
+   {
+    "label": "≈ 15 bp",
+    "correct": false,
+    "why": "Used the cumulative three-year gap ($3 \\times 4.9$ bp) instead of the annualised spot-rate gap."
+   },
+   {
+    "label": "≈ 0.5 bp",
+    "correct": false,
+    "why": "Scale slip (one tenth): the gap is in basis points, $0.0494\\%$ is 4.9 bp, not 0.49."
+   },
+   {
+    "label": "≈ 1.9 bp",
+    "correct": false,
+    "why": "Carried the two-year figure over. The effect grows with maturity because more convex pieces are added."
+   },
+   {
+    "label": "≈ 4.9 bp",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Two-year zero at date 2",
+    "display": "$1/1.12 = 0.89286,\\ 1/1.08 = 0.92593,\\ 1/1.04 = 0.96154$",
+    "value": null
+   },
+   {
+    "label": "Date-1 two-year values",
+    "display": "up: $0.82672$, down: $0.89031$",
+    "value": null
+   },
+   {
+    "label": "3-year price",
+    "display": "$0.5(0.82672 + 0.89031)/1.08 = 0.79492$",
+    "value": 0.79492
+   },
+   {
+    "label": "3-year spot",
+    "display": "$0.79492^{-1/3} - 1 = 7.951\\%$",
+    "value": 7.951
+   },
+   {
+    "label": "Convexity value",
+    "display": "$8\\% - 7.951\\% = 4.9$ bp",
+    "value": 4.9
+   }
+  ],
+  "takeaway": "The value of convexity grows faster than maturity: 1.85 bp at two years, about 4.9 bp at three.",
+  "check": {
+   "inputs": {
+    "r0": 0.08,
+    "ru": 0.1,
+    "rd": 0.06,
+    "a": 0.12,
+    "b": 0.08,
+    "c": 0.04
+   },
+   "steps": [
+    {
+     "name": "Pu",
+     "expr": "0.5*(1/(1+a)+1/(1+b))/(1+ru)",
+     "value": 0.82672
+    },
+    {
+     "name": "Pd",
+     "expr": "0.5*(1/(1+b)+1/(1+c))/(1+rd)",
+     "value": 0.890313
+    },
+    {
+     "name": "P3",
+     "expr": "0.5*(Pu+Pd)/(1+r0)",
+     "value": 0.794923
+    },
+    {
+     "name": "s3",
+     "expr": "P3^(-1/3)-1",
+     "value": 0.0795059
+    },
+    {
+     "name": "gap_bp",
+     "expr": "(r0-s3)*10000",
+     "value": 4.94053
+    },
+    {
+     "name": "P2",
+     "expr": "0.5*(1/(1+ru)+1/(1+rd))/(1+r0)",
+     "value": 0.857633
+    },
+    {
+     "name": "gap2_bp",
+     "expr": "(r0-(P2^(-1/2)-1))*10000",
+     "value": 1.85201
+    },
+    {
+     "name": "slip_cum",
+     "expr": "3*gap_bp",
+     "value": 14.8216
+    },
+    {
+     "name": "slip_scale",
+     "expr": "gap_bp/10",
+     "value": 0.494053
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-08",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0640"
+  },
+  "trap_category": "Scope",
+  "setup": "The one-year rate is 8.0%. Risk-averse investors require 50 bp per year of duration risk, counted on the bond as it will stand at the end of the holding period. You buy a three-year zero and hold it for one year, when it becomes a two-year zero.",
+  "ask": "The risk premium earned over the year is:",
+  "options": [
+   {
+    "label": "0.50%",
+    "correct": false,
+    "why": "Counted one year, the length of the holding period, rather than the bond's duration at the end of it."
+   },
+   {
+    "label": "1.00%",
+    "correct": true
+   },
+   {
+    "label": "1.50%",
+    "correct": false,
+    "why": "Used the three-year duration the bond has today; the premium is for the two-year bond it becomes."
+   }
+  ],
+  "working": [
+   {
+    "label": "Duration at year end",
+    "display": "$3 - 1 = 2$ years",
+    "value": 2
+   },
+   {
+    "label": "Risk premium",
+    "display": "$2 \\times 0.50\\% = 1.00\\%$",
+    "value": 1.0
+   },
+   {
+    "label": "Expected return",
+    "display": "$8.0\\% + 1.00\\% = 9.00\\%$",
+    "value": 9.0
+   }
+  ],
+  "takeaway": "The premium is $\\lambda \\times$ (duration at the end of the holding period), not at the start.",
+  "check": {
+   "inputs": {
+    "lam": 0.005,
+    "T": 3,
+    "h": 1,
+    "r": 0.08
+   },
+   "steps": [
+    {
+     "name": "Dend",
+     "expr": "T-h",
+     "value": 2.0
+    },
+    {
+     "name": "prem",
+     "expr": "lam*Dend",
+     "value": 0.01
+    },
+    {
+     "name": "ER",
+     "expr": "r+prem",
+     "value": 0.09
+    },
+    {
+     "name": "slip_hold",
+     "expr": "lam*h",
+     "value": 0.005
+    },
+    {
+     "name": "slip_start",
+     "expr": "lam*T",
+     "value": 0.015
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-09",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0641"
+  },
+  "trap_category": "Sign",
+  "setup": "The short rate is 3.0%, the risk premium is 15 bp per unit of duration, and a bond has duration 6 and convexity 50. Rate volatility is 1.5% a year, so a convexity term $\\tfrac12 C\\sigma^2$ is about 0.56%. The risk-averse investor's expected return is $r_0 + \\lambda D = 3.90\\%$ before any convexity adjustment.",
+  "ask": "The expected one-year return, compared with 3.90%, is:",
+  "options": [
+   {
+    "label": "Higher, about 4.46%",
+    "correct": false,
+    "why": "Added the convexity gain $0.56\\%$ to the return. In expected return it is offset by the lower forward rates it implies, so nothing is added."
+   },
+   {
+    "label": "Equal to 3.90%",
+    "correct": true
+   },
+   {
+    "label": "Lower, about 3.34%",
+    "correct": false,
+    "why": "Subtracted the convexity term. Convexity enters the forward rate with a minus sign, not the expected return."
+   }
+  ],
+  "working": [
+   {
+    "label": "Premium term",
+    "display": "$0.15\\% \\times 6 = 0.90\\%$",
+    "value": 0.9
+   },
+   {
+    "label": "Expected return",
+    "display": "$3.00\\% + 0.90\\% = 3.90\\%$",
+    "value": 3.9
+   },
+   {
+    "label": "Convexity term",
+    "display": "$\\tfrac12 \\times 50 \\times 0.015^2 = 0.56\\%$, not added",
+    "value": 0.5625
+   }
+  ],
+  "takeaway": "Expected return = $r_0 + \\lambda D$. Convexity lowers the forward rate but does not change the expected return.",
+  "check": {
+   "inputs": {
+    "r0": 0.03,
+    "lam": 0.0015,
+    "D": 6,
+    "C": 50,
+    "vol": 0.015
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "lam*D",
+     "value": 0.009
+    },
+    {
+     "name": "ER",
+     "expr": "r0+prem",
+     "value": 0.039
+    },
+    {
+     "name": "cx",
+     "expr": "0.5*C*vol^2",
+     "value": 0.005625
+    },
+    {
+     "name": "slip_add",
+     "expr": "ER+cx",
+     "value": 0.044625
+    },
+    {
+     "name": "slip_sub",
+     "expr": "ER-cx",
+     "value": 0.033375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-4: Backtesting VaR",
+  "reading_id": "MR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-4f-7"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel backtesting of a 99% one-day VaR: 8 exceptions in 250 days. Causes: 4 volatile markets and changed correlations; 2 too few maturity buckets in the model; 1 intraday trading changed positions; 1 major earthquake. The supervisor excludes only what the rules allow.",
+  "ask": "How many exceptions count towards the multiplier $k$?",
+  "options": [
+   {
+    "label": "8",
+    "correct": false,
+    "why": "Counted all exceptions. A natural disaster is an allowed exclusion."
+   },
+   {
+    "label": "7",
+    "correct": true
+   },
+   {
+    "label": "4",
+    "correct": false,
+    "why": "Counted only the bad-luck exceptions; model-accuracy and intraday ones are penalised too."
+   },
+   {
+    "label": "3",
+    "correct": false,
+    "why": "Counted only the model-fault and intraday exceptions; market-volatility exceptions are expected some of the time but still count."
+   }
+  ],
+  "working": [
+   {
+    "label": "Allowed exclusion",
+    "display": "earthquake: 1 day",
+    "value": 1
+   },
+   {
+    "label": "Exceptions counted",
+    "display": "$8 - 1 = 7$ (yellow zone, $k = 3.65$)",
+    "value": 7
+   },
+   {
+    "label": "Charge",
+    "display": "$\\max(52,\\ 3.65 \\times 40) = \\text{EUR } 146$m",
+    "value": 146
+   }
+  ],
+  "takeaway": "Only abnormal events (a disaster, a political shock) may be excluded; volatility, model flaws and intraday trading all count.",
+  "check": {
+   "inputs": {
+    "total": 8,
+    "vol": 4,
+    "model": 2,
+    "intra": 1,
+    "quake": 1,
+    "k0": 3,
+    "plus": 0.65,
+    "v60": 40,
+    "v1": 52
+   },
+   "steps": [
+    {
+     "name": "N",
+     "expr": "total-quake",
+     "value": 7.0
+    },
+    {
+     "name": "slip_bad_luck",
+     "expr": "vol",
+     "value": 4.0
+    },
+    {
+     "name": "slip_faults",
+     "expr": "model+intra",
+     "value": 3.0
+    },
+    {
+     "name": "k",
+     "expr": "k0+plus",
+     "value": 3.65
+    },
+    {
+     "name": "charge",
+     "expr": "max(v1,k*v60)",
+     "value": 146.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-11",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-5: VaR Mapping",
+  "reading_id": "MR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-5d-3"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 200m portfolio of a 2-year and a 4-year 5% par bond (USD 100m each). Average principal maturity is 3.00 years; Macaulay duration is 2.84 years. Monthly 95% VaR of zeros: 2y 0.9868%, 3y 1.4841%. VaR is mapped to the duration, with linear interpolation.",
+  "ask": "The duration-mapped VaR, against the principal-mapped VaR (the 3-year vertex), is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Used the 3.00-year principal maturity, or read a longer horizon into the portfolio. The duration is shorter at 2.84 years."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Treated both maturity measures as one. Duration is below average principal maturity because coupons arrive early."
+   },
+   {
+    "label": "Lower",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Interpolated VaR %",
+    "display": "$0.9868 + 0.84 \\times (1.4841 - 0.9868) = 1.4045\\%$",
+    "value": 1.4045
+   },
+   {
+    "label": "Duration-mapped VaR",
+    "display": "$200 \\times 1.4045\\% = \\text{USD } 2.81$m",
+    "value": 2.81
+   },
+   {
+    "label": "Principal mapped",
+    "display": "$200 \\times 1.4841\\% = \\text{USD } 2.97$m",
+    "value": 2.97
+   }
+  ],
+  "takeaway": "Coupons pull duration below average maturity of principal, so duration mapping gives a slightly lower VaR.",
+  "check": {
+   "inputs": {
+    "V": 200,
+    "v2": 0.009868,
+    "v3": 0.014841,
+    "D": 2.84
+   },
+   "steps": [
+    {
+     "name": "vD",
+     "expr": "v2+(v3-v2)*(D-2)",
+     "value": 0.0140453
+    },
+    {
+     "name": "VaR_dur",
+     "expr": "V*vD",
+     "value": 2.80906
+    },
+    {
+     "name": "VaR_prin",
+     "expr": "V*v3",
+     "value": 2.9682
+    },
+    {
+     "name": "diff",
+     "expr": "VaR_dur-VaR_prin",
+     "value": -0.159136
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-11c-3"
+  },
+  "trap_category": "Role",
+  "setup": "A corporate yield (daily change standard deviation 4.20 bp) is regressed on a Treasury yield (4.40 bp). The regression has a positive slope and $R^2 = 77.5\\%$, so the correlation is about 0.88.",
+  "ask": "The hedge adjustment factor $\\beta$, compared with the correlation, is:",
+  "options": [
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Flipped the volatility ratio: $0.88 \\times 4.40/4.20 = 0.92$. Beta puts the hedged yield's volatility on top."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Treated $R^2$ or the correlation as the slope. $\\beta = \\rho\\,\\sigma_{corp}/\\sigma_{Tsy}$ equals $\\rho$ only if the volatilities match."
+   },
+   {
+    "label": "Smaller",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Correlation",
+    "display": "$\\sqrt{0.775} = 0.880$",
+    "value": 0.8803
+   },
+   {
+    "label": "Volatility ratio",
+    "display": "$4.20/4.40 = 0.955$",
+    "value": 0.9545
+   },
+   {
+    "label": "Beta",
+    "display": "$0.880 \\times 0.955 = 0.840$",
+    "value": 0.84
+   }
+  ],
+  "takeaway": "$\\beta = \\rho\\,\\sigma_y/\\sigma_x$: it is the correlation scaled by the ratio of volatilities, so it is below $\\rho$ when the hedged yield is the calmer one.",
+  "check": {
+   "inputs": {
+    "R2": 0.775,
+    "sc": 4.2,
+    "st": 4.4
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "sqrt(R2)",
+     "value": 0.880341
+    },
+    {
+     "name": "beta",
+     "expr": "rho*sc/st",
+     "value": 0.840325
+    },
+    {
+     "name": "slip_flip",
+     "expr": "rho*st/sc",
+     "value": 0.922262
+    },
+    {
+     "name": "slip_R2",
+     "expr": "R2*sc/st",
+     "value": 0.739773
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-13",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-11c-4"
+  },
+  "trap_category": "Formula",
+  "setup": "A trader holds CAD 50m face of a 30-year provincial bond and sells the Government of Canada 30-year bond as a hedge. DV01 per 100 face: provincial 0.1835, GoC 0.2010. The regression of provincial yield changes on GoC yield changes has slope $\\beta = 0.91$.",
+  "ask": "The face amount of the GoC bond to sell, against CAD 50m, is:",
+  "options": [
+   {
+    "label": "More than CAD 50m",
+    "correct": false,
+    "why": "Inverted the DV01 ratio ($50 \\times 0.2010/0.1835 = 54.8$). The GoC bond has the larger DV01 per face, so less face is needed."
+   },
+   {
+    "label": "Less than CAD 50m",
+    "correct": true
+   },
+   {
+    "label": "About CAD 50m",
+    "correct": false,
+    "why": "Matched face for face and ignored both the DV01 ratio and the regression slope."
+   }
+  ],
+  "working": [
+   {
+    "label": "DV01 ratio",
+    "display": "$0.1835/0.2010 = 0.913$",
+    "value": 0.913
+   },
+   {
+    "label": "Regression hedge",
+    "display": "$50 \\times 0.913 \\times 0.91 = \\text{CAD } 41.5$m",
+    "value": 41.54
+   }
+  ],
+  "takeaway": "Hedge face $= F \\times \\text{DV01 ratio} \\times \\beta$. With both factors below 1, the hedge is smaller than the position.",
+  "check": {
+   "inputs": {
+    "F": 50,
+    "dp": 0.1835,
+    "dh": 0.201,
+    "beta": 0.91
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "dp/dh",
+     "value": 0.912935
+    },
+    {
+     "name": "FH",
+     "expr": "F*ratio*beta",
+     "value": 41.5386
+    },
+    {
+     "name": "slip_inv",
+     "expr": "F*dh/dp",
+     "value": 54.7684
+    },
+    {
+     "name": "slip_nobeta",
+     "expr": "F*ratio",
+     "value": 45.6468
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-14",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-12d-5"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A tree moves the six-month rate (2.00% today) up or down by 50 bp each step. The true up probability is 0.50. Calibrating to the zero prices gives a risk-neutral up probability of 0.8009 for the first step.",
+  "ask": "Under the risk-neutral process, the expected six-month rate at the next date (6 months out) is:",
+  "options": [
+   {
+    "label": "2.00%",
+    "correct": false,
+    "why": "Used the true probabilities: symmetric moves leave no drift. The risk-neutral up probability is 0.8009."
+   },
+   {
+    "label": "2.30%",
+    "correct": true
+   },
+   {
+    "label": "2.40%",
+    "correct": false,
+    "why": "Counted only the up-moves: $0.8009 \\times 50 = 40$ bp. The down-moves (probability 0.1991) subtract."
+   },
+   {
+    "label": "2.50%",
+    "correct": false,
+    "why": "Assumed the rate always moves up by the full 50 bp."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift per step",
+    "display": "$(2 \\times 0.8009 - 1) \\times 50 = +30$ bp",
+    "value": 30.09
+   },
+   {
+    "label": "Expected rate",
+    "display": "$2.00\\% + 0.30\\% = 2.30\\%$",
+    "value": 2.3009
+   }
+  ],
+  "takeaway": "Drift per step is $(2p - 1)$ times the step size: risk-neutral $p$ above 0.5 pushes the expected rate up.",
+  "check": {
+   "inputs": {
+    "r0": 2.0,
+    "p": 0.8009,
+    "step": 0.5
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "(2*p-1)*step",
+     "value": 0.3009
+    },
+    {
+     "name": "E1",
+     "expr": "r0+drift",
+     "value": 2.3009
+    },
+    {
+     "name": "slip_true",
+     "expr": "r0+(2*0.5-1)*step",
+     "value": 2.0
+    },
+    {
+     "name": "slip_up_only",
+     "expr": "r0+p*step",
+     "value": 2.40045
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-15",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-12f-5"
+  },
+  "trap_category": "Sign",
+  "setup": "A semiannual tree has a six-month rate of 4.00% (a bond at the short rate would earn 2.00% over six months). A security trades at an option-adjusted spread of $-20$ bp. The OAS is expected to stay constant, and the process is risk-neutral.",
+  "ask": "The security's expected return over the next six months, against 2.00%, is:",
+  "options": [
+   {
+    "label": "Above 2.00%",
+    "correct": false,
+    "why": "Added the OAS with the wrong sign: $(4.00 + 0.20)/2 = 2.10\\%$. A negative OAS means the security is rich and earns less."
+   },
+   {
+    "label": "Below 2.00%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 2.00%",
+    "correct": false,
+    "why": "Applied the risk-neutral rule that expected return equals the short rate, forgetting that the OAS is added to the rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected annual return",
+    "display": "$r_0 + \\text{OAS} = 4.00\\% - 0.20\\% = 3.80\\%$",
+    "value": 3.8
+   },
+   {
+    "label": "Six-month return",
+    "display": "$3.80\\% \\times \\tfrac12 = 1.90\\%$",
+    "value": 1.9
+   }
+  ],
+  "takeaway": "Expected return $= (r_0 + \\text{OAS})\\,dt$: a negative OAS (rich security) earns less than the short rate.",
+  "check": {
+   "inputs": {
+    "r0": 0.04,
+    "oas": -0.002,
+    "dt": 0.5
+   },
+   "steps": [
+    {
+     "name": "ER",
+     "expr": "(r0+oas)*dt",
+     "value": 0.019
+    },
+    {
+     "name": "base",
+     "expr": "r0*dt",
+     "value": 0.02
+    },
+    {
+     "name": "slip_sign",
+     "expr": "(r0-oas)*dt",
+     "value": 0.021
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-16",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-12h-4"
+  },
+  "trap_category": "Polarity",
+  "setup": "A one-year CMT swap pays the receiver $\\text{USD } 2\\text{m} \\times (y - 4.00\\%)/2$ every six months. The six-month rate is 4.00% today and moves $\\pm 40$ bp per step. The risk-neutral up probabilities are 0.65 (first step) and 0.58 (second); the desk's true probability is 0.50.",
+  "ask": "The swap's value to the receiver is:",
+  "options": [
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Reasoned that a swap struck at today's rate starts at zero. The risk-neutral up-moves (0.65, 0.58) make expected payments positive."
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Used the true 0.50 probabilities and let discounting dominate: that gives about $-\\$8$. Pricing must use the risk-neutral probabilities."
+   },
+   {
+    "label": "Positive",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Date-1 value, up",
+    "display": "$\\tfrac{0.58(8000)}{1.022} + 4000 = 8540$",
+    "value": 8540.12
+   },
+   {
+    "label": "Date-1 value, down",
+    "display": "$\\tfrac{0.42(-8000)}{1.018} - 4000 = -7301$",
+    "value": -7300.59
+   },
+   {
+    "label": "Date-0 value",
+    "display": "$\\tfrac{0.65(8540) + 0.35(-7301)}{1.02} = +\\$2{,}937$",
+    "value": 2937.13
+   }
+  ],
+  "takeaway": "Pricing uses risk-neutral probabilities: a risk-neutral up-drift makes a swap receiving the rate worth more than zero.",
+  "check": {
+   "inputs": {
+    "N": 2000000,
+    "k": 0.04,
+    "s": 0.004,
+    "pu0": 0.65,
+    "pu1": 0.58
+   },
+   "steps": [
+    {
+     "name": "Vu",
+     "expr": "(pu1*N*2*s/2)/(1+(k+s)/2)+N*s/2",
+     "value": 8540.12
+    },
+    {
+     "name": "Vd",
+     "expr": "((1-pu1)*(-N*2*s/2))/(1+(k-s)/2)-N*s/2",
+     "value": -7300.59
+    },
+    {
+     "name": "V0",
+     "expr": "(pu0*Vu+(1-pu0)*Vd)/(1+k/2)",
+     "value": 2937.13
+    },
+    {
+     "name": "Tu",
+     "expr": "(0.5*N*2*s/2)/(1+(k+s)/2)+N*s/2",
+     "value": 7913.89
+    },
+    {
+     "name": "Td",
+     "expr": "(0.5*(-N*2*s/2))/(1+(k-s)/2)-N*s/2",
+     "value": -7929.27
+    },
+    {
+     "name": "slip_true",
+     "expr": "(0.5*Tu+0.5*Td)/(1+k/2)",
+     "value": -7.53861
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq08-17",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-13: Expectations, Risk Premium, Convexity, and the Shape of the Term Structure",
+  "reading_id": "MR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-13d-3"
+  },
+  "trap_category": "Sign",
+  "setup": "A forward rate is built from the short rate of 2.5% plus three terms for a zero with duration 7: expectations ($D \\times$ the 0.3% expected annual change in the short rate), risk premium ($15$ bp per year of duration) and a convexity effect of 0.65% that is subtracted.",
+  "ask": "The net amount added to the 2.5% short rate is:",
+  "options": [
+   {
+    "label": "+3.80 pp",
+    "correct": false,
+    "why": "Added the convexity effect instead of subtracting it."
+   },
+   {
+    "label": "+3.15 pp",
+    "correct": false,
+    "why": "Left the convexity effect out altogether."
+   },
+   {
+    "label": "+2.50 pp",
+    "correct": true
+   },
+   {
+    "label": "$-0.20$ pp",
+    "correct": false,
+    "why": "Forgot to multiply by duration: $0.30 + 0.15 - 0.65 = -0.20$. Expectations and premium scale with $D$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expectations",
+    "display": "$7 \\times 0.30\\% = 2.10\\%$",
+    "value": 2.1
+   },
+   {
+    "label": "Risk premium",
+    "display": "$7 \\times 0.15\\% = 1.05\\%$",
+    "value": 1.05
+   },
+   {
+    "label": "Net of convexity",
+    "display": "$2.10 + 1.05 - 0.65 = 2.50$ pp, forward $= 5.00\\%$",
+    "value": 2.5
+   }
+  ],
+  "takeaway": "Expectations and premium scale with duration; convexity comes off the forward rate even though it adds to bond returns.",
+  "check": {
+   "inputs": {
+    "D": 7,
+    "e": 0.3,
+    "lam": 0.15,
+    "cx": 0.65,
+    "r": 2.5
+   },
+   "steps": [
+    {
+     "name": "exp",
+     "expr": "D*e",
+     "value": 2.1
+    },
+    {
+     "name": "prem",
+     "expr": "D*lam",
+     "value": 1.05
+    },
+    {
+     "name": "net",
+     "expr": "exp+prem-cx",
+     "value": 2.5
+    },
+    {
+     "name": "f",
+     "expr": "r+net",
+     "value": 5.0
+    },
+    {
+     "name": "slip_plus",
+     "expr": "exp+prem+cx",
+     "value": 3.8
+    },
+    {
+     "name": "slip_nocx",
+     "expr": "exp+prem",
+     "value": 3.15
+    },
+    {
+     "name": "slip_noD",
+     "expr": "e+lam-cx",
+     "value": -0.2
+    }
+   ]
+  }
+ }
+]

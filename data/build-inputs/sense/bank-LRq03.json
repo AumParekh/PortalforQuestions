@@ -1,0 +1,1401 @@
+[
+ {
+  "id": "SC-bank-LRq03-01",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-7: Monitoring Liquidity",
+  "reading_id": "LTR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0273"
+  },
+  "trap_category": "Sequence",
+  "setup": "Liquidity gap table for institution XYZ, cash flows by expiry. Year 1: notional in $+20$, interest in $+6$, interest out $-4$. Year 2: interest in $+5$, notional out $-10$, interest out $-4$. The TSECCF is the running total of the net flows, starting at year 1.",
+  "ask": "After the year-2 expiry, the TSECCF is:",
+  "options": [
+   {
+    "label": "Positive, but below the year-1 figure",
+    "correct": true
+   },
+   {
+    "label": "Negative (about $-9$)",
+    "correct": false,
+    "why": "Reported the year-2 net flow alone. TSECCF is cumulative, so the year-1 surplus of $+22$ carries into year 2."
+   },
+   {
+    "label": "Above the year-1 figure",
+    "correct": false,
+    "why": "Added the year-2 outflow instead of subtracting it ($22 + 9 = 31$). A net outflow lowers the running total."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-1 net",
+    "display": "$20 + 6 - 4 = +22$",
+    "value": 22
+   },
+   {
+    "label": "Year-2 net",
+    "display": "$5 - 10 - 4 = -9$",
+    "value": -9
+   },
+   {
+    "label": "TSECCF at year 2",
+    "display": "$22 + (-9) = +13$",
+    "value": 13
+   }
+  ],
+  "takeaway": "TSECCF is a running total: last period's balance plus this period's net flow, not this period's flow alone.",
+  "check": {
+   "inputs": {
+    "n1a": 20,
+    "n1b": 6,
+    "n1c": -4,
+    "n2a": 5,
+    "n2b": -10,
+    "n2c": -4
+   },
+   "steps": [
+    {
+     "name": "net1",
+     "expr": "n1a+n1b+n1c",
+     "value": 22.0
+    },
+    {
+     "name": "net2",
+     "expr": "n2a+n2b+n2c",
+     "value": -9.0
+    },
+    {
+     "name": "tseccf2",
+     "expr": "net1+net2",
+     "value": 13.0
+    },
+    {
+     "name": "slip_flow_only",
+     "expr": "net2",
+     "value": -9.0
+    },
+    {
+     "name": "slip_sign",
+     "expr": "net1-net2",
+     "value": 31.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-02",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-7: Monitoring Liquidity",
+  "reading_id": "LTR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0276"
+  },
+  "trap_category": "Scope",
+  "setup": "A 10-year-plus liquidity gap table. Over the whole life of the book, notional inflows total $100$ ($25 + 60 + 15$) and notional outflows total $-100$ ($-20 - 35 - 20 - 25$, the last one beyond year 10). Interest received totals $40$ and interest paid totals $-26$. The TSECCF in the final (over 10 years) bucket is the cumulative total of every flow.",
+  "ask": "The TSECCF in the final bucket is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Assumed everything cancels because the notional flows do. Interest does not net to zero here: $40 - 26 = +14$ remains."
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Focused on the last bucket's $-25$ notional outflow. The cumulative figure carries all the earlier inflows too."
+   }
+  ],
+  "working": [
+   {
+    "label": "Notional",
+    "display": "$100 - 100 = 0$",
+    "value": 0
+   },
+   {
+    "label": "Interest",
+    "display": "$40 - 26 = +14$",
+    "value": 14
+   },
+   {
+    "label": "Final TSECCF",
+    "display": "$0 + 14 = +14$",
+    "value": 14
+   }
+  ],
+  "takeaway": "Once all principal has repaid, the final cumulative gap is just the net interest left over.",
+  "check": {
+   "inputs": {
+    "nin": 100,
+    "nout": -100,
+    "iin": 40,
+    "iout": -26
+   },
+   "steps": [
+    {
+     "name": "notional",
+     "expr": "nin+nout",
+     "value": 0.0
+    },
+    {
+     "name": "interest",
+     "expr": "iin+iout",
+     "value": 14.0
+    },
+    {
+     "name": "final",
+     "expr": "notional+interest",
+     "value": 14.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-03",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-7: Monitoring Liquidity",
+  "reading_id": "LTR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0279"
+  },
+  "trap_category": "Definition",
+  "setup": "A bank holds a bond of notional $1{,}000{,}000$ bought on a coupon date. It pays a $10\\%$ annual coupon, semiannually. After 10 months the bank sells notional $300{,}000$ at a clean price of $99.95$ (per 100). The liquidity-generation table records the cash actually received, which is the dirty price.",
+  "ask": "The inflow recorded for this sale is closest to:",
+  "options": [
+   {
+    "label": "≈ 31,000",
+    "correct": false,
+    "why": "Scale slip (0.1×). The sale is 30% of a 1,000,000 position at about par, so the inflow is in the hundreds of thousands."
+   },
+   {
+    "label": "≈ 310,000",
+    "correct": true
+   },
+   {
+    "label": "≈ 1,030,000",
+    "correct": false,
+    "why": "Applied the dirty price to the whole 1,000,000 notional instead of the 300,000 sold."
+   },
+   {
+    "label": "≈ 10,000",
+    "correct": false,
+    "why": "Counted only the accrued interest on the 300,000 and left out the clean price."
+   }
+  ],
+  "working": [
+   {
+    "label": "Accrued interest",
+    "display": "$10\\% \\times 4/12 = 3.333\\%$ of par",
+    "value": 3.3333
+   },
+   {
+    "label": "Dirty price",
+    "display": "$99.95 + 3.333 = 103.283$",
+    "value": 103.283
+   },
+   {
+    "label": "Inflow",
+    "display": "$300{,}000 \\times 1.03283 \\approx 309{,}850$",
+    "value": 309850
+   }
+  ],
+  "takeaway": "Sales generate the dirty price, clean price plus interest accrued since the last coupon (here 4 months, not 10).",
+  "check": {
+   "inputs": {
+    "N": 1000000,
+    "sold": 300000,
+    "cp": 99.95,
+    "c": 0.1
+   },
+   "steps": [
+    {
+     "name": "accr",
+     "expr": "c*4/12*100",
+     "value": 3.33333
+    },
+    {
+     "name": "dirty",
+     "expr": "cp+accr",
+     "value": 103.283
+    },
+    {
+     "name": "inflow",
+     "expr": "sold*dirty/100",
+     "value": 309850.0
+    },
+    {
+     "name": "slip_whole",
+     "expr": "N*dirty/100",
+     "value": 1032830.0
+    },
+    {
+     "name": "slip_accr_only",
+     "expr": "sold*accr/100",
+     "value": 10000.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.1*inflow",
+     "value": 30985.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-04",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-7: Monitoring Liquidity",
+  "reading_id": "LTR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0281"
+  },
+  "trap_category": "Definition",
+  "setup": "A bank buys a bond on a coupon date and enters a repo on it exactly 3 months later. The bond pays a $3.5\\%$ annual coupon, semiannually, and is quoted at a clean price of $97$ (per 100). The cash lent against it depends on the dirty price.",
+  "ask": "Accrued interest at the repo start, per 100 of notional, is closest to:",
+  "options": [
+   {
+    "label": "0.88",
+    "correct": true
+   },
+   {
+    "label": "1.75",
+    "correct": false,
+    "why": "Took a full semiannual coupon ($3.5/2$). Only 3 months of the 6-month period have elapsed."
+   },
+   {
+    "label": "3.50",
+    "correct": false,
+    "why": "Took a full year of coupon. The coupon accrues only since the last payment date."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fraction of a year since last coupon",
+    "display": "$3/12 = 0.25$",
+    "value": 0.25
+   },
+   {
+    "label": "Accrued interest",
+    "display": "$3.5 \\times 0.25 = 0.875$ per 100",
+    "value": 0.875
+   }
+  ],
+  "takeaway": "Accrued interest runs from the last coupon date: annual coupon × time since that date, not a whole coupon.",
+  "check": {
+   "inputs": {
+    "cpn": 3.5,
+    "m": 3
+   },
+   "steps": [
+    {
+     "name": "accr",
+     "expr": "cpn*m/12",
+     "value": 0.875
+    },
+    {
+     "name": "slip_semi",
+     "expr": "cpn/2",
+     "value": 1.75
+    },
+    {
+     "name": "slip_annual",
+     "expr": "cpn",
+     "value": 3.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-05",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0390"
+  },
+  "trap_category": "Formula",
+  "setup": "Promise Bank issues a 50-day negotiable CD with face value USD 10 million at a $5\\%$ annual rate. Interest accrues on a 360-day year and is paid with the principal at maturity.",
+  "ask": "The interest Promise Bank pays at maturity is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 6,900",
+    "correct": false,
+    "why": "Scale slip (0.1×): read the $5\\%$ rate as $0.5\\%$."
+   },
+   {
+    "label": "≈ USD 69,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 500,000",
+    "correct": false,
+    "why": "Left out the $50/360$ fraction and charged a full year of interest."
+   },
+   {
+    "label": "≈ USD 10.07 million",
+    "correct": false,
+    "why": "Reported the total repayment (principal plus interest) instead of the interest alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest",
+    "display": "$10{,}000{,}000 \\times 0.05 \\times 50/360 = 69{,}444$",
+    "value": 69444
+   },
+   {
+    "label": "Total repaid",
+    "display": "$10{,}000{,}000 + 69{,}444$",
+    "value": 10069444
+   }
+  ],
+  "takeaway": "Money-market interest is principal × rate × days/360. A 50-day CD earns about 14% of a year's interest.",
+  "check": {
+   "inputs": {
+    "P": 10000000,
+    "r": 0.05,
+    "d": 50
+   },
+   "steps": [
+    {
+     "name": "interest",
+     "expr": "P*r*d/360",
+     "value": 69444.4
+    },
+    {
+     "name": "slip_scale",
+     "expr": "interest/10",
+     "value": 6944.44
+    },
+    {
+     "name": "slip_year",
+     "expr": "P*r",
+     "value": 500000.0
+    },
+    {
+     "name": "slip_total",
+     "expr": "P+interest",
+     "value": 10069400.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-06",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0391"
+  },
+  "trap_category": "Scope",
+  "setup": "A credit union borrows USD 200 million overnight through a repurchase agreement at a $5\\%$ annual RP rate, on a 360-day year. One year of interest on this amount would be USD 10 million.",
+  "ask": "Interest for the one night is:",
+  "options": [
+   {
+    "label": "Below USD 50,000",
+    "correct": true
+   },
+   {
+    "label": "Above USD 50,000",
+    "correct": false,
+    "why": "Charged two nights, about USD 55,556 (a weekend), or forgot to divide by 360. The loan is overnight, so one day."
+   }
+  ],
+  "working": [
+   {
+    "label": "One day of interest",
+    "display": "$200{,}000{,}000 \\times 0.05 \\times 1/360 = 27{,}778$",
+    "value": 27778
+   }
+  ],
+  "takeaway": "Overnight cost is the annual rate divided by 360: roughly 0.014% of the amount borrowed.",
+  "check": {
+   "inputs": {
+    "P": 200000000,
+    "r": 0.05
+   },
+   "steps": [
+    {
+     "name": "night",
+     "expr": "P*r/360",
+     "value": 27777.8
+    },
+    {
+     "name": "slip_two_nights",
+     "expr": "P*r*2/360",
+     "value": 55555.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-07",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0407"
+  },
+  "trap_category": "Polarity",
+  "setup": "A bank raises USD 775m of short-term funds, of which USD 700m is net investable. Negotiable CDs cost $2.40\\%$ in interest plus $0.25\\%$ noninterest cost; commercial paper costs $2.35\\%$ plus $0.50\\%$. Noninterest costs are a percentage of the full USD 775m. Effective cost is total cost divided by the net investable funds.",
+  "ask": "Which has the higher effective cost rate?",
+  "options": [
+   {
+    "label": "Commercial paper",
+    "correct": true
+   },
+   {
+    "label": "Negotiable CDs",
+    "correct": false,
+    "why": "Ranked by the market rate alone ($2.40\\% > 2.35\\%$). The extra $0.25\\%$ of noninterest cost on commercial paper outweighs its $0.05\\%$ rate advantage."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "The common $775/700$ gross-up scales both rates by the same factor; it does not remove the $0.20\\%$ gap in total cost."
+   }
+  ],
+  "working": [
+   {
+    "label": "CD cost",
+    "display": "$(2.40\\% + 0.25\\%) \\times 775 / 700 = 2.93\\%$",
+    "value": 2.934
+   },
+   {
+    "label": "Commercial paper",
+    "display": "$(2.35\\% + 0.50\\%) \\times 775 / 700 = 3.16\\%$",
+    "value": 3.155
+   }
+  ],
+  "takeaway": "Effective cost = (interest + noninterest) over net investable funds. Noninterest costs can reverse a ranking by market rate.",
+  "check": {
+   "inputs": {
+    "cdi": 0.024,
+    "cdn": 0.0025,
+    "cpi": 0.0235,
+    "cpn": 0.005,
+    "raised": 775,
+    "net": 700
+   },
+   "steps": [
+    {
+     "name": "cd",
+     "expr": "(cdi+cdn)*raised/net",
+     "value": 0.0293393
+    },
+    {
+     "name": "cp",
+     "expr": "(cpi+cpn)*raised/net",
+     "value": 0.0315536
+    },
+    {
+     "name": "gap",
+     "expr": "cp-cd",
+     "value": 0.00221429
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-08",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0409"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Niche Bank raises USD 1,000m, of which only USD 900m is net investable. Federal funds cost $2.10\\%$ in interest plus a $0.42\\%$ noninterest cost, both stated on the USD 1,000m raised. The dollar cost is already done: $0.0252 \\times 1{,}000 = $ USD 25.2m.",
+  "ask": "The effective cost rate of the federal funds is closest to:",
+  "options": [
+   {
+    "label": "2.80%",
+    "correct": true
+   },
+   {
+    "label": "2.52%",
+    "correct": false,
+    "why": "Divided the cost by the USD 1,000m raised. Effective cost uses the USD 900m that can actually be invested."
+   },
+   {
+    "label": "2.27%",
+    "correct": false,
+    "why": "Multiplied by $0.9$ instead of dividing by it. Less investable money pushes the effective rate up, not down."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total cost",
+    "display": "$(2.10\\% + 0.42\\%) \\times 1{,}000 = 25.2$",
+    "value": 25.2
+   },
+   {
+    "label": "Effective rate",
+    "display": "$25.2 / 900 = 2.80\\%$",
+    "value": 2.8
+   }
+  ],
+  "takeaway": "Costs are on funds raised, but the rate is measured on funds net investable, so the effective cost exceeds the market rate plus noninterest cost.",
+  "check": {
+   "inputs": {
+    "i": 0.021,
+    "n": 0.0042,
+    "raised": 1000,
+    "net": 900
+   },
+   "steps": [
+    {
+     "name": "cost",
+     "expr": "(i+n)*raised",
+     "value": 25.2
+    },
+    {
+     "name": "eff",
+     "expr": "cost/net*100",
+     "value": 2.8
+    },
+    {
+     "name": "slip_raised",
+     "expr": "cost/raised*100",
+     "value": 2.52
+    },
+    {
+     "name": "slip_mult",
+     "expr": "cost*net/raised/raised*100",
+     "value": 2.268
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-09",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0415"
+  },
+  "trap_category": "Scope",
+  "setup": "ABC Bank funds earning assets of USD 1,240m. The break-even cost rate covers borrowed funds only. Total costs: money market USD 275m at $3.51\\%$, time and savings deposits USD 580m at $3.10\\%$, checkable deposits USD 385m at $3.28\\%$. Stockholders' equity of USD 290m has a $12.75\\%$ required return, which enters the overall cost later, not the break-even.",
+  "ask": "Which source adds the most dollar cost to the break-even numerator?",
+  "options": [
+   {
+    "label": "Time and savings deposits",
+    "correct": true
+   },
+   {
+    "label": "Money market borrowings",
+    "correct": false,
+    "why": "Picked the highest rate ($3.51\\%$). Cost in dollars is rate times amount, and money market is the smallest block at USD 275m."
+   },
+   {
+    "label": "Stockholders' equity",
+    "correct": false,
+    "why": "Its $12.75\\%$ on USD 290m is the largest dollar figure (about USD 37m), but equity is excluded from the break-even on borrowed funds."
+   }
+  ],
+  "working": [
+   {
+    "label": "Money market",
+    "display": "$275 \\times 3.51\\% = 9.65$",
+    "value": 9.65
+   },
+   {
+    "label": "Time and savings",
+    "display": "$580 \\times 3.10\\% = 17.98$",
+    "value": 17.98
+   },
+   {
+    "label": "Checkable",
+    "display": "$385 \\times 3.28\\% = 12.63$",
+    "value": 12.63
+   },
+   {
+    "label": "Break-even",
+    "display": "$40.26 / 1{,}240 = 3.25\\%$",
+    "value": 3.25
+   }
+  ],
+  "takeaway": "Break-even counts borrowed-funds cost only. Rank sources by rate times amount, not by rate.",
+  "check": {
+   "inputs": {
+    "mm": 275,
+    "ts": 580,
+    "ck": 385,
+    "eq": 290,
+    "rmm": 0.0351,
+    "rts": 0.031,
+    "rck": 0.0328,
+    "req": 0.1275,
+    "ea": 1240
+   },
+   "steps": [
+    {
+     "name": "c_mm",
+     "expr": "mm*rmm",
+     "value": 9.6525
+    },
+    {
+     "name": "c_ts",
+     "expr": "ts*rts",
+     "value": 17.98
+    },
+    {
+     "name": "c_ck",
+     "expr": "ck*rck",
+     "value": 12.628
+    },
+    {
+     "name": "c_eq",
+     "expr": "eq*req",
+     "value": 36.975
+    },
+    {
+     "name": "total",
+     "expr": "c_mm+c_ts+c_ck",
+     "value": 40.2605
+    },
+    {
+     "name": "be",
+     "expr": "total/ea*100",
+     "value": 3.24681
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-10",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0417"
+  },
+  "trap_category": "Sign",
+  "setup": "Pathway Bank's stockholders require a $12\\%$ after-tax return and the tax rate is $15\\%$. To find the weighted average overall cost of capital, the equity return must first be restated as a pre-tax figure.",
+  "ask": "The pre-tax equity cost is:",
+  "options": [
+   {
+    "label": "Above 12% (about 14.1%)",
+    "correct": true
+   },
+   {
+    "label": "Below 12% (about 10.2%)",
+    "correct": false,
+    "why": "Multiplied by $(1 - 0.15)$. That converts a pre-tax figure into after-tax; here it must go the other way, dividing by $(1 - t)$."
+   },
+   {
+    "label": "Exactly 12%",
+    "correct": false,
+    "why": "Skipped the tax gross-up. The bank must earn $12\\%$ after paying tax, so the pre-tax need is higher."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross-up",
+    "display": "$12\\% / (1 - 0.15) = 14.12\\%$",
+    "value": 14.12
+   }
+  ],
+  "takeaway": "Pre-tax cost of equity = after-tax return / (1 − t). Taxes raise the hurdle, never lower it.",
+  "check": {
+   "inputs": {
+    "re": 12,
+    "t": 0.15
+   },
+   "steps": [
+    {
+     "name": "pretax",
+     "expr": "re/(1-t)",
+     "value": 14.1176
+    },
+    {
+     "name": "slip_mult",
+     "expr": "re*(1-t)",
+     "value": 10.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-11",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0418"
+  },
+  "trap_category": "Scope",
+  "setup": "KBC Bank must raise USD 800m to fund USD 600m of new loans. It raises USD 550m of time deposits at $5\\%$ interest with a $2\\%$ noninterest cost, and USD 250m of transaction deposits with no interest and a $3\\%$ noninterest cost. All percentages are of the amount raised.",
+  "ask": "Total expense (interest plus noninterest) to be covered is closest to:",
+  "options": [
+   {
+    "label": "USD 46.0m",
+    "correct": true
+   },
+   {
+    "label": "USD 27.5m",
+    "correct": false,
+    "why": "Counted interest only ($550 \\times 5\\%$). Noninterest costs on both sources are real expenses of raising the funds."
+   },
+   {
+    "label": "USD 18.5m",
+    "correct": false,
+    "why": "Counted noninterest costs only ($11.0 + 7.5$) and left out the interest paid on the time deposits."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest",
+    "display": "$550 \\times 5\\% = 27.5$",
+    "value": 27.5
+   },
+   {
+    "label": "Noninterest",
+    "display": "$550 \\times 2\\% + 250 \\times 3\\% = 18.5$",
+    "value": 18.5
+   },
+   {
+    "label": "Total",
+    "display": "$27.5 + 18.5 = 46.0$",
+    "value": 46.0
+   }
+  ],
+  "takeaway": "Pooled cost (46/800 = 5.75%) divides total expense by all funds raised; the hurdle rate (46/600 = 7.67%) divides it by funds placed in assets.",
+  "check": {
+   "inputs": {
+    "td": 550,
+    "tr": 0.05,
+    "tn": 0.02,
+    "xd": 250,
+    "xn": 0.03
+   },
+   "steps": [
+    {
+     "name": "interest",
+     "expr": "td*tr",
+     "value": 27.5
+    },
+    {
+     "name": "nonint",
+     "expr": "td*tn+xd*xn",
+     "value": 18.5
+    },
+    {
+     "name": "total",
+     "expr": "interest+nonint",
+     "value": 46.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-12",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0422"
+  },
+  "trap_category": "Sibling",
+  "setup": "Blue Star Bank expects to raise USD 300m, of which USD 250m will be invested in earning assets. Total expected interest and overhead costs on the new funds are USD 22m. The pooled-funds cost divides these costs by all funds raised; the hurdle rate divides them by the funds invested in earning assets.",
+  "ask": "Compare the two rates:",
+  "options": [
+   {
+    "label": "The hurdle rate is higher",
+    "correct": true
+   },
+   {
+    "label": "The pooled-funds cost is higher",
+    "correct": false,
+    "why": "Reversed the denominators. Pooled cost is spread over all USD 300m raised, the larger base, so it is the smaller rate."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Same USD 22m numerator, but the denominators differ (300 against 250), so the rates differ."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pooled cost",
+    "display": "$22 / 300 = 7.33\\%$",
+    "value": 7.33
+   },
+   {
+    "label": "Hurdle rate",
+    "display": "$22 / 250 = 8.80\\%$",
+    "value": 8.8
+   }
+  ],
+  "takeaway": "Same cost, smaller base: the hurdle rate (funds actually invested) always exceeds the pooled cost when some funds sit idle.",
+  "check": {
+   "inputs": {
+    "cost": 22,
+    "raised": 300,
+    "inv": 250
+   },
+   "steps": [
+    {
+     "name": "pooled",
+     "expr": "cost/raised*100",
+     "value": 7.33333
+    },
+    {
+     "name": "hurdle",
+     "expr": "cost/inv*100",
+     "value": 8.8
+    },
+    {
+     "name": "gap",
+     "expr": "hurdle-pooled",
+     "value": 1.46667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-13",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-14: Liquidity Transfer Pricing: A Guide to Better Practice",
+  "reading_id": "LTR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0480"
+  },
+  "trap_category": "Formula",
+  "setup": "A six-year loan amortizes linearly, repaying one sixth of principal at each year-end, so it is six loans maturing in years 1 to 6. Term liquidity premiums (bps) for 1 to 6 years: $6, 14, 18, 24, 27, 32$. Matched-maturity funding charges each tranche its own term's premium, weighted by how long it is outstanding. The plain average of the six premiums is $20.2$ bps; a bullet loan would pay the 6-year premium, $32$ bps.",
+  "ask": "The charge on the amortizing loan is:",
+  "options": [
+   {
+    "label": "Between 20.2 and 32 bps",
+    "correct": true
+   },
+   {
+    "label": "Below 20.2 bps",
+    "correct": false,
+    "why": "Took the plain average as a floor and then lowered it for amortization. Weighting by term gives the longer, higher-premium tranches more weight, so the charge sits above the plain average."
+   },
+   {
+    "label": "32 bps",
+    "correct": false,
+    "why": "That is the bullet-loan charge. Here most of the principal is repaid early, so the single 6-year premium overstates the cost."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted sum",
+    "display": "$1(6)+2(14)+3(18)+4(24)+5(27)+6(32) = 511$",
+    "value": 511
+   },
+   {
+    "label": "Weights",
+    "display": "$1+2+\\dots+6 = 21$",
+    "value": 21
+   },
+   {
+    "label": "Charge",
+    "display": "$511/21 = 24.33$ bps",
+    "value": 24.33
+   }
+  ],
+  "takeaway": "Linear amortization weights each year's premium by its term: the charge lands between the average premium and the bullet premium.",
+  "check": {
+   "inputs": {
+    "p1": 6,
+    "p2": 14,
+    "p3": 18,
+    "p4": 24,
+    "p5": 27,
+    "p6": 32
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "1*p1+2*p2+3*p3+4*p4+5*p5+6*p6",
+     "value": 511.0
+    },
+    {
+     "name": "den",
+     "expr": "1+2+3+4+5+6",
+     "value": 21.0
+    },
+    {
+     "name": "charge",
+     "expr": "num/den",
+     "value": 24.3333
+    },
+    {
+     "name": "plain_avg",
+     "expr": "(p1+p2+p3+p4+p5+p6)/6",
+     "value": 20.1667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-14",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-14: Liquidity Transfer Pricing: A Guide to Better Practice",
+  "reading_id": "LTR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0484"
+  },
+  "trap_category": "Formula",
+  "setup": "A four-year loan repays equal principal each year, so it is four tranches maturing in years 1 to 4. The term liquidity premiums are $12, 17, 24, 30$ bps for 1 to 4 years. Under matched-maturity marginal cost of funds, each tranche's premium is weighted by its term.",
+  "ask": "The charge for funding liquidity risk is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.4 bps",
+    "correct": false,
+    "why": "Scale slip: divided the weighted sum by 100 instead of by the sum of weights ($1+2+3+4 = 10$)."
+   },
+   {
+    "label": "≈ 24 bps",
+    "correct": true
+   },
+   {
+    "label": "≈ 83 bps",
+    "correct": false,
+    "why": "Added the four premiums ($12+17+24+30$) with no weights and no division."
+   },
+   {
+    "label": "≈ 240 bps",
+    "correct": false,
+    "why": "Built the weighted sum ($238$) but never divided by the sum of weights."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted sum",
+    "display": "$1(12)+2(17)+3(24)+4(30) = 238$",
+    "value": 238
+   },
+   {
+    "label": "Sum of weights",
+    "display": "$1+2+3+4 = 10$",
+    "value": 10
+   },
+   {
+    "label": "Charge",
+    "display": "$238/10 = 23.8$ bps",
+    "value": 23.8
+   }
+  ],
+  "takeaway": "The charge is a term-weighted average of the premiums, so it must land between the shortest and longest premium (12 to 30).",
+  "check": {
+   "inputs": {
+    "p1": 12,
+    "p2": 17,
+    "p3": 24,
+    "p4": 30
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "1*p1+2*p2+3*p3+4*p4",
+     "value": 238.0
+    },
+    {
+     "name": "den",
+     "expr": "1+2+3+4",
+     "value": 10.0
+    },
+    {
+     "name": "charge",
+     "expr": "num/den",
+     "value": 23.8
+    },
+    {
+     "name": "slip_scale",
+     "expr": "num/100",
+     "value": 2.38
+    },
+    {
+     "name": "slip_sum",
+     "expr": "p1+p2+p3+p4",
+     "value": 83.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-15",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-17: Risk Management for Changing Interest Rates: Asset-Liability Management and Duration Techniques",
+  "reading_id": "LTR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0553"
+  },
+  "trap_category": "Sequence",
+  "setup": "A credit union has earning assets of USD 575m and a net interest margin of $2.50\\%$. The margin then rises by $10\\%$ in relative terms (to $2.75\\%$) and earning assets grow by $20\\%$.",
+  "ask": "The increase in net interest income is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.5m",
+    "correct": false,
+    "why": "Scale slip (0.1×) on the correct change, which is a few million, not a few hundred thousand."
+   },
+   {
+    "label": "≈ USD 1.4m",
+    "correct": false,
+    "why": "Applied the higher margin to the old asset base only, ignoring the $20\\%$ asset growth."
+   },
+   {
+    "label": "≈ USD 4.6m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 19m",
+    "correct": false,
+    "why": "Reported the new level of net interest income (USD 18.98m) rather than the change from the old level."
+   }
+  ],
+  "working": [
+   {
+    "label": "Old NII",
+    "display": "$0.0250 \\times 575 = 14.375$",
+    "value": 14.375
+   },
+   {
+    "label": "New NII",
+    "display": "$0.0275 \\times 690 = 18.975$",
+    "value": 18.975
+   },
+   {
+    "label": "Change",
+    "display": "$18.975 - 14.375 = +4.60$",
+    "value": 4.6
+   }
+  ],
+  "takeaway": "NII = margin × earning assets, so a 10% rise in margin and a 20% rise in assets compound to about +32%.",
+  "check": {
+   "inputs": {
+    "ea": 575,
+    "nim": 0.025,
+    "gm": 0.1,
+    "ga": 0.2
+   },
+   "steps": [
+    {
+     "name": "old",
+     "expr": "nim*ea",
+     "value": 14.375
+    },
+    {
+     "name": "new",
+     "expr": "nim*(1+gm)*ea*(1+ga)",
+     "value": 18.975
+    },
+    {
+     "name": "change",
+     "expr": "new-old",
+     "value": 4.6
+    },
+    {
+     "name": "slip_margin_only",
+     "expr": "nim*gm*ea",
+     "value": 1.4375
+    },
+    {
+     "name": "slip_level",
+     "expr": "new",
+     "value": 18.975
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.1*change",
+     "value": 0.46
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-16",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-17: Risk Management for Changing Interest Rates: Asset-Liability Management and Duration Techniques",
+  "reading_id": "LTR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0554"
+  },
+  "trap_category": "Formula",
+  "setup": "A savings bank has a cumulative interest-sensitive gap of USD 25m, which then rises by $60\\%$. Market rates rise by $25\\%$ from $3.00\\%$ to $3.75\\%$, and every rate-sensitive item reprices by the same amount.",
+  "ask": "The change in net interest income at the new gap is closest to:",
+  "options": [
+   {
+    "label": "≈ +USD 0.03m",
+    "correct": false,
+    "why": "Scale slip: read the rate move as $0.075$ percentage points instead of $0.75$."
+   },
+   {
+    "label": "≈ +USD 0.3m",
+    "correct": true
+   },
+   {
+    "label": "≈ +USD 1.2m",
+    "correct": false,
+    "why": "Used the $3\\%$ rate level instead of the $0.75$ percentage-point move."
+   },
+   {
+    "label": "≈ +USD 10m",
+    "correct": false,
+    "why": "Multiplied the gap by the $25\\%$ relative rate rise instead of the rate change in decimals."
+   }
+  ],
+  "working": [
+   {
+    "label": "New gap",
+    "display": "$25 \\times 1.60 = 40$",
+    "value": 40
+   },
+   {
+    "label": "Rate change",
+    "display": "$3.00\\% \\times 25\\% = 0.75\\% = 0.0075$",
+    "value": 0.0075
+   },
+   {
+    "label": "Change in NII",
+    "display": "$0.0075 \\times 40 = +0.30$",
+    "value": 0.3
+   }
+  ],
+  "takeaway": "ΔNII = gap × Δrate. Use the change in the rate (0.75 points), not its level or its percentage rise.",
+  "check": {
+   "inputs": {
+    "gap0": 25,
+    "gg": 0.6,
+    "r0": 0.03,
+    "rg": 0.25
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "gap0*(1+gg)",
+     "value": 40.0
+    },
+    {
+     "name": "dr",
+     "expr": "r0*rg",
+     "value": 0.0075
+    },
+    {
+     "name": "dnii",
+     "expr": "dr*gap",
+     "value": 0.3
+    },
+    {
+     "name": "slip_scale",
+     "expr": "dnii/10",
+     "value": 0.03
+    },
+    {
+     "name": "slip_level",
+     "expr": "r0*gap",
+     "value": 1.2
+    },
+    {
+     "name": "slip_pct",
+     "expr": "rg*gap",
+     "value": 10.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-17",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-17: Risk Management for Changing Interest Rates: Asset-Liability Management and Duration Techniques",
+  "reading_id": "LTR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0555"
+  },
+  "trap_category": "Definition",
+  "setup": "New Comers State Bank (USD m). Two years ago: interest revenues 78, interest expenses 68, loans 400, investments 200. Currently: interest revenues 82, interest expenses 64, loans 450, investments 200. Earning assets are loans plus investments; net interest margin is net interest income over earning assets.",
+  "ask": "From two years ago to now, the net interest margin has:",
+  "options": [
+   {
+    "label": "Risen",
+    "correct": true
+   },
+   {
+    "label": "Fallen",
+    "correct": false,
+    "why": "Compared revenue to assets instead of net interest income: $78/600 = 13.0\\%$ against $82/650 = 12.6\\%$. NIM uses revenue minus expense."
+   },
+   {
+    "label": "Stayed about the same",
+    "correct": false,
+    "why": "Net interest income rose from 10 to 18 (up 80%) while earning assets grew only 8%, so the margin moves a lot."
+   }
+  ],
+  "working": [
+   {
+    "label": "Then",
+    "display": "$(78-68)/600 = 1.67\\%$",
+    "value": 1.667
+   },
+   {
+    "label": "Now",
+    "display": "$(82-64)/650 = 2.77\\%$",
+    "value": 2.769
+   }
+  ],
+  "takeaway": "NIM is built on net interest income. A small change in revenue and expense moves the margin a lot.",
+  "check": {
+   "inputs": {
+    "r0": 78,
+    "e0": 68,
+    "a0": 600,
+    "r1": 82,
+    "e1": 64,
+    "a1": 650
+   },
+   "steps": [
+    {
+     "name": "nim0",
+     "expr": "(r0-e0)/a0*100",
+     "value": 1.66667
+    },
+    {
+     "name": "nim1",
+     "expr": "(r1-e1)/a1*100",
+     "value": 2.76923
+    },
+    {
+     "name": "chg",
+     "expr": "nim1-nim0",
+     "value": 1.10256
+    },
+    {
+     "name": "slip_rev0",
+     "expr": "r0/a0*100",
+     "value": 13.0
+    },
+    {
+     "name": "slip_rev1",
+     "expr": "r1/a1*100",
+     "value": 12.6154
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq03-18",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-17: Risk Management for Changing Interest Rates: Asset-Liability Management and Duration Techniques",
+  "reading_id": "LTR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0558"
+  },
+  "trap_category": "Formula",
+  "setup": "Bright Bank reports (USD m): interest revenues 83, interest costs 72, total earning assets 942.",
+  "ask": "The net interest margin is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.12%",
+    "correct": false,
+    "why": "Scale slip (0.1×): slid the decimal when converting $0.0117$ to a percentage."
+   },
+   {
+    "label": "≈ 1.2%",
+    "correct": true
+   },
+   {
+    "label": "≈ 7.6%",
+    "correct": false,
+    "why": "Divided interest costs ($72$) by earning assets instead of net interest income."
+   },
+   {
+    "label": "≈ 117%",
+    "correct": false,
+    "why": "Scale slip (100×): wrote $11/942 = 0.0117$ as $117$."
+   }
+  ],
+  "working": [
+   {
+    "label": "NII",
+    "display": "$83 - 72 = 11$",
+    "value": 11
+   },
+   {
+    "label": "NIM",
+    "display": "$11/942 = 1.17\\%$",
+    "value": 1.168
+   }
+  ],
+  "takeaway": "NIM = (interest revenue − interest cost) / earning assets. A bank's margin is a thin slice, usually a few percent at most.",
+  "check": {
+   "inputs": {
+    "rev": 83,
+    "cost": 72,
+    "ea": 942
+   },
+   "steps": [
+    {
+     "name": "nii",
+     "expr": "rev-cost",
+     "value": 11.0
+    },
+    {
+     "name": "nim",
+     "expr": "nii/ea*100",
+     "value": 1.16773
+    },
+    {
+     "name": "slip_costs",
+     "expr": "cost/ea*100",
+     "value": 7.64331
+    },
+    {
+     "name": "slip_scale_lo",
+     "expr": "nim/10",
+     "value": 0.116773
+    },
+    {
+     "name": "slip_scale_hi",
+     "expr": "nim*100",
+     "value": 116.773
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,986 @@
+[
+  {
+    "id": "SC-bank-LRq01-01",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0001"
+    },
+    "trap_category": "Sign",
+    "setup": "One-year lognormal VaR on a \\$1.0m position: $VaR = V\\,[1 - e^{\\mu - z\\sigma}]$. Expected return $\\mu = 14\\%$, volatility $\\sigma = 26\\%$, one-tail $z = 1.645$ (95%).",
+    "ask": "Compared with the same VaR when the expected return is set to zero, the VaR with the 14% drift is:",
+    "options": [
+      {
+        "label": "Smaller",
+        "correct": true
+      },
+      {
+        "label": "Larger",
+        "correct": false,
+        "why": "Treated the positive drift as extra risk. In $e^{\\mu - z\\sigma}$ a positive $\\mu$ lifts the worst-case value, so the loss shrinks."
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "Assumed the drift cancels out over one year. It sits inside the exponent and moves the 5% worst-case value up by 14 points of log return."
+      }
+    ],
+    "working": [
+      {
+        "label": "With drift",
+        "display": "$1 - e^{0.14 - 0.4277} = 1 - e^{-0.2877} = 0.250$, so VaR $\\approx \\$250{,}000$",
+        "value": 250013
+      },
+      {
+        "label": "Zero drift",
+        "display": "$1 - e^{-0.4277} = 0.348$, so VaR $\\approx \\$348{,}000$",
+        "value": 347993
+      }
+    ],
+    "takeaway": "In lognormal VaR a positive expected return lowers the loss quantile; ignore it only when the horizon is short.",
+    "check": {
+      "inputs": {
+        "V": 1000000,
+        "mu": 0.14,
+        "z": 1.645,
+        "sig": 0.26
+      },
+      "steps": [
+        {
+          "name": "var_drift",
+          "expr": "V*(1-exp(mu-z*sig))",
+          "value": 250013.0
+        },
+        {
+          "name": "var_zero",
+          "expr": "V*(1-exp(-z*sig))",
+          "value": 347993.0
+        },
+        {
+          "name": "gap",
+          "expr": "var_zero-var_drift",
+          "value": 97979.6
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-02",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0004"
+    },
+    "trap_category": "Formula",
+    "setup": "A stock trades at a midpoint of INR 200 with an average bid-ask spread of INR 0.80, held constant. Position: 10,000 shares. Daily return volatility is 2% and returns are normal with zero mean. Use $z = 2.33$ (99%).",
+    "ask": "The one-day 99% liquidity-adjusted VaR (VaR plus half-spread cost) is closest to:",
+    "options": [
+      {
+        "label": "INR 4,000",
+        "correct": false,
+        "why": "Kept only the half-spread cost ($\\tfrac12 \\times 0.004 \\times 2{,}000{,}000$) and left the market VaR out."
+      },
+      {
+        "label": "INR 97,000",
+        "correct": true
+      },
+      {
+        "label": "INR 940,000",
+        "correct": false,
+        "why": "Read the 2% daily volatility as 20% when computing the market VaR, then added the spread cost."
+      },
+      {
+        "label": "INR 9,300,000",
+        "correct": false,
+        "why": "Entered the volatility as 2 instead of 0.02 (percent as a whole number) in $V \\times z \\times \\sigma$."
+      }
+    ],
+    "working": [
+      {
+        "label": "Position value",
+        "display": "$10{,}000 \\times 200 = 2{,}000{,}000$",
+        "value": 2000000
+      },
+      {
+        "label": "Market VaR",
+        "display": "$2{,}000{,}000 \\times 2.33 \\times 0.02 = 93{,}200$",
+        "value": 93200
+      },
+      {
+        "label": "Spread cost",
+        "display": "$\\tfrac12 \\times \\tfrac{0.80}{200} \\times 2{,}000{,}000 = 4{,}000$",
+        "value": 4000
+      },
+      {
+        "label": "LVaR",
+        "display": "$93{,}200 + 4{,}000 = 97{,}200$",
+        "value": 97200
+      }
+    ],
+    "takeaway": "Market VaR dominates a liquid-ish name: the half-spread cost is small, but it is added on top, not instead.",
+    "check": {
+      "inputs": {
+        "n": 10000,
+        "P": 200,
+        "spr": 0.8,
+        "sig": 0.02,
+        "z": 2.33
+      },
+      "steps": [
+        {
+          "name": "V",
+          "expr": "n*P",
+          "value": 2000000.0
+        },
+        {
+          "name": "var",
+          "expr": "V*z*sig",
+          "value": 93200.0
+        },
+        {
+          "name": "cost",
+          "expr": "0.5*(spr/P)*V",
+          "value": 4000.0
+        },
+        {
+          "name": "LVaR",
+          "expr": "var+cost",
+          "value": 97200.0
+        },
+        {
+          "name": "slip_cost_only",
+          "expr": "cost",
+          "value": 4000.0
+        },
+        {
+          "name": "slip_vol20",
+          "expr": "V*z*0.2+cost",
+          "value": 936000.0
+        },
+        {
+          "name": "slip_vol_whole",
+          "expr": "V*z*2+cost",
+          "value": 9324000.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-03",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0006"
+    },
+    "trap_category": "Scope",
+    "setup": "Normal market. A bank holds 25m shares quoted 90.8 / 92.4 (USD) and 35m ounces of a commodity quoted 24.0 / 26.2 (USD). Liquidation cost of a leg is half the dollar spread times the quantity.",
+    "ask": "Which leg is more expensive to liquidate?",
+    "options": [
+      {
+        "label": "The shares, because that position is far larger in dollar value",
+        "correct": false,
+        "why": "Ranked legs by position value. Cost depends on the spread relative to price: shares 1.7%, commodity 8.8%."
+      },
+      {
+        "label": "The commodity",
+        "correct": true
+      },
+      {
+        "label": "They cost about the same",
+        "correct": false,
+        "why": "Treated both as 'a spread of about USD 2 on tens of millions of units' without comparing the two spreads: 1.6 versus 2.2, on different quantities."
+      }
+    ],
+    "working": [
+      {
+        "label": "Shares",
+        "display": "$\\tfrac12 \\times 1.6 \\times 25\\text{m} = 20.0\\text{m}$",
+        "value": 20.0
+      },
+      {
+        "label": "Commodity",
+        "display": "$\\tfrac12 \\times 2.2 \\times 35\\text{m} = 38.5\\text{m}$",
+        "value": 38.5
+      }
+    ],
+    "takeaway": "A thin position in a wide-spread asset can cost more to unwind than a big position in a tight one.",
+    "check": {
+      "inputs": {
+        "q1": 25,
+        "b1": 90.8,
+        "o1": 92.4,
+        "q2": 35,
+        "b2": 24.0,
+        "o2": 26.2
+      },
+      "steps": [
+        {
+          "name": "c1",
+          "expr": "0.5*(o1-b1)*q1",
+          "value": 20.0
+        },
+        {
+          "name": "c2",
+          "expr": "0.5*(o2-b2)*q2",
+          "value": 38.5
+        },
+        {
+          "name": "diff",
+          "expr": "c2-c1",
+          "value": 18.5
+        },
+        {
+          "name": "s1",
+          "expr": "(o1-b1)/((o1+b1)/2)",
+          "value": 0.0174672
+        },
+        {
+          "name": "s2",
+          "expr": "(o2-b2)/((o2+b2)/2)",
+          "value": 0.0876494
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-04",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0019"
+    },
+    "trap_category": "Sign",
+    "setup": "Stressed-market unwind, 95% ($z = 1.645$). Two long positions with perfectly correlated, normal proportional spreads: \\$25,000 with mean = sd = 0.050, and \\$40,000 with mean = sd = 0.030. Cost $= \\tfrac12 \\sum \\alpha_i(\\mu_i + z\\sigma_i)$.",
+    "ask": "Compared with the normal-market unwind cost (spread means only), the stressed cost is:",
+    "options": [
+      {
+        "label": "More than double",
+        "correct": true
+      },
+      {
+        "label": "Exactly double",
+        "correct": false,
+        "why": "Used $\\mu + \\sigma$ and left out the z-score. With $\\sigma = \\mu$ that would double the cost, but $z = 1.645$ makes the factor $1 + 1.645$."
+      },
+      {
+        "label": "Less than double",
+        "correct": false,
+        "why": "Treated the volatility term as a small cushion on top of the mean. Here $\\sigma$ equals $\\mu$, so $z\\sigma$ alone is 1.645 times the mean."
+      }
+    ],
+    "working": [
+      {
+        "label": "Normal cost",
+        "display": "$\\tfrac12(25{,}000 \\times 0.050 + 40{,}000 \\times 0.030) = 1{,}225$",
+        "value": 1225
+      },
+      {
+        "label": "Stressed factor",
+        "display": "$\\mu + z\\sigma = \\mu(1 + 1.645) = 2.645\\mu$",
+        "value": 2.645
+      },
+      {
+        "label": "Stressed cost",
+        "display": "$1{,}225 \\times 2.645 \\approx 3{,}240$",
+        "value": 3240
+      }
+    ],
+    "takeaway": "When the spread's sd equals its mean, the stressed cost is $(1+z)$ times the normal cost.",
+    "check": {
+      "inputs": {
+        "a1": 25000,
+        "m1": 0.05,
+        "a2": 40000,
+        "m2": 0.03,
+        "z": 1.645
+      },
+      "steps": [
+        {
+          "name": "normal",
+          "expr": "0.5*(a1*m1+a2*m2)",
+          "value": 1225.0
+        },
+        {
+          "name": "stressed",
+          "expr": "0.5*(a1*(m1+z*m1)+a2*(m2+z*m2))",
+          "value": 3240.12
+        },
+        {
+          "name": "ratio",
+          "expr": "stressed/normal",
+          "value": 2.645
+        },
+        {
+          "name": "slip_no_z",
+          "expr": "0.5*(a1*(m1+m1)+a2*(m2+m2))/normal",
+          "value": 2.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-05",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0021"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "50,000 shares, bid 39.00 / offer 41.00, position \\$2.0m. Daily price volatility 2.00%. The proportional spread has mean $0.05$ and sd $0.02$. Use $z = 1.65$ for both price and spread; liquidity cost uses the worst-case spread $\\tfrac12(\\mu + z\\sigma)$.",
+    "ask": "In the one-day 95% LVaR, which part is larger?",
+    "options": [
+      {
+        "label": "The stressed liquidation cost",
+        "correct": true
+      },
+      {
+        "label": "The market VaR",
+        "correct": false,
+        "why": "Used the normal-market cost $\\tfrac12 \\times 5\\% = 2.5\\%$ of the position, which sits below the 3.3% VaR. The worst-case spread adds $1.65 \\times 2\\%$."
+      },
+      {
+        "label": "They are equal",
+        "correct": false,
+        "why": "Saw 2% volatility and a 2% spread sd and assumed both parts match. The cost also carries the 5% mean spread."
+      }
+    ],
+    "working": [
+      {
+        "label": "Market VaR",
+        "display": "$1.65 \\times 0.02 \\times 2.0\\text{m} = 66{,}000$",
+        "value": 66000
+      },
+      {
+        "label": "Stressed cost",
+        "display": "$\\tfrac12(0.05 + 1.65 \\times 0.02) \\times 2.0\\text{m} = 83{,}000$",
+        "value": 83000
+      },
+      {
+        "label": "LVaR",
+        "display": "$66{,}000 + 83{,}000 = 149{,}000$",
+        "value": 149000
+      }
+    ],
+    "takeaway": "Under a worst-case spread the cost leg can outweigh the market-risk leg even for a liquid-looking stock.",
+    "check": {
+      "inputs": {
+        "V": 2000000,
+        "sig": 0.02,
+        "mu": 0.05,
+        "ss": 0.02,
+        "z": 1.65
+      },
+      "steps": [
+        {
+          "name": "var",
+          "expr": "V*z*sig",
+          "value": 66000.0
+        },
+        {
+          "name": "cost",
+          "expr": "0.5*V*(mu+z*ss)",
+          "value": 83000.0
+        },
+        {
+          "name": "LVaR",
+          "expr": "var+cost",
+          "value": 149000.0
+        },
+        {
+          "name": "slip_normal_cost",
+          "expr": "0.5*V*mu",
+          "value": 50000.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-06",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0023"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "50,000 shares quoted bid 22.20 / offer 23.10. The dollar bid-offer spread is normal with mean equal to the quoted spread and standard deviation \\$1.70. Use the one-tail $z = 1.645$ (95%).",
+    "ask": "The worst-case (95%) spread per share is closest to:",
+    "options": [
+      {
+        "label": "\\$0.90",
+        "correct": false,
+        "why": "Used the quoted spread only, which is the normal-market figure."
+      },
+      {
+        "label": "\\$2.60",
+        "correct": false,
+        "why": "Added one standard deviation ($0.90 + 1.70$) and dropped the z-score."
+      },
+      {
+        "label": "\\$3.70",
+        "correct": true
+      },
+      {
+        "label": "\\$4.23",
+        "correct": false,
+        "why": "Used the two-tail $z = 1.96$. A wider spread is the only adverse case, so the one-tail value applies."
+      }
+    ],
+    "working": [
+      {
+        "label": "Mean spread",
+        "display": "$23.10 - 22.20 = 0.90$",
+        "value": 0.9
+      },
+      {
+        "label": "Volatility term",
+        "display": "$1.645 \\times 1.70 = 2.80$",
+        "value": 2.7965
+      },
+      {
+        "label": "Stressed spread",
+        "display": "$0.90 + 2.80 = 3.70$",
+        "value": 3.6965
+      },
+      {
+        "label": "Liquidation cost",
+        "display": "$\\tfrac12 \\times 50{,}000 \\times 3.6965 \\approx 92{,}400$",
+        "value": 92412.5
+      }
+    ],
+    "takeaway": "In a stressed spread the volatility term can be three times the mean: do not stop at the quote.",
+    "check": {
+      "inputs": {
+        "b": 22.2,
+        "o": 23.1,
+        "sd": 1.7,
+        "z": 1.645,
+        "n": 50000
+      },
+      "steps": [
+        {
+          "name": "mean",
+          "expr": "o-b",
+          "value": 0.9
+        },
+        {
+          "name": "vol",
+          "expr": "z*sd",
+          "value": 2.7965
+        },
+        {
+          "name": "stress",
+          "expr": "mean+vol",
+          "value": 3.6965
+        },
+        {
+          "name": "cost",
+          "expr": "0.5*n*stress",
+          "value": 92412.5
+        },
+        {
+          "name": "slip_no_z",
+          "expr": "mean+sd",
+          "value": 2.6
+        },
+        {
+          "name": "slip_two_tail",
+          "expr": "mean+1.96*sd",
+          "value": 4.232
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-07",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0015"
+    },
+    "trap_category": "Formula",
+    "setup": "Stressed cost, 99% ($z = 2.326$). A bank holds 1m shares of X (mid \\$72) and 1m units of Y (mid \\$47). Dollar spread per unit: X mean \\$1.30, sd \\$1.03; Y mean \\$1.32, sd \\$0.88. Spreads are normal and perfectly correlated.",
+    "ask": "The cost of liquidating both positions in a stressed market is closest to:",
+    "options": [
+      {
+        "label": "\\$1.3m",
+        "correct": false,
+        "why": "Dropped the volatility term and used mean spreads only: $\\tfrac12(1.30 + 1.32) \\times 1\\text{m}$."
+      },
+      {
+        "label": "\\$3.5m",
+        "correct": true
+      },
+      {
+        "label": "\\$35m",
+        "correct": false,
+        "why": "Slipped one decimal place on the $z\\sigma$ products when adding them to the means (scale slip, 10 times)."
+      },
+      {
+        "label": "\\$210m",
+        "correct": false,
+        "why": "Applied the dollar spreads as if they were proportional, multiplying by the \\$72m and \\$47m position values instead of by the unit counts."
+      }
+    ],
+    "working": [
+      {
+        "label": "Stressed spread X",
+        "display": "$1.30 + 2.326 \\times 1.03 = 3.696$",
+        "value": 3.69578
+      },
+      {
+        "label": "Stressed spread Y",
+        "display": "$1.32 + 2.326 \\times 0.88 = 3.367$",
+        "value": 3.36688
+      },
+      {
+        "label": "Cost X",
+        "display": "$\\tfrac12 \\times 1\\text{m} \\times 3.696 = 1.85\\text{m}$",
+        "value": 1847890
+      },
+      {
+        "label": "Cost Y",
+        "display": "$\\tfrac12 \\times 1\\text{m} \\times 3.367 = 1.68\\text{m}$",
+        "value": 1683440
+      },
+      {
+        "label": "Total",
+        "display": "$1.85\\text{m} + 1.68\\text{m} \\approx \\$3.5\\text{m}$",
+        "value": 3531330
+      }
+    ],
+    "takeaway": "Per-unit dollar spreads multiply units, not position value. Stressed cost = half the stressed spread times units.",
+    "check": {
+      "inputs": {
+        "n": 1000000,
+        "VX": 72000000,
+        "VY": 47000000,
+        "mx": 1.3,
+        "sx": 1.03,
+        "my": 1.32,
+        "sy": 0.88,
+        "z": 2.326
+      },
+      "steps": [
+        {
+          "name": "sprX",
+          "expr": "mx+z*sx",
+          "value": 3.69578
+        },
+        {
+          "name": "sprY",
+          "expr": "my+z*sy",
+          "value": 3.36688
+        },
+        {
+          "name": "cX",
+          "expr": "0.5*n*sprX",
+          "value": 1847890.0
+        },
+        {
+          "name": "cY",
+          "expr": "0.5*n*sprY",
+          "value": 1683440.0
+        },
+        {
+          "name": "total",
+          "expr": "cX+cY",
+          "value": 3531330.0
+        },
+        {
+          "name": "slip_mean_only",
+          "expr": "0.5*n*(mx+my)",
+          "value": 1310000.0
+        },
+        {
+          "name": "slip_decimal",
+          "expr": "total*10",
+          "value": 35313300.0
+        },
+        {
+          "name": "slip_value",
+          "expr": "0.5*(VX*sprX+VY*sprY)",
+          "value": 212170000.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-08",
+    "mode": "magnitude",
+    "area": "LTR",
+    "reading": "LTR-1: Liquidity Risk",
+    "reading_id": "LTR-1",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0016"
+    },
+    "trap_category": "Definition",
+    "setup": "An illiquid asset is quoted bid \\$89.00, offer \\$96.00. The proportional bid-offer spread is the dollar spread divided by the midpoint price.",
+    "ask": "The proportional spread is closest to:",
+    "options": [
+      {
+        "label": "0.0076",
+        "correct": false,
+        "why": "Divided by 925 instead of 92.5 (a decimal slip in the midpoint)."
+      },
+      {
+        "label": "0.076",
+        "correct": true
+      },
+      {
+        "label": "0.76",
+        "correct": false,
+        "why": "Divided by 9.25 instead of 92.5 (a decimal slip in the midpoint)."
+      },
+      {
+        "label": "7.0",
+        "correct": false,
+        "why": "Quoted the dollar spread $96 - 89$ and never divided by price."
+      }
+    ],
+    "working": [
+      {
+        "label": "Dollar spread",
+        "display": "$96.00 - 89.00 = 7.00$",
+        "value": 7.0
+      },
+      {
+        "label": "Midpoint",
+        "display": "$(89 + 96)/2 = 92.50$",
+        "value": 92.5
+      },
+      {
+        "label": "Proportional spread",
+        "display": "$7.00 / 92.50 = 0.0757$",
+        "value": 0.0757
+      }
+    ],
+    "takeaway": "A proportional spread is a small fraction: a few percent for an illiquid name, never above 1.",
+    "check": {
+      "inputs": {
+        "b": 89.0,
+        "o": 96.0
+      },
+      "steps": [
+        {
+          "name": "p",
+          "expr": "o-b",
+          "value": 7.0
+        },
+        {
+          "name": "mid",
+          "expr": "(o+b)/2",
+          "value": 92.5
+        },
+        {
+          "name": "s",
+          "expr": "p/mid",
+          "value": 0.0756757
+        },
+        {
+          "name": "slip_dollar",
+          "expr": "p",
+          "value": 7.0
+        },
+        {
+          "name": "slip_x10",
+          "expr": "p/(mid/10)",
+          "value": 0.756757
+        },
+        {
+          "name": "slip_div10",
+          "expr": "p/(mid*10)",
+          "value": 0.00756757
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-09",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-2: Liquidity and Leverage",
+    "reading_id": "LTR-2",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0106"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "A stock has bid \\$331 and ask \\$335. The sample sd of the proportional spread is $0.00019$. Expected per-share cost $= P \\cdot s/2 = \\$2.00$. The 95% upper bound adds $P \\cdot \\tfrac12 \\cdot z\\sigma_s$ with $z = 1.65$ and $P$ the midprice.",
+    "ask": "The extra amount the 95% upper bound adds to the \\$2.00 expected cost is:",
+    "options": [
+      {
+        "label": "Under \\$0.10",
+        "correct": true
+      },
+      {
+        "label": "About \\$0.50",
+        "correct": false,
+        "why": "Read $\\sigma_s = 0.00019$ as 0.19% ($0.0019$), ten times too large."
+      },
+      {
+        "label": "About \\$2.00",
+        "correct": false,
+        "why": "Added a second full expected cost instead of the small risk term, doubling it to \\$4.00."
+      }
+    ],
+    "working": [
+      {
+        "label": "Midprice",
+        "display": "$(335 + 331)/2 = 333$",
+        "value": 333
+      },
+      {
+        "label": "Expected cost",
+        "display": "$333 \\times \\tfrac{4}{333} \\times \\tfrac12 = 2.00$",
+        "value": 2.0
+      },
+      {
+        "label": "Risk term",
+        "display": "$333 \\times \\tfrac12 \\times 1.65 \\times 0.00019 = 0.052$",
+        "value": 0.0522
+      },
+      {
+        "label": "Upper bound",
+        "display": "$2.00 + 0.05 = 2.05$",
+        "value": 2.05
+      }
+    ],
+    "takeaway": "The spread's sd is tiny next to its level, so the upper bound is only a few cents above the expected cost.",
+    "check": {
+      "inputs": {
+        "b": 331,
+        "a": 335,
+        "sd": 0.00019,
+        "z": 1.65
+      },
+      "steps": [
+        {
+          "name": "P",
+          "expr": "(a+b)/2",
+          "value": 333.0
+        },
+        {
+          "name": "exp",
+          "expr": "P*((a-b)/P)/2",
+          "value": 2.0
+        },
+        {
+          "name": "add",
+          "expr": "P*0.5*z*sd",
+          "value": 0.0521977
+        },
+        {
+          "name": "ub",
+          "expr": "exp+add",
+          "value": 2.0522
+        },
+        {
+          "name": "slip_pct",
+          "expr": "P*0.5*z*sd*10",
+          "value": 0.521977
+        },
+        {
+          "name": "slip_double",
+          "expr": "exp",
+          "value": 2.0
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-10",
+    "mode": "direction",
+    "area": "LTR",
+    "reading": "LTR-2: Liquidity and Leverage",
+    "reading_id": "LTR-2",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0109"
+    },
+    "trap_category": "Formula",
+    "setup": "One-day 99% VaR is \\$5m. The position is sold in 10 equal parts, one at the end of each day. The liquidity adjustment multiplies VaR by $\\sqrt{(1+T)(1+2T)/(6T)}$, with $T = 10$.",
+    "ask": "Compared with simply scaling VaR to ten days, $5\\text{m} \\times \\sqrt{10} \\approx \\$15.8\\text{m}$, the liquidity-adjusted VaR is:",
+    "options": [
+      {
+        "label": "Lower",
+        "correct": true
+      },
+      {
+        "label": "Higher",
+        "correct": false,
+        "why": "Assumed the liquidity adjustment adds risk on top of the ten-day figure. The position shrinks each day, so average exposure is smaller than holding it all ten days."
+      },
+      {
+        "label": "The same",
+        "correct": false,
+        "why": "Treated the factor as $\\sqrt{T}$, which would hold the whole position for all ten days."
+      }
+    ],
+    "working": [
+      {
+        "label": "Factor",
+        "display": "$\\sqrt{11 \\times 21 / 60} = \\sqrt{3.85} = 1.96$",
+        "value": 1.9621
+      },
+      {
+        "label": "Adjusted VaR",
+        "display": "$5 \\times 1.96 = \\$9.81\\text{m}$",
+        "value": 9.81
+      },
+      {
+        "label": "Ten-day scaling",
+        "display": "$5 \\times \\sqrt{10} = \\$15.8\\text{m}$",
+        "value": 15.81
+      }
+    ],
+    "takeaway": "Selling down over T days gives a factor of about 2 for T = 10: bigger than 1 day, smaller than the whole position held for $\\sqrt{T}$.",
+    "check": {
+      "inputs": {
+        "VaR": 5,
+        "T": 10
+      },
+      "steps": [
+        {
+          "name": "f",
+          "expr": "sqrt((1+T)*(1+2*T)/(6*T))",
+          "value": 1.96214
+        },
+        {
+          "name": "adj",
+          "expr": "VaR*f",
+          "value": 9.81071
+        },
+        {
+          "name": "naive",
+          "expr": "VaR*sqrt(T)",
+          "value": 15.8114
+        }
+      ]
+    }
+  },
+  {
+    "id": "SC-bank-LRq01-11",
+    "mode": "intermediate",
+    "area": "LTR",
+    "reading": "LTR-2: Liquidity and Leverage",
+    "reading_id": "LTR-2",
+    "source": {
+      "kind": "bank",
+      "questionId": "LR-QB-0110"
+    },
+    "trap_category": "Intermediate result",
+    "setup": "Bell Aviation: bid \\$32.45, ask \\$32.90, sd of the proportional spread $0.004$, $z = 2.33$ (99%). Midprice $32.675$. The spread factor is $\\tfrac12(s + z\\sigma_s)$, and per-share cost is midprice times the factor.",
+    "ask": "The 99% spread factor is closest to:",
+    "options": [
+      {
+        "label": "0.0069",
+        "correct": false,
+        "why": "Dropped the volatility term and kept only $\\tfrac12 s$, the expected-cost factor."
+      },
+      {
+        "label": "0.0115",
+        "correct": true
+      },
+      {
+        "label": "0.0231",
+        "correct": false,
+        "why": "Forgot the one-half in $\\tfrac12(s + z\\sigma_s)$."
+      },
+      {
+        "label": "0.0047",
+        "correct": false,
+        "why": "Kept only the volatility term, $\\tfrac12 \\times 2.33 \\times 0.004$, and left out the spread itself."
+      }
+    ],
+    "working": [
+      {
+        "label": "Proportional spread",
+        "display": "$s = 0.45 / 32.675 = 0.01377$",
+        "value": 0.013772
+      },
+      {
+        "label": "Volatility term",
+        "display": "$2.33 \\times 0.004 = 0.00932$",
+        "value": 0.00932
+      },
+      {
+        "label": "Spread factor",
+        "display": "$\\tfrac12(0.01377 + 0.00932) = 0.01155$",
+        "value": 0.011546
+      },
+      {
+        "label": "Per-share cost",
+        "display": "$32.675 \\times 0.01155 = \\$0.377$",
+        "value": 0.3773
+      }
+    ],
+    "takeaway": "Half the spread plus half a z-sd of it: the factor lands near 1.2% for a name with a 1.4% spread.",
+    "check": {
+      "inputs": {
+        "b": 32.45,
+        "a": 32.9,
+        "sd": 0.004,
+        "z": 2.33
+      },
+      "steps": [
+        {
+          "name": "mid",
+          "expr": "(a+b)/2",
+          "value": 32.675
+        },
+        {
+          "name": "s",
+          "expr": "(a-b)/mid",
+          "value": 0.013772
+        },
+        {
+          "name": "factor",
+          "expr": "0.5*(s+z*sd)",
+          "value": 0.011546
+        },
+        {
+          "name": "cost",
+          "expr": "mid*factor",
+          "value": 0.377265
+        },
+        {
+          "name": "slip_no_vol",
+          "expr": "0.5*s",
+          "value": 0.006886
+        },
+        {
+          "name": "slip_no_half",
+          "expr": "s+z*sd",
+          "value": 0.023092
+        },
+        {
+          "name": "slip_vol_only",
+          "expr": "0.5*z*sd",
+          "value": 0.00466
+        }
+      ]
+    }
+  }
+]

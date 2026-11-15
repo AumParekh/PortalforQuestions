@@ -1,0 +1,1931 @@
+[
+ {
+  "id": "SC-bank-LRq05-01",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-9: Liquidity Stress Testing",
+  "reading_id": "LTR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0314"
+  },
+  "trap_category": "Scope",
+  "setup": "Firm A holds a USD 1,000m buffer of highly liquid assets, plus USD 120m of operational liquidity kept outside the buffer. In a stress, customers withdraw USD 150m of deposits, borrowers repay USD 80m of loans, and USD 60m of margin and collateral calls hit the derivatives book.",
+  "ask": "The stressed liquidity buffer is:",
+  "options": [
+   {
+    "label": "Below USD 900m",
+    "correct": true
+   },
+   {
+    "label": "Above USD 900m",
+    "correct": false,
+    "why": "Added the USD 120m of operational liquidity back to the buffer: $870 + 120 = 990$. Operational liquidity is outside the buffer and is not counted."
+   }
+  ],
+  "working": [
+   {
+    "label": "Stressed outflows",
+    "display": "$150 + 60 = 210$",
+    "value": 210.0
+   },
+   {
+    "label": "Stressed inflows",
+    "display": "$+80$ of loan repayments",
+    "value": 80
+   },
+   {
+    "label": "Stressed buffer",
+    "display": "$1{,}000 - 210 + 80 = 870$",
+    "value": 870.0
+   }
+  ],
+  "takeaway": "Stressed buffer = normal buffer minus stressed outflows plus stressed inflows. Liquidity held outside the buffer does not count.",
+  "check": {
+   "inputs": {
+    "B": 1000,
+    "W": 150,
+    "M": 60,
+    "R": 80,
+    "O": 120
+   },
+   "steps": [
+    {
+     "name": "out",
+     "expr": "W+M",
+     "value": 210.0
+    },
+    {
+     "name": "stressed",
+     "expr": "B-out+R",
+     "value": 870.0
+    },
+    {
+     "name": "slip_op_liquidity",
+     "expr": "stressed+O",
+     "value": 990.0
+    },
+    {
+     "name": "slip_repay_as_outflow",
+     "expr": "B-out-R",
+     "value": 710.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-02",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-9: Liquidity Stress Testing",
+  "reading_id": "LTR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0315"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank has a USD 240m liquid asset buffer. Stress outflows total USD 220m (deposits 90, unsecured wholesale 70, secured runoff 35, facility drawdowns 25). Contractual inflows are USD 30m of loan repayments and USD 20m of secured funding maturities, but the scenario says only 60% of these inflows are realised.",
+  "ask": "How much inflow should be counted in the stressed buffer?",
+  "options": [
+   {
+    "label": "USD 30m",
+    "correct": true
+   },
+   {
+    "label": "USD 50m",
+    "correct": false,
+    "why": "Counted the full contractual inflows and ignored the 60% realisation limit."
+   },
+   {
+    "label": "USD 20m",
+    "correct": false,
+    "why": "Applied 40% instead of 60%: the scenario says 60% of inflows are realised, not that 60% is lost."
+   }
+  ],
+  "working": [
+   {
+    "label": "Contractual inflows",
+    "display": "$30 + 20 = 50$",
+    "value": 50.0
+   },
+   {
+    "label": "Realised inflows",
+    "display": "$0.60 \\times 50 = 30$",
+    "value": 30.0
+   },
+   {
+    "label": "Stressed buffer",
+    "display": "$240 - 220 + 30 = 50$",
+    "value": 50.0
+   }
+  ],
+  "takeaway": "Haircut the inflows first, then net: inflows only help the buffer to the extent the scenario lets them materialise.",
+  "check": {
+   "inputs": {
+    "a": 30,
+    "b": 20,
+    "h": 0.6,
+    "N": 240,
+    "O": 220
+   },
+   "steps": [
+    {
+     "name": "contractual",
+     "expr": "a+b",
+     "value": 50.0
+    },
+    {
+     "name": "counted",
+     "expr": "h*contractual",
+     "value": 30.0
+    },
+    {
+     "name": "buffer",
+     "expr": "N-O+counted",
+     "value": 50.0
+    },
+    {
+     "name": "slip_full",
+     "expr": "contractual",
+     "value": 50.0
+    },
+    {
+     "name": "slip_wrong_share",
+     "expr": "(1-h)*contractual",
+     "value": 20.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-03",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-10: Liquidity Risk Reporting and Stress Testing",
+  "reading_id": "LTR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0343"
+  },
+  "trap_category": "Role",
+  "setup": "Bright Bank at 31 December 2018: total customer loans are 547,478 and total customer deposits are 612,152 (same units).",
+  "ask": "Is the loan-to-deposit ratio above or below 0.95?",
+  "options": [
+   {
+    "label": "Below 0.95",
+    "correct": true
+   },
+   {
+    "label": "Above 0.95",
+    "correct": false,
+    "why": "Divided deposits by loans: $612{,}152 / 547{,}478 = 1.12$. The ratio is loans over deposits, and loans are the smaller number here."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loan-to-deposit ratio",
+    "display": "$547{,}478 / 612{,}152 = 0.894$",
+    "value": 0.89435
+   }
+  ],
+  "takeaway": "Loan-to-deposit is loans divided by deposits. Loans are the smaller figure, so the ratio is under 1.",
+  "check": {
+   "inputs": {
+    "L": 547478,
+    "D": 612152
+   },
+   "steps": [
+    {
+     "name": "ltd",
+     "expr": "L/D",
+     "value": 0.89435
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "D/L",
+     "value": 1.11813
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-04",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-10: Liquidity Risk Reporting and Stress Testing",
+  "reading_id": "LTR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0344"
+  },
+  "trap_category": "Sequence",
+  "setup": "Bright Bank forecasts, for 30 June 2019, customer deposits of 599,774 and customer loans of 480,122 (same units). Management targets a loan-to-deposit ratio of 85% and holds deposits constant.",
+  "ask": "By how much must loans rise? Closest to:",
+  "options": [
+   {
+    "label": "≈ 3,000",
+    "correct": false,
+    "why": "Scale slip: one decimal place out, 1/10 of the right size."
+   },
+   {
+    "label": "≈ 30,000",
+    "correct": true
+   },
+   {
+    "label": "≈ 120,000",
+    "correct": false,
+    "why": "Lifted loans to 100% of deposits ($599{,}774 - 480{,}122$) instead of 85%."
+   },
+   {
+    "label": "≈ 510,000",
+    "correct": false,
+    "why": "Reported the target loan level $0.85 \\times 599{,}774$, not the increase over the current 480,122."
+   }
+  ],
+  "working": [
+   {
+    "label": "Target loans",
+    "display": "$0.85 \\times 599{,}774 = 509{,}808$",
+    "value": 509808.0
+   },
+   {
+    "label": "Increase needed",
+    "display": "$509{,}808 - 480{,}122 = 29{,}686$",
+    "value": 29685.9
+   }
+  ],
+  "takeaway": "A target ratio gives a target level; the question asks for the change, so subtract today's figure.",
+  "check": {
+   "inputs": {
+    "D": 599774,
+    "L": 480122,
+    "t": 0.85
+   },
+   "steps": [
+    {
+     "name": "target",
+     "expr": "t*D",
+     "value": 509808.0
+    },
+    {
+     "name": "inc",
+     "expr": "target-L",
+     "value": 29685.9
+    },
+    {
+     "name": "slip_scale",
+     "expr": "inc/10",
+     "value": 2968.59
+    },
+    {
+     "name": "slip_full_deposits",
+     "expr": "D-L",
+     "value": 119652.0
+    },
+    {
+     "name": "slip_level",
+     "expr": "target",
+     "value": 509808.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-05",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-10: Liquidity Risk Reporting and Stress Testing",
+  "reading_id": "LTR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0346"
+  },
+  "trap_category": "Sign",
+  "setup": "In a bank's daily liquidity report the one-month bucket shows a cumulative cash gap of -640m (inflows less outflows) and counterbalancing capacity of 800m of liquid securities that can be sold or pledged.",
+  "ask": "The liquidity gap for that bucket, after counterbalancing capacity, is:",
+  "options": [
+   {
+    "label": "Positive: the capacity covers the shortfall",
+    "correct": true
+   },
+   {
+    "label": "Negative: a shortfall remains",
+    "correct": false,
+    "why": "Either left the capacity out ($-640$) or subtracted it ($-640 - 800 = -1{,}440$). Capacity is a positive cushion against the cash gap."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap after capacity",
+    "display": "$-640 + 800 = +160$",
+    "value": 160.0
+   }
+  ],
+  "takeaway": "Counterbalancing capacity is added to the cumulative cash gap; a positive result means the bucket is covered.",
+  "check": {
+   "inputs": {
+    "g": -640,
+    "c": 800
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "g+c",
+     "value": 160.0
+    },
+    {
+     "name": "slip_subtract",
+     "expr": "g-c",
+     "value": -1440.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-06",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0401"
+  },
+  "trap_category": "Sign",
+  "setup": "Prime Limited expects next month (USD m): new deposits 400, withdrawals 600, new loan demand 500, credit-line drawings 200, securities sales 375 and securities purchases 100.",
+  "ask": "The available funds gap (uses of funds less sources of funds) is:",
+  "options": [
+   {
+    "label": "Positive: the bank must raise funding",
+    "correct": true
+   },
+   {
+    "label": "Negative: the bank has a surplus",
+    "correct": false,
+    "why": "Counted the USD 600m of withdrawals as a source of funds: sources become $400 + 600 + 375 = 1{,}375$ against uses of 800. Withdrawals are a use."
+   }
+  ],
+  "working": [
+   {
+    "label": "Uses",
+    "display": "$500 + 200 + 100 + 600 = 1{,}400$",
+    "value": 1400.0
+   },
+   {
+    "label": "Sources",
+    "display": "$400 + 375 = 775$",
+    "value": 775.0
+   },
+   {
+    "label": "Gap",
+    "display": "$1{,}400 - 775 = +625$",
+    "value": 625.0
+   }
+  ],
+  "takeaway": "Withdrawals drain funding, so they sit with the uses. A positive gap means money-market funding is needed.",
+  "check": {
+   "inputs": {
+    "inflow": 400,
+    "wd": 600,
+    "loans": 500,
+    "cl": 200,
+    "sold": 375,
+    "bought": 100
+   },
+   "steps": [
+    {
+     "name": "uses",
+     "expr": "loans+cl+bought+wd",
+     "value": 1400.0
+    },
+    {
+     "name": "sources",
+     "expr": "inflow+sold",
+     "value": 775.0
+    },
+    {
+     "name": "afg",
+     "expr": "uses-sources",
+     "value": 625.0
+    },
+    {
+     "name": "slip_wd_as_source",
+     "expr": "loans+cl+bought-(inflow+wd+sold)",
+     "value": -575.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-07",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0402"
+  },
+  "trap_category": "Scope",
+  "setup": "A commercial bank sees a new quality loan request of USD 660m, plans to buy USD 330m of new Treasuries on Friday, and expects USD 358m of drawings on credit lines. Deposits and customer funds received today are USD 456m, with USD 265m more expected in the coming week. Current funding gap is zero.",
+  "ask": "Total loans and investments (uses of funds) are:",
+  "options": [
+   {
+    "label": "USD 1,348m",
+    "correct": true
+   },
+   {
+    "label": "USD 990m",
+    "correct": false,
+    "why": "Left out the USD 358m of credit-line drawings: $660 + 330 = 990$."
+   },
+   {
+    "label": "USD 1,018m",
+    "correct": false,
+    "why": "Left out the USD 330m Treasury purchase: $660 + 358 = 1{,}018$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Uses",
+    "display": "$660 + 330 + 358 = 1{,}348$",
+    "value": 1348.0
+   },
+   {
+    "label": "Sources",
+    "display": "$456 + 265 = 721$",
+    "value": 721.0
+   },
+   {
+    "label": "Gap",
+    "display": "$1{,}348 - 721 = 627$",
+    "value": 627.0
+   }
+  ],
+  "takeaway": "In the available funds gap, uses include loans, securities purchases and committed credit-line drawings.",
+  "check": {
+   "inputs": {
+    "loan": 660,
+    "sec": 330,
+    "cl": 358,
+    "dep1": 456,
+    "dep2": 265
+   },
+   "steps": [
+    {
+     "name": "uses",
+     "expr": "loan+sec+cl",
+     "value": 1348.0
+    },
+    {
+     "name": "sources",
+     "expr": "dep1+dep2",
+     "value": 721.0
+    },
+    {
+     "name": "afg",
+     "expr": "uses-sources",
+     "value": 627.0
+    },
+    {
+     "name": "slip_no_cl",
+     "expr": "loan+sec",
+     "value": 990.0
+    },
+    {
+     "name": "slip_no_sec",
+     "expr": "loan+cl",
+     "value": 1018.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-08",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0403"
+  },
+  "trap_category": "Formula",
+  "setup": "A bank has new quality loan requests of USD 250m, plans to buy USD 100m of Treasuries this week and expects USD 140m of credit-line drawings. It received USD 110m of deposits today and expects USD 230m more over the coming week.",
+  "ask": "The available funds gap (USD m) is closest to:",
+  "options": [
+   {
+    "label": "≈ 15",
+    "correct": false,
+    "why": "Scale slip: one decimal place out, 1/10 of the right size."
+   },
+   {
+    "label": "≈ 150",
+    "correct": true
+   },
+   {
+    "label": "≈ 490",
+    "correct": false,
+    "why": "Stopped at total uses ($250 + 100 + 140$) and never netted off the USD 340m of deposit inflows."
+   },
+   {
+    "label": "≈ 1,500",
+    "correct": false,
+    "why": "Scale slip: one decimal place out, 10 times the right size."
+   }
+  ],
+  "working": [
+   {
+    "label": "Uses",
+    "display": "$250 + 100 + 140 = 490$",
+    "value": 490.0
+   },
+   {
+    "label": "Sources",
+    "display": "$110 + 230 = 340$",
+    "value": 340.0
+   },
+   {
+    "label": "Gap",
+    "display": "$490 - 340 = 150$",
+    "value": 150.0
+   }
+  ],
+  "takeaway": "AFG is a net figure: total uses minus total sources, not either side alone.",
+  "check": {
+   "inputs": {
+    "loans": 250,
+    "sec": 100,
+    "cl": 140,
+    "d1": 110,
+    "d2": 230
+   },
+   "steps": [
+    {
+     "name": "uses",
+     "expr": "loans+sec+cl",
+     "value": 490.0
+    },
+    {
+     "name": "sources",
+     "expr": "d1+d2",
+     "value": 340.0
+    },
+    {
+     "name": "afg",
+     "expr": "uses-sources",
+     "value": 150.0
+    },
+    {
+     "name": "slip_uses_only",
+     "expr": "uses",
+     "value": 490.0
+    },
+    {
+     "name": "slip_scale_down",
+     "expr": "afg/10",
+     "value": 15.0
+    },
+    {
+     "name": "slip_scale_up",
+     "expr": "afg*10",
+     "value": 1500.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-09",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0425"
+  },
+  "trap_category": "Formula",
+  "setup": "Bluemont Bank borrows USD 85m in a repo against government bonds for 12 days. The repo rate is 4% annualised, actual/360.",
+  "ask": "Total interest cost is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 9,400",
+    "correct": false,
+    "why": "Charged one day only: $85\\text{m} \\times 4\\% / 360$. The 12 days were never multiplied in."
+   },
+   {
+    "label": "≈ USD 113,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 1,130,000",
+    "correct": false,
+    "why": "Percent-as-decimal slip: used $0.4$ instead of $0.04$, ten times too large."
+   },
+   {
+    "label": "≈ USD 3,400,000",
+    "correct": false,
+    "why": "A full year of interest at 4%: forgot the $12/360$ day fraction."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual interest",
+    "display": "$85{,}000{,}000 \\times 0.04 = 3{,}400{,}000$",
+    "value": 3400000.0
+   },
+   {
+    "label": "Day fraction",
+    "display": "$12/360$",
+    "value": 0.03333333333333333
+   },
+   {
+    "label": "Interest",
+    "display": "$3{,}400{,}000 \\times 12/360 = 113{,}333$",
+    "value": 113333.0
+   }
+  ],
+  "takeaway": "Repo interest is amount times rate times days over 360. Twelve days is a small slice of the year, so a figure near the annual interest must be wrong.",
+  "check": {
+   "inputs": {
+    "P": 85000000,
+    "r": 0.04,
+    "n": 12
+   },
+   "steps": [
+    {
+     "name": "annual",
+     "expr": "P*r",
+     "value": 3400000.0
+    },
+    {
+     "name": "interest",
+     "expr": "annual*n/360",
+     "value": 113333.0
+    },
+    {
+     "name": "slip_one_day",
+     "expr": "annual/360",
+     "value": 9444.44
+    },
+    {
+     "name": "slip_pct",
+     "expr": "annual*10*n/360",
+     "value": 1133330.0
+    },
+    {
+     "name": "slip_no_days",
+     "expr": "annual",
+     "value": 3400000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-10",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0431"
+  },
+  "trap_category": "Definition",
+  "setup": "Promise Bank borrows USD 30m overnight in a repo at 4%. Money-market repos use actual/360; bonds often use actual/365.",
+  "ask": "Compared with an actual/365 count, the actual/360 interest for one night is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Read the bigger year (365) as producing more interest. The year is the divisor: the shorter 360-day year makes each day worth more."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "The day count basis changes the divisor: $30\\text{m} \\times 4\\% / 360 = 3{,}333.33$ against $/365 = 3{,}287.67$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Actual/360",
+    "display": "$30{,}000{,}000 \\times 0.04 / 360 = 3{,}333.33$",
+    "value": 3333.33
+   },
+   {
+    "label": "Actual/365",
+    "display": "$30{,}000{,}000 \\times 0.04 / 365 = 3{,}287.67$",
+    "value": 3287.67
+   }
+  ],
+  "takeaway": "A shorter year basis divides by less, so each day of interest is larger: actual/360 charges more than actual/365.",
+  "check": {
+   "inputs": {
+    "P": 30000000,
+    "r": 0.04
+   },
+   "steps": [
+    {
+     "name": "i360",
+     "expr": "P*r/360",
+     "value": 3333.33
+    },
+    {
+     "name": "i365",
+     "expr": "P*r/365",
+     "value": 3287.67
+    },
+    {
+     "name": "diff",
+     "expr": "i360-i365",
+     "value": 45.6621
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-11",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0426"
+  },
+  "trap_category": "Sequence",
+  "setup": "A bank buys a bond (face USD 100,000, 5% semi-annual coupon) on a coupon date and, three months later, repos it. Clean price is 98 per 100, the repo haircut is 5%, the repo rate is 3% and the term is 6 months. Use 30/360-style simple accrual.",
+  "ask": "The cash the bank receives at the start of the repo is:",
+  "options": [
+   {
+    "label": "Below the clean value of USD 98,000",
+    "correct": true
+   },
+   {
+    "label": "Above the clean value of USD 98,000",
+    "correct": false,
+    "why": "Stopped at the dirty value (clean plus USD 1,250 accrued = 99,250) and skipped the 5% haircut."
+   }
+  ],
+  "working": [
+   {
+    "label": "Accrued interest",
+    "display": "$2{,}500 \\times 0.5 = 1{,}250$",
+    "value": 1250.0
+   },
+   {
+    "label": "Dirty value",
+    "display": "$98{,}000 + 1{,}250 = 99{,}250$",
+    "value": 99250.0
+   },
+   {
+    "label": "Cash after haircut",
+    "display": "$99{,}250 \\times 0.95 = 94{,}287.50$",
+    "value": 94287.5
+   },
+   {
+    "label": "Repayment",
+    "display": "$94{,}287.50 \\times (1 + 0.03 \\times 0.5) = 95{,}702$",
+    "value": 95701.8
+   }
+  ],
+  "takeaway": "Dirty value first, haircut second, then repo interest on the cash actually received. The haircut outweighs the accrued interest.",
+  "check": {
+   "inputs": {
+    "N": 100000,
+    "c": 0.05,
+    "clean": 98,
+    "h": 0.05,
+    "rr": 0.03
+   },
+   "steps": [
+    {
+     "name": "ai",
+     "expr": "N*c/2*0.5",
+     "value": 1250.0
+    },
+    {
+     "name": "dirty",
+     "expr": "N*clean/100+ai",
+     "value": 99250.0
+    },
+    {
+     "name": "cash",
+     "expr": "dirty*(1-h)",
+     "value": 94287.5
+    },
+    {
+     "name": "repay",
+     "expr": "cash*(1+rr*0.5)",
+     "value": 95701.8
+    },
+    {
+     "name": "slip_no_haircut",
+     "expr": "dirty",
+     "value": 99250.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-12",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0427"
+  },
+  "trap_category": "Formula",
+  "setup": "A bank buys a bond (face USD 100,000) with a 6% semi-annual coupon on a coupon date, and repos it three months later. Use 30/360-style simple accrual.",
+  "ask": "The accrued interest at the repo date is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 500",
+    "correct": false,
+    "why": "Accrued only one month: $100{,}000 \\times 6\\% / 12$."
+   },
+   {
+    "label": "≈ USD 1,500",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 6,000",
+    "correct": false,
+    "why": "A full year of coupon, ignoring that only three months have passed."
+   },
+   {
+    "label": "≈ USD 60,000",
+    "correct": false,
+    "why": "Percent-as-decimal slip on the annual coupon: used $0.60$ instead of $0.06$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Coupon per period",
+    "display": "$100{,}000 \\times 6\\% / 2 = 3{,}000$",
+    "value": 3000.0
+   },
+   {
+    "label": "Accrued after 3 of 6 months",
+    "display": "$3{,}000 \\times 0.5 = 1{,}500$",
+    "value": 1500.0
+   }
+  ],
+  "takeaway": "Accrued interest is the coupon times the fraction of the period elapsed: three months of a six-month period is half a coupon.",
+  "check": {
+   "inputs": {
+    "N": 100000,
+    "c": 0.06
+   },
+   "steps": [
+    {
+     "name": "coupon",
+     "expr": "N*c/2",
+     "value": 3000.0
+    },
+    {
+     "name": "ai",
+     "expr": "coupon*0.5",
+     "value": 1500.0
+    },
+    {
+     "name": "slip_one_month",
+     "expr": "N*c/12",
+     "value": 500.0
+    },
+    {
+     "name": "slip_annual",
+     "expr": "N*c",
+     "value": 6000.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "N*c*10",
+     "value": 60000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-13",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0433"
+  },
+  "trap_category": "Scope",
+  "setup": "Ludska Bank sells government bonds (face USD 1,000,000) at an invoice price of USD 1,100,000 and agrees to repurchase them 90 days later at the invoice price plus interest at 4% p.a., actual/360.",
+  "ask": "The repo interest, as a share of the cash lent, is:",
+  "options": [
+   {
+    "label": "1.0%",
+    "correct": true
+   },
+   {
+    "label": "4.0%",
+    "correct": false,
+    "why": "Used the annual rate and forgot the $90/360$ day fraction."
+   },
+   {
+    "label": "16%",
+    "correct": false,
+    "why": "Inverted the day fraction: $4\\% \\times 360/90$ instead of $4\\% \\times 90/360$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest rate for the term",
+    "display": "$4\\% \\times 90/360 = 1.0\\%$",
+    "value": 0.01
+   },
+   {
+    "label": "Repurchase price",
+    "display": "$1{,}100{,}000 \\times 1.01 = 1{,}111{,}000$",
+    "value": 1111000.0
+   }
+  ],
+  "takeaway": "90 days is a quarter of a 360-day year, so the term interest is a quarter of the annual rate.",
+  "check": {
+   "inputs": {
+    "r": 0.04,
+    "d": 90,
+    "P": 1100000
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "r*d/360",
+     "value": 0.01
+    },
+    {
+     "name": "price",
+     "expr": "P*(1+f)",
+     "value": 1111000.0
+    },
+    {
+     "name": "slip_no_days",
+     "expr": "r",
+     "value": 0.04
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "r*360/d",
+     "value": 0.16
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-14",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0437"
+  },
+  "trap_category": "Formula",
+  "setup": "HJK Bank sells bonds (face USD 120m) at an invoice price of USD 159m and agrees to repurchase them 122 days later at the invoice price plus interest at a repo rate of 0.26% p.a., actual/360.",
+  "ask": "The repo interest paid is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 14,000",
+    "correct": false,
+    "why": "Decimal-place slip: read 0.26% as 0.026%, one tenth of the right size."
+   },
+   {
+    "label": "≈ USD 140,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 410,000",
+    "correct": false,
+    "why": "A full year of interest at 0.26%: forgot the $122/360$ day fraction."
+   },
+   {
+    "label": "≈ USD 1,400,000",
+    "correct": false,
+    "why": "Decimal-place slip: read 0.26% as 2.6%, ten times too large."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual interest on the cash lent",
+    "display": "$159{,}000{,}000 \\times 0.0026 = 413{,}400$",
+    "value": 413400.0
+   },
+   {
+    "label": "Interest for 122 days",
+    "display": "$413{,}400 \\times 122/360 = 140{,}094$",
+    "value": 140097.0
+   },
+   {
+    "label": "Repurchase price",
+    "display": "$159.00\\text{m} + 0.14\\text{m} \\approx 159.14\\text{m}$",
+    "value": null
+   }
+  ],
+  "takeaway": "Interest runs on the cash lent (the invoice price) for days over 360. A sub-1% rate over four months is a tiny fraction of the cash.",
+  "check": {
+   "inputs": {
+    "P": 159000000,
+    "r": 0.0026,
+    "d": 122
+   },
+   "steps": [
+    {
+     "name": "annual",
+     "expr": "P*r",
+     "value": 413400.0
+    },
+    {
+     "name": "interest",
+     "expr": "annual*d/360",
+     "value": 140097.0
+    },
+    {
+     "name": "slip_no_days",
+     "expr": "annual",
+     "value": 413400.0
+    },
+    {
+     "name": "slip_down",
+     "expr": "interest/10",
+     "value": 14009.7
+    },
+    {
+     "name": "slip_up",
+     "expr": "interest*10",
+     "value": 1400970.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-15",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0438"
+  },
+  "trap_category": "Definition",
+  "setup": "Counterparty K sells EUR 300m face of bonds at an invoice price of EUR 350.25m on 1 January 2015 and agrees to repurchase them on 1 July 2015 at the invoice price plus interest at a 0.26% repo rate, actual/360.",
+  "ask": "How many days of interest accrue between 1 January and 1 July 2015?",
+  "options": [
+   {
+    "label": "181 days",
+    "correct": true
+   },
+   {
+    "label": "180 days",
+    "correct": false,
+    "why": "Used 30-day months (30/360). The convention here is actual days, and February 2015 has 28."
+   },
+   {
+    "label": "183 days",
+    "correct": false,
+    "why": "Took half of a 365-day year (182.5) and rounded up instead of counting the actual calendar days."
+   }
+  ],
+  "working": [
+   {
+    "label": "Actual days",
+    "display": "$31 + 28 + 31 + 30 + 31 + 30 = 181$",
+    "value": 181.0
+   },
+   {
+    "label": "Interest",
+    "display": "$350.25 \\times 0.0026 \\times 181/360 = 0.458$",
+    "value": 0.457855
+   },
+   {
+    "label": "Repurchase price",
+    "display": "$350.25 + 0.458 \\approx \\text{EUR } 350.71\\text{m}$",
+    "value": null
+   }
+  ],
+  "takeaway": "Under actual/360, count the actual calendar days (181 here). It is not simply half of 360 or 365.",
+  "check": {
+   "inputs": {
+    "jan": 31,
+    "feb": 28,
+    "mar": 31,
+    "apr": 30,
+    "may": 31,
+    "jun": 30,
+    "P": 350.25,
+    "r": 0.0026
+   },
+   "steps": [
+    {
+     "name": "days",
+     "expr": "jan+feb+mar+apr+may+jun",
+     "value": 181.0
+    },
+    {
+     "name": "interest",
+     "expr": "P*r*days/360",
+     "value": 0.457855
+    },
+    {
+     "name": "slip_30_360",
+     "expr": "6*30",
+     "value": 180.0
+    },
+    {
+     "name": "slip_half_year",
+     "expr": "365/2",
+     "value": 182.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-16",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0439"
+  },
+  "trap_category": "Scope",
+  "setup": "Prime Bank sells bonds with USD 200m face value at an invoice price of USD 250m and repurchases them 183 days later at the invoice price plus interest at a 0.34% repo rate, actual/360.",
+  "ask": "Interest charged on the invoice price, compared with interest on the face value, is:",
+  "options": [
+   {
+    "label": "Larger",
+    "correct": true
+   },
+   {
+    "label": "Smaller",
+    "correct": false,
+    "why": "Assumed face value is the bigger base. Here the bonds trade above par, so the invoice price (250) exceeds face (200)."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Rate and days match, but the bases differ ($250$ vs $200$), so the dollar interest differs."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest on invoice price",
+    "display": "$250 \\times 0.0034 \\times 183/360 = 0.432$",
+    "value": 0.432083
+   },
+   {
+    "label": "Interest on face value",
+    "display": "$200 \\times 0.0034 \\times 183/360 = 0.346$",
+    "value": 0.345667
+   }
+  ],
+  "takeaway": "Repo interest is charged on the cash lent, which is the invoice price, not the face value of the collateral.",
+  "check": {
+   "inputs": {
+    "F": 200,
+    "P": 250,
+    "r": 0.0034,
+    "d": 183
+   },
+   "steps": [
+    {
+     "name": "int_inv",
+     "expr": "P*r*d/360",
+     "value": 0.432083
+    },
+    {
+     "name": "int_face",
+     "expr": "F*r*d/360",
+     "value": 0.345667
+    },
+    {
+     "name": "ratio",
+     "expr": "int_inv/int_face",
+     "value": 1.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-17",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0442"
+  },
+  "trap_category": "Definition",
+  "setup": "Counterparty A sells a security for USD 180.0m on 1 June 2015 and repurchases it on 1 September 2015 at the invoice price plus interest at 0.90%, actual/360. June has 30 days, July and August 31 each.",
+  "ask": "Compared with a flat 90-day accrual (three months at 30 days each), the actual/360 interest is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Treated the 31-day months as 30-day months, so assumed the count is 90 or fewer. The actual count is $30 + 31 + 31 = 92$."
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Three months equals 90 days only under a 30/360 convention. Actual/360 counts 92 days here."
+   }
+  ],
+  "working": [
+   {
+    "label": "Actual days",
+    "display": "$30 + 31 + 31 = 92$",
+    "value": 92
+   },
+   {
+    "label": "Interest, 92 days",
+    "display": "$180{,}000{,}000 \\times 0.009 \\times 92/360 = 414{,}000$",
+    "value": 414000.0
+   },
+   {
+    "label": "Interest, 90 days",
+    "display": "$180{,}000{,}000 \\times 0.009 \\times 90/360 = 405{,}000$",
+    "value": 405000.0
+   }
+  ],
+  "takeaway": "Actual/360 counts the real calendar days; three months containing two 31-day months run to 92 days, not 90.",
+  "check": {
+   "inputs": {
+    "P": 180000000,
+    "r": 0.009,
+    "act": 92,
+    "flat": 90
+   },
+   "steps": [
+    {
+     "name": "i_act",
+     "expr": "P*r*act/360",
+     "value": 414000.0
+    },
+    {
+     "name": "i_30",
+     "expr": "P*r*flat/360",
+     "value": 405000.0
+    },
+    {
+     "name": "diff",
+     "expr": "i_act-i_30",
+     "value": 9000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-18",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0443"
+  },
+  "trap_category": "Role",
+  "setup": "Pasquini Investments needs USD 25m of financing for 30 days. It posts AAA government bonds with face value USD 27m and market value USD 25m as collateral, at a quoted 0.5% (actual/360, no haircut).",
+  "ask": "From Pasquini's side, the contract and the base for interest are:",
+  "options": [
+   {
+    "label": "Repo, interest on USD 25m",
+    "correct": true
+   },
+   {
+    "label": "Reverse repo, interest on USD 25m",
+    "correct": false,
+    "why": "Pasquini sells the bonds for cash and buys them back: that is a repo. The reverse repo is the cash lender's side."
+   },
+   {
+    "label": "Repo, interest on USD 27m",
+    "correct": false,
+    "why": "Charged interest on the face value: $27\\text{m} \\times 0.5\\% \\times 30/360 \\approx 11{,}250$. Interest runs on the USD 25m of cash actually lent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Contract",
+    "display": "Pasquini sells bonds for cash now: a repo",
+    "value": null
+   },
+   {
+    "label": "Interest",
+    "display": "$25{,}000{,}000 \\times 0.005 \\times 30/360 = 10{,}417$",
+    "value": 10416.7
+   },
+   {
+    "label": "Repurchase price",
+    "display": "$25{,}000{,}000 + 10{,}417 = 25{,}010{,}417$",
+    "value": 25010400.0
+   }
+  ],
+  "takeaway": "The cash borrower is on the repo side, and interest accrues on the cash lent, not on face value.",
+  "check": {
+   "inputs": {
+    "P": 25000000,
+    "F": 27000000,
+    "r": 0.005
+   },
+   "steps": [
+    {
+     "name": "int",
+     "expr": "P*r*30/360",
+     "value": 10416.7
+    },
+    {
+     "name": "price",
+     "expr": "P+int",
+     "value": 25010400.0
+    },
+    {
+     "name": "slip_face",
+     "expr": "F*r*30/360",
+     "value": 11250.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-19",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0521"
+  },
+  "trap_category": "Role",
+  "setup": "In a five-year currency swap, US firm A pays European firm B USD 100m at the start and receives EUR 80m (spot USD 1.25 per EUR). The dollar rate is 6% and the euro rate 3.5%, both paid annually.",
+  "ask": "What does A pay B each year?",
+  "options": [
+   {
+    "label": "Euro interest, 3.5% on the EUR 80m A holds",
+    "correct": true
+   },
+   {
+    "label": "Dollar interest, 6% on the USD 100m",
+    "correct": false,
+    "why": "That is what B pays A. A handed over the dollar principal, so it receives dollar interest and pays interest on the euro principal it holds."
+   },
+   {
+    "label": "Euro interest at the 6% dollar rate",
+    "correct": false,
+    "why": "Applied the dollar rate to the euro principal: $80\\text{m} \\times 6\\% = 4.8\\text{m}$. Each currency pays its own rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "A holds the euro principal",
+    "display": "EUR 80m",
+    "value": null
+   },
+   {
+    "label": "A pays",
+    "display": "$80{,}000{,}000 \\times 3.5\\% = \\text{EUR } 2{,}800{,}000$",
+    "value": 2800000.0
+   },
+   {
+    "label": "B pays A",
+    "display": "$100{,}000{,}000 \\times 6\\% = \\text{USD } 6{,}000{,}000$",
+    "value": 6000000.0
+   }
+  ],
+  "takeaway": "In a currency swap each side pays interest in the currency of the principal it holds, at that currency's rate.",
+  "check": {
+   "inputs": {
+    "Eu": 80000000,
+    "re": 0.035,
+    "Ud": 100000000,
+    "rd": 0.06
+   },
+   "steps": [
+    {
+     "name": "eur_int",
+     "expr": "Eu*re",
+     "value": 2800000.0
+    },
+    {
+     "name": "usd_int",
+     "expr": "Ud*rd",
+     "value": 6000000.0
+    },
+    {
+     "name": "slip_rate",
+     "expr": "Eu*rd",
+     "value": 4800000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-20",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0522"
+  },
+  "trap_category": "Formula",
+  "setup": "US firm A swaps USD 1m for JPY 100m with Japanese firm B at JPY 100 per USD 1. A holds the yen principal and pays 4% per year on it, settled quarterly.",
+  "ask": "A's yen interest payment each quarter is closest to:",
+  "options": [
+   {
+    "label": "≈ JPY 333,000",
+    "correct": false,
+    "why": "Paid one month of interest ($4{,}000{,}000 / 12$) instead of a quarter."
+   },
+   {
+    "label": "≈ JPY 1,000,000",
+    "correct": true
+   },
+   {
+    "label": "≈ JPY 4,000,000",
+    "correct": false,
+    "why": "Paid the full annual interest in one quarterly payment."
+   },
+   {
+    "label": "≈ JPY 40,000,000",
+    "correct": false,
+    "why": "Percent-as-decimal slip: used 40% instead of 4%, then paid a full year."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual interest",
+    "display": "$100{,}000{,}000 \\times 4\\% = 4{,}000{,}000$",
+    "value": 4000000.0
+   },
+   {
+    "label": "Quarterly interest",
+    "display": "$4{,}000{,}000 / 4 = 1{,}000{,}000$",
+    "value": 1000000.0
+   }
+  ],
+  "takeaway": "Quarterly settlement means a quarter of the annual interest, in the currency of the principal held.",
+  "check": {
+   "inputs": {
+    "P": 100000000,
+    "r": 0.04
+   },
+   "steps": [
+    {
+     "name": "annual",
+     "expr": "P*r",
+     "value": 4000000.0
+    },
+    {
+     "name": "q",
+     "expr": "annual/4",
+     "value": 1000000.0
+    },
+    {
+     "name": "slip_month",
+     "expr": "annual/12",
+     "value": 333333.0
+    },
+    {
+     "name": "slip_annual",
+     "expr": "annual",
+     "value": 4000000.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "annual*10",
+     "value": 40000000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-21",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0528"
+  },
+  "trap_category": "Sign",
+  "setup": "Bank A enters a cross-currency basis swap: it borrows USD and lends EUR. USD Libor is 1.0% and EUR Libor is 0.5%. Because of a dollar shortage, the USD borrower pays USD Libor plus a 40 bp premium, and A receives EUR Libor on the EUR leg.",
+  "ask": "What does A pay on its USD leg?",
+  "options": [
+   {
+    "label": "1.40%",
+    "correct": true
+   },
+   {
+    "label": "1.00%",
+    "correct": false,
+    "why": "Left out the 40 bp dollar premium: the USD borrower pays Libor plus the basis."
+   },
+   {
+    "label": "0.60%",
+    "correct": false,
+    "why": "Subtracted the basis ($1.0\\% - 0.4\\%$). The shortage makes borrowing dollars more expensive, so the premium adds."
+   }
+  ],
+  "working": [
+   {
+    "label": "USD leg paid",
+    "display": "$1.0\\% + 0.40\\% = 1.40\\%$",
+    "value": 1.4
+   },
+   {
+    "label": "EUR leg received",
+    "display": "$0.50\\%$",
+    "value": 0.5
+   },
+   {
+    "label": "Net cost",
+    "display": "$1.40\\% - 0.50\\% = 0.90\\%$",
+    "value": 0.9
+   }
+  ],
+  "takeaway": "In a dollar shortage the USD borrower pays Libor plus the basis premium; net cost is that minus the EUR Libor received.",
+  "check": {
+   "inputs": {
+    "usd": 1.0,
+    "eur": 0.5,
+    "b": 0.4
+   },
+   "steps": [
+    {
+     "name": "gross",
+     "expr": "usd+b",
+     "value": 1.4
+    },
+    {
+     "name": "net",
+     "expr": "gross-eur",
+     "value": 0.9
+    },
+    {
+     "name": "slip_no_basis",
+     "expr": "usd",
+     "value": 1.0
+    },
+    {
+     "name": "slip_neg_basis",
+     "expr": "usd-b",
+     "value": 0.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-22",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0533"
+  },
+  "trap_category": "Polarity",
+  "setup": "Spot USD/EUR is 1.3536 USD per EUR and the one-year forward is 1.3280. The one-year USD rate is 4% and the one-year EUR rate is 6%. Covered interest parity says $F/S = (1 + r)/(1 + r^{*})$.",
+  "ask": "The ratio of gross USD return to gross EUR return, $(1 + r)/(1 + r^{*})$, is:",
+  "options": [
+   {
+    "label": "Slightly below 1 (about 0.98)",
+    "correct": true
+   },
+   {
+    "label": "Slightly above 1 (about 1.02)",
+    "correct": false,
+    "why": "Inverted the ratio: $1.06/1.04 = 1.019$. USD is the lower-rate currency, so USD is on top and the ratio is under 1."
+   },
+   {
+    "label": "Near zero (about 0.02)",
+    "correct": false,
+    "why": "Reported the rate gap $(6\\% - 4\\%)$ instead of a ratio of gross returns."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross returns",
+    "display": "$1.04$ in USD, $1.06$ in EUR",
+    "value": null
+   },
+   {
+    "label": "Ratio",
+    "display": "$1.04 / 1.06 = 0.981$",
+    "value": 0.981132
+   },
+   {
+    "label": "Market check",
+    "display": "$F/S = 1.3280 / 1.3536 = 0.981$",
+    "value": 0.981087
+   }
+  ],
+  "takeaway": "Lower USD interest means the ratio is below 1, and the forward sits below spot by the same factor.",
+  "check": {
+   "inputs": {
+    "r": 0.04,
+    "rs": 0.06,
+    "S": 1.3536,
+    "F": 1.328
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "(1+r)/(1+rs)",
+     "value": 0.981132
+    },
+    {
+     "name": "fs",
+     "expr": "F/S",
+     "value": 0.981087
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "(1+rs)/(1+r)",
+     "value": 1.01923
+    },
+    {
+     "name": "slip_gap",
+     "expr": "(rs-r)/(1+rs)",
+     "value": 0.0188679
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-23",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0534"
+  },
+  "trap_category": "Sequence",
+  "setup": "One-year rates: USD 5%, GBP 8%. Spot is USD 1.2500 per GBP and the one-year forward is USD 1.2400 per GBP. An arbitrageur borrows USD 2,000, converts to GBP at spot, deposits for a year and sells the GBP proceeds forward.",
+  "ask": "The riskless USD profit at maturity is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 4",
+    "correct": false,
+    "why": "Decimal-place slip: one tenth of the right size."
+   },
+   {
+    "label": "≈ USD 43",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 160",
+    "correct": false,
+    "why": "Took the GBP interest ($2{,}000 \\times 8\\%$) as the profit, ignoring the loan cost and the forward rate."
+   },
+   {
+    "label": "≈ USD 2,143",
+    "correct": false,
+    "why": "Stopped at the USD proceeds from the forward sale and never repaid the loan."
+   }
+  ],
+  "working": [
+   {
+    "label": "GBP bought",
+    "display": "$2{,}000 / 1.25 = 1{,}600$",
+    "value": 1600.0
+   },
+   {
+    "label": "GBP after one year",
+    "display": "$1{,}600 \\times 1.08 = 1{,}728$",
+    "value": 1728.0
+   },
+   {
+    "label": "USD via forward",
+    "display": "$1{,}728 \\times 1.24 = 2{,}142.72$",
+    "value": 2142.72
+   },
+   {
+    "label": "Loan repayment",
+    "display": "$2{,}000 \\times 1.05 = 2{,}100$",
+    "value": 2100.0
+   },
+   {
+    "label": "Profit",
+    "display": "$2{,}142.72 - 2{,}100 = 42.72$",
+    "value": 42.72
+   }
+  ],
+  "takeaway": "Covered arbitrage: roll the position through to the end date in USD and subtract the loan repayment. Gross proceeds are not profit.",
+  "check": {
+   "inputs": {
+    "D": 2000,
+    "S": 1.25,
+    "F": 1.24,
+    "rd": 0.05,
+    "rf": 0.08
+   },
+   "steps": [
+    {
+     "name": "gbp",
+     "expr": "D/S",
+     "value": 1600.0
+    },
+    {
+     "name": "gbp_end",
+     "expr": "gbp*(1+rf)",
+     "value": 1728.0
+    },
+    {
+     "name": "usd_end",
+     "expr": "gbp_end*F",
+     "value": 2142.72
+    },
+    {
+     "name": "repay",
+     "expr": "D*(1+rd)",
+     "value": 2100.0
+    },
+    {
+     "name": "profit",
+     "expr": "usd_end-repay",
+     "value": 42.72
+    },
+    {
+     "name": "slip_scale",
+     "expr": "profit/10",
+     "value": 4.272
+    },
+    {
+     "name": "slip_rate",
+     "expr": "D*rf",
+     "value": 160.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-24",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0535"
+  },
+  "trap_category": "Polarity",
+  "setup": "Spot is 1.32 USD per EUR and the one-year forward is 1.22 USD per EUR. The one-year USD rate is 6%. Covered interest parity holds.",
+  "ask": "The one-year EUR interest rate is:",
+  "options": [
+   {
+    "label": "Above 6%",
+    "correct": true
+   },
+   {
+    "label": "Below 6%",
+    "correct": false,
+    "why": "Flipped the ratio, using $F/S$ where $S/F$ belongs: $1.06 \\times 1.22/1.32 - 1 = -2.0\\%$. The euro trades at a forward discount, so its rate must be higher."
+   }
+  ],
+  "working": [
+   {
+    "label": "Solve for EUR gross return",
+    "display": "$1 + r^{*} = 1.06 \\times 1.32 / 1.22 = 1.1469$",
+    "value": 1.14689
+   },
+   {
+    "label": "EUR rate",
+    "display": "$r^{*} = 14.69\\%$",
+    "value": 0.146885
+   }
+  ],
+  "takeaway": "A currency at a forward discount (forward below spot) carries the higher interest rate under covered interest parity.",
+  "check": {
+   "inputs": {
+    "S": 1.32,
+    "F": 1.22,
+    "r": 0.06
+   },
+   "steps": [
+    {
+     "name": "gross",
+     "expr": "(1+r)*S/F",
+     "value": 1.14689
+    },
+    {
+     "name": "rstar",
+     "expr": "gross-1",
+     "value": 0.146885
+    },
+    {
+     "name": "slip_flipped",
+     "expr": "(1+r)*F/S-1",
+     "value": -0.020303
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq05-25",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0539"
+  },
+  "trap_category": "Formula",
+  "setup": "Spot is 0.50 USD per JPY (a stylised quote) and the one-year forward is 0.40 USD per JPY. The one-year USD rate is 5%. Covered interest parity holds.",
+  "ask": "The one-year JPY interest rate is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.31%",
+    "correct": false,
+    "why": "Decimal-place slip: one hundredth of the right size."
+   },
+   {
+    "label": "≈ 3.1%",
+    "correct": false,
+    "why": "Decimal-place slip: one tenth of the right size."
+   },
+   {
+    "label": "≈ 31%",
+    "correct": true
+   },
+   {
+    "label": "≈ 131%",
+    "correct": false,
+    "why": "Stopped at the gross return $1.05 \\times 0.50/0.40 = 1.3125$ and read it as a rate, forgetting to subtract 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "JPY gross return",
+    "display": "$1 + r^{*} = 1.05 \\times 0.50 / 0.40 = 1.3125$",
+    "value": 1.3125
+   },
+   {
+    "label": "JPY rate",
+    "display": "$r^{*} = 1.3125 - 1 = 31.25\\%$",
+    "value": 0.3125
+   }
+  ],
+  "takeaway": "Solve for the gross return, then subtract 1. A forward 20% below spot demands a large interest differential.",
+  "check": {
+   "inputs": {
+    "S": 0.5,
+    "F": 0.4,
+    "r": 0.05
+   },
+   "steps": [
+    {
+     "name": "gross",
+     "expr": "(1+r)*S/F",
+     "value": 1.3125
+    },
+    {
+     "name": "rstar",
+     "expr": "gross-1",
+     "value": 0.3125
+    },
+    {
+     "name": "slip_gross",
+     "expr": "gross",
+     "value": 1.3125
+    },
+    {
+     "name": "slip_scale1",
+     "expr": "rstar/10",
+     "value": 0.03125
+    },
+    {
+     "name": "slip_scale2",
+     "expr": "rstar/100",
+     "value": 0.003125
+    }
+   ]
+  }
+ }
+]

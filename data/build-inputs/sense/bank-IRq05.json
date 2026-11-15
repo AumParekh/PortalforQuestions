@@ -1,0 +1,1973 @@
+[
+ {
+  "id": "SC-bank-IRq05-01",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0345"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Buy one share at USD 100. At the end of year 1 it is worth USD 110 and pays a USD 3 dividend; you then buy a second share at USD 110. At the end of year 2 each share is worth USD 120 and pays another USD 3 dividend. You are building the time-weighted return from sub-period returns.",
+  "ask": "The year-2 return on the two-share portfolio is closest to:",
+  "options": [
+   {
+    "label": "20.0%",
+    "correct": false,
+    "why": "Measured the USD 120 price against the original USD 100 cost. Year 2 starts from the USD 220 the two shares were worth at the end of year 1."
+   },
+   {
+    "label": "13.0%",
+    "correct": false,
+    "why": "Reused the year-1 return, $(110 + 3 - 100)/100$. Year 2 has its own start value (2 shares) and its own end value."
+   },
+   {
+    "label": "11.8%",
+    "correct": true
+   },
+   {
+    "label": "9.1%",
+    "correct": false,
+    "why": "Left out the two USD 3 dividends: $(240 - 220)/220 = 9.1\\%$. Dividends received are part of the holding-period return."
+   }
+  ],
+  "working": [
+   {
+    "label": "Start value",
+    "display": "$2 \\times 110 = 220$",
+    "value": 220
+   },
+   {
+    "label": "End value (price + dividends)",
+    "display": "$2 \\times (120 + 3) = 246$",
+    "value": 246
+   },
+   {
+    "label": "Year-2 return",
+    "display": "$246/220 - 1 = 11.8\\%$",
+    "value": 0.11818
+   }
+  ],
+  "takeaway": "Time-weighted returns restart at each cash flow: year 2 is measured on the value of both shares at the start of year 2, with dividends counted at the end.",
+  "check": {
+   "inputs": {
+    "P1": 110,
+    "P2": 120,
+    "D": 3,
+    "N": 2
+   },
+   "steps": [
+    {
+     "name": "V0",
+     "expr": "N*P1",
+     "value": 220
+    },
+    {
+     "name": "V2",
+     "expr": "N*(P2+D)",
+     "value": 246
+    },
+    {
+     "name": "r2",
+     "expr": "V2/V0-1",
+     "value": 0.118182
+    },
+    {
+     "name": "slip_cost",
+     "expr": "P2/100-1",
+     "value": 0.2
+    },
+    {
+     "name": "slip_y1",
+     "expr": "(P1+D)/100-1",
+     "value": 0.13
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "N*P2/V0-1",
+     "value": 0.090909
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-02",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0346"
+  },
+  "trap_category": "Role",
+  "setup": "Buy one share at USD 36. At the end of year 1 collect a USD 2 dividend and buy a second share at USD 30. At the end of year 2 collect USD 2 per share and sell both shares at USD 36.45. The time-weighted return on this history is 6.74% a year.",
+  "ask": "The dollar-weighted (internal) return is:",
+  "options": [
+   {
+    "label": "Below 6.74%",
+    "correct": false,
+    "why": "Assumed the added money went in before the bad stretch. The second share was bought after the fall from 36 to 30, so extra capital rode the strong second year."
+   },
+   {
+    "label": "Equal to 6.74%",
+    "correct": false,
+    "why": "The two measures agree only when no cash is added or withdrawn mid-period. Here a purchase sits between the two years."
+   },
+   {
+    "label": "Above 6.74%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-1 return (1 share)",
+    "display": "$(30 + 2)/36 - 1 = -11.1\\%$",
+    "value": -0.1111
+   },
+   {
+    "label": "Year-2 return (2 shares)",
+    "display": "$76.90/60 - 1 = +28.2\\%$",
+    "value": 0.2817
+   },
+   {
+    "label": "Time-weighted",
+    "display": "$\\sqrt{0.889 \\times 1.282} - 1 = 6.74\\%$",
+    "value": 0.0674
+   },
+   {
+    "label": "Dollar-weighted",
+    "display": "$-36 - 28/(1+r) + 76.9/(1+r)^2 = 0 \\Rightarrow r = 12.35\\%$",
+    "value": 0.1235
+   }
+  ],
+  "takeaway": "The dollar-weighted return leans toward the sub-period that held more money. Add capital before a strong period and it beats the time-weighted return.",
+  "check": {
+   "inputs": {
+    "P0": 36,
+    "P1": 30,
+    "D": 2,
+    "S": 36.45
+   },
+   "steps": [
+    {
+     "name": "h1",
+     "expr": "(P1+D)/P0",
+     "value": 0.888889
+    },
+    {
+     "name": "V2",
+     "expr": "2*(S+D)",
+     "value": 76.9
+    },
+    {
+     "name": "h2",
+     "expr": "V2/(2*P1)",
+     "value": 1.281667
+    },
+    {
+     "name": "twr",
+     "expr": "sqrt(h1*h2)-1",
+     "value": 0.067361
+    },
+    {
+     "name": "x",
+     "expr": "(28+sqrt(28**2+4*V2*P0))/(2*V2)",
+     "value": 0.890069
+    },
+    {
+     "name": "dwr",
+     "expr": "1/x-1",
+     "value": 0.123508
+    },
+    {
+     "name": "gap",
+     "expr": "dwr-twr",
+     "value": 0.056148
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-03",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0347"
+  },
+  "trap_category": "Scope",
+  "setup": "A trust account began the year at USD 4.7m. A USD 0.8m contribution was added on a date nobody recorded, and the account ended the year at USD 6.4m. Compare two cases: the contribution arrived on the first day, or on the last day of the year.",
+  "ask": "The year's return is:",
+  "options": [
+   {
+    "label": "Higher if the contribution arrived on day one",
+    "correct": false,
+    "why": "Treated early money as if it worked harder. On day one the whole USD 5.5m earned the USD 0.9m gain, so the percentage is smaller."
+   },
+   {
+    "label": "Higher if the contribution arrived on the last day",
+    "correct": true
+   },
+   {
+    "label": "The same either way",
+    "correct": false,
+    "why": "The dollar gain is USD 0.9m in both cases, but it is earned on different capital: USD 5.5m versus USD 4.7m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gain (same in both cases)",
+    "display": "$6.4 - 4.7 - 0.8 = 0.9\\text{m}$",
+    "value": 0.9
+   },
+   {
+    "label": "Contribution on day one",
+    "display": "$0.9/5.5 = 16.36\\%$",
+    "value": 0.16364
+   },
+   {
+    "label": "Contribution on last day",
+    "display": "$0.9/4.7 = 19.15\\%$",
+    "value": 0.19149
+   }
+  ],
+  "takeaway": "Same dollar gain, less capital at work: the later the contribution arrives, the higher the return.",
+  "check": {
+   "inputs": {
+    "S": 4.7,
+    "C": 0.8,
+    "E": 6.4
+   },
+   "steps": [
+    {
+     "name": "gain",
+     "expr": "E-S-C",
+     "value": 0.9
+    },
+    {
+     "name": "r_start",
+     "expr": "gain/(S+C)",
+     "value": 0.163636
+    },
+    {
+     "name": "r_end",
+     "expr": "gain/S",
+     "value": 0.191489
+    },
+    {
+     "name": "diff",
+     "expr": "r_end-r_start",
+     "value": 0.027853
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-04",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0351"
+  },
+  "trap_category": "Formula",
+  "setup": "Buy a security at USD 100. Six months later it is worth USD 108 and pays a USD 4 dividend that is not reinvested. At twelve months it is worth USD 112. The two half-year returns are 12.00% and 3.70%, which sum to 15.70%.",
+  "ask": "The 12-month time-weighted return is:",
+  "options": [
+   {
+    "label": "Below 15.70%",
+    "correct": false,
+    "why": "Treated linking as a haircut. Linking multiplies growth factors, so the cross term $12\\% \\times 3.7\\% = +0.44\\%$ is added, not subtracted."
+   },
+   {
+    "label": "Equal to 15.70%",
+    "correct": false,
+    "why": "Simple addition equals compounding only when one of the sub-period returns is zero."
+   },
+   {
+    "label": "Above 15.70%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "First half",
+    "display": "$(108 + 4)/100 - 1 = 12.00\\%$",
+    "value": 0.12
+   },
+   {
+    "label": "Second half",
+    "display": "$112/108 - 1 = 3.70\\%$",
+    "value": 0.037037
+   },
+   {
+    "label": "Linked",
+    "display": "$1.12 \\times 1.037037 - 1 = 16.15\\%$",
+    "value": 0.16148
+   }
+  ],
+  "takeaway": "Time-weighted returns are linked geometrically, so they land above the sum of the sub-period returns whenever both are positive.",
+  "check": {
+   "inputs": {
+    "P0": 100,
+    "P1": 108,
+    "D": 4,
+    "P2": 112
+   },
+   "steps": [
+    {
+     "name": "h1",
+     "expr": "(P1+D)/P0-1",
+     "value": 0.12
+    },
+    {
+     "name": "h2",
+     "expr": "P2/P1-1",
+     "value": 0.037037
+    },
+    {
+     "name": "twr",
+     "expr": "(1+h1)*(1+h2)-1",
+     "value": 0.161481
+    },
+    {
+     "name": "total",
+     "expr": "h1+h2",
+     "value": 0.157037
+    },
+    {
+     "name": "gap",
+     "expr": "twr-total",
+     "value": 0.004444
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-05",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0352"
+  },
+  "trap_category": "Sign",
+  "setup": "Buy one share at USD 100. At the end of year 1 it is worth USD 110 and you buy a second share. At the end of year 2 both shares are worth USD 99 each and are sold. No dividends are paid.",
+  "ask": "The dollar-weighted (internal) return is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Anchored on the +10% first year. The USD 110 share then lost 10%, and in total you pay in USD 210 and get back less."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Zero would need the USD 210 paid in to come back in full. Only USD 198 does."
+   },
+   {
+    "label": "Negative",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash paid in",
+    "display": "$100 + 110 = 210$",
+    "value": 210
+   },
+   {
+    "label": "Cash received",
+    "display": "$2 \\times 99 = 198$",
+    "value": 198
+   },
+   {
+    "label": "Net",
+    "display": "$198 - 210 = -12$",
+    "value": -12
+   }
+  ],
+  "takeaway": "With outflows then a single inflow, an IRR is negative when the money back is less than the money paid in, whatever the sub-period returns look like.",
+  "check": {
+   "inputs": {
+    "P0": 100,
+    "P1": 110,
+    "P2": 99
+   },
+   "steps": [
+    {
+     "name": "paid",
+     "expr": "P0+P1",
+     "value": 210
+    },
+    {
+     "name": "back",
+     "expr": "2*P2",
+     "value": 198
+    },
+    {
+     "name": "net",
+     "expr": "back-paid",
+     "value": -12
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-06",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0355"
+  },
+  "trap_category": "Sequence",
+  "setup": "Buy one share at USD 50 at t = 0 and another at USD 65 at t = 1. Each share pays a USD 2 dividend at the end of years 1 and 2, and both are sold at USD 70 at the end of year 2. You are computing the time-weighted return.",
+  "ask": "The portfolio value at t = 1, after the second purchase, on which year 2 is measured, is:",
+  "options": [
+   {
+    "label": "USD 65",
+    "correct": false,
+    "why": "Counted only the new share. The share bought at t = 0 is still held and is worth USD 65 as well."
+   },
+   {
+    "label": "USD 63",
+    "correct": false,
+    "why": "Took the net cash outlay $65 - 2$ at t = 1. The base for year 2 is what the holdings are worth, not what you paid out."
+   },
+   {
+    "label": "USD 130",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Value after buying",
+    "display": "$2 \\times 65 = 130$",
+    "value": 130
+   },
+   {
+    "label": "Year-2 end value",
+    "display": "$2 \\times (70 + 2) = 144$",
+    "value": 144
+   },
+   {
+    "label": "Year-2 return",
+    "display": "$144/130 - 1 = 10.77\\%$",
+    "value": 0.10769
+   }
+  ],
+  "takeaway": "Each sub-period starts from the value of everything held right after the cash flow, which here is two shares.",
+  "check": {
+   "inputs": {
+    "P1": 65,
+    "P2": 70,
+    "D": 2
+   },
+   "steps": [
+    {
+     "name": "V1",
+     "expr": "2*P1",
+     "value": 130
+    },
+    {
+     "name": "V2",
+     "expr": "2*(P2+D)",
+     "value": 144
+    },
+    {
+     "name": "r2",
+     "expr": "V2/V1-1",
+     "value": 0.107692
+    },
+    {
+     "name": "slip_one",
+     "expr": "P1",
+     "value": 65
+    },
+    {
+     "name": "slip_net",
+     "expr": "P1-D",
+     "value": 63
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-07",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0396"
+  },
+  "trap_category": "Scope",
+  "setup": "Sharpe style analysis of a fund. The fund returned 7.6% over the year. The style benchmark, built from the fund's regression-estimated style weights applied to asset-class index returns, returned 6.2%. The broad market index returned 8.8%.",
+  "ask": "The return from the manager's selection is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Compared the fund with the broad market index: $7.6 - 8.8 = -1.2\\%$. That gap mixes in the fund's asset-class tilts, which are style, not selection."
+   }
+  ],
+  "working": [
+   {
+    "label": "Selection vs style benchmark",
+    "display": "$7.6\\% - 6.2\\% = +1.4\\%$",
+    "value": 1.4
+   }
+  ],
+  "takeaway": "In style analysis, selection is the fund's return minus its own style benchmark, not minus the broad market.",
+  "check": {
+   "inputs": {
+    "F": 7.6,
+    "B": 6.2,
+    "M": 8.8
+   },
+   "steps": [
+    {
+     "name": "sel",
+     "expr": "F-B",
+     "value": 1.4
+    },
+    {
+     "name": "slip_mkt",
+     "expr": "F-M",
+     "value": -1.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-08",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-15: Market-Driven Scenarios: An Approach for Plausible Scenario Construction",
+  "reading_id": "IM-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0556"
+  },
+  "trap_category": "Sign",
+  "setup": "Soft Brexit stress test on a portfolio with 60% in a UK equity index and 40% in a UK sterling bond index. The scenario shocks the equity index by -12% and the bond index by +4% (gilts as a safe haven). Returns are linear in the shocks.",
+  "ask": "The bond leg's contribution to portfolio P&L is:",
+  "options": [
+   {
+    "label": "-1.6%",
+    "correct": false,
+    "why": "Flipped the sign of the safe-haven gain. The bond index rises in this scenario, so the leg adds to P&L."
+   },
+   {
+    "label": "+1.6%",
+    "correct": true
+   },
+   {
+    "label": "+2.4%",
+    "correct": false,
+    "why": "Weighted the bond shock by the equity weight, $0.60 \\times 4\\%$."
+   },
+   {
+    "label": "+4.0%",
+    "correct": false,
+    "why": "Used the shock itself and forgot the 40% weight."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond leg",
+    "display": "$0.40 \\times 4\\% = +1.6\\%$",
+    "value": 1.6
+   },
+   {
+    "label": "Equity leg",
+    "display": "$0.60 \\times (-12\\%) = -7.2\\%$",
+    "value": -7.2
+   },
+   {
+    "label": "Portfolio P&L",
+    "display": "$-7.2\\% + 1.6\\% = -5.6\\%$",
+    "value": -5.6
+   }
+  ],
+  "takeaway": "Stress P&L is the weight-times-shock sum over positions. A safe-haven gain only cushions the loss, here 1.6 against 7.2.",
+  "check": {
+   "inputs": {
+    "we": 0.6,
+    "wb": 0.4,
+    "se": -12,
+    "sb": 4
+   },
+   "steps": [
+    {
+     "name": "bond",
+     "expr": "wb*sb",
+     "value": 1.6
+    },
+    {
+     "name": "eq",
+     "expr": "we*se",
+     "value": -7.2
+    },
+    {
+     "name": "pnl",
+     "expr": "eq+bond",
+     "value": -5.6
+    },
+    {
+     "name": "slip_wt",
+     "expr": "we*sb",
+     "value": 2.4
+    },
+    {
+     "name": "slip_nowt",
+     "expr": "sb",
+     "value": 4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-09",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0560"
+  },
+  "trap_category": "Scope",
+  "setup": "A USD 7bn pension fund caps each equity position at 45% of the stock's 30-day average value traded. One stock trades USD 390m a day on average.",
+  "ask": "The largest position the policy allows in that stock is:",
+  "options": [
+   {
+    "label": "USD 175.5m",
+    "correct": true
+   },
+   {
+    "label": "USD 390m",
+    "correct": false,
+    "why": "Ignored the 45% cap and allowed the full day's traded value."
+   },
+   {
+    "label": "USD 867m",
+    "correct": false,
+    "why": "Divided by 0.45 instead of multiplying: $390/0.45$."
+   },
+   {
+    "label": "USD 3,150m",
+    "correct": false,
+    "why": "Applied the 45% to the fund ($0.45 \\times 7{,}000$) instead of to the stock's traded value."
+   }
+  ],
+  "working": [
+   {
+    "label": "Maximum position",
+    "display": "$0.45 \\times 390 = \\text{USD } 175.5\\text{m}$",
+    "value": 175.5
+   },
+   {
+    "label": "As a share of the fund",
+    "display": "$175.5/7000 = 2.51\\%$",
+    "value": 0.02507
+   }
+  ],
+  "takeaway": "The cap is a fraction of the stock's traded value, not of the fund. The fund's size only enters when you turn the result into a percentage allocation.",
+  "check": {
+   "inputs": {
+    "cap": 0.45,
+    "adv": 390,
+    "fund": 7000
+   },
+   "steps": [
+    {
+     "name": "maxpos",
+     "expr": "cap*adv",
+     "value": 175.5
+    },
+    {
+     "name": "alloc",
+     "expr": "maxpos/fund",
+     "value": 0.025071
+    },
+    {
+     "name": "slip_div",
+     "expr": "adv/cap",
+     "value": 866.666667
+    },
+    {
+     "name": "slip_fund",
+     "expr": "cap*fund",
+     "value": 3150.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-10",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0569"
+  },
+  "trap_category": "Formula",
+  "setup": "A fund holds 10,000 shares of a stock whose average daily volume is 100,000 shares. Policy: sell no more than 15% of daily volume.",
+  "ask": "The days needed to liquidate the position are:",
+  "options": [
+   {
+    "label": "Under 1 day",
+    "correct": true
+   },
+   {
+    "label": "More than 1 day",
+    "correct": false,
+    "why": "Read the 15% limit as 1.5%, which gives $10{,}000/1{,}500 = 6.7$ days. At 15% the daily allowance is 15,000 shares, more than the whole position."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily allowance",
+    "display": "$0.15 \\times 100{,}000 = 15{,}000$ shares",
+    "value": 15000
+   },
+   {
+    "label": "Days",
+    "display": "$10{,}000/15{,}000 = 0.67$",
+    "value": 0.6667
+   }
+  ],
+  "takeaway": "Days to liquidate = position / (participation rate x ADV). Compare the position with one day's allowance first.",
+  "check": {
+   "inputs": {
+    "pos": 10000,
+    "adv": 100000,
+    "part": 0.15
+   },
+   "steps": [
+    {
+     "name": "allow",
+     "expr": "part*adv",
+     "value": 15000.0
+    },
+    {
+     "name": "days",
+     "expr": "pos/allow",
+     "value": 0.666667
+    },
+    {
+     "name": "slip_pct",
+     "expr": "pos/(0.1*allow)",
+     "value": 6.666667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-11",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0573"
+  },
+  "trap_category": "Formula",
+  "setup": "A fund holds 2,000,000 shares of a stock with average daily volume of 750,000 shares. It will sell at most 15% of the daily volume.",
+  "ask": "Days needed to liquidate the position, closest to:",
+  "options": [
+   {
+    "label": "0.056 days",
+    "correct": false,
+    "why": "Inverted the ratio: daily allowance over position, $112{,}500/2{,}000{,}000$."
+   },
+   {
+    "label": "2.7 days",
+    "correct": false,
+    "why": "Forgot the 15% limit and sold the full daily volume: $2{,}000{,}000/750{,}000$."
+   },
+   {
+    "label": "17.8 days",
+    "correct": true
+   },
+   {
+    "label": "178 days",
+    "correct": false,
+    "why": "Read 15% as 1.5%, which makes the daily allowance ten times too small."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily allowance",
+    "display": "$0.15 \\times 750{,}000 = 112{,}500$ shares",
+    "value": 112500
+   },
+   {
+    "label": "Days",
+    "display": "$2{,}000{,}000/112{,}500 = 17.8$",
+    "value": 17.78
+   }
+  ],
+  "takeaway": "Participation limits stretch the exit: at 15% of volume the exit takes about 6.7 times as long as selling the whole day's volume.",
+  "check": {
+   "inputs": {
+    "pos": 2000000,
+    "adv": 750000,
+    "part": 0.15
+   },
+   "steps": [
+    {
+     "name": "allow",
+     "expr": "part*adv",
+     "value": 112500.0
+    },
+    {
+     "name": "days",
+     "expr": "pos/allow",
+     "value": 17.777778
+    },
+    {
+     "name": "slip_inv",
+     "expr": "allow/pos",
+     "value": 0.05625
+    },
+    {
+     "name": "slip_nolimit",
+     "expr": "pos/adv",
+     "value": 2.666667
+    },
+    {
+     "name": "slip_pct",
+     "expr": "pos/(0.015*adv)",
+     "value": 177.777778
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-12",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0574"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A fund holds 200,000 shares in a low-volume market where average daily volume is 32,000 shares. The manager will sell no more than 10% of daily volume.",
+  "ask": "The most that can be sold in one day is:",
+  "options": [
+   {
+    "label": "320 shares",
+    "correct": false,
+    "why": "Read 10% as 1%."
+   },
+   {
+    "label": "3,200 shares",
+    "correct": true
+   },
+   {
+    "label": "20,000 shares",
+    "correct": false,
+    "why": "Applied the 10% to the holding ($0.10 \\times 200{,}000$) instead of to the daily volume."
+   },
+   {
+    "label": "32,000 shares",
+    "correct": false,
+    "why": "Used the full daily volume and ignored the 10% limit."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily allowance",
+    "display": "$0.10 \\times 32{,}000 = 3{,}200$ shares",
+    "value": 3200
+   },
+   {
+    "label": "Days",
+    "display": "$200{,}000/3{,}200 = 62.5$",
+    "value": 62.5
+   }
+  ],
+  "takeaway": "The participation rate applies to the market's daily volume, never to your own position.",
+  "check": {
+   "inputs": {
+    "pos": 200000,
+    "adv": 32000,
+    "part": 0.1
+   },
+   "steps": [
+    {
+     "name": "allow",
+     "expr": "part*adv",
+     "value": 3200.0
+    },
+    {
+     "name": "days",
+     "expr": "pos/allow",
+     "value": 62.5
+    },
+    {
+     "name": "slip_pos",
+     "expr": "part*pos",
+     "value": 20000.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "0.01*adv",
+     "value": 320.0
+    },
+    {
+     "name": "slip_nolimit",
+     "expr": "adv",
+     "value": 32000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-13",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-3e-6"
+  },
+  "trap_category": "Sign",
+  "setup": "Fama-French check on a manager, monthly data. The fund averaged 1.15% and T-bills 0.20%. Loadings and average monthly factor returns: market excess 1.05 on 0.55%; SMB 0.70 on 0.30%; HML -0.25 on 0.32%.",
+  "ask": "The three-factor benchmark's monthly return in excess of T-bills is closest to:",
+  "options": [
+   {
+    "label": "0.58%",
+    "correct": false,
+    "why": "Counted the market factor only: $1.05 \\times 0.55$."
+   },
+   {
+    "label": "0.71%",
+    "correct": true
+   },
+   {
+    "label": "0.87%",
+    "correct": false,
+    "why": "Added the HML term instead of subtracting it. The loading is -0.25, so the term is $-0.25 \\times 0.32 = -0.08$."
+   },
+   {
+    "label": "0.95%",
+    "correct": false,
+    "why": "Gave the fund's own excess return, $1.15 - 0.20$, instead of the benchmark's."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market",
+    "display": "$1.05 \\times 0.55 = 0.5775$",
+    "value": 0.5775
+   },
+   {
+    "label": "SMB",
+    "display": "$0.70 \\times 0.30 = 0.2100$",
+    "value": 0.21
+   },
+   {
+    "label": "HML",
+    "display": "$-0.25 \\times 0.32 = -0.0800$",
+    "value": -0.08
+   },
+   {
+    "label": "Benchmark return",
+    "display": "$0.5775 + 0.21 - 0.08 = 0.7075\\%$",
+    "value": 0.7075
+   }
+  ],
+  "takeaway": "Benchmark return is the sum of loading x factor return. Alpha is the fund's excess return minus it: $0.95 - 0.71 \\approx 0.24\\%$ a month.",
+  "check": {
+   "inputs": {
+    "bm": 1.05,
+    "fm": 0.55,
+    "bs": 0.7,
+    "fs": 0.3,
+    "bh": -0.25,
+    "fh": 0.32,
+    "rf": 0.2,
+    "rp": 1.15
+   },
+   "steps": [
+    {
+     "name": "bench",
+     "expr": "bm*fm+bs*fs+bh*fh",
+     "value": 0.7075
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-rf-bench",
+     "value": 0.2425
+    },
+    {
+     "name": "slip_hml",
+     "expr": "bm*fm+bs*fs-bh*fh",
+     "value": 0.8675
+    },
+    {
+     "name": "slip_mkt",
+     "expr": "bm*fm",
+     "value": 0.5775
+    },
+    {
+     "name": "slip_fund",
+     "expr": "rp-rf",
+     "value": 0.95
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-14",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-4g-5"
+  },
+  "trap_category": "Scope",
+  "setup": "No-trade band for stock K: the manager buys when marginal value added (MCVA) exceeds the purchase cost and sells when it falls below minus the sales cost. Purchase cost 0.40%, sales cost 0.60% a year. K was just bought up to its optimal holding, so MCVA sits at +0.40%. Active risk aversion 0.05, active risk 4%, K's MCAR 0.30; these stay fixed.",
+  "ask": "MCVA must fall by how much before selling is considered?",
+  "options": [
+   {
+    "label": "0.40%",
+    "correct": false,
+    "why": "Measured only the drop to zero. The sell trigger sits at -0.60%, below zero."
+   },
+   {
+    "label": "0.60%",
+    "correct": false,
+    "why": "Used the sales cost alone and forgot that MCVA starts at +0.40%, not at zero."
+   },
+   {
+    "label": "1.00%",
+    "correct": true
+   },
+   {
+    "label": "1.12%",
+    "correct": false,
+    "why": "Added the 0.12% risk charge $2 \\times 0.05 \\times 4 \\times 0.30$. It is inside MCVA at both edges and cancels."
+   }
+  ],
+  "working": [
+   {
+    "label": "Starting point",
+    "display": "$\\text{MCVA} = +0.40\\%$",
+    "value": 0.4
+   },
+   {
+    "label": "Sell trigger",
+    "display": "$-0.60\\%$",
+    "value": -0.6
+   },
+   {
+    "label": "Distance",
+    "display": "$0.40 + 0.60 = 1.00\\%$",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "After a purchase you sit at the top edge of the band, so the distance to the sell trigger is the full width, PC + SC.",
+  "check": {
+   "inputs": {
+    "pc": 0.4,
+    "sc": 0.6,
+    "lam": 0.05,
+    "risk": 4,
+    "mcar": 0.3
+   },
+   "steps": [
+    {
+     "name": "dist",
+     "expr": "pc+sc",
+     "value": 1.0
+    },
+    {
+     "name": "charge",
+     "expr": "2*lam*risk*mcar",
+     "value": 0.12
+    },
+    {
+     "name": "slip_charge",
+     "expr": "dist+charge",
+     "value": 1.12
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-15",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-6: VaR and Risk Budgeting in Investment Management",
+  "reading_id": "IM-6",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-6e-3"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Policy-mix VaR for a fund. Policy weights: domestic equities 50%, global equities 20%, fixed income 30%. Benchmark volatilities: 15%, 17%, 6%. Correlations: domestic/global 0.60, domestic/fixed income 0.10, global/fixed income 0.05. You need the policy mix's volatility before applying the 99% multiplier.",
+  "ask": "The annual volatility of the policy mix is closest to:",
+  "options": [
+   {
+    "label": "1.0%",
+    "correct": false,
+    "why": "Stopped at the variance ($0.0105$) and never took the square root."
+   },
+   {
+    "label": "8.4%",
+    "correct": false,
+    "why": "Dropped the correlation cross terms and combined only the squared individual contributions."
+   },
+   {
+    "label": "10.2%",
+    "correct": true
+   },
+   {
+    "label": "12.7%",
+    "correct": false,
+    "why": "Took the weighted average of the volatilities, which assumes all correlations are 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Squared terms",
+    "display": "$0.005625 + 0.001156 + 0.000324 = 0.007105$",
+    "value": 0.007105
+   },
+   {
+    "label": "Cross terms",
+    "display": "$0.003060 + 0.000270 + 0.000061 = 0.003391$",
+    "value": 0.003391
+   },
+   {
+    "label": "Variance",
+    "display": "$0.010496$",
+    "value": 0.010496
+   },
+   {
+    "label": "Volatility",
+    "display": "$\\sqrt{0.010496} = 10.25\\%$",
+    "value": 0.10245
+   }
+  ],
+  "takeaway": "Portfolio volatility sits between the no-correlation figure (8.4%) and the straight weighted average (12.7%).",
+  "check": {
+   "inputs": {
+    "w1": 0.5,
+    "w2": 0.2,
+    "w3": 0.3,
+    "s1": 0.15,
+    "s2": 0.17,
+    "s3": 0.06,
+    "r12": 0.6,
+    "r13": 0.1,
+    "r23": 0.05
+   },
+   "steps": [
+    {
+     "name": "sq",
+     "expr": "(w1*s1)**2+(w2*s2)**2+(w3*s3)**2",
+     "value": 0.007105
+    },
+    {
+     "name": "cross",
+     "expr": "2*w1*w2*r12*s1*s2+2*w1*w3*r13*s1*s3+2*w2*w3*r23*s2*s3",
+     "value": 0.003391
+    },
+    {
+     "name": "var",
+     "expr": "sq+cross",
+     "value": 0.010496
+    },
+    {
+     "name": "vol",
+     "expr": "sqrt(var)",
+     "value": 0.102451
+    },
+    {
+     "name": "slip_nocorr",
+     "expr": "sqrt(sq)",
+     "value": 0.084291
+    },
+    {
+     "name": "slip_avg",
+     "expr": "w1*s1+w2*s2+w3*s3",
+     "value": 0.127
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-16",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-16c-6"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 6m position in an infrequently traded corporate bond. The bond trades on 30% of days, with expected volume USD 2.5m on days it trades and zero otherwise. Policy: sell at most 20% of volume.",
+  "ask": "Expected days to liquidate, closest to:",
+  "options": [
+   {
+    "label": "2.4 days",
+    "correct": false,
+    "why": "Dropped both the 30% trade probability and the 20% cap: $6/2.5$."
+   },
+   {
+    "label": "12.0 days",
+    "correct": false,
+    "why": "Used the USD 2.5m trading-day volume and ignored that the bond trades only 30% of days."
+   },
+   {
+    "label": "40 days",
+    "correct": true
+   },
+   {
+    "label": "133 days",
+    "correct": false,
+    "why": "Applied the 30% probability twice, once in the expected volume and again on top of the cap."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected daily volume",
+    "display": "$0.30 \\times 2.5 = \\text{USD } 0.75\\text{m}$",
+    "value": 0.75
+   },
+   {
+    "label": "Allowed per day",
+    "display": "$0.20 \\times 0.75 = 0.15\\text{m}$",
+    "value": 0.15
+   },
+   {
+    "label": "Days",
+    "display": "$6/0.15 = 40$",
+    "value": 40
+   }
+  ],
+  "takeaway": "For a bond that trades only some days, use expected volume (probability x size), then apply the participation cap.",
+  "check": {
+   "inputs": {
+    "pos": 6,
+    "p": 0.3,
+    "v": 2.5,
+    "part": 0.2
+   },
+   "steps": [
+    {
+     "name": "ev",
+     "expr": "p*v",
+     "value": 0.75
+    },
+    {
+     "name": "allow",
+     "expr": "part*ev",
+     "value": 0.15
+    },
+    {
+     "name": "days",
+     "expr": "pos/allow",
+     "value": 40.0
+    },
+    {
+     "name": "slip_noprob",
+     "expr": "pos/(part*v)",
+     "value": 12.0
+    },
+    {
+     "name": "slip_none",
+     "expr": "pos/v",
+     "value": 2.4
+    },
+    {
+     "name": "slip_twice",
+     "expr": "pos/(part*p*ev)",
+     "value": 133.333333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-17",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-16c-9"
+  },
+  "trap_category": "Scope",
+  "setup": "A trader sells USD 25m par of a corporate bond. Prices per 100 par: previous close 99.10, price at order arrival 98.40, average execution 97.95, trade-date close 98.10. Market impact is the implementation shortfall against the intraday pre-trade (arrival) price.",
+  "ask": "The market impact cost of the sale is closest to:",
+  "options": [
+   {
+    "label": "USD 37,500",
+    "correct": false,
+    "why": "Measured against the trade-date close: $(98.10 - 97.95) \\times 250{,}000$."
+   },
+   {
+    "label": "USD 112,500",
+    "correct": true
+   },
+   {
+    "label": "USD 287,500",
+    "correct": false,
+    "why": "Measured against the previous close: $(99.10 - 97.95) \\times 250{,}000$. The fall before the order arrived was the market's move."
+   },
+   {
+    "label": "USD 11.25m",
+    "correct": false,
+    "why": "Multiplied 0.45 by the USD 25m par without dividing the price by 100."
+   }
+  ],
+  "working": [
+   {
+    "label": "Shortfall in points",
+    "display": "$98.40 - 97.95 = 0.45$",
+    "value": 0.45
+   },
+   {
+    "label": "Dollar cost",
+    "display": "$0.45 \\times 25{,}000{,}000/100 = \\text{USD } 112{,}500$",
+    "value": 112500
+   }
+  ],
+  "takeaway": "Pick the benchmark that matches the cost being measured: arrival price for trading impact, not earlier or later closes.",
+  "check": {
+   "inputs": {
+    "arr": 98.4,
+    "ex": 97.95,
+    "prev": 99.1,
+    "close": 98.1,
+    "par": 25000000
+   },
+   "steps": [
+    {
+     "name": "pts",
+     "expr": "arr-ex",
+     "value": 0.45
+    },
+    {
+     "name": "cost",
+     "expr": "pts*par/100",
+     "value": 112500.0
+    },
+    {
+     "name": "slip_close",
+     "expr": "(close-ex)*par/100",
+     "value": 37500.0
+    },
+    {
+     "name": "slip_prev",
+     "expr": "(prev-ex)*par/100",
+     "value": 287500.0
+    },
+    {
+     "name": "slip_par",
+     "expr": "pts*par",
+     "value": 11250000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-18",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-16: Liquidity Risk Management",
+  "reading_id": "IM-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-WB-16c-10"
+  },
+  "trap_category": "Scope",
+  "setup": "Six trades in a cohort of similar corporate bonds, with cost as implementation shortfall: USD 0.05m at 90 bp, 0.10m at 70 bp, 0.20m at 55 bp, 0.50m at 40 bp, 2.00m at 22 bp and 8.00m at 12 bp. The simple average of the six costs is 48.2 bp.",
+  "ask": "Weighted by dollars traded, the cohort's cost estimate is:",
+  "options": [
+   {
+    "label": "Above 48.2 bp",
+    "correct": false,
+    "why": "Weighted toward the small, expensive trades. They are most of the trades but under 8% of the dollars."
+   },
+   {
+    "label": "About 48.2 bp",
+    "correct": false,
+    "why": "The two averages coincide only when all trades are the same size."
+   },
+   {
+    "label": "Well below 48.2 bp",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Dollar-weighted cost",
+    "display": "$182.5/10.85 = 16.8\\text{ bp}$",
+    "value": 16.82
+   },
+   {
+    "label": "Simple average",
+    "display": "$(90 + 70 + 55 + 40 + 22 + 12)/6 = 48.2$",
+    "value": 48.17
+   }
+  ],
+  "takeaway": "Large trades carry most of the dollars and are cheaper per dollar, so dollar weighting pulls the estimate far below the simple average.",
+  "check": {
+   "inputs": {
+    "n1": 0.05,
+    "n2": 0.1,
+    "n3": 0.2,
+    "n4": 0.5,
+    "n5": 2.0,
+    "n6": 8.0,
+    "c1": 90,
+    "c2": 70,
+    "c3": 55,
+    "c4": 40,
+    "c5": 22,
+    "c6": 12
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "n1*c1+n2*c2+n3*c3+n4*c4+n5*c5+n6*c6",
+     "value": 182.5
+    },
+    {
+     "name": "den",
+     "expr": "n1+n2+n3+n4+n5+n6",
+     "value": 10.85
+    },
+    {
+     "name": "dw",
+     "expr": "num/den",
+     "value": 16.820276
+    },
+    {
+     "name": "simple",
+     "expr": "(c1+c2+c3+c4+c5+c6)/6",
+     "value": 48.166667
+    },
+    {
+     "name": "gap",
+     "expr": "simple-dw",
+     "value": 31.34639
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-19",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0010"
+  },
+  "trap_category": "Role",
+  "setup": "Risk-free rate 3.9%, expected market return 6.2%. An asset has a beta of 1.3. Assume CAPM holds.",
+  "ask": "The asset's CAPM expected return, relative to the market's 6.2%, is:",
+  "options": [
+   {
+    "label": "Below 6.2%",
+    "correct": false,
+    "why": "Stopped at the 2.3% risk premium, or treated beta as a discount. Beta above 1 means more than the market's premium on top of the risk-free rate."
+   },
+   {
+    "label": "Equal to 6.2%",
+    "correct": false,
+    "why": "Equal only if beta is exactly 1."
+   },
+   {
+    "label": "Above 6.2%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk premium",
+    "display": "$6.2 - 3.9 = 2.3\\%$",
+    "value": 2.3
+   },
+   {
+    "label": "Expected return",
+    "display": "$3.9 + 1.3 \\times 2.3 = 6.89\\%$",
+    "value": 6.89
+   }
+  ],
+  "takeaway": "Beta above 1 puts the expected return above the market's, and below 1 puts it below.",
+  "check": {
+   "inputs": {
+    "rf": 3.9,
+    "rm": 6.2,
+    "b": 1.3
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "rm-rf",
+     "value": 2.3
+    },
+    {
+     "name": "er",
+     "expr": "rf+b*prem",
+     "value": 6.89
+    },
+    {
+     "name": "gap",
+     "expr": "er-rm",
+     "value": 0.69
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-20",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0015"
+  },
+  "trap_category": "Role",
+  "setup": "Security K has volatility 4%. The market has volatility 5%, and the correlation between K and the market is 0.75. The risk-free rate is 5% and the expected market return is 10%.",
+  "ask": "Beta of K compared with the 0.75 correlation is:",
+  "options": [
+   {
+    "label": "Higher than 0.75",
+    "correct": false,
+    "why": "Flipped the volatility ratio, $0.75 \\times 5/4 = 0.94$. Beta scales the correlation by $\\sigma_K/\\sigma_M$, and K is the less volatile one."
+   },
+   {
+    "label": "Equal to 0.75",
+    "correct": false,
+    "why": "Beta equals the correlation only when the stock and the market have the same volatility."
+   },
+   {
+    "label": "Lower than 0.75",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta",
+    "display": "$\\beta = 0.75 \\times 4\\%/5\\% = 0.60$",
+    "value": 0.6
+   }
+  ],
+  "takeaway": "Beta = correlation x ($\\sigma_{stock}/\\sigma_{market}$). A stock less volatile than the market has a beta below its correlation. The risk-free and market returns play no part.",
+  "check": {
+   "inputs": {
+    "rho": 0.75,
+    "sk": 4,
+    "sm": 5
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "rho*sk/sm",
+     "value": 0.6
+    },
+    {
+     "name": "slip_flip",
+     "expr": "rho*sm/sk",
+     "value": 0.9375
+    },
+    {
+     "name": "gap",
+     "expr": "beta-rho",
+     "value": -0.15
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-21",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0016"
+  },
+  "trap_category": "Sign",
+  "setup": "To copy the expected return of a stock with CAPM beta 1.6, a manager may use only the risk-free asset and the market portfolio, with weights summing to 100%.",
+  "ask": "The position in the risk-free asset is:",
+  "options": [
+   {
+    "label": "Long (lending)",
+    "correct": false,
+    "why": "Put a positive amount in the risk-free asset to fill the weights. A beta of 1.6 needs more than 100% in the market, which must be funded."
+   },
+   {
+    "label": "Short (borrowing)",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight in market",
+    "display": "$1.6$",
+    "value": 1.6
+   },
+   {
+    "label": "Weight in risk-free",
+    "display": "$1 - 1.6 = -0.6$",
+    "value": -0.6
+   }
+  ],
+  "takeaway": "Beta above 1 means leverage: more than 100% in the market, funded by borrowing at the risk-free rate.",
+  "check": {
+   "inputs": {
+    "beta": 1.6
+   },
+   "steps": [
+    {
+     "name": "wm",
+     "expr": "beta",
+     "value": 1.6
+    },
+    {
+     "name": "wf",
+     "expr": "1-wm",
+     "value": -0.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-22",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0018"
+  },
+  "trap_category": "Formula",
+  "setup": "CAPM: beta 2, expected market return 12%, risk-free rate 4%. The project carries 0.10% of overall risk for each 1% of required return. It is accepted only if its overall risk is no more than the level implied by the CAPM required return.",
+  "ask": "The maximum acceptable overall risk is closest to:",
+  "options": [
+   {
+    "label": "0.2%",
+    "correct": false,
+    "why": "Multiplied the 0.10 risk-per-return ratio by beta alone, with no CAPM return."
+   },
+   {
+    "label": "0.8%",
+    "correct": false,
+    "why": "Applied the ratio to the 8% market premium and left out the risk-free rate and beta."
+   },
+   {
+    "label": "2.0%",
+    "correct": true
+   },
+   {
+    "label": "20%",
+    "correct": false,
+    "why": "Gave the CAPM required return itself and skipped the 0.10 risk-per-return conversion."
+   }
+  ],
+  "working": [
+   {
+    "label": "Required return",
+    "display": "$4 + 2 \\times (12 - 4) = 20\\%$",
+    "value": 20
+   },
+   {
+    "label": "Maximum risk",
+    "display": "$0.10 \\times 20\\% = 2.0\\%$",
+    "value": 2.0
+   }
+  ],
+  "takeaway": "First get the CAPM required return, then convert it to a risk limit with the risk-per-return ratio.",
+  "check": {
+   "inputs": {
+    "rf": 4,
+    "rm": 12,
+    "b": 2,
+    "k": 0.1
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "rf+b*(rm-rf)",
+     "value": 20
+    },
+    {
+     "name": "maxrisk",
+     "expr": "k*req",
+     "value": 2.0
+    },
+    {
+     "name": "slip_beta",
+     "expr": "k*b",
+     "value": 0.2
+    },
+    {
+     "name": "slip_prem",
+     "expr": "k*(rm-rf)",
+     "value": 0.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-23",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0019"
+  },
+  "trap_category": "Formula",
+  "setup": "Under CAPM the market risk premium is average investor risk aversion times market variance. Market volatility is 18%. Investors in Country B have average risk aversion of 3.5.",
+  "ask": "The market risk premium in Country B is closest to:",
+  "options": [
+   {
+    "label": "3.2%",
+    "correct": false,
+    "why": "Left out the risk aversion: market variance alone, $0.18^2$."
+   },
+   {
+    "label": "11.3%",
+    "correct": true
+   },
+   {
+    "label": "63%",
+    "correct": false,
+    "why": "Multiplied risk aversion by the volatility 0.18 and forgot to square it."
+   },
+   {
+    "label": "1,134%",
+    "correct": false,
+    "why": "Squared the volatility in percentage points ($18^2 = 324$) and read the product as a percentage."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market variance",
+    "display": "$0.18^2 = 0.0324$",
+    "value": 0.0324
+   },
+   {
+    "label": "Risk premium",
+    "display": "$3.5 \\times 0.0324 = 11.34\\%$",
+    "value": 0.1134
+   }
+  ],
+  "takeaway": "The premium scales with variance, not volatility: square the volatility, then multiply by risk aversion.",
+  "check": {
+   "inputs": {
+    "g": 3.5,
+    "vol": 0.18
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "vol**2",
+     "value": 0.0324
+    },
+    {
+     "name": "prem",
+     "expr": "g*var*100",
+     "value": 11.34
+    },
+    {
+     "name": "slip_noavers",
+     "expr": "var*100",
+     "value": 3.24
+    },
+    {
+     "name": "slip_nosq",
+     "expr": "g*vol*100",
+     "value": 63.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "g*(vol*100)**2",
+     "value": 1134.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-24",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0026"
+  },
+  "trap_category": "Polarity",
+  "setup": "CAPM gives stock X an expected return of 10.0% when there are no taxes. Suppose investors instead pay a 25% tax on capital gains and all of X's return is a capital gain. They still require 10.0% after tax.",
+  "ask": "The required pre-tax return, compared with the 10.0% CAPM return, is:",
+  "options": [
+   {
+    "label": "Below 10.0%, under the SML",
+    "correct": false,
+    "why": "Multiplied by $(1 - 0.25)$, as if tax reduced the pre-tax requirement: $7.5\\%$. Tax takes a slice of what you earn, so the pre-tax figure must be higher."
+   },
+   {
+    "label": "Equal to 10.0%, on the SML",
+    "correct": false,
+    "why": "That holds only in a world with no taxes, which is what is being relaxed here."
+   },
+   {
+    "label": "Above 10.0%, over the SML",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Pre-tax requirement",
+    "display": "$10.0\\%/(1 - 0.25) = 13.33\\%$",
+    "value": 13.33
+   }
+  ],
+  "takeaway": "Taxes are a market friction: investors need extra pre-tax return, so the stock must plot above the SML.",
+  "check": {
+   "inputs": {
+    "req": 10.0,
+    "t": 0.25
+   },
+   "steps": [
+    {
+     "name": "pre",
+     "expr": "req/(1-t)",
+     "value": 13.333333
+    },
+    {
+     "name": "slip_mult",
+     "expr": "req*(1-t)",
+     "value": 7.5
+    },
+    {
+     "name": "gap",
+     "expr": "pre-req",
+     "value": 3.333333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq05-25",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0147"
+  },
+  "trap_category": "Scope",
+  "setup": "Alphas of 500 stocks are normal with a mean of zero. Their standard deviation is residual risk (18%) times the information coefficient (10%). You want to count stocks whose alpha is beyond plus or minus 3.6%.",
+  "ask": "The 3.6% cutoff is how many standard deviations of alpha from the mean?",
+  "options": [
+   {
+    "label": "0.2",
+    "correct": false,
+    "why": "Divided 3.6% by the 18% residual risk and skipped the information coefficient."
+   },
+   {
+    "label": "2.0",
+    "correct": true
+   },
+   {
+    "label": "20",
+    "correct": false,
+    "why": "Percent-as-decimal slip: $3.6/0.18$ mixes units."
+   }
+  ],
+  "working": [
+   {
+    "label": "Alpha standard deviation",
+    "display": "$18\\% \\times 0.10 = 1.8\\%$",
+    "value": 1.8
+   },
+   {
+    "label": "Cutoff in standard deviations",
+    "display": "$3.6/1.8 = 2.0$",
+    "value": 2.0
+   },
+   {
+    "label": "Tail count",
+    "display": "$500 \\times 4.55\\% \\approx 23$, so about 25",
+    "value": 22.75
+   }
+  ],
+  "takeaway": "The alpha spread is volatility x IC, not volatility. Two sigma each way is about 5% of the sample, so roughly 25 of 500 stocks.",
+  "check": {
+   "inputs": {
+    "vol": 18,
+    "ic": 0.1,
+    "cut": 3.6
+   },
+   "steps": [
+    {
+     "name": "sd",
+     "expr": "vol*ic",
+     "value": 1.8
+    },
+    {
+     "name": "z",
+     "expr": "cut/sd",
+     "value": 2.0
+    },
+    {
+     "name": "slip_noic",
+     "expr": "cut/vol",
+     "value": 0.2
+    },
+    {
+     "name": "slip_pct",
+     "expr": "cut/(vol/100)",
+     "value": 20.0
+    }
+   ]
+  }
+ }
+]

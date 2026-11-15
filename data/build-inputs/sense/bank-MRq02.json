@@ -1,0 +1,1750 @@
+[
+ {
+  "id": "SC-bank-MRq02-01",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0177"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Peaks-over-threshold on a futures-clearing book. Generalized Pareto tail with scale $\\beta = 0.7$, shape $\\xi = 0.12$, threshold $u = 3\\%$; a fraction $N_u/n = 5\\%$ of observations exceed $u$. The 99.5% VaR is $u + \\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$.",
+  "ask": "The tail factor $[\\frac{n}{N_u}(1-c)]^{-\\xi}$ at $c = 99.5\\%$ is closest to:",
+  "options": [
+   {
+    "label": "About 1.32",
+    "correct": true
+   },
+   {
+    "label": "About 0.76",
+    "correct": false,
+    "why": "Flipped the exponent to $+\\xi$: $0.10^{0.12} = 0.76$. The exponent is $-\\xi$, and a base below 1 raised to a negative power gives a number above 1."
+   },
+   {
+    "label": "About 1.89",
+    "correct": false,
+    "why": "Dropped $n/N_u$ and used $(1-c) = 0.005$ alone: $0.005^{-0.12} = 1.89$. The tail probability must be rescaled by $n/N_u = 20$ first."
+   },
+   {
+    "label": "About 0.10",
+    "correct": false,
+    "why": "Stopped at the inner quantity $\\frac{n}{N_u}(1-c) = 0.10$ and never applied the exponent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inner quantity",
+    "display": "$\\frac{0.005}{0.05} = 0.10$",
+    "value": 0.1
+   },
+   {
+    "label": "Tail factor",
+    "display": "$0.10^{-0.12} = 1.318$",
+    "value": 1.318
+   },
+   {
+    "label": "VaR",
+    "display": "$3 + \\frac{0.7}{0.12}(1.318 - 1) = 4.856\\%$",
+    "value": 4.856
+   }
+  ],
+  "takeaway": "A base below 1 with a negative exponent gives a factor above 1: when $1-c < N_u/n$ the VaR lands above the threshold.",
+  "check": {
+   "inputs": {
+    "c": 0.995,
+    "p": 0.05,
+    "xi": 0.12,
+    "beta": 0.7,
+    "u": 3
+   },
+   "steps": [
+    {
+     "name": "inner",
+     "expr": "(1-c)/p",
+     "value": 0.1
+    },
+    {
+     "name": "f",
+     "expr": "inner^(-xi)",
+     "value": 1.31826
+    },
+    {
+     "name": "slip_flip",
+     "expr": "inner^xi",
+     "value": 0.758578
+    },
+    {
+     "name": "slip_noratio",
+     "expr": "(1-c)^(-xi)",
+     "value": 1.88853
+    },
+    {
+     "name": "VaR",
+     "expr": "u+beta/xi*(f-1)",
+     "value": 4.8565
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-02",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0178"
+  },
+  "trap_category": "Formula",
+  "setup": "POT VaR for a commodity futures position. Threshold $u = 5.00\\%$; $n = 700$ observations, of which $N_u = 21$ exceed it. GPD scale $\\beta = 0.70$, shape $\\xi = 0.25$. VaR $= u + \\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$ at $c = 99\\%$.",
+  "ask": "The 99% VaR (loss, in %) is closest to:",
+  "options": [
+   {
+    "label": "≈ 5.9%",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.88%",
+    "correct": false,
+    "why": "Left out the threshold: $\\frac{\\beta}{\\xi}(\\ldots - 1) = 0.885$ is only the excess over $u$."
+   },
+   {
+    "label": "≈ 23%",
+    "correct": false,
+    "why": "Multiplied $(1-c)$ by $N_u/n$ instead of dividing: inner quantity 0.0003, factor 7.6, VaR about 23."
+   },
+   {
+    "label": "≈ 0.059%",
+    "correct": false,
+    "why": "Wrote the answer as a decimal fraction (0.0589) and read it as a percent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inner quantity",
+    "display": "$\\frac{0.01}{21/700} = 0.3333$",
+    "value": 0.3333
+   },
+   {
+    "label": "Tail factor",
+    "display": "$0.3333^{-0.25} = 1.316$",
+    "value": 1.316
+   },
+   {
+    "label": "VaR",
+    "display": "$5 + 2.8 \\times 0.316 = 5.885\\%$",
+    "value": 5.885
+   }
+  ],
+  "takeaway": "Check that VaR $= u + $ something: a result below $u$ means the threshold was dropped or the tail ratio inverted.",
+  "check": {
+   "inputs": {
+    "c": 0.99,
+    "Nu": 21,
+    "n": 700,
+    "xi": 0.25,
+    "beta": 0.7,
+    "u": 5
+   },
+   "steps": [
+    {
+     "name": "inner",
+     "expr": "(1-c)*n/Nu",
+     "value": 0.333333
+    },
+    {
+     "name": "f",
+     "expr": "inner^(-xi)",
+     "value": 1.31607
+    },
+    {
+     "name": "VaR",
+     "expr": "u+beta/xi*(f-1)",
+     "value": 5.88501
+    },
+    {
+     "name": "slip_nou",
+     "expr": "beta/xi*(f-1)",
+     "value": 0.885007
+    },
+    {
+     "name": "slip_inv",
+     "expr": "u+beta/xi*(((1-c)*Nu/n)^(-xi)-1)",
+     "value": 23.4754
+    },
+    {
+     "name": "slip_dec",
+     "expr": "VaR/100",
+     "value": 0.0588501
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0179"
+  },
+  "trap_category": "Sign",
+  "setup": "POT expected shortfall: $ES = \\frac{VaR + \\beta - \\xi u}{1 - \\xi}$. The 99% VaR is 5.885%, with $\\beta = 0.70$, $\\xi = 0.25$ and threshold $u = 5\\%$.",
+  "ask": "The term $\\beta - \\xi u$ is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Kept $\\beta = 0.70$ and ignored $\\xi u$. But $\\xi u = 0.25 \\times 5 = 1.25$ is larger than $\\beta$."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Treated $\\beta$ and $\\xi u$ as cancelling. They are 0.70 and 1.25, nowhere near equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "$\\xi u$",
+    "display": "$0.25 \\times 5 = 1.25$",
+    "value": 1.25
+   },
+   {
+    "label": "$\\beta - \\xi u$",
+    "display": "$0.70 - 1.25 = -0.55$",
+    "value": -0.55
+   },
+   {
+    "label": "ES",
+    "display": "$\\frac{5.885 - 0.55}{0.75} = 7.11\\%$",
+    "value": 7.113
+   }
+  ],
+  "takeaway": "The ES numerator is not always VaR plus a positive amount: with a high threshold $\\xi u > \\beta$ and the term turns negative.",
+  "check": {
+   "inputs": {
+    "VaR": 5.885,
+    "beta": 0.7,
+    "xi": 0.25,
+    "u": 5
+   },
+   "steps": [
+    {
+     "name": "xu",
+     "expr": "xi*u",
+     "value": 1.25
+    },
+    {
+     "name": "adj",
+     "expr": "beta-xu",
+     "value": -0.55
+    },
+    {
+     "name": "slip_dropxu",
+     "expr": "beta",
+     "value": 0.7
+    },
+    {
+     "name": "ES",
+     "expr": "(VaR+adj)/(1-xi)",
+     "value": 7.11333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0180"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "POT tail with $\\beta = 0.9$, $\\xi = 0.15$, $u = 4\\%$, $N_u/n = 10\\%$. The excess of VaR over $u$ is $\\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$. At 99.5% it is 3.40 (VaR 7.40%). Moving to 99.9% cuts the tail probability from 0.5% to 0.1%, a fifth.",
+  "ask": "The excess of the 99.9% VaR over $u$ is:",
+  "options": [
+   {
+    "label": "Less than double the 99.5% excess",
+    "correct": true
+   },
+   {
+    "label": "More than double the 99.5% excess",
+    "correct": false,
+    "why": "Expected the loss to scale with the fivefold drop in tail probability. With $\\xi = 0.15$ the bracket only moves from 0.567 to 0.995."
+   },
+   {
+    "label": "About the same as the 99.5% excess",
+    "correct": false,
+    "why": "Treated the tail as flat because $\\xi$ is small. The factor still rises from $0.05^{-0.15}$ to $0.01^{-0.15}$ (1.57 to 2.00)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Excess at 99.5%",
+    "display": "$6 \\times (0.05^{-0.15} - 1) = 3.40$",
+    "value": 3.404
+   },
+   {
+    "label": "Excess at 99.9%",
+    "display": "$6 \\times (0.01^{-0.15} - 1) = 5.97$",
+    "value": 5.972
+   },
+   {
+    "label": "Ratio",
+    "display": "$5.97 / 3.40 = 1.76$",
+    "value": 1.754
+   }
+  ],
+  "takeaway": "A fivefold cut in tail probability does not multiply the excess loss by five: it multiplies the bracket by only $\\approx 1.8$ here.",
+  "check": {
+   "inputs": {
+    "xi": 0.15,
+    "beta": 0.9,
+    "p": 0.1
+   },
+   "steps": [
+    {
+     "name": "e1",
+     "expr": "beta/xi*(((0.005/p)^(-xi))-1)",
+     "value": 3.40385
+    },
+    {
+     "name": "e2",
+     "expr": "beta/xi*(((0.001/p)^(-xi))-1)",
+     "value": 5.97157
+    },
+    {
+     "name": "ratio",
+     "expr": "e2/e1",
+     "value": 1.75436
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-05",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0181"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "POT tail with $\\beta = 0.9$, $\\xi = 0.15$, $u = 4\\%$. VaR is 7.40% at 99.5% and 9.97% at 99.9%. $ES = \\frac{VaR + \\beta - \\xi u}{1 - \\xi}$.",
+  "ask": "Going from 99.5% to 99.9%, the gap $ES - VaR$ in percentage points:",
+  "options": [
+   {
+    "label": "Widens",
+    "correct": true
+   },
+   {
+    "label": "Narrows",
+    "correct": false,
+    "why": "Assumed ES converges to VaR at higher confidence. The ratio ES/VaR is near $1/(1-\\xi)$, so the absolute gap grows with VaR."
+   },
+   {
+    "label": "Stays the same",
+    "correct": false,
+    "why": "Used the fixed multiplier $1/(1-\\xi)$ and concluded the gap is constant. The gap is $(0.3 + 0.15\\,VaR)/0.85$, which grows with VaR."
+   }
+  ],
+  "working": [
+   {
+    "label": "ES at 99.5%",
+    "display": "$(7.404 + 0.3)/0.85 = 9.06$, gap $1.66$",
+    "value": 1.66
+   },
+   {
+    "label": "ES at 99.9%",
+    "display": "$(9.972 + 0.3)/0.85 = 12.08$, gap $2.11$",
+    "value": 2.11
+   }
+  ],
+  "takeaway": "For a heavy tail ($\\xi > 0$), ES stays a roughly fixed multiple of VaR, so the gap between them widens as VaR rises.",
+  "check": {
+   "inputs": {
+    "xi": 0.15,
+    "beta": 0.9,
+    "u": 4,
+    "v1": 7.404,
+    "v2": 9.972
+   },
+   "steps": [
+    {
+     "name": "es1",
+     "expr": "(v1+beta-xi*u)/(1-xi)",
+     "value": 9.06353
+    },
+    {
+     "name": "es2",
+     "expr": "(v2+beta-xi*u)/(1-xi)",
+     "value": 12.0847
+    },
+    {
+     "name": "g1",
+     "expr": "es1-v1",
+     "value": 1.65953
+    },
+    {
+     "name": "g2",
+     "expr": "es2-v2",
+     "value": 2.11271
+    },
+    {
+     "name": "widen",
+     "expr": "g2-g1",
+     "value": 0.453176
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-06",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0185"
+  },
+  "trap_category": "Scope",
+  "setup": "POT parameters: $\\beta = 0.9$, $\\xi = 0.15$, $u = 2\\%$, $N_u/n = 4\\%$. VaR $= u + \\frac{\\beta}{\\xi}\\{[\\frac{n}{N_u}(1-c)]^{-\\xi} - 1\\}$ is evaluated at $c = 95\\%$.",
+  "ask": "The formula returns a VaR:",
+  "options": [
+   {
+    "label": "Below the 2% threshold",
+    "correct": true
+   },
+   {
+    "label": "Above the 2% threshold",
+    "correct": false,
+    "why": "Assumed POT VaR always exceeds $u$. That holds only when the tail probability $1-c$ is below $N_u/n$; here $5\\% > 4\\%$, the inner quantity is 1.25 and the bracket is negative."
+   },
+   {
+    "label": "Exactly at 2%",
+    "correct": false,
+    "why": "Treated 95% as the threshold's own quantile. The threshold sits at 96% ($N_u/n = 4\\%$), so 95% is shallower."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inner quantity",
+    "display": "$25 \\times 0.05 = 1.25$",
+    "value": 1.25
+   },
+   {
+    "label": "Tail factor",
+    "display": "$1.25^{-0.15} = 0.967$",
+    "value": 0.967
+   },
+   {
+    "label": "VaR",
+    "display": "$2 + 6(0.967 - 1) = 1.80\\%$",
+    "value": 1.802
+   }
+  ],
+  "takeaway": "POT only describes quantiles beyond the threshold: if $1-c > N_u/n$, the formula falls below $u$ and is out of range.",
+  "check": {
+   "inputs": {
+    "Nu": 0.04,
+    "c": 0.95,
+    "xi": 0.15,
+    "beta": 0.9,
+    "u": 2
+   },
+   "steps": [
+    {
+     "name": "inner",
+     "expr": "(1-c)/Nu",
+     "value": 1.25
+    },
+    {
+     "name": "f",
+     "expr": "inner^(-xi)",
+     "value": 0.967082
+    },
+    {
+     "name": "VaR",
+     "expr": "u+beta/xi*(f-1)",
+     "value": 1.80249
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-07",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0420"
+  },
+  "trap_category": "Formula",
+  "setup": "An exchange option pays $\\max(0, S_2 - S_1)$. The assets have volatilities $\\sigma_1 = 30\\%$ and $\\sigma_2 = 20\\%$ and correlation $\\rho = 0.5$. It is valued with $\\sigma_E = \\sqrt{\\sigma_1^2 + \\sigma_2^2 - 2\\rho\\sigma_1\\sigma_2}$.",
+  "ask": "$\\sigma_E$ lies:",
+  "options": [
+   {
+    "label": "Between 20% and 30%",
+    "correct": true
+   },
+   {
+    "label": "Below 20%",
+    "correct": false,
+    "why": "Used $\\rho = 1$, where $\\sigma_E = 30 - 20 = 10\\%$. At $\\rho = 0.5$ only part of the volatility is cancelled."
+   },
+   {
+    "label": "Above 30%",
+    "correct": false,
+    "why": "Dropped the correlation term ($\\rho = 0$ gives 36.1%) or added it instead of subtracting (43.6%)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$0.09 + 0.04 - 2(0.5)(0.30)(0.20) = 0.07$",
+    "value": 0.07
+   },
+   {
+    "label": "Volatility",
+    "display": "$\\sqrt{0.07} = 26.5\\%$",
+    "value": 26.46
+   }
+  ],
+  "takeaway": "For an exchange option, higher correlation means lower $\\sigma_E$ and a cheaper option: it runs from 36.1% at $\\rho = 0$ to 10% at $\\rho = 1$.",
+  "check": {
+   "inputs": {
+    "s1": 0.3,
+    "s2": 0.2,
+    "rho": 0.5
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "s1^2+s2^2-2*rho*s1*s2",
+     "value": 0.07
+    },
+    {
+     "name": "sE",
+     "expr": "sqrt(var)",
+     "value": 0.264575
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "sqrt(s1^2+s2^2)",
+     "value": 0.360555
+    },
+    {
+     "name": "slip_plus",
+     "expr": "sqrt(s1^2+s2^2+2*rho*s1*s2)",
+     "value": 0.43589
+    },
+    {
+     "name": "slip_rho1",
+     "expr": "abs(s1-s2)",
+     "value": 0.1
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-08",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0421"
+  },
+  "trap_category": "Definition",
+  "setup": "A call on the worse of two assets has strike 90 and pays $\\max(0, \\min(S_1, S_2) - 90)$. At expiry $S_1 = 112$ and $S_2 = 95$.",
+  "ask": "The price the payoff is measured from is:",
+  "options": [
+   {
+    "label": "95",
+    "correct": true
+   },
+   {
+    "label": "112",
+    "correct": false,
+    "why": "Took the better asset (best-of). A worst-of option uses the lower price, which is what makes it cheap."
+   },
+   {
+    "label": "103.5",
+    "correct": false,
+    "why": "Averaged the two prices. The payoff uses the minimum, not the mean."
+   }
+  ],
+  "working": [
+   {
+    "label": "Reference price",
+    "display": "$\\min(112, 95) = 95$",
+    "value": 95
+   },
+   {
+    "label": "Payoff",
+    "display": "$\\max(0, 95 - 90) = 5$",
+    "value": 5
+   }
+  ],
+  "takeaway": "Worst-of calls pay off from the lower asset, so the other asset can rally without helping the holder.",
+  "check": {
+   "inputs": {
+    "S1": 112,
+    "S2": 95,
+    "K": 90
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "min(S1,S2)",
+     "value": 95.0
+    },
+    {
+     "name": "slip_best",
+     "expr": "max(S1,S2)",
+     "value": 112.0
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(S1+S2)/2",
+     "value": 103.5
+    },
+    {
+     "name": "payoff",
+     "expr": "max(0,m-K)",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-09",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0426"
+  },
+  "trap_category": "Formula",
+  "setup": "A one-year correlation swap on three assets, fixed rate 2.5%, notional USD 1m. Realised pairwise correlations of daily log returns: $\\rho_{21} = 0.20$, $\\rho_{31} = 0.40$, $\\rho_{32} = 0.30$. Realised correlation is the average over the distinct pairs, the first step to the payoff.",
+  "ask": "The realised correlation is:",
+  "options": [
+   {
+    "label": "0.30",
+    "correct": true
+   },
+   {
+    "label": "0.45",
+    "correct": false,
+    "why": "Divided the sum 0.90 by 2, the numerator of $\\frac{2}{n^2 - n}$, instead of by 6."
+   },
+   {
+    "label": "0.90",
+    "correct": false,
+    "why": "Summed the three pairs and never averaged."
+   },
+   {
+    "label": "0.10",
+    "correct": false,
+    "why": "Divided the sum by $n^2 = 9$ instead of the number of distinct pairs, 3."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sum of pairs",
+    "display": "$0.20 + 0.40 + 0.30 = 0.90$",
+    "value": 0.9
+   },
+   {
+    "label": "Average over 3 pairs",
+    "display": "$0.90 / 3 = 0.30$",
+    "value": 0.3
+   }
+  ],
+  "takeaway": "Realised correlation is the average over the $n(n-1)/2$ distinct pairs: three assets, three pairs.",
+  "check": {
+   "inputs": {
+    "a": 0.2,
+    "b": 0.4,
+    "c": 0.3,
+    "n": 3
+   },
+   "steps": [
+    {
+     "name": "sum",
+     "expr": "a+b+c",
+     "value": 0.9
+    },
+    {
+     "name": "rho",
+     "expr": "sum/(n*(n-1)/2)",
+     "value": 0.3
+    },
+    {
+     "name": "slip_div2",
+     "expr": "sum/2",
+     "value": 0.45
+    },
+    {
+     "name": "slip_n2",
+     "expr": "sum/n^2",
+     "value": 0.1
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-10",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0427"
+  },
+  "trap_category": "Polarity",
+  "setup": "The buyer of a one-year correlation swap pays fixed correlation 0.28 on USD 10m, with three assets. Realised pairwise correlations: 0.70, 0.20 and 0.03. The buyer receives notional $\\times$ (realised average $-$ fixed).",
+  "ask": "The buyer's payoff is:",
+  "options": [
+   {
+    "label": "Positive: the buyer receives",
+    "correct": true
+   },
+   {
+    "label": "Negative: the buyer pays",
+    "correct": false,
+    "why": "Compared 0.28 with the typical pair (0.20 or 0.03). The 0.70 pair pulls the average up to 0.31."
+   }
+  ],
+  "working": [
+   {
+    "label": "Realised correlation",
+    "display": "$(0.70 + 0.20 + 0.03)/3 = 0.31$",
+    "value": 0.31
+   },
+   {
+    "label": "Payoff",
+    "display": "$10\\text{m} \\times (0.31 - 0.28) = +\\text{USD } 0.3\\text{m}$",
+    "value": 300000
+   }
+  ],
+  "takeaway": "Use the average, not a typical pair: one high correlation can lift realised correlation above the fixed rate.",
+  "check": {
+   "inputs": {
+    "N": 10000000,
+    "fixed": 0.28,
+    "a": 0.7,
+    "b": 0.2,
+    "c": 0.03
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "(a+b+c)/3",
+     "value": 0.31
+    },
+    {
+     "name": "diff",
+     "expr": "rho-fixed",
+     "value": 0.03
+    },
+    {
+     "name": "pay",
+     "expr": "N*diff",
+     "value": 300000.0
+    },
+    {
+     "name": "slip_median",
+     "expr": "b-fixed",
+     "value": -0.08
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-11",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0428"
+  },
+  "trap_category": "Formula",
+  "setup": "The buyer of a one-year correlation swap on three assets pays fixed correlation 18% on a notional of USD 12m. Realised pairwise correlations at maturity: 0.24, 0.26 and 0.36. The buyer's payoff is notional $\\times$ (average pairwise correlation $-$ fixed).",
+  "ask": "The buyer's payoff is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.3m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.4m",
+    "correct": false,
+    "why": "Applied the notional to the realised correlation (0.2867) without netting off the 18% fixed rate."
+   },
+   {
+    "label": "≈ USD 0.11m",
+    "correct": false,
+    "why": "Left out the notional: the correlation gap 0.1067 was read as millions."
+   },
+   {
+    "label": "≈ USD 128m",
+    "correct": false,
+    "why": "Percentage-point slip: used a gap of 10.67 instead of 0.1067."
+   }
+  ],
+  "working": [
+   {
+    "label": "Realised correlation",
+    "display": "$(0.24 + 0.26 + 0.36)/3 = 0.2867$",
+    "value": 0.28667
+   },
+   {
+    "label": "Gap to fixed",
+    "display": "$0.2867 - 0.18 = 0.1067$",
+    "value": 0.10667
+   },
+   {
+    "label": "Payoff",
+    "display": "$12\\text{m} \\times 0.1067 = \\text{USD } 1.28\\text{m}$",
+    "value": 1.28
+   }
+  ],
+  "takeaway": "Payoff = notional $\\times$ (realised $-$ fixed): net the fixed rate first, then scale by the notional.",
+  "check": {
+   "inputs": {
+    "N": 12,
+    "fixed": 0.18,
+    "a": 0.24,
+    "b": 0.26,
+    "c": 0.36
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "(a+b+c)/3",
+     "value": 0.286667
+    },
+    {
+     "name": "gap",
+     "expr": "rho-fixed",
+     "value": 0.106667
+    },
+    {
+     "name": "pay",
+     "expr": "N*gap",
+     "value": 1.28
+    },
+    {
+     "name": "slip_nofixed",
+     "expr": "N*rho",
+     "value": 3.44
+    },
+    {
+     "name": "slip_nonotional",
+     "expr": "gap",
+     "value": 0.106667
+    },
+    {
+     "name": "slip_pct",
+     "expr": "N*gap*100",
+     "value": 128.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-12",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0456"
+  },
+  "trap_category": "Formula",
+  "setup": "Two borrowers each have a 9.0% default probability, and the binomial (Lucas) default correlation between them is 0.28. The joint default probability is $\\rho\\sqrt{P_A(1-P_A)P_B(1-P_B)} + P_AP_B$.",
+  "ask": "The joint default probability is closest to:",
+  "options": [
+   {
+    "label": "≈ 3.1%",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.81%",
+    "correct": false,
+    "why": "Set $\\rho = 0$: independence gives $0.09^2 = 0.81\\%$ and drops the correlation term."
+   },
+   {
+    "label": "≈ 9.0%",
+    "correct": false,
+    "why": "Set $\\rho = 1$: both default together, so the joint probability equals one marginal, 9%."
+   },
+   {
+    "label": "≈ 0.31%",
+    "correct": false,
+    "why": "Slipped a decimal place on 3.1%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Correlation term",
+    "display": "$0.28 \\times 0.09 \\times 0.91 = 0.0229$",
+    "value": 0.022932
+   },
+   {
+    "label": "Independent term",
+    "display": "$0.09^2 = 0.0081$",
+    "value": 0.0081
+   },
+   {
+    "label": "Joint PD",
+    "display": "$0.0229 + 0.0081 = 3.10\\%$",
+    "value": 0.031032
+   }
+  ],
+  "takeaway": "Joint PD = correlation term + independent term: it sits between $P^2$ (at $\\rho = 0$) and $P$ (at $\\rho = 1$).",
+  "check": {
+   "inputs": {
+    "P": 0.09,
+    "rho": 0.28
+   },
+   "steps": [
+    {
+     "name": "corr",
+     "expr": "rho*P*(1-P)",
+     "value": 0.022932
+    },
+    {
+     "name": "ind",
+     "expr": "P*P",
+     "value": 0.0081
+    },
+    {
+     "name": "joint",
+     "expr": "corr+ind",
+     "value": 0.031032
+    },
+    {
+     "name": "slip_rho1",
+     "expr": "P",
+     "value": 0.09
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-13",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0458"
+  },
+  "trap_category": "Role",
+  "setup": "Two prime counterparties each have a 5.0% default probability, and a default correlation of 0.5 is applied. Joint PD $= \\rho\\sigma_A\\sigma_B + P_AP_B$, with $\\sigma^2 = P(1-P)$ for each.",
+  "ask": "The correlation term $\\rho\\sigma_A\\sigma_B$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.4%",
+    "correct": true
+   },
+   {
+    "label": "≈ 4.75%",
+    "correct": false,
+    "why": "Left out $\\rho$: $\\sigma_A\\sigma_B = 0.0475$ is the term at perfect correlation."
+   },
+   {
+    "label": "≈ 10.9%",
+    "correct": false,
+    "why": "Multiplied $\\rho$ by a single $\\sigma = 0.2179$ instead of by $\\sigma_A\\sigma_B$."
+   },
+   {
+    "label": "≈ 0.25%",
+    "correct": false,
+    "why": "That is $P_AP_B$, the independent term that gets added after the correlation term."
+   }
+  ],
+  "working": [
+   {
+    "label": "$\\sigma_A\\sigma_B$",
+    "display": "$0.05 \\times 0.95 = 0.0475$",
+    "value": 0.0475
+   },
+   {
+    "label": "Correlation term",
+    "display": "$0.5 \\times 0.0475 = 0.02375$",
+    "value": 0.02375
+   },
+   {
+    "label": "Joint PD",
+    "display": "$0.02375 + 0.0025 = 2.63\\%$",
+    "value": 0.02625
+   }
+  ],
+  "takeaway": "$\\sigma_A\\sigma_B = P(1-P)$ is the variance, not the standard deviation: multiply $\\rho$ by it, then add $P_AP_B$.",
+  "check": {
+   "inputs": {
+    "P": 0.05,
+    "rho": 0.5
+   },
+   "steps": [
+    {
+     "name": "ss",
+     "expr": "P*(1-P)",
+     "value": 0.0475
+    },
+    {
+     "name": "term",
+     "expr": "rho*ss",
+     "value": 0.02375
+    },
+    {
+     "name": "slip_norho",
+     "expr": "ss",
+     "value": 0.0475
+    },
+    {
+     "name": "slip_onesigma",
+     "expr": "rho*sqrt(ss)",
+     "value": 0.108972
+    },
+    {
+     "name": "ind",
+     "expr": "P*P",
+     "value": 0.0025
+    },
+    {
+     "name": "joint",
+     "expr": "term+ind",
+     "value": 0.02625
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-14",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0462"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank lends Rs 10,000 to one company with a 10% default probability: concentration ratio 1, expected loss Rs 1,000. It instead splits the Rs 10,000 equally across three companies, each with a 10% default probability. For $n$ equal loans the concentration ratio is $1/n$.",
+  "ask": "After the split:",
+  "options": [
+   {
+    "label": "Expected loss stays Rs 1,000; the ratio falls to $1/3$",
+    "correct": true
+   },
+   {
+    "label": "Expected loss falls to a third; the ratio falls to $1/3$",
+    "correct": false,
+    "why": "Treated the spreading as cutting expected loss. EL is the sum of exposure $\\times$ PD: $3 \\times 3{,}333 \\times 10\\% = 1{,}000$."
+   },
+   {
+    "label": "Expected loss and ratio both stay at their old values",
+    "correct": false,
+    "why": "Mixed up the two measures. EL does not change, but concentration is exactly what the split reduces."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected loss, one loan",
+    "display": "$10{,}000 \\times 10\\% = 1{,}000$",
+    "value": 1000
+   },
+   {
+    "label": "Expected loss, three loans",
+    "display": "$3 \\times 3{,}333 \\times 10\\% = 1{,}000$",
+    "value": 1000
+   },
+   {
+    "label": "Concentration ratio",
+    "display": "$1/3 = 0.333$",
+    "value": 0.3333
+   }
+  ],
+  "takeaway": "Diversifying across equal loans cuts concentration, not expected loss; it narrows the spread of outcomes around the same mean.",
+  "check": {
+   "inputs": {
+    "E": 10000,
+    "pd": 0.1,
+    "n": 3
+   },
+   "steps": [
+    {
+     "name": "el1",
+     "expr": "E*pd",
+     "value": 1000.0
+    },
+    {
+     "name": "el3",
+     "expr": "n*(E/n)*pd",
+     "value": 1000.0
+    },
+    {
+     "name": "cr",
+     "expr": "1/n",
+     "value": 0.333333
+    },
+    {
+     "name": "slip_el",
+     "expr": "el1/n",
+     "value": 333.333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-15",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0465"
+  },
+  "trap_category": "Sibling",
+  "setup": "A creditor lends USD 4m to each of X and Y. Each has a 7% default probability, the default correlation is 0.6 and LGD is 100%. Joint PD $= \\rho P(1-P) + P^2$. If the two were independent, the joint PD would be $0.07^2 = 0.49\\%$.",
+  "ask": "The correlated joint PD is:",
+  "options": [
+   {
+    "label": "More than five times the independent value",
+    "correct": true
+   },
+   {
+    "label": "Under twice the independent value",
+    "correct": false,
+    "why": "Applied $\\rho$ to $P^2$ instead of $P(1-P)$: $0.6 \\times 0.0049 + 0.0049 = 0.78\\%$, only about 1.6 times."
+   },
+   {
+    "label": "About the same as the independent value",
+    "correct": false,
+    "why": "Set $\\rho = 0$ in effect. At $\\rho = 0.6$ the correlation term $0.039$ dwarfs $P^2 = 0.0049$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Correlation term",
+    "display": "$0.6 \\times 0.07 \\times 0.93 = 0.0391$",
+    "value": 0.03906
+   },
+   {
+    "label": "Joint PD",
+    "display": "$0.0391 + 0.0049 = 4.40\\%$",
+    "value": 0.04396
+   },
+   {
+    "label": "Multiple of independent",
+    "display": "$4.40 / 0.49 = 9.0$",
+    "value": 8.97
+   }
+  ],
+  "takeaway": "For small PDs the correlation term $\\rho P(1-P)$ dominates: the joint PD is far above $P^2$ even at moderate $\\rho$.",
+  "check": {
+   "inputs": {
+    "P": 0.07,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "corr",
+     "expr": "rho*P*(1-P)",
+     "value": 0.03906
+    },
+    {
+     "name": "joint",
+     "expr": "corr+P*P",
+     "value": 0.04396
+    },
+    {
+     "name": "mult",
+     "expr": "joint/(P*P)",
+     "value": 8.97143
+    },
+    {
+     "name": "slip_ratio",
+     "expr": "(rho*P*P+P*P)/(P*P)",
+     "value": 1.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-16",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0649"
+  },
+  "trap_category": "Formula",
+  "setup": "Short-rate model $dr = \\lambda\\,dt + \\sigma\\,dw$ with annual drift $\\lambda = 0.348\\%$ and annual volatility $\\sigma = 2.07\\%$. Over one month ($dt = 1/12$) the realised draw is $dw = 0.32$; this draw is for the month, so no extra $\\sqrt{dt}$.",
+  "ask": "The change in the short rate over the month is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.69%",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.22%",
+    "correct": false,
+    "why": "Applied $\\sqrt{dt}$ a second time to a draw that already has it: $0.029 + 2.07 \\times 0.32 \\times 0.289 = 0.22$."
+   },
+   {
+    "label": "≈ 0.029%",
+    "correct": false,
+    "why": "Kept only the drift term $\\lambda\\,dt$ and dropped the shock."
+   },
+   {
+    "label": "≈ 8.3%",
+    "correct": false,
+    "why": "Scaled the shock up by 12 as if annualising a draw that is already for the month."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift",
+    "display": "$0.348\\% / 12 = 0.029\\%$",
+    "value": 0.029
+   },
+   {
+    "label": "Shock",
+    "display": "$2.07\\% \\times 0.32 = 0.6624\\%$",
+    "value": 0.6624
+   },
+   {
+    "label": "Change",
+    "display": "$0.029 + 0.6624 = 0.691\\%$",
+    "value": 0.6914
+   }
+  ],
+  "takeaway": "Over a month the shock $\\sigma\\,dw$ dominates the drift, and a realised draw $dw$ already carries the $\\sqrt{dt}$.",
+  "check": {
+   "inputs": {
+    "lam": 0.348,
+    "sig": 2.07,
+    "dt": 0.08333333333333333,
+    "dw": 0.32
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.029
+    },
+    {
+     "name": "shock",
+     "expr": "sig*dw",
+     "value": 0.6624
+    },
+    {
+     "name": "dr",
+     "expr": "drift+shock",
+     "value": 0.6914
+    },
+    {
+     "name": "slip_sqrt",
+     "expr": "drift+sig*dw*sqrt(dt)",
+     "value": 0.220218
+    },
+    {
+     "name": "slip_x12",
+     "expr": "lam+sig*dw*12",
+     "value": 8.2968
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-17",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0651"
+  },
+  "trap_category": "Scope",
+  "setup": "Model 2: $dr = \\lambda\\,dt + \\sigma\\,dw$ with annual drift $\\lambda = 0.25\\%$ and $dt = 1/12$. Starting at 5.26% with volatility 1.15% and realised $dw = 0.25$, the month-end rate without drift would be $5.26 + 1.15 \\times 0.25 = 5.5475\\%$.",
+  "ask": "Adding the drift moves the month-end rate by:",
+  "options": [
+   {
+    "label": "About +2 bp",
+    "correct": true
+   },
+   {
+    "label": "About +25 bp",
+    "correct": false,
+    "why": "Added the full annual drift of 0.25% without scaling by $dt = 1/12$."
+   },
+   {
+    "label": "About −2 bp",
+    "correct": false,
+    "why": "Subtracted the drift. A positive $\\lambda$ pushes the rate up."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift over one month",
+    "display": "$0.25\\% \\times \\frac{1}{12} = 0.0208\\%$",
+    "value": 0.020833
+   },
+   {
+    "label": "Month-end rate",
+    "display": "$5.5475 + 0.0208 = 5.5683\\%$",
+    "value": 5.5683
+   }
+  ],
+  "takeaway": "The drift $\\lambda$ is annual: over one month only $\\lambda\\,dt$ enters, here about 2 bp.",
+  "check": {
+   "inputs": {
+    "lam": 0.25,
+    "dt": 0.08333333333333333,
+    "r": 5.26,
+    "sig": 1.15,
+    "dw": 0.25
+   },
+   "steps": [
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.0208333
+    },
+    {
+     "name": "nodrift",
+     "expr": "r+sig*dw",
+     "value": 5.5475
+    },
+    {
+     "name": "final",
+     "expr": "nodrift+drift",
+     "value": 5.56833
+    },
+    {
+     "name": "slip_full",
+     "expr": "lam",
+     "value": 0.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-18",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0652"
+  },
+  "trap_category": "Formula",
+  "setup": "A binomial tree for a zero-drift normal short-rate model (Model 1). Annual volatility is 100 bp, steps are monthly ($dt = 1/12$), and the rate moves up or down by one standard deviation of the monthly change. The current rate is 2.0%.",
+  "ask": "Each monthly up-move is closest to:",
+  "options": [
+   {
+    "label": "≈ 29 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ 8 bp",
+    "correct": false,
+    "why": "Scaled volatility by $dt$ instead of $\\sqrt{dt}$: $100/12 = 8.3$ bp."
+   },
+   {
+    "label": "≈ 100 bp",
+    "correct": false,
+    "why": "Used the annual volatility as the monthly step, with no time scaling."
+   },
+   {
+    "label": "≈ 350 bp",
+    "correct": false,
+    "why": "Scaled the wrong way, multiplying by $\\sqrt{12}$ instead of dividing."
+   }
+  ],
+  "working": [
+   {
+    "label": "Monthly step",
+    "display": "$100 \\times \\sqrt{1/12} = 28.9\\text{ bp}$",
+    "value": 28.87
+   },
+   {
+    "label": "Up-state rate",
+    "display": "$2.0\\% + 0.289\\% = 2.29\\%$",
+    "value": 2.2887
+   }
+  ],
+  "takeaway": "Volatility scales with $\\sqrt{\\text{time}}$: a monthly step is about 29% of annual volatility, not 8%.",
+  "check": {
+   "inputs": {
+    "sig": 100,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "step",
+     "expr": "sig*sqrt(dt)",
+     "value": 28.8675
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*dt",
+     "value": 8.33333
+    },
+    {
+     "name": "slip_up",
+     "expr": "sig*sqrt(12)",
+     "value": 346.41
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-19",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0653"
+  },
+  "trap_category": "Definition",
+  "setup": "Model 1 tree ($dr = \\sigma\\,dw$, no drift), monthly steps ($dt = 1/12$), annual volatility 180 bp, starting rate 4.000%. Month-1 nodes are 4.520% (up) and 3.480% (down). Node [2,2] is reached by two up-moves.",
+  "ask": "The rise from the month-1 up node to [2,2], compared with the first rise (4.000% to 4.520%), is:",
+  "options": [
+   {
+    "label": "Equal",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Treated the move as proportional to the rate, as in a lognormal model. Model 1 adds a fixed $\\sigma\\sqrt{dt}$ step whatever the level."
+   },
+   {
+    "label": "Smaller",
+    "correct": false,
+    "why": "Expected the step to shrink as the tree widens. In Model 1 every step is the same size."
+   }
+  ],
+  "working": [
+   {
+    "label": "Step",
+    "display": "$1.80\\% \\times \\sqrt{1/12} = 0.5196\\%$",
+    "value": 0.5196
+   },
+   {
+    "label": "Node [2,2]",
+    "display": "$4.000 + 2 \\times 0.5196 = 5.04\\%$",
+    "value": 5.0392
+   }
+  ],
+  "takeaway": "In a normal model with constant volatility the tree moves by the same $\\sigma\\sqrt{dt}$ at every node, so [2,2] $= r_0 + 2\\sigma\\sqrt{dt}$.",
+  "check": {
+   "inputs": {
+    "sig": 1.8,
+    "dt": 0.08333333333333333,
+    "r0": 4.0
+   },
+   "steps": [
+    {
+     "name": "step",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.519615
+    },
+    {
+     "name": "up1",
+     "expr": "r0+step",
+     "value": 4.51962
+    },
+    {
+     "name": "up2",
+     "expr": "up1+step",
+     "value": 5.03923
+    },
+    {
+     "name": "diff",
+     "expr": "(up2-up1)-(up1-r0)",
+     "value": 0.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-20",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0654"
+  },
+  "trap_category": "Sign",
+  "setup": "Model 2 tree ($dr = \\lambda\\,dt + \\sigma\\,dw$), monthly steps. Annual drift $\\lambda = 50$ bp, annual volatility 200 bp, start 3.000%, so the pure-volatility step is $\\sigma\\sqrt{dt} = 57.7$ bp. The month-1 down node is 2.464%; node [2,0] follows a second down-move.",
+  "ask": "The fall from 2.464% to [2,0] is:",
+  "options": [
+   {
+    "label": "Less than 57.7 bp",
+    "correct": true
+   },
+   {
+    "label": "Exactly 57.7 bp",
+    "correct": false,
+    "why": "Dropped the drift. A positive drift adds $\\lambda\\,dt = 4.2$ bp to every move, down-moves included."
+   },
+   {
+    "label": "More than 57.7 bp",
+    "correct": false,
+    "why": "Subtracted the drift with the shock ($57.7 + 4.2 = 61.9$ bp). Positive drift offsets a down-move."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift per step",
+    "display": "$50\\text{ bp} / 12 = 4.2\\text{ bp}$",
+    "value": 4.167
+   },
+   {
+    "label": "Net down-move",
+    "display": "$57.7 - 4.2 = 53.6\\text{ bp}$",
+    "value": 53.57
+   },
+   {
+    "label": "Node [2,0]",
+    "display": "$2.464 - 0.536 = 1.93\\%$",
+    "value": 1.928
+   }
+  ],
+  "takeaway": "With positive drift, an up-move is $\\lambda\\,dt + \\sigma\\sqrt{dt}$ and a down-move is $\\lambda\\,dt - \\sigma\\sqrt{dt}$, a smaller fall than the volatility step alone.",
+  "check": {
+   "inputs": {
+    "lam": 50,
+    "sig": 200,
+    "dt": 0.08333333333333333,
+    "n1": 2.464
+   },
+   "steps": [
+    {
+     "name": "vol",
+     "expr": "sig*sqrt(dt)",
+     "value": 57.735
+    },
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 4.16667
+    },
+    {
+     "name": "net",
+     "expr": "vol-drift",
+     "value": 53.5684
+    },
+    {
+     "name": "slip_more",
+     "expr": "vol+drift",
+     "value": 61.9017
+    },
+    {
+     "name": "node",
+     "expr": "n1-net/100",
+     "value": 1.92832
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-21",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0658"
+  },
+  "trap_category": "Scope",
+  "setup": "Model 2 two-period annual tree ($dr = \\lambda\\,dt + \\sigma\\,dw$): current rate 8%, annual drift 50 bp, rate standard deviation 2%. An ex-post draw of $dw = 0.3$ is observed. Up-down and down-up paths recombine in the middle node.",
+  "ask": "The middle node at the end of year 2 is:",
+  "options": [
+   {
+    "label": "Between 8.75% and 9.25%",
+    "correct": true
+   },
+   {
+    "label": "Below 8.75%",
+    "correct": false,
+    "why": "Counted only one year of drift: $8 + 0.5 = 8.5\\%$. The middle node has two periods of drift."
+   },
+   {
+    "label": "Above 9.25%",
+    "correct": false,
+    "why": "Added the shock $\\sigma\\,dw = 0.6$ as well: $8 + 1.0 + 0.6 = 9.6\\%$. The tree's middle node cancels the $\\pm\\sigma$ terms."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift over two years",
+    "display": "$2 \\times 0.50\\% = 1.00\\%$",
+    "value": 1.0
+   },
+   {
+    "label": "Middle node",
+    "display": "$8\\% + 1.00\\% = 9.0\\%$",
+    "value": 9.0
+   }
+  ],
+  "takeaway": "In a recombining tree an up-then-down path cancels the shocks, so the middle node is $r_0 + n\\lambda\\,dt$, whatever single draw is observed.",
+  "check": {
+   "inputs": {
+    "r0": 8,
+    "lam": 0.5,
+    "dt": 1,
+    "sig": 2,
+    "dw": 0.3
+   },
+   "steps": [
+    {
+     "name": "mid",
+     "expr": "r0+2*lam*dt",
+     "value": 9.0
+    },
+    {
+     "name": "slip_one",
+     "expr": "r0+lam*dt",
+     "value": 8.5
+    },
+    {
+     "name": "slip_shock",
+     "expr": "r0+2*lam*dt+2*dw",
+     "value": 9.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq02-22",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0659"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Model 2 simulation, monthly: $dr = \\lambda\\,dt + \\sigma\\,\\epsilon\\sqrt{dt}$ with $\\epsilon$ a standard normal draw. Start 4.00%, annual volatility $\\sigma = 2.50\\%$ (250 bp), drift $\\lambda = +1.00\\%$ a year, first draw $\\epsilon = -1.410$.",
+  "ask": "The shock term $\\sigma\\,\\epsilon\\sqrt{dt}$ is closest to:",
+  "options": [
+   {
+    "label": "−1.02 percentage points",
+    "correct": true
+   },
+   {
+    "label": "−3.5 percentage points",
+    "correct": false,
+    "why": "Left out $\\sqrt{dt}$ and used the annual volatility: $2.5 \\times -1.41$."
+   },
+   {
+    "label": "−0.29 percentage points",
+    "correct": false,
+    "why": "Multiplied by $dt = 1/12$ instead of $\\sqrt{dt}$."
+   },
+   {
+    "label": "+1.02 percentage points",
+    "correct": false,
+    "why": "Sign error: a negative draw lowers the rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Shock",
+    "display": "$2.50 \\times (-1.410) \\times \\sqrt{1/12} = -1.018$",
+    "value": -1.0176
+   },
+   {
+    "label": "Drift",
+    "display": "$1.00 / 12 = +0.083$",
+    "value": 0.0833
+   },
+   {
+    "label": "New rate",
+    "display": "$4.00 - 1.018 + 0.083 = 3.07\\%$",
+    "value": 3.0657
+   }
+  ],
+  "takeaway": "A standard normal draw is scaled by $\\sigma\\sqrt{dt}$: monthly volatility here is $2.5/\\sqrt{12} = 0.72$ pp, so a $-1.41$ draw moves the rate by about $-1.02$ pp.",
+  "check": {
+   "inputs": {
+    "sig": 2.5,
+    "eps": -1.41,
+    "dt": 0.08333333333333333,
+    "lam": 1.0,
+    "r": 4.0
+   },
+   "steps": [
+    {
+     "name": "shock",
+     "expr": "sig*eps*sqrt(dt)",
+     "value": -1.01758
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "sig*eps",
+     "value": -3.525
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*eps*dt",
+     "value": -0.29375
+    },
+    {
+     "name": "drift",
+     "expr": "lam*dt",
+     "value": 0.0833333
+    },
+    {
+     "name": "new",
+     "expr": "r+shock+drift",
+     "value": 3.06575
+    }
+   ]
+  }
+ }
+]

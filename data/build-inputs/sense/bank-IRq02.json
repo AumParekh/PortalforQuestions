@@ -1,0 +1,1656 @@
+[
+ {
+  "id": "SC-bank-IRq02-01",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0203"
+  },
+  "trap_category": "Scope",
+  "setup": "Bond X is a CAD 20m holding inside a CAD 150m bond portfolio. Annual volatilities: bond X 9%, portfolio 12%; the correlation of X with the portfolio is 0.60. Returns are normal; use a 1-year 99% VaR with $z = 2.326$.",
+  "ask": "The individual VaR of bond X is closest to:",
+  "options": [
+   {
+    "label": "≈ CAD 0.38m",
+    "correct": false,
+    "why": "Used the variance $0.09^2 = 0.0081$ where the volatility belongs: $20 \\times 2.326 \\times 0.0081 = 0.38$."
+   },
+   {
+    "label": "≈ CAD 4.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 31m",
+    "correct": false,
+    "why": "Applied the volatility to the whole CAD 150m portfolio instead of the CAD 20m position: $150 \\times 2.326 \\times 0.09 = 31.4$."
+   },
+   {
+    "label": "≈ CAD 420m",
+    "correct": false,
+    "why": "Typed 9% as 9 instead of 0.09, which inflates the answer 100 times."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$20 \\times 2.326 \\times 0.09 = \\text{CAD } 4.19\\text{m}$",
+    "value": 4.1868
+   },
+   {
+    "label": "Not needed",
+    "display": "Portfolio volatility (12%), portfolio value and the 0.60 correlation play no part",
+    "value": null
+   }
+  ],
+  "takeaway": "Individual VaR uses only the position's own value and own volatility: $|P_i|\\,z\\,\\sigma_i$. Portfolio figures and correlation belong to marginal and component VaR.",
+  "check": {
+   "inputs": {
+    "pos": 20,
+    "vol": 0.09,
+    "z": 2.326,
+    "port": 150
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "pos*z*vol",
+     "value": 4.1868
+    },
+    {
+     "name": "slip_var",
+     "expr": "pos*z*vol^2",
+     "value": 0.376812
+    },
+    {
+     "name": "slip_port",
+     "expr": "port*z*vol",
+     "value": 31.401
+    },
+    {
+     "name": "slip_pct",
+     "expr": "pos*z*(vol*100)",
+     "value": 418.68
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-02",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0204"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two positions with daily return volatilities: asset 1 is USD 60m at 1%, asset 2 is USD 7m at 4%. The correlation is 0.6. In dollars the daily volatilities are USD 0.60m and USD 0.28m. A 5-day 99% VaR is wanted ($z = 2.326$, normal returns).",
+  "ask": "The portfolio's diversified daily dollar volatility is:",
+  "options": [
+   {
+    "label": "USD 0.66m",
+    "correct": false,
+    "why": "Dropped the correlation term, i.e. treated $\\rho$ as 0: $\\sqrt{0.60^2 + 0.28^2} = 0.66$."
+   },
+   {
+    "label": "USD 0.80m",
+    "correct": true
+   },
+   {
+    "label": "USD 0.88m",
+    "correct": false,
+    "why": "Added the two dollar volatilities, $0.60 + 0.28$. That is the $\\rho = 1$ case; at $\\rho = 0.6$ there is some diversification."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dollar volatilities",
+    "display": "$60 \\times 1\\% = 0.60$ and $7 \\times 4\\% = 0.28$",
+    "value": 0.6
+   },
+   {
+    "label": "Daily variance",
+    "display": "$0.60^2 + 0.28^2 + 2(0.6)(0.60)(0.28) = 0.64$",
+    "value": 0.64
+   },
+   {
+    "label": "Daily dollar sigma",
+    "display": "$\\sqrt{0.64} = 0.80$",
+    "value": 0.8
+   },
+   {
+    "label": "5-day 99% VaR",
+    "display": "$2.326 \\times 0.80 \\times \\sqrt{5} \\approx \\text{USD } 4.16\\text{m}$",
+    "value": 4.16
+   }
+  ],
+  "takeaway": "The answer must sit between the zero-correlation figure (0.66) and the straight sum (0.88); correlation 0.6 puts it nearer the top. Scale by $\\sqrt{5}$ only at the end.",
+  "check": {
+   "inputs": {
+    "d1": 60,
+    "s1": 0.01,
+    "d2": 7,
+    "s2": 0.04,
+    "rho": 0.6,
+    "z": 2.326
+   },
+   "steps": [
+    {
+     "name": "a1",
+     "expr": "d1*s1",
+     "value": 0.6
+    },
+    {
+     "name": "a2",
+     "expr": "d2*s2",
+     "value": 0.28
+    },
+    {
+     "name": "var",
+     "expr": "a1^2+a2^2+2*rho*a1*a2",
+     "value": 0.64
+    },
+    {
+     "name": "sig",
+     "expr": "sqrt(var)",
+     "value": 0.8
+    },
+    {
+     "name": "var5",
+     "expr": "z*sig*sqrt(5)",
+     "value": 4.16088
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "sqrt(a1^2+a2^2)",
+     "value": 0.662118
+    },
+    {
+     "name": "slip_sum",
+     "expr": "a1+a2",
+     "value": 0.88
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-03",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0205"
+  },
+  "trap_category": "Formula",
+  "setup": "Returns are normal. A two-asset portfolio has a diversified VaR of USD 76m. Asset 1's individual VaR is USD 70m and the two assets are uncorrelated.",
+  "ask": "Asset 2's individual VaR is:",
+  "options": [
+   {
+    "label": "Well above USD 6m (the gap $76 - 70$)",
+    "correct": true
+   },
+   {
+    "label": "Exactly USD 6m",
+    "correct": false,
+    "why": "Subtracted the VaRs one-for-one, which only works at $\\rho = 1$. With $\\rho = 0$ they combine in quadrature: $76^2 - 70^2 = 876$."
+   },
+   {
+    "label": "Below USD 6m",
+    "correct": false,
+    "why": "Diversified VaR can never exceed the sum of the individual VaRs, so $VaR_2 \\ge 76 - 70 = 6$. Below 6 would need diversification to add risk."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap",
+    "display": "$76 - 70 = 6$ (the value only if $\\rho = 1$)",
+    "value": 6
+   },
+   {
+    "label": "Squared VaR of asset 2",
+    "display": "$76^2 - 70^2 = 5776 - 4900 = 876$",
+    "value": 876
+   },
+   {
+    "label": "Individual VaR",
+    "display": "$\\sqrt{876} \\approx \\text{USD } 29.6\\text{m}$",
+    "value": 29.6
+   }
+  ],
+  "takeaway": "With zero correlation the individual VaRs add as squares, so the missing asset is far bigger than the simple difference.",
+  "check": {
+   "inputs": {
+    "vp": 76,
+    "v1": 70
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "vp-v1",
+     "value": 6.0
+    },
+    {
+     "name": "v2sq",
+     "expr": "vp^2-v1^2",
+     "value": 876.0
+    },
+    {
+     "name": "v2",
+     "expr": "sqrt(v2sq)",
+     "value": 29.5973
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-04",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0207"
+  },
+  "trap_category": "Definition",
+  "setup": "Two uncorrelated assets, USD 20m each, both with 30% volatility, in a normal 95% VaR framework ($z = 1.645$). The incremental VaR of an asset is the portfolio VaR with it minus the portfolio VaR without it.",
+  "ask": "Compared with that asset's own individual VaR, its incremental VaR is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Treated the VaRs as adding in a straight line. Uncorrelated risks add as squares, so the portfolio VaR is less than the sum and the increment falls short of the standalone figure."
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Incremental VaR $=$ $VaR_P - VaR_{other}$, and $VaR_P \\le VaR_1 + VaR_2$ always, so it cannot exceed the asset's own VaR."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$20 \\times 0.30 \\times 1.645 = 9.87$",
+    "value": 9.87
+   },
+   {
+    "label": "Portfolio VaR",
+    "display": "$\\sqrt{9.87^2 + 9.87^2} = 13.96$",
+    "value": 13.958
+   },
+   {
+    "label": "Incremental VaR",
+    "display": "$13.96 - 9.87 = \\text{USD } 4.09\\text{m}$",
+    "value": 4.088
+   }
+  ],
+  "takeaway": "Incremental VaR is at most the standalone VaR, with equality only at $\\rho = 1$. Here it is under half.",
+  "check": {
+   "inputs": {
+    "pos": 20,
+    "vol": 0.3,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "pos*vol*z",
+     "value": 9.87
+    },
+    {
+     "name": "vp",
+     "expr": "sqrt(ind^2+ind^2)",
+     "value": 13.9583
+    },
+    {
+     "name": "inc",
+     "expr": "vp-ind",
+     "value": 4.08829
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-05",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0212"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 20m portfolio is split equally between a USD position and a EUR position (USD 10m each). Volatilities: USD position 30%, EUR position 20%. The correlation between them is 0.60.",
+  "ask": "The portfolio's volatility is closest to:",
+  "options": [
+   {
+    "label": "18.0%",
+    "correct": false,
+    "why": "Left out the correlation term ($\\rho = 0$): $\\sqrt{0.25 \\times 0.09 + 0.25 \\times 0.04} = 18.0\\%$."
+   },
+   {
+    "label": "22.5%",
+    "correct": true
+   },
+   {
+    "label": "25.0%",
+    "correct": false,
+    "why": "Took the average of 30% and 20%, which is the perfectly correlated case ($\\rho = 1$). At $\\rho = 0.6$ some risk diversifies away."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$0.25(0.09) + 0.25(0.04) + 2(0.5)(0.5)(0.6)(0.30)(0.20) = 0.0505$",
+    "value": 0.0505
+   },
+   {
+    "label": "Volatility",
+    "display": "$\\sqrt{0.0505} = 22.5\\%$",
+    "value": 0.2247
+   },
+   {
+    "label": "Next step: beta of the USD position",
+    "display": "$\\text{Cov}/\\text{Var} = 0.063 / 0.0505 = 1.25$",
+    "value": 1.2475
+   }
+  ],
+  "takeaway": "Portfolio volatility always lies between the $\\rho = 0$ figure (18%) and the straight average (25%). With $\\rho = 0.6$ it sits near the top of that range.",
+  "check": {
+   "inputs": {
+    "w": 0.5,
+    "s1": 0.3,
+    "s2": 0.2,
+    "rho": 0.6
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "w^2*s1^2+w^2*s2^2+2*w*w*rho*s1*s2",
+     "value": 0.0505
+    },
+    {
+     "name": "sig",
+     "expr": "sqrt(var)",
+     "value": 0.224722
+    },
+    {
+     "name": "cov",
+     "expr": "w*s1^2+w*rho*s1*s2",
+     "value": 0.063
+    },
+    {
+     "name": "beta",
+     "expr": "cov/var",
+     "value": 1.24752
+    },
+    {
+     "name": "slip_rho0",
+     "expr": "sqrt(w^2*s1^2+w^2*s2^2)",
+     "value": 0.180278
+    },
+    {
+     "name": "slip_avg",
+     "expr": "w*s1+w*s2",
+     "value": 0.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-06",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0213"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 10m portfolio is split equally between a CHF position (volatility 10%) and a JPY position (volatility 20%); the correlation is 0.30. Use a delta-normal 95% VaR ($z = 1.645$). The marginal VaR per dollar of a position is $z\\,\\beta\\,\\sigma_P$, where $\\beta$ is the position's beta to the portfolio.",
+  "ask": "CHF's marginal VaR per dollar, compared with the portfolio's own VaR per dollar $z\\sigma_P$, is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Only the value-weighted average of the betas is 1. The calmer CHF leg has $\\beta < 1$ and the JPY leg has $\\beta > 1$, so neither marginal VaR equals the portfolio figure."
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "That needs $\\beta_{CHF} > 1$, a position riskier than the portfolio. CHF is the lower-volatility leg, with $\\beta = 0.516$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio variance",
+    "display": "$0.25(0.01) + 0.25(0.04) + 2(0.5)(0.5)(0.3)(0.10)(0.20) = 0.0155$, so $\\sigma_P = 12.45\\%$",
+    "value": 0.0155
+   },
+   {
+    "label": "Beta of CHF",
+    "display": "$\\text{Cov}/\\text{Var} = 0.0080 / 0.0155 = 0.516$",
+    "value": 0.516
+   },
+   {
+    "label": "Marginal VaR",
+    "display": "$1.645 \\times 0.516 \\times 0.1245 = 0.106$ against $z\\sigma_P = 0.205$",
+    "value": 0.1057
+   }
+  ],
+  "takeaway": "Marginal VaR is the portfolio VaR per dollar scaled by beta: a low-volatility position sits below it, a high-volatility one above.",
+  "check": {
+   "inputs": {
+    "w": 0.5,
+    "s1": 0.1,
+    "s2": 0.2,
+    "rho": 0.3,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "w^2*s1^2+w^2*s2^2+2*w*w*rho*s1*s2",
+     "value": 0.0155
+    },
+    {
+     "name": "sp",
+     "expr": "sqrt(var)",
+     "value": 0.124499
+    },
+    {
+     "name": "cov",
+     "expr": "w*s1^2+w*rho*s1*s2",
+     "value": 0.008
+    },
+    {
+     "name": "beta",
+     "expr": "cov/var",
+     "value": 0.516129
+    },
+    {
+     "name": "mvar",
+     "expr": "z*beta*sp",
+     "value": 0.105704
+    },
+    {
+     "name": "pvar",
+     "expr": "z*sp",
+     "value": 0.204801
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-07",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0214"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 10m portfolio has 30% annual volatility and holds two positions, Y and Z. Y's beta to the portfolio is 0.80. Use a normal 99% VaR with $z = 2.33$.",
+  "ask": "Y's marginal VaR (per dollar of Y) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.056",
+    "correct": false,
+    "why": "Read the 30% volatility as 3%, a factor-10 slip."
+   },
+   {
+    "label": "≈ 0.56",
+    "correct": true
+   },
+   {
+    "label": "≈ 1.9",
+    "correct": false,
+    "why": "Left out the portfolio volatility and stopped at $z\\beta = 2.33 \\times 0.80 = 1.86$."
+   },
+   {
+    "label": "≈ 5.6",
+    "correct": false,
+    "why": "Multiplied by the USD 10m portfolio value. That gives a dollar figure (USD 5.6m), not a marginal VaR per dollar."
+   }
+  ],
+  "working": [
+   {
+    "label": "Marginal VaR",
+    "display": "$2.33 \\times 0.80 \\times 0.30 = 0.559$ per dollar of Y",
+    "value": 0.5592
+   }
+  ],
+  "takeaway": "Marginal VaR $= z\\,\\beta\\,\\sigma_P$ is per dollar. Multiply by the dollar position to get component VaR.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "beta": 0.8,
+    "sp": 0.3,
+    "port": 10
+   },
+   "steps": [
+    {
+     "name": "mvar",
+     "expr": "z*beta*sp",
+     "value": 0.5592
+    },
+    {
+     "name": "slip_scale",
+     "expr": "mvar/10",
+     "value": 0.05592
+    },
+    {
+     "name": "slip_nosig",
+     "expr": "z*beta",
+     "value": 1.864
+    },
+    {
+     "name": "slip_dollar",
+     "expr": "mvar*port",
+     "value": 5.592
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-08",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0215"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 20m portfolio has a 95% VaR of USD 6.0m. It holds two identical positions, A and B, USD 10m each. A's marginal VaR is 0.30 per dollar.",
+  "ask": "A's component VaR is:",
+  "options": [
+   {
+    "label": "USD 3.0m",
+    "correct": true
+   },
+   {
+    "label": "USD 6.0m",
+    "correct": false,
+    "why": "Multiplied the marginal VaR by the whole USD 20m portfolio ($0.30 \\times 20 = 6.0$) instead of A's USD 10m."
+   },
+   {
+    "label": "USD 0.9m",
+    "correct": false,
+    "why": "Multiplied the marginal VaR by A's half of the VaR (USD 3.0m) instead of by A's dollar position."
+   }
+  ],
+  "working": [
+   {
+    "label": "Component VaR",
+    "display": "$0.30 \\times \\text{USD } 10\\text{m} = \\text{USD } 3.0\\text{m}$",
+    "value": 3.0
+   },
+   {
+    "label": "Check",
+    "display": "A and B are identical, so each carries half of the USD 6.0m: $3.0 + 3.0 = 6.0$",
+    "value": 6.0
+   }
+  ],
+  "takeaway": "Component VaR = marginal VaR $\\times$ dollar position, and the components add up to the portfolio VaR. Identical positions split it evenly.",
+  "check": {
+   "inputs": {
+    "mvar": 0.3,
+    "pos": 10,
+    "port": 20,
+    "varp": 6.0
+   },
+   "steps": [
+    {
+     "name": "comp",
+     "expr": "mvar*pos",
+     "value": 3.0
+    },
+    {
+     "name": "total",
+     "expr": "comp*2",
+     "value": 6.0
+    },
+    {
+     "name": "slip_whole",
+     "expr": "mvar*port",
+     "value": 6.0
+    },
+    {
+     "name": "slip_share",
+     "expr": "mvar*(varp/2)",
+     "value": 0.9
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-09",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0216"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 20m portfolio holds USD 14m in Y and USD 6m in Z. Each position has 10% volatility and the two are uncorrelated. Y's beta to the portfolio is 1.207, Z's is 0.517. A position's share of portfolio VaR is its weight times its beta.",
+  "ask": "Y is 70% of the capital. Its share of portfolio VaR is:",
+  "options": [
+   {
+    "label": "Above 70%",
+    "correct": true
+   },
+   {
+    "label": "Exactly 70%",
+    "correct": false,
+    "why": "Assumed VaR follows capital. The share is weight $\\times$ beta, and Y's beta is above 1."
+   },
+   {
+    "label": "Below 70%",
+    "correct": false,
+    "why": "That needs $\\beta_Y < 1$. With equal volatilities and zero correlation the bigger position dominates portfolio risk, and its beta is 1.207."
+   }
+  ],
+  "working": [
+   {
+    "label": "Share of VaR for Y",
+    "display": "$0.70 \\times 1.207 = 84.5\\%$",
+    "value": 0.8449
+   },
+   {
+    "label": "Check against Z",
+    "display": "$0.30 \\times 0.517 = 15.5\\%$, and $84.5\\% + 15.5\\% = 100\\%$",
+    "value": 0.1551
+   },
+   {
+    "label": "Component VaR of Y",
+    "display": "$\\sigma_P = 7.616\\%$, so $VaR_P = 1.645 \\times 0.07616 \\times 20 = 2.506$ and $2.506 \\times 0.845 = \\text{USD } 2.12\\text{m}$",
+    "value": 2.117
+   }
+  ],
+  "takeaway": "Weight $\\times$ beta gives each position's share of VaR, and the shares sum to 100%. Beta above 1 means the position takes more than its capital share.",
+  "check": {
+   "inputs": {
+    "wY": 0.7,
+    "bY": 1.207,
+    "wZ": 0.3,
+    "bZ": 0.517,
+    "s": 0.1,
+    "z": 1.645,
+    "port": 20
+   },
+   "steps": [
+    {
+     "name": "shareY",
+     "expr": "wY*bY",
+     "value": 0.8449
+    },
+    {
+     "name": "shareZ",
+     "expr": "wZ*bZ",
+     "value": 0.1551
+    },
+    {
+     "name": "total",
+     "expr": "shareY+shareZ",
+     "value": 1.0
+    },
+    {
+     "name": "sp",
+     "expr": "sqrt(wY^2*s^2+wZ^2*s^2)",
+     "value": 0.0761577
+    },
+    {
+     "name": "varp",
+     "expr": "z*sp*port",
+     "value": 2.50559
+    },
+    {
+     "name": "compY",
+     "expr": "varp*shareY",
+     "value": 2.11697
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-10",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0222"
+  },
+  "trap_category": "Scope",
+  "setup": "A USD 1.30m portfolio holds USD 500,000 in a Financial fund (volatility 40%) and USD 800,000 in an Energy fund (volatility 20%). Returns are jointly normal; 95% VaR with $z = 1.645$. The diversified VaR of the portfolio is USD 513,900. Incremental VaR of Financial = portfolio VaR minus the VaR of the portfolio without Financial.",
+  "ask": "With Financial removed, the remaining portfolio's VaR is:",
+  "options": [
+   {
+    "label": "USD 263,200",
+    "correct": true
+   },
+   {
+    "label": "USD 513,900",
+    "correct": false,
+    "why": "That is the VaR with Financial still in; removing the position changes it."
+   },
+   {
+    "label": "USD 329,000",
+    "correct": false,
+    "why": "Used Financial's own individual VaR (the fund that was removed) rather than Energy's, which is all that remains."
+   }
+  ],
+  "working": [
+   {
+    "label": "Energy alone",
+    "display": "$800{,}000 \\times 0.20 \\times 1.645 = 263{,}200$",
+    "value": 263200
+   },
+   {
+    "label": "Incremental VaR of Financial",
+    "display": "$513{,}900 - 263{,}200 = \\text{USD } 250{,}700$",
+    "value": 250700
+   }
+  ],
+  "takeaway": "After removing a position the portfolio is the remaining holding, so its VaR is just that holding's individual VaR.",
+  "check": {
+   "inputs": {
+    "pe": 800000,
+    "ve": 0.2,
+    "pf": 500000,
+    "vf": 0.4,
+    "z": 1.645,
+    "vp": 513900
+   },
+   "steps": [
+    {
+     "name": "energy",
+     "expr": "pe*ve*z",
+     "value": 263200.0
+    },
+    {
+     "name": "inc",
+     "expr": "vp-energy",
+     "value": 250700.0
+    },
+    {
+     "name": "slip_fin",
+     "expr": "pf*vf*z",
+     "value": 329000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-11",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0225"
+  },
+  "trap_category": "Formula",
+  "setup": "A CAD 248m stock portfolio holds CAD 15m of stock T. Annual volatilities: portfolio 16%, T 13%. The correlation of T with the portfolio is 0.45. Normal returns; 1-year 95% VaR with $z = 1.645$.",
+  "ask": "The component VaR of stock T is closest to:",
+  "options": [
+   {
+    "label": "≈ CAD 0.096m",
+    "correct": false,
+    "why": "Stopped at the marginal VaR ($0.096$ per dollar) and never multiplied by the CAD 15m position."
+   },
+   {
+    "label": "≈ CAD 1.4m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 3.9m",
+    "correct": false,
+    "why": "Skipped beta and used the portfolio's volatility on the position: $1.645 \\times 0.16 \\times 15 = 3.95$."
+   },
+   {
+    "label": "≈ CAD 24m",
+    "correct": false,
+    "why": "Multiplied the marginal VaR by the whole CAD 248m portfolio instead of the CAD 15m position."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta of T",
+    "display": "$\\rho\\,\\sigma_T / \\sigma_P = 0.45 \\times 0.13 / 0.16 = 0.366$",
+    "value": 0.36563
+   },
+   {
+    "label": "Marginal VaR",
+    "display": "$1.645 \\times 0.16 \\times 0.366 = 0.0962$ per dollar",
+    "value": 0.09623
+   },
+   {
+    "label": "Component VaR",
+    "display": "$0.0962 \\times 15 = \\text{CAD } 1.44\\text{m}$",
+    "value": 1.4434
+   }
+  ],
+  "takeaway": "Component VaR = marginal VaR $\\times$ position. Marginal VaR alone is per dollar, so stock T (CAD 15m of 248m) contributes only a small slice.",
+  "check": {
+   "inputs": {
+    "z": 1.645,
+    "sp": 0.16,
+    "st": 0.13,
+    "rho": 0.45,
+    "pos": 15,
+    "port": 248
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "rho*st/sp",
+     "value": 0.365625
+    },
+    {
+     "name": "mvar",
+     "expr": "z*sp*beta",
+     "value": 0.0962325
+    },
+    {
+     "name": "comp",
+     "expr": "mvar*pos",
+     "value": 1.44349
+    },
+    {
+     "name": "slip_mvar",
+     "expr": "mvar",
+     "value": 0.0962325
+    },
+    {
+     "name": "slip_nobeta",
+     "expr": "z*sp*pos",
+     "value": 3.948
+    },
+    {
+     "name": "slip_port",
+     "expr": "mvar*port",
+     "value": 23.8657
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-12",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0229"
+  },
+  "trap_category": "Sign",
+  "setup": "A portfolio holds a USD 5m short position in an asset with 20% annual volatility. Returns are normal; 1-year 99% VaR with $z = 2.33$.",
+  "ask": "Compared with a USD 5m long position in the same asset, the short's individual VaR is:",
+  "options": [
+   {
+    "label": "The same, a positive USD 2.33m",
+    "correct": true
+   },
+   {
+    "label": "Negative, because the short gains when the asset falls",
+    "correct": false,
+    "why": "Carried the short's minus sign into the VaR. VaR is a loss magnitude, $z\\sigma|P|$, and is quoted as a positive number."
+   },
+   {
+    "label": "Smaller, because the short profits from a fall",
+    "correct": false,
+    "why": "Under symmetric normal returns the short's loss tail is an equally likely rise of the same size, so the risk is identical."
+   }
+  ],
+  "working": [
+   {
+    "label": "Individual VaR",
+    "display": "$2.33 \\times 0.20 \\times |-5| = \\text{USD } 2.33\\text{m}$",
+    "value": 2.33
+   }
+  ],
+  "takeaway": "Individual VaR uses the absolute position size: long and short of the same amount carry the same VaR.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "vol": 0.2,
+    "pos": -5
+   },
+   "steps": [
+    {
+     "name": "ind",
+     "expr": "z*vol*abs(pos)",
+     "value": 2.33
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-13",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0231"
+  },
+  "trap_category": "Polarity",
+  "setup": "A gold futures position has a VaR of USD 67m and a palladium position a VaR of USD 32m. The correlation between the two price changes is 0.4. Combined VaR is $\\sqrt{V_1^2 + V_2^2 + 2\\rho V_1 V_2}$. The zero-correlation figure is about USD 74m and the simple sum is USD 99m.",
+  "ask": "The combined (diversified) VaR lies:",
+  "options": [
+   {
+    "label": "Between USD 74m and USD 99m",
+    "correct": true
+   },
+   {
+    "label": "Below USD 74m",
+    "correct": false,
+    "why": "Positive correlation adds $2\\rho V_1V_2$ on top of the zero-correlation figure, so the result is above it, not below."
+   },
+   {
+    "label": "At or above USD 99m",
+    "correct": false,
+    "why": "The straight sum is reached only at $\\rho = 1$. At $\\rho = 0.4$ some risk diversifies away."
+   }
+  ],
+  "working": [
+   {
+    "label": "Zero-correlation figure",
+    "display": "$\\sqrt{67^2 + 32^2} = \\sqrt{5513} = 74.25$",
+    "value": 74.25
+   },
+   {
+    "label": "Add the correlation term",
+    "display": "$\\sqrt{5513 + 2(0.4)(67)(32)} = \\sqrt{7228} = \\text{USD } 85.0\\text{m}$",
+    "value": 85.02
+   }
+  ],
+  "takeaway": "For $0 < \\rho < 1$ the diversified VaR sits strictly between the quadrature figure ($\\rho = 0$) and the straight sum ($\\rho = 1$).",
+  "check": {
+   "inputs": {
+    "v1": 67,
+    "v2": 32,
+    "rho": 0.4
+   },
+   "steps": [
+    {
+     "name": "v0",
+     "expr": "sqrt(v1^2+v2^2)",
+     "value": 74.2496
+    },
+    {
+     "name": "vsum",
+     "expr": "v1+v2",
+     "value": 99.0
+    },
+    {
+     "name": "vp",
+     "expr": "sqrt(v1^2+v2^2+2*rho*v1*v2)",
+     "value": 85.0188
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-14",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0232"
+  },
+  "trap_category": "Formula",
+  "setup": "A manager holds USD 700m of Grinold shares (volatility 12%) and buys USD 300m of Fujarah shares (volatility 9%, correlation with Grinold 0.8). Returns are normal; 99% VaR with $z = 2.33$.",
+  "ask": "The VaR of the combined USD 1,000m portfolio is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.25m",
+    "correct": false,
+    "why": "Computed the per-dollar VaR ($2.33 \\times 10.7\\%$) and never multiplied by the USD 1,000m portfolio."
+   },
+   {
+    "label": "≈ USD 27m",
+    "correct": false,
+    "why": "Used the portfolio variance (0.0114) where the volatility belongs: $2.33 \\times 0.0114 \\times 1000 = 26.6$."
+   },
+   {
+    "label": "≈ USD 250m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 25,000m",
+    "correct": false,
+    "why": "Entered the portfolio volatility as 10.68 instead of 0.1068, 100 times too big."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio variance",
+    "display": "$0.7^2(0.12)^2 + 0.3^2(0.09)^2 + 2(0.7)(0.3)(0.8)(0.12)(0.09) = 0.01141$",
+    "value": 0.0114138
+   },
+   {
+    "label": "Portfolio volatility",
+    "display": "$\\sqrt{0.01141} = 10.68\\%$",
+    "value": 0.10684
+   },
+   {
+    "label": "VaR",
+    "display": "$2.33 \\times 0.1068 \\times 1000 \\approx \\text{USD } 249\\text{m}$",
+    "value": 248.93
+   }
+  ],
+  "takeaway": "Check the answer lands below the weighted-average volatility (11.1%) times the position: correlation 0.8 is high but still diversifies a little.",
+  "check": {
+   "inputs": {
+    "w1": 0.7,
+    "w2": 0.3,
+    "s1": 0.12,
+    "s2": 0.09,
+    "rho": 0.8,
+    "z": 2.33,
+    "port": 1000
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "w1^2*s1^2+w2^2*s2^2+2*w1*w2*rho*s1*s2",
+     "value": 0.0114138
+    },
+    {
+     "name": "sig",
+     "expr": "sqrt(var)",
+     "value": 0.106835
+    },
+    {
+     "name": "v",
+     "expr": "z*sig*port",
+     "value": 248.926
+    },
+    {
+     "name": "slip_perdollar",
+     "expr": "z*sig",
+     "value": 0.248926
+    },
+    {
+     "name": "slip_var",
+     "expr": "z*var*port",
+     "value": 26.5942
+    },
+    {
+     "name": "slip_pct",
+     "expr": "z*(sig*100)*port",
+     "value": 24892.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-15",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0358"
+  },
+  "trap_category": "Sign",
+  "setup": "Over one period an equity fund returned $-12\\%$ (beta 1.18, standard deviation 15%) and the EGX index returned $-16\\%$ (beta 1.00, standard deviation 19%). The risk-free rate is 6%.",
+  "ask": "Which has the higher Treynor measure?",
+  "options": [
+   {
+    "label": "The equity fund",
+    "correct": true
+   },
+   {
+    "label": "The EGX index",
+    "correct": false,
+    "why": "Reasoned that the fund's higher beta means it earns less per unit of risk. Both excess returns are negative, so a bigger beta shrinks the loss ratio toward zero, and the fund's excess return is also less negative ($-18\\%$ against $-22\\%$)."
+   },
+   {
+    "label": "Cannot tell without the standard deviations",
+    "correct": false,
+    "why": "Treynor divides by beta, not by standard deviation, so the 15% and 19% are not needed."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fund Treynor",
+    "display": "$(-12\\% - 6\\%) / 1.18 = -0.1525$",
+    "value": -0.15254
+   },
+   {
+    "label": "Index Treynor",
+    "display": "$(-16\\% - 6\\%) / 1.00 = -0.2200$",
+    "value": -0.22
+   },
+   {
+    "label": "Difference",
+    "display": "$-0.1525 - (-0.2200) = +0.0675$",
+    "value": 0.06746
+   }
+  ],
+  "takeaway": "Treynor $= (R_p - R_f)/\\beta$. With negative excess returns a larger beta makes the ratio less negative; here both numerator and denominator favour the fund.",
+  "check": {
+   "inputs": {
+    "rf": 0.06,
+    "rp": -0.12,
+    "bp": 1.18,
+    "rm": -0.16,
+    "bm": 1.0
+   },
+   "steps": [
+    {
+     "name": "tf",
+     "expr": "(rp-rf)/bp",
+     "value": -0.152542
+    },
+    {
+     "name": "ti",
+     "expr": "(rm-rf)/bm",
+     "value": -0.22
+    },
+    {
+     "name": "diff",
+     "expr": "tf-ti",
+     "value": 0.0674576
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-16",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0361"
+  },
+  "trap_category": "Role",
+  "setup": "A fund averaged 32% with standard deviation 40%, beta 1.15 and tracking error 16%. The market averaged 25% with standard deviation 30%. The T-bill rate is 6%.",
+  "ask": "Which has the higher Sharpe ratio?",
+  "options": [
+   {
+    "label": "The fund",
+    "correct": true
+   },
+   {
+    "label": "The market",
+    "correct": false,
+    "why": "Judged on its lower standard deviation alone. Sharpe divides excess return by standard deviation: $26/40 = 0.650$ against $19/30 = 0.633$."
+   },
+   {
+    "label": "Cannot tell without beta and tracking error",
+    "correct": false,
+    "why": "Sharpe uses total risk, so beta and tracking error are not needed."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fund Sharpe",
+    "display": "$(32\\% - 6\\%) / 40\\% = 0.650$",
+    "value": 0.65
+   },
+   {
+    "label": "Market Sharpe",
+    "display": "$(25\\% - 6\\%) / 30\\% = 0.633$",
+    "value": 0.6333
+   }
+  ],
+  "takeaway": "Sharpe $= (R - R_f)/\\sigma$ uses total volatility. Beta and tracking error belong to Treynor and the information ratio.",
+  "check": {
+   "inputs": {
+    "rp": 0.32,
+    "sp": 0.4,
+    "rm": 0.25,
+    "sm": 0.3,
+    "rf": 0.06
+   },
+   "steps": [
+    {
+     "name": "shp",
+     "expr": "(rp-rf)/sp",
+     "value": 0.65
+    },
+    {
+     "name": "shm",
+     "expr": "(rm-rf)/sm",
+     "value": 0.633333
+    },
+    {
+     "name": "diff",
+     "expr": "shp-shm",
+     "value": 0.0166667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-17",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0362"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A currency portfolio is two-thirds CAD (expected return 8%) and one-third EUR (expected return 5%). Its standard deviation is 15.62% and the risk-free rate is 2%.",
+  "ask": "The portfolio's excess return over the risk-free rate (the Sharpe numerator) is:",
+  "options": [
+   {
+    "label": "5.0%",
+    "correct": true
+   },
+   {
+    "label": "7.0%",
+    "correct": false,
+    "why": "Stopped at the weighted expected return and never subtracted the 2% risk-free rate."
+   },
+   {
+    "label": "6.0%",
+    "correct": false,
+    "why": "Took the CAD leg alone, $8\\% - 2\\%$, and ignored the 5% EUR leg."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected return",
+    "display": "$\\tfrac{2}{3}(8\\%) + \\tfrac{1}{3}(5\\%) = 7.0\\%$",
+    "value": 7.0
+   },
+   {
+    "label": "Excess return",
+    "display": "$7.0\\% - 2\\% = 5.0\\%$",
+    "value": 5.0
+   },
+   {
+    "label": "Sharpe",
+    "display": "$5.0 / 15.62 = 0.32$",
+    "value": 0.3201
+   }
+  ],
+  "takeaway": "Weight the returns first, then subtract the risk-free rate, then divide by the portfolio's standard deviation.",
+  "check": {
+   "inputs": {
+    "w1": 0.6667,
+    "r1": 8,
+    "w2": 0.3333,
+    "r2": 5,
+    "rf": 2,
+    "sd": 15.62
+   },
+   "steps": [
+    {
+     "name": "er",
+     "expr": "w1*r1+w2*r2",
+     "value": 7.0001
+    },
+    {
+     "name": "exc",
+     "expr": "er-rf",
+     "value": 5.0001
+    },
+    {
+     "name": "shp",
+     "expr": "exc/sd",
+     "value": 0.320109
+    },
+    {
+     "name": "slip_norf",
+     "expr": "er",
+     "value": 7.0001
+    },
+    {
+     "name": "slip_cad",
+     "expr": "r1-rf",
+     "value": 6.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-18",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0365"
+  },
+  "trap_category": "Role",
+  "setup": "A portfolio returned 10% with beta 1.1 and standard deviation 6%. The market returned 7% and the risk-free rate is 3%.",
+  "ask": "Jensen's alpha is:",
+  "options": [
+   {
+    "label": "Below 3% (the portfolio's $10\\% - 7\\%$ edge over the market)",
+    "correct": true
+   },
+   {
+    "label": "Exactly 3%",
+    "correct": false,
+    "why": "Compared the portfolio with the market return directly, ignoring beta. Alpha is measured against the CAPM required return, not the market return."
+   },
+   {
+    "label": "Above 3%",
+    "correct": false,
+    "why": "Treated beta above 1 as extra reward. It raises the required return: $3\\% + 1.1 \\times 4\\% = 7.4\\%$, which cuts the alpha below 3%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Required return",
+    "display": "$3\\% + 1.1 \\times (7\\% - 3\\%) = 7.4\\%$",
+    "value": 7.4
+   },
+   {
+    "label": "Alpha",
+    "display": "$10\\% - 7.4\\% = 2.6\\%$",
+    "value": 2.6
+   }
+  ],
+  "takeaway": "Alpha $= R_p - [R_f + \\beta(R_m - R_f)]$. Beta above 1 lifts the hurdle, so alpha is smaller than the raw edge over the market.",
+  "check": {
+   "inputs": {
+    "rp": 10,
+    "rm": 7,
+    "rf": 3,
+    "beta": 1.1
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "rf+beta*(rm-rf)",
+     "value": 7.4
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-req",
+     "value": 2.6
+    },
+    {
+     "name": "naive",
+     "expr": "rp-rm",
+     "value": 3.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-19",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0370"
+  },
+  "trap_category": "Formula",
+  "setup": "Qintar Fund returned 16.5% with beta 0.8. The market returned 10% and the T-bill rate is 4.5%. (Standard deviations are also quoted, but are not needed here.)",
+  "ask": "The CAPM required return for Qintar is closest to:",
+  "options": [
+   {
+    "label": "8.9%",
+    "correct": true
+   },
+   {
+    "label": "4.4%",
+    "correct": false,
+    "why": "Multiplied beta by the market premium ($0.8 \\times 5.5\\%$) and forgot to add the risk-free rate back."
+   },
+   {
+    "label": "10.0%",
+    "correct": false,
+    "why": "Used the market return, which is the required return only for a beta of 1. Qintar's beta is 0.8, so the required return is lower."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market premium",
+    "display": "$10\\% - 4.5\\% = 5.5\\%$",
+    "value": 5.5
+   },
+   {
+    "label": "Required return",
+    "display": "$4.5\\% + 0.8 \\times 5.5\\% = 8.9\\%$",
+    "value": 8.9
+   },
+   {
+    "label": "Alpha",
+    "display": "$16.5\\% - 8.9\\% = 7.6\\%$",
+    "value": 7.6
+   }
+  ],
+  "takeaway": "Required return $= R_f + \\beta(R_m - R_f)$. Beta below 1 puts it between the risk-free rate and the market return.",
+  "check": {
+   "inputs": {
+    "rf": 4.5,
+    "rm": 10,
+    "beta": 0.8,
+    "rp": 16.5
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "rm-rf",
+     "value": 5.5
+    },
+    {
+     "name": "req",
+     "expr": "rf+beta*prem",
+     "value": 8.9
+    },
+    {
+     "name": "alpha",
+     "expr": "rp-req",
+     "value": 7.6
+    },
+    {
+     "name": "slip_norf",
+     "expr": "beta*prem",
+     "value": 4.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-20",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0366"
+  },
+  "trap_category": "Formula",
+  "setup": "A portfolio is expected to return 21.2% next year, the Treasury note yields 11.6%, and the portfolio's standard deviation is 9% (0.09).",
+  "ask": "The Sharpe ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.011",
+    "correct": false,
+    "why": "Divided the excess return in decimals (0.096) by the volatility entered as 9, a percent-versus-decimal mismatch."
+   },
+   {
+    "label": "≈ 1.07",
+    "correct": true
+   },
+   {
+    "label": "≈ 12",
+    "correct": false,
+    "why": "Divided by the variance $0.09^2 = 0.0081$ instead of the standard deviation."
+   },
+   {
+    "label": "≈ 107",
+    "correct": false,
+    "why": "Divided the excess return in percent (9.6) by the volatility in decimals (0.09), a percent-versus-decimal mismatch."
+   }
+  ],
+  "working": [
+   {
+    "label": "Excess return",
+    "display": "$21.2\\% - 11.6\\% = 9.6\\%$",
+    "value": 0.096
+   },
+   {
+    "label": "Sharpe",
+    "display": "$0.096 / 0.09 = 1.07$",
+    "value": 1.0667
+   }
+  ],
+  "takeaway": "Sharpe $= (R_p - R_f)/\\sigma_p$: keep excess return and volatility in the same units. A result near 1 means about one unit of return per unit of risk.",
+  "check": {
+   "inputs": {
+    "rp": 0.212,
+    "rf": 0.116,
+    "sd": 0.09
+   },
+   "steps": [
+    {
+     "name": "ex",
+     "expr": "rp-rf",
+     "value": 0.096
+    },
+    {
+     "name": "shp",
+     "expr": "ex/sd",
+     "value": 1.06667
+    },
+    {
+     "name": "slip_a",
+     "expr": "ex/(sd*100)",
+     "value": 0.0106667
+    },
+    {
+     "name": "slip_var",
+     "expr": "ex/sd^2",
+     "value": 11.8519
+    },
+    {
+     "name": "slip_b",
+     "expr": "(ex*100)/sd",
+     "value": 106.667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq02-21",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0372"
+  },
+  "trap_category": "Role",
+  "setup": "A hedge fund returned 13.3% against 8.9% for its benchmark. Fund volatility is 16.3%, index volatility 9.8%, tracking error 1.34%, and the risk-free rate is 5.7%.",
+  "ask": "The information ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.033",
+    "correct": false,
+    "why": "Entered the active return in decimals (0.044) but the tracking error in percent (1.34), a percent-versus-decimal mismatch."
+   },
+   {
+    "label": "≈ 0.27",
+    "correct": false,
+    "why": "Divided the active return by the fund's total volatility (16.3%) instead of the tracking error. That is a Sharpe-style denominator."
+   },
+   {
+    "label": "≈ 3.3",
+    "correct": true
+   },
+   {
+    "label": "≈ 330",
+    "correct": false,
+    "why": "Entered the active return in percent (4.4) but the tracking error as 0.0134, a percent-versus-decimal mismatch."
+   }
+  ],
+  "working": [
+   {
+    "label": "Active return",
+    "display": "$13.3\\% - 8.9\\% = 4.4\\%$",
+    "value": 4.4
+   },
+   {
+    "label": "Information ratio",
+    "display": "$4.4 / 1.34 = 3.3$",
+    "value": 3.2836
+   }
+  ],
+  "takeaway": "Information ratio $=$ active return over tracking error. The risk-free rate and total volatility are not used.",
+  "check": {
+   "inputs": {
+    "rp": 13.3,
+    "rb": 8.9,
+    "te": 1.34,
+    "vol": 16.3
+   },
+   "steps": [
+    {
+     "name": "act",
+     "expr": "rp-rb",
+     "value": 4.4
+    },
+    {
+     "name": "ir",
+     "expr": "act/te",
+     "value": 3.28358
+    },
+    {
+     "name": "slip_dec",
+     "expr": "(act/100)/te",
+     "value": 0.0328358
+    },
+    {
+     "name": "slip_vol",
+     "expr": "act/vol",
+     "value": 0.269939
+    },
+    {
+     "name": "slip_te",
+     "expr": "act/(te/100)",
+     "value": 328.358
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,1101 @@
+[
+ {
+  "id": "SC-bank-CRq12-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0527"
+  },
+  "trap_category": "Definition",
+  "setup": "Bank A and Bank B have a zero-threshold, two-way collateral agreement with a 10-day margin period of risk. B stopped posting 10 days before it defaulted, so A holds collateral equal to the swap value of that earlier date: USD 40m. At default the swap is worth USD 50m to A.",
+  "ask": "A's credit exposure at default is:",
+  "options": [
+   {
+    "label": "Positive, but smaller than the USD 50m swap value",
+    "correct": true
+   },
+   {
+    "label": "Zero: A is fully collateralised",
+    "correct": false,
+    "why": "Assumed the collateral tracks the current value. It only covers the value as of 10 days earlier, so the 10m of value gained since then is unsecured."
+   },
+   {
+    "label": "Equal to the full USD 50m swap value",
+    "correct": false,
+    "why": "Ignored the collateral A holds: max(50 - 0, 0) = 50."
+   }
+  ],
+  "working": [
+   {
+    "label": "Collateral held",
+    "display": "USD 40m (value 10 days before default)",
+    "value": 40
+   },
+   {
+    "label": "Exposure",
+    "display": "$\\max(50 - 40, 0) = \\text{USD } 10\\text{m}$",
+    "value": 10
+   }
+  ],
+  "takeaway": "The collateral lags by the margin period of risk, so a swap that gained value during the cure period leaves an unsecured gap.",
+  "check": {
+   "inputs": {
+    "V": 50,
+    "C": 40
+   },
+   "steps": [
+    {
+     "name": "exposure",
+     "expr": "max(V-C,0)",
+     "value": 10
+    },
+    {
+     "name": "slip_no_collateral",
+     "expr": "V",
+     "value": 50
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-12: Credit Risk",
+  "reading_id": "CR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0541"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Four uncollateralised derivatives with one counterparty sit under a master netting agreement. Their values to the bank are +18, -7, +12 and -20 (USD m).",
+  "ask": "The bank's exposure to the counterparty with netting is closest to:",
+  "options": [
+   {
+    "label": "USD 3m",
+    "correct": true
+   },
+   {
+    "label": "USD 0",
+    "correct": false,
+    "why": "Assumed the largest loss (-20) outweighs everything. The four values sum to +3, which is still owed to the bank."
+   },
+   {
+    "label": "USD 30m",
+    "correct": false,
+    "why": "That is the exposure with no netting: only the positive trades, 18 + 12."
+   },
+   {
+    "label": "USD 57m",
+    "correct": false,
+    "why": "Added the absolute values of all four trades, treating every trade as an exposure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net sum",
+    "display": "$18 - 7 + 12 - 20 = +3$",
+    "value": 3
+   },
+   {
+    "label": "Gross (no netting)",
+    "display": "$18 + 12 = 30$",
+    "value": 30
+   },
+   {
+    "label": "Reduction from netting",
+    "display": "$30 - 3 = 27$",
+    "value": 27
+   }
+  ],
+  "takeaway": "Netting sums the values first and floors the total at zero. Here that cuts the exposure from 30 to 3, a reduction of 27.",
+  "check": {
+   "inputs": {
+    "a": 18,
+    "b": -7,
+    "c": 12,
+    "d": -20
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "max(a+b+c+d,0)",
+     "value": 3
+    },
+    {
+     "name": "gross",
+     "expr": "max(a,0)+max(b,0)+max(c,0)+max(d,0)",
+     "value": 30
+    },
+    {
+     "name": "benefit",
+     "expr": "gross-net",
+     "value": 27
+    },
+    {
+     "name": "slip_abs",
+     "expr": "abs(a)+abs(b)+abs(c)+abs(d)",
+     "value": 57
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-03",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-13: Credit Derivatives",
+  "reading_id": "CR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0572"
+  },
+  "trap_category": "Definition",
+  "setup": "A firm's hazard rate is a constant 2% a year over the next five years. Survival to time $t$ is $e^{-0.02t}$.",
+  "ask": "The probability that the firm defaults during year 2 (as seen today) is:",
+  "options": [
+   {
+    "label": "Slightly below 2%",
+    "correct": true
+   },
+   {
+    "label": "Exactly 2%",
+    "correct": false,
+    "why": "Treated the hazard rate as the unconditional yearly default probability. Year-2 default needs survival through year 1 first (about 98%)."
+   },
+   {
+    "label": "Well above 2%",
+    "correct": false,
+    "why": "Looked at default by the end of year 2, about 3.9%, instead of default during year 2 alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Survive year 1",
+    "display": "$e^{-0.02} = 0.9802$",
+    "value": 0.980199
+   },
+   {
+    "label": "Survive year 2",
+    "display": "$e^{-0.04} = 0.9608$",
+    "value": 0.960789
+   },
+   {
+    "label": "Default in year 2",
+    "display": "$0.9802 - 0.9608 = 1.94\\%$",
+    "value": 0.01941
+   }
+  ],
+  "takeaway": "The hazard rate is conditional on survival, so the unconditional default probability falls a little each year: about 0.98 x 2% = 1.94%.",
+  "check": {
+   "inputs": {
+    "lam": 0.02
+   },
+   "steps": [
+    {
+     "name": "ps1",
+     "expr": "exp(-lam*1)",
+     "value": 0.980199
+    },
+    {
+     "name": "ps2",
+     "expr": "exp(-lam*2)",
+     "value": 0.960789
+    },
+    {
+     "name": "d2",
+     "expr": "ps1-ps2",
+     "value": 0.01941
+    },
+    {
+     "name": "slip_cumulative",
+     "expr": "1-ps2",
+     "value": 0.0392
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-04",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-13: Credit Derivatives",
+  "reading_id": "CR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0574"
+  },
+  "trap_category": "Sign",
+  "setup": "Banko bought 5-year CDS protection on USD 5m two years ago at a spread of 1.85%. The 3-year spread for the same name is now 2.30%, and the PV of the expected payoff is USD 0.0312 per USD 1 of notional.",
+  "ask": "The CDS is now worth, to Banko:",
+  "options": [
+   {
+    "label": "A positive amount",
+    "correct": true
+   },
+   {
+    "label": "A negative amount",
+    "correct": false,
+    "why": "Thought a contract struck at a lower spread than today's market is a loss. For the protection buyer it is a gain: protection now costs more than Banko pays."
+   },
+   {
+    "label": "About zero",
+    "correct": false,
+    "why": "Assumed the contract is marked to par. The 45 bp gap, paid over a risky annuity of about 1.36, is worth about USD 30,500."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risky annuity",
+    "display": "$0.0312 / 0.0230 = 1.3565$",
+    "value": 1.3565
+   },
+   {
+    "label": "Value per USD 1",
+    "display": "$(0.0230 - 0.0185) \\times 1.3565 = 0.00610$",
+    "value": 0.0061
+   },
+   {
+    "label": "Value on USD 5m",
+    "display": "$0.00610 \\times 5\\text{m} \\approx +\\text{USD } 30{,}500$",
+    "value": 30522
+   }
+  ],
+  "takeaway": "A protection buyer who locked in a spread below today's market holds an asset: value = spread difference x risky annuity x notional.",
+  "check": {
+   "inputs": {
+    "pv": 0.0312,
+    "s_now": 0.023,
+    "s_old": 0.0185,
+    "N": 5000000
+   },
+   "steps": [
+    {
+     "name": "annuity",
+     "expr": "pv/s_now",
+     "value": 1.3565
+    },
+    {
+     "name": "v",
+     "expr": "(s_now-s_old)*annuity",
+     "value": 0.006104
+    },
+    {
+     "name": "value",
+     "expr": "v*N",
+     "value": 30522
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-05",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-13: Credit Derivatives",
+  "reading_id": "CR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0575"
+  },
+  "trap_category": "Scope",
+  "setup": "A fund buys protection on the whole 5-year iTraxx Europe index: 125 equally weighted names with EUR 1m notional on each. The dealer quotes the index spread at 75 bp bid, 76 bp offer.",
+  "ask": "The annual premium the fund pays is closest to:",
+  "options": [
+   {
+    "label": "≈ EUR 7,600",
+    "correct": false,
+    "why": "Charged the spread on a single name's EUR 1m instead of on all 125 names."
+   },
+   {
+    "label": "≈ EUR 95,000",
+    "correct": false,
+    "why": "Decimal slip: read 76 bp as 0.076% instead of 0.76%, ten times too small."
+   },
+   {
+    "label": "≈ EUR 950,000",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 95m",
+    "correct": false,
+    "why": "Read 76 bp as 76 percent of 1 (0.76) instead of 0.0076, a hundred times too large."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rate paid",
+    "display": "Protection buyer deals at the offer: $76\\text{ bp} = 0.76\\%$",
+    "value": 0.0076
+   },
+   {
+    "label": "Per name",
+    "display": "$0.0076 \\times 1\\text{m} = 7{,}600$",
+    "value": 7600
+   },
+   {
+    "label": "All 125 names",
+    "display": "$7{,}600 \\times 125 = \\text{EUR } 950{,}000$",
+    "value": 950000
+   }
+  ],
+  "takeaway": "A protection buyer pays the offer; premium = spread x notional on every name. 76 bp on EUR 125m is EUR 0.95m.",
+  "check": {
+   "inputs": {
+    "ask": 76,
+    "n": 125,
+    "notional": 1000000
+   },
+   "steps": [
+    {
+     "name": "per_name",
+     "expr": "ask/10000*notional",
+     "value": 7600
+    },
+    {
+     "name": "prem",
+     "expr": "per_name*n",
+     "value": 950000
+    },
+    {
+     "name": "slip_one_name",
+     "expr": "per_name",
+     "value": 7600
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "prem/10",
+     "value": 95000
+    },
+    {
+     "name": "slip_percent",
+     "expr": "prem*100",
+     "value": 95000000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-06",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-13: Credit Derivatives",
+  "reading_id": "CR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0578"
+  },
+  "trap_category": "Sign",
+  "setup": "A 5-year iTraxx Europe index trades at 45 bp. The standard fixed coupon is 50 bp and the contract's risky duration is 4.6 years. Alex buys protection on EUR 50m.",
+  "ask": "At trade date the up-front settlement is:",
+  "options": [
+   {
+    "label": "Alex receives a payment",
+    "correct": true
+   },
+   {
+    "label": "Alex pays a payment",
+    "correct": false,
+    "why": "Assumed the buyer always pays up front. Alex will pay a 50 bp coupon for protection worth only 45 bp, so the seller compensates him at the start."
+   },
+   {
+    "label": "Nothing: a 5 bp gap is too small to settle",
+    "correct": false,
+    "why": "On EUR 50m over 4.6 years of duration, 5 bp is worth EUR 115,000, which is not negligible."
+   }
+  ],
+  "working": [
+   {
+    "label": "Coupon above fair spread",
+    "display": "$50\\text{ bp} - 45\\text{ bp} = 5\\text{ bp}$ paid in excess by the buyer",
+    "value": 0.0005
+   },
+   {
+    "label": "Up-front value",
+    "display": "$4.6 \\times 0.0005 \\times 50\\text{m} = \\text{EUR } 115{,}000$ received by Alex",
+    "value": 115000
+   }
+  ],
+  "takeaway": "Fixed coupon above the market spread: the buyer overpays every period, so he receives the difference up front. Below the market spread, he pays.",
+  "check": {
+   "inputs": {
+    "coupon": 0.005,
+    "spread": 0.0045,
+    "dur": 4.6,
+    "N": 50000000
+   },
+   "steps": [
+    {
+     "name": "diff",
+     "expr": "coupon-spread",
+     "value": 0.0005
+    },
+    {
+     "name": "upfront",
+     "expr": "dur*diff*N",
+     "value": 115000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-07",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-16: Netting, Close-out and Related Aspects",
+  "reading_id": "CR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0746"
+  },
+  "trap_category": "Scope",
+  "setup": "Two trades with one counterparty, five equally likely scenarios. Exposure with no netting by scenario: 40, 25, 5, 0, 0. With netting: 40, 25, 0, 0, 0.",
+  "ask": "The netting benefit in expected exposure (EE without netting minus EE with netting) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.2",
+    "correct": false,
+    "why": "Divided by the five scenarios twice: 1/5."
+   },
+   {
+    "label": "≈ 1",
+    "correct": true
+   },
+   {
+    "label": "≈ 5",
+    "correct": false,
+    "why": "Summed the difference across scenarios (70 - 65) without averaging."
+   },
+   {
+    "label": "≈ 14",
+    "correct": false,
+    "why": "That is EE without netting; never subtracted EE with netting."
+   }
+  ],
+  "working": [
+   {
+    "label": "EE without netting",
+    "display": "$(40 + 25 + 5 + 0 + 0)/5 = 14$",
+    "value": 14
+   },
+   {
+    "label": "EE with netting",
+    "display": "$(40 + 25 + 0 + 0 + 0)/5 = 13$",
+    "value": 13
+   },
+   {
+    "label": "Benefit",
+    "display": "$14 - 13 = 1$",
+    "value": 1
+   }
+  ],
+  "takeaway": "Only scenario 3 gains anything from netting (5 down to 0), and it is one of five equally likely cases: 5/5 = 1.",
+  "check": {
+   "inputs": {
+    "n": 5,
+    "s1": 40,
+    "s2": 25,
+    "s3": 5,
+    "s3n": 0
+   },
+   "steps": [
+    {
+     "name": "EEg",
+     "expr": "(s1+s2+s3)/n",
+     "value": 14
+    },
+    {
+     "name": "EEn",
+     "expr": "(s1+s2+s3n)/n",
+     "value": 13
+    },
+    {
+     "name": "benefit",
+     "expr": "EEg-EEn",
+     "value": 1
+    },
+    {
+     "name": "slip_not_averaged",
+     "expr": "(s1+s2+s3)-(s1+s2+s3n)",
+     "value": 5
+    },
+    {
+     "name": "slip_twice",
+     "expr": "benefit/n",
+     "value": 0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-08",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-16: Netting, Close-out and Related Aspects",
+  "reading_id": "CR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0759"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two trades with one counterparty under four scenarios, MtM (trade 1, trade 2): (18, 4), (12, -3), (8, -5), (-4, 7). Gross exposure is the sum of positive MtMs; netted exposure is $\\max(\\text{sum}, 0)$. Netting benefit = 1 - (average netted / average gross).",
+  "ask": "The ratio of average netted exposure to average gross exposure is closest to:",
+  "options": [
+   {
+    "label": "75%",
+    "correct": true
+   },
+   {
+    "label": "25%",
+    "correct": false,
+    "why": "Reported the benefit (1 - ratio, about 24.5%) instead of the ratio itself."
+   },
+   {
+    "label": "50%",
+    "correct": false,
+    "why": "Assumed netting roughly halves exposure. In scenario 1, which makes up 22 of the 49 gross total, netting does nothing."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross by scenario",
+    "display": "$22, 12, 8, 7$: average $49/4 = 12.25$",
+    "value": 12.25
+   },
+   {
+    "label": "Netted by scenario",
+    "display": "$22, 9, 3, 3$: average $37/4 = 9.25$",
+    "value": 9.25
+   },
+   {
+    "label": "Ratio",
+    "display": "$9.25 / 12.25 = 0.755$",
+    "value": 0.755
+   }
+  ],
+  "takeaway": "Take the max scenario by scenario before averaging. The ratio is 75.5%, so the netting benefit is only 24.5%.",
+  "check": {
+   "inputs": {
+    "g1": 22,
+    "g2": 12,
+    "g3": 8,
+    "g4": 7,
+    "n1": 22,
+    "n2": 9,
+    "n3": 3,
+    "n4": 3
+   },
+   "steps": [
+    {
+     "name": "G",
+     "expr": "(g1+g2+g3+g4)/4",
+     "value": 12.25
+    },
+    {
+     "name": "Nn",
+     "expr": "(n1+n2+n3+n4)/4",
+     "value": 9.25
+    },
+    {
+     "name": "ratio",
+     "expr": "Nn/G",
+     "value": 0.755
+    },
+    {
+     "name": "benefit",
+     "expr": "1-ratio",
+     "value": 0.245
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-09",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0806"
+  },
+  "trap_category": "Sequence",
+  "setup": "A valuation agent for a bilateral OTC portfolio sees net exposure of USD 18m after netting. Collateral already posted has market value USD 8m and carries a 10% haircut. Threshold USD 5m, no initial margin, minimum transfer amount USD 0.5m.",
+  "ask": "Before the threshold is applied, the exposure not covered by the posted collateral (after the haircut) is:",
+  "options": [
+   {
+    "label": "Above USD 10m",
+    "correct": true
+   },
+   {
+    "label": "Exactly USD 10m",
+    "correct": false,
+    "why": "Ignored the haircut and counted the collateral at its full USD 8m market value."
+   },
+   {
+    "label": "Below USD 10m",
+    "correct": false,
+    "why": "Applied the haircut in the wrong direction (collateral worth 8.8m), giving 18 - 8.8 = 9.2."
+   }
+  ],
+  "working": [
+   {
+    "label": "Collateral after haircut",
+    "display": "$8 \\times (1 - 0.10) = 7.2$",
+    "value": 7.2
+   },
+   {
+    "label": "Uncovered exposure",
+    "display": "$18 - 7.2 = 10.8$",
+    "value": 10.8
+   },
+   {
+    "label": "After threshold",
+    "display": "$10.8 - 5 = 5.8$, above the 0.5 minimum transfer amount, so call USD 5.8m",
+    "value": 5.8
+   }
+  ],
+  "takeaway": "A haircut shrinks what posted collateral is worth, so uncovered exposure goes up. The 5m threshold is deducted afterwards, leaving a call of 5.8m.",
+  "check": {
+   "inputs": {
+    "E": 18,
+    "C": 8,
+    "h": 0.1,
+    "thr": 5
+   },
+   "steps": [
+    {
+     "name": "cv",
+     "expr": "C*(1-h)",
+     "value": 7.2
+    },
+    {
+     "name": "unc",
+     "expr": "E-cv",
+     "value": 10.8
+    },
+    {
+     "name": "call",
+     "expr": "unc-thr",
+     "value": 5.8
+    },
+    {
+     "name": "slip_no_haircut",
+     "expr": "E-C",
+     "value": 10
+    },
+    {
+     "name": "slip_wrong_way",
+     "expr": "E-C*(1+h)",
+     "value": 9.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-10",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-18: Central Clearing",
+  "reading_id": "CR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0878"
+  },
+  "trap_category": "Sequence",
+  "setup": "A CCP loses USD 90m closing out defaulter X. It uses, in order: X's initial margin (30), X's default fund contribution (15) and its own skin in the game (10). The rest is met by variation margin gains haircutting (VMGH), pro rata to unrealised gains of surviving members: W has 80 and Y has 20 (USD m).",
+  "ask": "W's haircut is closest to (USD m):",
+  "options": [
+   {
+    "label": "≈ 2.8",
+    "correct": false,
+    "why": "Read W's 80% share as 8%."
+   },
+   {
+    "label": "≈ 7",
+    "correct": false,
+    "why": "Charged Y's 20% share of the loss to W instead of W's 80%."
+   },
+   {
+    "label": "≈ 28",
+    "correct": true
+   },
+   {
+    "label": "≈ 72",
+    "correct": false,
+    "why": "Skipped the waterfall: took 80% of the full USD 90m loss."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss left for VMGH",
+    "display": "$90 - 30 - 15 - 10 = 35$",
+    "value": 35
+   },
+   {
+    "label": "W's share of gains",
+    "display": "$80 / (80 + 20) = 80\\%$",
+    "value": 0.8
+   },
+   {
+    "label": "W's haircut",
+    "display": "$0.80 \\times 35 = \\text{USD } 28\\text{m}$",
+    "value": 28
+   }
+  ],
+  "takeaway": "VMGH is the last line of the waterfall: first strip out the defaulter's margin, fund contribution and CCP capital, then share the remainder pro rata to gains.",
+  "check": {
+   "inputs": {
+    "L": 90,
+    "im": 30,
+    "df": 15,
+    "sig": 10,
+    "gW": 80,
+    "gY": 20
+   },
+   "steps": [
+    {
+     "name": "rem",
+     "expr": "L-im-df-sig",
+     "value": 35
+    },
+    {
+     "name": "shareW",
+     "expr": "gW/(gW+gY)",
+     "value": 0.8
+    },
+    {
+     "name": "haircut",
+     "expr": "shareW*rem",
+     "value": 28
+    },
+    {
+     "name": "slip_Y_share",
+     "expr": "gY/(gW+gY)*rem",
+     "value": 7
+    },
+    {
+     "name": "slip_no_waterfall",
+     "expr": "shareW*L",
+     "value": 72
+    },
+    {
+     "name": "slip_pct",
+     "expr": "0.08*rem",
+     "value": 2.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-11",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1132"
+  },
+  "trap_category": "Definition",
+  "setup": "A securitisation has tranches defined by attachment and detachment points: equity 0% to 6%, mezzanine 6% to 14%, senior 14% to 100% of the pool.",
+  "ask": "The width (thickness) of the senior tranche is:",
+  "options": [
+   {
+    "label": "86%",
+    "correct": true
+   },
+   {
+    "label": "14%",
+    "correct": false,
+    "why": "Read the attachment point as the width. The senior tranche starts at 14% but extends to 100%."
+   },
+   {
+    "label": "100%",
+    "correct": false,
+    "why": "Read the detachment point as the width, forgetting that the tranche starts at 14%, not at zero."
+   }
+  ],
+  "working": [
+   {
+    "label": "Width",
+    "display": "$\\text{detachment} - \\text{attachment} = 100\\% - 14\\% = 86\\%$",
+    "value": 0.86
+   },
+   {
+    "label": "Others",
+    "display": "Equity 6%, mezzanine 8%: widths sum to 100%",
+    "value": 1.0
+   }
+  ],
+  "takeaway": "Width = detachment minus attachment. The senior tranche is by far the widest at 86%, even though it is the safest.",
+  "check": {
+   "inputs": {
+    "att": 0.14,
+    "det": 1.0
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "det-att",
+     "value": 0.86
+    },
+    {
+     "name": "slip_attach",
+     "expr": "att",
+     "value": 0.14
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-12",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1160"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A CLO holds 100 loans of USD 1m at par, paying reference rate 5% + 400 bp. Senior (85% of the pool) pays ref + 200 bp; junior (10%) pays ref + 500 bp; equity (5%) gets residuals. In year 1, 5 loans default and pay no interest. Excess spread goes to an overcollateralisation account up to USD 2m a year.",
+  "ask": "Loan interest received minus the senior and junior coupons is closest to:",
+  "options": [
+   {
+    "label": "USD 1.6m",
+    "correct": true
+   },
+   {
+    "label": "USD 2.05m",
+    "correct": false,
+    "why": "Counted interest on all 100 loans, 9.0m, instead of the 95 that survive."
+   },
+   {
+    "label": "USD 2.6m",
+    "correct": false,
+    "why": "Left the junior coupon (USD 1.0m) out of the coupons due."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loan interest",
+    "display": "$95 \\times 1\\text{m} \\times 9\\% = 8.55\\text{m}$",
+    "value": 8.55
+   },
+   {
+    "label": "Coupons due",
+    "display": "$85 \\times 7\\% + 10 \\times 10\\% = 5.95 + 1.00 = 6.95\\text{m}$",
+    "value": 6.95
+   },
+   {
+    "label": "Excess spread",
+    "display": "$8.55 - 6.95 = \\text{USD } 1.60\\text{m}$",
+    "value": 1.6
+   }
+  ],
+  "takeaway": "1.6m is under the 2m cap, so all of it goes to the overcollateralisation account and equity receives nothing in year 1.",
+  "check": {
+   "inputs": {
+    "loans": 95,
+    "y": 0.09,
+    "senior": 85,
+    "sr": 0.07,
+    "junior": 10,
+    "jr": 0.1
+   },
+   "steps": [
+    {
+     "name": "L",
+     "expr": "loans*y",
+     "value": 8.55
+    },
+    {
+     "name": "B",
+     "expr": "senior*sr+junior*jr",
+     "value": 6.95
+    },
+    {
+     "name": "excess",
+     "expr": "L-B",
+     "value": 1.6
+    },
+    {
+     "name": "slip_no_defaults",
+     "expr": "100*y-B",
+     "value": 2.05
+    },
+    {
+     "name": "slip_no_junior",
+     "expr": "L-senior*sr",
+     "value": 2.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1162"
+  },
+  "trap_category": "Sequence",
+  "setup": "In a securitisation, loan interest for the year is USD 7.0m but coupons due to senior and mezzanine bondholders are USD 7.2m. The overcollateralisation account held USD 0.3m at last year-end and receives USD 0.7m of recoveries this year. Bondholders are paid in full from the account if it can cover the shortfall.",
+  "ask": "After the year-end test, the account balance is:",
+  "options": [
+   {
+    "label": "USD 0.8m",
+    "correct": true
+   },
+   {
+    "label": "USD 1.0m",
+    "correct": false,
+    "why": "Forgot to draw the shortfall: 0.3 + 0.7 with nothing paid out."
+   },
+   {
+    "label": "USD 0.1m",
+    "correct": false,
+    "why": "Left out the year's recoveries: 0.3 - 0.2."
+   },
+   {
+    "label": "USD 0.2m",
+    "correct": false,
+    "why": "Reported the shortfall itself as the balance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Shortfall",
+    "display": "$7.0 - 7.2 = -0.2$ (interest does not cover coupons)",
+    "value": -0.2
+   },
+   {
+    "label": "Funds available",
+    "display": "$0.3 + 0.7 = 1.0$",
+    "value": 1.0
+   },
+   {
+    "label": "Balance after paying",
+    "display": "$1.0 - 0.2 = \\text{USD } 0.8\\text{m}$",
+    "value": 0.8
+   }
+  ],
+  "takeaway": "When interest falls short, the account pays the gap: the balance is prior balance plus recoveries, minus the shortfall.",
+  "check": {
+   "inputs": {
+    "L": 7.0,
+    "B": 7.2,
+    "prev": 0.3,
+    "rec": 0.7
+   },
+   "steps": [
+    {
+     "name": "short",
+     "expr": "B-L",
+     "value": 0.2
+    },
+    {
+     "name": "funds",
+     "expr": "prev+rec",
+     "value": 1.0
+    },
+    {
+     "name": "bal",
+     "expr": "funds-short",
+     "value": 0.8
+    },
+    {
+     "name": "slip_no_recoveries",
+     "expr": "prev-short",
+     "value": 0.1
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq12-14",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1203"
+  },
+  "trap_category": "Scope",
+  "setup": "ABS notes: subordinated tranche 1 USD 50m, subordinated tranche 2 USD 50m, senior USD 100m. The collateral pool is USD 220m. Losses are absorbed first by the overcollateralisation, then by the subordinated tranches, and only then by the senior tranche.",
+  "ask": "A USD 120m loss on the collateral reaches the senior tranche for:",
+  "options": [
+   {
+    "label": "Nothing",
+    "correct": true
+   },
+   {
+    "label": "USD 20m",
+    "correct": false,
+    "why": "Ignored the overcollateralisation (220 - 200 = 20): 120 - 100 = 20."
+   },
+   {
+    "label": "USD 50m",
+    "correct": false,
+    "why": "Counted only one subordinated tranche: 120 - 20 - 50 = 50."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cushion below senior",
+    "display": "OC $220 - 200 = 20$, plus subordinated $50 + 50 = 100$: total $120$",
+    "value": 120
+   },
+   {
+    "label": "Loss reaching senior",
+    "display": "$\\max(120 - 120, 0) = 0$",
+    "value": 0
+   }
+  ],
+  "takeaway": "The loss exactly exhausts the overcollateralisation and both subordinated tranches; the senior tranche's attachment point is 120m.",
+  "check": {
+   "inputs": {
+    "pool": 220,
+    "sub1": 50,
+    "sub2": 50,
+    "sen": 100,
+    "loss": 120
+   },
+   "steps": [
+    {
+     "name": "oc",
+     "expr": "pool-sub1-sub2-sen",
+     "value": 20
+    },
+    {
+     "name": "cushion",
+     "expr": "oc+sub1+sub2",
+     "value": 120
+    },
+    {
+     "name": "sen_loss",
+     "expr": "max(loss-cushion,0)",
+     "value": 0
+    },
+    {
+     "name": "slip_no_oc",
+     "expr": "max(loss-sub1-sub2,0)",
+     "value": 20
+    },
+    {
+     "name": "slip_one_sub",
+     "expr": "max(loss-oc-sub1,0)",
+     "value": 50
+    }
+   ]
+  }
+ }
+]

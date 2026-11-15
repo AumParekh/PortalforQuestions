@@ -1,0 +1,1805 @@
+[
+ {
+  "id": "SC-bank-MRq04-01",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-18: Fundamental Review of the Trading Book",
+  "reading_id": "MR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0862"
+  },
+  "trap_category": "Polarity",
+  "setup": "FRTB stressed ES with missing history. A bank cannot find a stressed 250-day period using all risk factors, so it computes stressed ES on a subset of factors: USD 80m. Over the latest 12 months, ES on all factors is USD 40m and ES on the subset alone is USD 32m. The subset's stressed ES is scaled by the ratio of these two recent-period figures.",
+  "ask": "Compared with USD 80m, the stressed ES the bank should use is:",
+  "options": [
+   {
+    "label": "Higher than USD 80m",
+    "correct": true
+   },
+   {
+    "label": "Lower than USD 80m",
+    "correct": false,
+    "why": "Inverted the ratio (32/40 = 0.80), which gives USD 64m. The subset understates the risk (32 against 40), so the scaling must go up, not down."
+   },
+   {
+    "label": "Equal to USD 80m",
+    "correct": false,
+    "why": "Used the subset figure unscaled. The whole point of the ratio is to correct for the subset capturing only part of the risk."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaling ratio",
+    "display": "$40 / 32 = 1.25$",
+    "value": 1.25
+   },
+   {
+    "label": "Scaled stressed ES",
+    "display": "$80 \\times 1.25 = \\text{USD } 100\\text{m}$",
+    "value": 100.0
+   }
+  ],
+  "takeaway": "Scale the subset stressed ES by ES(all factors)/ES(subset), both over the recent 12 months. If the subset is the smaller number, the answer goes up.",
+  "check": {
+   "inputs": {
+    "Sub_stress": 80,
+    "ES_all": 40,
+    "ES_sub": 32
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "ES_all/ES_sub",
+     "value": 1.25
+    },
+    {
+     "name": "stressed",
+     "expr": "Sub_stress*ratio",
+     "value": 100.0
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "Sub_stress*ES_sub/ES_all",
+     "value": 64.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-02",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-18: Fundamental Review of the Trading Book",
+  "reading_id": "MR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0864"
+  },
+  "trap_category": "Formula",
+  "setup": "FRTB liquidity-adjusted ES. Partial expected shortfalls (USD m) for categories 1 to 5 are 10, 8, 6, 4, 2, with liquidity horizons of 10, 20, 40, 60 and 120 days. Each $ES_j$ with $j \\ge 2$ is scaled by $\\sqrt{(LH_j - LH_{j-1})/10}$, and the five figures are combined as the square root of the sum of their squares.",
+  "ask": "Liquidity-adjusted ES is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 5.7m",
+    "correct": false,
+    "why": "Scale slip (one third of the true value). The total cannot be below $ES_1 = 10$, because every other term only adds under the square root."
+   },
+   {
+    "label": "≈ USD 17m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 50m",
+    "correct": false,
+    "why": "Scaled each ES by its full horizon $\\sqrt{LH_j/10}$ instead of the increment, then added the five figures in a straight line instead of in quadrature."
+   },
+   {
+    "label": "≈ USD 290m",
+    "correct": false,
+    "why": "Stopped at the sum of squares (292) and never took the square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scale factors",
+    "display": "$(LH_j - LH_{j-1})/10 = 1, 2, 2, 6$ for $j = 2, \\dots, 5$",
+    "value": null
+   },
+   {
+    "label": "Weighted squares",
+    "display": "$100 + 64 + 6^2 \\times 2 + 4^2 \\times 2 + 2^2 \\times 6 = 100 + 64 + 72 + 32 + 24$",
+    "value": 292
+   },
+   {
+    "label": "Total ES",
+    "display": "$\\sqrt{292} \\approx \\text{USD } 17.1\\text{m}$",
+    "value": 17.09
+   }
+  ],
+  "takeaway": "FRTB ES: scale each partial by the horizon increment, then add in quadrature. The result sits above $ES_1$ but far below the straight sum.",
+  "check": {
+   "inputs": {
+    "E1": 10,
+    "E2": 8,
+    "E3": 6,
+    "E4": 4,
+    "E5": 2,
+    "L1": 10,
+    "L2": 20,
+    "L3": 40,
+    "L4": 60,
+    "L5": 120
+   },
+   "steps": [
+    {
+     "name": "ss",
+     "expr": "E1^2+E2^2*(L2-L1)/10+E3^2*(L3-L2)/10+E4^2*(L4-L3)/10+E5^2*(L5-L4)/10",
+     "value": 292.0
+    },
+    {
+     "name": "ES",
+     "expr": "sqrt(ss)",
+     "value": 17.088
+    },
+    {
+     "name": "slip_level_linear",
+     "expr": "E1+E2*sqrt(L2/10)+E3*sqrt(L3/10)+E4*sqrt(L4/10)+E5*sqrt(L5/10)",
+     "value": 50.0399
+    },
+    {
+     "name": "slip_third",
+     "expr": "ES/3",
+     "value": 5.696
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-03",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-1b-3"
+  },
+  "trap_category": "Formula",
+  "setup": "Lognormal VaR as a percentage of portfolio value. Geometric returns are normal with an annual mean of 12% and an annual volatility of 30%; a year has 250 trading days. The horizon is 10 days at 95% confidence ($z = 1.645$), and $VaR = 1 - e^{R^*}$ with $R^* = \\mu_{10} - \\sigma_{10} z$.",
+  "ask": "The 10-day 95% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.09% of portfolio value",
+    "correct": false,
+    "why": "Computed the right fraction (0.0896) but read it as a percentage figure instead of multiplying by 100."
+   },
+   {
+    "label": "≈ 3.0% of portfolio value",
+    "correct": false,
+    "why": "Used a 1-day horizon: $\\sigma/\\sqrt{250}$, not $\\sigma\\sqrt{10/250}$."
+   },
+   {
+    "label": "≈ 9.0% of portfolio value",
+    "correct": true
+   },
+   {
+    "label": "≈ 31% of portfolio value",
+    "correct": false,
+    "why": "Did not scale to 10 days and used the annual mean and volatility directly."
+   }
+  ],
+  "working": [
+   {
+    "label": "10-day mean",
+    "display": "$0.12 \\times 10/250 = 0.0048$",
+    "value": 0.0048
+   },
+   {
+    "label": "10-day volatility",
+    "display": "$0.30 \\times \\sqrt{10/250} = 0.06$",
+    "value": 0.06
+   },
+   {
+    "label": "Critical return",
+    "display": "$R^* = 0.0048 - 1.645 \\times 0.06 = -0.0939$",
+    "value": -0.0939
+   },
+   {
+    "label": "VaR",
+    "display": "$1 - e^{-0.0939} = 0.0896 \\approx 9.0\\%$",
+    "value": 0.0896
+   }
+  ],
+  "takeaway": "Scale the mean with $t$ and the volatility with $\\sqrt{t}$, then convert the critical log return with $1 - e^{R^*}$.",
+  "check": {
+   "inputs": {
+    "mu": 0.12,
+    "sig": 0.3,
+    "z": 1.645,
+    "T": 10,
+    "N": 250
+   },
+   "steps": [
+    {
+     "name": "mu10",
+     "expr": "mu*T/N",
+     "value": 0.0048
+    },
+    {
+     "name": "sig10",
+     "expr": "sig*sqrt(T/N)",
+     "value": 0.06
+    },
+    {
+     "name": "Rs",
+     "expr": "mu10-z*sig10",
+     "value": -0.0939
+    },
+    {
+     "name": "VaR",
+     "expr": "1-exp(Rs)",
+     "value": 0.0896262
+    },
+    {
+     "name": "slip_pct",
+     "expr": "VaR/100",
+     "value": 0.000896262
+    },
+    {
+     "name": "slip_1day",
+     "expr": "1-exp(mu/N-z*sig/sqrt(N))",
+     "value": 0.0302643
+    },
+    {
+     "name": "slip_annual",
+     "expr": "1-exp(mu-z*sig)",
+     "value": 0.311679
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-1b-6"
+  },
+  "trap_category": "Sibling",
+  "setup": "AUD 120m equity mandate, 1-year horizon, 99% confidence ($z = 2.326$). Annual returns have mean 6% and volatility 22%. Two VaRs are computed from the same critical return $R^* = \\mu - \\sigma z$: normal-return VaR $= -R^* \\times 120$ and lognormal VaR $= (1 - e^{R^*}) \\times 120$.",
+  "ask": "Compared with the normal-return VaR, the lognormal VaR is:",
+  "options": [
+   {
+    "label": "Smaller",
+    "correct": true
+   },
+   {
+    "label": "Larger",
+    "correct": false,
+    "why": "Assumed the lognormal's skew fattens the loss tail. VaR looks at the left tail, where the price floor at zero makes $1 - e^{R^*}$ less than $-R^*$."
+   },
+   {
+    "label": "About the same",
+    "correct": false,
+    "why": "That holds only for short horizons and small $R^*$. At one year and 22% volatility the two differ by about AUD 10.6m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Critical return",
+    "display": "$R^* = 0.06 - 0.22 \\times 2.326 = -0.4517$",
+    "value": -0.4517
+   },
+   {
+    "label": "Normal VaR",
+    "display": "$120 \\times 0.4517 = \\text{AUD } 54.2\\text{m}$",
+    "value": 54.2
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$120 \\times (1 - e^{-0.4517}) = \\text{AUD } 43.6\\text{m}$",
+    "value": 43.6
+   }
+  ],
+  "takeaway": "Since $1 - e^{x} < -x$ for negative $x$, lognormal VaR is always below normal VaR on the same $R^*$, and the gap widens with horizon and volatility.",
+  "check": {
+   "inputs": {
+    "V": 120,
+    "mu": 0.06,
+    "sig": 0.22,
+    "z": 2.326
+   },
+   "steps": [
+    {
+     "name": "Rs",
+     "expr": "mu-sig*z",
+     "value": -0.45172
+    },
+    {
+     "name": "VaR_norm",
+     "expr": "-Rs*V",
+     "value": 54.2064
+    },
+    {
+     "name": "VaR_log",
+     "expr": "(1-exp(Rs))*V",
+     "value": 43.6161
+    },
+    {
+     "name": "gap",
+     "expr": "VaR_norm-VaR_log",
+     "value": 10.5903
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-05",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-1b-8"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A sleeve reports a 1-year 99% lognormal VaR of 35% of portfolio value. Annual mean of geometric returns is 7% and $z_{0.99} = 2.326$. To back out the volatility, first convert the VaR into a critical geometric return using $1 - VaR = e^{R^*}$.",
+  "ask": "The critical geometric return $R^*$ is closest to:",
+  "options": [
+   {
+    "label": "$-43\\%$",
+    "correct": true
+   },
+   {
+    "label": "$-35\\%$",
+    "correct": false,
+    "why": "Treated the 35% simple loss as if it were a log return. The log of the surviving value 0.65 is lower than $-0.35$."
+   },
+   {
+    "label": "$-65\\%$",
+    "correct": false,
+    "why": "Used the surviving fraction 0.65 itself, not its natural log."
+   }
+  ],
+  "working": [
+   {
+    "label": "Surviving fraction",
+    "display": "$1 - 0.35 = 0.65$",
+    "value": 0.65
+   },
+   {
+    "label": "Critical return",
+    "display": "$R^* = \\ln 0.65 = -0.4308$",
+    "value": -0.4308
+   },
+   {
+    "label": "Implied volatility",
+    "display": "$\\sigma = (0.07 + 0.4308)/2.326 = 0.2153$",
+    "value": 0.2153
+   }
+  ],
+  "takeaway": "Convert the loss fraction with $R^* = \\ln(1 - VaR)$, then $\\sigma = (\\mu - R^*)/z$. A positive mean means the volatility needed is larger than $-R^*/z$ alone.",
+  "check": {
+   "inputs": {
+    "V": 0.35,
+    "mu": 0.07,
+    "z": 2.326
+   },
+   "steps": [
+    {
+     "name": "Rs",
+     "expr": "ln(1-V)",
+     "value": -0.430783
+    },
+    {
+     "name": "sigma",
+     "expr": "(mu-Rs)/z",
+     "value": 0.215298
+    },
+    {
+     "name": "slip_simple",
+     "expr": "-V",
+     "value": -0.35
+    },
+    {
+     "name": "slip_surv",
+     "expr": "-(1-V)",
+     "value": -0.65
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-06",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-2a-4"
+  },
+  "trap_category": "Scope",
+  "setup": "Bootstrapped historical simulation, 95% ES. One resample holds 100 daily losses (CAD m); the ten largest are 9.8, 8.1, 7.4, 6.9, 6.9, 6.2, 5.6, 5.3, 5.0, 4.8. VaR is the largest loss outside the 5% tail, and ES is the average of the losses in the tail.",
+  "ask": "This resample's ES is closest to:",
+  "options": [
+   {
+    "label": "CAD 7.82m",
+    "correct": true
+   },
+   {
+    "label": "CAD 8.05m",
+    "correct": false,
+    "why": "Averaged only the top four losses. A 5% tail of 100 observations holds five."
+   },
+   {
+    "label": "CAD 7.55m",
+    "correct": false,
+    "why": "Included the sixth loss (6.2), which is the VaR observation and lies outside the tail."
+   },
+   {
+    "label": "CAD 6.60m",
+    "correct": false,
+    "why": "Averaged all ten listed losses instead of just the five in the tail."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail size",
+    "display": "$100 \\times 5\\% = 5$ losses",
+    "value": 5
+   },
+   {
+    "label": "Tail sum",
+    "display": "$9.8 + 8.1 + 7.4 + 6.9 + 6.9 = 39.1$",
+    "value": 39.1
+   },
+   {
+    "label": "ES",
+    "display": "$39.1 / 5 = 7.82$",
+    "value": 7.82
+   }
+  ],
+  "takeaway": "Count the tail first: $n(1-\\alpha)$ losses. The next loss down is the VaR and is excluded from the ES average.",
+  "check": {
+   "inputs": {
+    "n": 100,
+    "a": 0.95,
+    "L1": 9.8,
+    "L2": 8.1,
+    "L3": 7.4,
+    "L4": 6.9,
+    "L5": 6.9,
+    "L6": 6.2,
+    "L7": 5.6,
+    "L8": 5.3,
+    "L9": 5.0,
+    "L10": 4.8
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "n*(1-a)",
+     "value": 5.0
+    },
+    {
+     "name": "sum5",
+     "expr": "L1+L2+L3+L4+L5",
+     "value": 39.1
+    },
+    {
+     "name": "ES",
+     "expr": "sum5/k",
+     "value": 7.82
+    },
+    {
+     "name": "slip_top4",
+     "expr": "(L1+L2+L3+L4)/4",
+     "value": 8.05
+    },
+    {
+     "name": "slip_top6",
+     "expr": "(sum5+L6)/6",
+     "value": 7.55
+    },
+    {
+     "name": "slip_all",
+     "expr": "(sum5+L6+L7+L8+L9+L10)/10",
+     "value": 6.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-07",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-2c-2"
+  },
+  "trap_category": "Scope",
+  "setup": "Age-weighted historical simulation (BRW) on $n = 100$ daily returns with $\\lambda = 0.98$. The weight on the observation of age $i$ is $w(i) = \\lambda^{i-1}(1-\\lambda)/(1-\\lambda^n)$, with $i = 1$ the most recent day. Equal weighting would give every day 1%.",
+  "ask": "The weight on the return from 12 days ago is:",
+  "options": [
+   {
+    "label": "Above 1%",
+    "correct": true
+   },
+   {
+    "label": "Below 1%",
+    "correct": false,
+    "why": "Treated 12 days as 'old'. With $\\lambda = 0.98$ the weight has only decayed to $0.98^{11} = 0.80$ of yesterday's 2.3%."
+   },
+   {
+    "label": "Exactly 1%",
+    "correct": false,
+    "why": "Applied equal weights. BRW tilts weight toward recent days, so recent observations carry more than $1/n$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight on yesterday",
+    "display": "$w(1) = 0.02/(1 - 0.98^{100}) = 0.02306$",
+    "value": 0.02306
+   },
+   {
+    "label": "Decay to age 12",
+    "display": "$0.98^{11} = 0.8007$",
+    "value": 0.8007
+   },
+   {
+    "label": "Weight at age 12",
+    "display": "$0.8007 \\times 0.02306 = 0.01846 \\approx 1.85\\%$",
+    "value": 0.01846
+   }
+  ],
+  "takeaway": "Weights fall geometrically with age and sum to 1, so everything younger than the break-even age (about 40 days here) is above $1/n$.",
+  "check": {
+   "inputs": {
+    "lam": 0.98,
+    "n": 100,
+    "age": 12
+   },
+   "steps": [
+    {
+     "name": "w1",
+     "expr": "(1-lam)/(1-lam^n)",
+     "value": 0.0230579
+    },
+    {
+     "name": "w12",
+     "expr": "lam^(age-1)*w1",
+     "value": 0.0184632
+    },
+    {
+     "name": "equal",
+     "expr": "1/n",
+     "value": 0.01
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-08",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-2c-4"
+  },
+  "trap_category": "Polarity",
+  "setup": "Volatility-weighted historical simulation: each past return is multiplied by (today's volatility / volatility on that day). Today's EWMA volatility is 1.2% a day. One past loss of 3.1% happened when the forecast volatility was 2.4%; another loss of 1.7% happened when it was 0.9%.",
+  "ask": "After rescaling, which loss is larger?",
+  "options": [
+   {
+    "label": "The loss that was 1.7%",
+    "correct": true
+   },
+   {
+    "label": "The loss that was 3.1%",
+    "correct": false,
+    "why": "Compared the raw sizes. Rescaling multiplies the 3.1% loss by $1.2/2.4 = 0.5$ and the 1.7% loss by $1.2/0.9 = 1.33$."
+   },
+   {
+    "label": "They are about equal",
+    "correct": false,
+    "why": "Ignored the rescaling factors, which differ by a factor of almost three."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rescaled 3.1% loss",
+    "display": "$3.1\\% \\times 1.2/2.4 = 1.55\\%$",
+    "value": 1.55
+   },
+   {
+    "label": "Rescaled 1.7% loss",
+    "display": "$1.7\\% \\times 1.2/0.9 = 2.27\\%$",
+    "value": 2.267
+   }
+  ],
+  "takeaway": "A loss suffered in a turbulent regime is scaled down for a calmer today, and a loss from a calm regime is scaled up. The raw ranking can flip.",
+  "check": {
+   "inputs": {
+    "sT": 1.2,
+    "sA": 2.4,
+    "rA": 3.1,
+    "sB": 0.9,
+    "rB": 1.7
+   },
+   "steps": [
+    {
+     "name": "adjA",
+     "expr": "sT/sA*rA",
+     "value": 1.55
+    },
+    {
+     "name": "adjB",
+     "expr": "sT/sB*rB",
+     "value": 2.26667
+    },
+    {
+     "name": "diff",
+     "expr": "adjB-adjA",
+     "value": 0.716667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-09",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-2d-7"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Age-weighted historical simulation with $n = 250$ and $\\lambda = 0.99$. The raw weight on the 50 most recent days is $1 - \\lambda^{50} = 0.395$. The weights are then divided by the normaliser $1 - \\lambda^{250}$ so that all 250 sum to 1.",
+  "ask": "After dividing by the normaliser, the weight on the 50 most recent days is:",
+  "options": [
+   {
+    "label": "Higher than 0.395",
+    "correct": true
+   },
+   {
+    "label": "Lower than 0.395",
+    "correct": false,
+    "why": "Treated the normaliser as larger than 1. It is $1 - 0.99^{250} = 0.919$, so dividing by it scales weights up."
+   },
+   {
+    "label": "Still 0.395",
+    "correct": false,
+    "why": "Skipped the normalisation. The raw weights over 250 days sum to only 0.919, not 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Normaliser",
+    "display": "$1 - 0.99^{250} = 0.9189$",
+    "value": 0.9189
+   },
+   {
+    "label": "Normalised weight",
+    "display": "$0.3950 / 0.9189 = 0.430$",
+    "value": 0.4298
+   }
+  ],
+  "takeaway": "Dividing by a normaliser below 1 lifts every weight. The most recent 20% of the window carries about 43% of the probability mass.",
+  "check": {
+   "inputs": {
+    "lam": 0.99,
+    "n": 250,
+    "m": 50
+   },
+   "steps": [
+    {
+     "name": "raw",
+     "expr": "1-lam^m",
+     "value": 0.394994
+    },
+    {
+     "name": "norm",
+     "expr": "1-lam^n",
+     "value": 0.918941
+    },
+    {
+     "name": "weight",
+     "expr": "raw/norm",
+     "value": 0.429836
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-8d-3"
+  },
+  "trap_category": "Scope",
+  "setup": "Correlation swap on three equities. Realised pairwise correlations of daily log-returns are 0.6 (assets 1 and 2), 0.2 (assets 1 and 3) and 0.4 (assets 2 and 3). Realised correlation for settlement is the average over the distinct pairs, each pair counted once.",
+  "ask": "Realised correlation is closest to:",
+  "options": [
+   {
+    "label": "0.40",
+    "correct": true
+   },
+   {
+    "label": "0.60",
+    "correct": false,
+    "why": "Averaged all nine cells of the matrix, diagonal 1s included: $(3 + 2.4)/9$."
+   },
+   {
+    "label": "0.80",
+    "correct": false,
+    "why": "Counted each pair twice (both triangles) but divided by the three distinct pairs."
+   },
+   {
+    "label": "1.20",
+    "correct": false,
+    "why": "Summed the three correlations and never divided by the number of pairs."
+   }
+  ],
+  "working": [
+   {
+    "label": "Distinct pairs",
+    "display": "$(n^2 - n)/2 = 3$",
+    "value": 3
+   },
+   {
+    "label": "Sum of pairs",
+    "display": "$0.6 + 0.2 + 0.4 = 1.2$",
+    "value": 1.2
+   },
+   {
+    "label": "Average",
+    "display": "$1.2 / 3 = 0.40$",
+    "value": 0.4
+   }
+  ],
+  "takeaway": "Realised correlation = $\\frac{2}{n^2 - n}\\sum_{i>j}\\rho_{ij}$: the plain average of the off-diagonal pairs, each counted once.",
+  "check": {
+   "inputs": {
+    "r12": 0.6,
+    "r13": 0.2,
+    "r23": 0.4,
+    "n": 3
+   },
+   "steps": [
+    {
+     "name": "pairs",
+     "expr": "(n^2-n)/2",
+     "value": 3.0
+    },
+    {
+     "name": "sum",
+     "expr": "r12+r13+r23",
+     "value": 1.2
+    },
+    {
+     "name": "rho",
+     "expr": "sum/pairs",
+     "value": 0.4
+    },
+    {
+     "name": "slip_all_cells",
+     "expr": "(n+2*sum)/n^2",
+     "value": 0.6
+    },
+    {
+     "name": "slip_double",
+     "expr": "2*sum/pairs",
+     "value": 0.8
+    },
+    {
+     "name": "slip_no_avg",
+     "expr": "sum",
+     "value": 1.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-11",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-8: Correlation Basics: Definitions, Applications, and Terminology",
+  "reading_id": "MR-8",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-8d-5"
+  },
+  "trap_category": "Role",
+  "setup": "EUR 8m six-month correlation swap on three stocks. The bank receives the fixed correlation of 35% and pays realised correlation on the notional. Realised pairwise correlations are 0.7, 0.5 and 0.3; the stocks' volatilities were 22%, 31% and 18%.",
+  "ask": "At maturity the bank:",
+  "options": [
+   {
+    "label": "Pays money to its counterparty",
+    "correct": true
+   },
+   {
+    "label": "Receives money from its counterparty",
+    "correct": false,
+    "why": "Used the fixed-payer formula $N(\\rho_{real} - \\rho_{fix})$ and read it as the bank's payoff. The bank is on the receiving-fixed side, so the sign flips."
+   },
+   {
+    "label": "Cannot tell without the volatilities",
+    "correct": false,
+    "why": "Settlement depends only on realised against fixed correlation. Volatilities are irrelevant to the payoff."
+   }
+  ],
+  "working": [
+   {
+    "label": "Realised correlation",
+    "display": "$(0.7 + 0.5 + 0.3)/3 = 0.50$",
+    "value": 0.5
+   },
+   {
+    "label": "Bank's payoff",
+    "display": "$8\\text{m} \\times (0.35 - 0.50) = -\\text{EUR } 1.2\\text{m}$",
+    "value": -1.2
+   }
+  ],
+  "takeaway": "The fixed-rate receiver sold correlation: it gains when realised comes in below the fixed rate and loses when it comes in above.",
+  "check": {
+   "inputs": {
+    "N": 8,
+    "fix": 0.35,
+    "r1": 0.7,
+    "r2": 0.5,
+    "r3": 0.3
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "(r1+r2+r3)/3",
+     "value": 0.5
+    },
+    {
+     "name": "payoff_receiver",
+     "expr": "N*(fix-rho)",
+     "value": -1.2
+    },
+    {
+     "name": "slip_payer",
+     "expr": "N*(rho-fix)",
+     "value": 1.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-12",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-14b-6"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 1: $dr = \\sigma\\,dw$ (normal rates, no drift). The short rate today is 4.50% and the annual basis-point volatility is 150 bp.",
+  "ask": "The standard deviation of the change in the short rate over one month is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.125%",
+    "correct": false,
+    "why": "Multiplied $\\sigma$ by $dt = 1/12$ instead of $\\sqrt{dt}$."
+   },
+   {
+    "label": "≈ 0.43%",
+    "correct": true
+   },
+   {
+    "label": "≈ 1.5%",
+    "correct": false,
+    "why": "Quoted the annual volatility without scaling to a month."
+   },
+   {
+    "label": "≈ 4.5%",
+    "correct": false,
+    "why": "Used the level of the short rate as if it were the dispersion. Model 1 dispersion depends only on $\\sigma$ and time."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual volatility",
+    "display": "$150\\text{ bp} = 1.50\\%$",
+    "value": 1.5
+   },
+   {
+    "label": "Monthly scale",
+    "display": "$\\sqrt{1/12} = 0.2887$",
+    "value": 0.2887
+   },
+   {
+    "label": "Monthly SD",
+    "display": "$1.50\\% \\times 0.2887 = 0.433\\%$",
+    "value": 0.433
+   }
+  ],
+  "takeaway": "Dispersion scales with $\\sqrt{dt}$, not $dt$. The current rate level does not enter the standard deviation in a model with additive normal shocks.",
+  "check": {
+   "inputs": {
+    "sig": 1.5,
+    "dt": 0.08333333333333333,
+    "r0": 4.5
+   },
+   "steps": [
+    {
+     "name": "sd",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.433013
+    },
+    {
+     "name": "slip_dt",
+     "expr": "sig*dt",
+     "value": 0.125
+    },
+    {
+     "name": "slip_annual",
+     "expr": "sig",
+     "value": 1.5
+    },
+    {
+     "name": "slip_level",
+     "expr": "r0",
+     "value": 4.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-13",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-14d-2"
+  },
+  "trap_category": "Scope",
+  "setup": "Monthly Ho-Lee tree: the date-1 up node is $r_u = r_0 + \\lambda_1 dt + \\sigma\\sqrt{dt}$. Here $r_0 = 3.20\\%$, $\\sigma = 120$ bp a year, $\\lambda_1 = 0.60\\%$ (month 1) and $\\lambda_2 = 0.90\\%$ (month 2). The desk considers raising $\\lambda_2$ to 1.50%.",
+  "ask": "The date-1 up-state rate would:",
+  "options": [
+   {
+    "label": "Not change",
+    "correct": true
+   },
+   {
+    "label": "Rise",
+    "correct": false,
+    "why": "Assumed every drift parameter feeds every node. $\\lambda_2$ is the drift between dates 1 and 2 and first appears at date 2."
+   },
+   {
+    "label": "Fall",
+    "correct": false,
+    "why": "No mechanism lowers the date-1 node when a later drift is raised. In Ho-Lee, $\\lambda_2$ is calibrated afterwards to reprice the market."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift over month 1",
+    "display": "$0.60\\% / 12 = 0.050\\%$",
+    "value": 0.05
+   },
+   {
+    "label": "Vol shock",
+    "display": "$1.20\\% \\times \\sqrt{1/12} = 0.3464\\%$",
+    "value": 0.3464
+   },
+   {
+    "label": "Up node",
+    "display": "$3.20 + 0.050 + 0.3464 = 3.596\\%$, with no $\\lambda_2$ anywhere",
+    "value": 3.596
+   }
+  ],
+  "takeaway": "Each date's nodes depend only on the drifts up to that date. A later $\\lambda$ cannot move an earlier node.",
+  "check": {
+   "inputs": {
+    "r0": 3.2,
+    "sig": 1.2,
+    "l1": 0.6,
+    "l2": 0.9,
+    "l2_new": 1.5,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "ru",
+     "expr": "r0+l1*dt+sig*sqrt(dt)",
+     "value": 3.59641
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-14",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-14d-4"
+  },
+  "trap_category": "Formula",
+  "setup": "Monthly Ho-Lee tree with $r_0 = 1.50\\%$ and $\\sigma = 160$ bp a year. Month drifts are $\\lambda_1 = 0.60\\%$ and $\\lambda_2 = 1.20\\%$ a year. Each monthly step adds or subtracts $\\sigma\\sqrt{dt}$, and the drift shifts all nodes alike. After two months the tree has three nodes (up-up, middle, down-down).",
+  "ask": "The gap between the top and bottom nodes at date 2 is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.15%",
+    "correct": false,
+    "why": "Reported the cumulative drift $(\\lambda_1 + \\lambda_2)dt$. Drift moves every node equally and cancels out of the gap."
+   },
+   {
+    "label": "≈ 0.46%",
+    "correct": false,
+    "why": "Gave one step's shock $\\sigma\\sqrt{dt}$. The two extreme nodes are two shocks each way, so four shocks apart."
+   },
+   {
+    "label": "≈ 1.85%",
+    "correct": true
+   },
+   {
+    "label": "≈ 6.4%",
+    "correct": false,
+    "why": "Used $4\\sigma$ directly, never scaling the volatility to a month with $\\sqrt{dt}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "One-step shock",
+    "display": "$1.60\\% \\times \\sqrt{1/12} = 0.462\\%$",
+    "value": 0.462
+   },
+   {
+    "label": "Top minus bottom",
+    "display": "$4 \\times 0.462\\% = 1.848\\%$, drift cancels",
+    "value": 1.848
+   }
+  ],
+  "takeaway": "Top and bottom nodes after $n$ steps are $2n\\,\\sigma\\sqrt{dt}$ apart. Drift shifts all nodes together and never changes the width.",
+  "check": {
+   "inputs": {
+    "sig": 1.6,
+    "dt": 0.08333333333333333,
+    "l1": 0.6,
+    "l2": 1.2
+   },
+   "steps": [
+    {
+     "name": "shock",
+     "expr": "sig*sqrt(dt)",
+     "value": 0.46188
+    },
+    {
+     "name": "gap",
+     "expr": "4*shock",
+     "value": 1.84752
+    },
+    {
+     "name": "slip_one_step",
+     "expr": "shock",
+     "value": 0.46188
+    },
+    {
+     "name": "slip_drift",
+     "expr": "(l1+l2)*dt",
+     "value": 0.15
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "4*sig",
+     "value": 6.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-15",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-14d-6"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Monthly Ho-Lee tree for SGD, $r_0 = 2.50\\%$. The date-1 nodes are 2.8887% (up) and 2.3113% (down), equal and opposite shocks around the drift-shifted centre $r_0 + \\lambda_1 dt$. The documentation lacks $\\lambda_1$.",
+  "ask": "The drift added over the one-month step, $\\lambda_1 dt$, is closest to:",
+  "options": [
+   {
+    "label": "0.10%",
+    "correct": true
+   },
+   {
+    "label": "0.39%",
+    "correct": false,
+    "why": "Took the up node minus $r_0$ (2.8887 - 2.50). That still contains the $+\\sigma\\sqrt{dt}$ shock."
+   },
+   {
+    "label": "1.20%",
+    "correct": false,
+    "why": "That is the annualised $\\lambda_1$, the next step. Over one month the drift is $\\lambda_1/12$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Centre of the two nodes",
+    "display": "$(2.8887 + 2.3113)/2 = 2.6000\\%$",
+    "value": 2.6
+   },
+   {
+    "label": "One-month drift",
+    "display": "$2.6000 - 2.5000 = 0.10\\%$",
+    "value": 0.1
+   },
+   {
+    "label": "Annualised",
+    "display": "$0.10\\% \\times 12 = 1.20\\%$",
+    "value": 1.2
+   }
+  ],
+  "takeaway": "The up and down shocks cancel in the average of the two nodes, so that average minus $r_0$ is the drift over the step. Multiply by 12 to annualise.",
+  "check": {
+   "inputs": {
+    "r0": 2.5,
+    "ru": 2.8887,
+    "rd": 2.3113,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "centre",
+     "expr": "(ru+rd)/2",
+     "value": 2.6
+    },
+    {
+     "name": "drift",
+     "expr": "centre-r0",
+     "value": 0.1
+    },
+    {
+     "name": "lam1",
+     "expr": "drift/dt",
+     "value": 1.2
+    },
+    {
+     "name": "slip_with_shock",
+     "expr": "ru-r0",
+     "value": 0.3887
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-16",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-14: The Art of Term Structure Models: Drift",
+  "reading_id": "MR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-14g-4"
+  },
+  "trap_category": "Role",
+  "setup": "Vasicek model: current short rate 2%, speed of mean reversion $k = 0.15$, real-world long-run level 4%. Prices embed a risk premium entering as a constant drift $\\lambda = 0.30\\%$ a year, so the risk-neutral process reverts to $\\theta = r_\\infty + \\lambda/k$ instead of $r_\\infty$.",
+  "ask": "Compared with the real-world expected short rate in 5 years, the risk-neutral expected rate is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Subtracted the premium ($\\theta = 4 - 2 = 2\\%$). A positive $\\lambda$ raises the target the process reverts to."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Ignored the premium. With $\\lambda > 0$ the risk-neutral target is 6%, not 4%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral target",
+    "display": "$\\theta = 4 + 0.30/0.15 = 6\\%$",
+    "value": 6.0
+   },
+   {
+    "label": "Decay factor",
+    "display": "$e^{-0.15 \\times 5} = 0.4724$",
+    "value": 0.4724
+   },
+   {
+    "label": "Real-world expectation",
+    "display": "$2(0.4724) + 4(0.5276) = 3.06\\%$",
+    "value": 3.056
+   },
+   {
+    "label": "Risk-neutral expectation",
+    "display": "$2(0.4724) + 6(0.5276) = 4.11\\%$",
+    "value": 4.111
+   }
+  ],
+  "takeaway": "The risk premium shifts the mean-reversion target to $r_\\infty + \\lambda/k$, so risk-neutral expected rates sit above real-world ones when $\\lambda > 0$.",
+  "check": {
+   "inputs": {
+    "r0": 2,
+    "k": 0.15,
+    "rinf": 4,
+    "lam": 0.3,
+    "T": 5
+   },
+   "steps": [
+    {
+     "name": "theta",
+     "expr": "rinf+lam/k",
+     "value": 6.0
+    },
+    {
+     "name": "e",
+     "expr": "exp(-k*T)",
+     "value": 0.472367
+    },
+    {
+     "name": "Erw",
+     "expr": "r0*e+rinf*(1-e)",
+     "value": 3.05527
+    },
+    {
+     "name": "Ern",
+     "expr": "r0*e+theta*(1-e)",
+     "value": 4.11053
+    },
+    {
+     "name": "slip_minus",
+     "expr": "r0*e+(rinf-lam/k)*(1-e)",
+     "value": 2.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-17",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-15: The Art of Term Structure Models: Volatility and Distribution",
+  "reading_id": "MR-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-15b-2"
+  },
+  "trap_category": "Formula",
+  "setup": "Model 3: $dr = \\lambda(t)\\,dt + \\sigma e^{-\\alpha t}\\,dw$ with $\\sigma = 1.50\\%$ a year, $\\alpha = 0.25$, drift 0.20% a year and $r_0 = 4.0\\%$. The step in question is one month long and starts at $t = 3$ years.",
+  "ask": "The annual volatility in force at $t = 3$ is closest to:",
+  "options": [
+   {
+    "label": "0.71% a year",
+    "correct": true
+   },
+   {
+    "label": "1.50% a year",
+    "correct": false,
+    "why": "Used the starting $\\sigma$ and skipped the decay factor $e^{-\\alpha t}$."
+   },
+   {
+    "label": "3.2% a year",
+    "correct": false,
+    "why": "Put a plus sign in the exponent, growing the volatility by $e^{+0.75} = 2.12$ instead of shrinking it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay factor",
+    "display": "$e^{-0.25 \\times 3} = 0.4724$",
+    "value": 0.4724
+   },
+   {
+    "label": "Volatility at $t = 3$",
+    "display": "$1.50\\% \\times 0.4724 = 0.709\\%$",
+    "value": 0.7085
+   },
+   {
+    "label": "Monthly SD",
+    "display": "$0.709\\% \\times \\sqrt{1/12} = 0.2045\\% \\approx 20.5\\text{ bp}$",
+    "value": 0.2045
+   }
+  ],
+  "takeaway": "Time-dependent volatility is read at the start of the step: $\\sigma e^{-\\alpha t}$. Here it has decayed to under half its initial value by year 3.",
+  "check": {
+   "inputs": {
+    "sig": 1.5,
+    "alpha": 0.25,
+    "t": 3,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "e",
+     "expr": "exp(-alpha*t)",
+     "value": 0.472367
+    },
+    {
+     "name": "sig_t",
+     "expr": "sig*e",
+     "value": 0.70855
+    },
+    {
+     "name": "sd_month",
+     "expr": "sig_t*sqrt(dt)",
+     "value": 0.204541
+    },
+    {
+     "name": "slip_grow",
+     "expr": "sig*exp(alpha*t)",
+     "value": 3.1755
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-18",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-15: The Art of Term Structure Models: Volatility and Distribution",
+  "reading_id": "MR-15",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-15b-6"
+  },
+  "trap_category": "Formula",
+  "setup": "Coarse annual tree ($dt = 1$) for Model 3 with initial volatility 120 bp a year and decay $\\alpha = 0.20$, so $\\sigma(t) = 1.20\\% \\times e^{-0.20t}$, read at the start of each year. Variances add over three years. A constant-volatility model would give a three-year SD of $1.20\\%\\sqrt{3} = 2.08\\%$.",
+  "ask": "On this tree, the three-year SD of the short rate is:",
+  "options": [
+   {
+    "label": "Below 2.08%",
+    "correct": true
+   },
+   {
+    "label": "Above 2.08%",
+    "correct": false,
+    "why": "Treated the drift or the starting rate as a source of dispersion. Only volatility sets the SD, and later years have lower volatility than the first."
+   },
+   {
+    "label": "Equal to 2.08%",
+    "correct": false,
+    "why": "Applied the constant-volatility $\\sqrt{3}$ rule. Years 2 and 3 use 0.98% and 0.80%, not 1.20%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Yearly volatilities",
+    "display": "$1.20\\%, 1.20e^{-0.20} = 0.9825\\%, 1.20e^{-0.40} = 0.8044\\%$",
+    "value": null
+   },
+   {
+    "label": "Three-year SD",
+    "display": "$\\sqrt{1.20^2 + 0.9825^2 + 0.8044^2} = \\sqrt{3.052} = 1.75\\%$",
+    "value": 1.747
+   }
+  ],
+  "takeaway": "With decaying volatility, each later year adds less variance, so the multi-year SD falls below the constant-volatility $\\sigma\\sqrt{T}$.",
+  "check": {
+   "inputs": {
+    "s0": 1.2,
+    "a": 0.2
+   },
+   "steps": [
+    {
+     "name": "s1",
+     "expr": "s0*exp(-a)",
+     "value": 0.982477
+    },
+    {
+     "name": "s2",
+     "expr": "s0*exp(-2*a)",
+     "value": 0.804384
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(s0^2+s1^2+s2^2)",
+     "value": 1.74708
+    },
+    {
+     "name": "const",
+     "expr": "s0*sqrt(3)",
+     "value": 2.07846
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-19",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-16a-7"
+  },
+  "trap_category": "Scope",
+  "setup": "Gauss+ short rate: $dr = -\\alpha_r(r - m)\\,dt$, with no random term, $\\alpha_r = 1.0547$. Today $r = 5.25\\%$ and the medium-term factor $m = 4.10\\%$. This month's random increment on the other factors is $dw = +0.20$, and an older Vasicek version used 95 bp volatility. Take $dt = 1/12$.",
+  "ask": "One month from now, the short rate is:",
+  "options": [
+   {
+    "label": "Below 5.25%",
+    "correct": true
+   },
+   {
+    "label": "Above 5.25%",
+    "correct": false,
+    "why": "Added the positive $dw = +0.20$ to $r$. In Gauss+ the short rate has no shock term; it only reverts to $m$."
+   },
+   {
+    "label": "Unchanged at 5.25%",
+    "correct": false,
+    "why": "Dropped the drift as negligible. With $r$ 115 bp above $m$ the pull is about $-10$ bp a month."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap to target",
+    "display": "$5.25\\% - 4.10\\% = 1.15\\%$",
+    "value": 1.15
+   },
+   {
+    "label": "One-month change",
+    "display": "$-1.0547 \\times 1.15\\% / 12 = -0.101\\%$",
+    "value": -0.1011
+   },
+   {
+    "label": "New level",
+    "display": "$5.25\\% - 0.101\\% = 5.149\\%$",
+    "value": 5.149
+   }
+  ],
+  "takeaway": "In Gauss+ the short rate is driven only by reversion to the medium-term factor. Random shocks enter $m$ and $l$, not $r$.",
+  "check": {
+   "inputs": {
+    "ar": 1.0547,
+    "r": 5.25,
+    "m": 4.1,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "dr",
+     "expr": "-ar*(r-m)*dt",
+     "value": -0.101075
+    },
+    {
+     "name": "r1",
+     "expr": "r+dr",
+     "value": 5.14892
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-20",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-16c-5"
+  },
+  "trap_category": "Role",
+  "setup": "Gauss+ medium-term factor: its drift is $-\\alpha_m(m - l)\\,dt$, so it reverts toward the long-term factor $l$, not toward the short rate. $\\alpha_m = 0.6358$, $dt = 1/12$. Today $r = 1.75\\%$, $m = 3.00\\%$ and $l = 4.20\\%$.",
+  "ask": "The drift on $m$ over the month is:",
+  "options": [
+   {
+    "label": "Up, about +6 bp",
+    "correct": true
+   },
+   {
+    "label": "Down, about -7 bp",
+    "correct": false,
+    "why": "Pulled $m$ toward the short rate $r = 1.75\\%$ instead of toward $l$."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Assumed $m$ sits between $r$ and $l$ so the pulls cancel. Only $l$ enters the medium factor's drift."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gap to long factor",
+    "display": "$m - l = 3.00 - 4.20 = -1.20\\%$",
+    "value": -1.2
+   },
+   {
+    "label": "Drift in bp",
+    "display": "$-0.6358 \\times (-1.20\\%) / 12 = +0.0636\\% = +6.4\\text{ bp}$",
+    "value": 6.358
+   }
+  ],
+  "takeaway": "$m$ reverts to $l$; $r$ reverts to $m$. Always read the equation for the factor in question and ignore factors that do not appear in its drift.",
+  "check": {
+   "inputs": {
+    "am": 0.6358,
+    "r": 1.75,
+    "m": 3.0,
+    "l": 4.2,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift_bp",
+     "expr": "-am*(m-l)*dt*100",
+     "value": 6.358
+    },
+    {
+     "name": "slip_toward_r_bp",
+     "expr": "-am*(m-r)*dt*100",
+     "value": -6.62292
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-21",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-16: The Vasicek and Gauss+ Models",
+  "reading_id": "MR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-16c-6"
+  },
+  "trap_category": "Formula",
+  "setup": "Gauss+ long-term factor: $dl = -\\alpha_l(l - \\mu)\\,dt + \\sigma_l\\,dW^1$. Inputs: $\\alpha_l = 0.0165$, $\\mu = 10.555\\%$, $\\sigma_l = 96.4$ bp a year, $l = 3.50\\%$, $dt = 1/12$. The realised $dW^1 = +0.15$ already includes $\\sqrt{dt}$.",
+  "ask": "The change in $l$ over the month is closest to:",
+  "options": [
+   {
+    "label": "≈ +1.0 bp",
+    "correct": false,
+    "why": "Kept only the drift. Mean reversion at $\\alpha_l = 0.0165$ is tiny; the shock term dominates."
+   },
+   {
+    "label": "≈ +5.1 bp",
+    "correct": false,
+    "why": "Multiplied $dW^1$ by $\\sqrt{dt}$ a second time, shrinking the shock to about 4 bp."
+   },
+   {
+    "label": "≈ +15 bp",
+    "correct": true
+   },
+   {
+    "label": "≈ +96 bp",
+    "correct": false,
+    "why": "Used the full annual $\\sigma_l$ as the move, without applying $dW^1 = 0.15$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Drift",
+    "display": "$-0.0165 \\times (3.50 - 10.555)\\% / 12 = +0.0097\\% \\approx +1.0\\text{ bp}$",
+    "value": 0.97
+   },
+   {
+    "label": "Shock",
+    "display": "$96.4\\text{ bp} \\times 0.15 = 14.5\\text{ bp}$",
+    "value": 14.46
+   },
+   {
+    "label": "Total change",
+    "display": "$0.97 + 14.46 \\approx +15.4\\text{ bp}$",
+    "value": 15.43
+   }
+  ],
+  "takeaway": "A factor with very slow mean reversion is almost a random walk: the shock sets the move and the drift adds about a basis point.",
+  "check": {
+   "inputs": {
+    "al": 0.0165,
+    "mu": 10.555,
+    "sl": 96.4,
+    "l": 3.5,
+    "dW": 0.15,
+    "dt": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "drift_bp",
+     "expr": "-al*(l-mu)*dt*100",
+     "value": 0.970062
+    },
+    {
+     "name": "shock_bp",
+     "expr": "sl*dW",
+     "value": 14.46
+    },
+    {
+     "name": "dl_bp",
+     "expr": "drift_bp+shock_bp",
+     "value": 15.4301
+    },
+    {
+     "name": "slip_double_scale",
+     "expr": "drift_bp+shock_bp*sqrt(dt)",
+     "value": 5.1443
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-22",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-18: Fundamental Review of the Trading Book",
+  "reading_id": "MR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-WB-18b-7"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "FRTB IMA for a credit desk whose factors all fall in categories 2 to 5 (horizons 20, 40, 60, 120 days); it has no 10-day factors. Stressed ES (CAD m): $ES_1 = 18.0$ (all factors shocked), $ES_3 = 12.0$, $ES_4 = 7.5$, $ES_5 = 3.0$. The $ES_2$ run is missing; $ES_2$ shocks categories 2 to 5 and holds category 1 constant.",
+  "ask": "$ES_2$ should be set to:",
+  "options": [
+   {
+    "label": "Equal to $ES_1$ (18.0)",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Treated the missing run as no risk. Every factor on this desk still moves in $ES_2$, which would give a total of only 27.9."
+   },
+   {
+    "label": "About 15, between $ES_1$ and $ES_3$",
+    "correct": false,
+    "why": "Interpolated. Holding an empty category constant changes nothing, so $ES_2$ is exactly $ES_1$ and the total would be understated at 31.7."
+   }
+  ],
+  "working": [
+   {
+    "label": "Why equal",
+    "display": "no category 1 factors, so holding them constant changes nothing: $ES_2 = ES_1 = 18.0$",
+    "value": 18.0
+   },
+   {
+    "label": "Weighted squares",
+    "display": "$18^2 + 18^2 + 2(12^2) + 2(7.5^2) + 6(3^2) = 1102.5$",
+    "value": 1102.5
+   },
+   {
+    "label": "Total ES",
+    "display": "$\\sqrt{1102.5} = \\text{CAD } 33.2\\text{m}$",
+    "value": 33.2
+   }
+  ],
+  "takeaway": "Holding a category constant only matters if the category has factors. With none, the run that omits it equals the run that includes it.",
+  "check": {
+   "inputs": {
+    "E1": 18,
+    "E3": 12,
+    "E4": 7.5,
+    "E5": 3
+   },
+   "steps": [
+    {
+     "name": "E2",
+     "expr": "E1",
+     "value": 18.0
+    },
+    {
+     "name": "total",
+     "expr": "sqrt(E1^2+E2^2+2*E3^2+2*E4^2+6*E5^2)",
+     "value": 33.2039
+    },
+    {
+     "name": "slip_zero",
+     "expr": "sqrt(E1^2+0+2*E3^2+2*E4^2+6*E5^2)",
+     "value": 27.9016
+    },
+    {
+     "name": "slip_interp",
+     "expr": "sqrt(E1^2+15^2+2*E3^2+2*E4^2+6*E5^2)",
+     "value": 31.6781
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq04-23",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0040"
+  },
+  "trap_category": "Definition",
+  "setup": "Historical simulation over 500 trading days. The ten worst one-day losses (USD) are 9,111; 8,669; 8,127; 7,098; 6,712; 6,698; 5,743; 5,189; 4,811; 4,775. The 99% ES is the average of the losses in the worst 1% of the 500 observations.",
+  "ask": "How many of the listed losses enter the 99% ES average?",
+  "options": [
+   {
+    "label": "5",
+    "correct": true
+   },
+   {
+    "label": "10",
+    "correct": false,
+    "why": "Averaged every loss shown. The list is just the worst ten; the 1% tail of 500 days holds only five."
+   },
+   {
+    "label": "1",
+    "correct": false,
+    "why": "Took 1% to mean the single worst loss. That would give the 99.8% tail, not the 99% one."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail size",
+    "display": "$500 \\times (1 - 0.99) = 5$ losses",
+    "value": 5
+   },
+   {
+    "label": "Tail sum",
+    "display": "$9{,}111 + 8{,}669 + 8{,}127 + 7{,}098 + 6{,}712 = 39{,}717$",
+    "value": 39717
+   },
+   {
+    "label": "ES",
+    "display": "$39{,}717 / 5 = \\text{USD } 7{,}943$",
+    "value": 7943
+   }
+  ],
+  "takeaway": "Tail size is $n(1 - \\alpha)$. Here the tail holds five days, so the ES is the mean of the five worst losses.",
+  "check": {
+   "inputs": {
+    "n": 500,
+    "a": 0.99,
+    "L1": 9111,
+    "L2": 8669,
+    "L3": 8127,
+    "L4": 7098,
+    "L5": 6712
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "n*(1-a)",
+     "value": 5.0
+    },
+    {
+     "name": "sum",
+     "expr": "L1+L2+L3+L4+L5",
+     "value": 39717.0
+    },
+    {
+     "name": "ES",
+     "expr": "sum/k",
+     "value": 7943.4
+    }
+   ]
+  }
+ }
+]

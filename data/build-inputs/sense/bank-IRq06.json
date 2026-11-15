@@ -1,0 +1,1294 @@
+[
+ {
+  "id": "SC-bank-IRq06-01",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0151"
+  },
+  "trap_category": "Formula",
+  "setup": "Grinold's rule: alpha = residual volatility $\\times$ IC $\\times$ score. A stock has residual volatility 30%. A Great Manager (IC = 0.12) is strongly positive on it, with a z-score of 1.5.",
+  "ask": "The implied alpha is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.8%",
+    "correct": false,
+    "why": "Used the Good Manager's IC of 0.06 and left out the score: $30\\% \\times 0.06 = 1.8\\%$."
+   },
+   {
+    "label": "≈ 5.4%",
+    "correct": true
+   },
+   {
+    "label": "≈ 18%",
+    "correct": false,
+    "why": "Left out the residual volatility and multiplied only IC $\\times$ score as a percent: $0.12 \\times 1.5 = 0.18$, read as 18%."
+   },
+   {
+    "label": "≈ 45%",
+    "correct": false,
+    "why": "Left out the IC: $30\\% \\times 1.5 = 45\\%$. An IC of 0.12 shrinks the forecast a long way."
+   }
+  ],
+  "working": [
+   {
+    "label": "Volatility times IC",
+    "display": "$30\\% \\times 0.12 = 3.6\\%$",
+    "value": 3.6
+   },
+   {
+    "label": "Times the score",
+    "display": "$3.6\\% \\times 1.5 = 5.4\\%$",
+    "value": 5.4
+   }
+  ],
+  "takeaway": "Alpha = volatility $\\times$ IC $\\times$ score: with an IC this small the alpha is a small fraction of the volatility.",
+  "check": {
+   "inputs": {
+    "vol": 30,
+    "IC": 0.12,
+    "z": 1.5,
+    "icGood": 0.06
+   },
+   "steps": [
+    {
+     "name": "alpha",
+     "expr": "vol*IC*z",
+     "value": 5.4
+    },
+    {
+     "name": "slip_good_no_score",
+     "expr": "vol*icGood",
+     "value": 1.8
+    },
+    {
+     "name": "slip_no_vol",
+     "expr": "IC*z*100",
+     "value": 18.0
+    },
+    {
+     "name": "slip_no_IC",
+     "expr": "vol*z",
+     "value": 45.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-02",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0154"
+  },
+  "trap_category": "Sign",
+  "setup": "Three stocks in one industry have benchmark weights 50%, 30%, 20% and raw alphas +4%, +2%, $-1$%. The manager makes the alphas industry-neutral by subtracting the benchmark-weighted average alpha from each, so that the active portfolio carries no industry bet.",
+  "ask": "After neutralization, the second stock's alpha (raw +2%) is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive but smaller than 2%",
+    "correct": false,
+    "why": "Subtracted the simple average of the three alphas ($1.67\\%$) instead of the benchmark-weighted one: $2 - 1.67 = +0.33\\%$."
+   },
+   {
+    "label": "Unchanged at +2%",
+    "correct": false,
+    "why": "Assumed neutralization only touches the industry's total, not each stock's alpha. Every alpha in the industry shifts by the same amount."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted average alpha",
+    "display": "$0.5(4) + 0.3(2) + 0.2(-1) = 2.4\\%$",
+    "value": 2.4
+   },
+   {
+    "label": "Neutralized alpha",
+    "display": "$2 - 2.4 = -0.4\\%$",
+    "value": -0.4
+   }
+  ],
+  "takeaway": "Neutralize by subtracting the benchmark-weighted average: a stock below that average ends up negative even if its raw alpha is positive.",
+  "check": {
+   "inputs": {
+    "w1": 0.5,
+    "w2": 0.3,
+    "w3": 0.2,
+    "a1": 4,
+    "a2": 2,
+    "a3": -1
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "w1*a1+w2*a2+w3*a3",
+     "value": 2.4
+    },
+    {
+     "name": "neutral",
+     "expr": "a2-avg",
+     "value": -0.4
+    },
+    {
+     "name": "slip_simple_avg",
+     "expr": "a2-(a1+a2+a3)/3",
+     "value": 0.3333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-03",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0156"
+  },
+  "trap_category": "Role",
+  "setup": "Making a position benchmark-neutral, the modified alpha is the position alpha minus (benchmark alpha $\\times$ position beta). The position has alpha 1.9%, IC 0.23 and beta 1.53; the benchmark has alpha 0.9%.",
+  "ask": "The amount subtracted from the 1.9% is closest to:",
+  "options": [
+   {
+    "label": "0.44%",
+    "correct": false,
+    "why": "Multiplied the position alpha by the IC: $1.9\\% \\times 0.23$. The IC plays no part in neutralization."
+   },
+   {
+    "label": "0.59%",
+    "correct": false,
+    "why": "Divided the benchmark alpha by the beta instead of multiplying: $0.9 / 1.53$."
+   },
+   {
+    "label": "0.90%",
+    "correct": false,
+    "why": "Subtracted the benchmark alpha as it stands and skipped the position's beta of 1.53."
+   },
+   {
+    "label": "1.38%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Adjustment",
+    "display": "$0.9\\% \\times 1.53 = 1.377\\%$",
+    "value": 1.377
+   },
+   {
+    "label": "Modified alpha",
+    "display": "$1.9 - 1.377 = 0.523\\%$",
+    "value": 0.523
+   }
+  ],
+  "takeaway": "The benchmark's alpha is scaled by the position's beta before it is taken off; the IC is a distractor.",
+  "check": {
+   "inputs": {
+    "aPos": 1.9,
+    "IC": 0.23,
+    "bPos": 1.53,
+    "aBm": 0.9
+   },
+   "steps": [
+    {
+     "name": "adj",
+     "expr": "aBm*bPos",
+     "value": 1.377
+    },
+    {
+     "name": "mod",
+     "expr": "aPos-adj",
+     "value": 0.523
+    },
+    {
+     "name": "slip_ic",
+     "expr": "aPos*IC",
+     "value": 0.437
+    },
+    {
+     "name": "slip_divide",
+     "expr": "aBm/bPos",
+     "value": 0.5882
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-04",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-1: Factor Theory",
+  "reading_id": "IM-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0038"
+  },
+  "trap_category": "Sign",
+  "setup": "Factor theory: risk premium $= \\beta_{i,m}\\lambda_m$ with $\\beta_{i,m} = \\text{cov}(r_i, m)/\\text{var}(m)$ and $\\lambda_m = -\\text{var}(m)/E(m)$, where $m$ is the SDF, high in bad times. $E(m) = 0.9709$, $\\text{var}(m) = 0.090$ and an asset has $\\text{cov}(r_i, m) = -0.1068$.",
+  "ask": "The asset's risk premium $E(r_i) - R_f$ is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Took the negative covariance and the negative sign in $\\lambda_m$ as one sign instead of two: $\\beta < 0$ and $\\lambda < 0$ multiply to a positive."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Treated the premium as zero because the asset is a bad-times hedge. An asset that pays off in good times and loses in bad times earns a positive premium."
+   }
+  ],
+  "working": [
+   {
+    "label": "Beta to the SDF",
+    "display": "$-0.1068/0.090 = -1.187$",
+    "value": -1.187
+   },
+   {
+    "label": "Price of risk",
+    "display": "$-0.090/0.9709 = -0.0927$",
+    "value": -0.0927
+   },
+   {
+    "label": "Premium",
+    "display": "$(-1.187)(-0.0927) = +11.0\\%$",
+    "value": 0.11
+   }
+  ],
+  "takeaway": "Negative covariance with the bad-times index is good for the premium: both $\\beta$ and $\\lambda$ are negative, so the product is positive.",
+  "check": {
+   "inputs": {
+    "cov": -0.1068,
+    "var": 0.09,
+    "Em": 0.9709
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "cov/var",
+     "value": -1.187
+    },
+    {
+     "name": "lam",
+     "expr": "-var/Em",
+     "value": -0.0927
+    },
+    {
+     "name": "prem",
+     "expr": "beta*lam",
+     "value": 0.11
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-05",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-3: Alpha (and the Low-Risk Anomaly)",
+  "reading_id": "IM-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0103"
+  },
+  "trap_category": "Scope",
+  "setup": "A large-cap mandate fund returned 12% with tracking error 6%. Benchmark LC (90% large-cap, 10% cash) returned 8%; Benchmark Hybrid (50% large-cap, 45% small-cap, 5% cash) returned 10%.",
+  "ask": "The active return against the appropriate benchmark is:",
+  "options": [
+   {
+    "label": "+2%",
+    "correct": false,
+    "why": "Measured against the Hybrid benchmark, which carries 45% small-cap exposure the mandate does not have."
+   },
+   {
+    "label": "+4%",
+    "correct": true
+   },
+   {
+    "label": "+12%",
+    "correct": false,
+    "why": "Used the fund's raw return with no benchmark subtracted."
+   }
+  ],
+  "working": [
+   {
+    "label": "Benchmark",
+    "display": "Large-cap mandate $\\Rightarrow$ Benchmark LC, 8%",
+    "value": 8
+   },
+   {
+    "label": "Active return",
+    "display": "$12 - 8 = +4\\%$",
+    "value": 4
+   },
+   {
+    "label": "Information ratio",
+    "display": "$4/6 \\approx 0.67$",
+    "value": 0.667
+   }
+  ],
+  "takeaway": "Pick the benchmark that matches the mandate before computing anything; an easier-to-beat or harder-to-beat mix changes the ratio.",
+  "check": {
+   "inputs": {
+    "rf": 12,
+    "bLC": 8,
+    "bH": 10,
+    "te": 6
+   },
+   "steps": [
+    {
+     "name": "act",
+     "expr": "rf-bLC",
+     "value": 4.0
+    },
+    {
+     "name": "ir",
+     "expr": "act/te",
+     "value": 0.6667
+    },
+    {
+     "name": "slip_hybrid",
+     "expr": "rf-bH",
+     "value": 2.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-06",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-4: Portfolio Construction",
+  "reading_id": "IM-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0162"
+  },
+  "trap_category": "Formula",
+  "setup": "Optimal active risk is $\\omega^* = \\text{IR}/(2\\lambda)$. A manager targets active risk of 5, entered in percentage points, with an information ratio of 0.5.",
+  "ask": "The implied active risk aversion $\\lambda$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.005",
+    "correct": false,
+    "why": "Squared the denominator, $0.5/(2 \\times 5)^2$, treating risk aversion as variance-style."
+   },
+   {
+    "label": "≈ 0.05",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.5",
+    "correct": false,
+    "why": "Stopped at the information ratio and never divided by $2\\omega^*$."
+   },
+   {
+    "label": "≈ 5",
+    "correct": false,
+    "why": "Entered the active risk as 0.05 instead of 5, so the denominator was $2 \\times 0.05 = 0.1$ and the answer came out 100 times too large."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rearrange",
+    "display": "$\\lambda = \\text{IR}/(2\\omega^*)$",
+    "value": null
+   },
+   {
+    "label": "Substitute",
+    "display": "$0.5/(2 \\times 5) = 0.05$",
+    "value": 0.05
+   }
+  ],
+  "takeaway": "Check the units convention first: active risk in percentage points makes $\\lambda$ small, active risk as a decimal makes it 100 times larger.",
+  "check": {
+   "inputs": {
+    "IR": 0.5,
+    "w": 5
+   },
+   "steps": [
+    {
+     "name": "lam",
+     "expr": "IR/(2*w)",
+     "value": 0.05
+    },
+    {
+     "name": "slip_square",
+     "expr": "IR/(2*w)^2",
+     "value": 0.005
+    },
+    {
+     "name": "slip_no_div",
+     "expr": "IR",
+     "value": 0.5
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "IR/(2*w/100)",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-07",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0236"
+  },
+  "trap_category": "Scope",
+  "setup": "Two positions have standalone VaRs of USD 7.3m and USD 5.4m. Their returns are perfectly correlated ($\\rho = +1$). Portfolio VaR is $\\sqrt{\\text{VaR}_1^2 + \\text{VaR}_2^2 + 2\\rho\\,\\text{VaR}_1\\text{VaR}_2}$.",
+  "ask": "Compared with the simple sum of the two VaRs (USD 12.7m), the portfolio VaR is:",
+  "options": [
+   {
+    "label": "Equal to the sum",
+    "correct": true
+   },
+   {
+    "label": "Below the sum",
+    "correct": false,
+    "why": "Applied a diversification benefit as if $\\rho < 1$. Only $\\rho = +1$ gives zero benefit, and that is the case here."
+   },
+   {
+    "label": "Above the sum",
+    "correct": false,
+    "why": "Stopped at the number under the root (161.3) and read it as a bigger VaR. After the root it equals the sum, which is the ceiling since $\\rho \\le 1$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Under the root",
+    "display": "$7.3^2 + 5.4^2 + 2(7.3)(5.4) = 161.29$",
+    "value": 161.29
+   },
+   {
+    "label": "Portfolio VaR",
+    "display": "$\\sqrt{161.29} = 12.7 = 7.3 + 5.4$",
+    "value": 12.7
+   }
+  ],
+  "takeaway": "At $\\rho = +1$ the root collapses to $(\\text{VaR}_1 + \\text{VaR}_2)^2$: VaR adds with no diversification benefit.",
+  "check": {
+   "inputs": {
+    "v1": 7.3,
+    "v2": 5.4,
+    "rho": 1
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "sqrt(v1^2+v2^2+2*rho*v1*v2)",
+     "value": 12.7
+    },
+    {
+     "name": "sum",
+     "expr": "v1+v2",
+     "value": 12.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-08",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0254"
+  },
+  "trap_category": "Sign",
+  "setup": "Positions A and B have standalone 95% VaRs of USD 4m and USD 3m, and their returns have correlation $-0.5$. Portfolio VaR is $\\sqrt{\\text{VaR}_A^2 + \\text{VaR}_B^2 + 2\\rho\\,\\text{VaR}_A\\text{VaR}_B}$.",
+  "ask": "The cross term $2\\rho\\,\\text{VaR}_A\\text{VaR}_B$ under the root is:",
+  "options": [
+   {
+    "label": "$-12$",
+    "correct": true
+   },
+   {
+    "label": "$+12$",
+    "correct": false,
+    "why": "Dropped the sign of the correlation, so the cross term adds risk instead of removing it."
+   },
+   {
+    "label": "$-6$",
+    "correct": false,
+    "why": "Left out the factor 2 in $2\\rho\\,\\text{VaR}_A\\text{VaR}_B$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cross term",
+    "display": "$2(-0.5)(4)(3) = -12$",
+    "value": -12
+   },
+   {
+    "label": "Under the root",
+    "display": "$16 + 9 - 12 = 13$",
+    "value": 13
+   },
+   {
+    "label": "Portfolio VaR",
+    "display": "$\\sqrt{13} \\approx 3.61$m",
+    "value": 3.606
+   }
+  ],
+  "takeaway": "A negative correlation makes the cross term subtract: the portfolio VaR can fall below even the larger standalone VaR.",
+  "check": {
+   "inputs": {
+    "a": 4,
+    "b": 3,
+    "rho": -0.5
+   },
+   "steps": [
+    {
+     "name": "cross",
+     "expr": "2*rho*a*b",
+     "value": -12.0
+    },
+    {
+     "name": "under",
+     "expr": "a^2+b^2+cross",
+     "value": 13.0
+    },
+    {
+     "name": "var",
+     "expr": "sqrt(under)",
+     "value": 3.606
+    },
+    {
+     "name": "slip_sign",
+     "expr": "-cross",
+     "value": 12.0
+    },
+    {
+     "name": "slip_no2",
+     "expr": "rho*a*b",
+     "value": -6.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-09",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0240"
+  },
+  "trap_category": "Definition",
+  "setup": "An equally weighted portfolio of $N$ positions, each with volatility 30% and every pairwise correlation 0.2, has $\\sigma_p = \\sigma\\sqrt{1/N + \\rho(1 - 1/N)}$.",
+  "ask": "As $N$ grows very large, portfolio volatility:",
+  "options": [
+   {
+    "label": "Falls toward zero",
+    "correct": false,
+    "why": "Assumed enough positions diversify everything away. Only idiosyncratic risk disappears; the common-correlation part stays."
+   },
+   {
+    "label": "Settles at a floor well below 30% but well above zero",
+    "correct": true
+   },
+   {
+    "label": "Stays near 30%",
+    "correct": false,
+    "why": "Assumed correlation of 0.2 leaves no diversification benefit at all. The $\\sigma_p$ falls from 30% to about 13%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Limit of the formula",
+    "display": "$1/N \\to 0$, so $\\sigma_p \\to \\sigma\\sqrt{\\rho}$",
+    "value": null
+   },
+   {
+    "label": "Floor",
+    "display": "$30\\% \\times \\sqrt{0.2} = 13.4\\%$",
+    "value": 13.42
+   }
+  ],
+  "takeaway": "With correlation $\\rho$ the volatility floor is $\\sigma\\sqrt{\\rho}$: diversification removes specific risk but not the common part.",
+  "check": {
+   "inputs": {
+    "s": 30,
+    "rho": 0.2
+   },
+   "steps": [
+    {
+     "name": "floor",
+     "expr": "s*sqrt(rho)",
+     "value": 13.42
+    },
+    {
+     "name": "slip_rho",
+     "expr": "s*rho",
+     "value": 6.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-10",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0244"
+  },
+  "trap_category": "Formula",
+  "setup": "Five equal positions of USD 200,000 each (USD 1m in all), each with return volatility 15%, every pairwise correlation 0.4. Use $\\sigma_P = \\sigma\\sqrt{1/N + (1 - 1/N)\\rho}$ and $z = 1.645$ (95%).",
+  "ask": "The portfolio VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 18,000",
+    "correct": false,
+    "why": "Decimal slip on the volatility: $\\sigma_P$ read as 1.08% instead of 10.8%."
+   },
+   {
+    "label": "≈ USD 49,000",
+    "correct": false,
+    "why": "Computed the VaR of one USD 200,000 position only: $1.645 \\times 15\\% \\times 200{,}000$."
+   },
+   {
+    "label": "≈ USD 178,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 1,780,000",
+    "correct": false,
+    "why": "Percent as decimal the other way: $\\sigma_P$ read as 108%, so VaR exceeds the whole portfolio."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio volatility",
+    "display": "$15\\%\\sqrt{0.20 + 0.80 \\times 0.4} = 15\\%\\sqrt{0.52} = 10.8\\%$",
+    "value": 10.82
+   },
+   {
+    "label": "VaR",
+    "display": "$1.645 \\times 10.82\\% \\times 1{,}000{,}000 \\approx 178{,}000$",
+    "value": 177934
+   }
+  ],
+  "takeaway": "Anchor first: 95% VaR of a 10.8% portfolio is about 1.645 times 10.8%, or 17.8% of the portfolio value.",
+  "check": {
+   "inputs": {
+    "V": 1000000,
+    "pos": 200000,
+    "s": 0.15,
+    "rho": 0.4,
+    "N": 5,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "sp",
+     "expr": "s*sqrt(1/N+(1-1/N)*rho)",
+     "value": 0.1082
+    },
+    {
+     "name": "var",
+     "expr": "z*sp*V",
+     "value": 177900.0
+    },
+    {
+     "name": "slip_one",
+     "expr": "z*s*pos",
+     "value": 49350.0
+    },
+    {
+     "name": "slip_small",
+     "expr": "var/100",
+     "value": 1779.0
+    },
+    {
+     "name": "slip_big",
+     "expr": "var*10",
+     "value": 1779000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-11",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-5: Portfolio Risk: Analytical Methods",
+  "reading_id": "IM-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0245"
+  },
+  "trap_category": "Formula",
+  "setup": "An equal-weight two-asset portfolio of USD 20m, each asset with daily volatility 2%. Its 10-day 99% VaR ($z = 2.326$) is USD 2.33m. Perfect correlation would give about USD 2.94m, and zero correlation about USD 2.08m. The correlation between the two assets now doubles.",
+  "ask": "The new 10-day VaR is:",
+  "options": [
+   {
+    "label": "Up modestly, to about USD 2.5m",
+    "correct": true
+   },
+   {
+    "label": "Roughly double, about USD 4.7m",
+    "correct": false,
+    "why": "Doubled the VaR along with the correlation. VaR depends on $\\sqrt{(1+\\rho)/2}$, not on $\\rho$ itself, and it is capped at USD 2.94m at $\\rho = 1$."
+   },
+   {
+    "label": "Down, below USD 2.3m",
+    "correct": false,
+    "why": "Got the direction of the correlation effect backwards: higher correlation means less diversification and more VaR."
+   }
+  ],
+  "working": [
+   {
+    "label": "Implied vol",
+    "display": "$2.33/(20 \\times 2.326 \\times \\sqrt{10}) = 1.584\\%$",
+    "value": 0.01584
+   },
+   {
+    "label": "Implied correlation",
+    "display": "$(1+\\rho)/2 = (1.584/2)^2 = 0.627 \\Rightarrow \\rho \\approx 0.25$",
+    "value": 0.254
+   },
+   {
+    "label": "New VaR at $\\rho \\approx 0.5$",
+    "display": "$20 \\times 2\\%\\sqrt{0.75} \\times 2.326\\sqrt{10} \\approx 2.55$m",
+    "value": 2.555
+   }
+  ],
+  "takeaway": "Doubling a correlation of about 0.25 only lifts VaR by roughly 10%, because VaR moves with $\\sqrt{(1+\\rho)/2}$ and is capped by the $\\rho = 1$ figure.",
+  "check": {
+   "inputs": {
+    "V": 20,
+    "s": 0.02,
+    "z": 2.326,
+    "T": 10,
+    "v0": 2.33
+   },
+   "steps": [
+    {
+     "name": "sp0",
+     "expr": "v0/(V*z*sqrt(T))",
+     "value": 0.01584
+    },
+    {
+     "name": "f0",
+     "expr": "(sp0/s)^2",
+     "value": 0.6272
+    },
+    {
+     "name": "rho0",
+     "expr": "2*f0-1",
+     "value": 0.2543
+    },
+    {
+     "name": "rho1",
+     "expr": "2*rho0",
+     "value": 0.5086
+    },
+    {
+     "name": "f1",
+     "expr": "(1+rho1)/2",
+     "value": 0.7543
+    },
+    {
+     "name": "v1",
+     "expr": "V*s*sqrt(f1)*z*sqrt(T)",
+     "value": 2.555
+    },
+    {
+     "name": "slip_double",
+     "expr": "2*v0",
+     "value": 4.66
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-12",
+  "mode": "magnitude",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0391"
+  },
+  "trap_category": "Formula",
+  "setup": "A fund shows alpha of 0.50% per month with monthly residual volatility 4.0%. The alpha t-statistic is $t = \\alpha\\sqrt{N}/\\sigma_e$, and we need $t = 1.645$ to reject zero alpha.",
+  "ask": "The number of months $N$ needed is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.2 months",
+    "correct": false,
+    "why": "Used the 6% annual alpha against the monthly volatility: $(1.645 \\times 4/6)^2$."
+   },
+   {
+    "label": "≈ 13 months",
+    "correct": false,
+    "why": "Solved for $\\sqrt{N}$ and stopped, forgetting to square: $1.645 \\times 4/0.5 = 13.2$."
+   },
+   {
+    "label": "≈ 64 months",
+    "correct": false,
+    "why": "Dropped the critical value: $(4/0.5)^2$."
+   },
+   {
+    "label": "≈ 173 months",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Solve for $\\sqrt{N}$",
+    "display": "$\\sqrt{N} = 1.645 \\times 4.0/0.50 = 13.16$",
+    "value": 13.16
+   },
+   {
+    "label": "Square",
+    "display": "$N = 13.16^2 \\approx 173$ months",
+    "value": 173.2
+   }
+  ],
+  "takeaway": "Statistical significance of a small monthly alpha takes years of data: $N$ grows with the square of volatility over alpha.",
+  "check": {
+   "inputs": {
+    "a": 0.5,
+    "s": 4.0,
+    "t": 1.645,
+    "aAnn": 6
+   },
+   "steps": [
+    {
+     "name": "rt",
+     "expr": "t*s/a",
+     "value": 13.16
+    },
+    {
+     "name": "N",
+     "expr": "rt^2",
+     "value": 173.2
+    },
+    {
+     "name": "slip_no_square",
+     "expr": "rt",
+     "value": 13.16
+    },
+    {
+     "name": "slip_no_t",
+     "expr": "(s/a)^2",
+     "value": 64.0
+    },
+    {
+     "name": "slip_annual",
+     "expr": "(t*s/aAnn)^2",
+     "value": 1.203
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-13",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0401"
+  },
+  "trap_category": "Scope",
+  "setup": "Quarterly excess returns: year 1 is $-1, +5, -1, +5$ (%), Sharpe 0.67; year 2 is $-12, +36, -12, +36$ (%), Sharpe 0.50. Sharpe uses mean divided by population standard deviation.",
+  "ask": "The Sharpe ratio of all eight quarters as one sequence is:",
+  "options": [
+   {
+    "label": "Below both years, under 0.50",
+    "correct": true
+   },
+   {
+    "label": "Between 0.50 and 0.67",
+    "correct": false,
+    "why": "Averaged the two yearly Sharpe ratios (0.585). Pooling adds the spread between the year means to the variance, so the average understates risk."
+   },
+   {
+    "label": "Above 0.67",
+    "correct": false,
+    "why": "Looked only at the higher pooled mean of 7%, ignoring that pooled volatility is far higher than the year-1 volatility."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pooled mean",
+    "display": "$(8 + 48)/8 = 7\\%$",
+    "value": 7.0
+   },
+   {
+    "label": "Pooled variance",
+    "display": "$2540/8 = 317.5$, so SD $= 17.8\\%$",
+    "value": 17.82
+   },
+   {
+    "label": "Sharpe",
+    "display": "$7.0/17.82 = 0.39$",
+    "value": 0.393
+   }
+  ],
+  "takeaway": "Pooling periods with different means adds between-period spread to volatility, so a pooled Sharpe can fall below the Sharpe of every part.",
+  "check": {
+   "inputs": {
+    "m1": 2,
+    "m2": 12,
+    "s1": 3,
+    "s2": 24
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "(m1+m2)/2",
+     "value": 7.0
+    },
+    {
+     "name": "var",
+     "expr": "((s1^2+(m1-m)^2)+(s2^2+(m2-m)^2))/2",
+     "value": 317.5
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 17.82
+    },
+    {
+     "name": "sr",
+     "expr": "m/sd",
+     "value": 0.3928
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(m1/s1+m2/s2)/2",
+     "value": 0.5833
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-14",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0409"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Perfect market timing is like a free at-the-money call, worth $c = 2N[0.5\\sigma\\sqrt{T}] - 1$ of portfolio value. Equity volatility is 36% a year and the forecast horizon is $T = 1$ year.",
+  "ask": "The argument inside $N[\\cdot]$ is:",
+  "options": [
+   {
+    "label": "0.065",
+    "correct": false,
+    "why": "Used the variance in place of the volatility: $0.5 \\times 0.36^2 \\times T$."
+   },
+   {
+    "label": "0.18",
+    "correct": true
+   },
+   {
+    "label": "0.36",
+    "correct": false,
+    "why": "Left out the factor 0.5 and used $\\sigma\\sqrt{T}$ alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Argument",
+    "display": "$0.5 \\times 0.36 \\times \\sqrt{1} = 0.18$",
+    "value": 0.18
+   },
+   {
+    "label": "Look up",
+    "display": "$N(0.18) \\approx 0.571$",
+    "value": 0.5714
+   },
+   {
+    "label": "Value",
+    "display": "$2(0.571) - 1 \\approx 14.3\\%$",
+    "value": 0.1428
+   }
+  ],
+  "takeaway": "The argument is half of $\\sigma\\sqrt{T}$, and the final value is about 0.8 times that argument for small values.",
+  "check": {
+   "inputs": {
+    "s": 0.36,
+    "T": 1
+   },
+   "steps": [
+    {
+     "name": "arg",
+     "expr": "0.5*s*sqrt(T)",
+     "value": 0.18
+    },
+    {
+     "name": "slip_no_half",
+     "expr": "s*sqrt(T)",
+     "value": 0.36
+    },
+    {
+     "name": "slip_var",
+     "expr": "0.5*s^2*T",
+     "value": 0.0648
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-15",
+  "mode": "intermediate",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0411"
+  },
+  "trap_category": "Definition",
+  "setup": "A timing score is $P = P_1 + P_2 - 1$, where $P_1$ and $P_2$ are the shares of actual bull and bear periods called correctly. Over ten periods, the first five were bull and the last five bear. Mr. Permabull forecast bull for periods 1 to 8 and bear for 9 and 10.",
+  "ask": "$P_2$, the share of actual bear periods he called correctly, is:",
+  "options": [
+   {
+    "label": "0.2",
+    "correct": false,
+    "why": "Divided his 2 correct bear calls by all ten periods instead of the five bear periods."
+   },
+   {
+    "label": "0.4",
+    "correct": true
+   },
+   {
+    "label": "0.6",
+    "correct": false,
+    "why": "Counted the share he got wrong: 3 of the 5 bear periods were called bull."
+   },
+   {
+    "label": "1.0",
+    "correct": false,
+    "why": "Took the share of his bear forecasts that were right (2 of 2) instead of the share of actual bear periods he found."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bear periods",
+    "display": "Periods 6 to 10: five periods",
+    "value": 5
+   },
+   {
+    "label": "Called bear",
+    "display": "Periods 9 and 10: 2 correct",
+    "value": 2
+   },
+   {
+    "label": "$P_2$",
+    "display": "$2/5 = 0.4$",
+    "value": 0.4
+   }
+  ],
+  "takeaway": "Both proportions use actual market states as the denominator; a perma-bull gets $P_1 = 1$ but is punished through $P_2$.",
+  "check": {
+   "inputs": {
+    "bear": 5,
+    "hit": 2,
+    "bull": 5,
+    "bullhit": 5,
+    "tot": 10
+   },
+   "steps": [
+    {
+     "name": "p2",
+     "expr": "hit/bear",
+     "value": 0.4
+    },
+    {
+     "name": "p1",
+     "expr": "bullhit/bull",
+     "value": 1.0
+    },
+    {
+     "name": "P",
+     "expr": "p1+p2-1",
+     "value": 0.4
+    },
+    {
+     "name": "slip_all",
+     "expr": "hit/tot",
+     "value": 0.2
+    },
+    {
+     "name": "slip_wrong",
+     "expr": "(bear-hit)/bear",
+     "value": 0.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-16",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-7: Portfolio Performance Evaluation",
+  "reading_id": "IM-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0412"
+  },
+  "trap_category": "Definition",
+  "setup": "Eight quarters: actual market bull in the first six, bear in the last two. Patty forecast bull for the first five quarters and bear for the last three. Timing score $= P_1 + P_2 - 1$, where $P_1$ and $P_2$ are the shares of bull and bear quarters called correctly.",
+  "ask": "Her timing score compared with her bull hit rate $P_1$ is:",
+  "options": [
+   {
+    "label": "Equal to $P_1$",
+    "correct": true
+   },
+   {
+    "label": "Lower than $P_1$",
+    "correct": false,
+    "why": "Counted her early switch (quarter 6) against her bear record too. A bear forecast during a bear quarter is correct; only the bull quarter 6 was missed."
+   },
+   {
+    "label": "Higher than $P_1$",
+    "correct": false,
+    "why": "$P_2$ cannot exceed 1, so $P_1 + P_2 - 1 \\le P_1$ always holds."
+   }
+  ],
+  "working": [
+   {
+    "label": "$P_1$",
+    "display": "$5/6 = 0.833$",
+    "value": 0.8333
+   },
+   {
+    "label": "$P_2$",
+    "display": "$2/2 = 1.000$",
+    "value": 1.0
+   },
+   {
+    "label": "Score",
+    "display": "$0.833 + 1 - 1 = 0.833$",
+    "value": 0.8333
+   }
+  ],
+  "takeaway": "When every actual bear period is called correctly ($P_2 = 1$) the timing score equals the bull hit rate.",
+  "check": {
+   "inputs": {
+    "bull": 6,
+    "bullhit": 5,
+    "bear": 2,
+    "bearhit": 2
+   },
+   "steps": [
+    {
+     "name": "p1",
+     "expr": "bullhit/bull",
+     "value": 0.8333
+    },
+    {
+     "name": "p2",
+     "expr": "bearhit/bear",
+     "value": 1.0
+    },
+    {
+     "name": "P",
+     "expr": "p1+p2-1",
+     "value": 0.8333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-IRq06-17",
+  "mode": "direction",
+  "area": "IM",
+  "reading": "IM-12: Performing Due Diligence on Specific Managers and Funds",
+  "reading_id": "IM-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "IR-QB-0528"
+  },
+  "trap_category": "Scope",
+  "setup": "A hedge fund charges a 1.5% management fee on AUM and has fixed operating expenses of USD 3.0m a year. Its AUM today is USD 160m. Incentive fees are ignored.",
+  "ask": "Breakeven AUM, compared with today's USD 160m, is:",
+  "options": [
+   {
+    "label": "Higher: the fund needs to grow",
+    "correct": true
+   },
+   {
+    "label": "Lower: the fund is already profitable",
+    "correct": false,
+    "why": "Read the fee as 1.5 instead of 0.015, giving fee income of USD 240m against USD 3.0m of expenses."
+   },
+   {
+    "label": "The same: it just breaks even",
+    "correct": false,
+    "why": "Forgot to check the fee income against the costs: $160 \\times 1.5\\% = 2.4$m, short of 3.0m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Fee income today",
+    "display": "$160 \\times 1.5\\% = \\text{USD } 2.4\\text{m}$",
+    "value": 2.4
+   },
+   {
+    "label": "Breakeven AUM",
+    "display": "$3.0/0.015 = \\text{USD } 200\\text{m}$",
+    "value": 200
+   }
+  ],
+  "takeaway": "Compare fee income with fixed costs first: breakeven AUM is fixed costs divided by the fee rate.",
+  "check": {
+   "inputs": {
+    "fee": 0.015,
+    "cost": 3.0,
+    "aum": 160
+   },
+   "steps": [
+    {
+     "name": "income",
+     "expr": "fee*aum",
+     "value": 2.4
+    },
+    {
+     "name": "be",
+     "expr": "cost/fee",
+     "value": 200.0
+    }
+   ]
+  }
+ }
+]

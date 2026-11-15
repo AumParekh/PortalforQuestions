@@ -1,0 +1,477 @@
+[
+ {
+  "id": "SC-bank-LRq07-01",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0471"
+  },
+  "trap_category": "Formula",
+  "setup": "A Treasury bond issued on 1 March trades special at a 0.25% annual spread (actual/360). It is expected to go back to general collateral rates after 30 June, so the special lasts 122 days. A dealer lends USD 100 of cash against it.",
+  "ask": "The financing value of lending the USD 100 is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.0085",
+    "correct": false,
+    "why": "Dropped a zero from the spread (0.25% treated as 0.025%), a decimal slip that shrinks the answer 10 times."
+   },
+   {
+    "label": "≈ USD 0.085",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 0.25",
+    "correct": false,
+    "why": "Took the full-year spread and left out the day fraction $122/360$."
+   },
+   {
+    "label": "≈ USD 0.85",
+    "correct": false,
+    "why": "Divided the days by 36 instead of 360, so the value is 10 times too big."
+   }
+  ],
+  "working": [
+   {
+    "label": "Annual spread on USD 100",
+    "display": "$100 \\times 0.0025 = 0.25$ per year",
+    "value": 0.25
+   },
+   {
+    "label": "Day fraction",
+    "display": "$122/360 = 0.339$",
+    "value": 0.339
+   },
+   {
+    "label": "Financing value",
+    "display": "$0.25 \\times 0.339 \\approx \\text{USD } 0.085$",
+    "value": 0.0847
+   }
+  ],
+  "takeaway": "A special spread earns only for the days it lasts: annual spread times days/360. Here about a third of a year, so about a third of 25 cents.",
+  "check": {
+   "inputs": {
+    "cash": 100,
+    "s": 0.0025,
+    "d": 122
+   },
+   "steps": [
+    {
+     "name": "V",
+     "expr": "cash*s*d/360",
+     "value": 0.08472
+    },
+    {
+     "name": "slip_dec",
+     "expr": "V/10",
+     "value": 0.008472
+    },
+    {
+     "name": "slip_noday",
+     "expr": "cash*s",
+     "value": 0.25
+    },
+    {
+     "name": "slip_36",
+     "expr": "cash*s*d/36",
+     "value": 0.8472
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq07-02",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0467"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A bond issued on 31 March trades special at a 0.30% spread until 30 September, then at GC. Value per USD 100 is $100 \\times 0.0030 \\times \\text{days}/360$ (actual/360). April to September have 30, 31, 30, 31, 31 and 30 days.",
+  "ask": "The day-count fraction $\\text{days}/360$ for the special period is:",
+  "options": [
+   {
+    "label": "Above 0.50",
+    "correct": true
+   },
+   {
+    "label": "Exactly 0.50",
+    "correct": false,
+    "why": "Treated six months as 6 × 30 = 180 days. Actual/360 counts the real days, and four of these months have 31."
+   },
+   {
+    "label": "Below 0.50",
+    "correct": false,
+    "why": "Six months can never be fewer than 180 days, since every month has at least 30. The four 31-day months push the count to 183."
+   }
+  ],
+  "working": [
+   {
+    "label": "Actual days",
+    "display": "$30 + 31 + 30 + 31 + 31 + 30 = 183$",
+    "value": 183
+   },
+   {
+    "label": "Day fraction",
+    "display": "$183/360 = 0.508$",
+    "value": 0.5083
+   },
+   {
+    "label": "Financing value",
+    "display": "$100 \\times 0.0030 \\times 0.508 \\approx \\text{USD } 0.153$",
+    "value": 0.1525
+   }
+  ],
+  "takeaway": "Under actual/360 a six-month window with four 31-day months is slightly more than half a 'year', so the value runs a touch above half the annual spread.",
+  "check": {
+   "inputs": {
+    "d1": 30,
+    "d2": 31,
+    "d3": 30,
+    "d4": 31,
+    "d5": 31,
+    "d6": 30
+   },
+   "steps": [
+    {
+     "name": "days",
+     "expr": "d1+d2+d3+d4+d5+d6",
+     "value": 183
+    },
+    {
+     "name": "frac",
+     "expr": "days/360",
+     "value": 0.50833
+    },
+    {
+     "name": "excess",
+     "expr": "frac-0.5",
+     "value": 0.00833
+    },
+    {
+     "name": "V",
+     "expr": "100*0.003*frac",
+     "value": 0.1525
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq07-03",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0470"
+  },
+  "trap_category": "Definition",
+  "setup": "Lending USD 200 of cash at a 0.25% spread for 150 days is valued as $200 \\times 0.0025 \\times 150/360 = 0.208$ (USD) under actual/360. A colleague re-prices the same trade on an actual/365 basis.",
+  "ask": "Compared with USD 0.208, the actual/365 value is:",
+  "options": [
+   {
+    "label": "Slightly lower",
+    "correct": true
+   },
+   {
+    "label": "Slightly higher",
+    "correct": false,
+    "why": "Read the 365 as adding days. The days stay at 150; a bigger denominator shrinks the fraction ($150/365 = 0.411$ against $0.417$)."
+   },
+   {
+    "label": "Unchanged",
+    "correct": false,
+    "why": "The convention changes the denominator, so $150/D$ changes. The gap is small (about 1.4%) but it is not zero."
+   }
+  ],
+  "working": [
+   {
+    "label": "Actual/360 value",
+    "display": "$0.50 \\times 150/360 = 0.2083$",
+    "value": 0.2083
+   },
+   {
+    "label": "Actual/365 value",
+    "display": "$0.50 \\times 150/365 = 0.2055$",
+    "value": 0.2055
+   },
+   {
+    "label": "Change",
+    "display": "$0.2055 - 0.2083 = -0.0028$",
+    "value": -0.0028
+   }
+  ],
+  "takeaway": "A larger day-count denominator means a smaller accrual fraction, so actual/365 gives a slightly lower value than actual/360.",
+  "check": {
+   "inputs": {
+    "cash": 200,
+    "s": 0.0025,
+    "d": 150
+   },
+   "steps": [
+    {
+     "name": "v360",
+     "expr": "cash*s*d/360",
+     "value": 0.20833
+    },
+    {
+     "name": "v365",
+     "expr": "cash*s*d/365",
+     "value": 0.20548
+    },
+    {
+     "name": "chg",
+     "expr": "v365-v360",
+     "value": -0.00285
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq07-04",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-14: Liquidity Transfer Pricing: A Guide to Better Practice",
+  "reading_id": "LTR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0494"
+  },
+  "trap_category": "Role",
+  "setup": "A USD 20m credit line has USD 6m drawn, with a 65% chance the customer draws the rest. The liquidity cushion is funded at a 3-year term, so its cost is that term's liquidity premium. Premiums for terms of 1 to 5 years are 5, 9, 15, 25 and 40 bps; average cost of funds is 8 bps flat. Charge = (undrawn/limit) × probability × cushion cost, applied to the USD 20m limit.",
+  "ask": "The dollar charge for contingent liquidity risk is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1,400",
+    "correct": false,
+    "why": "Read the 15 bps as 1.5 bps (decimal slip), which shrinks the charge 10 times."
+   },
+   {
+    "label": "≈ USD 4,550",
+    "correct": false,
+    "why": "Picked the 1-year premium (5 bps) instead of the 3-year point (15 bps)."
+   },
+   {
+    "label": "≈ USD 13,650",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 36,400",
+    "correct": false,
+    "why": "Picked the 5-year premium (40 bps) instead of the 3-year point (15 bps)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undrawn fraction",
+    "display": "$(20 - 6)/20 = 0.70$",
+    "value": 0.7
+   },
+   {
+    "label": "Rate",
+    "display": "$0.70 \\times 0.65 \\times 15 = 6.825$ bps",
+    "value": 6.825
+   },
+   {
+    "label": "Dollar charge",
+    "display": "$6.825\\text{ bps} \\times \\text{USD } 20\\text{m} = \\text{USD } 13{,}650$",
+    "value": 13650
+   }
+  ],
+  "takeaway": "Read the premium at the term the cushion actually funds. The expected drawdown is 0.70 × 0.65 of the limit, so the rate is under half the 15 bps cost.",
+  "check": {
+   "inputs": {
+    "L": 20000000,
+    "dr": 6000000,
+    "p": 0.65,
+    "c3": 15,
+    "c1": 5,
+    "c5": 40
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "(L-dr)/L",
+     "value": 0.7
+    },
+    {
+     "name": "rate",
+     "expr": "f*p*c3",
+     "value": 6.825
+    },
+    {
+     "name": "charge",
+     "expr": "rate/10000*L",
+     "value": 13650
+    },
+    {
+     "name": "slip_1y",
+     "expr": "f*p*c1/10000*L",
+     "value": 4550
+    },
+    {
+     "name": "slip_5y",
+     "expr": "f*p*c5/10000*L",
+     "value": 36400
+    },
+    {
+     "name": "slip_dec",
+     "expr": "charge/10",
+     "value": 1365
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq07-05",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-14: Liquidity Transfer Pricing: A Guide to Better Practice",
+  "reading_id": "LTR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0495"
+  },
+  "trap_category": "Scope",
+  "setup": "A committed line has a USD 40m limit with USD 15m drawn. The bank puts a 40% probability on the client drawing all of the remaining commitment, and the cushion costs 25 bps. The charge is quoted as a rate on the whole USD 40m limit: (undrawn/limit) × probability × cushion cost. Quoted per dollar of undrawn commitment instead, it would be $0.40 \\times 25 = 10$ bps.",
+  "ask": "The rate quoted on the limit is:",
+  "options": [
+   {
+    "label": "Below 10 bps",
+    "correct": true
+   },
+   {
+    "label": "Equal to 10 bps",
+    "correct": false,
+    "why": "That is the rate per dollar of undrawn commitment. Spreading the same dollar cost over the full limit scales it by the undrawn fraction."
+   },
+   {
+    "label": "Above 10 bps",
+    "correct": false,
+    "why": "Inverted the undrawn fraction (limit/undrawn = 1.6, giving 16 bps). The limit is larger than the undrawn amount, so the rate on it is smaller."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undrawn fraction",
+    "display": "$(40 - 15)/40 = 0.625$",
+    "value": 0.625
+   },
+   {
+    "label": "Rate on limit",
+    "display": "$0.625 \\times 0.40 \\times 25 = 6.25$ bps",
+    "value": 6.25
+   }
+  ],
+  "takeaway": "Rate on the limit = rate on the undrawn amount × undrawn fraction, so it is always below the per-undrawn figure unless nothing is drawn.",
+  "check": {
+   "inputs": {
+    "L": 40,
+    "dr": 15,
+    "p": 0.4,
+    "c": 25
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "(L-dr)/L",
+     "value": 0.625
+    },
+    {
+     "name": "rate",
+     "expr": "f*p*c",
+     "value": 6.25
+    },
+    {
+     "name": "per_undrawn",
+     "expr": "p*c",
+     "value": 10
+    },
+    {
+     "name": "slip_inv",
+     "expr": "per_undrawn/f",
+     "value": 16
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq07-06",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-14: Liquidity Transfer Pricing: A Guide to Better Practice",
+  "reading_id": "LTR-14",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0492"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A credit line has a USD 120m limit with USD 56m drawn. Customer K has a 75% probability of drawing the remainder, and the cushion costs 32 bps. The rate is (undrawn/limit) × probability × 32 bps, so two factors below 1 scale the 32 bps down.",
+  "ask": "Which factor cuts the 32 bps cost by more?",
+  "options": [
+   {
+    "label": "The undrawn fraction, $(120-56)/120$",
+    "correct": true
+   },
+   {
+    "label": "The drawdown probability, 75%",
+    "correct": false,
+    "why": "Compared the 75% with 1 and stopped; the undrawn fraction is only 0.533, which is further below 1 than 0.75."
+   },
+   {
+    "label": "They cut it equally",
+    "correct": false,
+    "why": "Both are fractions, but not the same size: 0.533 against 0.75."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undrawn fraction",
+    "display": "$(120 - 56)/120 = 0.533$",
+    "value": 0.5333
+   },
+   {
+    "label": "Probability",
+    "display": "$0.75$",
+    "value": 0.75
+   },
+   {
+    "label": "Rate",
+    "display": "$0.533 \\times 0.75 \\times 32 = 12.8$ bps",
+    "value": 12.8
+   }
+  ],
+  "takeaway": "In a product of fractions the smaller one cuts more. Check both factors before assuming the probability is the main discount.",
+  "check": {
+   "inputs": {
+    "L": 120,
+    "dr": 56,
+    "p": 0.75,
+    "c": 32
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "(L-dr)/L",
+     "value": 0.53333
+    },
+    {
+     "name": "rate",
+     "expr": "f*p*c",
+     "value": 12.8
+    },
+    {
+     "name": "gap",
+     "expr": "p-f",
+     "value": 0.21667
+    }
+   ]
+  }
+ }
+]

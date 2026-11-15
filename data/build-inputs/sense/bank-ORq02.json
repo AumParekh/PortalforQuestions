@@ -1,0 +1,1301 @@
+[
+ {
+  "id": "SC-bank-ORq02-01",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0593"
+  },
+  "trap_category": "Formula",
+  "setup": "IRB credit capital on a USD 120m loan book: PD 2%, recovery 40%, asset correlation $\\rho = 0.25$. The worst-case default rate is $WCDR = N\\left[\\frac{N^{-1}(PD) + \\sqrt{\\rho}\\,N^{-1}(0.999)}{\\sqrt{1-\\rho}}\\right]$, with $N^{-1}(0.02) = -2.054$ and $N^{-1}(0.999) = 3.090$.",
+  "ask": "The 99.9% worst-case default rate is closest to:",
+  "options": [
+   {
+    "label": "About 2% (the PD itself)",
+    "correct": false,
+    "why": "Applied no stress. The 99.9% scenario is a very bad year, so WCDR must sit well above the 2% average PD; capital is charged on the gap (WCDR $-$ PD)."
+   },
+   {
+    "label": "About 7%",
+    "correct": false,
+    "why": "Used $\\rho$ instead of $\\sqrt{\\rho}$ in the numerator: $(-2.054 + 0.25 \\times 3.090)/0.866 = -1.48$, and $N(-1.48) \\approx 7\\%$."
+   },
+   {
+    "label": "About 28%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Argument",
+    "display": "$(-2.054 + 0.5 \\times 3.090)/\\sqrt{0.75} = -0.588$",
+    "value": -0.588
+   },
+   {
+    "label": "Normal CDF",
+    "display": "$N(-0.588) \\approx 0.278$",
+    "value": 0.278
+   },
+   {
+    "label": "Capital rate",
+    "display": "$0.278 - 0.02 \\approx 0.258$ of EAD$\\times$LGD",
+    "value": 0.258
+   }
+  ],
+  "takeaway": "WCDR is the PD in a one-in-a-thousand bad year, far above the average PD. Capital covers only the unexpected part, WCDR minus PD.",
+  "check": {
+   "inputs": {
+    "PD": 0.02,
+    "z": -2.054,
+    "zc": 3.09,
+    "rho": 0.25,
+    "Nstd": 0.2784,
+    "Nslip": 0.0695
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "(z+sqrt(rho)*zc)/sqrt(1-rho)",
+     "value": -0.587743
+    },
+    {
+     "name": "wcdr",
+     "expr": "Nstd",
+     "value": 0.2784
+    },
+    {
+     "name": "gap",
+     "expr": "wcdr-PD",
+     "value": 0.2584
+    },
+    {
+     "name": "slip_a",
+     "expr": "(z+rho*zc)/sqrt(1-rho)",
+     "value": -1.47975
+    },
+    {
+     "name": "slip_rho",
+     "expr": "Nslip",
+     "value": 0.0695
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-02",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0596"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel II IRB. CAD 300m of drawn BB corporate loans: one-year PD 1%, LGD 30%, 99.9th-percentile default rate 14%, maturity adjustment 1.26. Risk-weighted assets are $12.5 \\times EAD \\times LGD \\times (DR - PD) \\times MA$.",
+  "ask": "RWA is closest to:",
+  "options": [
+   {
+    "label": "≈ CAD 15m",
+    "correct": false,
+    "why": "The capital figure ($8\\%$ of RWA), not the RWA: the factor 12.5 was left out."
+   },
+   {
+    "label": "≈ CAD 184m",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 610m",
+    "correct": false,
+    "why": "Left out LGD: $12.5 \\times 300 \\times 0.13 \\times 1.26$ treats every defaulted loan as a total loss."
+   },
+   {
+    "label": "≈ CAD 1,850m",
+    "correct": false,
+    "why": "Scale slip (10×): a decimal point lost in $12.5 \\times 300 \\times 0.30$. RWA of 1,850 would be over six times the CAD 300m exposure."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unexpected-loss rate",
+    "display": "$0.14 - 0.01 = 0.13$",
+    "value": 0.13
+   },
+   {
+    "label": "Weighted exposure",
+    "display": "$12.5 \\times 300 \\times 0.30 = 1{,}125$",
+    "value": 1125
+   },
+   {
+    "label": "Before MA",
+    "display": "$1{,}125 \\times 0.13 = 146.25$",
+    "value": 146.25
+   },
+   {
+    "label": "RWA",
+    "display": "$146.25 \\times 1.26 \\approx 184.3$",
+    "value": 184.28
+   }
+  ],
+  "takeaway": "RWA is $12.5\\times$ capital. A risk weight well below 100% (here about 61%) is what a 30% LGD and a 1% PD should give.",
+  "check": {
+   "inputs": {
+    "EAD": 300,
+    "LGD": 0.3,
+    "DR": 0.14,
+    "PD": 0.01,
+    "MA": 1.26,
+    "f": 12.5
+   },
+   "steps": [
+    {
+     "name": "ul",
+     "expr": "DR-PD",
+     "value": 0.13
+    },
+    {
+     "name": "w",
+     "expr": "f*EAD*LGD",
+     "value": 1125.0
+    },
+    {
+     "name": "pre",
+     "expr": "w*ul",
+     "value": 146.25
+    },
+    {
+     "name": "RWA",
+     "expr": "pre*MA",
+     "value": 184.275
+    },
+    {
+     "name": "slip_capital",
+     "expr": "RWA/f",
+     "value": 14.742
+    },
+    {
+     "name": "slip_noLGD",
+     "expr": "f*EAD*ul*MA",
+     "value": 614.25
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*RWA",
+     "value": 1842.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-03",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0598"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel II IRB portfolio: EAD EUR 200m, one-year expected loss EUR 4.2m, expected recovery 30%. Default rate at the 95th percentile 5.66%, at the 99.9th percentile 9.87%. Capital = worst-case loss at the IRB confidence level minus expected loss.",
+  "ask": "Is the Basel II credit capital above or below EUR 12m?",
+  "options": [
+   {
+    "label": "Above EUR 12m",
+    "correct": false,
+    "why": "Stopped at the worst-case loss $200 \\times 0.70 \\times 9.87\\% = 13.8$ and forgot to deduct the EUR 4.2m expected loss; leaving out LGD instead gives about 15.5, also above 12."
+   },
+   {
+    "label": "Below EUR 12m",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "LGD",
+    "display": "$1 - 0.30 = 0.70$",
+    "value": 0.7
+   },
+   {
+    "label": "Worst-case loss (99.9th)",
+    "display": "$200 \\times 0.70 \\times 0.0987 = 13.82$",
+    "value": 13.818
+   },
+   {
+    "label": "Capital",
+    "display": "$13.82 - 4.2 = \\text{EUR } 9.62\\text{m}$",
+    "value": 9.618
+   }
+  ],
+  "takeaway": "IRB capital covers unexpected loss only: worst-case loss at 99.9% minus expected loss. The 95th percentile is a distractor.",
+  "check": {
+   "inputs": {
+    "EAD": 200,
+    "rec": 0.3,
+    "EL": 4.2,
+    "DR": 0.0987,
+    "DR95": 0.0566,
+    "T": 12
+   },
+   "steps": [
+    {
+     "name": "LGD",
+     "expr": "1-rec",
+     "value": 0.7
+    },
+    {
+     "name": "wcl",
+     "expr": "EAD*LGD*DR",
+     "value": 13.818
+    },
+    {
+     "name": "cap",
+     "expr": "wcl-EL",
+     "value": 9.618
+    },
+    {
+     "name": "diff",
+     "expr": "cap-T",
+     "value": -2.382
+    },
+    {
+     "name": "slip_noEL",
+     "expr": "wcl",
+     "value": 13.818
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-04",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0599"
+  },
+  "trap_category": "Polarity",
+  "setup": "Basel II asset correlation for bank, corporate and sovereign exposures is a blend: $\\rho = 0.12\\,w + 0.24\\,(1-w)$, where $w = \\frac{1-e^{-50\\,PD}}{1-e^{-50}}$. A borrower has PD = 1%.",
+  "ask": "Is $\\rho$ closer to the 0.12 floor or to the 0.24 ceiling?",
+  "options": [
+   {
+    "label": "Closer to 0.24",
+    "correct": true
+   },
+   {
+    "label": "Closer to 0.12",
+    "correct": false,
+    "why": "Assumed a higher-risk borrower has higher correlation. The formula runs the other way: the weight on 0.12 is only $w = 0.39$ at PD = 1%, so $\\rho$ leans towards 0.24."
+   },
+   {
+    "label": "Exactly midway",
+    "correct": false,
+    "why": "Would need $w = 0.5$, i.e. $e^{-50\\,PD} = 0.5$. At PD = 1% it is $e^{-0.5} = 0.61$, so $w = 0.39$ and $\\rho$ is above the midpoint 0.18."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weight on 0.12",
+    "display": "$w = 1 - e^{-0.5} = 0.3935$",
+    "value": 0.3935
+   },
+   {
+    "label": "Correlation",
+    "display": "$0.12 \\times 0.3935 + 0.24 \\times 0.6065 = 0.1928$",
+    "value": 0.1928
+   }
+  ],
+  "takeaway": "Basel II correlation falls as PD rises: low-PD names get correlation near 0.24, high-PD names near 0.12.",
+  "check": {
+   "inputs": {
+    "PD": 0.01,
+    "lo": 0.12,
+    "hi": 0.24
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "1-exp(-50*PD)",
+     "value": 0.393469
+    },
+    {
+     "name": "rho",
+     "expr": "lo*w+hi*(1-w)",
+     "value": 0.192784
+    },
+    {
+     "name": "mid",
+     "expr": "(lo+hi)/2",
+     "value": 0.18
+    },
+    {
+     "name": "above",
+     "expr": "rho-mid",
+     "value": 0.0127837
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-05",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0619"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel 2.5 market risk capital uses the 10-day 99% VaR: $MR = \\max(VaR_{t-1}, m\\,VaR_{avg}) + \\max(SVaR_{t-1}, m_s\\,SVaR_{avg})$, with $m = 3.0$. 10-day VaR in USD m, previous day / 60-day average: 95% row 110 / 127; 99% row 185 / 140; 99.9% row 283 / 228.",
+  "ask": "The VaR leg, $\\max(VaR_{t-1},\\, 3.0 \\times VaR_{avg})$, is closest to:",
+  "options": [
+   {
+    "label": "USD 185m",
+    "correct": false,
+    "why": "Kept the previous-day VaR and ignored the multiplied average: $3.0 \\times 140 = 420$ is larger and the leg takes the maximum."
+   },
+   {
+    "label": "USD 381m",
+    "correct": false,
+    "why": "Read the 95% row: $\\max(110, 3 \\times 127) = 381$. Basel 2.5 uses the 99% row."
+   },
+   {
+    "label": "USD 420m",
+    "correct": true
+   },
+   {
+    "label": "USD 684m",
+    "correct": false,
+    "why": "Read the 99.9% row: $\\max(283, 3 \\times 228) = 684$. Basel 2.5 uses the 99% row."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pick the 99% row",
+    "display": "previous day 185, 60-day average 140",
+    "value": null
+   },
+   {
+    "label": "Multiplied average",
+    "display": "$3.0 \\times 140 = 420$",
+    "value": 420
+   },
+   {
+    "label": "VaR leg",
+    "display": "$\\max(185, 420) = 420$",
+    "value": 420
+   }
+  ],
+  "takeaway": "Basel 2.5 uses the 99% 10-day VaR. The multiplied 60-day average usually beats the previous-day figure.",
+  "check": {
+   "inputs": {
+    "m": 3.0,
+    "v95p": 110,
+    "v95a": 127,
+    "v99p": 185,
+    "v99a": 140,
+    "v999p": 283,
+    "v999a": 228
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "m*v99a",
+     "value": 420.0
+    },
+    {
+     "name": "leg",
+     "expr": "max(v99p,avg)",
+     "value": 420.0
+    },
+    {
+     "name": "slip_prev",
+     "expr": "v99p",
+     "value": 185.0
+    },
+    {
+     "name": "slip_95",
+     "expr": "max(v95p,m*v95a)",
+     "value": 381.0
+    },
+    {
+     "name": "slip_999",
+     "expr": "max(v999p,m*v999a)",
+     "value": 684.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-06",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0621"
+  },
+  "trap_category": "Role",
+  "setup": "Basel 2.5 charge: $\\max(VaR_{t-1}, 3.0\\,VaR_{avg}) + \\max(SVaR_{t-1}, 3.5\\,SVaR_{avg})$. All figures 10-day 99%, in USD: previous-day VaR 800, 60-day average VaR 360; stressed VaR, most stressful previous-day equivalent over seven years 950, most stressful 60-day average 370.",
+  "ask": "What sets the stressed-VaR leg?",
+  "options": [
+   {
+    "label": "The multiplied 60-day average: $3.5 \\times 370$",
+    "correct": true
+   },
+   {
+    "label": "The previous-day stressed figure: 950",
+    "correct": false,
+    "why": "Took the seven-year worst-day figure at face value. The multiplied average, $3.5 \\times 370 = 1{,}295$, is larger, and each leg takes the maximum."
+   }
+  ],
+  "working": [
+   {
+    "label": "Multiplied average",
+    "display": "$3.5 \\times 370 = 1{,}295$",
+    "value": 1295
+   },
+   {
+    "label": "Stressed leg",
+    "display": "$\\max(950, 1{,}295) = 1{,}295$",
+    "value": 1295
+   },
+   {
+    "label": "VaR leg (for the total)",
+    "display": "$\\max(800, 3.0 \\times 360 = 1{,}080) = 1{,}080$, so the charge is 2,375",
+    "value": 1080
+   }
+  ],
+  "takeaway": "In each Basel 2.5 leg the multiplier (3 or more) on the 60-day average usually dominates the single previous-day figure.",
+  "check": {
+   "inputs": {
+    "vp": 800,
+    "va": 360,
+    "sp": 950,
+    "sa": 370,
+    "mc": 3.0,
+    "ms": 3.5
+   },
+   "steps": [
+    {
+     "name": "sleg",
+     "expr": "max(sp,ms*sa)",
+     "value": 1295.0
+    },
+    {
+     "name": "vleg",
+     "expr": "max(vp,mc*va)",
+     "value": 1080.0
+    },
+    {
+     "name": "tot",
+     "expr": "vleg+sleg",
+     "value": 2375.0
+    },
+    {
+     "name": "margin",
+     "expr": "ms*sa-sp",
+     "value": 345.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-07",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0623"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel 2.5 market risk capital $= \\max(VaR_{t-1}, 3\\,VaR_{avg}) + \\max(SVaR_{t-1}, 3\\,SVaR_{avg})$, all 10-day 99%, in USD m. VaR: previous day 1.2, 60-day average 1.4. Stressed VaR: previous day 2.2, 60-day average 2.0.",
+  "ask": "The capital charge is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 3.4m",
+    "correct": false,
+    "why": "Left out the multiplier of 3 and took raw figures: $1.2 + 2.2 = 3.4$ (the two averages, $1.4 + 2.0$, also give 3.4)."
+   },
+   {
+    "label": "≈ USD 10.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 31m",
+    "correct": false,
+    "why": "Multiplied the whole charge by 3 a second time: $3 \\times 10.2 = 30.6$."
+   },
+   {
+    "label": "≈ USD 102m",
+    "correct": false,
+    "why": "Scale slip (10×): a decimal place lost somewhere in the 10.2m total."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR leg",
+    "display": "$\\max(1.2, 3 \\times 1.4 = 4.2) = 4.2$",
+    "value": 4.2
+   },
+   {
+    "label": "Stressed leg",
+    "display": "$\\max(2.2, 3 \\times 2.0 = 6.0) = 6.0$",
+    "value": 6.0
+   },
+   {
+    "label": "Charge",
+    "display": "$4.2 + 6.0 = \\text{USD } 10.2\\text{m}$",
+    "value": 10.2
+   }
+  ],
+  "takeaway": "The multiplier applies to the 60-day averages inside each max, once. Both averages (times 3) beat the previous-day figures here.",
+  "check": {
+   "inputs": {
+    "vp": 1.2,
+    "va": 1.4,
+    "sp": 2.2,
+    "sa": 2.0,
+    "m": 3
+   },
+   "steps": [
+    {
+     "name": "vleg",
+     "expr": "max(vp,m*va)",
+     "value": 4.2
+    },
+    {
+     "name": "sleg",
+     "expr": "max(sp,m*sa)",
+     "value": 6.0
+    },
+    {
+     "name": "MR",
+     "expr": "vleg+sleg",
+     "value": 10.2
+    },
+    {
+     "name": "slip_nomult",
+     "expr": "vp+sp",
+     "value": 3.4
+    },
+    {
+     "name": "slip_avg",
+     "expr": "va+sa",
+     "value": 3.4
+    },
+    {
+     "name": "slip_twice",
+     "expr": "m*MR",
+     "value": 30.6
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*MR",
+     "value": 102.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-08",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0630"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank has one-day 95% VaR figures and needs the 10-day 99% VaR that Basel 2.5 uses. Returns are normal; the 95% z-value is 1.645 and the 99% z-value is 2.326.",
+  "ask": "The factor that converts one-day 95% VaR to 10-day 99% VaR is closest to:",
+  "options": [
+   {
+    "label": "About 1.4",
+    "correct": false,
+    "why": "Scaled the confidence level only ($2.326/1.645$) and left out the time scaling."
+   },
+   {
+    "label": "About 3.2",
+    "correct": false,
+    "why": "Scaled the horizon only ($\\sqrt{10}$) and stayed at 95% confidence."
+   },
+   {
+    "label": "About 4.5",
+    "correct": true
+   },
+   {
+    "label": "About 14",
+    "correct": false,
+    "why": "Multiplied the confidence ratio by 10 days instead of $\\sqrt{10}$: $1.414 \\times 10$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Confidence ratio",
+    "display": "$2.326/1.645 = 1.414$",
+    "value": 1.414
+   },
+   {
+    "label": "Time scaling",
+    "display": "$\\sqrt{10} = 3.162$",
+    "value": 3.162
+   },
+   {
+    "label": "Combined",
+    "display": "$1.414 \\times 3.162 = 4.47$",
+    "value": 4.47
+   }
+  ],
+  "takeaway": "Two separate conversions multiply: confidence level (z ratio) and horizon (square root of time).",
+  "check": {
+   "inputs": {
+    "z95": 1.645,
+    "z99": 2.326,
+    "days": 10
+   },
+   "steps": [
+    {
+     "name": "conf",
+     "expr": "z99/z95",
+     "value": 1.41398
+    },
+    {
+     "name": "time",
+     "expr": "sqrt(days)",
+     "value": 3.16228
+    },
+    {
+     "name": "factor",
+     "expr": "conf*time",
+     "value": 4.4714
+    },
+    {
+     "name": "slip_time10",
+     "expr": "conf*days",
+     "value": 14.1398
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-09",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0669"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "NSFR $= ASF/RSF$. A bank's funding (USD m, ASF factor): stable retail deposits 80 (90%), wholesale deposits 100 (50%), Tier 2 capital 40 (100%), Tier 1 capital 80 (100%). Total funding is 300.",
+  "ask": "Available stable funding (ASF) is closest to:",
+  "options": [
+   {
+    "label": "USD 192m",
+    "correct": false,
+    "why": "Dropped the wholesale deposits entirely: $72 + 40 + 80 = 192$. They count at 50%, not 0%."
+   },
+   {
+    "label": "USD 242m",
+    "correct": true
+   },
+   {
+    "label": "USD 300m",
+    "correct": false,
+    "why": "Counted all funding at 100%, ignoring the ASF factors."
+   }
+  ],
+  "working": [
+   {
+    "label": "Retail",
+    "display": "$80 \\times 0.90 = 72$",
+    "value": 72
+   },
+   {
+    "label": "Wholesale",
+    "display": "$100 \\times 0.50 = 50$",
+    "value": 50
+   },
+   {
+    "label": "Capital",
+    "display": "$40 + 80 = 120$",
+    "value": 120
+   },
+   {
+    "label": "ASF",
+    "display": "$72 + 50 + 120 = 242$",
+    "value": 242
+   }
+  ],
+  "takeaway": "ASF is funding weighted by stability, so it falls below the balance-sheet total whenever some funding is less than fully stable.",
+  "check": {
+   "inputs": {
+    "a1": 80,
+    "f1": 0.9,
+    "a2": 100,
+    "f2": 0.5,
+    "a3": 40,
+    "a4": 80,
+    "tot": 300
+   },
+   "steps": [
+    {
+     "name": "ret",
+     "expr": "a1*f1",
+     "value": 72.0
+    },
+    {
+     "name": "wh",
+     "expr": "a2*f2",
+     "value": 50.0
+    },
+    {
+     "name": "cap",
+     "expr": "a3+a4",
+     "value": 120.0
+    },
+    {
+     "name": "ASF",
+     "expr": "ret+wh+cap",
+     "value": 242.0
+    },
+    {
+     "name": "slip_nowh",
+     "expr": "ret+cap",
+     "value": 192.0
+    },
+    {
+     "name": "slip_all",
+     "expr": "a1+a2+a3+a4",
+     "value": 300.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-10",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0671"
+  },
+  "trap_category": "Formula",
+  "setup": "NSFR $= ASF/RSF$ (USD m, factor). Funding: retail deposits 35 (90%), wholesale deposits 67.5 (50%), Tier 2 capital 5 (100%), Tier 1 capital 10 (100%). Assets: cash 7 (0%), mortgages 38 (65%), Treasuries 6.5 (5%), small-business loans 54 (85%), fixed assets 12 (100%).",
+  "ask": "Is the NSFR above or below the 100% minimum?",
+  "options": [
+   {
+    "label": "Above 100%",
+    "correct": false,
+    "why": "Compared unweighted funding (117.5) with the weighted RSF (82.9), mixing a raw total with a weighted one. Both sides must be weighted: $ASF = 80.25$."
+   },
+   {
+    "label": "Below 100%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "ASF",
+    "display": "$31.5 + 33.75 + 5 + 10 = 80.25$",
+    "value": 80.25
+   },
+   {
+    "label": "RSF",
+    "display": "$0 + 24.7 + 0.325 + 45.9 + 12 = 82.925$",
+    "value": 82.925
+   },
+   {
+    "label": "NSFR",
+    "display": "$80.25 / 82.925 = 96.8\\%$",
+    "value": 0.9677
+   }
+  ],
+  "takeaway": "Weight both sides. Here wholesale funding at 50% pulls ASF just under RSF, so the NSFR is a shade below 100%.",
+  "check": {
+   "inputs": {
+    "r": 35,
+    "w": 67.5,
+    "t2": 5,
+    "t1": 10,
+    "c": 7,
+    "m": 38,
+    "tb": 6.5,
+    "sb": 54,
+    "fa": 12
+   },
+   "steps": [
+    {
+     "name": "ASF",
+     "expr": "0.9*r+0.5*w+t2+t1",
+     "value": 80.25
+    },
+    {
+     "name": "RSF",
+     "expr": "0*c+0.65*m+0.05*tb+0.85*sb+fa",
+     "value": 82.925
+    },
+    {
+     "name": "NSFR",
+     "expr": "ASF/RSF",
+     "value": 0.967742
+    },
+    {
+     "name": "slip_raw",
+     "expr": "(r+w+t2+t1)/RSF",
+     "value": 1.41694
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-11",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0675"
+  },
+  "trap_category": "Role",
+  "setup": "Exim Bank: high-quality liquid assets USD 140m, estimated net cash outflows over the next 30 days USD 155m, stable funding USD 100m, capital USD 10m, total exposure USD 150m.",
+  "ask": "Does the bank meet the Basel III minimum liquidity coverage ratio of 100%?",
+  "options": [
+   {
+    "label": "Yes: LCR is above 1",
+    "correct": false,
+    "why": "Inverted the ratio: $155/140 = 1.107$. The LCR has HQLA on top, outflows underneath."
+   },
+   {
+    "label": "No: LCR is below 1",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "LCR",
+    "display": "$140/155 = 0.903$",
+    "value": 0.903
+   }
+  ],
+  "takeaway": "LCR is HQLA over 30-day net outflows. Stable funding, capital and exposure belong to other ratios (NSFR, leverage) and are distractors here.",
+  "check": {
+   "inputs": {
+    "H": 140,
+    "O": 155,
+    "SF": 100,
+    "cap": 10,
+    "exp": 150
+   },
+   "steps": [
+    {
+     "name": "LCR",
+     "expr": "H/O",
+     "value": 0.903226
+    },
+    {
+     "name": "short",
+     "expr": "1-LCR",
+     "value": 0.0967742
+    },
+    {
+     "name": "slip_inv",
+     "expr": "O/H",
+     "value": 1.10714
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-12",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0676"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A bank reports (USD): HQLA 236, marketable securities 107, 30-day cash inflows 214, 30-day cash outflows 487, required stable funding 320, available stable funding 305, long-term economic capital 640.",
+  "ask": "The 30-day net cash outflow used in the LCR denominator is closest to:",
+  "options": [
+   {
+    "label": "USD 273",
+    "correct": true
+   },
+   {
+    "label": "USD 487",
+    "correct": false,
+    "why": "Ignored the inflows. The denominator is outflows net of inflows."
+   },
+   {
+    "label": "USD 701",
+    "correct": false,
+    "why": "Added the inflows to the outflows instead of netting them."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net outflow",
+    "display": "$487 - 214 = 273$",
+    "value": 273
+   },
+   {
+    "label": "LCR",
+    "display": "$236 / 273 = 86.5\\%$",
+    "value": 0.8645
+   }
+  ],
+  "takeaway": "LCR denominator is outflows minus inflows over 30 days. The RSF, ASF and capital figures are for NSFR, not LCR.",
+  "check": {
+   "inputs": {
+    "H": 236,
+    "inf": 214,
+    "out": 487
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "out-inf",
+     "value": 273.0
+    },
+    {
+     "name": "LCR",
+     "expr": "H/net",
+     "value": 0.864469
+    },
+    {
+     "name": "slip_gross",
+     "expr": "out",
+     "value": 487.0
+    },
+    {
+     "name": "slip_sum",
+     "expr": "out+inf",
+     "value": 701.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-13",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0685"
+  },
+  "trap_category": "Scope",
+  "setup": "LCR inputs (USD m): Treasuries 90, counted in full; corporate debt 40, which counts after a 50% haircut; stable retail deposits 500 with 5% run-off; non-financial wholesale funding 300 with 40% run-off; expected 30-day inflows 60.",
+  "ask": "High-quality liquid assets (HQLA) are closest to:",
+  "options": [
+   {
+    "label": "USD 90m",
+    "correct": false,
+    "why": "Left out the corporate debt altogether. After the 50% haircut it still contributes 20."
+   },
+   {
+    "label": "USD 110m",
+    "correct": true
+   },
+   {
+    "label": "USD 130m",
+    "correct": false,
+    "why": "Counted the corporate debt at full value and ignored the 50% haircut."
+   }
+  ],
+  "working": [
+   {
+    "label": "Corporate debt after haircut",
+    "display": "$40 \\times (1 - 0.50) = 20$",
+    "value": 20
+   },
+   {
+    "label": "HQLA",
+    "display": "$90 + 20 = 110$",
+    "value": 110
+   },
+   {
+    "label": "Net outflow",
+    "display": "$25 + 120 - 60 = 85$, so LCR $= 110/85 = 129\\%$",
+    "value": 85
+   }
+  ],
+  "takeaway": "A haircut reduces what counts as HQLA; it does not remove the asset. Net outflows are run-offs less inflows.",
+  "check": {
+   "inputs": {
+    "T": 90,
+    "C": 40,
+    "hc": 0.5,
+    "ret": 500,
+    "rr": 0.05,
+    "wh": 300,
+    "wr": 0.4,
+    "inf": 60
+   },
+   "steps": [
+    {
+     "name": "corp",
+     "expr": "C*(1-hc)",
+     "value": 20.0
+    },
+    {
+     "name": "HQLA",
+     "expr": "T+corp",
+     "value": 110.0
+    },
+    {
+     "name": "net",
+     "expr": "ret*rr+wh*wr-inf",
+     "value": 85.0
+    },
+    {
+     "name": "LCR",
+     "expr": "HQLA/net",
+     "value": 1.29412
+    },
+    {
+     "name": "slip_nocorp",
+     "expr": "T",
+     "value": 90.0
+    },
+    {
+     "name": "slip_nohc",
+     "expr": "T+C",
+     "value": 130.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-14",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0688"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel III leverage ratio. Tier 1 capital USD 250m, Tier 2 capital USD 150m, on-balance-sheet assets USD 2,000m (unweighted), off-balance-sheet loan commitments USD 300m entering the exposure measure at full face value.",
+  "ask": "Is the leverage ratio above or below 12%?",
+  "options": [
+   {
+    "label": "Above 12%",
+    "correct": false,
+    "why": "Either left the commitments out of the exposure (250/2,000 = 12.5%) or counted Tier 2 capital in the numerator (400/2,300 = 17.4%). The ratio uses Tier 1 only, over assets plus commitments."
+   },
+   {
+    "label": "Below 12%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Exposure",
+    "display": "$2{,}000 + 300 = 2{,}300$",
+    "value": 2300
+   },
+   {
+    "label": "Leverage ratio",
+    "display": "$250 / 2{,}300 = 10.87\\%$",
+    "value": 0.1087
+   }
+  ],
+  "takeaway": "Leverage ratio is Tier 1 over total (unweighted) exposure, including off-balance-sheet items. Tier 2 does not count.",
+  "check": {
+   "inputs": {
+    "T1": 250,
+    "T2": 150,
+    "A": 2000,
+    "L": 300,
+    "thr": 0.12
+   },
+   "steps": [
+    {
+     "name": "E",
+     "expr": "A+L",
+     "value": 2300.0
+    },
+    {
+     "name": "lev",
+     "expr": "T1/E",
+     "value": 0.108696
+    },
+    {
+     "name": "gap",
+     "expr": "lev-thr",
+     "value": -0.0113043
+    },
+    {
+     "name": "slip_noL",
+     "expr": "T1/A",
+     "value": 0.125
+    },
+    {
+     "name": "slip_t2",
+     "expr": "(T1+T2)/E",
+     "value": 0.173913
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-15",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-23: High-level Summary of Basel III Reforms",
+  "reading_id": "ORR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0711"
+  },
+  "trap_category": "Formula",
+  "setup": "A G-SIB faces a 2.0% risk-weighted higher-loss-absorbency (HLA) surcharge. Its leverage exposure measure is USD 800bn.",
+  "ask": "Under the Basel III reforms the G-SIB leverage-ratio buffer, as a percentage of leverage exposure, is:",
+  "options": [
+   {
+    "label": "0.5%",
+    "correct": false,
+    "why": "Halved the HLA twice. The buffer is 50% of the HLA requirement, applied once."
+   },
+   {
+    "label": "1.0%",
+    "correct": true
+   },
+   {
+    "label": "2.0%",
+    "correct": false,
+    "why": "Carried the HLA surcharge straight across to the leverage ratio. The leverage buffer is only half of it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Leverage buffer",
+    "display": "$50\\% \\times 2.0\\% = 1.0\\%$",
+    "value": 0.01
+   },
+   {
+    "label": "Tier 1 needed",
+    "display": "$1.0\\% \\times \\text{USD } 800\\text{bn} = \\text{USD } 8\\text{bn}$",
+    "value": 8
+   }
+  ],
+  "takeaway": "G-SIB leverage buffer = 50% of the risk-weighted HLA requirement, met with Tier 1 capital.",
+  "check": {
+   "inputs": {
+    "hla": 0.02,
+    "share": 0.5,
+    "X": 800
+   },
+   "steps": [
+    {
+     "name": "buf",
+     "expr": "share*hla",
+     "value": 0.01
+    },
+    {
+     "name": "cap",
+     "expr": "buf*X",
+     "value": 8.0
+    },
+    {
+     "name": "slip_twice",
+     "expr": "share*share*hla",
+     "value": 0.005
+    },
+    {
+     "name": "slip_same",
+     "expr": "hla",
+     "value": 0.02
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq02-16",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-23: High-level Summary of Basel III Reforms",
+  "reading_id": "ORR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0723"
+  },
+  "trap_category": "Role",
+  "setup": "Basel III output floor, fully phased in at 72.5% of standardised-approach RWA. A bank's RWA from its approved internal models is USD 600bn; the same exposures under standardised approaches give USD 900bn.",
+  "ask": "Is the output floor binding, so that regulatory RWA is above USD 600bn?",
+  "options": [
+   {
+    "label": "Yes: the floor, about USD 650bn, sets RWA",
+    "correct": true
+   },
+   {
+    "label": "No: model RWA of USD 600bn stands",
+    "correct": false,
+    "why": "Applied 72.5% to the bank's own model RWA ($0.725 \\times 600 = 435$), which looks harmless. The floor is a share of the standardised figure: $0.725 \\times 900 = 652.5$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Floor",
+    "display": "$0.725 \\times 900 = 652.5$",
+    "value": 652.5
+   },
+   {
+    "label": "Regulatory RWA",
+    "display": "$\\max(600, 652.5) = \\text{USD } 652.5\\text{bn}$",
+    "value": 652.5
+   }
+  ],
+  "takeaway": "Output floor: RWA = max(model RWA, 72.5% of standardised RWA). It binds when models give more than 27.5% less than the standardised approach.",
+  "check": {
+   "inputs": {
+    "M": 600,
+    "Sd": 900,
+    "fl": 0.725
+   },
+   "steps": [
+    {
+     "name": "floor",
+     "expr": "fl*Sd",
+     "value": 652.5
+    },
+    {
+     "name": "RWA",
+     "expr": "max(M,floor)",
+     "value": 652.5
+    },
+    {
+     "name": "excess",
+     "expr": "floor-M",
+     "value": 52.5
+    },
+    {
+     "name": "slip_model",
+     "expr": "fl*M",
+     "value": 435.0
+    }
+   ]
+  }
+ }
+]

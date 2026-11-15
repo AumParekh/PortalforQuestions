@@ -1,0 +1,1032 @@
+[
+ {
+  "id": "SC-bank-ORq01-01",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0408"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "RAROC numerator for a USD 2m loan, no taxes or transfers. Gross revenue USD 250,000; interest expense USD 100,000; operating costs USD 60,000; expected loss 300 bp of the loan; return earned on economic capital USD 10,000. Economic capital is USD 400,000.",
+  "ask": "Risk-adjusted income (the numerator) is closest to:",
+  "options": [
+   {
+    "label": "USD 30,000",
+    "correct": false,
+    "why": "Left out the USD 10,000 return on economic capital, which is added back: 250,000 - 60,000 - 60,000 - 100,000 = 30,000."
+   },
+   {
+    "label": "USD 40,000",
+    "correct": true
+   },
+   {
+    "label": "USD 100,000",
+    "correct": false,
+    "why": "Forgot expected loss: 300 bp of USD 2m is USD 60,000 and it must come off revenue."
+   },
+   {
+    "label": "USD 140,000",
+    "correct": false,
+    "why": "Left out the USD 100,000 interest expense on the deposits that fund the loan."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected loss",
+    "display": "$0.03 \\times 2{,}000{,}000 = 60{,}000$",
+    "value": 60000
+   },
+   {
+    "label": "Risk-adjusted income",
+    "display": "$250{,}000 - 60{,}000 - 60{,}000 - 100{,}000 + 10{,}000 = 40{,}000$",
+    "value": 40000
+   },
+   {
+    "label": "RAROC",
+    "display": "$40{,}000 / 400{,}000 = 10\\%$",
+    "value": 0.1
+   }
+  ],
+  "takeaway": "RAROC numerator = revenue less funding cost, operating cost and expected loss, plus the return earned on the economic capital.",
+  "check": {
+   "inputs": {
+    "rev": 250000,
+    "intx": 100000,
+    "opx": 60000,
+    "elr": 0.03,
+    "loan": 2000000,
+    "roc": 10000,
+    "ec": 400000
+   },
+   "steps": [
+    {
+     "name": "el",
+     "expr": "elr*loan",
+     "value": 60000
+    },
+    {
+     "name": "inc",
+     "expr": "rev-el-opx-intx+roc",
+     "value": 40000
+    },
+    {
+     "name": "raroc",
+     "expr": "inc/ec",
+     "value": 0.1
+    },
+    {
+     "name": "slip_noroc",
+     "expr": "rev-el-opx-intx",
+     "value": 30000
+    },
+    {
+     "name": "slip_noel",
+     "expr": "rev-opx-intx+roc",
+     "value": 100000
+    },
+    {
+     "name": "slip_nointx",
+     "expr": "rev-el-opx+roc",
+     "value": 140000
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-02",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0410"
+  },
+  "trap_category": "Definition",
+  "setup": "A EUR 1.5m loan is funded by deposits. Expected revenue EUR 52,500 a year; expected loss EUR 20,000; direct operating costs EUR 15,000. Economic capital of EUR 90,000 earns a risk-free 2%. Tax rate 30%; no transfers.",
+  "ask": "After-tax RAROC is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.15%",
+    "correct": false,
+    "why": "Percent as decimal: 0.1501 read off as if it were already a percentage."
+   },
+   {
+    "label": "≈ 0.9%",
+    "correct": false,
+    "why": "Divided income by the EUR 1.5m loan instead of the EUR 90,000 of economic capital."
+   },
+   {
+    "label": "≈ 15%",
+    "correct": true
+   },
+   {
+    "label": "≈ 58%",
+    "correct": false,
+    "why": "Revenue over economic capital: ignores expected loss, operating costs, and tax."
+   }
+  ],
+  "working": [
+   {
+    "label": "Return on capital",
+    "display": "$0.02 \\times 90{,}000 = 1{,}800$",
+    "value": 1800
+   },
+   {
+    "label": "Pre-tax income",
+    "display": "$52{,}500 - 20{,}000 - 15{,}000 + 1{,}800 = 19{,}300$",
+    "value": 19300
+   },
+   {
+    "label": "After tax",
+    "display": "$19{,}300 \\times 0.70 = 13{,}510$",
+    "value": 13510
+   },
+   {
+    "label": "RAROC",
+    "display": "$13{,}510 / 90{,}000 \\approx 15.0\\%$",
+    "value": 15.01
+   }
+  ],
+  "takeaway": "RAROC divides by economic capital, not by the loan; the capital here is only 6% of the loan, so the ratio is much larger than the margin on assets.",
+  "check": {
+   "inputs": {
+    "rev": 52500,
+    "el": 20000,
+    "opx": 15000,
+    "ec": 90000,
+    "rc": 0.02,
+    "tax": 0.3,
+    "loan": 1500000
+   },
+   "steps": [
+    {
+     "name": "roc",
+     "expr": "rc*ec",
+     "value": 1800
+    },
+    {
+     "name": "pre",
+     "expr": "rev-el-opx+roc",
+     "value": 19300
+    },
+    {
+     "name": "net",
+     "expr": "pre*(1-tax)",
+     "value": 13510
+    },
+    {
+     "name": "raroc",
+     "expr": "net/ec*100",
+     "value": 15.01
+    },
+    {
+     "name": "slip_loan",
+     "expr": "net/loan*100",
+     "value": 0.9007
+    },
+    {
+     "name": "slip_dec",
+     "expr": "raroc/100",
+     "value": 0.1501
+    },
+    {
+     "name": "slip_rev",
+     "expr": "rev/ec*100",
+     "value": 58.33
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-03",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0418"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A CNY 3.8bn one-year loan is funded by deposits. The loan pays 4.1%, deposits cost 0.6%, expected loss is 3.0% of the loan and operating costs 0.3%. Economic capital is 15% of the loan and earns 2%. Tax rate 38%; no transfers.",
+  "ask": "After-tax RAROC is:",
+  "options": [
+   {
+    "label": "Above 5%",
+    "correct": false,
+    "why": "Left out expected loss (3.0% of the loan), which takes almost all of the 3.5% spread; that slip gives about 14%."
+   },
+   {
+    "label": "Below 5%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Pre-tax income, % of loan",
+    "display": "$4.1 - 0.6 - 3.0 - 0.3 + 0.15 \\times 2.0 = 0.5\\%$",
+    "value": 0.5
+   },
+   {
+    "label": "After tax",
+    "display": "$0.5\\% \\times 0.62 = 0.31\\%$ of the loan",
+    "value": 0.31
+   },
+   {
+    "label": "Over economic capital",
+    "display": "$0.31\\% / 15\\% \\approx 2.1\\%$",
+    "value": 2.07
+   }
+  ],
+  "takeaway": "Check what is left of the spread after expected loss: here it is a sliver, and dividing by 15% capital cannot lift it past 5%.",
+  "check": {
+   "inputs": {
+    "lr": 4.1,
+    "dep": 0.6,
+    "el": 3.0,
+    "opx": 0.3,
+    "ecp": 15,
+    "rc": 2.0,
+    "tax": 0.38
+   },
+   "steps": [
+    {
+     "name": "inc",
+     "expr": "lr-dep-el-opx+ecp/100*rc",
+     "value": 0.5
+    },
+    {
+     "name": "net",
+     "expr": "inc*(1-tax)",
+     "value": 0.31
+    },
+    {
+     "name": "raroc",
+     "expr": "net/(ecp/100)",
+     "value": 2.067
+    },
+    {
+     "name": "slip_noel",
+     "expr": "(lr-dep-opx+ecp/100*rc)*(1-tax)/(ecp/100)",
+     "value": 14.47
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-04",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0431"
+  },
+  "trap_category": "Formula",
+  "setup": "Firm QZK's hurdle rate uses CAPM for its common equity. Common equity return volatility is 14%, market volatility 20%, and the correlation between the two is 0.65. The risk-free rate is 3% and the expected market return 8%.",
+  "ask": "QZK's equity beta is closest to:",
+  "options": [
+   {
+    "label": "0.46",
+    "correct": true
+   },
+   {
+    "label": "0.65",
+    "correct": false,
+    "why": "Used the correlation itself as beta; beta also needs the volatility ratio."
+   },
+   {
+    "label": "0.70",
+    "correct": false,
+    "why": "Used $\\sigma_E/\\sigma_M = 14/20$ and forgot to multiply by the correlation."
+   },
+   {
+    "label": "0.93",
+    "correct": false,
+    "why": "Inverted the volatility ratio: $0.65 \\times 20/14$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Volatility ratio",
+    "display": "$14\\% / 20\\% = 0.70$",
+    "value": 0.7
+   },
+   {
+    "label": "Beta",
+    "display": "$0.65 \\times 0.70 = 0.455$",
+    "value": 0.455
+   },
+   {
+    "label": "Cost of common equity",
+    "display": "$3\\% + 0.455 \\times 5\\% = 5.275\\%$",
+    "value": 5.275
+   }
+  ],
+  "takeaway": "Beta is the correlation times the ratio of the stock's volatility to the market's, so it sits below both 0.65 and 0.70 here.",
+  "check": {
+   "inputs": {
+    "se": 14,
+    "sm": 20,
+    "rho": 0.65,
+    "rf": 3,
+    "rm": 8
+   },
+   "steps": [
+    {
+     "name": "beta",
+     "expr": "rho*se/sm",
+     "value": 0.455
+    },
+    {
+     "name": "ke",
+     "expr": "rf+beta*(rm-rf)",
+     "value": 5.275
+    },
+    {
+     "name": "slip_norho",
+     "expr": "se/sm",
+     "value": 0.7
+    },
+    {
+     "name": "slip_inv",
+     "expr": "rho*sm/se",
+     "value": 0.9286
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-05",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0432"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank is funded by USD 800m of common equity and USD 200m of preferred equity (market values). Common equity has beta 1.30; the risk-free rate is 3% and the expected market return 9%. The preferred dividend yield is 6.0%.",
+  "ask": "Compared with the CAPM cost of common equity, the bank's hurdle rate is:",
+  "options": [
+   {
+    "label": "Above it",
+    "correct": false,
+    "why": "Treated the cheaper preferred layer as if it raised the average, or weighted it more than the 20% it represents."
+   },
+   {
+    "label": "Equal to it",
+    "correct": false,
+    "why": "Ignored the preferred equity and used the common equity cost alone (10.80%)."
+   },
+   {
+    "label": "Below it",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Cost of common equity",
+    "display": "$3\\% + 1.30 \\times 6\\% = 10.80\\%$",
+    "value": 10.8
+   },
+   {
+    "label": "Weights",
+    "display": "$800/1000 = 80\\%$ common, $20\\%$ preferred",
+    "value": 0.8
+   },
+   {
+    "label": "Hurdle rate",
+    "display": "$0.8 \\times 10.80\\% + 0.2 \\times 6.0\\% = 9.84\\%$",
+    "value": 9.84
+   }
+  ],
+  "takeaway": "The hurdle rate is a weighted average of the costs of each capital source, so a cheaper layer pulls it below the common equity cost.",
+  "check": {
+   "inputs": {
+    "rf": 3,
+    "rm": 9,
+    "b": 1.3,
+    "wc": 0.8,
+    "wp": 0.2,
+    "kp": 6.0
+   },
+   "steps": [
+    {
+     "name": "ke",
+     "expr": "rf+b*(rm-rf)",
+     "value": 10.8
+    },
+    {
+     "name": "h",
+     "expr": "wc*ke+wp*kp",
+     "value": 9.84
+    },
+    {
+     "name": "gap",
+     "expr": "ke-h",
+     "value": 0.96
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-06",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0436"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Adjusted RAROC criterion: accept a project if RAROC $- \\beta_E(R_M - R_F) > R_F$. The project has the same beta as Sigma Inc., 1.18. The risk-free rate is 2% and the expected market return is 7.932%.",
+  "ask": "The systematic charge $\\beta_E(R_M - R_F)$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.4%",
+    "correct": false,
+    "why": "Multiplied beta by the risk-free rate (1.18 × 2%) instead of by the market premium."
+   },
+   {
+    "label": "≈ 5.9%",
+    "correct": false,
+    "why": "Forgot beta: that is just the market premium 7.932% - 2%."
+   },
+   {
+    "label": "≈ 7.0%",
+    "correct": true
+   },
+   {
+    "label": "≈ 9.0%",
+    "correct": false,
+    "why": "Added the risk-free rate on top. That is the minimum RAROC for acceptance, a later step."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market premium",
+    "display": "$7.932\\% - 2\\% = 5.932\\%$",
+    "value": 5.932
+   },
+   {
+    "label": "Systematic charge",
+    "display": "$1.18 \\times 5.932\\% = 7.00\\%$",
+    "value": 7.0
+   },
+   {
+    "label": "Minimum RAROC",
+    "display": "$2\\% + 7.00\\% = 9.00\\%$",
+    "value": 9.0
+   }
+  ],
+  "takeaway": "The charge scales the market premium by beta; the risk-free rate is added only when setting the hurdle for RAROC.",
+  "check": {
+   "inputs": {
+    "b": 1.18,
+    "rf": 2,
+    "rm": 7.932
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "rm-rf",
+     "value": 5.932
+    },
+    {
+     "name": "chg",
+     "expr": "b*prem",
+     "value": 7.0
+    },
+    {
+     "name": "minr",
+     "expr": "rf+chg",
+     "value": 9.0
+    },
+    {
+     "name": "slip_rf",
+     "expr": "b*rf",
+     "value": 2.36
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-07",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0438"
+  },
+  "trap_category": "Scope",
+  "setup": "A project has RAROC 13%. The risk-free rate is 6%, the market return 14%, the firm's equity beta 1.5, and the firm's required return on equity 12%. The rule: accept if adjusted RAROC, RAROC $- \\beta_E(R_M - R_F)$, exceeds the risk-free rate.",
+  "ask": "The project should be:",
+  "options": [
+   {
+    "label": "Accepted: 13% beats the 12% required return",
+    "correct": false,
+    "why": "Compared unadjusted RAROC with the required return. The rule uses adjusted RAROC against the risk-free rate; 12% plays no part."
+   },
+   {
+    "label": "Rejected: adjusted RAROC is below the risk-free rate",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Systematic charge",
+    "display": "$1.5 \\times (14\\% - 6\\%) = 12\\%$",
+    "value": 12.0
+   },
+   {
+    "label": "Adjusted RAROC",
+    "display": "$13\\% - 12\\% = 1\\%$",
+    "value": 1.0
+   },
+   {
+    "label": "Test",
+    "display": "$1\\% < 6\\%$, so reject",
+    "value": null
+   }
+  ],
+  "takeaway": "Adjusted RAROC is compared with the risk-free rate; the charge for market risk can wipe out most of a headline RAROC.",
+  "check": {
+   "inputs": {
+    "raroc": 13,
+    "rf": 6,
+    "rm": 14,
+    "b": 1.5
+   },
+   "steps": [
+    {
+     "name": "chg",
+     "expr": "b*(rm-rf)",
+     "value": 12
+    },
+    {
+     "name": "ara",
+     "expr": "raroc-chg",
+     "value": 1
+    },
+    {
+     "name": "gap",
+     "expr": "ara-rf",
+     "value": -5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-08",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0553"
+  },
+  "trap_category": "Formula",
+  "setup": "Three derivatives with one counterparty sit under an enforceable bilateral netting agreement (EUR m): an interest rate swap worth +95, an FX forward worth -35 and a stock option worth +80. The 1995 Amendment defines the net replacement ratio as net current exposure divided by gross current exposure (positive values only).",
+  "ask": "The NRR is:",
+  "options": [
+   {
+    "label": "Above 1",
+    "correct": false,
+    "why": "Divided gross by net, so the ratio came out the wrong way up (175/140 = 1.25)."
+   },
+   {
+    "label": "Exactly 1",
+    "correct": false,
+    "why": "Ignored the negative FX forward; it offsets under netting but is floored at zero in the gross figure."
+   },
+   {
+    "label": "Below 1",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Net exposure",
+    "display": "$95 - 35 + 80 = 140$",
+    "value": 140
+   },
+   {
+    "label": "Gross exposure",
+    "display": "$95 + 0 + 80 = 175$",
+    "value": 175
+   },
+   {
+    "label": "NRR",
+    "display": "$140/175 = 0.80$",
+    "value": 0.8
+   }
+  ],
+  "takeaway": "Netting can only reduce exposure, so NRR is at most 1; it falls as negative values offset positive ones.",
+  "check": {
+   "inputs": {
+    "a": 95,
+    "b": -35,
+    "c": 80
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "max(a+b+c,0)",
+     "value": 140
+    },
+    {
+     "name": "gross",
+     "expr": "max(a,0)+max(b,0)+max(c,0)",
+     "value": 175
+    },
+    {
+     "name": "nrr",
+     "expr": "net/gross",
+     "value": 0.8
+    },
+    {
+     "name": "slip_inv",
+     "expr": "gross/net",
+     "value": 1.25
+    },
+    {
+     "name": "slip_nofloor",
+     "expr": "net/(a+b+c)",
+     "value": 1.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-09",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0557"
+  },
+  "trap_category": "Scope",
+  "setup": "Two counterparties, each with its own enforceable netting agreement (USD m market values). Counterparty 1: interest rate +20, interest rate 0, wheat -5. Counterparty 2: equity 0, FX -10. NRR is net exposure divided by gross exposure, where net exposure is the sum over counterparties of $\\max(\\text{sum of values}, 0)$.",
+  "ask": "The NRR is closest to:",
+  "options": [
+   {
+    "label": "0.25",
+    "correct": false,
+    "why": "Netted across both counterparties (20 - 5 - 10 = 5, then 5/20). Netting works only within a counterparty."
+   },
+   {
+    "label": "0.75",
+    "correct": true
+   },
+   {
+    "label": "1.33",
+    "correct": false,
+    "why": "Inverted the ratio: gross over net (20/15)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Net, counterparty 1",
+    "display": "$\\max(20 + 0 - 5, 0) = 15$",
+    "value": 15
+   },
+   {
+    "label": "Net, counterparty 2",
+    "display": "$\\max(0 - 10, 0) = 0$",
+    "value": 0
+   },
+   {
+    "label": "Gross",
+    "display": "$20 + 0 + 0 = 20$",
+    "value": 20
+   },
+   {
+    "label": "NRR",
+    "display": "$15/20 = 0.75$",
+    "value": 0.75
+   }
+  ],
+  "takeaway": "A counterparty with a net negative value contributes zero; it cannot offset another counterparty's positive exposure.",
+  "check": {
+   "inputs": {
+    "a1": 20,
+    "a2": 0,
+    "a3": -5,
+    "b1": 0,
+    "b2": -10
+   },
+   "steps": [
+    {
+     "name": "n1",
+     "expr": "max(a1+a2+a3,0)",
+     "value": 15
+    },
+    {
+     "name": "n2",
+     "expr": "max(b1+b2,0)",
+     "value": 0
+    },
+    {
+     "name": "net",
+     "expr": "n1+n2",
+     "value": 15
+    },
+    {
+     "name": "gross",
+     "expr": "max(a1,0)+max(a2,0)+max(a3,0)+max(b1,0)+max(b2,0)",
+     "value": 20
+    },
+    {
+     "name": "nrr",
+     "expr": "net/gross",
+     "value": 0.75
+    },
+    {
+     "name": "slip_across",
+     "expr": "max(a1+a2+a3+b1+b2,0)/gross",
+     "value": 0.25
+    },
+    {
+     "name": "slip_inv",
+     "expr": "gross/net",
+     "value": 1.3333
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-10",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0575"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel II standardised approach. Exposures (USD m) and external-rating risk weights: 24 at 80%, 12 at 120%, 18 at 70%, 17 at 30% and 3 at 10%. Minimum capital is 8% of risk-weighted assets.",
+  "ask": "Minimum capital is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.41m",
+    "correct": false,
+    "why": "Used 0.8% instead of 8% (percent slip)."
+   },
+   {
+    "label": "≈ USD 4.1m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 52m",
+    "correct": false,
+    "why": "Stopped at risk-weighted assets and never took 8% of them."
+   },
+   {
+    "label": "≈ USD 645m",
+    "correct": false,
+    "why": "Multiplied RWA by 12.5, going back from capital the wrong way."
+   }
+  ],
+  "working": [
+   {
+    "label": "RWA",
+    "display": "$19.2 + 14.4 + 12.6 + 5.1 + 0.3 = 51.6$",
+    "value": 51.6
+   },
+   {
+    "label": "Capital",
+    "display": "$0.08 \\times 51.6 = 4.128$",
+    "value": 4.128
+   }
+  ],
+  "takeaway": "Capital is 8% of RWA, not RWA itself; capital times 12.5 gives RWA back.",
+  "check": {
+   "inputs": {
+    "e1": 24,
+    "w1": 0.8,
+    "e2": 12,
+    "w2": 1.2,
+    "e3": 18,
+    "w3": 0.7,
+    "e4": 17,
+    "w4": 0.3,
+    "e5": 3,
+    "w5": 0.1
+   },
+   "steps": [
+    {
+     "name": "rwa",
+     "expr": "e1*w1+e2*w2+e3*w3+e4*w4+e5*w5",
+     "value": 51.6
+    },
+    {
+     "name": "cap",
+     "expr": "0.08*rwa",
+     "value": 4.128
+    },
+    {
+     "name": "slip_pct",
+     "expr": "0.008*rwa",
+     "value": 0.4128
+    },
+    {
+     "name": "slip_125",
+     "expr": "12.5*rwa",
+     "value": 645
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-11",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0582"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel II collateral: a USD 100m exposure to a counterparty with 150% risk weight is secured by USD 80m of bonds with 50% risk weight. Simple approach: collateral weight on the covered USD 80m, counterparty weight on the rest. Comprehensive approach: first raise the exposure 10% and cut the collateral 15%; collateral weight applies to the cut collateral, counterparty weight to the remaining exposure.",
+  "ask": "RWA under the comprehensive approach, compared with the simple approach, is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Assumed the comprehensive approach is always the kinder one. Haircuts shrink the collateral credit and grow the uncovered exposure."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Ignored the haircuts, so both approaches cover USD 80m at 50%."
+   },
+   {
+    "label": "Higher",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Simple RWA",
+    "display": "$0.5 \\times 80 + 1.5 \\times 20 = 70$",
+    "value": 70
+   },
+   {
+    "label": "Haircut exposure and collateral",
+    "display": "$100 \\times 1.10 = 110$; $80 \\times 0.85 = 68$",
+    "value": null
+   },
+   {
+    "label": "Comprehensive RWA",
+    "display": "$0.5 \\times 68 + 1.5 \\times (110 - 68) = 97$",
+    "value": 97
+   },
+   {
+    "label": "Difference",
+    "display": "$97 - 70 = 27$",
+    "value": 27
+   }
+  ],
+  "takeaway": "Haircuts are conservative: less collateral credit and more exposure left uncovered, so comprehensive RWA rises here.",
+  "check": {
+   "inputs": {
+    "ex": 100,
+    "col": 80,
+    "rwc": 1.5,
+    "rwk": 0.5,
+    "hx": 0.1,
+    "hc": 0.15
+   },
+   "steps": [
+    {
+     "name": "simple",
+     "expr": "rwk*col+rwc*(ex-col)",
+     "value": 70
+    },
+    {
+     "name": "ex2",
+     "expr": "ex*(1+hx)",
+     "value": 110
+    },
+    {
+     "name": "col2",
+     "expr": "col*(1-hc)",
+     "value": 68
+    },
+    {
+     "name": "comp",
+     "expr": "rwk*col2+rwc*(ex2-col2)",
+     "value": 97
+    },
+    {
+     "name": "diff",
+     "expr": "comp-simple",
+     "value": 27
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq01-12",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0589"
+  },
+  "trap_category": "Sequence",
+  "setup": "Basel II IRB, retail portfolio (no maturity adjustment). Exposure at default USD 400m, LGD 35%, PD 2% and worst-case default rate at 99.9% of 10%. Capital is EAD $\\times$ LGD $\\times$ (DR$_{99.9}$ - PD), and RWA is capital $\\times$ 12.5.",
+  "ask": "Risk-weighted assets are closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2.8m",
+    "correct": false,
+    "why": "Used PD alone: EAD × LGD × PD is expected loss, not capital, and there was no 12.5."
+   },
+   {
+    "label": "≈ USD 11m",
+    "correct": false,
+    "why": "Stopped at the capital charge (11.2) and never multiplied by 12.5."
+   },
+   {
+    "label": "≈ USD 140m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 1,750m",
+    "correct": false,
+    "why": "Dropped the $(DR_{99.9} - PD)$ term: 400 × 0.35 × 12.5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unexpected-loss rate",
+    "display": "$10\\% - 2\\% = 8\\%$",
+    "value": 0.08
+   },
+   {
+    "label": "Capital",
+    "display": "$400 \\times 0.35 \\times 0.08 = 11.2$",
+    "value": 11.2
+   },
+   {
+    "label": "RWA",
+    "display": "$12.5 \\times 11.2 = 140$",
+    "value": 140
+   }
+  ],
+  "takeaway": "IRB capital is on the unexpected loss only (worst-case minus PD); RWA is that capital scaled up by 12.5.",
+  "check": {
+   "inputs": {
+    "ead": 400,
+    "lgd": 0.35,
+    "dr": 0.1,
+    "pd": 0.02
+   },
+   "steps": [
+    {
+     "name": "cap",
+     "expr": "ead*lgd*(dr-pd)",
+     "value": 11.2
+    },
+    {
+     "name": "rwa",
+     "expr": "12.5*cap",
+     "value": 140
+    },
+    {
+     "name": "slip_el",
+     "expr": "ead*lgd*pd",
+     "value": 2.8
+    },
+    {
+     "name": "slip_cap",
+     "expr": "cap",
+     "value": 11.2
+    },
+    {
+     "name": "slip_nodr",
+     "expr": "12.5*ead*lgd",
+     "value": 1750
+    }
+   ]
+  }
+ }
+]

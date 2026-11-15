@@ -1,0 +1,1629 @@
+[
+ {
+  "id": "SC-bank-LRq02-01",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0114"
+  },
+  "trap_category": "Formula",
+  "setup": "A position is sold off in equal parts over $T = 8$ trading days. Liquidity-adjusted VaR is the 1-day VaR times $\\sqrt{(1+T)(1+2T)/(6T)}$.",
+  "ask": "The percentage by which LVaR exceeds the 1-day VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.8%",
+    "correct": false,
+    "why": "Took the factor minus one, 0.785, and read it as 0.785% instead of 78.5%."
+   },
+   {
+    "label": "≈ 79%",
+    "correct": true
+   },
+   {
+    "label": "≈ 219%",
+    "correct": false,
+    "why": "Forgot the square root: $9\\times17/48 = 3.19$, an increase of 219%."
+   },
+   {
+    "label": "≈ 700%",
+    "correct": false,
+    "why": "Scaled the VaR by $T$ itself (8 times the 1-day figure), an increase of 700%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inside the root",
+    "display": "$9\\times 17 / 48 = 3.1875$",
+    "value": 3.1875
+   },
+   {
+    "label": "Factor",
+    "display": "$\\sqrt{3.1875} = 1.785$",
+    "value": 1.7854
+   },
+   {
+    "label": "Increase",
+    "display": "$1.785 - 1 = 78.5\\%$",
+    "value": 78.54
+   }
+  ],
+  "takeaway": "The liquidation factor is a square root, so 8 days adds under 80%, nowhere near 8 times.",
+  "check": {
+   "inputs": {
+    "T": 8
+   },
+   "steps": [
+    {
+     "name": "r",
+     "expr": "(1+T)*(1+2*T)/(6*T)",
+     "value": 3.1875
+    },
+    {
+     "name": "f",
+     "expr": "sqrt(r)",
+     "value": 1.78536
+    },
+    {
+     "name": "inc",
+     "expr": "(f-1)*100",
+     "value": 78.5357
+    },
+    {
+     "name": "slip_pct",
+     "expr": "f-1",
+     "value": 0.785357
+    },
+    {
+     "name": "slip_nosqrt",
+     "expr": "(r-1)*100",
+     "value": 218.75
+    },
+    {
+     "name": "slip_linear",
+     "expr": "(T-1)*100",
+     "value": 700.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-02",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0115"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Equity position of USD 1,000,000 with annual volatility 34.0%. Assume 250 trading days a year, i.i.d. normal returns and a 99% quantile of 2.33. The first step of the LVaR chain is the plain 1-day 99% VaR.",
+  "ask": "The 1-day 99% VaR is closest to:",
+  "options": [
+   {
+    "label": "About USD 50,000",
+    "correct": true
+   },
+   {
+    "label": "About USD 790,000",
+    "correct": false,
+    "why": "Used the annual volatility directly, with no scaling down to one day: $1{,}000{,}000\\times0.34\\times2.33$."
+   },
+   {
+    "label": "About USD 3,200",
+    "correct": false,
+    "why": "Divided the annual volatility by 250 instead of by $\\sqrt{250}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily volatility",
+    "display": "$0.34/\\sqrt{250} = 2.15\\%$",
+    "value": 2.1503
+   },
+   {
+    "label": "1-day 99% VaR",
+    "display": "$1{,}000{,}000\\times0.0215\\times2.33 \\approx \\text{USD } 50{,}100$",
+    "value": 50102
+   }
+  ],
+  "takeaway": "Annual to daily volatility divides by $\\sqrt{250}\\approx 15.8$, not by 250.",
+  "check": {
+   "inputs": {
+    "V": 1000000,
+    "vol": 0.34,
+    "N": 250,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "dv",
+     "expr": "vol/sqrt(N)",
+     "value": 0.0215035
+    },
+    {
+     "name": "var1",
+     "expr": "V*dv*z",
+     "value": 50103.1
+    },
+    {
+     "name": "slip_annual",
+     "expr": "V*vol*z",
+     "value": 792200.0
+    },
+    {
+     "name": "slip_div",
+     "expr": "V*vol/N*z",
+     "value": 3168.8
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-03",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0116"
+  },
+  "trap_category": "Formula",
+  "setup": "A share trades at a midprice of USD 50.00 with a bid-ask spread of USD 0.35. The relative spread has a standard deviation of 0.20% (0.0020). The 99% transactions cost per share is the half-spread plus its spread risk: $P\\times\\tfrac12(s + 2.33\\,\\sigma_s)$.",
+  "ask": "Which part of the 99% cost per share is larger?",
+  "options": [
+   {
+    "label": "The half-spread",
+    "correct": true
+   },
+   {
+    "label": "The spread-risk add-on",
+    "correct": false,
+    "why": "Dropped the $\\tfrac12$ on the risk term: $2.33\\times0.0020\\times50 = 0.233$ would beat 0.175, but with the $\\tfrac12$ it is only 0.1165."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "The two pieces sit in the same range but not at the same value: 0.175 against 0.1165."
+   }
+  ],
+  "working": [
+   {
+    "label": "Half-spread",
+    "display": "$\\tfrac12\\times0.35 = 0.175$",
+    "value": 0.175
+   },
+   {
+    "label": "Spread risk",
+    "display": "$\\tfrac12\\times2.33\\times0.0020\\times50 = 0.1165$",
+    "value": 0.1165
+   },
+   {
+    "label": "Total",
+    "display": "$0.175 + 0.1165 = \\text{USD } 0.2915$",
+    "value": 0.2915
+   }
+  ],
+  "takeaway": "In the transactions-cost formula the half-spread is the bulk, with the 99% spread risk adding a smaller top-up.",
+  "check": {
+   "inputs": {
+    "P": 50,
+    "sp": 0.35,
+    "sig": 0.002,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "half",
+     "expr": "0.5*sp",
+     "value": 0.175
+    },
+    {
+     "name": "risk",
+     "expr": "0.5*z*sig*P",
+     "value": 0.1165
+    },
+    {
+     "name": "total",
+     "expr": "half+risk",
+     "value": 0.2915
+    },
+    {
+     "name": "slip_risk",
+     "expr": "z*sig*P",
+     "value": 0.233
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-04",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0117"
+  },
+  "trap_category": "Formula",
+  "setup": "A position with a 1-day VaR of USD 62 million is liquidated in equal parts over $T = 4$ trading days. LVaR $=$ VaR$_{1\\text{-day}}\\times\\sqrt{(1+T)(1+2T)/(6T)}$. Plain square-root-of-time scaling over 4 days would give $62\\times\\sqrt{4} = $ USD 124 million.",
+  "ask": "Compared with USD 124 million, the LVaR is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Equal",
+    "correct": false,
+    "why": "Treated the liquidation factor as $\\sqrt{T} = 2$. The actual factor is $\\sqrt{45/24} = 1.37$."
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Assumed the sell-down adds risk on top of $\\sqrt{T}$ scaling. The position shrinks as it is sold, so average exposure is smaller."
+   }
+  ],
+  "working": [
+   {
+    "label": "Factor",
+    "display": "$\\sqrt{5\\times9/24} = \\sqrt{1.875} = 1.369$",
+    "value": 1.3693
+   },
+   {
+    "label": "LVaR",
+    "display": "$62\\times1.369 \\approx \\text{USD } 84.9\\text{m}$",
+    "value": 84.9
+   },
+   {
+    "label": "Versus plain scaling",
+    "display": "$84.9 < 124$",
+    "value": 124
+   }
+  ],
+  "takeaway": "The sell-down ramp makes LVaR grow more slowly than $\\sqrt{T}$ scaling: the position shrinks while it is sold.",
+  "check": {
+   "inputs": {
+    "VaR": 62,
+    "T": 4
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "sqrt((1+T)*(1+2*T)/(6*T))",
+     "value": 1.36931
+    },
+    {
+     "name": "LVaR",
+     "expr": "VaR*f",
+     "value": 84.897
+    },
+    {
+     "name": "plain",
+     "expr": "VaR*sqrt(T)",
+     "value": 124.0
+    },
+    {
+     "name": "gap",
+     "expr": "plain-LVaR",
+     "value": 39.103
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-05",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0118"
+  },
+  "trap_category": "Formula",
+  "setup": "A share is priced at USD 50.00 with a bid-ask spread of USD 0.350. The relative spread $s$ has a volatility of 20 basis points (0.20%). The 99% transactions cost per share is $P\\times\\tfrac12(s + 2.33\\,\\sigma_s)$.",
+  "ask": "The 99% transactions cost per share is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.006",
+    "correct": false,
+    "why": "Stopped at the relative cost $0.00583$ and never multiplied by the USD 50 price."
+   },
+   {
+    "label": "≈ USD 0.03",
+    "correct": false,
+    "why": "Scale slip (1/10): lost a decimal place in the final multiplication."
+   },
+   {
+    "label": "≈ USD 0.29",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 11.8",
+    "correct": false,
+    "why": "Entered $\\sigma_s$ as 0.20 (a 20% spread volatility) instead of 0.0020."
+   }
+  ],
+  "working": [
+   {
+    "label": "Relative spread",
+    "display": "$0.350/50 = 0.0070$",
+    "value": 0.007
+   },
+   {
+    "label": "Relative cost",
+    "display": "$\\tfrac12(0.0070 + 2.33\\times0.0020) = 0.00583$",
+    "value": 0.00583
+   },
+   {
+    "label": "Cost per share",
+    "display": "$50\\times0.00583 = \\text{USD } 0.2915$",
+    "value": 0.2915
+   }
+  ],
+  "takeaway": "Convert basis points to decimals before plugging in, and remember the cost is per share: multiply by the price.",
+  "check": {
+   "inputs": {
+    "P": 50,
+    "sp": 0.35,
+    "sig": 0.002,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "s",
+     "expr": "sp/P",
+     "value": 0.007
+    },
+    {
+     "name": "rel",
+     "expr": "0.5*(s+z*sig)",
+     "value": 0.00583
+    },
+    {
+     "name": "cost",
+     "expr": "P*rel",
+     "value": 0.2915
+    },
+    {
+     "name": "slip_noP",
+     "expr": "rel",
+     "value": 0.00583
+    },
+    {
+     "name": "slip_dec",
+     "expr": "cost/10",
+     "value": 0.02915
+    },
+    {
+     "name": "slip_sigma",
+     "expr": "P*0.5*(s+z*0.2)",
+     "value": 11.825
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-06",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0153"
+  },
+  "trap_category": "Definition",
+  "setup": "A Treasury bill with face value USD 100 is bought for USD 88 and matures in 120 days. Bank discount rate: $\\frac{F-P}{F}\\times\\frac{360}{t}$. Bond-equivalent yield: $\\frac{F-P}{P}\\times\\frac{365}{t}$.",
+  "ask": "For this bill, the bond-equivalent yield is:",
+  "options": [
+   {
+    "label": "Higher than the discount rate",
+    "correct": true
+   },
+   {
+    "label": "Lower than the discount rate",
+    "correct": false,
+    "why": "Thought the discount rate, quoted on the bigger-looking face value, must be the larger. It divides by the larger base (100, not 88) and uses the shorter 360-day year, so it understates the yield."
+   },
+   {
+    "label": "Equal to the discount rate",
+    "correct": false,
+    "why": "Treated both as the same annualised return. They use different bases (face against price) and different year lengths (360 against 365)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discount rate",
+    "display": "$\\frac{12}{100}\\times\\frac{360}{120} = 36.00\\%$",
+    "value": 36.0
+   },
+   {
+    "label": "Bond-equivalent yield",
+    "display": "$\\frac{12}{88}\\times\\frac{365}{120} = 41.48\\%$",
+    "value": 41.48
+   }
+  ],
+  "takeaway": "Discount rate divides by face and uses 360 days; both choices make it lower than the yield on price.",
+  "check": {
+   "inputs": {
+    "F": 100,
+    "P": 88,
+    "t": 120
+   },
+   "steps": [
+    {
+     "name": "dr",
+     "expr": "(F-P)/F*360/t*100",
+     "value": 36.0
+    },
+    {
+     "name": "bey",
+     "expr": "(F-P)/P*365/t*100",
+     "value": 41.4773
+    },
+    {
+     "name": "gap",
+     "expr": "bey-dr",
+     "value": 5.47727
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-07",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0154"
+  },
+  "trap_category": "Formula",
+  "setup": "A Treasury bill is priced at USD 89.84 per USD 100 face and matures in 124 days. The bank discount rate uses face value as the base and a 360-day year.",
+  "ask": "The bank discount rate is closest to:",
+  "options": [
+   {
+    "label": "≈ 3.5%",
+    "correct": false,
+    "why": "Inverted the annualisation: $0.1016\\times124/360$ instead of $\\times360/124$."
+   },
+   {
+    "label": "≈ 10.2%",
+    "correct": false,
+    "why": "Stopped at the 124-day discount of 10.16 per 100 and never annualised it."
+   },
+   {
+    "label": "≈ 29.5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 295%",
+    "correct": false,
+    "why": "Scale slip (10×): misplaced the decimal after annualising."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discount",
+    "display": "$100 - 89.84 = 10.16$",
+    "value": 10.16
+   },
+   {
+    "label": "Fraction of face",
+    "display": "$10.16/100 = 0.1016$",
+    "value": 0.1016
+   },
+   {
+    "label": "Annualise",
+    "display": "$0.1016\\times360/124 = 29.5\\%$",
+    "value": 29.5
+   }
+  ],
+  "takeaway": "Annualise by scaling up: $360/t$ is a number above 1 for any bill under a year.",
+  "check": {
+   "inputs": {
+    "P": 89.84,
+    "F": 100,
+    "t": 124
+   },
+   "steps": [
+    {
+     "name": "d",
+     "expr": "F-P",
+     "value": 10.16
+    },
+    {
+     "name": "dr",
+     "expr": "d/F*360/t*100",
+     "value": 29.4968
+    },
+    {
+     "name": "slip_inv",
+     "expr": "d/F*t/360*100",
+     "value": 3.49956
+    },
+    {
+     "name": "slip_raw",
+     "expr": "d/F*100",
+     "value": 10.16
+    },
+    {
+     "name": "slip_scale",
+     "expr": "dr*10",
+     "value": 294.968
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-08",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0155"
+  },
+  "trap_category": "Role",
+  "setup": "A money-market security is priced at USD 95 per USD 100 face, with 85 days to maturity (360-day year). The same data sheet lists a required rate of return of 12% and a yield to maturity of 8%.",
+  "ask": "The bank discount rate is closest to:",
+  "options": [
+   {
+    "label": "About 21%",
+    "correct": true
+   },
+   {
+    "label": "About 12%",
+    "correct": false,
+    "why": "Lifted the required rate of return off the data sheet. It is not an input to a discount rate."
+   },
+   {
+    "label": "About 8%",
+    "correct": false,
+    "why": "Lifted the stated yield to maturity. The discount rate is computed from price, face and days."
+   },
+   {
+    "label": "About 5%",
+    "correct": false,
+    "why": "Stopped at the USD 5 raw discount and never annualised it by 360/85."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discount",
+    "display": "$100-95 = 5$",
+    "value": 5.0
+   },
+   {
+    "label": "Annualise",
+    "display": "$\\frac{5}{100}\\times\\frac{360}{85} = 21.2\\%$",
+    "value": 21.18
+   }
+  ],
+  "takeaway": "A discount rate comes from price, face value and days. Other rates quoted alongside are distractors.",
+  "check": {
+   "inputs": {
+    "P": 95,
+    "F": 100,
+    "t": 85
+   },
+   "steps": [
+    {
+     "name": "dr",
+     "expr": "(F-P)/F*360/t*100",
+     "value": 21.1765
+    },
+    {
+     "name": "slip_raw",
+     "expr": "(F-P)/F*100",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-09",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0167"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A bond with par USD 1,500 pays a 10% annual coupon (USD 150) and matures in 4 years. It trades at USD 1,200. Its current yield is $150/1{,}200 = 12.5\\%$.",
+  "ask": "The yield to maturity is:",
+  "options": [
+   {
+    "label": "Above 12.5%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 12.5%",
+    "correct": false,
+    "why": "Treated the coupon over price as the whole return. The bond also gains USD 300 as it pulls up to par."
+   },
+   {
+    "label": "Below 12.5%",
+    "correct": false,
+    "why": "Anchored on the 10% coupon rate and pulled the figure down. A bond below par earns its coupon plus the pull to par."
+   }
+  ],
+  "working": [
+   {
+    "label": "Current yield",
+    "display": "$150/1{,}200 = 12.5\\%$",
+    "value": 12.5
+   },
+   {
+    "label": "Pull to par per year",
+    "display": "$(1{,}500-1{,}200)/4 = 75$",
+    "value": 75
+   },
+   {
+    "label": "Rough YTM",
+    "display": "$(150+75)/1{,}350 = 16.7\\%$ (exact 17.34%)",
+    "value": 16.67
+   }
+  ],
+  "takeaway": "A bond bought below par has YTM above its current yield, which is above its coupon rate.",
+  "check": {
+   "inputs": {
+    "C": 150,
+    "P": 1200,
+    "F": 1500,
+    "n": 4
+   },
+   "steps": [
+    {
+     "name": "cy",
+     "expr": "C/P*100",
+     "value": 12.5
+    },
+    {
+     "name": "pull",
+     "expr": "(F-P)/n",
+     "value": 75.0
+    },
+    {
+     "name": "approx",
+     "expr": "(C+pull)/((F+P)/2)*100",
+     "value": 16.6667
+    },
+    {
+     "name": "pv_exact",
+     "expr": "C/1.1734+C/1.1734^2+C/1.1734^3+C/1.1734^4+F/1.1734^4",
+     "value": 1199.98
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-10",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0168"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A bond with par USD 2,000 pays an 8% annual coupon (USD 160), matures in 5 years and trades at USD 1,600. A quick estimate of yield is (annual coupon + annual pull to par) divided by the average of price and par.",
+  "ask": "That estimate is closest to:",
+  "options": [
+   {
+    "label": "About 13%",
+    "correct": true
+   },
+   {
+    "label": "About 10%",
+    "correct": false,
+    "why": "Used the current yield $160/1{,}600$ only, ignoring the USD 400 pull to par."
+   },
+   {
+    "label": "About 8%",
+    "correct": false,
+    "why": "Used the coupon rate, which ignores both the discount price and the pull to par."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pull to par",
+    "display": "$(2{,}000-1{,}600)/5 = 80$ a year",
+    "value": 80.0
+   },
+   {
+    "label": "Average price",
+    "display": "$(2{,}000+1{,}600)/2 = 1{,}800$",
+    "value": 1800.0
+   },
+   {
+    "label": "Estimate",
+    "display": "$(160+80)/1{,}800 = 13.3\\%$ (exact YTM 13.80%)",
+    "value": 13.33
+   }
+  ],
+  "takeaway": "For a discount bond: coupon rate < current yield < YTM.",
+  "check": {
+   "inputs": {
+    "C": 160,
+    "P": 1600,
+    "F": 2000,
+    "n": 5
+   },
+   "steps": [
+    {
+     "name": "pull",
+     "expr": "(F-P)/n",
+     "value": 80.0
+    },
+    {
+     "name": "est",
+     "expr": "(C+pull)/((F+P)/2)*100",
+     "value": 13.3333
+    },
+    {
+     "name": "slip_cy",
+     "expr": "C/P*100",
+     "value": 10.0
+    },
+    {
+     "name": "slip_c",
+     "expr": "C/F*100",
+     "value": 8.0
+    },
+    {
+     "name": "pv_exact",
+     "expr": "C/1.138+C/1.138^2+C/1.138^3+C/1.138^4+C/1.138^5+F/1.138^5",
+     "value": 1599.84
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-11",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0177"
+  },
+  "trap_category": "Formula",
+  "setup": "A taxed financial firm in the 35% federal bracket holds an Aaa municipal bond with a 5% gross yield to maturity, which is tax-exempt. The tax-equivalent yield is the tax-exempt yield divided by $(1 - t)$.",
+  "ask": "The taxable bond that gives the same after-tax return must yield:",
+  "options": [
+   {
+    "label": "More than 5%",
+    "correct": true
+   },
+   {
+    "label": "Less than 5%",
+    "correct": false,
+    "why": "Multiplied by $(1-t) = 0.65$, getting 3.25%, as if the municipal bond were the taxed one."
+   },
+   {
+    "label": "Exactly 5%",
+    "correct": false,
+    "why": "Ignored the 35% tax on the taxable bond. A 5% taxable bond would leave only 3.25% after tax."
+   }
+  ],
+  "working": [
+   {
+    "label": "Divide by $(1-t)$",
+    "display": "$5\\% / 0.65 = 7.69\\%$",
+    "value": 7.69
+   },
+   {
+    "label": "Check",
+    "display": "$7.69\\%\\times0.65 = 5.00\\%$",
+    "value": 5.0
+   }
+  ],
+  "takeaway": "Tax-equivalent yield is always above the muni yield: divide by $(1-t)$, never multiply.",
+  "check": {
+   "inputs": {
+    "m": 5,
+    "t": 0.35
+   },
+   "steps": [
+    {
+     "name": "tey",
+     "expr": "m/(1-t)",
+     "value": 7.69231
+    },
+    {
+     "name": "back",
+     "expr": "tey*(1-t)",
+     "value": 5.0
+    },
+    {
+     "name": "slip_mult",
+     "expr": "m*(1-t)",
+     "value": 3.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-12",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0181"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank holds a municipal bond with a 5% tax-exempt return, funded at a pretax cost of 3.7%. The tax rate is 40%, and only 75% of the interest expense is deductible. Net after-tax return is the 1.30% gross spread plus the tax shield on deductible interest.",
+  "ask": "Compared with the 1.30% gross spread, the net after-tax return is:",
+  "options": [
+   {
+    "label": "Above 1.30%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 1.30%",
+    "correct": false,
+    "why": "Left out the tax shield. The deductible part of the funding cost reduces the bank's taxes and adds to the return."
+   },
+   {
+    "label": "Below 1.30%",
+    "correct": false,
+    "why": "Taxed the spread at 40% ($1.30\\times0.60 = 0.78\\%$). The municipal interest itself is exempt."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross spread",
+    "display": "$5.00\\% - 3.70\\% = 1.30\\%$",
+    "value": 1.3
+   },
+   {
+    "label": "Tax shield",
+    "display": "$3.70\\%\\times0.75\\times0.40 = 1.11\\%$",
+    "value": 1.11
+   },
+   {
+    "label": "Net return",
+    "display": "$1.30\\% + 1.11\\% = 2.41\\%$",
+    "value": 2.41
+   }
+  ],
+  "takeaway": "On a bank-qualified muni the funding cost partly shields tax, so the net return is above the pretax spread.",
+  "check": {
+   "inputs": {
+    "m": 5,
+    "c": 3.7,
+    "t": 0.4,
+    "d": 0.75
+   },
+   "steps": [
+    {
+     "name": "spread",
+     "expr": "m-c",
+     "value": 1.3
+    },
+    {
+     "name": "shield",
+     "expr": "c*d*t",
+     "value": 1.11
+    },
+    {
+     "name": "net",
+     "expr": "spread+shield",
+     "value": 2.41
+    },
+    {
+     "name": "slip_taxed",
+     "expr": "spread*(1-t)",
+     "value": 0.78
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-13",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-4: The Investment Function in Financial-Services Management",
+  "reading_id": "LTR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0182"
+  },
+  "trap_category": "Formula",
+  "setup": "A bank buys a bank-qualified municipal bond with a 5.5% tax-exempt return, funded at 4.7%. The marginal tax rate is 34%, and 80% of the interest expense is deductible. Net after-tax return is the gross spread plus the tax shield on the deductible interest.",
+  "ask": "The net after-tax return is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.27%",
+    "correct": false,
+    "why": "Taxed the 0.80% spread at 34% and called the tax the return."
+   },
+   {
+    "label": "≈ 0.80%",
+    "correct": false,
+    "why": "Stopped at the gross spread and left out the tax shield on the deductible interest."
+   },
+   {
+    "label": "≈ 2.1%",
+    "correct": true
+   },
+   {
+    "label": "≈ 5.5%",
+    "correct": false,
+    "why": "Quoted the bond's own return and ignored the funding cost."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross spread",
+    "display": "$5.50\\% - 4.70\\% = 0.80\\%$",
+    "value": 0.8
+   },
+   {
+    "label": "Tax shield",
+    "display": "$4.70\\%\\times0.80\\times0.34 = 1.28\\%$",
+    "value": 1.2784
+   },
+   {
+    "label": "Net return",
+    "display": "$0.80\\% + 1.28\\% = 2.08\\%$",
+    "value": 2.0784
+   }
+  ],
+  "takeaway": "The deductible funding cost is worth more than the spread itself here: shield 1.28% against spread 0.80%.",
+  "check": {
+   "inputs": {
+    "m": 5.5,
+    "c": 4.7,
+    "t": 0.34,
+    "d": 0.8
+   },
+   "steps": [
+    {
+     "name": "spread",
+     "expr": "m-c",
+     "value": 0.8
+    },
+    {
+     "name": "shield",
+     "expr": "c*d*t",
+     "value": 1.2784
+    },
+    {
+     "name": "net",
+     "expr": "spread+shield",
+     "value": 2.0784
+    },
+    {
+     "name": "slip_taxspread",
+     "expr": "spread*t",
+     "value": 0.272
+    },
+    {
+     "name": "slip_nocost",
+     "expr": "m",
+     "value": 5.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-14",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0197"
+  },
+  "trap_category": "Sequence",
+  "setup": "Mountain Top Savings projects a net liquidity deficit of USD 10m next week. Supplies (USD m): deposit inflows 26, nondeposit revenue 18, customer loan repayments 23, asset sales 10, money market borrowings 15. Demands other than deposit withdrawals: quality loans 32, repayment of borrowings 15, dividends 10, operating expenses 15.",
+  "ask": "The deposit withdrawals needed to produce the −10 position are:",
+  "options": [
+   {
+    "label": "USD 30m",
+    "correct": true
+   },
+   {
+    "label": "USD 20m",
+    "correct": false,
+    "why": "Stopped at supply minus the other demands (92 − 72 = 20), which would give a balanced position, not a deficit."
+   },
+   {
+    "label": "USD 10m",
+    "correct": false,
+    "why": "Read the −10 deficit as the withdrawal figure itself."
+   }
+  ],
+  "working": [
+   {
+    "label": "Supply",
+    "display": "$26+18+23+10+15 = 92$",
+    "value": 92.0
+   },
+   {
+    "label": "Other demands",
+    "display": "$32+15+10+15 = 72$",
+    "value": 72.0
+   },
+   {
+    "label": "Position before withdrawals",
+    "display": "$92-72 = +20$",
+    "value": 20.0
+   },
+   {
+    "label": "Withdrawals",
+    "display": "$20 - W = -10 \\Rightarrow W = 30$",
+    "value": 30.0
+   }
+  ],
+  "takeaway": "Net position $=$ supply $-$ demand: withdrawals must exceed the pre-withdrawal surplus by the size of the deficit.",
+  "check": {
+   "inputs": {
+    "sup": 92,
+    "dem": 72,
+    "L": -10
+   },
+   "steps": [
+    {
+     "name": "pre",
+     "expr": "sup-dem",
+     "value": 20.0
+    },
+    {
+     "name": "W",
+     "expr": "pre-L",
+     "value": 30.0
+    },
+    {
+     "name": "slip_stop",
+     "expr": "pre",
+     "value": 20.0
+    },
+    {
+     "name": "slip_read",
+     "expr": "abs(L)",
+     "value": 10.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-15",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0198"
+  },
+  "trap_category": "Role",
+  "setup": "ABC Bank forecasts next-day cash flows (USD m). Inflows: deposit inflows 119, money market borrowings 110, asset sales 61, nondeposit-services revenue 118, scheduled loan repayments 122. Outflows: deposit withdrawals 129, acceptable loan requests 90, stockholder dividends 172, repayment of bank borrowings 84, operating expenses 70.",
+  "ask": "The projected net liquidity position is a:",
+  "options": [
+   {
+    "label": "Deficit",
+    "correct": true
+   },
+   {
+    "label": "Surplus",
+    "correct": false,
+    "why": "Left the USD 172m dividend out of the demands, giving $530 - 373 = +157$."
+   },
+   {
+    "label": "Exact balance",
+    "correct": false,
+    "why": "Treated 530 against 545 as close enough to net out. The gap is USD 15m of outflows with no source."
+   }
+  ],
+  "working": [
+   {
+    "label": "Supply",
+    "display": "$119+110+61+118+122 = 530$",
+    "value": 530.0
+   },
+   {
+    "label": "Demand",
+    "display": "$129+90+172+84+70 = 545$",
+    "value": 545.0
+   },
+   {
+    "label": "Position",
+    "display": "$530-545 = -15$",
+    "value": -15.0
+   }
+  ],
+  "takeaway": "Add every inflow and every outflow, dividends included. A small gap can still be a deficit.",
+  "check": {
+   "inputs": {
+    "sup": 530,
+    "dem": 545,
+    "div": 172
+   },
+   "steps": [
+    {
+     "name": "L",
+     "expr": "sup-dem",
+     "value": -15.0
+    },
+    {
+     "name": "slip_nodiv",
+     "expr": "sup-(dem-div)",
+     "value": 157.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-16",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0201"
+  },
+  "trap_category": "Role",
+  "setup": "Greenlux State Bank, next 24 hours (USD m): incoming deposits 90, customer loan repayments 25, asset sales 20, nondeposit fee income 15; deposit withdrawals 60, acceptable loan requests 45, repayment of the bank's own borrowings 5.",
+  "ask": "The projected net liquidity position is a:",
+  "options": [
+   {
+    "label": "Surplus",
+    "correct": true
+   },
+   {
+    "label": "Deficit",
+    "correct": false,
+    "why": "Counted both 'repayment' items as outflows. Customer loan repayments are a source of liquidity; only repaying the bank's own borrowings is a use: $125 - 135 = -10$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Supply",
+    "display": "$90+25+20+15 = 150$",
+    "value": 150.0
+   },
+   {
+    "label": "Demand",
+    "display": "$60+45+5 = 110$",
+    "value": 110.0
+   },
+   {
+    "label": "Position",
+    "display": "$150-110 = +40$",
+    "value": 40.0
+   }
+  ],
+  "takeaway": "Repayments of loans owed to the bank are a source; repayments of borrowings the bank owes are a use.",
+  "check": {
+   "inputs": {
+    "dep": 90,
+    "loanrep": 25,
+    "sales": 20,
+    "fee": 15,
+    "wd": 60,
+    "req": 45,
+    "brep": 5
+   },
+   "steps": [
+    {
+     "name": "sup",
+     "expr": "dep+loanrep+sales+fee",
+     "value": 150.0
+    },
+    {
+     "name": "dem",
+     "expr": "wd+req+brep",
+     "value": 110.0
+    },
+    {
+     "name": "L",
+     "expr": "sup-dem",
+     "value": 40.0
+    },
+    {
+     "name": "slip_sup",
+     "expr": "dep+sales+fee",
+     "value": 125.0
+    },
+    {
+     "name": "slip_dem",
+     "expr": "wd+req+brep+loanrep",
+     "value": 135.0
+    },
+    {
+     "name": "slip_L",
+     "expr": "slip_sup-slip_dem",
+     "value": -10.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-17",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0215"
+  },
+  "trap_category": "Definition",
+  "setup": "Grand Bank's liquidity manager sees four scenarios for next month's liquidity position (USD m), with probabilities: 45% at −500, 20% at −575, 25% at +350, 10% at +100.",
+  "ask": "Compared with the simple average of the four outcomes (−156.25), the expected (probability-weighted) position is:",
+  "options": [
+   {
+    "label": "A larger deficit",
+    "correct": true
+   },
+   {
+    "label": "A smaller deficit",
+    "correct": false,
+    "why": "Weighted the surplus scenarios too heavily. They carry only 35% of the probability, against 65% for the two deficit scenarios."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Used equal weights of 25%, which is what the simple average does."
+   }
+  ],
+  "working": [
+   {
+    "label": "Simple average",
+    "display": "$(-500-575+350+100)/4 = -156.25$",
+    "value": -156.25
+   },
+   {
+    "label": "Weighted",
+    "display": "$-225-115+87.5+10 = -242.5$",
+    "value": -242.5
+   }
+  ],
+  "takeaway": "Expected value uses the probabilities: here the likelier deficit cases pull it below the plain average.",
+  "check": {
+   "inputs": {
+    "a": -500,
+    "b": -575,
+    "c": 350,
+    "d": 100,
+    "pa": 0.45,
+    "pb": 0.2,
+    "pc": 0.25,
+    "pd": 0.1
+   },
+   "steps": [
+    {
+     "name": "avg",
+     "expr": "(a+b+c+d)/4",
+     "value": -156.25
+    },
+    {
+     "name": "ev",
+     "expr": "pa*a+pb*b+pc*c+pd*d",
+     "value": -242.5
+    },
+    {
+     "name": "gap",
+     "expr": "ev-avg",
+     "value": -86.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-18",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0223"
+  },
+  "trap_category": "Sign",
+  "setup": "Daylight Bank (USD m): federal funds sold and reverse repos 396; federal funds purchased and repurchase agreements 488; total assets 3,431. Other balance-sheet items are not needed. Net fed funds and repo position $=$ (sold − purchased) / total assets.",
+  "ask": "The net position is:",
+  "options": [
+   {
+    "label": "Negative, a net borrower",
+    "correct": true
+   },
+   {
+    "label": "Positive, a net lender",
+    "correct": false,
+    "why": "Subtracted in the wrong order (purchased minus sold), giving +2.68%."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Treated the two lines as offsetting. They differ by USD 92m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sold minus purchased",
+    "display": "$396-488 = -92$",
+    "value": -92.0
+   },
+   {
+    "label": "Share of assets",
+    "display": "$-92/3{,}431 = -2.68\\%$",
+    "value": -2.68
+   }
+  ],
+  "takeaway": "Sold minus purchased: a negative net position means the bank is a net borrower in the fed funds and repo market.",
+  "check": {
+   "inputs": {
+    "sold": 396,
+    "bought": 488,
+    "TA": 3431
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "(sold-bought)/TA*100",
+     "value": -2.68143
+    },
+    {
+     "name": "slip_rev",
+     "expr": "(bought-sold)/TA*100",
+     "value": 2.68143
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-19",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0224"
+  },
+  "trap_category": "Definition",
+  "setup": "Daylight Bank (USD m): cash and due from depository institutions 546; US Treasuries 382; other securities 550; pledged securities 503; fed funds sold and reverse repos 396; net loans 2,374; total assets 3,431; total deposits 2,686; core deposits 1,111. The cash position indicator is cash and due from depository institutions divided by total assets.",
+  "ask": "The indicator is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.6%",
+    "correct": false,
+    "why": "Scale slip (1/10): misplaced the decimal when converting to a percent."
+   },
+   {
+    "label": "≈ 16%",
+    "correct": true
+   },
+   {
+    "label": "≈ 49%",
+    "correct": false,
+    "why": "Divided by core deposits (1,111) instead of total assets."
+   },
+   {
+    "label": "≈ 160%",
+    "correct": false,
+    "why": "Scale slip (10×): misplaced the decimal when converting to a percent."
+   }
+  ],
+  "working": [
+   {
+    "label": "Ratio",
+    "display": "$546/3{,}431 = 0.1591$",
+    "value": 0.1591
+   },
+   {
+    "label": "As percent",
+    "display": "$15.9\\%$",
+    "value": 15.91
+   }
+  ],
+  "takeaway": "Check the denominator: the cash position indicator is measured against total assets, and a cash ratio above 100% should always ring an alarm.",
+  "check": {
+   "inputs": {
+    "cash": 546,
+    "TA": 3431,
+    "core": 1111
+   },
+   "steps": [
+    {
+     "name": "cpi",
+     "expr": "cash/TA*100",
+     "value": 15.9137
+    },
+    {
+     "name": "slip_core",
+     "expr": "cash/core*100",
+     "value": 49.1449
+    },
+    {
+     "name": "slip_up",
+     "expr": "cpi*10",
+     "value": 159.137
+    },
+    {
+     "name": "slip_down",
+     "expr": "cpi/10",
+     "value": 1.59137
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-20",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0228"
+  },
+  "trap_category": "Scope",
+  "setup": "Kingstreet Savings, vulnerable funds (USD m): checkable deposits 20, savings deposits 40, nonpersonal time deposits 70. The legal reserve is 10% on checkable and savings deposits and 0% on nonpersonal time deposits. The 50% desired reserve is applied to funds net of legal reserves.",
+  "ask": "The legal reserves held against the vulnerable funds are:",
+  "options": [
+   {
+    "label": "USD 6.0m",
+    "correct": true
+   },
+   {
+    "label": "USD 13.0m",
+    "correct": false,
+    "why": "Applied the 10% to all 130 including time deposits, which carry a 0% requirement."
+   },
+   {
+    "label": "USD 2.0m",
+    "correct": false,
+    "why": "Applied 10% to checkable deposits only and left out savings deposits."
+   }
+  ],
+  "working": [
+   {
+    "label": "Legal reserves",
+    "display": "$0.10\\times(20+40) = 6.0$",
+    "value": 6.0
+   },
+   {
+    "label": "Net funds",
+    "display": "$130-6 = 124$",
+    "value": 124.0
+   },
+   {
+    "label": "Desired reserve",
+    "display": "$0.50\\times124 = \\text{USD } 62\\text{m}$",
+    "value": 62.0
+   }
+  ],
+  "takeaway": "Legal reserves apply only to the categories that carry a requirement, and are deducted before the desired percentage.",
+  "check": {
+   "inputs": {
+    "chk": 20,
+    "sav": 40,
+    "tim": 70,
+    "lr": 0.1,
+    "dr": 0.5
+   },
+   "steps": [
+    {
+     "name": "legal",
+     "expr": "lr*(chk+sav)",
+     "value": 6.0
+    },
+    {
+     "name": "net",
+     "expr": "chk+sav+tim-legal",
+     "value": 124.0
+    },
+    {
+     "name": "req",
+     "expr": "dr*net",
+     "value": 62.0
+    },
+    {
+     "name": "slip_all",
+     "expr": "lr*(chk+sav+tim)",
+     "value": 13.0
+    },
+    {
+     "name": "slip_chk",
+     "expr": "lr*chk",
+     "value": 2.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq02-21",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-5: Liquidity and Reserves Management: Strategies and Policies",
+  "reading_id": "LTR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0230"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank's liabilities (USD m, desired reserve): hot money 50 at 80%, vulnerable funds 55 at 30%, core funds 100 at 20%. Legal reserves are 3% of each category, and the desired percentages apply after deducting them. Loans are 165 and could reach 225, a 60 loan requirement that is not part of the liability reserve.",
+  "ask": "The liability liquidity reserve is:",
+  "options": [
+   {
+    "label": "Below USD 76.5m",
+    "correct": true
+   },
+   {
+    "label": "Equal to USD 76.5m",
+    "correct": false,
+    "why": "Applied the desired percentages to the gross balances ($40+16.5+20 = 76.5$) and skipped the 3% legal-reserve deduction."
+   },
+   {
+    "label": "Above USD 130m",
+    "correct": false,
+    "why": "Added the USD 60m loan requirement, which belongs to the total liquidity requirement, not the liability reserve."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross reserve",
+    "display": "$0.80\\times50 + 0.30\\times55 + 0.20\\times100 = 76.5$",
+    "value": 76.5
+   },
+   {
+    "label": "Net of legal reserves",
+    "display": "$76.5\\times0.97 = 74.2$",
+    "value": 74.2
+   }
+  ],
+  "takeaway": "Net the legal reserves first: the liability reserve is slightly below the gross figure, and loans are added only for the total requirement.",
+  "check": {
+   "inputs": {
+    "h": 50,
+    "v": 55,
+    "c": 100,
+    "ph": 0.8,
+    "pv": 0.3,
+    "pc": 0.2,
+    "lg": 0.03,
+    "L0": 165,
+    "L1": 225
+   },
+   "steps": [
+    {
+     "name": "gross",
+     "expr": "ph*h+pv*v+pc*c",
+     "value": 76.5
+    },
+    {
+     "name": "net",
+     "expr": "gross*(1-lg)",
+     "value": 74.205
+    },
+    {
+     "name": "slip_loan",
+     "expr": "net+(L1-L0)",
+     "value": 134.205
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,1783 @@
+[
+ {
+  "id": "SC-bank-LRq06-01",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0541"
+  },
+  "trap_category": "Polarity",
+  "setup": "Covered interest parity on USD/JPY, quoted in JPY per USD. Spot is 110.00. One-year rates, annually compounded: USD 2.50%, JPY 0.450%. Parity holds exactly, and the swap rate is the one-year forward minus spot, $F - S$.",
+  "ask": "The swap rate $F - S$ is:",
+  "options": [
+   {
+    "label": "Negative: forward below spot",
+    "correct": true
+   },
+   {
+    "label": "Positive: forward above spot",
+    "correct": false,
+    "why": "Put the rates on the wrong sides, using $(1+r_{USD})/(1+r_{JPY})$. The higher-yielding currency (USD) trades at a forward discount, so JPY per USD falls."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Read 'parity holds' as 'no forward points'. Parity means the forward exactly offsets the rate gap, so the forward differs from spot."
+   }
+  ],
+  "working": [
+   {
+    "label": "Rate ratio",
+    "display": "$1.0045 / 1.025 = 0.980$",
+    "value": 0.98
+   },
+   {
+    "label": "Forward",
+    "display": "$110 \\times 0.980 = 107.80$",
+    "value": 107.8
+   },
+   {
+    "label": "Swap rate",
+    "display": "$107.80 - 110.00 = -2.20$ JPY",
+    "value": -2.195
+   }
+  ],
+  "takeaway": "The currency with the higher interest rate trades at a forward discount. USD yields more than JPY, so the JPY-per-USD forward sits below spot.",
+  "check": {
+   "inputs": {
+    "S": 110,
+    "rU": 0.025,
+    "rJ": 0.0045
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "(1+rJ)/(1+rU)",
+     "value": 0.98
+    },
+    {
+     "name": "F",
+     "expr": "S*ratio",
+     "value": 107.8
+    },
+    {
+     "name": "swap",
+     "expr": "F-S",
+     "value": -2.2
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "S*(1+rU)/(1+rJ)-S",
+     "value": 2.2449
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-02",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0545"
+  },
+  "trap_category": "Role",
+  "setup": "Covered interest parity with the rate quoted in USD per EUR. Spot is 1.3988. One-year yields: EUR 2.28%, USD 3.33%. The forward equals spot times a ratio of the two gross rates $1+r$.",
+  "ask": "The factor that multiplies spot to give the forward is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.010",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.990",
+    "correct": false,
+    "why": "Inverted the ratio, using $(1+r_{EUR})/(1+r_{USD})$. With the quote in USD per EUR the USD gross rate goes on top."
+   },
+   {
+    "label": "≈ 1.056",
+    "correct": false,
+    "why": "Added the two yields to 1 instead of dividing the gross rates: $1 + 0.0228 + 0.0333$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross rates",
+    "display": "$1.0333 / 1.0228 = 1.0103$",
+    "value": 1.0103
+   },
+   {
+    "label": "Forward",
+    "display": "$1.3988 \\times 1.0103 = 1.4132$",
+    "value": 1.4132
+   }
+  ],
+  "takeaway": "In USD per EUR the forward is spot times $(1+r_{USD})/(1+r_{EUR})$. The higher USD yield puts the EUR at a forward premium, so the factor is above 1.",
+  "check": {
+   "inputs": {
+    "S": 1.3988,
+    "rE": 0.0228,
+    "rU": 0.0333
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "(1+rU)/(1+rE)",
+     "value": 1.0103
+    },
+    {
+     "name": "F",
+     "expr": "S*f",
+     "value": 1.4132
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "(1+rE)/(1+rU)",
+     "value": 0.9898
+    },
+    {
+     "name": "slip_added",
+     "expr": "1+rE+rU",
+     "value": 1.0561
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-03",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-9: Liquidity Stress Testing",
+  "reading_id": "LTR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-WB-9b-4"
+  },
+  "trap_category": "Scope",
+  "setup": "Normal liquid asset buffer for a stress test, USD m. Holdings: unencumbered Treasuries 420 (stress haircut 0%), unencumbered agency MBS 200 (15%), Treasuries pledged against a wholesale borrowing 150, cash held for daily payment clearing 60, unrestricted central bank deposits 80. Gross total 910. Only free, non-operational holdings count toward the buffer.",
+  "ask": "Before any haircut, the amount of the 910 that drops out is:",
+  "options": [
+   {
+    "label": "USD 210m",
+    "correct": true
+   },
+   {
+    "label": "USD 150m",
+    "correct": false,
+    "why": "Removed the pledged Treasuries but kept the payment-clearing cash. That cash is operational liquidity, not buffer."
+   },
+   {
+    "label": "USD 60m",
+    "correct": false,
+    "why": "Removed only the clearing cash and kept the pledged Treasuries, which are already committed to the secured borrowing."
+   },
+   {
+    "label": "USD 30m",
+    "correct": false,
+    "why": "Mixed up the 15% MBS haircut with an exclusion. A haircut trims a qualifying asset; it does not remove a line."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross holdings",
+    "display": "$420+200+150+60+80 = 910$",
+    "value": 910
+   },
+   {
+    "label": "Excluded",
+    "display": "$150 + 60 = 210$",
+    "value": 210
+   },
+   {
+    "label": "Qualifying",
+    "display": "$910 - 210 = 700$",
+    "value": 700
+   },
+   {
+    "label": "MBS haircut",
+    "display": "$200 \\times 0.15 = 30$",
+    "value": 30
+   },
+   {
+    "label": "Buffer",
+    "display": "$700 - 30 = 670$",
+    "value": 670
+   }
+  ],
+  "takeaway": "Pledged and operational holdings never count toward the buffer. Haircuts are applied only to what is left.",
+  "check": {
+   "inputs": {
+    "T": 420,
+    "M": 200,
+    "P": 150,
+    "C": 60,
+    "D": 80,
+    "h": 0.15
+   },
+   "steps": [
+    {
+     "name": "gross",
+     "expr": "T+M+P+C+D",
+     "value": 910
+    },
+    {
+     "name": "excl",
+     "expr": "P+C",
+     "value": 210
+    },
+    {
+     "name": "qual",
+     "expr": "gross-excl",
+     "value": 700
+    },
+    {
+     "name": "hc",
+     "expr": "M*h",
+     "value": 30.0
+    },
+    {
+     "name": "buffer",
+     "expr": "qual-hc",
+     "value": 670.0
+    },
+    {
+     "name": "slip_pledged_only",
+     "expr": "P",
+     "value": 150
+    },
+    {
+     "name": "slip_cash_only",
+     "expr": "C",
+     "value": 60
+    },
+    {
+     "name": "slip_haircut",
+     "expr": "hc",
+     "value": 30.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-04",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-9: Liquidity Stress Testing",
+  "reading_id": "LTR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-WB-9b-6"
+  },
+  "trap_category": "Scope",
+  "setup": "30-day stress, EUR m, with the Basel III LCR cap. Stressed outflows: retail deposits 220, unsecured wholesale 180, derivative collateral calls 60, committed-facility drawdowns 40. Stressed inflows: loan repayments 260, maturing reverse repos 160. Inflows may be counted only up to 75% of outflows. Normal buffer 520.",
+  "ask": "The inflow figure that counts in the stressed buffer is:",
+  "options": [
+   {
+    "label": "EUR 375m",
+    "correct": true
+   },
+   {
+    "label": "EUR 420m",
+    "correct": false,
+    "why": "Counted every expected inflow and ignored the cap."
+   },
+   {
+    "label": "EUR 315m",
+    "correct": false,
+    "why": "Applied the 75% to the inflows (0.75 × 420) instead of to the outflows."
+   },
+   {
+    "label": "EUR 260m",
+    "correct": false,
+    "why": "Counted only the loan repayments and dropped the reverse repos. The cap limits the total, not which items qualify."
+   }
+  ],
+  "working": [
+   {
+    "label": "Outflows",
+    "display": "$220+180+60+40 = 500$",
+    "value": 500
+   },
+   {
+    "label": "Raw inflows",
+    "display": "$260 + 160 = 420$",
+    "value": 420
+   },
+   {
+    "label": "Cap",
+    "display": "$0.75 \\times 500 = 375$",
+    "value": 375
+   },
+   {
+    "label": "Counted",
+    "display": "$\\min(420, 375) = 375$",
+    "value": 375
+   },
+   {
+    "label": "Stressed buffer",
+    "display": "$520 - 500 + 375 = 395$",
+    "value": 395
+   }
+  ],
+  "takeaway": "The cap is a share of outflows. It binds only when raw inflows exceed it, here 420 against 375.",
+  "check": {
+   "inputs": {
+    "B": 520,
+    "o1": 220,
+    "o2": 180,
+    "o3": 60,
+    "o4": 40,
+    "i1": 260,
+    "i2": 160,
+    "cap": 0.75
+   },
+   "steps": [
+    {
+     "name": "out",
+     "expr": "o1+o2+o3+o4",
+     "value": 500
+    },
+    {
+     "name": "inf",
+     "expr": "i1+i2",
+     "value": 420
+    },
+    {
+     "name": "capamt",
+     "expr": "cap*out",
+     "value": 375.0
+    },
+    {
+     "name": "counted",
+     "expr": "min(inf,capamt)",
+     "value": 375.0
+    },
+    {
+     "name": "buffer",
+     "expr": "B-out+counted",
+     "value": 395.0
+    },
+    {
+     "name": "slip_nocap",
+     "expr": "inf",
+     "value": 420
+    },
+    {
+     "name": "slip_cap_on_inflow",
+     "expr": "cap*inf",
+     "value": 315.0
+    },
+    {
+     "name": "slip_loans_only",
+     "expr": "i1",
+     "value": 260
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-05",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-12: Managing Non-Deposit Liabilities",
+  "reading_id": "LTR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-WB-12b-5"
+  },
+  "trap_category": "Formula",
+  "setup": "Funding plan for next month, USD m. Uses of funds: new qualifying loans 220, agency MBS purchase 40, credit-line drawdowns 60. Sources: deposits received today 90, further deposit inflows expected 110. Policy adds a 10% safety margin to the estimated funding gap.",
+  "ask": "The amount to plan to raise from nondeposit sources is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 12m",
+    "correct": false,
+    "why": "Reported only the safety margin, 10% of the gap, instead of the gap plus the margin."
+   },
+   {
+    "label": "≈ USD 132m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 352m",
+    "correct": false,
+    "why": "Forgot to net the deposits off. Applied the 10% margin to total uses of 320."
+   },
+   {
+    "label": "≈ USD 1,200m",
+    "correct": false,
+    "why": "Read the 10% margin as a factor of 10 on the gap, not 1.10 times it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Uses",
+    "display": "$220+40+60 = 320$",
+    "value": 320
+   },
+   {
+    "label": "Sources",
+    "display": "$90 + 110 = 200$",
+    "value": 200
+   },
+   {
+    "label": "Gap",
+    "display": "$320 - 200 = 120$",
+    "value": 120
+   },
+   {
+    "label": "Planned raise",
+    "display": "$1.10 \\times 120 = 132$",
+    "value": 132
+   }
+  ],
+  "takeaway": "Gap = uses minus sources, and the safety margin scales the gap, not the gross uses.",
+  "check": {
+   "inputs": {
+    "u1": 220,
+    "u2": 40,
+    "u3": 60,
+    "s1": 90,
+    "s2": 110,
+    "m": 0.1
+   },
+   "steps": [
+    {
+     "name": "uses",
+     "expr": "u1+u2+u3",
+     "value": 320
+    },
+    {
+     "name": "src",
+     "expr": "s1+s2",
+     "value": 200
+    },
+    {
+     "name": "gap",
+     "expr": "uses-src",
+     "value": 120
+    },
+    {
+     "name": "raise",
+     "expr": "(1+m)*gap",
+     "value": 132.0
+    },
+    {
+     "name": "slip_margin_only",
+     "expr": "m*gap",
+     "value": 12.0
+    },
+    {
+     "name": "slip_no_deposits",
+     "expr": "(1+m)*uses",
+     "value": 352.0
+    },
+    {
+     "name": "slip_x10",
+     "expr": "10*gap",
+     "value": 1200
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-06",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-16: Covered Interest Parity Lost: Understanding the Cross-Currency Basis",
+  "reading_id": "LTR-16",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-WB-16c-5"
+  },
+  "trap_category": "Scope",
+  "setup": "A BBB-rated firm needs five-year USD funding. Its bonds trade at swap + 100 bp in USD or swap + 50 bp in EUR. If it issues in EUR it swaps into USD through a cross-currency basis swap, paying a 30 bp basis on top of the USD rate. The five-year EUR swap rate is 70 bp below the USD swap rate.",
+  "ask": "Relative to issuing in USD, issuing in EUR and swapping:",
+  "options": [
+   {
+    "label": "Saves, but by less than the 50 bp spread advantage",
+    "correct": true
+   },
+   {
+    "label": "Saves the full 50 bp",
+    "correct": false,
+    "why": "Ignored the 30 bp basis, as if covered interest parity held with no basis."
+   },
+   {
+    "label": "Costs more, because of the 70 bp lower EUR swap rate",
+    "correct": false,
+    "why": "Charged the 70 bp rate-level gap against the saving. The swap converts the EUR rate level into the USD one, so that gap drops out."
+   }
+  ],
+  "working": [
+   {
+    "label": "USD cost",
+    "display": "swap + 100 bp",
+    "value": 100
+   },
+   {
+    "label": "EUR swapped cost",
+    "display": "$50 + 30 = 80$ bp over the USD swap rate",
+    "value": 80
+   },
+   {
+    "label": "Saving",
+    "display": "$100 - 80 = 20$ bp",
+    "value": 20
+   }
+  ],
+  "takeaway": "The basis eats part of the spread advantage, 30 of 50 bp here. The EUR swap rate's 70 bp discount is a red herring once the proceeds are swapped.",
+  "check": {
+   "inputs": {
+    "usd": 100,
+    "eur": 50,
+    "basis": 30,
+    "gap": 70
+   },
+   "steps": [
+    {
+     "name": "eur_swapped",
+     "expr": "eur+basis",
+     "value": 80
+    },
+    {
+     "name": "saving",
+     "expr": "usd-eur_swapped",
+     "value": 20
+    },
+    {
+     "name": "slip_no_basis",
+     "expr": "usd-eur",
+     "value": 50
+    },
+    {
+     "name": "slip_rate_gap",
+     "expr": "saving-gap",
+     "value": -50
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-07",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-1: Liquidity Risk",
+  "reading_id": "LTR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0034"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Required stable funding (RSF) for a bank with USD 300m of assets, as amount × RSF factor: cash 20 × 0%, Treasuries (over 1 year) 20 × 5%, mortgages 50 × 65%, small-business loans 180 × 85%, fixed assets 30 × 100%.",
+  "ask": "Which line contributes most to RSF?",
+  "options": [
+   {
+    "label": "Small-business loans",
+    "correct": true
+   },
+   {
+    "label": "Fixed assets",
+    "correct": false,
+    "why": "Ranked by factor alone. Fixed assets carry the top 100% factor but only 30 of balance, so 30 against 153."
+   },
+   {
+    "label": "Mortgages",
+    "correct": false,
+    "why": "Treated the mortgage book as the big long-term asset, but $50 \\times 65\\% = 32.5$ is far below the loan book."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash",
+    "display": "$20 \\times 0\\% = 0$",
+    "value": 0
+   },
+   {
+    "label": "Treasuries",
+    "display": "$20 \\times 5\\% = 1$",
+    "value": 1
+   },
+   {
+    "label": "Mortgages",
+    "display": "$50 \\times 65\\% = 32.5$",
+    "value": 32.5
+   },
+   {
+    "label": "Small-business loans",
+    "display": "$180 \\times 85\\% = 153$",
+    "value": 153
+   },
+   {
+    "label": "Fixed assets",
+    "display": "$30 \\times 100\\% = 30$",
+    "value": 30
+   },
+   {
+    "label": "Total RSF",
+    "display": "$216.5$",
+    "value": 216.5
+   }
+  ],
+  "takeaway": "RSF is balance times factor. A large book at 85% beats a small book at 100%.",
+  "check": {
+   "inputs": {
+    "cash": 20,
+    "tb": 20,
+    "mort": 50,
+    "sbl": 180,
+    "fa": 30
+   },
+   "steps": [
+    {
+     "name": "r_mort",
+     "expr": "mort*0.65",
+     "value": 32.5
+    },
+    {
+     "name": "r_sbl",
+     "expr": "sbl*0.85",
+     "value": 153.0
+    },
+    {
+     "name": "r_fa",
+     "expr": "fa*1.0",
+     "value": 30.0
+    },
+    {
+     "name": "rsf",
+     "expr": "cash*0+tb*0.05+r_mort+r_sbl+r_fa",
+     "value": 216.5
+    },
+    {
+     "name": "share_sbl",
+     "expr": "r_sbl/rsf",
+     "value": 0.7067
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-08",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-1: Liquidity Risk",
+  "reading_id": "LTR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0035"
+  },
+  "trap_category": "Scope",
+  "setup": "Goodwill Bank. Funding (amount × ASF factor): retail deposits 35 × 90%, wholesale deposits 50 × 50%, Tier 2 capital 5 × 100%, Tier 1 capital 10 × 100%, other liabilities 17.5 × 0%. Assets (amount × RSF factor): cash 7 × 0%, mortgages 38 × 65%, Treasuries 6.5 × 5%, small-business loans 54 × 85%, fixed assets 12 × 100%.",
+  "ask": "Against the 100% minimum, the net stable funding ratio is:",
+  "options": [
+   {
+    "label": "Below 100%",
+    "correct": true
+   },
+   {
+    "label": "Exactly 100%",
+    "correct": false,
+    "why": "Compared unweighted totals: funding and assets both add to 117.5. The factors, not the balance sheet totals, drive NSFR."
+   },
+   {
+    "label": "Above 100%",
+    "correct": false,
+    "why": "Weighted only the assets (RSF 82.9) and compared them with unweighted funding of 117.5, which gives about 142%."
+   }
+  ],
+  "working": [
+   {
+    "label": "ASF",
+    "display": "$31.5 + 25 + 5 + 10 + 0 = 71.5$",
+    "value": 71.5
+   },
+   {
+    "label": "RSF",
+    "display": "$0 + 24.7 + 0.325 + 45.9 + 12 = 82.9$",
+    "value": 82.925
+   },
+   {
+    "label": "NSFR",
+    "display": "$71.5 / 82.9 = 86.2\\%$",
+    "value": 0.8622
+   }
+  ],
+  "takeaway": "NSFR weights both sides. Equal balance sheet totals say nothing: the funding carries low ASF factors while the assets are mostly high-RSF loans.",
+  "check": {
+   "inputs": {
+    "ret": 35,
+    "whs": 50,
+    "t2": 5,
+    "t1": 10,
+    "oth": 17.5,
+    "cash": 7,
+    "mort": 38,
+    "tb": 6.5,
+    "sbl": 54,
+    "fa": 12
+   },
+   "steps": [
+    {
+     "name": "asf",
+     "expr": "ret*0.9+whs*0.5+t2+t1+oth*0",
+     "value": 71.5
+    },
+    {
+     "name": "rsf",
+     "expr": "cash*0+mort*0.65+tb*0.05+sbl*0.85+fa",
+     "value": 82.925
+    },
+    {
+     "name": "nsfr",
+     "expr": "asf/rsf",
+     "value": 0.8622
+    },
+    {
+     "name": "tot_fund",
+     "expr": "ret+whs+t2+t1+oth",
+     "value": 117.5
+    },
+    {
+     "name": "slip_rsf_only",
+     "expr": "tot_fund/rsf",
+     "value": 1.4169
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-09",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-1: Liquidity Risk",
+  "reading_id": "LTR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0037"
+  },
+  "trap_category": "Role",
+  "setup": "ABC Bank, 2019, USD m: high-quality liquid assets 1,458; average monthly withdrawals in normal conditions 2,458; net cash outflows over a 30-day stress period 1,700.",
+  "ask": "The denominator of the 2019 liquidity coverage ratio is:",
+  "options": [
+   {
+    "label": "1,700",
+    "correct": true
+   },
+   {
+    "label": "2,458",
+    "correct": false,
+    "why": "Used normal-conditions withdrawals. LCR is defined against 30 days of stress, so they do not enter."
+   },
+   {
+    "label": "4,158",
+    "correct": false,
+    "why": "Added the normal withdrawals to the stressed outflows, double counting."
+   }
+  ],
+  "working": [
+   {
+    "label": "Denominator",
+    "display": "30-day stressed net outflows = 1,700",
+    "value": 1700
+   },
+   {
+    "label": "LCR",
+    "display": "$1{,}458 / 1{,}700 = 85.8\\%$",
+    "value": 0.8576
+   }
+  ],
+  "takeaway": "LCR = HQLA over stressed 30-day net outflows. Normal-conditions flows are a distractor, and below 100% fails the requirement.",
+  "check": {
+   "inputs": {
+    "H": 1458,
+    "norm": 2458,
+    "stress": 1700
+   },
+   "steps": [
+    {
+     "name": "lcr",
+     "expr": "H/stress",
+     "value": 0.8576
+    },
+    {
+     "name": "slip_normal",
+     "expr": "H/norm",
+     "value": 0.5932
+    },
+    {
+     "name": "slip_sum",
+     "expr": "H/(norm+stress)",
+     "value": 0.3506
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-10",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-1: Liquidity Risk",
+  "reading_id": "LTR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0040"
+  },
+  "trap_category": "Scope",
+  "setup": "LCR inputs, USD m. 30-day gross outflows: stable retail deposits 500 at 5% run-off, unsecured wholesale funding 300 at 40%. Expected inflows 60. Inflows may count only up to 75% of gross outflows.",
+  "ask": "The inflows that count against the outflows are:",
+  "options": [
+   {
+    "label": "USD 60m",
+    "correct": true
+   },
+   {
+    "label": "USD 108.75m",
+    "correct": false,
+    "why": "Credited the cap itself. The cap is a ceiling on counted inflows, not an allowance that tops them up."
+   },
+   {
+    "label": "USD 45m",
+    "correct": false,
+    "why": "Took 75% of the inflows (0.75 × 60) instead of comparing the inflows with 75% of outflows."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gross outflows",
+    "display": "$500 \\times 0.05 + 300 \\times 0.40 = 145$",
+    "value": 145
+   },
+   {
+    "label": "Cap",
+    "display": "$0.75 \\times 145 = 108.75$",
+    "value": 108.75
+   },
+   {
+    "label": "Counted inflows",
+    "display": "$\\min(60, 108.75) = 60$",
+    "value": 60
+   },
+   {
+    "label": "Net outflows",
+    "display": "$145 - 60 = 85$",
+    "value": 85
+   }
+  ],
+  "takeaway": "The 75% cap is measured on gross outflows and only bites when inflows exceed it. Here 60 is well inside 108.75.",
+  "check": {
+   "inputs": {
+    "ret": 500,
+    "whs": 300,
+    "inflow": 60
+   },
+   "steps": [
+    {
+     "name": "out",
+     "expr": "ret*0.05+whs*0.40",
+     "value": 145.0
+    },
+    {
+     "name": "cap",
+     "expr": "0.75*out",
+     "value": 108.75
+    },
+    {
+     "name": "counted",
+     "expr": "min(inflow,cap)",
+     "value": 60
+    },
+    {
+     "name": "net",
+     "expr": "out-counted",
+     "value": 85.0
+    },
+    {
+     "name": "slip_cap_credited",
+     "expr": "cap",
+     "value": 108.75
+    },
+    {
+     "name": "slip_75_of_inflow",
+     "expr": "0.75*inflow",
+     "value": 45.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-11",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0074"
+  },
+  "trap_category": "Definition",
+  "setup": "A collateralised loan: USD 200 is lent against securities worth USD 225. The haircut is the part of collateral value not lent, as a percentage of collateral value. The USD 25 cushion is 12.5% of the USD 200 loan.",
+  "ask": "The haircut, compared with 12.5%, is:",
+  "options": [
+   {
+    "label": "Lower than 12.5%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 12.5%",
+    "correct": false,
+    "why": "Divided the USD 25 cushion by the loan (25/200) instead of by the collateral value (25/225)."
+   },
+   {
+    "label": "Higher than 12.5%",
+    "correct": false,
+    "why": "Reported the fraction lent, 200/225 = 88.9%, which is $1 - h$, not the haircut."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cushion",
+    "display": "$225 - 200 = 25$",
+    "value": 25
+   },
+   {
+    "label": "Haircut",
+    "display": "$25 / 225 = 11.1\\%$",
+    "value": 0.1111
+   }
+  ],
+  "takeaway": "Haircut = cushion over collateral value. The bigger denominator makes it smaller than the cushion over the loan.",
+  "check": {
+   "inputs": {
+    "coll": 225,
+    "loan": 200
+   },
+   "steps": [
+    {
+     "name": "cush",
+     "expr": "coll-loan",
+     "value": 25
+    },
+    {
+     "name": "h",
+     "expr": "cush/coll",
+     "value": 0.1111
+    },
+    {
+     "name": "slip_on_loan",
+     "expr": "cush/loan",
+     "value": 0.125
+    },
+    {
+     "name": "slip_fraction_lent",
+     "expr": "loan/coll",
+     "value": 0.8889
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-12",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0078"
+  },
+  "trap_category": "Sign",
+  "setup": "A firm earns 10% on assets of USD 7, funded by USD 2 of equity and USD 5 of debt costing 5%.",
+  "ask": "Compared with the 10% return on assets, the return on equity is:",
+  "options": [
+   {
+    "label": "Higher than 10%",
+    "correct": true
+   },
+   {
+    "label": "Lower than 10%",
+    "correct": false,
+    "why": "Assumed borrowing always drags returns down. Debt that costs less than ROA raises ROE."
+   },
+   {
+    "label": "Equal to 10%",
+    "correct": false,
+    "why": "Ignored the leverage entirely and left ROE at the asset return."
+   }
+  ],
+  "working": [
+   {
+    "label": "Leverage",
+    "display": "$7 / 2 = 3.5$",
+    "value": 3.5
+   },
+   {
+    "label": "ROE",
+    "display": "$3.5 \\times 10\\% - 2.5 \\times 5\\% = 22.5\\%$",
+    "value": 22.5
+   }
+  ],
+  "takeaway": "When ROA exceeds the cost of debt, every extra unit of leverage adds the spread to ROE.",
+  "check": {
+   "inputs": {
+    "A": 7,
+    "E": 2,
+    "roa": 10,
+    "i": 5
+   },
+   "steps": [
+    {
+     "name": "L",
+     "expr": "A/E",
+     "value": 3.5
+    },
+    {
+     "name": "roe",
+     "expr": "L*roa-(L-1)*i",
+     "value": 22.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-13",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0084"
+  },
+  "trap_category": "Formula",
+  "setup": "A convertible-arbitrage strategy earns 11% on USD 16m of assets. It is financed 60% with borrowing at 7% and 40% with equity.",
+  "ask": "The return on equity is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.7%",
+    "correct": false,
+    "why": "Scale slip (0.1×): moved the decimal when converting 17% to a decimal and back."
+   },
+   {
+    "label": "≈ 6%",
+    "correct": false,
+    "why": "Multiplied the 4% spread by the debt-to-equity ratio of 1.5 and forgot to add back the 11% asset return."
+   },
+   {
+    "label": "≈ 17%",
+    "correct": true
+   },
+   {
+    "label": "≈ 45%",
+    "correct": false,
+    "why": "Added the cost of debt to ROA on the levered amount, $2.5 \\times (11+7)$, instead of subtracting it on the borrowed part."
+   }
+  ],
+  "working": [
+   {
+    "label": "Equity",
+    "display": "$0.40 \\times 16 = 6.4$",
+    "value": 6.4
+   },
+   {
+    "label": "Leverage",
+    "display": "$16 / 6.4 = 2.5$",
+    "value": 2.5
+   },
+   {
+    "label": "ROE",
+    "display": "$2.5 \\times 11\\% - 1.5 \\times 7\\% = 17.0\\%$",
+    "value": 17.0
+   }
+  ],
+  "takeaway": "ROE = ROA + (D/E) × (ROA − cost of debt). Here 11% + 1.5 × 4% = 17%.",
+  "check": {
+   "inputs": {
+    "A": 16,
+    "wd": 0.6,
+    "roa": 11,
+    "i": 7
+   },
+   "steps": [
+    {
+     "name": "E",
+     "expr": "A*(1-wd)",
+     "value": 6.4
+    },
+    {
+     "name": "L",
+     "expr": "A/E",
+     "value": 2.5
+    },
+    {
+     "name": "roe",
+     "expr": "L*roa-(L-1)*i",
+     "value": 17.0
+    },
+    {
+     "name": "slip_no_base",
+     "expr": "(L-1)*(roa-i)",
+     "value": 6.0
+    },
+    {
+     "name": "slip_sign",
+     "expr": "L*(roa+i)",
+     "value": 45.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "roe/10",
+     "value": 1.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-14",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0095"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Callahan has total assets of USD 5m, equity of USD 2m, ROA 7% and cost of debt 3%. It doubles its leverage ratio (assets / equity) while assets and ROA stay fixed. Each extra unit of leverage adds ROA minus the cost of debt.",
+  "ask": "The rise in ROE is closest to:",
+  "options": [
+   {
+    "label": "10 percentage points",
+    "correct": true
+   },
+   {
+    "label": "4 percentage points",
+    "correct": false,
+    "why": "Stopped at the 4% spread (7% − 3%) and did not multiply by the 2.5 extra turns of leverage."
+   },
+   {
+    "label": "13 percentage points",
+    "correct": false,
+    "why": "Gave the starting ROE (2.5 × 7% − 1.5 × 3% = 13%), not the change."
+   },
+   {
+    "label": "23 percentage points",
+    "correct": false,
+    "why": "Gave the new ROE level, not the increase over the old one."
+   }
+  ],
+  "working": [
+   {
+    "label": "Initial leverage",
+    "display": "$5 / 2 = 2.5$",
+    "value": 2.5
+   },
+   {
+    "label": "New leverage",
+    "display": "$2 \\times 2.5 = 5.0$",
+    "value": 5.0
+   },
+   {
+    "label": "Extra turns",
+    "display": "$5.0 - 2.5 = 2.5$",
+    "value": 2.5
+   },
+   {
+    "label": "ROE rise",
+    "display": "$2.5 \\times (7\\% - 3\\%) = 10\\%$",
+    "value": 10
+   }
+  ],
+  "takeaway": "ΔROE = ΔL × (ROA − cost of debt). The 4% spread is earned on each added turn.",
+  "check": {
+   "inputs": {
+    "A": 5,
+    "E": 2,
+    "roa": 7,
+    "i": 3
+   },
+   "steps": [
+    {
+     "name": "L0",
+     "expr": "A/E",
+     "value": 2.5
+    },
+    {
+     "name": "L1",
+     "expr": "2*L0",
+     "value": 5.0
+    },
+    {
+     "name": "dL",
+     "expr": "L1-L0",
+     "value": 2.5
+    },
+    {
+     "name": "inc",
+     "expr": "dL*(roa-i)",
+     "value": 10.0
+    },
+    {
+     "name": "roe0",
+     "expr": "L0*roa-(L0-1)*i",
+     "value": 13.0
+    },
+    {
+     "name": "roe1",
+     "expr": "L1*roa-(L1-1)*i",
+     "value": 23.0
+    },
+    {
+     "name": "chk",
+     "expr": "roe1-roe0",
+     "value": 10.0
+    },
+    {
+     "name": "slip_spread",
+     "expr": "roa-i",
+     "value": 4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-15",
+  "mode": "direction",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0091"
+  },
+  "trap_category": "Scope",
+  "setup": "A fund holds USD 100 cash, USD 20 bank debt and USD 80 equity, so leverage (assets / equity) is $100/80 = 1.25$. It buys USD 100 of stock at a 50% Reg T margin: USD 50 of its own cash plus a USD 50 broker loan. The broker keeps the stock as collateral.",
+  "ask": "After the purchase, leverage is:",
+  "options": [
+   {
+    "label": "Between 1.25 and 2.0",
+    "correct": true
+   },
+   {
+    "label": "Unchanged at 1.25",
+    "correct": false,
+    "why": "Thought paying half from own cash adds no leverage. The USD 50 broker loan still enlarges assets to 150 while equity stays at 80."
+   },
+   {
+    "label": "Above 2.0",
+    "correct": false,
+    "why": "Added the USD 100 stock to the full USD 100 cash, forgetting that USD 50 of cash was spent. That gives assets of 200 and leverage 2.5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash left",
+    "display": "$100 - 50 = 50$",
+    "value": 50
+   },
+   {
+    "label": "Assets",
+    "display": "$50 + 100 = 150$",
+    "value": 150
+   },
+   {
+    "label": "Leverage",
+    "display": "$150 / 80 = 1.875$",
+    "value": 1.875
+   }
+  ],
+  "takeaway": "Borrowing to buy raises assets while equity is unchanged, so leverage rises. Count the cash actually spent.",
+  "check": {
+   "inputs": {
+    "cash": 100,
+    "stock": 100,
+    "own": 50,
+    "E": 80
+   },
+   "steps": [
+    {
+     "name": "cash_left",
+     "expr": "cash-own",
+     "value": 50
+    },
+    {
+     "name": "A",
+     "expr": "cash_left+stock",
+     "value": 150
+    },
+    {
+     "name": "lev",
+     "expr": "A/E",
+     "value": 1.875
+    },
+    {
+     "name": "slip_no_spend",
+     "expr": "(cash+stock)/E",
+     "value": 2.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-16",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0092"
+  },
+  "trap_category": "Scope",
+  "setup": "A fund has USD 100 cash, USD 20 debt and USD 80 equity. It shorts a stock by borrowing USD 100 of shares and selling them. The USD 100 proceeds stay in a segregated account at the broker, and the fund also posts USD 50 of margin from its cash.",
+  "ask": "Total assets after the trade are closest to:",
+  "options": [
+   {
+    "label": "USD 100",
+    "correct": false,
+    "why": "Counted only the remaining cash and the margin (50 + 50) and left out the USD 100 of proceeds. They are an asset, matched by a USD 100 borrowed-stock liability."
+   },
+   {
+    "label": "USD 150",
+    "correct": false,
+    "why": "Treated the margin as leaving the balance sheet. It becomes a USD 50 receivable from the broker."
+   },
+   {
+    "label": "USD 200",
+    "correct": true
+   },
+   {
+    "label": "USD 250",
+    "correct": false,
+    "why": "Kept the full USD 100 cash as well as the broker balances, forgetting that the margin came out of that cash."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash left",
+    "display": "$100 - 50 = 50$",
+    "value": 50
+   },
+   {
+    "label": "Due from broker",
+    "display": "$100 + 50 = 150$",
+    "value": 150
+   },
+   {
+    "label": "Assets",
+    "display": "$50 + 150 = 200$",
+    "value": 200
+   },
+   {
+    "label": "Leverage",
+    "display": "$200 / 80 = 2.5$",
+    "value": 2.5
+   }
+  ],
+  "takeaway": "A short sale grosses up the balance sheet: proceeds and margin are both receivables from the broker.",
+  "check": {
+   "inputs": {
+    "cash": 100,
+    "margin": 50,
+    "proceeds": 100,
+    "E": 80
+   },
+   "steps": [
+    {
+     "name": "cash_left",
+     "expr": "cash-margin",
+     "value": 50
+    },
+    {
+     "name": "due",
+     "expr": "proceeds+margin",
+     "value": 150
+    },
+    {
+     "name": "A",
+     "expr": "cash_left+due",
+     "value": 200
+    },
+    {
+     "name": "lev",
+     "expr": "A/E",
+     "value": 2.5
+    },
+    {
+     "name": "slip_no_margin",
+     "expr": "cash_left+proceeds",
+     "value": 150
+    },
+    {
+     "name": "slip_no_proceeds",
+     "expr": "cash_left+margin",
+     "value": 100
+    },
+    {
+     "name": "slip_full_cash",
+     "expr": "cash+due",
+     "value": 250
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-17",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-2: Liquidity and Leverage",
+  "reading_id": "LTR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0104"
+  },
+  "trap_category": "Formula",
+  "setup": "A manager holds 30,000 shares of a stock that trades 70,000 shares a day. Policy caps trading at 18% of daily volume. Liquidity duration is days to exit: position size divided by the shares that may be sold per day.",
+  "ask": "Liquidity duration is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.024 days",
+    "correct": false,
+    "why": "Entered the 18% cap as 18 instead of 0.18, giving $30{,}000/(18 \\times 70{,}000)$."
+   },
+   {
+    "label": "≈ 0.43 days",
+    "correct": false,
+    "why": "Divided by the whole daily volume and ignored the 18% cap."
+   },
+   {
+    "label": "≈ 2.4 days",
+    "correct": true
+   },
+   {
+    "label": "≈ 238 days",
+    "correct": false,
+    "why": "Read the 18% cap as 0.18%, so the daily capacity is only 126 shares."
+   }
+  ],
+  "working": [
+   {
+    "label": "Daily capacity",
+    "display": "$0.18 \\times 70{,}000 = 12{,}600$",
+    "value": 12600
+   },
+   {
+    "label": "Liquidity duration",
+    "display": "$30{,}000 / 12{,}600 = 2.38$ days",
+    "value": 2.381
+   }
+  ],
+  "takeaway": "Exit time = position over the tradeable slice of volume. Applying the cap makes it longer than position over total volume.",
+  "check": {
+   "inputs": {
+    "pos": 30000,
+    "vol": 70000,
+    "cap": 0.18
+   },
+   "steps": [
+    {
+     "name": "daily",
+     "expr": "cap*vol",
+     "value": 12600.0
+    },
+    {
+     "name": "ld",
+     "expr": "pos/daily",
+     "value": 2.381
+    },
+    {
+     "name": "slip_nocap",
+     "expr": "pos/vol",
+     "value": 0.4286
+    },
+    {
+     "name": "slip_18",
+     "expr": "pos/(18*vol)",
+     "value": 0.0238
+    },
+    {
+     "name": "slip_pct",
+     "expr": "pos/(cap/100*vol)",
+     "value": 238.0952
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-18",
+  "mode": "intermediate",
+  "area": "LTR",
+  "reading": "LTR-7: Monitoring Liquidity",
+  "reading_id": "LTR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0271"
+  },
+  "trap_category": "Sign",
+  "setup": "Term structure of expected liquidity under stress, USD m. Normal annual inflows are 795 and outflows 230. In the stress scenario inflows fall 25% and outflows rise 40%.",
+  "ask": "Stressed net cash flow (inflows − outflows) for the year is closest to:",
+  "options": [
+   {
+    "label": "USD 274m",
+    "correct": true
+   },
+   {
+    "label": "USD 366m",
+    "correct": false,
+    "why": "Cut the inflows by 25% but left the outflows at 230."
+   },
+   {
+    "label": "USD 565m",
+    "correct": false,
+    "why": "Used the normal-conditions figures, 795 − 230, with no stress applied."
+   },
+   {
+    "label": "USD 856m",
+    "correct": false,
+    "why": "Applied the shocks in the wrong direction: inflows +25% and outflows −40%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Stressed inflows",
+    "display": "$795 \\times 0.75 = 596.25$",
+    "value": 596.25
+   },
+   {
+    "label": "Stressed outflows",
+    "display": "$230 \\times 1.40 = 322$",
+    "value": 322
+   },
+   {
+    "label": "Net flow",
+    "display": "$596.25 - 322 = 274.25$",
+    "value": 274.25
+   },
+   {
+    "label": "TSL(e)",
+    "display": "$50 + 274.25 + 100 = 424.25$",
+    "value": 424.25
+   }
+  ],
+  "takeaway": "Stress shrinks inflows and grows outflows, so net flow falls by more than half here, from 565 to 274.",
+  "check": {
+   "inputs": {
+    "inf": 795,
+    "outf": 230,
+    "c0": 50,
+    "buf": 100
+   },
+   "steps": [
+    {
+     "name": "si",
+     "expr": "inf*0.75",
+     "value": 596.25
+    },
+    {
+     "name": "so",
+     "expr": "outf*1.40",
+     "value": 322.0
+    },
+    {
+     "name": "net",
+     "expr": "si-so",
+     "value": 274.25
+    },
+    {
+     "name": "tsl",
+     "expr": "c0+net+buf",
+     "value": 424.25
+    },
+    {
+     "name": "slip_no_out_stress",
+     "expr": "si-outf",
+     "value": 366.25
+    },
+    {
+     "name": "slip_normal",
+     "expr": "inf-outf",
+     "value": 565
+    },
+    {
+     "name": "slip_flipped",
+     "expr": "inf*1.25-outf*0.6",
+     "value": 855.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-19",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-10: Liquidity Risk Reporting and Stress Testing",
+  "reading_id": "LTR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0333"
+  },
+  "trap_category": "Scope",
+  "setup": "FSA liquidity-ratio treatment of off-balance-sheet items, USD m. The bank has committed but undrawn lending facilities of 600, derivatives with a notional of 2,000, and a coupon of 5 payable on a derivative inside the reporting period.",
+  "ask": "The cash outflow to include for these items is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 5m",
+    "correct": false,
+    "why": "Counted only the derivative coupon and left out the 10% at-sight outflow on undrawn commitments."
+   },
+   {
+    "label": "≈ USD 65m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 605m",
+    "correct": false,
+    "why": "Counted the whole undrawn facility (600) plus the coupon. Only 10% of undrawn commitments counts."
+   },
+   {
+    "label": "≈ USD 2,065m",
+    "correct": false,
+    "why": "Brought in the derivative notional. Only coupons on their pay dates count, not notionals."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undrawn commitments",
+    "display": "$0.10 \\times 600 = 60$",
+    "value": 60
+   },
+   {
+    "label": "Derivative coupon",
+    "display": "$5$",
+    "value": 5
+   },
+   {
+    "label": "Total outflow",
+    "display": "$60 + 5 = 65$",
+    "value": 65
+   }
+  ],
+  "takeaway": "Undrawn lines count at 10%. Derivatives bring in only their coupons, never the notional.",
+  "check": {
+   "inputs": {
+    "undrawn": 600,
+    "notional": 2000,
+    "coupon": 5
+   },
+   "steps": [
+    {
+     "name": "commit",
+     "expr": "0.10*undrawn",
+     "value": 60.0
+    },
+    {
+     "name": "total",
+     "expr": "commit+coupon",
+     "value": 65.0
+    },
+    {
+     "name": "slip_coupon_only",
+     "expr": "coupon",
+     "value": 5
+    },
+    {
+     "name": "slip_full_line",
+     "expr": "undrawn+coupon",
+     "value": 605
+    },
+    {
+     "name": "slip_notional",
+     "expr": "notional+commit+coupon",
+     "value": 2065.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-LRq06-20",
+  "mode": "magnitude",
+  "area": "LTR",
+  "reading": "LTR-13: Repurchase Agreements and Financing",
+  "reading_id": "LTR-13",
+  "source": {
+   "kind": "bank",
+   "questionId": "LR-QB-0466"
+  },
+  "trap_category": "Formula",
+  "setup": "A newly issued on-the-run bond with market value USD 1,000 trades special at a 0.50% a year spread from 1 July to 31 October 2019 (122 days), and at general collateral afterwards. Day count is actual/360.",
+  "ask": "The financing value per USD 1,000 is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.42",
+    "correct": false,
+    "why": "Counted only the 30 days left in July instead of the full 122-day special period."
+   },
+   {
+    "label": "≈ USD 1.69",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 5.0",
+    "correct": false,
+    "why": "Took a full year of the 0.50% spread, $1{,}000 \\times 0.005$, with no day-count proration."
+   },
+   {
+    "label": "≈ USD 17",
+    "correct": false,
+    "why": "Read the 0.50% spread as 5.0%, giving ten times the right value."
+   }
+  ],
+  "working": [
+   {
+    "label": "Spread income",
+    "display": "$1{,}000 \\times 0.0050 = 5.00$ a year",
+    "value": 5.0
+   },
+   {
+    "label": "Day fraction",
+    "display": "$122 / 360 = 0.339$",
+    "value": 0.3389
+   },
+   {
+    "label": "Financing value",
+    "display": "$5.00 \\times 0.339 = 1.69$",
+    "value": 1.694
+   }
+  ],
+  "takeaway": "Financing value is the special spread earned only for the days it applies: spread × days/360 × market value.",
+  "check": {
+   "inputs": {
+    "mv": 1000,
+    "s": 0.005,
+    "d": 122
+   },
+   "steps": [
+    {
+     "name": "fv",
+     "expr": "mv*s*d/360",
+     "value": 1.6944
+    },
+    {
+     "name": "slip_july",
+     "expr": "mv*s*30/360",
+     "value": 0.4167
+    },
+    {
+     "name": "slip_year",
+     "expr": "mv*s",
+     "value": 5.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "mv*s*10*d/360",
+     "value": 16.9444
+    }
+   ]
+  }
+ }
+]

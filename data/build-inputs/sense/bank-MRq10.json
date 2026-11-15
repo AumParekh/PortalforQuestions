@@ -1,0 +1,1165 @@
+[
+ {
+  "id": "SC-bank-MRq10-01",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0556"
+  },
+  "trap_category": "Formula",
+  "setup": "Corporate bond price changes (Y) are regressed on Treasury futures price changes (X): slope $1.07$, $R^2 = 0.85$. The regression is then reversed, with X as the dependent variable and Y as the explanatory one. The reciprocal of the original slope is $1/1.07 \\approx 0.93$.",
+  "ask": "The slope of the reversed regression is:",
+  "options": [
+   {
+    "label": "Below 0.93",
+    "correct": true
+   },
+   {
+    "label": "Equal to 0.93",
+    "correct": false,
+    "why": "Treated the reverse slope as $1/\\beta$. That holds only if $R^2 = 1$; here $R^2 = 0.85$ shrinks it."
+   },
+   {
+    "label": "Above 0.93",
+    "correct": false,
+    "why": "Would need $R^2 > 1$. The product of the two slopes is $R^2$, which cannot exceed 1, so the reverse slope is at most $1/\\beta$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Product of the two slopes",
+    "display": "$\\beta \\times \\beta' = \\rho^2 = R^2 = 0.85$",
+    "value": 0.85
+   },
+   {
+    "label": "Reverse slope",
+    "display": "$\\beta' = 0.85 / 1.07 = 0.794$",
+    "value": 0.794
+   },
+   {
+    "label": "Reciprocal",
+    "display": "$1/1.07 = 0.935$",
+    "value": 0.935
+   }
+  ],
+  "takeaway": "The two regression slopes multiply to $R^2$, so the reverse slope is $R^2/\\beta$, below $1/\\beta$ unless the fit is perfect.",
+  "check": {
+   "inputs": {
+    "b": 1.07,
+    "R2": 0.85
+   },
+   "steps": [
+    {
+     "name": "rev",
+     "expr": "R2/b",
+     "value": 0.794393
+    },
+    {
+     "name": "recip",
+     "expr": "1/b",
+     "value": 0.934579
+    },
+    {
+     "name": "gap",
+     "expr": "rev-recip",
+     "value": -0.140187
+    },
+    {
+     "name": "slip_recip",
+     "expr": "1/b",
+     "value": 0.934579
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-02",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0565"
+  },
+  "trap_category": "Formula",
+  "setup": "The one-year rate is $8.0\\%$ today and next year is $11.0\\%$ or $5.0\\%$ with equal probability, so its average is $8.0\\%$. A two-year zero (par USD 1,000) is priced as the expected discounted value under these true probabilities. A flat 8% for both years would give $1000/1.08^2 = \\text{USD } 857.34$.",
+  "ask": "The tree price of the two-year zero is:",
+  "options": [
+   {
+    "label": "Above USD 857.34",
+    "correct": true
+   },
+   {
+    "label": "Below USD 857.34",
+    "correct": false,
+    "why": "Assumed the 11% branch hurts more than the 5% branch helps. Discounting is convex: the gain from 5% outweighs the loss from 11%."
+   },
+   {
+    "label": "Equal to USD 857.34",
+    "correct": false,
+    "why": "Replaced the rate by its 8% average. Averaging the discount factors is not the same as discounting at the average rate (about USD 0.66 apart here)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-1 value, up node",
+    "display": "$1000/1.11 = 900.90$",
+    "value": 900.9
+   },
+   {
+    "label": "Year-1 value, down node",
+    "display": "$1000/1.05 = 952.38$",
+    "value": 952.38
+   },
+   {
+    "label": "Expected year-1 value",
+    "display": "$0.5(900.90 + 952.38) = 926.64$",
+    "value": 926.64
+   },
+   {
+    "label": "Price today",
+    "display": "$926.64/1.08 = 858.00$",
+    "value": 858.0
+   }
+  ],
+  "takeaway": "Bond prices are convex in the rate, so a rate that is equally likely to rise or fall gives a price slightly above the one at the average rate.",
+  "check": {
+   "inputs": {
+    "r0": 0.08,
+    "ru": 0.11,
+    "rd": 0.05,
+    "F": 1000
+   },
+   "steps": [
+    {
+     "name": "vu",
+     "expr": "F/(1+ru)",
+     "value": 900.900901
+    },
+    {
+     "name": "vd",
+     "expr": "F/(1+rd)",
+     "value": 952.380952
+    },
+    {
+     "name": "ev",
+     "expr": "0.5*(vu+vd)",
+     "value": 926.640927
+    },
+    {
+     "name": "price",
+     "expr": "ev/(1+r0)",
+     "value": 858.000858
+    },
+    {
+     "name": "flat",
+     "expr": "F/(1+r0)^2",
+     "value": 857.33882
+    },
+    {
+     "name": "gap",
+     "expr": "price-flat",
+     "value": 0.662038
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0567"
+  },
+  "trap_category": "Polarity",
+  "setup": "A European call with strike USD 990 expires in six months on a one-year zero (face USD 1,000). At expiry the bond is a six-month zero, and the six-month rate is $2.5\\%$ or $1.5\\%$ with equal probability. Rates are semiannually compounded.",
+  "ask": "At expiry, the call finishes in the money in:",
+  "options": [
+   {
+    "label": "Only the 1.5% state",
+    "correct": true
+   },
+   {
+    "label": "Only the 2.5% state",
+    "correct": false,
+    "why": "Linked the higher rate to the higher bond price. A higher discount rate lowers the price (987.65, below the strike)."
+   },
+   {
+    "label": "Both states",
+    "correct": false,
+    "why": "Treated the 2.5% state as in the money as well; its bond is worth 987.65, below the 990 strike."
+   },
+   {
+    "label": "Neither state",
+    "correct": false,
+    "why": "Overlooked that the 1.5% state prices the bond at 992.56, above the strike."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond price, 2.5% state",
+    "display": "$1000/1.0125 = 987.65 < 990$",
+    "value": 987.65
+   },
+   {
+    "label": "Bond price, 1.5% state",
+    "display": "$1000/1.0075 = 992.56 > 990$",
+    "value": 992.56
+   },
+   {
+    "label": "Payoffs",
+    "display": "$0$ in the 2.5% state, $2.56$ in the 1.5% state",
+    "value": 2.56
+   }
+  ],
+  "takeaway": "Lower rate, higher bond price: a call on a bond pays off in the low-rate state.",
+  "check": {
+   "inputs": {
+    "K": 990,
+    "F": 1000,
+    "ru": 0.025,
+    "rd": 0.015
+   },
+   "steps": [
+    {
+     "name": "Pu",
+     "expr": "F/(1+ru/2)",
+     "value": 987.654321
+    },
+    {
+     "name": "Pd",
+     "expr": "F/(1+rd/2)",
+     "value": 992.555831
+    },
+    {
+     "name": "payu",
+     "expr": "max(Pu-K,0)",
+     "value": 0
+    },
+    {
+     "name": "payd",
+     "expr": "max(Pd-K,0)",
+     "value": 2.555831
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0568"
+  },
+  "trap_category": "Polarity",
+  "setup": "In a six-month step tree, a one-year zero (face USD 1,000) will be a six-month zero in six months. It is worth USD 978.00 in state A and USD 982.80 in state B. Rates are annualised, semiannually compounded.",
+  "ask": "The six-month rate in six months is higher in:",
+  "options": [
+   {
+    "label": "State A (worth 978.00)",
+    "correct": true
+   },
+   {
+    "label": "State B (worth 982.80)",
+    "correct": false,
+    "why": "Read the higher price as the higher rate. A bond is cheaper when it is discounted at a higher rate."
+   },
+   {
+    "label": "The two states are equal",
+    "correct": false,
+    "why": "The prices differ, so the discount factors and the rates differ. The implied rates are 4.5% and 3.5%."
+   }
+  ],
+  "working": [
+   {
+    "label": "State A rate",
+    "display": "$2 \\times (1000/978 - 1) = 4.50\\%$",
+    "value": 4.5
+   },
+   {
+    "label": "State B rate",
+    "display": "$2 \\times (1000/982.80 - 1) = 3.50\\%$",
+    "value": 3.5
+   }
+  ],
+  "takeaway": "Bond price and rate move opposite ways: the cheaper state has the higher rate.",
+  "check": {
+   "inputs": {
+    "PA": 978,
+    "PB": 982.8,
+    "F": 1000
+   },
+   "steps": [
+    {
+     "name": "rA",
+     "expr": "2*(F/PA-1)*100",
+     "value": 4.498978
+    },
+    {
+     "name": "rB",
+     "expr": "2*(F/PB-1)*100",
+     "value": 3.500204
+    },
+    {
+     "name": "diff",
+     "expr": "rA-rB",
+     "value": 0.998774
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-05",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0574"
+  },
+  "trap_category": "Definition",
+  "setup": "Six-month and one-year spot rates are $2.0\\%$ and $2.2\\%$ (semiannual). In six months the six-month rate is $2.5\\%$ or $1.5\\%$ (real-world 50% each). A call, expiring in six months, on the then six-month zero (face USD 1,000) has strike 990. Replicate it with the one-year zero and the six-month zero.",
+  "ask": "The arbitrage price of the call is closest to:",
+  "options": [
+   {
+    "label": "USD 0.03",
+    "correct": false,
+    "why": "Scale slip (one decimal place lost): the arbitrage price is ten times larger."
+   },
+   {
+    "label": "USD 0.25",
+    "correct": true
+   },
+   {
+    "label": "USD 1.27",
+    "correct": false,
+    "why": "Discounted the real-world expected payoff, $0.5 \\times 2.56 / 1.01$. Arbitrage pricing uses the replicating cost (risk-neutral weights), not the 50% probabilities."
+   },
+   {
+    "label": "USD 510",
+    "correct": false,
+    "why": "Counted only the long position in the one-year zero ($0.521$ units at 978.36) and left out the matching borrowing."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond price in 6m, up and down rate",
+    "display": "$987.65$ and $992.56$",
+    "value": null
+   },
+   {
+    "label": "Down-state payoff",
+    "display": "$992.56 - 990 = 2.556$ (up state pays 0)",
+    "value": 2.556
+   },
+   {
+    "label": "Units of one-year zero",
+    "display": "$N = 2.556 / (992.56 - 987.65) = 0.5214$",
+    "value": 0.5214
+   },
+   {
+    "label": "Cost of the one-year zero leg",
+    "display": "$0.5214 \\times 978.36 = 510.15$",
+    "value": 510.15
+   },
+   {
+    "label": "Less PV of borrowing",
+    "display": "$-515.00/1.01 = -509.90$",
+    "value": -509.9
+   },
+   {
+    "label": "Call price",
+    "display": "$510.15 - 509.90 \\approx \\text{USD } 0.25$",
+    "value": 0.25
+   }
+  ],
+  "takeaway": "The replicating portfolio is long a large bond position funded by large borrowing; the call price is the small difference, far below the real-world discounted payoff.",
+  "check": {
+   "inputs": {
+    "K": 990,
+    "F": 1000,
+    "ru": 0.025,
+    "rd": 0.015,
+    "s1": 0.02,
+    "s2": 0.022
+   },
+   "steps": [
+    {
+     "name": "P2",
+     "expr": "F/(1+s2/2)^2",
+     "value": 978.357748
+    },
+    {
+     "name": "P1",
+     "expr": "F/(1+s1/2)",
+     "value": 990.09901
+    },
+    {
+     "name": "Pu",
+     "expr": "F/(1+ru/2)",
+     "value": 987.654321
+    },
+    {
+     "name": "Pd",
+     "expr": "F/(1+rd/2)",
+     "value": 992.555831
+    },
+    {
+     "name": "pay",
+     "expr": "max(Pd-K,0)",
+     "value": 2.555831
+    },
+    {
+     "name": "N",
+     "expr": "pay/(Pd-Pu)",
+     "value": 0.521437
+    },
+    {
+     "name": "leg",
+     "expr": "N*P2",
+     "value": 510.152418
+    },
+    {
+     "name": "borrow",
+     "expr": "N*Pu/(1+s1/2)",
+     "value": 509.90099
+    },
+    {
+     "name": "call",
+     "expr": "leg-borrow",
+     "value": 0.251428
+    },
+    {
+     "name": "slip_realworld",
+     "expr": "0.5*pay/(1+s1/2)",
+     "value": 1.265263
+    },
+    {
+     "name": "slip_leg",
+     "expr": "N*P2",
+     "value": 510.152418
+    },
+    {
+     "name": "slip_scale",
+     "expr": "call/10",
+     "value": 0.025143
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-06",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0581"
+  },
+  "trap_category": "Formula",
+  "setup": "Six-month and one-year spot rates are $2.0\\%$ and $2.2\\%$ (semiannual). The six-month rate in six months is $2.5\\%$ (up) or $1.5\\%$ (down). A one-year zero (face USD 1,000) is worth $\\text{USD } 978.36$ today. If both states were equally likely, the zero would be worth about 980.30.",
+  "ask": "The risk-neutral probability of the up-rate state must be:",
+  "options": [
+   {
+    "label": "Above 50%",
+    "correct": true
+   },
+   {
+    "label": "Below 50%",
+    "correct": false,
+    "why": "Weighted the cheaper bond too little. The market price (978.36) is below the 50/50 value (980.30), so the cheaper up-rate state needs more weight."
+   },
+   {
+    "label": "Exactly 50%",
+    "correct": false,
+    "why": "A 50/50 weighting gives $0.5(987.65 + 992.56)/1.01 = 980.30$, not the actual price of 978.36."
+   }
+  ],
+  "working": [
+   {
+    "label": "Six-month bond price, up state",
+    "display": "$1000/1.0125 = 987.65$",
+    "value": 987.65
+   },
+   {
+    "label": "Six-month bond price, down state",
+    "display": "$1000/1.0075 = 992.56$",
+    "value": 992.56
+   },
+   {
+    "label": "Value needed at six months",
+    "display": "$978.36 \\times 1.01 = 988.14$",
+    "value": 988.14
+   },
+   {
+    "label": "Up probability",
+    "display": "$(992.56 - 988.14)/(992.56 - 987.65) = 0.90$",
+    "value": 0.9
+   }
+  ],
+  "takeaway": "To match a lower market price, the risk-neutral weights lean toward the state where the bond is cheaper (rates up).",
+  "check": {
+   "inputs": {
+    "F": 1000,
+    "ru": 0.025,
+    "rd": 0.015,
+    "s1": 0.02,
+    "s2": 0.022
+   },
+   "steps": [
+    {
+     "name": "P2",
+     "expr": "F/(1+s2/2)^2",
+     "value": 978.357748
+    },
+    {
+     "name": "Pu",
+     "expr": "F/(1+ru/2)",
+     "value": 987.654321
+    },
+    {
+     "name": "Pd",
+     "expr": "F/(1+rd/2)",
+     "value": 992.555831
+    },
+    {
+     "name": "half",
+     "expr": "0.5*(Pu+Pd)/(1+s1/2)",
+     "value": 980.302056
+    },
+    {
+     "name": "need",
+     "expr": "P2*(1+s1/2)",
+     "value": 988.141326
+    },
+    {
+     "name": "p",
+     "expr": "(Pd-need)/(Pd-Pu)",
+     "value": 0.900642
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-07",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0583"
+  },
+  "trap_category": "Definition",
+  "setup": "The six-month rate is $4.00\\%$ and the one-year zero (face USD 1,000) trades at USD 960.23. In six months it is worth USD 978.00 (up-rate state) or USD 982.80 (down-rate state). A call on it with strike USD 980 expires then. Discounting the 50/50 real-world expected payoff at 2% gives USD 1.37.",
+  "ask": "The call's no-arbitrage (risk-neutral) price is:",
+  "options": [
+   {
+    "label": "Below USD 1.37",
+    "correct": true
+   },
+   {
+    "label": "Above USD 1.37",
+    "correct": false,
+    "why": "Assumed risk-neutral weights favour the paying state. The call pays only in the down-rate state, and its weight falls from 50% to about 30%."
+   },
+   {
+    "label": "Equal to USD 1.37",
+    "correct": false,
+    "why": "Priced with the real-world 50% probabilities. Prices must be consistent with the market zero price, which fixes the risk-neutral weights."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral up probability",
+    "display": "$p = (982.80 - 960.23 \\times 1.02)/4.80 = 0.701$",
+    "value": 0.701
+   },
+   {
+    "label": "Payoffs",
+    "display": "$0$ in the up state, $2.80$ in the down state",
+    "value": 2.8
+   },
+   {
+    "label": "Call price",
+    "display": "$0.299 \\times 2.80 / 1.02 = \\text{USD } 0.82$",
+    "value": 0.82
+   }
+  ],
+  "takeaway": "The risk-neutral probability of the paying (low-rate) state is below its real-world 50%, so the arbitrage price sits under the real-world discounted payoff.",
+  "check": {
+   "inputs": {
+    "P0": 960.23,
+    "Pu": 978,
+    "Pd": 982.8,
+    "K": 980,
+    "r": 0.04
+   },
+   "steps": [
+    {
+     "name": "disc",
+     "expr": "1+r/2",
+     "value": 1.02
+    },
+    {
+     "name": "p",
+     "expr": "(Pd-P0*disc)/(Pd-Pu)",
+     "value": 0.701125
+    },
+    {
+     "name": "payd",
+     "expr": "max(Pd-K,0)",
+     "value": 2.8
+    },
+    {
+     "name": "call",
+     "expr": "(1-p)*payd/disc",
+     "value": 0.820441
+    },
+    {
+     "name": "rw",
+     "expr": "0.5*payd/disc",
+     "value": 1.372549
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-08",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0586"
+  },
+  "trap_category": "Definition",
+  "setup": "An option pays USD 6.10 or nothing in six months. The risk-free rate is $3.0\\%$ (semiannual). Discounting at the risk-free rate with real-world probabilities gives USD 3.00, which implies a real-world chance of the payoff of about 50%. The option actually trades at USD 1.80.",
+  "ask": "The risk-neutral probability of the USD 6.10 payoff is:",
+  "options": [
+   {
+    "label": "Below the real-world probability",
+    "correct": true
+   },
+   {
+    "label": "Above the real-world probability",
+    "correct": false,
+    "why": "Read the 1.80 price as a higher probability. A market price below the real-world expected value means the payoff state gets less weight."
+   },
+   {
+    "label": "Equal to the real-world probability",
+    "correct": false,
+    "why": "The two would match only if the market price were 3.00. Pricing at 1.80 forces a lower weight."
+   }
+  ],
+  "working": [
+   {
+    "label": "Real-world probability",
+    "display": "$3.00 \\times 1.015 / 6.10 = 0.499$",
+    "value": 0.499
+   },
+   {
+    "label": "Risk-neutral probability",
+    "display": "$1.80 \\times 1.015 / 6.10 = 0.2995$",
+    "value": 0.2995
+   }
+  ],
+  "takeaway": "Risk-neutral probability is whatever weight reproduces the market price; a price below the real-world expected value means a lower weight on the payoff.",
+  "check": {
+   "inputs": {
+    "pay": 6.1,
+    "r": 0.03,
+    "rw": 3.0,
+    "mkt": 1.8
+   },
+   "steps": [
+    {
+     "name": "rwp",
+     "expr": "rw*(1+r/2)/pay",
+     "value": 0.49918
+    },
+    {
+     "name": "rnp",
+     "expr": "mkt*(1+r/2)/pay",
+     "value": 0.299508
+    },
+    {
+     "name": "gap",
+     "expr": "rnp-rwp",
+     "value": -0.199672
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-09",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0595"
+  },
+  "trap_category": "Sequence",
+  "setup": "Three-step tree, six-month steps, semiannual compounding. Six-month rate: $3.0\\%$ at date 0; $3.5\\%$ or $2.5\\%$ at date 1; $4.0\\%$, $3.0\\%$ or $2.0\\%$ at date 2. Risk-neutral probabilities are 80% up, 20% down at every node. A flat $3.0\\%$ rate over three periods would price a 1.5-year zero (face USD 1,000) at $1000/1.015^3 = \\text{USD } 956.32$.",
+  "ask": "The tree price of the zero is:",
+  "options": [
+   {
+    "label": "Below USD 956.32",
+    "correct": true
+   },
+   {
+    "label": "Above USD 956.32",
+    "correct": false,
+    "why": "Counted the lower rates only. With 80% on up-moves, expected rates drift above 3.0%, which lowers the price."
+   },
+   {
+    "label": "Equal to USD 956.32",
+    "correct": false,
+    "why": "Rates are not flat in the tree, and the 80% up-weight pushes expected rates to about 3.3% and 3.6% on later dates."
+   }
+  ],
+  "working": [
+   {
+    "label": "Date-2 values",
+    "display": "$980.39,\\ 985.22,\\ 990.10$",
+    "value": null
+   },
+   {
+    "label": "Date-1 up node",
+    "display": "$(0.8 \\times 980.39 + 0.2 \\times 985.22)/1.0175 = 964.48$",
+    "value": 964.48
+   },
+   {
+    "label": "Date-1 down node",
+    "display": "$(0.8 \\times 985.22 + 0.2 \\times 990.10)/1.0125 = 974.02$",
+    "value": 974.02
+   },
+   {
+    "label": "Date 0",
+    "display": "$(0.8 \\times 964.48 + 0.2 \\times 974.02)/1.015 = 952.11$",
+    "value": 952.11
+   }
+  ],
+  "takeaway": "When the risk-neutral weight leans to up-moves, expected rates rise above the starting rate, so the price falls below the flat-rate price.",
+  "check": {
+   "inputs": {
+    "F": 1000,
+    "r0": 0.03,
+    "ru1": 0.035,
+    "rd1": 0.025,
+    "r2u": 0.04,
+    "r2m": 0.03,
+    "r2d": 0.02,
+    "q": 0.8
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "F/(1+r2u/2)",
+     "value": 980.392157
+    },
+    {
+     "name": "b",
+     "expr": "F/(1+r2m/2)",
+     "value": 985.221675
+    },
+    {
+     "name": "c",
+     "expr": "F/(1+r2d/2)",
+     "value": 990.09901
+    },
+    {
+     "name": "nu",
+     "expr": "(q*a+(1-q)*b)/(1+ru1/2)",
+     "value": 964.479666
+    },
+    {
+     "name": "nd",
+     "expr": "(q*b+(1-q)*c)/(1+rd1/2)",
+     "value": 974.021869
+    },
+    {
+     "name": "price",
+     "expr": "(q*nu+(1-q)*nd)/(1+r0/2)",
+     "value": 952.106509
+    },
+    {
+     "name": "flat",
+     "expr": "F/(1+r0/2)^3",
+     "value": 956.316994
+    },
+    {
+     "name": "gap",
+     "expr": "price-flat",
+     "value": -4.210485
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0598"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "European call, strike USD 100, expiring at T2, on a three-year 7% annual coupon bond (par 100). At T2 the bond is compared ex-coupon, so its price is $107/(1+r)$ for the T2 rate $r$. From the T1 node where the rate is $5\\%$, the T2 rate is $8\\%$ or $6\\%$ with equal probability.",
+  "ask": "At T2, the call is in the money in:",
+  "options": [
+   {
+    "label": "Only the 6% node",
+    "correct": true
+   },
+   {
+    "label": "Only the 8% node",
+    "correct": false,
+    "why": "Thought a higher rate means a higher bond price. At 8% the bond is worth $107/1.08 = 99.07$, below the strike."
+   },
+   {
+    "label": "Both nodes",
+    "correct": false,
+    "why": "At 8% the bond is worth 99.07, which is below 100."
+   },
+   {
+    "label": "Neither node",
+    "correct": false,
+    "why": "At 6% the bond is worth $107/1.06 = 100.94$, above the strike."
+   }
+  ],
+  "working": [
+   {
+    "label": "Bond price at 8%",
+    "display": "$107/1.08 = 99.07 < 100$",
+    "value": 99.07
+   },
+   {
+    "label": "Bond price at 6%",
+    "display": "$107/1.06 = 100.94 > 100$",
+    "value": 100.94
+   },
+   {
+    "label": "Option value at the 5% node",
+    "display": "$0.5 \\times 0.94 / 1.05 = \\text{USD } 0.45$",
+    "value": 0.45
+   }
+  ],
+  "takeaway": "Only the lower-rate node (higher bond price) can finish above the strike of a call on the bond.",
+  "check": {
+   "inputs": {
+    "K": 100,
+    "CF": 107,
+    "r1": 0.08,
+    "r2": 0.06,
+    "r0": 0.05
+   },
+   "steps": [
+    {
+     "name": "P1",
+     "expr": "CF/(1+r1)",
+     "value": 99.074074
+    },
+    {
+     "name": "P2",
+     "expr": "CF/(1+r2)",
+     "value": 100.943396
+    },
+    {
+     "name": "p1",
+     "expr": "max(P1-K,0)",
+     "value": 0
+    },
+    {
+     "name": "p2",
+     "expr": "max(P2-K,0)",
+     "value": 0.943396
+    },
+    {
+     "name": "val",
+     "expr": "0.5*(p1+p2)/(1+r0)",
+     "value": 0.449236
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-11",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0599"
+  },
+  "trap_category": "Polarity",
+  "setup": "European put, strike USD 101, expiring in two years, on a 7% annual coupon bond; compared ex-coupon so the Year-2 price is $107/(1+r)$. Year-1 rate is $5.99\\%$ or $4.44\\%$. From $5.99\\%$ the Year-2 rate is $8.56\\%$ or $6.34\\%$; from $4.44\\%$ it is $6.34\\%$ or $4.70\\%$. Year-2 up-probability is $0.60$.",
+  "ask": "At Year 1, the put is worth more in the node with rate:",
+  "options": [
+   {
+    "label": "5.99%",
+    "correct": true
+   },
+   {
+    "label": "4.44%",
+    "correct": false,
+    "why": "Linked the low rate to a higher put value. A put gains when the bond price falls, which happens when rates are higher."
+   },
+   {
+    "label": "The two are equal",
+    "correct": false,
+    "why": "The Year-2 bond prices reachable differ (98.56 and 100.62 versus 100.62 and 102.20), so the payoffs differ."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-2 bond prices",
+    "display": "$98.56,\\ 100.62,\\ 102.20$",
+    "value": null
+   },
+   {
+    "label": "Put payoffs",
+    "display": "$2.44,\\ 0.38,\\ 0$",
+    "value": null
+   },
+   {
+    "label": "Node 5.99%",
+    "display": "$(0.6 \\times 2.437 + 0.4 \\times 0.379)/1.0599 = 1.52$",
+    "value": 1.52
+   },
+   {
+    "label": "Node 4.44%",
+    "display": "$(0.6 \\times 0.379 + 0.4 \\times 0)/1.0444 = 0.22$",
+    "value": 0.22
+   }
+  ],
+  "takeaway": "A put on a bond is worth more where rates are higher, because the bond price is lower and closer to or below the strike.",
+  "check": {
+   "inputs": {
+    "K": 101,
+    "CF": 107,
+    "q": 0.6,
+    "a": 0.0856,
+    "b": 0.0634,
+    "c": 0.047,
+    "u": 0.0599,
+    "d": 0.0444
+   },
+   "steps": [
+    {
+     "name": "Pa",
+     "expr": "CF/(1+a)",
+     "value": 98.563007
+    },
+    {
+     "name": "Pb",
+     "expr": "CF/(1+b)",
+     "value": 100.620651
+    },
+    {
+     "name": "Pc",
+     "expr": "CF/(1+c)",
+     "value": 102.196753
+    },
+    {
+     "name": "xa",
+     "expr": "max(K-Pa,0)",
+     "value": 2.436993
+    },
+    {
+     "name": "xb",
+     "expr": "max(K-Pb,0)",
+     "value": 0.379349
+    },
+    {
+     "name": "xc",
+     "expr": "max(K-Pc,0)",
+     "value": 0
+    },
+    {
+     "name": "vu",
+     "expr": "(q*xa+(1-q)*xb)/(1+u)",
+     "value": 1.522725
+    },
+    {
+     "name": "vd",
+     "expr": "(q*xb+(1-q)*xc)/(1+d)",
+     "value": 0.217933
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0606"
+  },
+  "trap_category": "Sign",
+  "setup": "Recombining binomial rate tree: an up-move adds $+20$ bps and a down-move adds $-10$ bps, each with probability 50%. The date-0 rate is $3.0\\%$. State $j$ at a date means $j$ up-moves. Consider date 12, state 5: 5 ups and 7 downs.",
+  "ask": "The date 12, state 5 rate is:",
+  "options": [
+   {
+    "label": "Above 3.0%",
+    "correct": true
+   },
+   {
+    "label": "Below 3.0%",
+    "correct": false,
+    "why": "Counted that there are more downs than ups (7 against 5) and ignored the sizes. Each up adds twice what each down takes away."
+   },
+   {
+    "label": "Equal to 3.0%",
+    "correct": false,
+    "why": "Assumed the 50% probabilities make ups and downs cancel. The state has fixed move counts and unequal move sizes."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total from ups",
+    "display": "$5 \\times (+20) = +100$ bps",
+    "value": 100
+   },
+   {
+    "label": "Total from downs",
+    "display": "$7 \\times (-10) = -70$ bps",
+    "value": -70
+   },
+   {
+    "label": "Net change and rate",
+    "display": "$+30$ bps, so $3.0\\% + 0.30\\% = 3.3\\%$",
+    "value": 3.3
+   }
+  ],
+  "takeaway": "Compare move sizes as well as move counts: 5 ups of 20 bps beat 7 downs of 10 bps.",
+  "check": {
+   "inputs": {
+    "r0": 3.0,
+    "u": 0.2,
+    "d": -0.1,
+    "k": 5,
+    "n": 12
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "k*u+(n-k)*d",
+     "value": 0.3
+    },
+    {
+     "name": "rate",
+     "expr": "r0+net",
+     "value": 3.3
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq10-13",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0607"
+  },
+  "trap_category": "Formula",
+  "setup": "In a recombining binomial tree each step is an up-move with probability 50%. The rate at date 12 reaches state 5 only by taking exactly 5 up-moves and 7 down-moves in some order. There are $\\binom{12}{5} = 792$ such orderings.",
+  "ask": "The probability of reaching date 12, state 5 is closest to:",
+  "options": [
+   {
+    "label": "0.02%",
+    "correct": false,
+    "why": "Counted a single path, $0.5^{12} = 1/4096$, and left out the 792 orderings that lead to the same state."
+   },
+   {
+    "label": "3%",
+    "correct": false,
+    "why": "Used $0.5^5$, only the five up-moves, and left out the seven down-moves."
+   },
+   {
+    "label": "19%",
+    "correct": true
+   },
+   {
+    "label": "50%",
+    "correct": false,
+    "why": "Used the single-step probability $p = 50\\%$ as if it were the probability of the whole state."
+   }
+  ],
+  "working": [
+   {
+    "label": "Number of paths",
+    "display": "$\\binom{12}{5} = 792$",
+    "value": 792
+   },
+   {
+    "label": "Probability of each path",
+    "display": "$0.5^{12} = 1/4096$",
+    "value": 0.000244
+   },
+   {
+    "label": "Probability of the state",
+    "display": "$792/4096 = 19.3\\%$",
+    "value": 0.1934
+   }
+  ],
+  "takeaway": "Many paths reach the same state in a recombining tree: multiply the single-path probability by the number of paths.",
+  "check": {
+   "inputs": {
+    "p": 0.5,
+    "n": 12
+   },
+   "steps": [
+    {
+     "name": "paths",
+     "expr": "12*11*10*9*8/(5*4*3*2*1)",
+     "value": 792.0
+    },
+    {
+     "name": "single",
+     "expr": "p^n",
+     "value": 0.000244
+    },
+    {
+     "name": "prob",
+     "expr": "paths*single*100",
+     "value": 19.335938
+    },
+    {
+     "name": "slip_single",
+     "expr": "single*100",
+     "value": 0.024414
+    },
+    {
+     "name": "slip_ups",
+     "expr": "p^5*100",
+     "value": 3.125
+    }
+   ]
+  }
+ }
+]

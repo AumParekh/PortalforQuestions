@@ -1,0 +1,1360 @@
+[
+ {
+  "id": "SC-bank-CRq01-01",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0108"
+  },
+  "trap_category": "Formula",
+  "setup": "Loan to Hazard Corp: commitment USD 120m, of which USD 80m is outstanding today. One-year default probability 1%, loss rate on default 25%. Standard deviation of the default probability 4%, of the loss rate 15%. Unexpected loss on the loan: $UL = EA\\sqrt{PD\\,\\sigma_{LR}^2 + LR^2\\,\\sigma_{PD}^2}$.",
+  "ask": "UL today is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.026m",
+    "correct": false,
+    "why": "Left the square root off: $80 \\times 0.000325 = 0.026$. The root is what turns a variance back into a loss amount."
+   },
+   {
+    "label": "≈ USD 0.20m",
+    "correct": false,
+    "why": "Reported the expected loss $80 \\times 1\\% \\times 25\\% = 0.20$, not the unexpected loss."
+   },
+   {
+    "label": "≈ USD 1.44m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 8.6m",
+    "correct": false,
+    "why": "Dropped every square, putting $\\sigma$ and $LR$ under the root instead of $\\sigma^2$ and $LR^2$."
+   }
+  ],
+  "working": [
+   {
+    "label": "PD term",
+    "display": "$PD \\times \\sigma_{LR}^2 = 0.01 \\times 0.0225 = 0.000225$",
+    "value": 0.000225
+   },
+   {
+    "label": "Loss-rate term",
+    "display": "$LR^2 \\times \\sigma_{PD}^2 = 0.0625 \\times 0.0016 = 0.000100$",
+    "value": 0.0001
+   },
+   {
+    "label": "Sum and root",
+    "display": "$\\sqrt{0.000325} = 0.0180$",
+    "value": 0.018028
+   },
+   {
+    "label": "Scale by exposure (outstanding, not commitment)",
+    "display": "$80 \\times 0.0180 \\approx \\text{USD } 1.44\\text{m}$",
+    "value": 1.442
+   }
+  ],
+  "takeaway": "UL uses the amount outstanding today, and the root is the last step: UL is a standard-deviation-sized number, far above EL here (1.44 against 0.20).",
+  "check": {
+   "inputs": {
+    "EA": 80,
+    "PD": 0.01,
+    "LR": 0.25,
+    "sPD": 0.04,
+    "sLR": 0.15
+   },
+   "steps": [
+    {
+     "name": "ul",
+     "expr": "EA*sqrt(PD*sLR^2+LR^2*sPD^2)",
+     "value": 1.44222
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "EA*(PD*sLR^2+LR^2*sPD^2)",
+     "value": 0.026
+    },
+    {
+     "name": "slip_el",
+     "expr": "EA*PD*LR",
+     "value": 0.2
+    },
+    {
+     "name": "slip_no_squares",
+     "expr": "EA*sqrt(PD*sLR+LR*sPD)",
+     "value": 8.57904
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0109"
+  },
+  "trap_category": "Role",
+  "setup": "Loan outstanding USD 80m (commitment 120m). PD 2%, loss rate 25%, standard deviation of PD 14%, of loss rate 15%. Under the root of $UL = EA\\sqrt{A + B}$ sit $A = PD\\,\\sigma_{LR}^2$ and $B = LR^2\\,\\sigma_{PD}^2$.",
+  "ask": "Which term under the root is larger?",
+  "options": [
+   {
+    "label": "$A$, the term with $PD = 2\\%$ in it",
+    "correct": false,
+    "why": "Followed the headline PD of 2% (so $A = 0.02 \\times 0.0225 = 0.00045$). But $B = 0.0625 \\times 0.0196 = 0.001225$ is larger: the large $\\sigma_{PD} = 14\\%$ matters."
+   },
+   {
+    "label": "$B$, the term with $\\sigma_{PD} = 14\\%$ in it",
+    "correct": true
+   },
+   {
+    "label": "About equal",
+    "correct": false,
+    "why": "They differ by a factor of about 2.7, not close to equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "$A$",
+    "display": "$0.02 \\times 0.15^2 = 0.00045$",
+    "value": 0.00045
+   },
+   {
+    "label": "$B$",
+    "display": "$0.25^2 \\times 0.14^2 = 0.001225$",
+    "value": 0.001225
+   },
+   {
+    "label": "Ratio",
+    "display": "$B/A \\approx 2.7$",
+    "value": 2.72
+   },
+   {
+    "label": "Result",
+    "display": "$UL = 80\\sqrt{0.001675} \\approx \\text{USD } 3.27\\text{m}$",
+    "value": 3.274
+   }
+  ],
+  "takeaway": "Each variance is weighted by the other leg: PD volatility is multiplied by $LR^2$, and loss-rate volatility by PD. A wide $\\sigma_{PD}$ can dominate even when PD itself is small.",
+  "check": {
+   "inputs": {
+    "PD": 0.02,
+    "LR": 0.25,
+    "sPD": 0.14,
+    "sLR": 0.15,
+    "EA": 80
+   },
+   "steps": [
+    {
+     "name": "A",
+     "expr": "PD*sLR^2",
+     "value": 0.00045
+    },
+    {
+     "name": "B",
+     "expr": "LR^2*sPD^2",
+     "value": 0.001225
+    },
+    {
+     "name": "ratio",
+     "expr": "B/A",
+     "value": 2.72222
+    },
+    {
+     "name": "ul",
+     "expr": "EA*sqrt(A+B)",
+     "value": 3.27414
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-03",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0115"
+  },
+  "trap_category": "Scope",
+  "setup": "A sub-portfolio holds 500 loans. Each has a one-year default probability of 1.5%, and defaults are independent. Each loan is a two-state (default / no default) outcome, so the number of defaults is binomial.",
+  "ask": "The variance of the number of defaults in the sub-portfolio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.015",
+    "correct": false,
+    "why": "Gave the variance of a single loan, $0.015 \\times 0.985 = 0.0148$, and never multiplied by $n = 500$."
+   },
+   {
+    "label": "≈ 2.7",
+    "correct": false,
+    "why": "Reported the standard deviation $\\sqrt{7.39}$ instead of the variance."
+   },
+   {
+    "label": "≈ 7.4",
+    "correct": true
+   },
+   {
+    "label": "≈ 490",
+    "correct": false,
+    "why": "Used $n(1-PD) = 492.5$, the expected number of survivors, in place of $nPD(1-PD)$."
+   }
+  ],
+  "working": [
+   {
+    "label": "One loan",
+    "display": "$0.015 \\times 0.985 = 0.014775$",
+    "value": 0.014775
+   },
+   {
+    "label": "500 independent loans",
+    "display": "$500 \\times 0.014775 = 7.39$",
+    "value": 7.3875
+   }
+  ],
+  "takeaway": "Independent variances add: $n\\,PD(1-PD)$. With a small PD it sits just below the mean $nPD = 7.5$.",
+  "check": {
+   "inputs": {
+    "n": 500,
+    "p": 0.015
+   },
+   "steps": [
+    {
+     "name": "v1",
+     "expr": "p*(1-p)",
+     "value": 0.014775
+    },
+    {
+     "name": "vn",
+     "expr": "n*v1",
+     "value": 7.3875
+    },
+    {
+     "name": "slip_one",
+     "expr": "v1",
+     "value": 0.014775
+    },
+    {
+     "name": "slip_sd",
+     "expr": "sqrt(vn)",
+     "value": 2.718
+    },
+    {
+     "name": "slip_surv",
+     "expr": "n*(1-p)",
+     "value": 492.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-04",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0116"
+  },
+  "trap_category": "Definition",
+  "setup": "A borrower defaults over one year with probability 2%, modelled as a two-state (binomial) event: it either defaults or it does not.",
+  "ask": "The variance of this default indicator, compared with the PD of 0.02, is:",
+  "options": [
+   {
+    "label": "Slightly below 0.02",
+    "correct": true
+   },
+   {
+    "label": "Exactly 0.02",
+    "correct": false,
+    "why": "Treated variance as equal to PD, as if defaults were a rare Poisson-type count. For a two-state event the variance is $PD(1-PD)$."
+   },
+   {
+    "label": "Far above 0.02, near 0.14",
+    "correct": false,
+    "why": "Took the standard deviation $\\sqrt{0.0196} = 0.14$ for the variance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Binomial variance",
+    "display": "$0.02 \\times 0.98 = 0.0196$",
+    "value": 0.0196
+   },
+   {
+    "label": "Compare",
+    "display": "$0.0196 < 0.02$",
+    "value": 0.0196
+   }
+  ],
+  "takeaway": "Two-state variance is $PD(1-PD)$: just under PD when PD is small, and never above 0.25.",
+  "check": {
+   "inputs": {
+    "p": 0.02
+   },
+   "steps": [
+    {
+     "name": "v",
+     "expr": "p*(1-p)",
+     "value": 0.0196
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(v)",
+     "value": 0.14
+    },
+    {
+     "name": "gap",
+     "expr": "p-v",
+     "value": 0.0004
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0119"
+  },
+  "trap_category": "Definition",
+  "setup": "Two credit assets with stand-alone unexpected losses $UL_X = \\$556{,}417$ and $UL_Y = \\$387{,}732$, default correlation 0.4, portfolio UL $\\$795{,}317$. The risk contribution of X is $RC_X = UL_X(UL_X + \\rho UL_Y)/UL_P$.",
+  "ask": "Compared with its stand-alone $UL_X$, the risk contribution $RC_X$ is:",
+  "options": [
+   {
+    "label": "Below $UL_X$",
+    "correct": true
+   },
+   {
+    "label": "Equal to $UL_X$",
+    "correct": false,
+    "why": "Treated contribution as the stand-alone figure. That holds only at $\\rho = 1$; here the ratio is $711{,}510/795{,}317 = 0.89$."
+   },
+   {
+    "label": "Above $UL_X$",
+    "correct": false,
+    "why": "Thought positive correlation inflates X's share beyond its own UL. Contributions sum to $UL_P$, which is below $UL_X + UL_Y$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Numerator",
+    "display": "$556{,}417 + 0.4 \\times 387{,}732 = 711{,}510$",
+    "value": 711510
+   },
+   {
+    "label": "Ratio to $UL_P$",
+    "display": "$711{,}510 / 795{,}317 = 0.895$",
+    "value": 0.8946
+   },
+   {
+    "label": "$RC_X$",
+    "display": "$556{,}417 \\times 0.8946 \\approx \\$497{,}800$",
+    "value": 497784
+   }
+  ],
+  "takeaway": "Whenever $\\rho < 1$, $RC_i < UL_i$: diversification shows up as a ratio below 1 in front of the stand-alone UL.",
+  "check": {
+   "inputs": {
+    "ULx": 556417,
+    "ULy": 387732,
+    "rho": 0.4
+   },
+   "steps": [
+    {
+     "name": "ulp",
+     "expr": "sqrt(ULx^2+ULy^2+2*rho*ULx*ULy)",
+     "value": 795317.0
+    },
+    {
+     "name": "num",
+     "expr": "ULx+rho*ULy",
+     "value": 711510.0
+    },
+    {
+     "name": "ratio",
+     "expr": "num/ulp",
+     "value": 0.894625
+    },
+    {
+     "name": "rcx",
+     "expr": "ULx*ratio",
+     "value": 497784.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-06",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0120"
+  },
+  "trap_category": "Formula",
+  "setup": "Two identical loans to the same industry. Each: exposure USD 50m, stand-alone $UL = \\text{USD } 5.5\\text{m}$, expected loss USD 0.5m. Default correlation between them is 0.28. The portfolio UL is $\\sqrt{UL_1^2 + UL_2^2 + 2\\rho UL_1 UL_2}$ and $RC_1 = UL_1(UL_1 + \\rho UL_2)/UL_P$.",
+  "ask": "The risk contribution of each loan is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.5m",
+    "correct": false,
+    "why": "Gave the expected loss, not a risk contribution."
+   },
+   {
+    "label": "≈ USD 1.5m",
+    "correct": false,
+    "why": "Took only the correlation add-on $\\rho UL = 0.28 \\times 5.5 = 1.54$ and left out the loan's own UL."
+   },
+   {
+    "label": "≈ USD 4.4m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 11m",
+    "correct": false,
+    "why": "Added the two stand-alone ULs ($5.5 + 5.5$): the undiversified portfolio UL, not one loan's share of it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio UL",
+    "display": "$\\sqrt{5.5^2 + 5.5^2 + 2(0.28)(5.5)(5.5)} = 8.8$",
+    "value": 8.8
+   },
+   {
+    "label": "$RC_1$",
+    "display": "$5.5 \\times (5.5 + 0.28 \\times 5.5)/8.8 = 4.4$",
+    "value": 4.4
+   },
+   {
+    "label": "Check",
+    "display": "$RC_1 + RC_2 = 8.8 = UL_P$",
+    "value": 8.8
+   }
+  ],
+  "takeaway": "Contributions add up to the portfolio UL. For identical loans each takes exactly half of it, here 4.4 of 8.8.",
+  "check": {
+   "inputs": {
+    "ul": 5.5,
+    "rho": 0.28,
+    "el": 0.5
+   },
+   "steps": [
+    {
+     "name": "ulp",
+     "expr": "sqrt(ul^2+ul^2+2*rho*ul*ul)",
+     "value": 8.8
+    },
+    {
+     "name": "rc",
+     "expr": "ul*(ul+rho*ul)/ulp",
+     "value": 4.4
+    },
+    {
+     "name": "half",
+     "expr": "ulp/2",
+     "value": 4.4
+    },
+    {
+     "name": "slip_el",
+     "expr": "el",
+     "value": 0.5
+    },
+    {
+     "name": "slip_addon",
+     "expr": "rho*ul",
+     "value": 1.54
+    },
+    {
+     "name": "slip_sum",
+     "expr": "ul+ul",
+     "value": 11.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0122"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Two positions with stand-alone ULs of \\$16.0m and \\$9.4m, default correlation 0.18, portfolio UL about \\$20.0m. Contribution: $RC_i = UL_i(UL_i + \\rho UL_j)/UL_P$.",
+  "ask": "Position 1's risk contribution is what share of the portfolio UL?",
+  "options": [
+   {
+    "label": "Below 50%",
+    "correct": false,
+    "why": "Gave the bigger position the smaller share, mixing up which UL goes in front."
+   },
+   {
+    "label": "Between 50% and 65%",
+    "correct": false,
+    "why": "Used the stand-alone split $16.0/(16.0 + 9.4) = 63\\%$. Correlation tilts contributions further toward the larger position."
+   },
+   {
+    "label": "Above 65%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "$UL_P$",
+    "display": "$\\sqrt{16^2 + 9.4^2 + 2(0.18)(16)(9.4)} = 19.96$",
+    "value": 19.96
+   },
+   {
+    "label": "$RC_1$",
+    "display": "$16 \\times (16 + 0.18 \\times 9.4)/20 \\approx 14.2$",
+    "value": 14.18
+   },
+   {
+    "label": "Share",
+    "display": "$14.2/20.0 \\approx 71\\%$",
+    "value": 0.711
+   }
+  ],
+  "takeaway": "A contribution sits above the stand-alone share when positive correlation is present: the larger position absorbs more than its stand-alone proportion (71% against 63%).",
+  "check": {
+   "inputs": {
+    "u1": 16.0,
+    "u2": 9.4,
+    "rho": 0.18
+   },
+   "steps": [
+    {
+     "name": "ulp",
+     "expr": "sqrt(u1^2+u2^2+2*rho*u1*u2)",
+     "value": 19.9626
+    },
+    {
+     "name": "rc1",
+     "expr": "u1*(u1+rho*u2)/ulp",
+     "value": 14.1801
+    },
+    {
+     "name": "share",
+     "expr": "rc1/ulp",
+     "value": 0.710337
+    },
+    {
+     "name": "slip_standalone",
+     "expr": "u1/(u1+u2)",
+     "value": 0.629921
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0124"
+  },
+  "trap_category": "Formula",
+  "setup": "A large portfolio of near-identical loans with constant pairwise default correlation 0.25. Each loan has a stand-alone UL of CNY 103,400. In the large-portfolio limit, a loan's contribution is $ULC \\approx UL\\sqrt{\\rho}$.",
+  "ask": "Each loan's contribution to the portfolio UL is:",
+  "options": [
+   {
+    "label": "Half its stand-alone UL",
+    "correct": true
+   },
+   {
+    "label": "A quarter of its stand-alone UL",
+    "correct": false,
+    "why": "Multiplied by $\\rho = 0.25$ and forgot the square root."
+   },
+   {
+    "label": "The same as its stand-alone UL",
+    "correct": false,
+    "why": "Ignored diversification. With $\\rho < 1$ each loan adds less than it would alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Root of correlation",
+    "display": "$\\sqrt{0.25} = 0.5$",
+    "value": 0.5
+   },
+   {
+    "label": "$ULC$",
+    "display": "$103{,}400 \\times 0.5 \\approx \\text{CNY } 51{,}700$",
+    "value": 51700
+   }
+  ],
+  "takeaway": "In a big homogeneous pool a loan's contribution is $UL\\sqrt{\\rho}$. The root makes it larger than $\\rho \\times UL$.",
+  "check": {
+   "inputs": {
+    "UL": 103400,
+    "rho": 0.25
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "sqrt(rho)",
+     "value": 0.5
+    },
+    {
+     "name": "ulc",
+     "expr": "UL*f",
+     "value": 51700.0
+    },
+    {
+     "name": "slip_rho",
+     "expr": "UL*rho",
+     "value": 25850.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-09",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0126"
+  },
+  "trap_category": "Scope",
+  "setup": "Two loans: stand-alone ULs of \\$235,266 and \\$200,000, with default correlation 0.2. If correlation were 0 the portfolio UL would be \\$308,788; if it were 1 it would equal the plain sum, \\$435,266.",
+  "ask": "The portfolio UL for $\\rho = 0.2$ lies:",
+  "options": [
+   {
+    "label": "Below \\$308,788",
+    "correct": false,
+    "why": "Treated a positive correlation as if it reduced risk below the uncorrelated case."
+   },
+   {
+    "label": "Between \\$308,788 and \\$435,266",
+    "correct": true
+   },
+   {
+    "label": "Above \\$435,266",
+    "correct": false,
+    "why": "Added the correlation term on top of the plain sum. The plain sum is the ceiling, reached only at $\\rho = 1$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Portfolio UL",
+    "display": "$\\sqrt{235{,}266^2 + 200{,}000^2 + 2(0.2)(235{,}266)(200{,}000)} \\approx \\$337{,}900$",
+    "value": 337892
+   },
+   {
+    "label": "Compare",
+    "display": "$308{,}788 < 337{,}892 < 435{,}266$",
+    "value": 337892
+   }
+  ],
+  "takeaway": "Portfolio UL rises from the root-sum-of-squares at $\\rho = 0$ to the plain sum at $\\rho = 1$; any $0 < \\rho < 1$ lands in between.",
+  "check": {
+   "inputs": {
+    "u1": 235266,
+    "u2": 200000,
+    "rho": 0.2
+   },
+   "steps": [
+    {
+     "name": "p0",
+     "expr": "sqrt(u1^2+u2^2)",
+     "value": 308788.0
+    },
+    {
+     "name": "p",
+     "expr": "sqrt(u1^2+u2^2+2*rho*u1*u2)",
+     "value": 337893.0
+    },
+    {
+     "name": "p1",
+     "expr": "u1+u2",
+     "value": 435266.0
+    },
+    {
+     "name": "gap_low",
+     "expr": "p-p0",
+     "value": 29104.4
+    },
+    {
+     "name": "gap_high",
+     "expr": "p1-p",
+     "value": 97373.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-10",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0127"
+  },
+  "trap_category": "Formula",
+  "setup": "Credit portfolio of 12 identical assets, each with stand-alone UL JPY 85m, pairwise default correlation 0.3. For identical assets, $UL_P = UL\\sqrt{n + \\rho(n^2 - n)}$. Economic capital is later $UL_P \\times CM$ with $CM = 7.3$.",
+  "ask": "The portfolio UL is about how many times one asset's UL?",
+  "options": [
+   {
+    "label": "About 3.5 times",
+    "correct": false,
+    "why": "Used $\\sqrt{12}$, which assumes zero correlation."
+   },
+   {
+    "label": "About 7 times",
+    "correct": true
+   },
+   {
+    "label": "12 times",
+    "correct": false,
+    "why": "Added the 12 stand-alone ULs, which assumes perfect correlation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Inside the root",
+    "display": "$12 + 0.3 \\times (144 - 12) = 51.6$",
+    "value": 51.6
+   },
+   {
+    "label": "Multiple",
+    "display": "$\\sqrt{51.6} = 7.18$",
+    "value": 7.183
+   },
+   {
+    "label": "$UL_P$",
+    "display": "$85 \\times 7.18 \\approx \\text{JPY } 610.6\\text{m}$",
+    "value": 610.6
+   }
+  ],
+  "takeaway": "Zero correlation gives $\\sqrt{n}$ times one UL and perfect correlation gives $n$ times; $\\rho = 0.3$ puts the multiple between them (7.2 here).",
+  "check": {
+   "inputs": {
+    "n": 12,
+    "rho": 0.3,
+    "UL": 85,
+    "CM": 7.3
+   },
+   "steps": [
+    {
+     "name": "mult",
+     "expr": "sqrt(n+rho*(n^2-n))",
+     "value": 7.18331
+    },
+    {
+     "name": "ulp",
+     "expr": "UL*mult",
+     "value": 610.582
+    },
+    {
+     "name": "ec",
+     "expr": "ulp*CM",
+     "value": 4457.25
+    },
+    {
+     "name": "slip_zero",
+     "expr": "sqrt(n)",
+     "value": 3.4641
+    },
+    {
+     "name": "slip_full",
+     "expr": "n",
+     "value": 12.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-11",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0190"
+  },
+  "trap_category": "Role",
+  "setup": "Merton model: asset value 120, zero-coupon debt face value 100 due in 1 year, asset volatility 20%, expected asset return $\\mu = 8\\%$, risk-free rate $r = 3\\%$. Distance to default $d_2 = [\\ln(A/L) + (m - \\sigma^2/2)T]/(\\sigma\\sqrt{T})$, where drift $m$ is $\\mu$ for the real-world PD and $r$ for the risk-neutral PD.",
+  "ask": "The real-world PD, compared with the risk-neutral PD, is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Read a higher expected return as more risk. A higher drift lifts $d_2$ and moves the assets further from default."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed drift does not matter. It is irrelevant to option pricing, but it does set the real-world PD."
+   }
+  ],
+  "working": [
+   {
+    "label": "Real-world $d_2$",
+    "display": "$(0.1823 + 0.06)/0.20 = 1.21$",
+    "value": 1.2116
+   },
+   {
+    "label": "Risk-neutral $d_2$",
+    "display": "$(0.1823 + 0.01)/0.20 = 0.96$",
+    "value": 0.9616
+   },
+   {
+    "label": "Compare",
+    "display": "$N(-1.21) \\approx 11.3\\% < N(-0.96) \\approx 16.8\\%$",
+    "value": 0.113
+   }
+  ],
+  "takeaway": "Bigger $d_2$ means smaller PD. The real-world drift $\\mu$ exceeds $r$ here, so the real-world PD is below the risk-neutral PD.",
+  "check": {
+   "inputs": {
+    "A": 120,
+    "L": 100,
+    "T": 1,
+    "s": 0.2,
+    "mu": 0.08,
+    "r": 0.03
+   },
+   "steps": [
+    {
+     "name": "d2_real",
+     "expr": "(ln(A/L)+(mu-s^2/2)*T)/(s*sqrt(T))",
+     "value": 1.21161
+    },
+    {
+     "name": "d2_rn",
+     "expr": "(ln(A/L)+(r-s^2/2)*T)/(s*sqrt(T))",
+     "value": 0.961608
+    },
+    {
+     "name": "gap",
+     "expr": "d2_real-d2_rn",
+     "value": 0.25
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-12",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0206"
+  },
+  "trap_category": "Formula",
+  "setup": "A EUR 2,000,000 fixed-rate business loan at 4% with duration 6 years. Rates are expected to rise by 0.75%. The duration approximation is $\\Delta L = -L \\times D \\times \\Delta i/(1+i)$. The crude figure $D \\times \\Delta i$ is $6 \\times 0.0075 = 4.5\\%$.",
+  "ask": "The loan's fall in value, as a share of its value, is:",
+  "options": [
+   {
+    "label": "Smaller than 4.5%",
+    "correct": true
+   },
+   {
+    "label": "Exactly 4.5%",
+    "correct": false,
+    "why": "Left out the $1/(1+i)$ divisor and used $D\\Delta i$ as the full percentage change."
+   },
+   {
+    "label": "Larger than 4.5%",
+    "correct": false,
+    "why": "Multiplied by $1+i$ instead of dividing by it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Percentage change",
+    "display": "$6 \\times 0.0075/1.04 = 4.33\\%$",
+    "value": 0.04327
+   },
+   {
+    "label": "Dollar change",
+    "display": "$-2{,}000{,}000 \\times 0.0433 \\approx -\\text{EUR } 86{,}538$",
+    "value": -86538
+   }
+  ],
+  "takeaway": "Modified duration divides by $(1+i)$, so the loss is always a little smaller than $D\\Delta i$ when rates are positive.",
+  "check": {
+   "inputs": {
+    "L": 2000000,
+    "D": 6,
+    "di": 0.0075,
+    "i": 0.04
+   },
+   "steps": [
+    {
+     "name": "crude",
+     "expr": "D*di",
+     "value": 0.045
+    },
+    {
+     "name": "pct",
+     "expr": "D*di/(1+i)",
+     "value": 0.0432692
+    },
+    {
+     "name": "dL",
+     "expr": "L*pct",
+     "value": 86538.5
+    },
+    {
+     "name": "slip_no_div",
+     "expr": "L*D*di",
+     "value": 90000.0
+    },
+    {
+     "name": "slip_mult",
+     "expr": "L*D*di*(1+i)",
+     "value": 93600.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0207"
+  },
+  "trap_category": "Sequence",
+  "setup": "A EUR 1,500,000 corporate loan. Spread income (2.5% over cost of funds) is EUR 37,500 and the 1% origination fee is EUR 15,000. Still to deduct: expected loan losses EUR 20,000 and operating costs EUR 15,000, then 30% tax.",
+  "ask": "The after-tax loan revenue (the RAROC numerator) is closest to:",
+  "options": [
+   {
+    "label": "EUR 1,750",
+    "correct": false,
+    "why": "Left out the fee: $(37{,}500 - 20{,}000 - 15{,}000) \\times 0.7$."
+   },
+   {
+    "label": "EUR 12,250",
+    "correct": true
+   },
+   {
+    "label": "EUR 17,500",
+    "correct": false,
+    "why": "Stopped at the pre-tax figure and never applied $(1 - 30\\%)$."
+   },
+   {
+    "label": "EUR 36,750",
+    "correct": false,
+    "why": "Skipped the expected losses and operating costs: $(37{,}500 + 15{,}000) \\times 0.7$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pre-tax revenue",
+    "display": "$37{,}500 + 15{,}000 - 20{,}000 - 15{,}000 = 17{,}500$",
+    "value": 17500
+   },
+   {
+    "label": "After tax",
+    "display": "$17{,}500 \\times (1 - 0.30) = 12{,}250$",
+    "value": 12250
+   }
+  ],
+  "takeaway": "RAROC revenue is (spread + fees - expected loss - operating costs) times $(1 - \\text{tax})$: the tax is the last step.",
+  "check": {
+   "inputs": {
+    "sp": 37500,
+    "fee": 15000,
+    "el": 20000,
+    "op": 15000,
+    "tax": 0.3
+   },
+   "steps": [
+    {
+     "name": "pre",
+     "expr": "sp+fee-el-op",
+     "value": 17500.0
+    },
+    {
+     "name": "rev",
+     "expr": "pre*(1-tax)",
+     "value": 12250.0
+    },
+    {
+     "name": "slip_no_tax",
+     "expr": "pre",
+     "value": 17500.0
+    },
+    {
+     "name": "slip_no_fee",
+     "expr": "(sp-el-op)*(1-tax)",
+     "value": 1750.0
+    },
+    {
+     "name": "slip_no_costs",
+     "expr": "(sp+fee)*(1-tax)",
+     "value": 36750.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-14",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0208"
+  },
+  "trap_category": "Scope",
+  "setup": "Two EUR 2,000,000 loans with the same expected losses (0.5% of principal), operating costs (0.4%), tax rate (25%) and capital at risk (EUR 300,000). Loan A: origination fee 1.0%, interest spread 3.0%. Loan B: fee 0.5%, spread 4.0%.",
+  "ask": "Which loan has the higher RAROC?",
+  "options": [
+   {
+    "label": "Loan B",
+    "correct": true
+   },
+   {
+    "label": "Loan A",
+    "correct": false,
+    "why": "Favoured the larger fee. Fee and spread both count; B's total of 4.5% beats A's 4.0%."
+   },
+   {
+    "label": "They are equal",
+    "correct": false,
+    "why": "Same costs and capital, but the revenues differ (EUR 46,500 against EUR 54,000)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loan A margin",
+    "display": "$3.0 + 1.0 - 0.5 - 0.4 = 3.1\\%$, after tax $2.325\\%$",
+    "value": 0.02325
+   },
+   {
+    "label": "Loan B margin",
+    "display": "$4.0 + 0.5 - 0.5 - 0.4 = 3.6\\%$, after tax $2.70\\%$",
+    "value": 0.027
+   },
+   {
+    "label": "RAROC",
+    "display": "$46{,}500/300{,}000 = 15.5\\%$ against $54{,}000/300{,}000 = 18.0\\%$",
+    "value": 0.18
+   }
+  ],
+  "takeaway": "With identical costs, tax and capital, RAROC ranks loans by fee plus spread. Here that sum is 4.5% against 4.0%.",
+  "check": {
+   "inputs": {
+    "L": 2000000,
+    "cap": 300000,
+    "tax": 0.25,
+    "el": 0.005,
+    "op": 0.004,
+    "feeA": 0.01,
+    "spA": 0.03,
+    "feeB": 0.005,
+    "spB": 0.04
+   },
+   "steps": [
+    {
+     "name": "revA",
+     "expr": "L*(spA+feeA-el-op)*(1-tax)",
+     "value": 46500.0
+    },
+    {
+     "name": "revB",
+     "expr": "L*(spB+feeB-el-op)*(1-tax)",
+     "value": 54000.0
+    },
+    {
+     "name": "rA",
+     "expr": "revA/cap",
+     "value": 0.155
+    },
+    {
+     "name": "rB",
+     "expr": "revB/cap",
+     "value": 0.18
+    },
+    {
+     "name": "gap",
+     "expr": "rB-rA",
+     "value": 0.025
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-15",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0209"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 750,000 loan with duration 2.85 and an interest rate of 9.5%. Rates are expected to rise by 1.25%. Capital at risk is the duration-based fall in value, $L \\times D \\times \\Delta i/(1+i)$.",
+  "ask": "Capital at risk lies:",
+  "options": [
+   {
+    "label": "Below USD 20,000",
+    "correct": false,
+    "why": "Left out the duration: $750{,}000 \\times 0.0125/1.095 \\approx 8{,}560$."
+   },
+   {
+    "label": "Between USD 20,000 and USD 25,000",
+    "correct": true
+   },
+   {
+    "label": "Above USD 25,000",
+    "correct": false,
+    "why": "Forgot the $1/(1+i)$ divisor: $750{,}000 \\times 2.85 \\times 0.0125 = 26{,}719$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Undiscounted",
+    "display": "$750{,}000 \\times 2.85 \\times 0.0125 = 26{,}719$",
+    "value": 26718.75
+   },
+   {
+    "label": "Divide by $1.095$",
+    "display": "$26{,}719/1.095 = 24{,}401$",
+    "value": 24400.68
+   }
+  ],
+  "takeaway": "The $1/(1+i)$ divisor shaves about 9% off the capital figure, which is enough to move this one below USD 25,000 and lift RAROC to about 8.1%.",
+  "check": {
+   "inputs": {
+    "L": 750000,
+    "D": 2.85,
+    "di": 0.0125,
+    "i": 0.095
+   },
+   "steps": [
+    {
+     "name": "raw",
+     "expr": "L*D*di",
+     "value": 26718.8
+    },
+    {
+     "name": "cap",
+     "expr": "raw/(1+i)",
+     "value": 24400.7
+    },
+    {
+     "name": "slip_no_dur",
+     "expr": "L*di/(1+i)",
+     "value": 8561.64
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-16",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0211"
+  },
+  "trap_category": "Formula",
+  "setup": "A EUR 2,000,000 loan (EAD = loan value, LGD 45%). Default rates are assumed normal with standard deviation 2%, and the bank uses the 99.5% confidence level, $\\alpha = 2.6\\sigma$. Capital at risk is the unexpected loss $\\alpha \\times LGD \\times EAD$.",
+  "ask": "Capital at risk is closest to:",
+  "options": [
+   {
+    "label": "EUR 18,000",
+    "correct": false,
+    "why": "Used $\\sigma = 2\\%$ itself instead of $\\alpha = 2.6\\sigma = 5.2\\%$."
+   },
+   {
+    "label": "EUR 46,800",
+    "correct": true
+   },
+   {
+    "label": "EUR 104,000",
+    "correct": false,
+    "why": "Left out the 45% LGD: $5.2\\% \\times 2{,}000{,}000$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unexpected default rate",
+    "display": "$\\alpha = 2.6 \\times 2\\% = 5.2\\%$",
+    "value": 0.052
+   },
+   {
+    "label": "Capital at risk",
+    "display": "$0.052 \\times 0.45 \\times 2{,}000{,}000 = 46{,}800$",
+    "value": 46800
+   }
+  ],
+  "takeaway": "Capital at risk takes the confidence multiple on the default rate, then scales by loss given default and exposure: $\\alpha \\times LGD \\times EAD$.",
+  "check": {
+   "inputs": {
+    "s": 0.02,
+    "lgd": 0.45,
+    "ead": 2000000
+   },
+   "steps": [
+    {
+     "name": "alpha",
+     "expr": "2.6*s",
+     "value": 0.052
+    },
+    {
+     "name": "cap",
+     "expr": "alpha*lgd*ead",
+     "value": 46800.0
+    },
+    {
+     "name": "slip_sigma",
+     "expr": "s*lgd*ead",
+     "value": 18000.0
+    },
+    {
+     "name": "slip_no_lgd",
+     "expr": "alpha*ead",
+     "value": 104000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq01-17",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0225"
+  },
+  "trap_category": "Sequence",
+  "setup": "Loan with EAD USD 10,000,000 and LGD 40%. Spread 0.60%, fees 0.25%, expected loan losses 0.20%, operating costs 0.15%, tax 25%. Capital at risk is the unexpected loss $\\alpha \\times LGD \\times EAD$ with $\\alpha = 5\\%$. RAROC is after-tax revenue divided by capital at risk.",
+  "ask": "The loan's RAROC is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.4%",
+    "correct": false,
+    "why": "Divided the after-tax revenue ($0.375\\%$ of the loan) by the loan amount rather than by capital at risk."
+   },
+   {
+    "label": "≈ 7.5%",
+    "correct": false,
+    "why": "Left the LGD out of capital at risk ($0.05 \\times 10{,}000{,}000 = 500{,}000$)."
+   },
+   {
+    "label": "≈ 18.8%",
+    "correct": true
+   },
+   {
+    "label": "≈ 188%",
+    "correct": false,
+    "why": "Read $\\alpha = 5\\%$ as $0.5\\%$, a decimal-place slip that shrinks capital tenfold."
+   }
+  ],
+  "working": [
+   {
+    "label": "Revenue rate",
+    "display": "$(0.60 + 0.25 - 0.20 - 0.15)\\% \\times 0.75 = 0.375\\%$",
+    "value": 0.00375
+   },
+   {
+    "label": "Revenue",
+    "display": "$0.00375 \\times 10{,}000{,}000 = 37{,}500$",
+    "value": 37500
+   },
+   {
+    "label": "Capital at risk",
+    "display": "$0.05 \\times 0.40 \\times 10{,}000{,}000 = 200{,}000$",
+    "value": 200000
+   },
+   {
+    "label": "RAROC",
+    "display": "$37{,}500/200{,}000 = 18.75\\%$",
+    "value": 0.1875
+   }
+  ],
+  "takeaway": "RAROC divides a revenue of a few tenths of a percent of the loan by capital of a few percent: expect a double-digit result, not a fraction of a percent.",
+  "check": {
+   "inputs": {
+    "ead": 10000000,
+    "lgd": 0.4,
+    "sp": 0.006,
+    "fee": 0.0025,
+    "el": 0.002,
+    "op": 0.0015,
+    "tax": 0.25,
+    "alpha": 0.05
+   },
+   "steps": [
+    {
+     "name": "rev",
+     "expr": "ead*(sp+fee-el-op)*(1-tax)",
+     "value": 37500.0
+    },
+    {
+     "name": "cap",
+     "expr": "alpha*lgd*ead",
+     "value": 200000.0
+    },
+    {
+     "name": "raroc",
+     "expr": "rev/cap",
+     "value": 0.1875
+    },
+    {
+     "name": "slip_no_cap",
+     "expr": "rev/ead",
+     "value": 0.00375
+    },
+    {
+     "name": "slip_no_lgd",
+     "expr": "rev/(alpha*ead)",
+     "value": 0.075
+    },
+    {
+     "name": "slip_alpha",
+     "expr": "rev/(alpha/10*lgd*ead)",
+     "value": 1.875
+    }
+   ]
+  }
+ }
+]

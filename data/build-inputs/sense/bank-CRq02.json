@@ -1,0 +1,1341 @@
+[
+ {
+  "id": "SC-bank-CRq02-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0323"
+  },
+  "trap_category": "Scope",
+  "setup": "A pool of 100 loans is followed with no replacement of defaulted loans. Each year, 5% of the loans still performing at the start of that year default. Year 1 therefore produces 5.0 expected defaults.",
+  "ask": "Expected defaults in year 5, compared with year 1:",
+  "options": [
+   {
+    "label": "Fewer than 5",
+    "correct": true
+   },
+   {
+    "label": "Exactly 5",
+    "correct": false,
+    "why": "Applied the 5% to the original 100 loans every year. Defaulted loans leave the pool, so the base shrinks."
+   },
+   {
+    "label": "More than 5",
+    "correct": false,
+    "why": "Assumed default pressure builds with age. The rate is constant at 5% and the pool only gets smaller, so the count falls."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loans alive at start of year 5",
+    "display": "$100 \\times 0.95^4 = 81.45$",
+    "value": 81.45
+   },
+   {
+    "label": "Defaults in year 5",
+    "display": "$81.45 \\times 5\\% = 4.07$",
+    "value": 4.07
+   }
+  ],
+  "takeaway": "A constant conditional rate applied to a shrinking pool gives a falling count of defaults.",
+  "check": {
+   "inputs": {
+    "N": 100,
+    "p": 0.05
+   },
+   "steps": [
+    {
+     "name": "alive",
+     "expr": "N*(1-p)^4",
+     "value": 81.450625
+    },
+    {
+     "name": "d5",
+     "expr": "alive*p",
+     "value": 4.072531
+    },
+    {
+     "name": "slip_flat",
+     "expr": "N*p",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0324"
+  },
+  "trap_category": "Definition",
+  "setup": "Moody's average cumulative default rates for Caa-C bonds: 27.867% by the end of year 2 and 36.908% by the end of year 3.",
+  "ask": "The probability, seen today, that a Caa-C bond defaults during year 3 itself is:",
+  "options": [
+   {
+    "label": "Below 15%",
+    "correct": true
+   },
+   {
+    "label": "About 28%",
+    "correct": false,
+    "why": "Read the year-2 cumulative figure, 27.867%. That is the wrong column and it still counts defaults in years 1 and 2."
+   },
+   {
+    "label": "About 37%",
+    "correct": false,
+    "why": "Read the year-3 cumulative figure, 36.908%. It counts every default in years 1 to 3, not only those in year 3."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative to year 3",
+    "display": "$36.908\\%$",
+    "value": 36.908
+   },
+   {
+    "label": "Cumulative to year 2",
+    "display": "$27.867\\%$",
+    "value": 27.867
+   },
+   {
+    "label": "Year-3 marginal PD",
+    "display": "$36.908\\% - 27.867\\% = 9.041\\%$",
+    "value": 9.041
+   }
+  ],
+  "takeaway": "A year's own default probability is the difference of two cumulative figures, never one of them alone.",
+  "check": {
+   "inputs": {
+    "c3": 36.908,
+    "c2": 27.867
+   },
+   "steps": [
+    {
+     "name": "marg",
+     "expr": "c3-c2",
+     "value": 9.041
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-03",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0326"
+  },
+  "trap_category": "Definition",
+  "setup": "Moody's cumulative default rates for Caa-C bonds: 36.908% by the end of year 3 and 44.128% by the end of year 4. The unconditional probability of default in year 4 is therefore $44.128\\% - 36.908\\% = 7.22\\%$.",
+  "ask": "The probability of default in year 4, given that the bond has survived to the end of year 3, is:",
+  "options": [
+   {
+    "label": "Above 7.22%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 7.22%",
+    "correct": false,
+    "why": "Left out the conditioning. The 7.22% is measured against all bonds alive today, including those that already defaulted."
+   },
+   {
+    "label": "Below 7.22%",
+    "correct": false,
+    "why": "Multiplied by the survival probability (63.09%) instead of dividing. Conditioning on survival raises the figure because the base is smaller."
+   }
+  ],
+  "working": [
+   {
+    "label": "Survival to end of year 3",
+    "display": "$100\\% - 36.908\\% = 63.092\\%$",
+    "value": 63.092
+   },
+   {
+    "label": "Conditional PD",
+    "display": "$7.22\\% / 63.092\\% = 11.44\\%$",
+    "value": 11.44
+   }
+  ],
+  "takeaway": "Conditional PD = unconditional PD divided by survival to the start of the year, so it is always the larger of the two.",
+  "check": {
+   "inputs": {
+    "c3": 36.908,
+    "c4": 44.128
+   },
+   "steps": [
+    {
+     "name": "unc",
+     "expr": "c4-c3",
+     "value": 7.22
+    },
+    {
+     "name": "surv",
+     "expr": "100-c3",
+     "value": 63.092
+    },
+    {
+     "name": "cond",
+     "expr": "unc/surv*100",
+     "value": 11.443606
+    },
+    {
+     "name": "slip_mult",
+     "expr": "unc*surv/100",
+     "value": 4.555242
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-04",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0328"
+  },
+  "trap_category": "Sequence",
+  "setup": "One-year rating migration, D is absorbing. A B-rated bond moves to A, B, C or D with probabilities 5%, 76%, 10% and 9%. Next year's default probability is 2% from A, 9% from B and 16% from C. The bond survives year 1.",
+  "ask": "Which year-1 landing spot contributes the most to the probability of defaulting in year 2?",
+  "options": [
+   {
+    "label": "It moves to B, then defaults",
+    "correct": true
+   },
+   {
+    "label": "It moves to C, then defaults",
+    "correct": false,
+    "why": "Picked the state with the highest default rate (16%) without weighting by the 10% chance of getting there: $0.10 \\times 0.16 = 1.60\\%$."
+   },
+   {
+    "label": "It moves to A, then defaults",
+    "correct": false,
+    "why": "Reversed the ranking. The safest rating is the least likely route to a default: $0.05 \\times 0.02 = 0.10\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Via A",
+    "display": "$0.05 \\times 0.02 = 0.10\\%$",
+    "value": 0.001
+   },
+   {
+    "label": "Via B",
+    "display": "$0.76 \\times 0.09 = 6.84\\%$",
+    "value": 0.0684
+   },
+   {
+    "label": "Via C",
+    "display": "$0.10 \\times 0.16 = 1.60\\%$",
+    "value": 0.016
+   },
+   {
+    "label": "Two-year default",
+    "display": "$9\\% + 0.10\\% + 6.84\\% + 1.60\\% = 17.54\\%$",
+    "value": 0.1754
+   }
+  ],
+  "takeaway": "Weight each year-2 default rate by the chance of reaching that rating; the big, likely state beats the riskiest one.",
+  "check": {
+   "inputs": {
+    "pA": 0.05,
+    "pB": 0.76,
+    "pC": 0.1,
+    "dA": 0.02,
+    "dB": 0.09,
+    "dC": 0.16,
+    "d1": 0.09
+   },
+   "steps": [
+    {
+     "name": "vA",
+     "expr": "pA*dA",
+     "value": 0.001
+    },
+    {
+     "name": "vB",
+     "expr": "pB*dB",
+     "value": 0.0684
+    },
+    {
+     "name": "vC",
+     "expr": "pC*dC",
+     "value": 0.016
+    },
+    {
+     "name": "total",
+     "expr": "d1+vA+vB+vC",
+     "value": 0.1754
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0331"
+  },
+  "trap_category": "Definition",
+  "setup": "A firm has a constant hazard rate of 0.09 per year, in continuous time. It survives its first year.",
+  "ask": "Compared with the probability of default in year 1 (as seen today), its probability of default in year 2, given survival, is:",
+  "options": [
+   {
+    "label": "The same",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Assumed survivors are safer. A constant hazard is memoryless: surviving a year changes nothing about the next year."
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Assumed risk accumulates with age. That needs a rising hazard rate, and this one is constant."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-1 PD",
+    "display": "$1 - e^{-0.09} = 8.61\\%$",
+    "value": 0.0861
+   },
+   {
+    "label": "Year-2 PD given survival",
+    "display": "$(e^{-0.09} - e^{-0.18})/e^{-0.09} = 8.61\\%$",
+    "value": 0.0861
+   }
+  ],
+  "takeaway": "Constant hazard means constant conditional PD. The unconditional year-2 figure is smaller (7.87%) only because it is also weighted by survival.",
+  "check": {
+   "inputs": {
+    "h": 0.09
+   },
+   "steps": [
+    {
+     "name": "p1",
+     "expr": "1-exp(-h)",
+     "value": 0.086069
+    },
+    {
+     "name": "p2c",
+     "expr": "(exp(-h)-exp(-2*h))/exp(-h)",
+     "value": 0.086069
+    },
+    {
+     "name": "p2u",
+     "expr": "exp(-h)-exp(-2*h)",
+     "value": 0.078661
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-06",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0332"
+  },
+  "trap_category": "Scope",
+  "setup": "A company has a constant hazard rate of 2.1% per year, estimated from the CDS market.",
+  "ask": "The probability, seen today, that it defaults during year 5 is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.19%",
+    "correct": false,
+    "why": "Scale slip, ten times too small. With survival still near 92%, year 5 defaults are about $2.1\\% \\times 0.92$, not a tenth of that."
+   },
+   {
+    "label": "≈ 1.9%",
+    "correct": true
+   },
+   {
+    "label": "≈ 10%",
+    "correct": false,
+    "why": "Gave the cumulative probability to the end of year 5, $1 - e^{-0.105}$, which includes defaults in years 1 to 4."
+   },
+   {
+    "label": "≈ 92%",
+    "correct": false,
+    "why": "Gave the probability of surviving to the end of year 4, $e^{-0.084}$, not a default probability at all."
+   }
+  ],
+  "working": [
+   {
+    "label": "Survival to year 4",
+    "display": "$e^{-0.021 \\times 4} = 0.9194$",
+    "value": 0.9194
+   },
+   {
+    "label": "Survival to year 5",
+    "display": "$e^{-0.021 \\times 5} = 0.9003$",
+    "value": 0.9003
+   },
+   {
+    "label": "Default in year 5",
+    "display": "$0.9194 - 0.9003 = 1.91\\%$",
+    "value": 0.0191
+   }
+  ],
+  "takeaway": "Year-5 default is roughly the hazard times survival to year 4, so a bit under the hazard rate itself.",
+  "check": {
+   "inputs": {
+    "h": 0.021
+   },
+   "steps": [
+    {
+     "name": "q4",
+     "expr": "exp(-h*4)",
+     "value": 0.919431
+    },
+    {
+     "name": "q5",
+     "expr": "exp(-h*5)",
+     "value": 0.900325
+    },
+    {
+     "name": "marg",
+     "expr": "q4-q5",
+     "value": 0.019107
+    },
+    {
+     "name": "slip_cum",
+     "expr": "1-q5",
+     "value": 0.099675
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.1*marg",
+     "value": 0.001911
+    },
+    {
+     "name": "slip_surv",
+     "expr": "q4",
+     "value": 0.919431
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0337"
+  },
+  "trap_category": "Formula",
+  "setup": "A counterparty's 3-year CDS spread is 375 bp with an assumed recovery of 75%. (Its 1-year CDS is 150 bp with 90% recovery.) Use the credit triangle: average hazard rate $\\approx$ spread $/ (1 - R)$ over the 3 years.",
+  "ask": "The average hazard rate over the 3 years is closest to:",
+  "options": [
+   {
+    "label": "About 15% per year",
+    "correct": true
+   },
+   {
+    "label": "About 3.75% per year",
+    "correct": false,
+    "why": "Used the spread itself as the hazard rate, leaving out the division by loss given default $(1 - R)$."
+   },
+   {
+    "label": "About 37.5% per year",
+    "correct": false,
+    "why": "Mixed maturities: divided the 3-year spread by the 1-year loss given default (10%)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss given default",
+    "display": "$1 - 0.75 = 0.25$",
+    "value": 0.25
+   },
+   {
+    "label": "Average hazard",
+    "display": "$0.0375 / 0.25 = 15\\%$",
+    "value": 0.15
+   },
+   {
+    "label": "Cumulative PD (3 years)",
+    "display": "$1 - e^{-0.45} = 36.2\\%$",
+    "value": 0.3624
+   }
+  ],
+  "takeaway": "Use the spread and the recovery from the same maturity. A low recovery rate means each default costs more, so fewer defaults are needed to justify the spread.",
+  "check": {
+   "inputs": {
+    "s": 0.0375,
+    "R": 0.75,
+    "R1": 0.9
+   },
+   "steps": [
+    {
+     "name": "lgd",
+     "expr": "1-R",
+     "value": 0.25
+    },
+    {
+     "name": "lam",
+     "expr": "s/lgd",
+     "value": 0.15
+    },
+    {
+     "name": "slip_nolgd",
+     "expr": "s",
+     "value": 0.0375
+    },
+    {
+     "name": "slip_mix",
+     "expr": "s/(1-R1)",
+     "value": 0.375
+    },
+    {
+     "name": "cum",
+     "expr": "1-exp(-lam*3)",
+     "value": 0.362372
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0340"
+  },
+  "trap_category": "Definition",
+  "setup": "US municipal defaults arrive as a Poisson process at a constant average of 6.0 per year. The wait for the next default is exponential.",
+  "ask": "The probability that the next default arrives within one month is:",
+  "options": [
+   {
+    "label": "Below 50%",
+    "correct": true
+   },
+   {
+    "label": "Exactly 50%",
+    "correct": false,
+    "why": "Took the expected number of defaults in a month ($6/12 = 0.5$) as if it were a probability. The two agree only for very small values."
+   },
+   {
+    "label": "Above 50%",
+    "correct": false,
+    "why": "Reported $e^{-0.5} = 60.65\\%$, which is the probability of NO default in the month, not of at least one."
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected defaults in a month",
+    "display": "$6 \\times 1/12 = 0.5$",
+    "value": 0.5
+   },
+   {
+    "label": "Probability of at least one",
+    "display": "$1 - e^{-0.5} = 39.35\\%$",
+    "value": 0.3935
+   }
+  ],
+  "takeaway": "$P(\\text{at least one}) = 1 - e^{-\\lambda t}$ never exceeds $\\lambda t$, because the chance of two or more is counted only once.",
+  "check": {
+   "inputs": {
+    "lam": 6,
+    "t": 0.08333333333333333
+   },
+   "steps": [
+    {
+     "name": "mean",
+     "expr": "lam*t",
+     "value": 0.5
+    },
+    {
+     "name": "p",
+     "expr": "1-exp(-mean)",
+     "value": 0.393469
+    },
+    {
+     "name": "pnone",
+     "expr": "exp(-mean)",
+     "value": 0.606531
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-09",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0347"
+  },
+  "trap_category": "Polarity",
+  "setup": "A bond trades at a spread of 250 bp with a 75% recovery rate. Under a stress scenario the spread widens to 480 bp and the recovery rate falls to 40%. Use a constant hazard rate with $\\lambda \\approx s/(1-R)$.",
+  "ask": "Moving from the base case to the stress case, the 3-year survival probability:",
+  "options": [
+   {
+    "label": "Rises",
+    "correct": true
+   },
+   {
+    "label": "Falls",
+    "correct": false,
+    "why": "Looked only at the wider spread. Dividing the stressed spread by the original loss given default gives $0.048/0.25 = 19.2\\%$, but the loss given default has also risen to 60%."
+   },
+   {
+    "label": "Is unchanged",
+    "correct": false,
+    "why": "Assumed the two changes cancel exactly. The hazard rates are 10% and 8%, not equal."
+   }
+  ],
+  "working": [
+   {
+    "label": "Base hazard",
+    "display": "$0.025 / 0.25 = 10\\%$",
+    "value": 0.1
+   },
+   {
+    "label": "Stress hazard",
+    "display": "$0.048 / 0.60 = 8\\%$",
+    "value": 0.08
+   },
+   {
+    "label": "Base 3-year survival",
+    "display": "$e^{-0.30} = 74.1\\%$",
+    "value": 0.7408
+   },
+   {
+    "label": "Stress 3-year survival",
+    "display": "$e^{-0.24} = 78.7\\%$",
+    "value": 0.7866
+   }
+  ],
+  "takeaway": "A wider spread does not always mean more default risk: if recovery falls faster, the implied hazard rate drops.",
+  "check": {
+   "inputs": {
+    "sb": 0.025,
+    "Rb": 0.75,
+    "ss": 0.048,
+    "Rs": 0.4
+   },
+   "steps": [
+    {
+     "name": "lb",
+     "expr": "sb/(1-Rb)",
+     "value": 0.1
+    },
+    {
+     "name": "ls",
+     "expr": "ss/(1-Rs)",
+     "value": 0.08
+    },
+    {
+     "name": "surv_b",
+     "expr": "exp(-lb*3)",
+     "value": 0.740818
+    },
+    {
+     "name": "surv_s",
+     "expr": "exp(-ls*3)",
+     "value": 0.786628
+    },
+    {
+     "name": "slip_oldlgd",
+     "expr": "exp(-ss/(1-Rb)*3)",
+     "value": 0.562142
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-10",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0348"
+  },
+  "trap_category": "Scope",
+  "setup": "A 2-year corporate bond yields 7% against a 3% risk-free rate, with 40% recovery. The credit triangle gives a constant hazard rate $\\lambda = 0.04/0.60 = 6.67\\%$ per year.",
+  "ask": "The unconditional probability (seen today) of default during year 2 is:",
+  "options": [
+   {
+    "label": "Below 6.67%",
+    "correct": true
+   },
+   {
+    "label": "About 6.67%",
+    "correct": false,
+    "why": "Treated the hazard rate as the year-2 default probability. Only the 93.5% of bonds still alive can default in year 2."
+   },
+   {
+    "label": "Above 6.67%",
+    "correct": false,
+    "why": "Gave the 2-year cumulative probability, $1 - e^{-0.1333} = 12.5\\%$, which includes year 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Survival to year 1",
+    "display": "$e^{-0.0667} = 0.9355$",
+    "value": 0.9355
+   },
+   {
+    "label": "Survival to year 2",
+    "display": "$e^{-0.1333} = 0.8752$",
+    "value": 0.8752
+   },
+   {
+    "label": "Year-2 default",
+    "display": "$0.9355 - 0.8752 = 6.03\\%$",
+    "value": 0.0603
+   }
+  ],
+  "takeaway": "Marginal PD in a later year equals the hazard rate times survival to the start of that year, so it is smaller than the hazard.",
+  "check": {
+   "inputs": {
+    "s": 0.04,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "lam",
+     "expr": "s/(1-R)",
+     "value": 0.066667
+    },
+    {
+     "name": "q1",
+     "expr": "exp(-lam)",
+     "value": 0.935507
+    },
+    {
+     "name": "q2",
+     "expr": "exp(-2*lam)",
+     "value": 0.875173
+    },
+    {
+     "name": "marg",
+     "expr": "q1-q2",
+     "value": 0.060334
+    },
+    {
+     "name": "slip_cum",
+     "expr": "1-q2",
+     "value": 0.124827
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-11",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0350"
+  },
+  "trap_category": "Formula",
+  "setup": "A one-year B-rated corporate bond has a credit spread of 2.2% over the maturity-matched T-bill. The recovery rate in default is 75%.",
+  "ask": "The implied hazard rate (default intensity) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.55% per year",
+    "correct": false,
+    "why": "Multiplied the spread by loss given default $(1-R)$ instead of dividing by it."
+   },
+   {
+    "label": "≈ 2.2% per year",
+    "correct": false,
+    "why": "Used the spread as the hazard rate, forgetting the division by loss given default."
+   },
+   {
+    "label": "≈ 8.8% per year",
+    "correct": true
+   },
+   {
+    "label": "≈ 88% per year",
+    "correct": false,
+    "why": "Scale slip: $0.088$ read as 88%. A 2.2% spread cannot imply almost certain default each year."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss given default",
+    "display": "$1 - 0.75 = 0.25$",
+    "value": 0.25
+   },
+   {
+    "label": "Hazard rate",
+    "display": "$2.2\\% / 0.25 = 8.8\\%$",
+    "value": 8.8
+   }
+  ],
+  "takeaway": "Spread over loss given default: with 75% recovery, the hazard rate is four times the spread.",
+  "check": {
+   "inputs": {
+    "s": 2.2,
+    "R": 0.75
+   },
+   "steps": [
+    {
+     "name": "lgd",
+     "expr": "1-R",
+     "value": 0.25
+    },
+    {
+     "name": "lam",
+     "expr": "s/lgd",
+     "value": 8.8
+    },
+    {
+     "name": "slip_mult",
+     "expr": "s*lgd",
+     "value": 0.55
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*lam",
+     "value": 88.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-12",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0351"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A company's 3-year and 5-year CDS spreads are 90 bp and 120 bp, with a 40% expected recovery. The average hazard rate is spread $/ (1-R)$: 1.50% over the first 3 years and 2.00% over the first 5 years.",
+  "ask": "The average hazard rate between year 3 and year 5 is:",
+  "options": [
+   {
+    "label": "Above 2.00%",
+    "correct": true
+   },
+   {
+    "label": "Between 1.50% and 2.00%",
+    "correct": false,
+    "why": "Averaged the two figures (1.75%). The 5-year average already contains three years at 1.50%, so the last two must be higher than 2.00%."
+   },
+   {
+    "label": "Exactly 2.00%",
+    "correct": false,
+    "why": "Reused the 5-year average as the forward rate. It is only the average of the first three and last two years together."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative to year 5",
+    "display": "$5 \\times 2.00\\% = 10.0\\%$",
+    "value": 0.1
+   },
+   {
+    "label": "Cumulative to year 3",
+    "display": "$3 \\times 1.50\\% = 4.5\\%$",
+    "value": 0.045
+   },
+   {
+    "label": "Forward hazard",
+    "display": "$(10.0\\% - 4.5\\%)/2 = 2.75\\%$",
+    "value": 0.0275
+   }
+  ],
+  "takeaway": "Forward hazard = difference of cumulative hazards over the interval. When the average rises with maturity, the forward is above the longer average.",
+  "check": {
+   "inputs": {
+    "s3": 0.009,
+    "s5": 0.012,
+    "R": 0.4
+   },
+   "steps": [
+    {
+     "name": "h3",
+     "expr": "s3/(1-R)",
+     "value": 0.015
+    },
+    {
+     "name": "h5",
+     "expr": "s5/(1-R)",
+     "value": 0.02
+    },
+    {
+     "name": "fwd",
+     "expr": "(5*h5-3*h3)/2",
+     "value": 0.0275
+    },
+    {
+     "name": "slip_avg",
+     "expr": "(h3+h5)/2",
+     "value": 0.0175
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0365"
+  },
+  "trap_category": "Sign",
+  "setup": "Merton model. A firm's only liability is a one-year zero-coupon bond with face value 206.74m. A one-year European put on the firm's assets, struck at 206.74m, trades at 19.37m. The risk-free discount factor is 0.86, so the face value is worth $0.86 \\times 206.74 = 177.80$m if it were risk-free.",
+  "ask": "The market value of the firm's debt is:",
+  "options": [
+   {
+    "label": "Below 177.80m",
+    "correct": true
+   },
+   {
+    "label": "Equal to 177.80m",
+    "correct": false,
+    "why": "Ignored default risk and priced the debt as if it were risk-free."
+   },
+   {
+    "label": "Above 177.80m",
+    "correct": false,
+    "why": "Added the put (177.80 + 19.37 = 197.17m). Bondholders are short the put, so it is subtracted."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-free value of the face",
+    "display": "$0.86 \\times 206.74 = 177.80$",
+    "value": 177.8
+   },
+   {
+    "label": "Debt value",
+    "display": "$177.80 - 19.37 = 158.43$",
+    "value": 158.43
+   }
+  ],
+  "takeaway": "Risky debt = risk-free debt minus a put on the firm's assets: the creditors have written that put to the equity holders.",
+  "check": {
+   "inputs": {
+    "F": 206.74,
+    "df": 0.86,
+    "put": 19.37
+   },
+   "steps": [
+    {
+     "name": "rf",
+     "expr": "df*F",
+     "value": 177.7964
+    },
+    {
+     "name": "debt",
+     "expr": "rf-put",
+     "value": 158.4264
+    },
+    {
+     "name": "slip_add",
+     "expr": "rf+put",
+     "value": 197.1664
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-14",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0369"
+  },
+  "trap_category": "Formula",
+  "setup": "Merton model. A firm is worth 200m and has one zero-coupon bond outstanding, face value 180m, due in 3 years. The risk-free rate is 5% (continuous) and asset volatility is 10%. Equity is a European call on the firm's assets with strike 180m.",
+  "ask": "The value of equity today compared with 20m (the firm's value minus the face value of debt):",
+  "options": [
+   {
+    "label": "Above 20m",
+    "correct": true
+   },
+   {
+    "label": "Equal to 20m",
+    "correct": false,
+    "why": "Used undiscounted intrinsic value $V - F$ and ignored that the 180m is only paid in 3 years."
+   },
+   {
+    "label": "Below 20m",
+    "correct": false,
+    "why": "Compounded the face value forward instead of discounting it ($180 e^{0.15} = 209 > 200$), which makes the option look out of the money."
+   }
+  ],
+  "working": [
+   {
+    "label": "Discounted face value",
+    "display": "$180 e^{-0.05 \\times 3} = 154.9$",
+    "value": 154.9
+   },
+   {
+    "label": "Lower bound for the call",
+    "display": "$200 - 154.9 = 45.1$",
+    "value": 45.1
+   }
+  ],
+  "takeaway": "A call is worth at least $V - Fe^{-rT}$. Equity in Merton is more than $V - F$ because the debt is repaid later and the option has time value.",
+  "check": {
+   "inputs": {
+    "V": 200,
+    "F": 180,
+    "r": 0.05,
+    "T": 3
+   },
+   "steps": [
+    {
+     "name": "pvF",
+     "expr": "F*exp(-r*T)",
+     "value": 154.927436
+    },
+    {
+     "name": "floor",
+     "expr": "V-pvF",
+     "value": 45.072564
+    },
+    {
+     "name": "naive",
+     "expr": "V-F",
+     "value": 20
+    },
+    {
+     "name": "slip_fwd",
+     "expr": "V-F*exp(r*T)",
+     "value": -9.130164
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-15",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0371"
+  },
+  "trap_category": "Sign",
+  "setup": "A firm has a zero-coupon bond with principal 60m due at time T and no other creditors. At time T the firm's assets are worth only 50m.",
+  "ask": "Equity at time T is worth:",
+  "options": [
+   {
+    "label": "Zero",
+    "correct": true
+   },
+   {
+    "label": "Negative 10m",
+    "correct": false,
+    "why": "Subtracted the debt from the assets without limited liability. Equity holders cannot owe more than they invested."
+   },
+   {
+    "label": "Positive 10m",
+    "correct": false,
+    "why": "Took the size of the 10m shortfall as a gain. Here the creditors absorb the shortfall."
+   }
+  ],
+  "working": [
+   {
+    "label": "Assets less debt",
+    "display": "$50 - 60 = -10$",
+    "value": -10
+   },
+   {
+    "label": "Equity payoff",
+    "display": "$\\max(-10, 0) = 0$",
+    "value": 0
+   }
+  ],
+  "takeaway": "Equity is a call on the firm's assets: $\\max(V_T - D, 0)$. It can reach zero but never go negative.",
+  "check": {
+   "inputs": {
+    "V": 50,
+    "D": 60
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "V-D",
+     "value": -10
+    },
+    {
+     "name": "E",
+     "expr": "max(gap,0)",
+     "value": 0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-16",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0379"
+  },
+  "trap_category": "Formula",
+  "setup": "Merton model. A zero-coupon bond with face value 1,000 and 10 years to maturity is valued at 780. The continuously compounded risk-free rate is 1%.",
+  "ask": "The bond's credit spread compared with 1%:",
+  "options": [
+   {
+    "label": "Larger than 1%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 1%",
+    "correct": false,
+    "why": "Assumed the bond is discounted at the risk-free rate alone. That would price it at about 905, not 780."
+   },
+   {
+    "label": "Smaller than 1%",
+    "correct": false,
+    "why": "Compared the yield with the 10-year risk-free accumulation (10%) instead of the 1% annual rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Yield",
+    "display": "$-\\ln(780/1000)/10 = 2.485\\%$",
+    "value": 0.02485
+   },
+   {
+    "label": "Credit spread",
+    "display": "$2.485\\% - 1\\% = 1.485\\%$",
+    "value": 0.01485
+   }
+  ],
+  "takeaway": "Spread = $-\\frac{1}{T}\\ln(D/F) - r$. A 22% discount over 10 years is about 2.5% a year, far more than 1%.",
+  "check": {
+   "inputs": {
+    "F": 1000,
+    "D": 780,
+    "T": 10,
+    "r": 0.01
+   },
+   "steps": [
+    {
+     "name": "y",
+     "expr": "-log(D/F)/T",
+     "value": 0.024846
+    },
+    {
+     "name": "spread",
+     "expr": "y-r",
+     "value": 0.014846
+    },
+    {
+     "name": "price_rf",
+     "expr": "F*exp(-r*T)",
+     "value": 904.837418
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-17",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0380"
+  },
+  "trap_category": "Formula",
+  "setup": "RedRose has a zero-coupon bond with face value 45m, now worth 40m, maturing in 3 years. Comparable risk-free bonds yield 2.5% (continuous).",
+  "ask": "The bond's average credit spread is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.5%",
+    "correct": false,
+    "why": "Divided the spread by the 3 years a second time."
+   },
+   {
+    "label": "≈ 1.4%",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.9%",
+    "correct": false,
+    "why": "Stopped at the bond's yield and did not subtract the 2.5% risk-free rate."
+   },
+   {
+    "label": "≈ 12%",
+    "correct": false,
+    "why": "Took $\\ln(45/40)$ and forgot to divide by the 3 years."
+   }
+  ],
+  "working": [
+   {
+    "label": "Log discount",
+    "display": "$\\ln(45/40) = 0.1178$",
+    "value": 0.1178
+   },
+   {
+    "label": "Yield",
+    "display": "$0.1178 / 3 = 3.93\\%$",
+    "value": 0.0393
+   },
+   {
+    "label": "Spread",
+    "display": "$3.93\\% - 2.5\\% = 1.43\\%$",
+    "value": 0.0143
+   }
+  ],
+  "takeaway": "Yield per year first, then subtract the risk-free rate. The spread is a small difference of two annual rates.",
+  "check": {
+   "inputs": {
+    "F": 45,
+    "D": 40,
+    "T": 3,
+    "r": 0.025
+   },
+   "steps": [
+    {
+     "name": "ld",
+     "expr": "log(F/D)",
+     "value": 0.117783
+    },
+    {
+     "name": "y",
+     "expr": "ld/T",
+     "value": 0.039261
+    },
+    {
+     "name": "spread",
+     "expr": "y-r",
+     "value": 0.014261
+    },
+    {
+     "name": "slip_twice",
+     "expr": "spread/T",
+     "value": 0.004754
+    },
+    {
+     "name": "slip_noT",
+     "expr": "ld",
+     "value": 0.117783
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq02-18",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0376"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Merton model. A zero-coupon bond with face value 2m and 7 years to maturity is worth 1.2m today. The risk-free rate is 5% (continuous). The log discount is already done: $\\ln(2/1.2) = 0.511$.",
+  "ask": "The bond's continuously compounded yield is closest to:",
+  "options": [
+   {
+    "label": "About 7.3%",
+    "correct": true
+   },
+   {
+    "label": "About 51%",
+    "correct": false,
+    "why": "Used the log discount 0.511 as the yield and never divided by the 7 years."
+   },
+   {
+    "label": "About 5.0%",
+    "correct": false,
+    "why": "Set the yield equal to the risk-free rate. At 5% the bond would be worth $2e^{-0.35} = 1.41$m, not 1.2m."
+   }
+  ],
+  "working": [
+   {
+    "label": "Yield",
+    "display": "$0.511 / 7 = 7.30\\%$",
+    "value": 0.073
+   },
+   {
+    "label": "Credit spread",
+    "display": "$7.30\\% - 5\\% = 2.30\\%$",
+    "value": 0.023
+   }
+  ],
+  "takeaway": "Divide the log discount by T to get an annual yield; only then compare with the risk-free rate.",
+  "check": {
+   "inputs": {
+    "F": 2,
+    "D": 1.2,
+    "T": 7,
+    "r": 0.05
+   },
+   "steps": [
+    {
+     "name": "ld",
+     "expr": "log(F/D)",
+     "value": 0.510826
+    },
+    {
+     "name": "y",
+     "expr": "ld/T",
+     "value": 0.072975
+    },
+    {
+     "name": "spread",
+     "expr": "y-r",
+     "value": 0.022975
+    },
+    {
+     "name": "slip_rf",
+     "expr": "F*exp(-r*T)",
+     "value": 1.409376
+    }
+   ]
+  }
+ }
+]

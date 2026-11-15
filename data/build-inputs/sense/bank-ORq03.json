@@ -1,0 +1,1458 @@
+[
+ {
+  "id": "SC-bank-ORq03-01",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-18c-4"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A structured-lending unit's year, JPY bn: revenues 14.0, direct costs 2.5, funding transfer charge 8.0, expected credit loss 1.2. Its economic capital of 12.0 earns the 1.0% JGB risk-free rate. Tax rate 30%. The pack also lists regulatory capital (16.0) and a 0.9 trading VaR, which are not part of this numerator.",
+  "ask": "After-tax risk-adjusted income (the RAROC numerator) is:",
+  "options": [
+   {
+    "label": "JPY 2.42bn",
+    "correct": false,
+    "why": "Stopped before the tax step: $14.0 - 2.5 - 8.0 - 1.2 + 0.12 = 2.42$ is pre-tax, and the numerator is after tax."
+   },
+   {
+    "label": "JPY 1.69bn",
+    "correct": true
+   },
+   {
+    "label": "JPY 1.61bn",
+    "correct": false,
+    "why": "Left out the return on economic capital: $(14.0 - 2.5 - 8.0 - 1.2) \\times 0.7 = 1.61$. The capital buffer earns $r_f \\times EC = 0.12$, which is added back."
+   },
+   {
+    "label": "JPY 7.29bn",
+    "correct": false,
+    "why": "Forgot the 8.0 funding transfer charge, so the income is overstated by $8.0 \\times 0.7 = 5.6$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Return on capital",
+    "display": "$1.0\\% \\times 12.0 = 0.12$",
+    "value": 0.12
+   },
+   {
+    "label": "Pre-tax income",
+    "display": "$14.0 - 2.5 - 8.0 - 1.2 + 0.12 = 2.42$",
+    "value": 2.42
+   },
+   {
+    "label": "After-tax income",
+    "display": "$2.42 \\times (1 - 0.30) = 1.694$",
+    "value": 1.694
+   }
+  ],
+  "takeaway": "RAROC numerator: revenue less costs, funding and expected loss, plus the return on economic capital, then taxed. Divide by economic capital (12.0) for 14.1%.",
+  "check": {
+   "inputs": {
+    "rev": 14.0,
+    "cost": 2.5,
+    "fund": 8.0,
+    "el": 1.2,
+    "ec": 12.0,
+    "rf": 0.01,
+    "t": 0.3
+   },
+   "steps": [
+    {
+     "name": "rfec",
+     "expr": "rf*ec",
+     "value": 0.12
+    },
+    {
+     "name": "pre",
+     "expr": "rev-cost-fund-el+rfec",
+     "value": 2.42
+    },
+    {
+     "name": "at",
+     "expr": "pre*(1-t)",
+     "value": 1.694
+    },
+    {
+     "name": "slip_notax",
+     "expr": "pre",
+     "value": 2.42
+    },
+    {
+     "name": "slip_norf",
+     "expr": "(rev-cost-fund-el)*(1-t)",
+     "value": 1.61
+    },
+    {
+     "name": "slip_nofund",
+     "expr": "(rev-cost-el+rfec)*(1-t)",
+     "value": 7.294
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-02",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-18c-5"
+  },
+  "trap_category": "Role",
+  "setup": "A SGD 800m corporate loan portfolio yields 8.5%, with direct costs of SGD 7m a year. It is funded by deposits transfer-priced at 5.5%. Expected loss is 0.8% of the portfolio a year. Economic capital is 6% of the portfolio, held in government bonds yielding 4%. Tax rate 25%; after-tax hurdle rate 12%.",
+  "ask": "Compared with zero, the portfolio's NIACC (after-tax income less the hurdle charge on economic capital) is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": true
+   },
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Divided after-tax income by the SGD 800m portfolio instead of the SGD 48m of economic capital, getting about 1.2% against a 12% hurdle. The hurdle is a return on capital."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-adjusted income, pre-tax",
+    "display": "$68.0 - 7.0 - 44.0 - 6.4 + 1.92 = 12.52$",
+    "value": 12.52
+   },
+   {
+    "label": "After-tax income",
+    "display": "$12.52 \\times 0.75 = 9.39$",
+    "value": 9.39
+   },
+   {
+    "label": "Hurdle charge on capital",
+    "display": "$12\\% \\times 48 = 5.76$",
+    "value": 5.76
+   },
+   {
+    "label": "NIACC",
+    "display": "$9.39 - 5.76 = +3.63$",
+    "value": 3.63
+   }
+  ],
+  "takeaway": "Hurdle comparisons are on economic capital: RAROC is 9.39/48 = 19.6%, well above 12%, so NIACC is positive (about SGD 3.6m).",
+  "check": {
+   "inputs": {
+    "port": 800,
+    "y": 0.085,
+    "cost": 7,
+    "ftp": 0.055,
+    "elr": 0.008,
+    "ecr": 0.06,
+    "rf": 0.04,
+    "t": 0.25,
+    "h": 0.12
+   },
+   "steps": [
+    {
+     "name": "ec",
+     "expr": "ecr*port",
+     "value": 48.0
+    },
+    {
+     "name": "pre",
+     "expr": "y*port-cost-ftp*port-elr*port+rf*ec",
+     "value": 12.52
+    },
+    {
+     "name": "at",
+     "expr": "pre*(1-t)",
+     "value": 9.39
+    },
+    {
+     "name": "charge",
+     "expr": "h*ec",
+     "value": 5.76
+    },
+    {
+     "name": "niacc",
+     "expr": "at-charge",
+     "value": 3.63
+    },
+    {
+     "name": "slip_ratio_on_loans",
+     "expr": "at/port",
+     "value": 0.0117375
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-03",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-18e-2"
+  },
+  "trap_category": "Role",
+  "setup": "A bank sets one firm-wide hurdle rate as the weighted average of its cost of common equity (CAPM, beta 1.2, risk-free 4%, market return 10%) and its cost of preferred equity (7.0% yield). Common equity: market value CAD 6.0bn, book value CAD 3.0bn. Preferred: market value CAD 1.5bn. Tax rate 25%.",
+  "ask": "The weight on common equity in the blend is closest to:",
+  "options": [
+   {
+    "label": "80%",
+    "correct": true
+   },
+   {
+    "label": "67%",
+    "correct": false,
+    "why": "Used the book value of common (3.0) against the preferred (1.5): $3.0/4.5 = 67\\%$. Weights come from market values, $6.0/7.5$."
+   },
+   {
+    "label": "40%",
+    "correct": false,
+    "why": "Put the book value of common over the market total: $3.0/7.5 = 40\\%$. Numerator and denominator must both be market values."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cost of common equity",
+    "display": "$4.0\\% + 1.2 \\times 6.0\\% = 11.2\\%$",
+    "value": 11.2
+   },
+   {
+    "label": "Weight on common",
+    "display": "$6.0 / (6.0 + 1.5) = 80\\%$",
+    "value": 0.8
+   },
+   {
+    "label": "Hurdle rate",
+    "display": "$0.8 \\times 11.2\\% + 0.2 \\times 7.0\\% = 10.36\\%$",
+    "value": 10.36
+   }
+  ],
+  "takeaway": "Capital-structure weights are market values. With 80% common at 11.2% and 20% preferred at 7.0%, the hurdle is 10.36%, between the two costs.",
+  "check": {
+   "inputs": {
+    "cm": 6.0,
+    "cb": 3.0,
+    "pm": 1.5,
+    "beta": 1.2,
+    "rf": 0.04,
+    "rm": 0.1,
+    "rp": 0.07
+   },
+   "steps": [
+    {
+     "name": "wc",
+     "expr": "cm/(cm+pm)",
+     "value": 0.8
+    },
+    {
+     "name": "rce",
+     "expr": "rf+beta*(rm-rf)",
+     "value": 0.112
+    },
+    {
+     "name": "hurdle",
+     "expr": "wc*rce+(1-wc)*rp",
+     "value": 0.1036
+    },
+    {
+     "name": "slip_book",
+     "expr": "cb/(cb+pm)",
+     "value": 0.666667
+    },
+    {
+     "name": "slip_mixed",
+     "expr": "cb/(cm+pm)",
+     "value": 0.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-04",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-18e-6"
+  },
+  "trap_category": "Sequence",
+  "setup": "To find the break-even revenue on a CAD 500m loan book we work backwards. Economic capital is CAD 40m, the hurdle rate is 12% after tax, and the tax rate is 28%. Direct costs are CAD 4m a year, funding is at 4.5%, expected loss 0.6% a year, and the capital earns 3.5% in government bonds.",
+  "ask": "The pre-tax risk-adjusted income the book needs so that the after-tax return just equals the hurdle is closest to:",
+  "options": [
+   {
+    "label": "CAD 4.80m",
+    "correct": false,
+    "why": "Treated the after-tax hurdle charge $12\\% \\times 40$ as if it were pre-tax. It must be grossed up for the 28% tax."
+   },
+   {
+    "label": "CAD 6.67m",
+    "correct": true
+   },
+   {
+    "label": "CAD 3.46m",
+    "correct": false,
+    "why": "Multiplied by $(1 - 0.28)$ instead of dividing: tax makes the required pre-tax figure larger than 4.80, not smaller."
+   }
+  ],
+  "working": [
+   {
+    "label": "After-tax income required",
+    "display": "$12\\% \\times 40 = 4.80$",
+    "value": 4.8
+   },
+   {
+    "label": "Gross up for tax",
+    "display": "$4.80 / (1 - 0.28) = 6.667$",
+    "value": 6.667
+   },
+   {
+    "label": "Revenue implied",
+    "display": "$\\text{Rev} - 4 - 22.5 - 3.0 + 1.4 = 6.667 \\Rightarrow \\text{Rev} = 34.77$",
+    "value": 34.77
+   }
+  ],
+  "takeaway": "Working back from a required after-tax figure, divide by $(1 - t)$. Pre-tax income must exceed the after-tax hurdle charge.",
+  "check": {
+   "inputs": {
+    "ec": 40,
+    "h": 0.12,
+    "t": 0.28,
+    "cost": 4,
+    "book": 500,
+    "ftp": 0.045,
+    "elr": 0.006,
+    "rf": 0.035
+   },
+   "steps": [
+    {
+     "name": "req_at",
+     "expr": "h*ec",
+     "value": 4.8
+    },
+    {
+     "name": "req_pre",
+     "expr": "req_at/(1-t)",
+     "value": 6.66667
+    },
+    {
+     "name": "rev",
+     "expr": "req_pre+cost+ftp*book+elr*book-rf*ec",
+     "value": 34.7667
+    },
+    {
+     "name": "slip_nogross",
+     "expr": "req_at",
+     "value": 4.8
+    },
+    {
+     "name": "slip_mult",
+     "expr": "req_at*(1-t)",
+     "value": 3.456
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-05",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-18f-6"
+  },
+  "trap_category": "Formula",
+  "setup": "An equipment-leasing activity has an expected after-tax RAROC of 12.4%. The bank's traditional hurdle is 10.5%, the risk-free rate 3.0% and the expected market return 8.0%. The activity passes the adjusted-RAROC test while $\\text{RAROC} - \\beta_E (R_M - r_f) > r_f$.",
+  "ask": "The highest equity beta at which it still passes is closest to:",
+  "options": [
+   {
+    "label": "0.38",
+    "correct": false,
+    "why": "Compared RAROC with the traditional 10.5% hurdle instead of $r_f$: $(12.4 - 10.5)/5.0 = 0.38$. The adjusted test is against the risk-free rate."
+   },
+   {
+    "label": "1.88",
+    "correct": true
+   },
+   {
+    "label": "18.8",
+    "correct": false,
+    "why": "Scale slip: divided the 9.4 points by 0.5 instead of 5.0 (premium misread by a factor of 10)."
+   },
+   {
+    "label": "188",
+    "correct": false,
+    "why": "Mixed units: divided 9.4 percentage points by the premium as a decimal (0.05), without converting 9.4% to 0.094."
+   }
+  ],
+  "working": [
+   {
+    "label": "Market risk premium",
+    "display": "$8.0\\% - 3.0\\% = 5.0\\%$",
+    "value": 5.0
+   },
+   {
+    "label": "Room above $r_f$",
+    "display": "$12.4\\% - 3.0\\% = 9.4\\%$",
+    "value": 9.4
+   },
+   {
+    "label": "Break-even beta",
+    "display": "$9.4 / 5.0 = 1.88$",
+    "value": 1.88
+   }
+  ],
+  "takeaway": "Adjusted RAROC charges shareholders $\\beta (R_M - r_f)$ and demands what is left exceed $r_f$. Break-even beta is (RAROC - r_f) over the market premium.",
+  "check": {
+   "inputs": {
+    "raroc": 12.4,
+    "h": 10.5,
+    "rf": 3.0,
+    "rm": 8.0
+   },
+   "steps": [
+    {
+     "name": "prem",
+     "expr": "rm-rf",
+     "value": 5.0
+    },
+    {
+     "name": "beta",
+     "expr": "(raroc-rf)/prem",
+     "value": 1.88
+    },
+    {
+     "name": "slip_hurdle",
+     "expr": "(raroc-h)/prem",
+     "value": 0.38
+    },
+    {
+     "name": "slip_prem10",
+     "expr": "(raroc-rf)/(prem/10)",
+     "value": 18.8
+    },
+    {
+     "name": "slip_units",
+     "expr": "(raroc-rf)/(prem/100)",
+     "value": 188.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-06",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-21e-7"
+  },
+  "trap_category": "Definition",
+  "setup": "A Basel II Foundation IRB bank computes capital for a JPY 50bn senior unsecured loan to a highly rated Japanese corporate. Its own estimates are PD 0.01% and LGD 30%. Under Foundation IRB the supervisor sets a floor on corporate PDs and fixes LGD for senior unsecured claims.",
+  "ask": "The PD and LGD that go into the capital formula are:",
+  "options": [
+   {
+    "label": "PD 0.01%, LGD 30%",
+    "correct": false,
+    "why": "Used the bank's own estimates for both. That is Advanced IRB; under Foundation the bank supplies only PD, and even that is floored."
+   },
+   {
+    "label": "PD 0.03%, LGD 30%",
+    "correct": false,
+    "why": "Applied the PD floor but kept the internal LGD. Foundation IRB uses the supervisory 45% for senior unsecured claims."
+   },
+   {
+    "label": "PD 0.03%, LGD 45%",
+    "correct": true
+   },
+   {
+    "label": "PD 0.01%, LGD 45%",
+    "correct": false,
+    "why": "Took the supervisory LGD but forgot the 0.03% floor on corporate PDs, so the 0.01% estimate is raised."
+   }
+  ],
+  "working": [
+   {
+    "label": "PD used",
+    "display": "$\\max(0.01\\%, 0.03\\%) = 0.03\\%$",
+    "value": 0.0003
+   },
+   {
+    "label": "LGD used",
+    "display": "Supervisory senior unsecured LGD = 45%",
+    "value": 0.45
+   }
+  ],
+  "takeaway": "Foundation IRB: own PD (floored at 0.03% for corporates), supervisory LGD 45% for senior unsecured, supervisory maturity of 2.5 years.",
+  "check": {
+   "inputs": {
+    "pd_own": 0.0001,
+    "floor": 0.0003,
+    "lgd_sup": 0.45
+   },
+   "steps": [
+    {
+     "name": "pd",
+     "expr": "max(pd_own,floor)",
+     "value": 0.0003
+    },
+    {
+     "name": "lgd",
+     "expr": "lgd_sup",
+     "value": 0.45
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-07",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-22a-8"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel 2.5 market-risk capital, one-day 99% figures in CAD m. VaR: yesterday 6.5, 60-day average 1.6. Stressed VaR: yesterday 7.4, 60-day average 6.9. Four backtesting exceptions in 250 days give a multiplier of 3 on both. Each term is the larger of yesterday's figure and 3 times its average. The two are added and scaled to ten days by the square root of time.",
+  "ask": "The market-risk capital charge is closest to:",
+  "options": [
+   {
+    "label": "CAD 27.2m",
+    "correct": false,
+    "why": "Left out the ten-day scaling: $6.5 + 20.7 = 27.2$ is still a one-day figure."
+   },
+   {
+    "label": "CAD 86.0m",
+    "correct": true
+   },
+   {
+    "label": "CAD 272m",
+    "correct": false,
+    "why": "Scaled by 10 days instead of $\\sqrt{10}$: $27.2 \\times 10 = 272$."
+   },
+   {
+    "label": "CAD 860m",
+    "correct": false,
+    "why": "Scale slip (10x): applied the ten-day scaling twice, as $27.2 \\times 10 \\times \\sqrt{10}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "VaR term",
+    "display": "$\\max(6.5,\\ 3 \\times 1.6) = \\max(6.5, 4.8) = 6.5$",
+    "value": 6.5
+   },
+   {
+    "label": "Stressed VaR term",
+    "display": "$\\max(7.4,\\ 3 \\times 6.9) = \\max(7.4, 20.7) = 20.7$",
+    "value": 20.7
+   },
+   {
+    "label": "One-day sum",
+    "display": "$6.5 + 20.7 = 27.2$",
+    "value": 27.2
+   },
+   {
+    "label": "Ten-day charge",
+    "display": "$27.2 \\times \\sqrt{10} = 86.0$",
+    "value": 86.0
+   }
+  ],
+  "takeaway": "Scale one-day figures to ten days with the square root of time (about 3.16), not by 10. The larger-of rule can bind on either the latest figure or the multiplied average.",
+  "check": {
+   "inputs": {
+    "v1": 6.5,
+    "va": 1.6,
+    "s1": 7.4,
+    "sa": 6.9,
+    "m": 3
+   },
+   "steps": [
+    {
+     "name": "vt",
+     "expr": "max(v1,m*va)",
+     "value": 6.5
+    },
+    {
+     "name": "st",
+     "expr": "max(s1,m*sa)",
+     "value": 20.7
+    },
+    {
+     "name": "one",
+     "expr": "vt+st",
+     "value": 27.2
+    },
+    {
+     "name": "ten",
+     "expr": "one*sqrt(10)",
+     "value": 86.014
+    },
+    {
+     "name": "slip_noscale",
+     "expr": "one",
+     "value": 27.2
+    },
+    {
+     "name": "slip_x10",
+     "expr": "one*10",
+     "value": 272.0
+    },
+    {
+     "name": "slip_double",
+     "expr": "one*10*sqrt(10)",
+     "value": 860.14
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-08",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-22f-5"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "NSFR build for a bank, funding in CAD m with ASF factors: stable retail deposits 620 (95%), 3-month wholesale CDs 240 (0%), 10-year senior bonds 180 (100%), common equity 110 (100%).",
+  "ask": "Available stable funding (ASF) is:",
+  "options": [
+   {
+    "label": "CAD 879m",
+    "correct": true
+   },
+   {
+    "label": "CAD 1,150m",
+    "correct": false,
+    "why": "Added the amounts without the ASF factors. Short-term CDs count for nothing and retail deposits only 95%."
+   },
+   {
+    "label": "CAD 910m",
+    "correct": false,
+    "why": "Left the retail deposits at 100% instead of 95%: $620 + 180 + 110 = 910$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Retail deposits",
+    "display": "$620 \\times 0.95 = 589$",
+    "value": 589
+   },
+   {
+    "label": "CDs",
+    "display": "$240 \\times 0 = 0$",
+    "value": 0
+   },
+   {
+    "label": "Bonds and equity",
+    "display": "$180 + 110 = 290$",
+    "value": 290
+   },
+   {
+    "label": "ASF",
+    "display": "$589 + 0 + 290 = 879$",
+    "value": 879
+   }
+  ],
+  "takeaway": "ASF = sum of funding x its factor. Against required stable funding of 725, NSFR is 879/725, about 121%.",
+  "check": {
+   "inputs": {
+    "ret": 620,
+    "cds": 240,
+    "bonds": 180,
+    "eq": 110,
+    "f_ret": 0.95
+   },
+   "steps": [
+    {
+     "name": "asf",
+     "expr": "ret*f_ret+cds*0+bonds+eq",
+     "value": 879.0
+    },
+    {
+     "name": "slip_nofactors",
+     "expr": "ret+cds+bonds+eq",
+     "value": 1150.0
+    },
+    {
+     "name": "slip_ret100",
+     "expr": "ret+bonds+eq",
+     "value": 910.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-09",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-22: Solvency, Liquidity and Other Regulation After the Global Financial Crisis",
+  "reading_id": "ORR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-22f-8"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank's available stable funding is SGD 630m against required stable funding of SGD 675m (NSFR 93%), a gap of SGD 45m. It will raise new stable retail deposits (ASF factor 95%) and invest all the proceeds in own-sovereign debt (RSF factor 5%) until NSFR is exactly 100%.",
+  "ask": "The new deposits needed, compared with the SGD 45m gap, are:",
+  "options": [
+   {
+    "label": "Less than SGD 45m",
+    "correct": false,
+    "why": "That needs each SGD raised to add more than SGD 1 of net stable funding. It adds 0.95 of ASF and also creates 0.05 of required funding, so it adds only 0.90."
+   },
+   {
+    "label": "Exactly SGD 45m",
+    "correct": false,
+    "why": "Treated each SGD raised as closing SGD 1 of the gap, ignoring both the 95% ASF factor and the 5% RSF on the new sovereign debt."
+   },
+   {
+    "label": "More than SGD 45m",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Net gap closed per SGD",
+    "display": "$0.95 - 0.05 = 0.90$",
+    "value": 0.9
+   },
+   {
+    "label": "Deposits needed",
+    "display": "$45 / 0.90 = \\text{SGD } 50\\text{m}$",
+    "value": 50.0
+   }
+  ],
+  "takeaway": "New funding closes an NSFR gap net of what it adds to required funding. Each SGD of deposits closes only about 0.90, so the need exceeds the gap.",
+  "check": {
+   "inputs": {
+    "asf": 630,
+    "rsf": 675,
+    "fa": 0.95,
+    "fr": 0.05
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "rsf-asf",
+     "value": 45.0
+    },
+    {
+     "name": "net",
+     "expr": "fa-fr",
+     "value": 0.9
+    },
+    {
+     "name": "x",
+     "expr": "gap/net",
+     "value": 50.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-10",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-23: High-level Summary of Basel III Reforms",
+  "reading_id": "ORR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-23c-6"
+  },
+  "trap_category": "Scope",
+  "setup": "Output floor, EUR bn. Modelled RWA: credit 480, counterparty 60, CVA 30, market 62, operational 70 (total 702). Standardised-only RWA: credit 760, counterparty 90, CVA 30, market 80, operational 70 (total 1,030). The fully phased-in floor is 72.5% of the standardised total, applied to total RWA.",
+  "ask": "After the floor, total RWA is:",
+  "options": [
+   {
+    "label": "Above EUR 702bn",
+    "correct": true
+   },
+   {
+    "label": "Unchanged at EUR 702bn",
+    "correct": false,
+    "why": "Applied the floor to one line only: $72.5\\% \\times 760 = 551$ looks slack against 480-702. The floor is on the total, $72.5\\% \\times 1{,}030 = 747$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Standardised total",
+    "display": "$760 + 90 + 30 + 80 + 70 = 1{,}030$",
+    "value": 1030
+   },
+   {
+    "label": "Floor",
+    "display": "$72.5\\% \\times 1{,}030 = 746.75$",
+    "value": 746.75
+   },
+   {
+    "label": "Total RWA",
+    "display": "$\\max(702,\\ 746.75) = 746.75$",
+    "value": 746.75
+   }
+  ],
+  "takeaway": "The output floor is on total RWA: modelled RWA at 68% of the standardised total sit below 72.5%, so the floor binds and adds about EUR 45bn.",
+  "check": {
+   "inputs": {
+    "sa": 1030,
+    "mod": 702,
+    "f": 0.725,
+    "sa_credit": 760
+   },
+   "steps": [
+    {
+     "name": "floor",
+     "expr": "f*sa",
+     "value": 746.75
+    },
+    {
+     "name": "rwa",
+     "expr": "max(mod,floor)",
+     "value": 746.75
+    },
+    {
+     "name": "slip_credit_only",
+     "expr": "f*sa_credit",
+     "value": 551.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-11",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-23: High-level Summary of Basel III Reforms",
+  "reading_id": "ORR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-WB-23c-7"
+  },
+  "trap_category": "Sequence",
+  "setup": "Output floor phase-in for 2026: the floor is 70% of standardised-only RWA. The supervisor caps the increase in RWA caused by the floor at 25% of RWA before the floor. A bank has RWA of EUR 80bn on its approved approaches and EUR 150bn on standardised approaches only.",
+  "ask": "Its RWA for 2026 is:",
+  "options": [
+   {
+    "label": "EUR 80bn",
+    "correct": false,
+    "why": "Ignored the floor altogether. At 70% of 150 the floor is 105, above 80."
+   },
+   {
+    "label": "EUR 105bn",
+    "correct": false,
+    "why": "Applied the floor but not the cap. The increase 25 exceeds the allowed 25% of 80, which is 20."
+   },
+   {
+    "label": "EUR 100bn",
+    "correct": true
+   },
+   {
+    "label": "EUR 108.75bn",
+    "correct": false,
+    "why": "Used the fully phased-in 72.5% instead of the 70% for 2026, and skipped the cap."
+   }
+  ],
+  "working": [
+   {
+    "label": "Phased-in floor",
+    "display": "$70\\% \\times 150 = 105$",
+    "value": 105
+   },
+   {
+    "label": "Cap on RWA",
+    "display": "$1.25 \\times 80 = 100$",
+    "value": 100
+   },
+   {
+    "label": "RWA 2026",
+    "display": "$\\min(105, 100) = 100$",
+    "value": 100
+   }
+  ],
+  "takeaway": "With a cap, RWA = min(floored RWA, 1.25 x pre-floor RWA). Check the floor first, then the cap.",
+  "check": {
+   "inputs": {
+    "mod": 80,
+    "sa": 150,
+    "f": 0.7,
+    "capr": 0.25
+   },
+   "steps": [
+    {
+     "name": "floored",
+     "expr": "max(mod,f*sa)",
+     "value": 105.0
+    },
+    {
+     "name": "cap",
+     "expr": "mod*(1+capr)",
+     "value": 100.0
+    },
+    {
+     "name": "rwa",
+     "expr": "min(floored,cap)",
+     "value": 100.0
+    },
+    {
+     "name": "slip_full",
+     "expr": "0.725*sa",
+     "value": 108.75
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-12",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-7: Integrated Risk Management",
+  "reading_id": "ORR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0177"
+  },
+  "trap_category": "Definition",
+  "setup": "A bank wants its economic capital to cover unexpected losses at a confidence level matched to a target credit rating. That rating has a one-year default probability of 0.07%. The next rating up has 0.03%.",
+  "ask": "The confidence level to use is:",
+  "options": [
+   {
+    "label": "99.97%",
+    "correct": false,
+    "why": "Used the default probability of the next rating up (0.03%). The target rating's own 0.07% sets the level."
+   },
+   {
+    "label": "99.93%",
+    "correct": true
+   },
+   {
+    "label": "93.00%",
+    "correct": false,
+    "why": "Percent slip: subtracted 0.07 from 1 as if it were 7%, giving 93%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Confidence level",
+    "display": "$100\\% - 0.07\\% = 99.93\\%$",
+    "value": 0.9993
+   }
+  ],
+  "takeaway": "Confidence level = 1 minus the default probability of the target rating. A better rating means a higher confidence level and more capital.",
+  "check": {
+   "inputs": {
+    "pd": 0.0007,
+    "pd_up": 0.0003
+   },
+   "steps": [
+    {
+     "name": "cl",
+     "expr": "1-pd",
+     "value": 0.9993
+    },
+    {
+     "name": "slip_up",
+     "expr": "1-pd_up",
+     "value": 0.9997
+    },
+    {
+     "name": "slip_pct",
+     "expr": "1-pd*100",
+     "value": 0.93
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-13",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0393"
+  },
+  "trap_category": "Scope",
+  "setup": "A leveraged fund holds economic capital equal to the worst-case loss at 99.5% confidence minus expected loss. Expected loss is USD 50m and unchanged. The worst-case loss rises from USD 500m to USD 1bn.",
+  "ask": "The increase in economic capital is:",
+  "options": [
+   {
+    "label": "Smaller than USD 500m",
+    "correct": false,
+    "why": "Deducted the USD 50m expected loss from the change, getting 450. Expected loss is deducted from both levels and cancels in the difference."
+   },
+   {
+    "label": "Equal to USD 500m",
+    "correct": true
+   },
+   {
+    "label": "Larger than USD 500m",
+    "correct": false,
+    "why": "Reported the new capital level of USD 950m rather than the increase."
+   }
+  ],
+  "working": [
+   {
+    "label": "Capital before",
+    "display": "$500 - 50 = 450$",
+    "value": 450
+   },
+   {
+    "label": "Capital after",
+    "display": "$1{,}000 - 50 = 950$",
+    "value": 950
+   },
+   {
+    "label": "Increase",
+    "display": "$950 - 450 = 500$",
+    "value": 500
+   }
+  ],
+  "takeaway": "A constant deduction cancels in a change: the move in economic capital equals the move in worst-case loss.",
+  "check": {
+   "inputs": {
+    "w0": 500,
+    "w1": 1000,
+    "el": 50
+   },
+   "steps": [
+    {
+     "name": "ec0",
+     "expr": "w0-el",
+     "value": 450.0
+    },
+    {
+     "name": "ec1",
+     "expr": "w1-el",
+     "value": 950.0
+    },
+    {
+     "name": "d",
+     "expr": "ec1-ec0",
+     "value": 500.0
+    },
+    {
+     "name": "slip_minus_el",
+     "expr": "d-el",
+     "value": 450.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-14",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-18: Risk Capital Attribution and Risk-Adjusted Performance Measurement",
+  "reading_id": "ORR-18",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0396"
+  },
+  "trap_category": "Definition",
+  "setup": "A credit portfolio has a loan-equivalent exposure of USD 480m. Expected loss is 1.0% of exposure and is already covered by pricing and loan-loss reserves. The worst-case loss at the bank's confidence level is 3.0% of exposure.",
+  "ask": "Economic capital to attribute, as a percentage of exposure, is:",
+  "options": [
+   {
+    "label": "3.0%",
+    "correct": false,
+    "why": "Took the whole worst-case loss as capital. The 1.0% expected loss is covered by pricing and reserves, so it is deducted."
+   },
+   {
+    "label": "2.0%",
+    "correct": true
+   },
+   {
+    "label": "1.0%",
+    "correct": false,
+    "why": "Took the expected loss itself as the capital. Capital covers the unexpected part, not the expected loss."
+   },
+   {
+    "label": "4.0%",
+    "correct": false,
+    "why": "Added the expected loss to the worst-case loss instead of subtracting it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Unexpected loss",
+    "display": "$3.0\\% - 1.0\\% = 2.0\\%$",
+    "value": 0.02
+   },
+   {
+    "label": "Capital in USD",
+    "display": "$2.0\\% \\times 480 = \\text{USD } 9.6\\text{m}$",
+    "value": 9.6
+   }
+  ],
+  "takeaway": "Economic capital = worst-case loss minus expected loss, here 2.0% of USD 480m = USD 9.6m.",
+  "check": {
+   "inputs": {
+    "exp": 480,
+    "el": 0.01,
+    "wcl": 0.03
+   },
+   "steps": [
+    {
+     "name": "ul",
+     "expr": "wcl-el",
+     "value": 0.02
+    },
+    {
+     "name": "cap",
+     "expr": "ul*exp",
+     "value": 9.6
+    },
+    {
+     "name": "slip_wcl",
+     "expr": "wcl",
+     "value": 0.03
+    },
+    {
+     "name": "slip_sum",
+     "expr": "wcl+el",
+     "value": 0.04
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-15",
+  "mode": "intermediate",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0529"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Basel I. Bank A has capital of USD 10m (Tier 1 6 plus Tier 2 4). Assets: USD 50m claim on an OECD bank (20% weight), USD 100m corporate loans (100%), USD 40m uninsured residential mortgages (50%).",
+  "ask": "Risk-weighted assets are:",
+  "options": [
+   {
+    "label": "USD 190m",
+    "correct": false,
+    "why": "Added the assets at face value with no weights."
+   },
+   {
+    "label": "USD 150m",
+    "correct": false,
+    "why": "Gave the mortgages 100% instead of 50%: $10 + 100 + 40 = 150$."
+   },
+   {
+    "label": "USD 130m",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "OECD bank",
+    "display": "$50 \\times 20\\% = 10$",
+    "value": 10
+   },
+   {
+    "label": "Corporate",
+    "display": "$100 \\times 100\\% = 100$",
+    "value": 100
+   },
+   {
+    "label": "Mortgages",
+    "display": "$40 \\times 50\\% = 20$",
+    "value": 20
+   },
+   {
+    "label": "RWA",
+    "display": "$10 + 100 + 20 = 130$",
+    "value": 130
+   }
+  ],
+  "takeaway": "RWA is the weighted sum, 130. The capital ratio is then 10/130 = 7.7%, below the 8% minimum.",
+  "check": {
+   "inputs": {
+    "bank": 50,
+    "corp": 100,
+    "mort": 40,
+    "cap": 10
+   },
+   "steps": [
+    {
+     "name": "rwa",
+     "expr": "bank*0.2+corp*1.0+mort*0.5",
+     "value": 130.0
+    },
+    {
+     "name": "ratio",
+     "expr": "cap/rwa",
+     "value": 0.0769231
+    },
+    {
+     "name": "slip_face",
+     "expr": "bank+corp+mort",
+     "value": 190.0
+    },
+    {
+     "name": "slip_mort100",
+     "expr": "bank*0.2+corp+mort",
+     "value": 150.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-16",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0533"
+  },
+  "trap_category": "Scope",
+  "setup": "Basel I. A bank holds USD 1.5bn of loans to corporations, of which USD 600m is commercial real estate, plus USD 300m of OECD government claims and USD 500m of cash. Weights: 0% for cash and OECD government, 50% for uninsured residential mortgages, 100% for all other claims.",
+  "ask": "Risk-weighted assets, compared with the USD 1.5bn of corporate loans, are:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Gave the USD 600m of commercial real estate the 50% weight, which applies to residential mortgages only: $900 + 300 = 1{,}200$."
+   },
+   {
+    "label": "Equal",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Weighted the OECD government claims and cash above 0%. They carry 0%, so they add nothing."
+   }
+  ],
+  "working": [
+   {
+    "label": "Corporate loans incl. commercial RE",
+    "display": "$1{,}500 \\times 100\\% = 1{,}500$",
+    "value": 1500
+   },
+   {
+    "label": "OECD government and cash",
+    "display": "$(300 + 500) \\times 0\\% = 0$",
+    "value": 0
+   },
+   {
+    "label": "RWA",
+    "display": "$1{,}500 + 0 = \\text{USD } 1.5\\text{bn}$",
+    "value": 1500
+   }
+  ],
+  "takeaway": "Basel I relief for property applies to residential mortgages only. Commercial real estate is an 'other claim' at 100%.",
+  "check": {
+   "inputs": {
+    "corp": 1500,
+    "cre": 600,
+    "gov": 300,
+    "cash": 500
+   },
+   "steps": [
+    {
+     "name": "rwa",
+     "expr": "corp*1.0+gov*0+cash*0",
+     "value": 1500.0
+    },
+    {
+     "name": "slip_cre50",
+     "expr": "(corp-cre)*1.0+cre*0.5",
+     "value": 1200.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-17",
+  "mode": "direction",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0535"
+  },
+  "trap_category": "Sign",
+  "setup": "Basel I current exposure method. A EUR 1bn interest-rate swap has more than five years left (add-on 1.5% of notional) and is currently worth -EUR 2m to the bank. The counterparty is a corporate, weighted at 50%.",
+  "ask": "The swap's credit equivalent amount, compared with the EUR 15m add-on, is:",
+  "options": [
+   {
+    "label": "Less than the add-on",
+    "correct": false,
+    "why": "Netted the negative value against the add-on: $15 - 2 = 13$. Current exposure is $\\max(V, 0)$, so a loss to the bank counts as zero."
+   },
+   {
+    "label": "Equal to the add-on",
+    "correct": true
+   },
+   {
+    "label": "More than the add-on",
+    "correct": false,
+    "why": "Added the size of the negative value, $2 + 15 = 17$. The bank loses nothing today if the counterparty defaults."
+   }
+  ],
+  "working": [
+   {
+    "label": "Current exposure",
+    "display": "$\\max(-2, 0) = 0$",
+    "value": 0
+   },
+   {
+    "label": "Add-on",
+    "display": "$1.5\\% \\times 1{,}000 = 15$",
+    "value": 15
+   },
+   {
+    "label": "Credit equivalent amount",
+    "display": "$0 + 15 = 15$",
+    "value": 15
+   },
+   {
+    "label": "RWA",
+    "display": "$15 \\times 50\\% = 7.5$",
+    "value": 7.5
+   }
+  ],
+  "takeaway": "Credit equivalent amount = max(V, 0) + add-on. A negative mark adds nothing and also does not reduce the add-on.",
+  "check": {
+   "inputs": {
+    "n": 1000,
+    "d": 0.015,
+    "v": -2,
+    "rw": 0.5
+   },
+   "steps": [
+    {
+     "name": "cea",
+     "expr": "max(v,0)+d*n",
+     "value": 15.0
+    },
+    {
+     "name": "rwa",
+     "expr": "cea*rw",
+     "value": 7.5
+    },
+    {
+     "name": "slip_net",
+     "expr": "v+d*n",
+     "value": 13.0
+    },
+    {
+     "name": "slip_abs",
+     "expr": "abs(v)+d*n",
+     "value": 17.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-ORq03-18",
+  "mode": "magnitude",
+  "area": "ORR",
+  "reading": "ORR-21: Capital Regulation Before the Global Financial Crisis",
+  "reading_id": "ORR-21",
+  "source": {
+   "kind": "bank",
+   "questionId": "OR-QB-0546"
+  },
+  "trap_category": "Formula",
+  "setup": "Basel I current exposure method. A USD 200m interest-rate swap has six years left and is worth +USD 3.5m to the bank. The add-on for interest-rate contracts over five years is 1.5% of notional. The counterparty is an OECD bank at a 20% risk weight.",
+  "ask": "The swap's risk-weighted asset amount is closest to:",
+  "options": [
+   {
+    "label": "USD 0.13m",
+    "correct": false,
+    "why": "Scale slip (1/10): the correct 1.3 divided by 10."
+   },
+   {
+    "label": "USD 1.3m",
+    "correct": true
+   },
+   {
+    "label": "USD 6.5m",
+    "correct": false,
+    "why": "Stopped at the credit equivalent amount $3.5 + 3.0 = 6.5$ and never applied the 20% risk weight."
+   },
+   {
+    "label": "USD 61m",
+    "correct": false,
+    "why": "Percent as decimal: used an add-on of 1.5 times notional (300) instead of 1.5%, so $(3.5 + 300) \\times 20\\% = 60.7$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Add-on",
+    "display": "$1.5\\% \\times 200 = 3.0$",
+    "value": 3.0
+   },
+   {
+    "label": "Credit equivalent amount",
+    "display": "$3.5 + 3.0 = 6.5$",
+    "value": 6.5
+   },
+   {
+    "label": "RWA",
+    "display": "$6.5 \\times 20\\% = 1.3$",
+    "value": 1.3
+   }
+  ],
+  "takeaway": "Derivative RWA = (max(V, 0) + add-on) x counterparty weight: the credit equivalent amount is not yet the RWA.",
+  "check": {
+   "inputs": {
+    "n": 200,
+    "d": 0.015,
+    "v": 3.5,
+    "rw": 0.2
+   },
+   "steps": [
+    {
+     "name": "cea",
+     "expr": "max(v,0)+d*n",
+     "value": 6.5
+    },
+    {
+     "name": "rwa",
+     "expr": "cea*rw",
+     "value": 1.3
+    },
+    {
+     "name": "slip_noweight",
+     "expr": "cea",
+     "value": 6.5
+    },
+    {
+     "name": "slip_pct",
+     "expr": "(v+1.5*n)*rw",
+     "value": 60.7
+    },
+    {
+     "name": "slip_scale",
+     "expr": "rwa/10",
+     "value": 0.13
+    }
+   ]
+  }
+ }
+]

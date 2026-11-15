@@ -1,0 +1,1255 @@
+[
+ {
+  "id": "SC-bank-CRq04-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0974"
+  },
+  "trap_category": "Sign",
+  "setup": "Zero-threshold two-way collateral agreement, margin period of risk 20 days. On one simulated path the portfolio is worth $-55$ (USD m) to the bank 20 days before the counterparty defaults and $-50$ at default. The bank's posted collateral tracks the value 20 days earlier, and on default none of it comes back.",
+  "ask": "The bank's credit exposure at default is:",
+  "options": [
+   {
+    "label": "Zero: the portfolio is worth less than zero to the bank",
+    "correct": false,
+    "why": "Looked only at $V=-50$ (the bank owes money) and forgot that the 55 it posted is lost, which more than covers the 50 owed."
+   },
+   {
+    "label": "Positive: the lost collateral is larger than the debt",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Net claim",
+    "display": "$-50 + 55 = +5$",
+    "value": 5
+   },
+   {
+    "label": "Exposure",
+    "display": "$\\max(5, 0) = 5$ (USD m)",
+    "value": 5
+   }
+  ],
+  "takeaway": "Posted collateral that is not returned is a claim on the defaulter: over-posting can create exposure even when the trades are out of the money.",
+  "check": {
+   "inputs": {
+    "V": -50,
+    "C": 55
+   },
+   "steps": [
+    {
+     "name": "net",
+     "expr": "V+C",
+     "value": 5.0
+    },
+    {
+     "name": "exposure",
+     "expr": "max(net,0)",
+     "value": 5.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-02",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0970"
+  },
+  "trap_category": "Scope",
+  "setup": "A trader is long a one-year forward on 10,000 bags of coffee at USD 500 per bag (notional USD 5m, zero value today). Annual price volatility is 25%, zero-mean normal, 252 trading days a year. Collateral is called once exposure exceeds USD 500,000 and arrives after a 2-day remargining period; the agreement is fully enforced. One-sided 95% $z = 1.645$.",
+  "ask": "The 95% maximum credit exposure is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 16,000",
+    "correct": false,
+    "why": "Two slips: used $2/252$ instead of its square root, and left out the USD 500,000 threshold."
+   },
+   {
+    "label": "≈ USD 183,000",
+    "correct": false,
+    "why": "Counted only the 2-day move and forgot that exposure can sit at the USD 500,000 threshold before the margin call."
+   },
+   {
+    "label": "≈ USD 683,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 2,060,000",
+    "correct": false,
+    "why": "Used the full one-year volatility for the move instead of the 2-day remargining period."
+   }
+  ],
+  "working": [
+   {
+    "label": "Notional",
+    "display": "$10{,}000 \\times 500 = 5{,}000{,}000$",
+    "value": 5000000
+   },
+   {
+    "label": "2-day volatility",
+    "display": "$0.25\\sqrt{2/252} = 2.23\\%$",
+    "value": 0.02227
+   },
+   {
+    "label": "95% move",
+    "display": "$1.645 \\times 0.02227 \\times 5\\text{m} \\approx 183{,}000$",
+    "value": 183185
+   },
+   {
+    "label": "Add threshold",
+    "display": "$500{,}000 + 183{,}000 \\approx 683{,}000$",
+    "value": 683185
+   }
+  ],
+  "takeaway": "With full margining, exposure peaks at threshold plus the move during the remargining period, not the move over the life.",
+  "check": {
+   "inputs": {
+    "N": 5000000,
+    "vol": 0.25,
+    "z": 1.645,
+    "days": 2,
+    "year": 252,
+    "thr": 500000
+   },
+   "steps": [
+    {
+     "name": "move",
+     "expr": "z*vol*sqrt(days/year)*N",
+     "value": 183185.0
+    },
+    {
+     "name": "maxexp",
+     "expr": "thr+move",
+     "value": 683185.0
+    },
+    {
+     "name": "slip_no_thr",
+     "expr": "move",
+     "value": 183185.0
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "z*vol*(days/year)*N",
+     "value": 16319.4
+    },
+    {
+     "name": "slip_full_year",
+     "expr": "z*vol*N",
+     "value": 2056250.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-03",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0976"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Best-case benefit of variation-margin collateral on a 3-year portfolio, margin period of risk 23 days, 250 trading days a year. Rule of thumb: uncollateralized EPE $\\approx 0.5\\sqrt{T/\\text{MPoR}}$ times collateralized EPE, with $T$ and MPoR in the same unit. The reduction is then $1 - 1/\\text{ratio}$.",
+  "ask": "Before the reduction, the ratio of uncollateralized to collateralized EPE is closest to:",
+  "options": [
+   {
+    "label": "0.18",
+    "correct": false,
+    "why": "Left $T$ in years (3) against MPoR in days (23) instead of putting both in days."
+   },
+   {
+    "label": "0.35",
+    "correct": false,
+    "why": "Computed $1/\\text{ratio}$, the collateralized-to-uncollateralized figure, instead of the ratio itself."
+   },
+   {
+    "label": "2.9",
+    "correct": true
+   },
+   {
+    "label": "5.7",
+    "correct": false,
+    "why": "Dropped the factor 0.5 and used $\\sqrt{T/\\text{MPoR}}$ alone."
+   }
+  ],
+  "working": [
+   {
+    "label": "Maturity in days",
+    "display": "$3 \\times 250 = 750$",
+    "value": 750
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.5\\sqrt{750/23} = 2.86$",
+    "value": 2.855
+   },
+   {
+    "label": "Best-case reduction",
+    "display": "$1 - 1/2.86 = 65\\%$",
+    "value": 0.65
+   }
+  ],
+  "takeaway": "Express $T$ and MPoR in the same unit; a ratio near 3 means collateral can remove roughly two thirds of the exposure at best.",
+  "check": {
+   "inputs": {
+    "T": 3,
+    "days": 250,
+    "mpor": 23
+   },
+   "steps": [
+    {
+     "name": "Td",
+     "expr": "T*days",
+     "value": 750.0
+    },
+    {
+     "name": "ratio",
+     "expr": "0.5*sqrt(Td/mpor)",
+     "value": 2.8552
+    },
+    {
+     "name": "reduction",
+     "expr": "1-1/ratio",
+     "value": 0.649762
+    },
+    {
+     "name": "slip_inverse",
+     "expr": "1/ratio",
+     "value": 0.350238
+    },
+    {
+     "name": "slip_no_half",
+     "expr": "sqrt(Td/mpor)",
+     "value": 5.7104
+    },
+    {
+     "name": "slip_units",
+     "expr": "0.5*sqrt(T/mpor)",
+     "value": 0.180579
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-04",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0979"
+  },
+  "trap_category": "Formula",
+  "setup": "A cash-collateralized exposure has annual volatility 15.0% (zero-mean normal). The remargin period, worst-case delays included, is 30 days; assume 250 days a year. $\\text{PFE} = z_\\alpha\\,\\sigma\\sqrt{T_M}$ with $z_{99\\%} = 2.33$ and $T_M$ in years.",
+  "ask": "The 99% PFE at the end of the 30 days is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.63%",
+    "correct": false,
+    "why": "Used variance ($0.15^2 = 0.0225$) instead of volatility and also skipped the square root of time."
+   },
+   {
+    "label": "≈ 4.2%",
+    "correct": false,
+    "why": "Skipped the square root: multiplied by $T_M = 0.12$ instead of $\\sqrt{0.12}$."
+   },
+   {
+    "label": "≈ 12.1%",
+    "correct": true
+   },
+   {
+    "label": "≈ 35%",
+    "correct": false,
+    "why": "Applied no time scaling at all: $2.33 \\times 15\\%$ is the one-year PFE."
+   }
+  ],
+  "working": [
+   {
+    "label": "Time in years",
+    "display": "$T_M = 30/250 = 0.12$",
+    "value": 0.12
+   },
+   {
+    "label": "Square root",
+    "display": "$\\sqrt{0.12} = 0.346$",
+    "value": 0.3464
+   },
+   {
+    "label": "PFE",
+    "display": "$2.33 \\times 15\\% \\times 0.346 \\approx 12.1\\%$",
+    "value": 0.1211
+   }
+  ],
+  "takeaway": "PFE scales with $\\sqrt{T}$: 30 days is about a third of a year's volatility, so roughly 12% against 35% for a full year.",
+  "check": {
+   "inputs": {
+    "z": 2.33,
+    "vol": 0.15,
+    "days": 30,
+    "year": 250
+   },
+   "steps": [
+    {
+     "name": "pfe",
+     "expr": "z*vol*sqrt(days/year)",
+     "value": 0.12107
+    },
+    {
+     "name": "slip_no_sqrt",
+     "expr": "z*vol*(days/year)",
+     "value": 0.04194
+    },
+    {
+     "name": "slip_no_time",
+     "expr": "z*vol",
+     "value": 0.3495
+    },
+    {
+     "name": "slip_variance",
+     "expr": "z*vol^2*(days/year)",
+     "value": 0.006291
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-19: Future Value and Exposure",
+  "reading_id": "CR-19",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0982"
+  },
+  "trap_category": "Definition",
+  "setup": "Over a 10-day remargining period a position's change in value is zero-mean normal. Annual volatility is 10% with 252 trading days, so the 10-day standard deviation is $\\sigma_T = 10\\% \\times \\sqrt{10/252} \\approx 1.99\\%$. The 99% PFE uses $z = 2.33$. Expected exposure is $E[\\max(X,0)]$.",
+  "ask": "Compared with $\\sigma_T$, the expected exposure over the period is:",
+  "options": [
+   {
+    "label": "Well below $\\sigma_T$: about $0.4\\,\\sigma_T$, near 0.8%",
+    "correct": true
+   },
+   {
+    "label": "About one standard deviation, near 2.0%",
+    "correct": false,
+    "why": "Reported $\\sigma_T$ itself as EE; $E[\\max(X,0)]$ is only the positive half of the distribution, about $0.4\\,\\sigma_T$."
+   },
+   {
+    "label": "More than two standard deviations, near 4.6%",
+    "correct": false,
+    "why": "Quoted the 99% PFE ($2.33\\,\\sigma_T$), which is a tail quantile, not the average exposure."
+   }
+  ],
+  "working": [
+   {
+    "label": "10-day volatility",
+    "display": "$10\\% \\times \\sqrt{10/252} = 1.99\\%$",
+    "value": 0.01992
+   },
+   {
+    "label": "EE of a zero-mean normal",
+    "display": "$\\sigma_T/\\sqrt{2\\pi} = 0.399\\,\\sigma_T \\approx 0.80\\%$",
+    "value": 0.00795
+   }
+  ],
+  "takeaway": "EE is a mean of positive outcomes only: for a zero-mean normal it is about 40% of $\\sigma_T$, and the confidence level plays no part.",
+  "check": {
+   "inputs": {
+    "vol": 0.1,
+    "days": 10,
+    "year": 252,
+    "z": 2.33
+   },
+   "steps": [
+    {
+     "name": "sigT",
+     "expr": "vol*sqrt(days/year)",
+     "value": 0.0199205
+    },
+    {
+     "name": "EE",
+     "expr": "sigT/sqrt(2*3.14159265)",
+     "value": 0.00794712
+    },
+    {
+     "name": "ratio",
+     "expr": "EE/sigT",
+     "value": 0.398942
+    },
+    {
+     "name": "slip_pfe",
+     "expr": "z*sigT",
+     "value": 0.0464147
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-06",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0997"
+  },
+  "trap_category": "Formula",
+  "setup": "A swap has a constant expected positive exposure of 5% of notional and the counterparty's credit spread is 300 bps a year. Ignore wrong-way risk and use the quick approximation: running-spread CVA $\\approx$ EPE $\\times$ credit spread.",
+  "ask": "The size of the CVA charge as a running spread is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.5 bps",
+    "correct": false,
+    "why": "Decimal slip: read $0.05 \\times 300 = 15$ bps as 0.15 and cut it a further tenfold."
+   },
+   {
+    "label": "≈ 15 bps",
+    "correct": true
+   },
+   {
+    "label": "≈ 60 bps",
+    "correct": false,
+    "why": "Divided instead of multiplied: $300/5 = 60$."
+   },
+   {
+    "label": "≈ 1,500 bps",
+    "correct": false,
+    "why": "Put EPE in as 5 rather than 0.05 (percent used as a whole number)."
+   }
+  ],
+  "working": [
+   {
+    "label": "EPE as decimal",
+    "display": "$5\\% = 0.05$",
+    "value": 0.05
+   },
+   {
+    "label": "Charge",
+    "display": "$0.05 \\times 300 = 15$ bps",
+    "value": 15
+   }
+  ],
+  "takeaway": "A small percentage times a spread in bps shrinks the number: 5% of 300 bps is 15 bps, not 1,500.",
+  "check": {
+   "inputs": {
+    "epe": 0.05,
+    "s": 300
+   },
+   "steps": [
+    {
+     "name": "cva",
+     "expr": "epe*s",
+     "value": 15.0
+    },
+    {
+     "name": "slip_pct",
+     "expr": "epe*100*s",
+     "value": 1500.0
+    },
+    {
+     "name": "slip_div",
+     "expr": "s/(epe*100)",
+     "value": 60.0
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "epe*s/10",
+     "value": 1.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1004"
+  },
+  "trap_category": "Role",
+  "setup": "Unilateral CVA as a spread, $\\approx -\\text{EPE} \\times s$, on a swap with a counterparty bank. Data: 1-year risk-neutral default probability 6.5%; continuously compounded risk-free rate 2.6%; yield on the counterparty's credit instrument underlying the swap 5.8%; loss given default 75%; average EPE 5.0%, constant.",
+  "ask": "Which figure is the credit spread $s$ that enters the formula?",
+  "options": [
+   {
+    "label": "2.4%: the 3.2% spread scaled by the 75% LGD",
+    "correct": false,
+    "why": "Applied LGD a second time; the spread already embeds both default probability and loss given default."
+   },
+   {
+    "label": "3.2%: the yield less the risk-free rate",
+    "correct": true
+   },
+   {
+    "label": "5.8%: the yield itself",
+    "correct": false,
+    "why": "Took the full yield, which still contains the risk-free rate; a spread is the excess over risk-free."
+   },
+   {
+    "label": "6.5%: the default probability",
+    "correct": false,
+    "why": "Used a probability as if it were a spread; PD is already built into the spread."
+   }
+  ],
+  "working": [
+   {
+    "label": "Credit spread",
+    "display": "$5.8\\% - 2.6\\% = 3.2\\%$",
+    "value": 0.032
+   },
+   {
+    "label": "CVA spread",
+    "display": "$0.05 \\times 3.2\\% = 0.16\\% = 16$ bps (a charge of $-16$ bps)",
+    "value": 16
+   }
+  ],
+  "takeaway": "The spread is yield minus risk-free; PD and LGD are not multiplied in again.",
+  "check": {
+   "inputs": {
+    "y": 0.058,
+    "rf": 0.026,
+    "epe": 0.05,
+    "lgd": 0.75,
+    "pd": 0.065
+   },
+   "steps": [
+    {
+     "name": "s",
+     "expr": "y-rf",
+     "value": 0.032
+    },
+    {
+     "name": "cva_bps",
+     "expr": "epe*s*10000",
+     "value": 16.0
+    },
+    {
+     "name": "slip_lgd",
+     "expr": "s*lgd",
+     "value": 0.024
+    },
+    {
+     "name": "slip_yield",
+     "expr": "y",
+     "value": 0.058
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-08",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0999"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Strongcore bought a 3-year at-the-money European call from a risky counterparty: $S = K = $ USD 25.0m, volatility 20%, risk-free 3% continuous, $N(d_1) = 0.6675$, $N(d_2) = 0.5345$. The counterparty has a constant 6% hazard rate and 30% recovery. CVA $\\approx \\text{LGD} \\times \\text{PD}(0,T) \\times V$, where $V$ is the option's current value.",
+  "ask": "First step: the option value $V$ is closest to:",
+  "options": [
+   {
+    "label": "USD 3.3m",
+    "correct": false,
+    "why": "Forgot to discount the strike: $25 \\times (0.6675 - 0.5345)$."
+   },
+   {
+    "label": "USD 4.5m",
+    "correct": true
+   },
+   {
+    "label": "USD 12.2m",
+    "correct": false,
+    "why": "Kept only the discounted strike leg $Ke^{-rT}N(d_2)$."
+   },
+   {
+    "label": "USD 16.7m",
+    "correct": false,
+    "why": "Kept only the first leg $S\\,N(d_1)$ and never subtracted the strike leg."
+   }
+  ],
+  "working": [
+   {
+    "label": "Call value",
+    "display": "$25(0.6675) - 25e^{-0.09}(0.5345) = 16.69 - 12.21 \\approx 4.48$m",
+    "value": 4.475
+   },
+   {
+    "label": "Default probability",
+    "display": "$1 - e^{-0.06 \\times 3} = 16.5\\%$",
+    "value": 0.16473
+   },
+   {
+    "label": "CVA",
+    "display": "$0.70 \\times 0.1647 \\times 4.48 \\approx \\text{USD } 0.52$m",
+    "value": 0.516
+   }
+  ],
+  "takeaway": "Value the claim first: a call worth USD 4.5m, not S N(d1) alone, is the exposure that default can take away.",
+  "check": {
+   "inputs": {
+    "S": 25,
+    "K": 25,
+    "r": 0.03,
+    "T": 3,
+    "N1": 0.6675,
+    "N2": 0.5345,
+    "h": 0.06,
+    "R": 0.3
+   },
+   "steps": [
+    {
+     "name": "leg1",
+     "expr": "S*N1",
+     "value": 16.6875
+    },
+    {
+     "name": "leg2",
+     "expr": "K*exp(-r*T)*N2",
+     "value": 12.2124
+    },
+    {
+     "name": "V",
+     "expr": "leg1-leg2",
+     "value": 4.47509
+    },
+    {
+     "name": "slip_no_df",
+     "expr": "K*(N1-N2)",
+     "value": 3.325
+    },
+    {
+     "name": "PD",
+     "expr": "1-exp(-h*T)",
+     "value": 0.16473
+    },
+    {
+     "name": "cva",
+     "expr": "(1-R)*PD*V",
+     "value": 0.516027
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-09",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1000"
+  },
+  "trap_category": "Formula",
+  "setup": "CityBank holds a 5-year European put: $S = 70$, $K = 50$, volatility 30%, risk-free 4% continuous, $N(d_1) = 0.870$, $N(d_2) = 0.680$. Treat the present-valued expected exposure as the put's value. The counterparty's default probability over 5 years is 8% and LGD is 75%. CVA $\\approx \\text{LGD} \\times \\text{PD} \\times V$.",
+  "ask": "The CVA deducted from the put is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.06",
+    "correct": false,
+    "why": "Multiplied LGD by PD only ($0.75 \\times 0.08$) and never applied it to the put's value."
+   },
+   {
+    "label": "≈ 0.24",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.79",
+    "correct": false,
+    "why": "Used only the strike leg $Ke^{-rT}N(-d_2) \\approx 13.1$ as the exposure."
+   },
+   {
+    "label": "≈ 3.0",
+    "correct": false,
+    "why": "Dropped the default probability: $0.75 \\times 4.0$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Strike leg",
+    "display": "$50e^{-0.2}(0.320) = 13.10$",
+    "value": 13.1
+   },
+   {
+    "label": "Spot leg",
+    "display": "$70(0.130) = 9.10$",
+    "value": 9.1
+   },
+   {
+    "label": "Put value",
+    "display": "$13.10 - 9.10 \\approx 4.00$",
+    "value": 4.0
+   },
+   {
+    "label": "CVA",
+    "display": "$0.75 \\times 0.08 \\times 4.00 = 0.24$",
+    "value": 0.24
+   }
+  ],
+  "takeaway": "CVA is a small slice of the exposure: LGD times a modest PD times V (here 6% of 4.0), not the exposure itself.",
+  "check": {
+   "inputs": {
+    "S": 70,
+    "K": 50,
+    "r": 0.04,
+    "T": 5,
+    "N1": 0.87,
+    "N2": 0.68,
+    "pd": 0.08,
+    "lgd": 0.75
+   },
+   "steps": [
+    {
+     "name": "leg_k",
+     "expr": "K*exp(-r*T)*(1-N2)",
+     "value": 13.0997
+    },
+    {
+     "name": "leg_s",
+     "expr": "S*(1-N1)",
+     "value": 9.1
+    },
+    {
+     "name": "V",
+     "expr": "leg_k-leg_s",
+     "value": 3.99969
+    },
+    {
+     "name": "cva",
+     "expr": "lgd*pd*V",
+     "value": 0.239982
+    },
+    {
+     "name": "slip_no_V",
+     "expr": "lgd*pd",
+     "value": 0.06
+    },
+    {
+     "name": "slip_strike_only",
+     "expr": "lgd*pd*leg_k",
+     "value": 0.785982
+    },
+    {
+     "name": "slip_no_pd",
+     "expr": "lgd*V",
+     "value": 2.99977
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-10",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1001"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A 3-year exposure with no netting, collateral or wrong-way risk. Expected exposure is USD 32m in each of years 1, 2 and 3. The default hazard rate is a constant 10% a year, but recovery falls 90%, 80%, 70%, so LGD is 10%, 20%, 30%. Risk-free rate 4% continuous, discounting at each year-end. Each year's CVA term is LGD $\\times$ DF $\\times$ EE $\\times$ marginal PD.",
+  "ask": "Which year contributes the largest term to the CVA?",
+  "options": [
+   {
+    "label": "Year 1, the year with the highest marginal default probability",
+    "correct": false,
+    "why": "Marginal PD is highest in year 1 (9.5%), but LGD is only 10% there; the product is smallest."
+   },
+   {
+    "label": "Year 2, the middle year",
+    "correct": false,
+    "why": "Neither trend peaks in the middle: LGD rises 10% to 30% faster than marginal PD falls (9.5% to 7.8%), so the product keeps rising."
+   },
+   {
+    "label": "Year 3, the year with the highest LGD",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Year 1",
+    "display": "$0.10 \\times 0.961 \\times 32 \\times 0.0952 = 0.29$m",
+    "value": 0.2926
+   },
+   {
+    "label": "Year 2",
+    "display": "$0.20 \\times 0.923 \\times 32 \\times 0.0861 = 0.51$m",
+    "value": 0.5087
+   },
+   {
+    "label": "Year 3",
+    "display": "$0.30 \\times 0.887 \\times 32 \\times 0.0779 = 0.66$m",
+    "value": 0.6633
+   },
+   {
+    "label": "Total CVA",
+    "display": "$0.29 + 0.51 + 0.66 \\approx 1.46$m",
+    "value": 1.465
+   }
+  ],
+  "takeaway": "Watch every moving part: LGD tripling beats the fall in marginal PD and discounting, so the last year dominates.",
+  "check": {
+   "inputs": {
+    "EE": 32,
+    "h": 0.1,
+    "rf": 0.04,
+    "l1": 0.1,
+    "l2": 0.2,
+    "l3": 0.3
+   },
+   "steps": [
+    {
+     "name": "pd1",
+     "expr": "1-exp(-h*1)",
+     "value": 0.0951626
+    },
+    {
+     "name": "pd2",
+     "expr": "exp(-h*1)-exp(-h*2)",
+     "value": 0.0861067
+    },
+    {
+     "name": "pd3",
+     "expr": "exp(-h*2)-exp(-h*3)",
+     "value": 0.0779125
+    },
+    {
+     "name": "t1",
+     "expr": "l1*exp(-rf*1)*EE*pd1",
+     "value": 0.29258
+    },
+    {
+     "name": "t2",
+     "expr": "l2*exp(-rf*2)*EE*pd2",
+     "value": 0.508713
+    },
+    {
+     "name": "t3",
+     "expr": "l3*exp(-rf*3)*EE*pd3",
+     "value": 0.663381
+    },
+    {
+     "name": "cva",
+     "expr": "t1+t2+t3",
+     "value": 1.46467
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-11",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1027"
+  },
+  "trap_category": "Sequence",
+  "setup": "One-year horizon. Discounted expected exposure is AUD 48m in each direction. Default probabilities: institution 3.3%, counterparty 1.5%; recoveries: institution 75%, counterparty 90%. UCVA $= -48\\text{m} \\times \\text{LGD}_C \\times \\text{PD}_C$. BCVA = CVA + DVA, each leg multiplied by the other party's survival probability, defaults independent.",
+  "ask": "Switching from UCVA to BCVA changes the institution's reported value by about:",
+  "options": [
+   {
+    "label": "≈ AUD 2,400",
+    "correct": false,
+    "why": "Applied only the survival adjustment to the CVA leg and left out the DVA leg altogether."
+   },
+   {
+    "label": "≈ AUD 72,000",
+    "correct": false,
+    "why": "Took the size of the UCVA charge itself as the change."
+   },
+   {
+    "label": "≈ AUD 392,000",
+    "correct": true
+   },
+   {
+    "label": "≈ AUD 1,170,000",
+    "correct": false,
+    "why": "Used the 75% recovery rate as LGD in the DVA leg instead of 25%."
+   }
+  ],
+  "working": [
+   {
+    "label": "UCVA",
+    "display": "$-48\\text{m} \\times 0.10 \\times 0.015 = -72{,}000$",
+    "value": -72000
+   },
+   {
+    "label": "CVA leg",
+    "display": "$-72{,}000 \\times (1 - 0.033) = -69{,}624$",
+    "value": -69624
+   },
+   {
+    "label": "DVA leg",
+    "display": "$48\\text{m} \\times 0.25 \\times 0.033 \\times 0.985 = 390{,}060$",
+    "value": 390060
+   },
+   {
+    "label": "Change",
+    "display": "$(390{,}060 - 69{,}624) + 72{,}000 \\approx +392{,}400$",
+    "value": 392436
+   }
+  ],
+  "takeaway": "Moving to BCVA adds the own-default benefit (DVA) and trims the CVA charge slightly, so value rises by about 5 times the UCVA charge here.",
+  "check": {
+   "inputs": {
+    "E": 48000000.0,
+    "pdI": 0.033,
+    "pdC": 0.015,
+    "RI": 0.75,
+    "RC": 0.9
+   },
+   "steps": [
+    {
+     "name": "ucva",
+     "expr": "E*(1-RC)*pdC",
+     "value": 72000.0
+    },
+    {
+     "name": "cva_leg",
+     "expr": "ucva*(1-pdI)",
+     "value": 69624.0
+    },
+    {
+     "name": "dva",
+     "expr": "E*(1-RI)*pdI*(1-pdC)",
+     "value": 390060.0
+    },
+    {
+     "name": "change",
+     "expr": "dva-cva_leg+ucva",
+     "value": 392436.0
+    },
+    {
+     "name": "slip_no_dva",
+     "expr": "ucva-cva_leg",
+     "value": 2376.0
+    },
+    {
+     "name": "slip_recovery_as_lgd",
+     "expr": "E*RI*pdI*(1-pdC)-cva_leg+ucva",
+     "value": 1172560.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-12",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1020"
+  },
+  "trap_category": "Sign",
+  "setup": "Bilateral CVA for Bank Gamma against Bank Phi, first-to-default adjusted with independent defaults. Gamma's discounted exposure to Phi is CNY 60m and Phi's exposure to Gamma is CNY 45m. Annual PD: Gamma 2.5%, Phi 1.8%. Recovery: Gamma 82%, Phi 92%. Convention: BCVA = CVA + DVA, CVA negative, DVA positive.",
+  "ask": "From Gamma's perspective the BCVA is:",
+  "options": [
+   {
+    "label": "A net charge: negative, because Gamma's exposure (60) is larger",
+    "correct": false,
+    "why": "Compared exposures only; Gamma's 18% LGD against Phi's 8% and its higher PD make the DVA leg far larger than the CVA leg."
+   },
+   {
+    "label": "A net benefit: positive, because the DVA leg is larger",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "CVA leg",
+    "display": "$-60\\text{m} \\times 0.08 \\times 0.018 \\times 0.975 = -84{,}240$",
+    "value": -84240
+   },
+   {
+    "label": "DVA leg",
+    "display": "$+45\\text{m} \\times 0.18 \\times 0.025 \\times 0.982 = +198{,}855$",
+    "value": 198855
+   },
+   {
+    "label": "BCVA",
+    "display": "$-84{,}240 + 198{,}855 = +114{,}615$",
+    "value": 114615
+   }
+  ],
+  "takeaway": "Do not rank the legs by exposure alone: the weaker credit (higher PD and LGD) earns a larger DVA, so BCVA can be a gain.",
+  "check": {
+   "inputs": {
+    "Ec": 60000000.0,
+    "En": 45000000.0,
+    "pdG": 0.025,
+    "pdP": 0.018,
+    "RG": 0.82,
+    "RP": 0.92
+   },
+   "steps": [
+    {
+     "name": "cva",
+     "expr": "-Ec*(1-RP)*pdP*(1-pdG)",
+     "value": -84240.0
+    },
+    {
+     "name": "dva",
+     "expr": "En*(1-RG)*pdG*(1-pdP)",
+     "value": 198855.0
+    },
+    {
+     "name": "bcva",
+     "expr": "cva+dva",
+     "value": 114615.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1026"
+  },
+  "trap_category": "Role",
+  "setup": "From CityBank's view, a swap with FinCorp has EPE 6.00% and ENE $-4.20\\%$ (entered negative); the maximum PFE is 18.0%. CityBank's own credit spread is 110 bps and FinCorp's is 250 bps. BCVA $= -\\text{EPE} \\times s_C - \\text{ENE} \\times s_P$, with $s_C$ the counterparty's spread and $s_P$ the firm's own.",
+  "ask": "The DVA term, $-\\text{ENE} \\times s_P$, is closest to:",
+  "options": [
+   {
+    "label": "+4.6 bps",
+    "correct": true
+   },
+   {
+    "label": "−4.6 bps",
+    "correct": false,
+    "why": "Dropped the minus sign on ENE: the negative ENE turns the DVA term into a gain."
+   },
+   {
+    "label": "+10.5 bps",
+    "correct": false,
+    "why": "Multiplied ENE by FinCorp's 250 bps instead of CityBank's own 110 bps."
+   }
+  ],
+  "working": [
+   {
+    "label": "DVA term",
+    "display": "$-(-0.042) \\times 110 = +4.62$ bps",
+    "value": 4.62
+   },
+   {
+    "label": "CVA term",
+    "display": "$-0.06 \\times 250 = -15.00$ bps",
+    "value": -15.0
+   },
+   {
+    "label": "BCVA",
+    "display": "$-15.00 + 4.62 = -10.38$ bps (max PFE unused)",
+    "value": -10.38
+   }
+  ],
+  "takeaway": "DVA uses your own spread and the negative-exposure side; the maximum PFE never enters the quick formula.",
+  "check": {
+   "inputs": {
+    "epe": 0.06,
+    "ene": -0.042,
+    "sP": 110,
+    "sC": 250
+   },
+   "steps": [
+    {
+     "name": "dva",
+     "expr": "-ene*sP",
+     "value": 4.62
+    },
+    {
+     "name": "cva",
+     "expr": "-epe*sC",
+     "value": -15.0
+    },
+    {
+     "name": "bcva",
+     "expr": "cva+dva",
+     "value": -10.38
+    },
+    {
+     "name": "slip_sign",
+     "expr": "ene*sP",
+     "value": -4.62
+    },
+    {
+     "name": "slip_role",
+     "expr": "-ene*sC",
+     "value": 10.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-14",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1036"
+  },
+  "trap_category": "Formula",
+  "setup": "An interest rate swap has a risky duration (risky annuity) of 4 years. Its upfront CVA is 1% of notional. Convert the upfront charge into a running spread.",
+  "ask": "The CVA as a running spread is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.5 bps",
+    "correct": false,
+    "why": "Decimal slip: treated 1% as 10 bps before dividing by 4."
+   },
+   {
+    "label": "≈ 25 bps",
+    "correct": true
+   },
+   {
+    "label": "≈ 100 bps",
+    "correct": false,
+    "why": "Left out the duration: 1% is 100 bps as an upfront figure, not a spread per year."
+   },
+   {
+    "label": "≈ 400 bps",
+    "correct": false,
+    "why": "Multiplied by the duration instead of dividing: $100 \\times 4$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Upfront in bps",
+    "display": "$1\\% = 100$ bps",
+    "value": 100
+   },
+   {
+    "label": "Spread",
+    "display": "$100 / 4 = 25$ bps",
+    "value": 25
+   }
+  ],
+  "takeaway": "Running spread = upfront / risky annuity: spreading the cost over 4 years of expected premiums makes it smaller.",
+  "check": {
+   "inputs": {
+    "upfront_bps": 100,
+    "dur": 4
+   },
+   "steps": [
+    {
+     "name": "spread",
+     "expr": "upfront_bps/dur",
+     "value": 25.0
+    },
+    {
+     "name": "slip_no_div",
+     "expr": "upfront_bps",
+     "value": 100.0
+    },
+    {
+     "name": "slip_mult",
+     "expr": "upfront_bps*dur",
+     "value": 400.0
+    },
+    {
+     "name": "slip_decimal",
+     "expr": "10/dur",
+     "value": 2.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq04-15",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1044"
+  },
+  "trap_category": "Sequence",
+  "setup": "A netting set holds an IRS (marginal CVA $-1.450$) and a cross-currency swap (marginal CVA $-1.550$). The CCS is executed first with incremental CVA $-2.100$; the IRS is executed second. Incremental CVAs taken in order of execution add up to the netted total, which equals the sum of the marginal CVAs.",
+  "ask": "The IRS's incremental CVA, compared with its marginal CVA of $-1.450$, is:",
+  "options": [
+   {
+    "label": "Smaller in size, about $-0.900$",
+    "correct": true
+   },
+   {
+    "label": "Equal, $-1.450$",
+    "correct": false,
+    "why": "Treated incremental as marginal; but the first trade already took $-2.100$, so the second gets only what is left of the $-3.000$ total."
+   },
+   {
+    "label": "Larger in size, about $-5.100$",
+    "correct": false,
+    "why": "Added the total $-3.000$ and the first trade's $-2.100$ instead of subtracting it."
+   }
+  ],
+  "working": [
+   {
+    "label": "Netted total",
+    "display": "$-1.450 + (-1.550) = -3.000$",
+    "value": -3.0
+   },
+   {
+    "label": "IRS incremental",
+    "display": "$-3.000 - (-2.100) = -0.900$",
+    "value": -0.9
+   }
+  ],
+  "takeaway": "Incrementals are order-dependent but must still sum to the total: the first trade takes its standalone CVA and the second gets the remainder.",
+  "check": {
+   "inputs": {
+    "mIRS": -1.45,
+    "mCCS": -1.55,
+    "incCCS": -2.1
+   },
+   "steps": [
+    {
+     "name": "total",
+     "expr": "mIRS+mCCS",
+     "value": -3.0
+    },
+    {
+     "name": "incIRS",
+     "expr": "total-incCCS",
+     "value": -0.9
+    },
+    {
+     "name": "slip_add",
+     "expr": "total+incCCS",
+     "value": -5.1
+    }
+   ]
+  }
+ }
+]

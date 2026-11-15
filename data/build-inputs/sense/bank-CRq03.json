@@ -1,0 +1,1210 @@
+[
+ {
+  "id": "SC-bank-CRq03-01",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0381"
+  },
+  "trap_category": "Formula",
+  "setup": "Merton model, non-dividend-paying firm, debt due in $T = 10$ years. An analyst has computed $d_1 = 2.321$ and $d_2 = 2.143$. Asset volatility is assumed constant.",
+  "ask": "The implied asset volatility $\\sigma_V$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 1.8%",
+    "correct": false,
+    "why": "Divided the gap by $T = 10$ instead of $\\sqrt{T}$: $0.178/10 = 1.78\\%$."
+   },
+   {
+    "label": "≈ 5.6%",
+    "correct": true
+   },
+   {
+    "label": "≈ 18%",
+    "correct": false,
+    "why": "Stopped at $d_1 - d_2 = 0.178$ and read it as the volatility, forgetting that the gap is $\\sigma_V\\sqrt{T}$, not $\\sigma_V$."
+   },
+   {
+    "label": "≈ 56%",
+    "correct": false,
+    "why": "Multiplied the gap by $\\sqrt{10}$ instead of dividing: $0.178 \\times 3.162 = 0.563$."
+   }
+  ],
+  "working": [
+   {
+    "label": "The gap",
+    "display": "$d_1 - d_2 = 2.321 - 2.143 = 0.178$",
+    "value": 0.178
+   },
+   {
+    "label": "Divide by $\\sqrt{T}$",
+    "display": "$\\sigma_V = 0.178/\\sqrt{10} = 0.178/3.162$",
+    "value": 0.0563
+   },
+   {
+    "label": "Result",
+    "display": "$\\sigma_V \\approx 5.6\\%$",
+    "value": 5.63
+   }
+  ],
+  "takeaway": "The gap $d_1 - d_2$ is $\\sigma_V\\sqrt{T}$, so divide it by $\\sqrt{T}$. Over a 10-year horizon the annual volatility is about a third of the gap.",
+  "check": {
+   "inputs": {
+    "d1": 2.321,
+    "d2": 2.143,
+    "T": 10
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "d1-d2",
+     "value": 0.178
+    },
+    {
+     "name": "sig",
+     "expr": "100*gap/sqrt(T)",
+     "value": 5.62885
+    },
+    {
+     "name": "slip_noT",
+     "expr": "100*gap",
+     "value": 17.8
+    },
+    {
+     "name": "slip_div_T",
+     "expr": "100*gap/T",
+     "value": 1.78
+    },
+    {
+     "name": "slip_mult",
+     "expr": "100*gap*sqrt(T)",
+     "value": 56.2885
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0383"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A firm has assets of USD 110m and a single zero-coupon bond, face USD 80m, due in 5 years. The risk-free rate is 4% (continuous). The BSM put on the firm's assets struck at 80 is worth USD 6.95m. The riskless present value of the debt is $80e^{-0.04 \\times 5} = 65.50$.",
+  "ask": "The market value of the firm's (risky) debt is:",
+  "options": [
+   {
+    "label": "Below USD 65.50m",
+    "correct": true
+   },
+   {
+    "label": "Above USD 65.50m",
+    "correct": false,
+    "why": "Added the put to the riskless value ($65.50 + 6.95 = 72.45$). Creditors are short the default put, so it reduces what the debt is worth."
+   },
+   {
+    "label": "Equal to USD 65.50m",
+    "correct": false,
+    "why": "Treated the debt as riskless. The firm can default, and that risk is what the put prices."
+   }
+  ],
+  "working": [
+   {
+    "label": "Riskless PV",
+    "display": "$80e^{-0.2} = 65.50$",
+    "value": 65.5
+   },
+   {
+    "label": "Less the default put",
+    "display": "$65.50 - 6.95 = 58.55$",
+    "value": 58.55
+   }
+  ],
+  "takeaway": "Risky debt = riskless debt minus the default put. Creditors are short that put, so debt always sits below its riskless value.",
+  "check": {
+   "inputs": {
+    "F": 80,
+    "r": 0.04,
+    "T": 5,
+    "put": 6.95
+   },
+   "steps": [
+    {
+     "name": "pv",
+     "expr": "F*exp(-r*T)",
+     "value": 65.4985
+    },
+    {
+     "name": "debt",
+     "expr": "pv-put",
+     "value": 58.5485
+    },
+    {
+     "name": "gap",
+     "expr": "debt-pv",
+     "value": -6.95
+    },
+    {
+     "name": "slip_plus",
+     "expr": "pv+put",
+     "value": 72.4485
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-03",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0385"
+  },
+  "trap_category": "Role",
+  "setup": "Merton model, firm value USD 100.0m. Senior debt (face 60) and subordinated debt (face 40) are both 5-year zero-coupon bonds. Equity is a call struck at total debt: $c(100, 100, 5) = 24.33$. A call struck at the senior face only is $c(100, 60, 5) = 49.33$.",
+  "ask": "The value of the subordinated debt is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2.5m",
+    "correct": false,
+    "why": "Scale slip (0.1×)."
+   },
+   {
+    "label": "≈ USD 25m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 76m",
+    "correct": false,
+    "why": "Took $V - E = 100 - 24.33 = 75.67$, which is ALL the debt, and never took the senior claim out of it."
+   },
+   {
+    "label": "≈ USD 250m",
+    "correct": false,
+    "why": "Scale slip (10×). It is worth more than the whole firm."
+   }
+  ],
+  "working": [
+   {
+    "label": "Equity",
+    "display": "$E = c(100,100,5) = 24.33$",
+    "value": 24.33
+   },
+   {
+    "label": "Senior debt",
+    "display": "$100 - c(100,60,5) = 100 - 49.33 = 50.67$",
+    "value": 50.67
+   },
+   {
+    "label": "Subordinated debt",
+    "display": "$100 - 24.33 - 50.67 = 25.00$",
+    "value": 25.0
+   }
+  ],
+  "takeaway": "Firm value splits three ways: equity + senior + subordinated = V. Subordinated is what is left after equity and senior are taken out.",
+  "check": {
+   "inputs": {
+    "V": 100,
+    "cF": 49.33,
+    "cT": 24.33
+   },
+   "steps": [
+    {
+     "name": "E",
+     "expr": "cT",
+     "value": 24.33
+    },
+    {
+     "name": "senior",
+     "expr": "V-cF",
+     "value": 50.67
+    },
+    {
+     "name": "sub",
+     "expr": "V-E-senior",
+     "value": 25.0
+    },
+    {
+     "name": "slip_alldebt",
+     "expr": "V-E",
+     "value": 75.67
+    },
+    {
+     "name": "slip_scale_up",
+     "expr": "10*sub",
+     "value": 250.0
+    },
+    {
+     "name": "slip_scale_down",
+     "expr": "0.1*sub",
+     "value": 2.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-04",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0387"
+  },
+  "trap_category": "Role",
+  "setup": "Merton model. Firm assets are USD 240m and equity is USD 150m, with equity volatility $\\sigma_E = 30\\%$. $N(d_1) = 0.95$. Ito's lemma links the two volatilities: $\\sigma_E E_0 = N(d_1)\\,\\sigma_V V_0$.",
+  "ask": "Compared with the 30% equity volatility, the asset volatility $\\sigma_V$ is:",
+  "options": [
+   {
+    "label": "Lower",
+    "correct": true
+   },
+   {
+    "label": "Higher",
+    "correct": false,
+    "why": "Inverted the leverage ratio, using $V_0/E_0 = 1.6$ in place of $E_0/V_0$: $0.30 \\times 240/(150 \\times 0.95) = 50.5\\%$. Equity sits on top of debt, so it is the more volatile claim."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed $E_0 = V_0$ and $N(d_1) = 1$ (no debt, no leverage). Here debt is 90m, so equity is a levered claim."
+   }
+  ],
+  "working": [
+   {
+    "label": "Leverage ratio",
+    "display": "$E_0/V_0 = 150/240 = 0.625$",
+    "value": 0.625
+   },
+   {
+    "label": "Asset volatility",
+    "display": "$\\sigma_V = 0.30 \\times 0.625 / 0.95 = 19.7\\%$",
+    "value": 19.74
+   }
+  ],
+  "takeaway": "Equity is a levered call on assets, so $\\sigma_E > \\sigma_V$. The asset volatility is $\\sigma_E$ scaled down by $E_0/V_0$ and up by $1/N(d_1)$.",
+  "check": {
+   "inputs": {
+    "sE": 30,
+    "E": 150,
+    "V": 240,
+    "Nd1": 0.95
+   },
+   "steps": [
+    {
+     "name": "sV",
+     "expr": "sE*E/(Nd1*V)",
+     "value": 19.7368
+    },
+    {
+     "name": "diff",
+     "expr": "sV-sE",
+     "value": -10.2632
+    },
+    {
+     "name": "slip_inverted",
+     "expr": "sE*V/(Nd1*E)",
+     "value": 50.5263
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-05",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0388"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Merton model: assets $V_0 = 120$, one-year zero-coupon debt of face 100, $r = 3\\%$ (continuous), $\\sigma_V = 44\\%$. Given $N(d_1) = 0.7588$ and $N(d_2) = 0.6036$. The riskless present value of the debt is $100e^{-0.03} = 97.04$.",
+  "ask": "The value of equity, the call $V_0 N(d_1) - 97.04\\,N(d_2)$, is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 3.2m",
+    "correct": false,
+    "why": "Scale slip (0.1×)."
+   },
+   {
+    "label": "≈ USD 9.5m",
+    "correct": false,
+    "why": "Reported the value of the default put ($97.04 \\times 0.3964 - 120 \\times 0.2412 = 9.53$) as the equity."
+   },
+   {
+    "label": "≈ USD 32m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 91m",
+    "correct": false,
+    "why": "Stopped after the first term, $120 \\times 0.7588 = 91.06$, and never subtracted the discounted-strike term."
+   }
+  ],
+  "working": [
+   {
+    "label": "First term",
+    "display": "$120 \\times 0.7588 = 91.06$",
+    "value": 91.06
+   },
+   {
+    "label": "Second term",
+    "display": "$97.04 \\times 0.6036 = 58.58$",
+    "value": 58.58
+   },
+   {
+    "label": "Equity",
+    "display": "$91.06 - 58.58 = 32.5$",
+    "value": 32.48
+   }
+  ],
+  "takeaway": "Equity is a call on the assets: a large first term less a large second term. The two are close in size, so the answer is much smaller than either.",
+  "check": {
+   "inputs": {
+    "V": 120,
+    "F": 100,
+    "r": 0.03,
+    "N1": 0.7588,
+    "N2": 0.6036
+   },
+   "steps": [
+    {
+     "name": "pv",
+     "expr": "F*exp(-r)",
+     "value": 97.0446
+    },
+    {
+     "name": "t1",
+     "expr": "V*N1",
+     "value": 91.056
+    },
+    {
+     "name": "t2",
+     "expr": "pv*N2",
+     "value": 58.5761
+    },
+    {
+     "name": "E",
+     "expr": "t1-t2",
+     "value": 32.4799
+    },
+    {
+     "name": "slip_put",
+     "expr": "pv*0.3964-V*0.2412",
+     "value": 9.52446
+    },
+    {
+     "name": "slip_first",
+     "expr": "t1",
+     "value": 91.056
+    },
+    {
+     "name": "slip_scale",
+     "expr": "0.1*E",
+     "value": 3.24799
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-06",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0389"
+  },
+  "trap_category": "Formula",
+  "setup": "Merton model, firm debt maturing in $T = 5$ years, constant asset volatility. The software reports $d_1 = 3.217790$ and $d_2 = 3.038905$. Equity is USD 45m and debt USD 60m.",
+  "ask": "The implied asset volatility $\\sigma_V$ is:",
+  "options": [
+   {
+    "label": "Below 10%",
+    "correct": true
+   },
+   {
+    "label": "Between 10% and 30%",
+    "correct": false,
+    "why": "Read the gap $d_1 - d_2 = 0.179$ as the volatility itself ($17.9\\%$), forgetting the $\\sqrt{T}$."
+   },
+   {
+    "label": "Above 30%",
+    "correct": false,
+    "why": "Multiplied the gap by $\\sqrt{5}$ instead of dividing: $0.179 \\times 2.236 = 40\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "The gap",
+    "display": "$d_1 - d_2 = 0.1789$",
+    "value": 0.1789
+   },
+   {
+    "label": "Volatility",
+    "display": "$\\sigma_V = 0.1789/\\sqrt{5} = 8.0\\%$",
+    "value": 8.0
+   }
+  ],
+  "takeaway": "$d_1 - d_2 = \\sigma_V\\sqrt{T}$ only. The equity and debt values are not needed.",
+  "check": {
+   "inputs": {
+    "d1": 3.21779,
+    "d2": 3.038905,
+    "T": 5
+   },
+   "steps": [
+    {
+     "name": "gap",
+     "expr": "d1-d2",
+     "value": 0.178885
+    },
+    {
+     "name": "sig",
+     "expr": "100*gap/sqrt(T)",
+     "value": 7.99998
+    },
+    {
+     "name": "slip_noT",
+     "expr": "100*gap",
+     "value": 17.8885
+    },
+    {
+     "name": "slip_mult",
+     "expr": "100*gap*sqrt(T)",
+     "value": 39.9999
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0396"
+  },
+  "trap_category": "Sign",
+  "setup": "ICB Corp: assets GBP 25bn, asset volatility 45%, expected asset return 8%, risk-free 3%. Treat GBP 10bn of debt as one zero-coupon liability due in one year. You are building the real-world distance to default $DD = [\\ln(V/D) + (\\mu - \\sigma^2/2)T]/(\\sigma\\sqrt{T})$.",
+  "ask": "The drift term $(\\mu - \\sigma^2/2)T$ is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Saw $\\mu = 8\\%$ and assumed a positive drift. The $\\sigma^2/2$ term is $0.45^2/2 = 10.1\\%$, which is larger than 8%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance drag",
+    "display": "$0.45^2/2 = 0.10125$",
+    "value": 0.10125
+   },
+   {
+    "label": "Drift term",
+    "display": "$0.08 - 0.10125 = -0.02125$",
+    "value": -0.02125
+   },
+   {
+    "label": "Full DD",
+    "display": "$(\\ln 2.5 - 0.02125)/0.45 = 1.99$",
+    "value": 1.989
+   }
+  ],
+  "takeaway": "With high volatility, $\\sigma^2/2$ can exceed the expected return, so the drift in $DD$ can be negative. The $\\ln(V/D)$ term still carries the result.",
+  "check": {
+   "inputs": {
+    "V": 25,
+    "D": 10,
+    "mu": 0.08,
+    "sig": 0.45,
+    "T": 1
+   },
+   "steps": [
+    {
+     "name": "drag",
+     "expr": "sig^2/2",
+     "value": 0.10125
+    },
+    {
+     "name": "drift",
+     "expr": "(mu-drag)*T",
+     "value": -0.02125
+    },
+    {
+     "name": "DD",
+     "expr": "(ln(V/D)+drift)/(sig*sqrt(T))",
+     "value": 1.98898
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-08",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0398"
+  },
+  "trap_category": "Sign",
+  "setup": "Logos International: assets USD 280m, debt face USD 478m due in 7 years. Expected asset return 18%, asset volatility 21%. Debt is larger than assets today. Default probability at maturity is $N(-d_2)$ with $d_2 = [\\ln(V/D) + (\\mu - \\sigma^2/2)T]/(\\sigma\\sqrt{T})$.",
+  "ask": "The probability of default at maturity is:",
+  "options": [
+   {
+    "label": "Below 50%",
+    "correct": true
+   },
+   {
+    "label": "Above 50%",
+    "correct": false,
+    "why": "Looked only at $\\ln(280/478) = -0.535$ (assets below debt) and ignored the seven years of drift, $+1.106$, which flips the numerator positive."
+   }
+  ],
+  "working": [
+   {
+    "label": "Leverage term",
+    "display": "$\\ln(280/478) = -0.535$",
+    "value": -0.535
+   },
+   {
+    "label": "Drift term",
+    "display": "$(0.18 - 0.0221) \\times 7 = +1.106$",
+    "value": 1.106
+   },
+   {
+    "label": "Numerator",
+    "display": "$-0.535 + 1.106 = +0.571 > 0$, so $d_2 \\approx 1.03$ and $PD \\approx 15\\%$",
+    "value": 0.571
+   }
+  ],
+  "takeaway": "Over a long horizon the drift term can outweigh a negative $\\ln(V/D)$. A positive $d_2$ always means a default probability below 50%.",
+  "check": {
+   "inputs": {
+    "V": 280,
+    "D": 478,
+    "mu": 0.18,
+    "sig": 0.21,
+    "T": 7
+   },
+   "steps": [
+    {
+     "name": "lev",
+     "expr": "ln(V/D)",
+     "value": -0.534821
+    },
+    {
+     "name": "drift",
+     "expr": "(mu-sig^2/2)*T",
+     "value": 1.10565
+    },
+    {
+     "name": "num",
+     "expr": "lev+drift",
+     "value": 0.570829
+    },
+    {
+     "name": "d2",
+     "expr": "num/(sig*sqrt(T))",
+     "value": 1.0274
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-09",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0399"
+  },
+  "trap_category": "Scope",
+  "setup": "Company X has assets of USD 1.3m and must repay USD 1.0m of debt in three months. Expected asset return 15% a year, asset volatility 30% a year. Real-world default probability is $N(-d_2)$.",
+  "ask": "The probability of default over the three months is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.006%",
+    "correct": false,
+    "why": "Used $\\sigma T = 0.075$ instead of $\\sigma\\sqrt{T} = 0.15$ in the denominator, so $d_2$ balloons to 3.85."
+   },
+   {
+    "label": "≈ 2.7%",
+    "correct": true
+   },
+   {
+    "label": "≈ 11%",
+    "correct": false,
+    "why": "Dropped the three-month horizon and used $T = 1$: $d_2 = 1.22$, $PD = N(-1.22)$."
+   },
+   {
+    "label": "≈ 97%",
+    "correct": false,
+    "why": "Read $N(d_2)$ (the survival probability) instead of $N(-d_2)$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Leverage term",
+    "display": "$\\ln(1.3) = 0.2624$",
+    "value": 0.2624
+   },
+   {
+    "label": "Drift term",
+    "display": "$(0.15 - 0.045) \\times 0.25 = 0.02625$",
+    "value": 0.02625
+   },
+   {
+    "label": "$d_2$",
+    "display": "$(0.2624 + 0.0263)/(0.30 \\times 0.5) = 1.924$",
+    "value": 1.924
+   },
+   {
+    "label": "PD",
+    "display": "$N(-1.924) \\approx 2.7\\%$",
+    "value": 2.72
+   }
+  ],
+  "takeaway": "Short horizon: both the drift and the denominator shrink with $T$ (as $T$ and $\\sqrt{T}$). Convert 3 months to $T = 0.25$ before anything else.",
+  "check": {
+   "inputs": {
+    "V": 1.3,
+    "D": 1.0,
+    "mu": 0.15,
+    "sig": 0.3,
+    "T": 0.25
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "ln(V/D)+(mu-sig^2/2)*T",
+     "value": 0.288614
+    },
+    {
+     "name": "d2",
+     "expr": "num/(sig*sqrt(T))",
+     "value": 1.9241
+    },
+    {
+     "name": "slip_d2_sigT",
+     "expr": "num/(sig*T)",
+     "value": 3.84819
+    },
+    {
+     "name": "slip_d2_T1",
+     "expr": "(ln(V/D)+(mu-sig^2/2))/sig",
+     "value": 1.22455
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-10",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-9: Estimating Default Probabilities",
+  "reading_id": "CR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0410"
+  },
+  "trap_category": "Role",
+  "setup": "Assets USD 62m, asset volatility 38%, one-year zero-coupon debt of face USD 40m. Risk-free rate 2%; expected asset return 10%. You compute two default probabilities: $N(-d_2)$ with the drift $r$ (risk-neutral) and $N(-d_2)$ with the drift $\\mu$ (real-world).",
+  "ask": "The risk-neutral default probability, compared with the real-world one, is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Thought the lower rate means a safer firm. A lower drift shrinks $d_2$ (here 1.02 against 1.23), and a smaller distance to default means a higher default probability."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Assumed the drift is irrelevant. It enters the numerator of $d_2$ directly, so $r \\ne \\mu$ gives different probabilities."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral $d_2$",
+    "display": "$(\\ln 1.55 + 0.02 - 0.0722)/0.38 = 1.016$",
+    "value": 1.016
+   },
+   {
+    "label": "Real-world $d_2$",
+    "display": "$(\\ln 1.55 + 0.10 - 0.0722)/0.38 = 1.227$",
+    "value": 1.227
+   },
+   {
+    "label": "Probabilities",
+    "display": "Risk-neutral $N(-1.016) = 15.5\\%$; real-world $N(-1.227) = 11.0\\%$",
+    "value": null
+   }
+  ],
+  "takeaway": "A lower drift gives a smaller $d_2$ and a higher PD. Risk-neutral PDs (drift $r$) exceed real-world PDs (drift $\\mu$) whenever $\\mu > r$.",
+  "check": {
+   "inputs": {
+    "V": 62,
+    "D": 40,
+    "r": 0.02,
+    "mu": 0.1,
+    "sig": 0.38,
+    "T": 1
+   },
+   "steps": [
+    {
+     "name": "d2_rn",
+     "expr": "(ln(V/D)+(r-sig^2/2)*T)/(sig*sqrt(T))",
+     "value": 1.01593
+    },
+    {
+     "name": "d2_rw",
+     "expr": "(ln(V/D)+(mu-sig^2/2)*T)/(sig*sqrt(T))",
+     "value": 1.22646
+    },
+    {
+     "name": "gap",
+     "expr": "d2_rw-d2_rn",
+     "value": 0.210526
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-11",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-10: Credit Value at Risk",
+  "reading_id": "CR-10",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0446"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Vasicek model for a granular USD 100m retail book: PD = 2.0%, recovery 50%, copula correlation $\\rho = 0.13$, 99.9% confidence. $N^{-1}(0.02) = -2.054$, $N^{-1}(0.999) = 3.090$. $WCDR = N\\!\\left(\\frac{N^{-1}(PD) + \\sqrt{\\rho}\\,N^{-1}(X)}{\\sqrt{1-\\rho}}\\right)$.",
+  "ask": "The worst-case default rate (WCDR) is closest to:",
+  "options": [
+   {
+    "label": "2%",
+    "correct": false,
+    "why": "Took the worst-case rate to be the PD itself. The whole point of the 99.9% shock is that it pushes the default rate far above the average."
+   },
+   {
+    "label": "4%",
+    "correct": false,
+    "why": "Used $\\rho$ in place of $\\sqrt{\\rho}$ (0.13 against 0.36), which understates the shock: $N(-1.77) = 3.8\\%$."
+   },
+   {
+    "label": "16%",
+    "correct": true
+   },
+   {
+    "label": "87%",
+    "correct": false,
+    "why": "Left out the $\\sqrt{\\rho}$ weight and added the full $N^{-1}(0.999) = 3.09$: $N(1.11) = 86.7\\%$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Shock",
+    "display": "$\\sqrt{0.13} \\times 3.090 = 1.114$",
+    "value": 1.114
+   },
+   {
+    "label": "Argument",
+    "display": "$(-2.054 + 1.114)/\\sqrt{0.87} = -1.007$",
+    "value": -1.007
+   },
+   {
+    "label": "WCDR",
+    "display": "$N(-1.007) \\approx 15.7\\%$",
+    "value": 15.69
+   },
+   {
+    "label": "Credit VaR",
+    "display": "$100 \\times 0.157 \\times 0.50 \\approx \\text{USD } 7.8\\text{m}$",
+    "value": 7.84
+   }
+  ],
+  "takeaway": "A 2% PD turns into a roughly 16% worst-case default rate at 99.9% with $\\rho = 0.13$. Credit VaR is then WCDR $\\times$ EAD $\\times$ LGD.",
+  "check": {
+   "inputs": {
+    "PD": -2.054,
+    "X": 3.09,
+    "rho": 0.13,
+    "EAD": 100,
+    "LGD": 0.5
+   },
+   "steps": [
+    {
+     "name": "shock",
+     "expr": "sqrt(rho)*X",
+     "value": 1.11412
+    },
+    {
+     "name": "arg",
+     "expr": "(PD+shock)/sqrt(1-rho)",
+     "value": -1.00766
+    },
+    {
+     "name": "slip_rho",
+     "expr": "(PD+rho*X)/sqrt(1-rho)",
+     "value": -1.77145
+    },
+    {
+     "name": "slip_full",
+     "expr": "(PD+X)/sqrt(1-rho)",
+     "value": 1.11071
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-12",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0780"
+  },
+  "trap_category": "Scope",
+  "setup": "A bank must post collateral worth USD 30m after haircuts. Haircuts: cash 0%, government bonds 2%, corporate bonds 4%. It posts USD 10m of cash, all USD 12m of government bonds, then enough corporate bonds to cover the rest.",
+  "ask": "The total MARKET value of collateral posted is:",
+  "options": [
+   {
+    "label": "Above USD 30m",
+    "correct": true
+   },
+   {
+    "label": "Exactly USD 30m",
+    "correct": false,
+    "why": "Ignored the haircuts and matched market value to the requirement. Haircuts cut the credit, so more market value is needed."
+   },
+   {
+    "label": "Below USD 30m",
+    "correct": false,
+    "why": "Applied the haircut in the wrong direction, as if the posted value could exceed the credit. The credit is below market value, so market value must be above the credit."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash credit",
+    "display": "$10 \\times 1.00 = 10.00$",
+    "value": 10.0
+   },
+   {
+    "label": "Government credit",
+    "display": "$12 \\times 0.98 = 11.76$",
+    "value": 11.76
+   },
+   {
+    "label": "Remaining credit needed",
+    "display": "$30 - 21.76 = 8.24$",
+    "value": 8.24
+   },
+   {
+    "label": "Corporate market value",
+    "display": "$8.24/0.96 = 8.58$",
+    "value": 8.583
+   },
+   {
+    "label": "Total market value",
+    "display": "$10 + 12 + 8.58 = 30.58$",
+    "value": 30.583
+   }
+  ],
+  "takeaway": "A haircut makes credit smaller than market value. To land on a fixed credit you must post more than that in market value.",
+  "check": {
+   "inputs": {
+    "cash": 10,
+    "gov": 12,
+    "hg": 0.02,
+    "hc": 0.04,
+    "need": 30
+   },
+   "steps": [
+    {
+     "name": "credit_gov",
+     "expr": "gov*(1-hg)",
+     "value": 11.76
+    },
+    {
+     "name": "left",
+     "expr": "need-cash-credit_gov",
+     "value": 8.24
+    },
+    {
+     "name": "corp",
+     "expr": "left/(1-hc)",
+     "value": 8.58333
+    },
+    {
+     "name": "total",
+     "expr": "cash+gov+corp",
+     "value": 30.5833
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-13",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0794"
+  },
+  "trap_category": "Sequence",
+  "setup": "A bank must post collateral worth USD 45m after haircuts. It posts in order: USD 10m cash (haircut 0%), USD 15m of 4-year Treasuries (2%), USD 20m of 4-year corporate bonds (4%), then gold (15%) for any shortfall. Market values of the first three add to exactly 45.",
+  "ask": "After cash, Treasuries and corporates, the credit received is:",
+  "options": [
+   {
+    "label": "Below USD 45m, so gold is still needed",
+    "correct": true
+   },
+   {
+    "label": "Exactly USD 45m, so the call is met",
+    "correct": false,
+    "why": "Added market values (10 + 15 + 20 = 45) instead of post-haircut credit. The requirement is on the credited amount."
+   },
+   {
+    "label": "Above USD 45m",
+    "correct": false,
+    "why": "Applied the haircuts as if they added to value. A haircut can only reduce the credit."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cash",
+    "display": "$10 \\times 1.00 = 10.00$",
+    "value": 10.0
+   },
+   {
+    "label": "Treasuries",
+    "display": "$15 \\times 0.98 = 14.70$",
+    "value": 14.7
+   },
+   {
+    "label": "Corporates",
+    "display": "$20 \\times 0.96 = 19.20$",
+    "value": 19.2
+   },
+   {
+    "label": "Credit so far",
+    "display": "$10 + 14.70 + 19.20 = 43.90 < 45$",
+    "value": 43.9
+   },
+   {
+    "label": "Gold needed",
+    "display": "$1.10 / 0.85 = 1.29$ of market value",
+    "value": 1.294
+   }
+  ],
+  "takeaway": "Check the requirement against credit (after haircuts), never against market value. The shortfall must be topped up with the next asset, grossed up for its own haircut.",
+  "check": {
+   "inputs": {
+    "c": 10,
+    "t": 15,
+    "k": 20,
+    "ht": 0.02,
+    "hk": 0.04,
+    "hg": 0.15,
+    "need": 45
+   },
+   "steps": [
+    {
+     "name": "credit",
+     "expr": "c+t*(1-ht)+k*(1-hk)",
+     "value": 43.9
+    },
+    {
+     "name": "short",
+     "expr": "need-credit",
+     "value": 1.1
+    },
+    {
+     "name": "gold",
+     "expr": "short/(1-hg)",
+     "value": 1.29412
+    },
+    {
+     "name": "mv",
+     "expr": "c+t+k",
+     "value": 45.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-14",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0797"
+  },
+  "trap_category": "Sign",
+  "setup": "One-way CSA: only the hedge fund posts. Threshold USD 65m, minimum transfer amount (MTA) USD 12m, collateral already held USD 50m. The net exposure has risen to USD 110m. Credit support amount = max(exposure - threshold, 0) - collateral held.",
+  "ask": "The credit support amount is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Ignored the threshold and compared exposure with collateral: $110 - 50 = +60$. The threshold of 65 comes off first."
+   }
+  ],
+  "working": [
+   {
+    "label": "Required collateral",
+    "display": "$\\max(110 - 65, 0) = 45$",
+    "value": 45.0
+   },
+   {
+    "label": "Credit support amount",
+    "display": "$45 - 50 = -5$",
+    "value": -5.0
+   },
+   {
+    "label": "Result",
+    "display": "Negative: no additional collateral to post (and $|5| < \\text{MTA} = 12$ anyway)",
+    "value": 0.0
+   }
+  ],
+  "takeaway": "Collateral is only required above the threshold. A negative credit support amount means over-collateralised, and nothing is called.",
+  "check": {
+   "inputs": {
+    "E": 110,
+    "th": 65,
+    "held": 50,
+    "MTA": 12
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "max(E-th,0)",
+     "value": 45.0
+    },
+    {
+     "name": "csa",
+     "expr": "req-held",
+     "value": -5.0
+    },
+    {
+     "name": "slip_nothresh",
+     "expr": "E-held",
+     "value": 60.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq03-15",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-17: Margin (Collateral) and Settlement",
+  "reading_id": "CR-17",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-0803"
+  },
+  "trap_category": "Scope",
+  "setup": "One-way CSA: the hedge fund posts. Threshold CNY 14.0m, minimum transfer amount (MTA) CNY 2.5m, collateral already held CNY 10.8m. The net exposure rises to CNY 27.0m.",
+  "ask": "The credit support amount, compared with the MTA, is:",
+  "options": [
+   {
+    "label": "Below the MTA, so no call is made",
+    "correct": true
+   },
+   {
+    "label": "Above the MTA, so a call is made",
+    "correct": false,
+    "why": "Ignored the threshold: $27.0 - 10.8 = 16.2$, far above 2.5. The threshold of 14.0 comes off the exposure first."
+   }
+  ],
+  "working": [
+   {
+    "label": "Required collateral",
+    "display": "$27.0 - 14.0 = 13.0$",
+    "value": 13.0
+   },
+   {
+    "label": "Credit support amount",
+    "display": "$13.0 - 10.8 = 2.2$",
+    "value": 2.2
+   },
+   {
+    "label": "Against MTA",
+    "display": "$2.2 < 2.5$: no transfer",
+    "value": null
+   }
+  ],
+  "takeaway": "Check the MTA after the threshold: a call below the MTA is simply not made, so the extra collateral is zero.",
+  "check": {
+   "inputs": {
+    "E": 27.0,
+    "th": 14.0,
+    "held": 10.8,
+    "MTA": 2.5
+   },
+   "steps": [
+    {
+     "name": "req",
+     "expr": "max(E-th,0)",
+     "value": 13.0
+    },
+    {
+     "name": "csa",
+     "expr": "req-held",
+     "value": 2.2
+    },
+    {
+     "name": "gap",
+     "expr": "csa-MTA",
+     "value": -0.3
+    },
+    {
+     "name": "slip_nothresh",
+     "expr": "E-held",
+     "value": 16.2
+    }
+   ]
+  }
+ }
+]

@@ -1,0 +1,1897 @@
+[
+ {
+  "id": "SC-bank-CRq05-01",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-20: CVA",
+  "reading_id": "CR-20",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1046"
+  },
+  "trap_category": "Role",
+  "setup": "Unilateral CVA with no wrong-way risk is built from four pieces: loss given default (LGD, the loss on the counterparty's unsecured claim), the discount factor (DF), expected exposure (EE) and the marginal default probability (PD). The bank now takes collateral that it can seize if this counterparty defaults.",
+  "ask": "Which piece of the CVA sum does the collateral change?",
+  "options": [
+   {
+    "label": "Expected exposure (EE)",
+    "correct": true
+   },
+   {
+    "label": "Marginal default probability (PD)",
+    "correct": false,
+    "why": "Treated collateral as improving the counterparty's credit quality. PD reflects the borrower's creditworthiness, not what the bank holds against it."
+   },
+   {
+    "label": "Loss given default (LGD)",
+    "correct": false,
+    "why": "Applied the collateral to the recovery rate. In this formula LGD is the loss on the unsecured claim; the collateral shows up as a smaller exposure at default."
+   }
+  ],
+  "working": [
+   {
+    "label": "What collateral touches",
+    "display": "Seizable assets reduce what the bank stands to lose at default, i.e. the exposure",
+    "value": null
+   },
+   {
+    "label": "What it leaves alone",
+    "display": "PD (credit quality), DF (interest rates) and unsecured-claim LGD are unchanged",
+    "value": null
+   }
+  ],
+  "takeaway": "Collateral works through the exposure term: it lowers EE, not the default probability or the discounting."
+ },
+ {
+  "id": "SC-bank-CRq05-02",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1135"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Pool of 400 loans of USD 1m each paying 4% + 300 bp = 7%. Of the loans, 5% default and pay no interest this period. Bonds: senior 70% of the pool at 5.5%, mezzanine 25% at 9.0%. The equity tranche (5%) takes at most USD 2.0m; any excess goes to a trust account.",
+  "ask": "Interest left after paying the two bond coupons is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.2m",
+    "correct": false,
+    "why": "Subtracted the USD 2.0m equity cap as well. That gives the amount diverted to the trust, one step later than the residual asked for."
+   },
+   {
+    "label": "≈ USD 2.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 3.6m",
+    "correct": false,
+    "why": "Collected interest on all 400 loans (28.0) and ignored the 5% defaults."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest collected",
+    "display": "$400 \\times 7\\% \\times 0.95 = 26.6$",
+    "value": 26.6
+   },
+   {
+    "label": "Bond coupons",
+    "display": "$280 \\times 5.5\\% + 100 \\times 9.0\\% = 15.4 + 9.0 = 24.4$",
+    "value": 24.4
+   },
+   {
+    "label": "Residual",
+    "display": "$26.6 - 24.4 = 2.2$",
+    "value": 2.2
+   },
+   {
+    "label": "Diverted",
+    "display": "$2.2 - 2.0 = 0.2$",
+    "value": 0.2
+   }
+  ],
+  "takeaway": "The residual (2.2) exceeds the equity cap (2.0), so only the sliver above the cap, 0.2, reaches the trust account.",
+  "check": {
+   "inputs": {
+    "N": 400,
+    "r": 0.07,
+    "dflt": 0.05,
+    "cap": 2.0,
+    "senior": 280,
+    "cs": 0.055,
+    "mezz": 100,
+    "cm": 0.09
+   },
+   "steps": [
+    {
+     "name": "coll",
+     "expr": "N*r*(1-dflt)",
+     "value": 26.6
+    },
+    {
+     "name": "bonds",
+     "expr": "senior*cs+mezz*cm",
+     "value": 24.4
+    },
+    {
+     "name": "resid",
+     "expr": "coll-bonds",
+     "value": 2.2
+    },
+    {
+     "name": "diverted",
+     "expr": "resid-cap",
+     "value": 0.2
+    },
+    {
+     "name": "slip_nodefault",
+     "expr": "N*r-bonds",
+     "value": 3.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-03",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1150"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "CLO equity invests USD 5.000m at $t=0$ and receives 0.820, 0.565, 0.310, 0.055 in years 1 to 4 and 6.101 in year 5 (USD m). The total received is 7.851. If all 7.851 arrived at year 5, the annual return would be about 9.4%.",
+  "ask": "The equity IRR on the actual flows is:",
+  "options": [
+   {
+    "label": "Above 9.4%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 9.4%",
+    "correct": false,
+    "why": "Looked only at the total received versus invested and ignored timing. The same total paid earlier earns a higher annual rate."
+   },
+   {
+    "label": "Below 9.4%",
+    "correct": false,
+    "why": "Let the small early payments weigh on the return, forgetting that cash received earlier is worth more than the same cash at year 5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Lump-sum rate",
+    "display": "$(7.851/5)^{1/5} - 1 \\approx 9.4\\%$",
+    "value": 0.0944
+   },
+   {
+    "label": "NPV of actual flows at 9.4%",
+    "display": "$\\approx +0.38 > 0$",
+    "value": 0.38
+   },
+   {
+    "label": "Verdict",
+    "display": "Positive NPV at 9.4% means the IRR is higher (root about 11.4%)",
+    "value": null
+   }
+  ],
+  "takeaway": "Same total, earlier timing: the IRR is higher than the single-payment rate.",
+  "check": {
+   "inputs": {
+    "inv": 5.0,
+    "a1": 0.82,
+    "a2": 0.565,
+    "a3": 0.31,
+    "a4": 0.055,
+    "a5": 6.101
+   },
+   "steps": [
+    {
+     "name": "tot",
+     "expr": "a1+a2+a3+a4+a5",
+     "value": 7.851
+    },
+    {
+     "name": "lump",
+     "expr": "(tot/inv)**(1/5)-1",
+     "value": 0.0944376
+    },
+    {
+     "name": "npv",
+     "expr": "-inv+a1/(1+lump)+a2/(1+lump)**2+a3/(1+lump)**3+a4/(1+lump)**4+a5/(1+lump)**5",
+     "value": 0.381248
+    },
+    {
+     "name": "npv11",
+     "expr": "-inv+a1/1.1144+a2/1.1144**2+a3/1.1144**3+a4/1.1144**4+a5/1.1144**5",
+     "value": 0.00016261
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-04",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1155"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "CLO with 100 loans of USD 1m paying 9.5%, bond coupons USD 6.90m a year. Defaults are 8 in year 1, 7 in year 2 and 7 in year 3. A defaulted loan pays no interest from its default year onward, and interest is paid at year-end by the survivors.",
+  "ask": "Loan interest collected in year 3 is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 7.4m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 8.8m",
+    "correct": false,
+    "why": "Removed only the 7 loans that defaulted in year 3 (93 survivors) and forgot that the earlier 15 defaults stay out."
+   },
+   {
+    "label": "≈ USD 9.5m",
+    "correct": false,
+    "why": "Assumed all 100 loans still pay, i.e. ignored the defaults."
+   }
+  ],
+  "working": [
+   {
+    "label": "Cumulative defaults",
+    "display": "$8 + 7 + 7 = 22$, so 78 survive",
+    "value": 78
+   },
+   {
+    "label": "Interest",
+    "display": "$78 \\times 9.5\\% = 7.41$",
+    "value": 7.41
+   },
+   {
+    "label": "Excess spread",
+    "display": "$7.41 - 6.90 = 0.51$",
+    "value": 0.51
+   }
+  ],
+  "takeaway": "Defaults are cumulative: count every loan lost so far, not just this year's.",
+  "check": {
+   "inputs": {
+    "N": 100,
+    "rate": 0.095,
+    "d1": 8,
+    "d2": 7,
+    "d3": 7,
+    "B": 6.9
+   },
+   "steps": [
+    {
+     "name": "surv",
+     "expr": "N-d1-d2-d3",
+     "value": 78.0
+    },
+    {
+     "name": "L3",
+     "expr": "surv*rate",
+     "value": 7.41
+    },
+    {
+     "name": "xs",
+     "expr": "L3-B",
+     "value": 0.51
+    },
+    {
+     "name": "slip_year_only",
+     "expr": "(N-d3)*rate",
+     "value": 8.835
+    },
+    {
+     "name": "slip_none",
+     "expr": "N*rate",
+     "value": 9.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-05",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1156"
+  },
+  "trap_category": "Role",
+  "setup": "CLO with 100 floating-rate loans of USD 1.0m paying LIBOR + 300 bp. Senior notes USD 75m at LIBOR + 100 bp, junior notes USD 15m at LIBOR + 500 bp, the rest equity. No defaults or fees. LIBOR is flat at 2.0% and then rises to 4.0% with every spread unchanged. At 2.0% the excess spread is USD 1.70m.",
+  "ask": "Annual excess spread at LIBOR 4.0% is:",
+  "options": [
+   {
+    "label": "Higher than 1.70m",
+    "correct": true
+   },
+   {
+    "label": "Unchanged at 1.70m",
+    "correct": false,
+    "why": "Assumed floating assets and liabilities offset exactly. The 10m funded by equity earns LIBOR but pays no coupon, so extra LIBOR is extra excess spread."
+   },
+   {
+    "label": "Lower than 1.70m",
+    "correct": false,
+    "why": "Counted the higher coupons on the notes but forgot that the loans' income rises with LIBOR too."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loan interest",
+    "display": "$100 \\times (4\\% + 3\\%) = 7.00$",
+    "value": 7.0
+   },
+   {
+    "label": "Senior and junior coupons",
+    "display": "$75 \\times 5\\% + 15 \\times 9\\% = 3.75 + 1.35 = 5.10$",
+    "value": 5.1
+   },
+   {
+    "label": "Excess spread",
+    "display": "$7.00 - 5.10 = 1.90$",
+    "value": 1.9
+   }
+  ],
+  "takeaway": "On the unfunded equity slice the loans earn LIBOR and nobody is paid it, so excess spread rises with LIBOR.",
+  "check": {
+   "inputs": {
+    "L0": 0.02,
+    "L1": 0.04,
+    "sc": 0.03,
+    "ss": 0.01,
+    "sj": 0.05,
+    "N": 100,
+    "S": 75,
+    "J": 15
+   },
+   "steps": [
+    {
+     "name": "es0",
+     "expr": "N*(L0+sc)-S*(L0+ss)-J*(L0+sj)",
+     "value": 1.7
+    },
+    {
+     "name": "es1",
+     "expr": "N*(L1+sc)-S*(L1+ss)-J*(L1+sj)",
+     "value": 1.9
+    },
+    {
+     "name": "chg",
+     "expr": "es1-es0",
+     "value": 0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-06",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1158"
+  },
+  "trap_category": "Sequence",
+  "setup": "CLO of 100 loans of EUR 1m at 5.7% (swap 3.5% + 2.2%). Annual bond coupons EUR 5.5m. Year 1: no defaults, so the EUR 0.2m excess spread goes to the OC account. Year 2: 8 loans default and pay nothing, and recoveries of 45% on them (EUR 3.6m) go into the OC account, which earns 3.5%. Any coupon shortfall is paid from the OC account.",
+  "ask": "The OC account at the end of year 2 is:",
+  "options": [
+   {
+    "label": "Below EUR 3.6m",
+    "correct": true
+   },
+   {
+    "label": "Above EUR 3.6m",
+    "correct": false,
+    "why": "Added the opening balance and its interest to the recoveries (3.807m) but did not pay the coupon shortfall out of the account."
+   },
+   {
+    "label": "Exactly EUR 3.6m",
+    "correct": false,
+    "why": "Counted only the recoveries and ignored the opening balance, its interest and the shortfall."
+   }
+  ],
+  "working": [
+   {
+    "label": "Year-2 interest",
+    "display": "$92 \\times 5.7\\% = 5.244$",
+    "value": 5.244
+   },
+   {
+    "label": "Shortfall vs coupons",
+    "display": "$5.244 - 5.5 = -0.256$",
+    "value": -0.256
+   },
+   {
+    "label": "Opening balance with interest",
+    "display": "$0.200 \\times 1.035 = 0.207$",
+    "value": 0.207
+   },
+   {
+    "label": "Closing OC",
+    "display": "$0.207 + 3.600 - 0.256 = 3.551$",
+    "value": 3.551
+   }
+  ],
+  "takeaway": "Opening balance plus interest (0.207) is smaller than the shortfall (0.256), so the account ends slightly under the recoveries.",
+  "check": {
+   "inputs": {
+    "N": 100,
+    "surv": 92,
+    "rate": 0.057,
+    "B": 5.5,
+    "oc1": 0.2,
+    "swap": 0.035,
+    "rec": 3.6
+   },
+   "steps": [
+    {
+     "name": "L2",
+     "expr": "surv*rate",
+     "value": 5.244
+    },
+    {
+     "name": "short",
+     "expr": "L2-B",
+     "value": -0.256
+    },
+    {
+     "name": "open",
+     "expr": "oc1*(1+swap)",
+     "value": 0.207
+    },
+    {
+     "name": "oc2",
+     "expr": "open+rec+short",
+     "value": 3.551
+    },
+    {
+     "name": "slip_noshort",
+     "expr": "open+rec",
+     "value": 3.807
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-07",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-22: Structured Credit Risk",
+  "reading_id": "CR-22",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1159"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "CLO of 100 loans of EUR 1m at 5.7% (swap 3.5% + 2.2%). Bond coupons total EUR 6.3m a year. In year 2, 8 loans default and pay no interest that year. The year-1 OC balance is zero.",
+  "ask": "Year-2 loan interest falls short of the coupons by about:",
+  "options": [
+   {
+    "label": "≈ EUR 0.6m",
+    "correct": false,
+    "why": "Used 100 loans: 5.7 - 6.3 = -0.6. The 8 defaulted loans pay nothing, so 92 loans pay."
+   },
+   {
+    "label": "≈ EUR 1.06m",
+    "correct": true
+   },
+   {
+    "label": "≈ EUR 5.2m",
+    "correct": false,
+    "why": "Quoted the interest collected (5.244) instead of its gap to the coupons."
+   }
+  ],
+  "working": [
+   {
+    "label": "Interest",
+    "display": "$92 \\times 5.7\\% = 5.244$",
+    "value": 5.244
+   },
+   {
+    "label": "Shortfall",
+    "display": "$5.244 - 6.300 = -1.056$",
+    "value": -1.056
+   }
+  ],
+  "takeaway": "Defaulted loans drop out of interest immediately; the shortfall is paid from the OC account, which recoveries then refill.",
+  "check": {
+   "inputs": {
+    "surv": 92,
+    "N": 100,
+    "rate": 0.057,
+    "B": 6.3
+   },
+   "steps": [
+    {
+     "name": "L2",
+     "expr": "surv*rate",
+     "value": 5.244
+    },
+    {
+     "name": "gap",
+     "expr": "B-L2",
+     "value": 1.056
+    },
+    {
+     "name": "slip_all",
+     "expr": "B-N*rate",
+     "value": 0.6
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-08",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1224"
+  },
+  "trap_category": "Definition",
+  "setup": "Credit-card ABS receivables (USD m, mutually exclusive buckets): current 25.20; 30+ days past due 8.25; 60+ days 2.75; 90+ days 1.30. The pool's delinquency ratio is the share of receivables more than 90 days past due.",
+  "ask": "The delinquency ratio is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.35%",
+    "correct": false,
+    "why": "Order-of-magnitude slip (0.1×): wrote 0.0347 as a percentage."
+   },
+   {
+    "label": "≈ 3.5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 10.8%",
+    "correct": false,
+    "why": "Put the 60+ and 90+ buckets in the numerator (4.05 / 37.5)."
+   },
+   {
+    "label": "≈ 33%",
+    "correct": false,
+    "why": "Counted every past-due bucket (12.3 / 37.5) rather than only the 90+ days bucket."
+   }
+  ],
+  "working": [
+   {
+    "label": "Total receivables",
+    "display": "$25.20 + 8.25 + 2.75 + 1.30 = 37.50$",
+    "value": 37.5
+   },
+   {
+    "label": "90+ bucket share",
+    "display": "$1.30 / 37.50 = 3.47\\%$",
+    "value": 0.0347
+   }
+  ],
+  "takeaway": "The delinquency ratio uses only the 90+ day bucket in the numerator, with all receivables in the denominator.",
+  "check": {
+   "inputs": {
+    "cur": 25.2,
+    "b30": 8.25,
+    "b60": 2.75,
+    "b90": 1.3
+   },
+   "steps": [
+    {
+     "name": "tot",
+     "expr": "cur+b30+b60+b90",
+     "value": 37.5
+    },
+    {
+     "name": "dr",
+     "expr": "b90/tot",
+     "value": 0.0346667
+    },
+    {
+     "name": "slip_scale",
+     "expr": "dr/10",
+     "value": 0.00346667
+    },
+    {
+     "name": "slip_60_90",
+     "expr": "(b60+b90)/tot",
+     "value": 0.108
+    },
+    {
+     "name": "slip_all",
+     "expr": "(b30+b60+b90)/tot",
+     "value": 0.328
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-09",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1227"
+  },
+  "trap_category": "Formula",
+  "setup": "A CMBS pool has net operating income of USD 68m from the mortgaged properties. Debt payments on the notes issued against the pool are USD 54m a year. The mortgage pool is worth about USD 5bn.",
+  "ask": "The debt service coverage ratio (DSCR) is:",
+  "options": [
+   {
+    "label": "Above 1",
+    "correct": true
+   },
+   {
+    "label": "Below 1: the properties do not cover the payments",
+    "correct": false,
+    "why": "Inverted the ratio (54 / 68 = 0.79). DSCR is income over debt payments."
+   },
+   {
+    "label": "Far below 1 (about 0.014): the pool value matters",
+    "correct": false,
+    "why": "Divided income by the USD 5bn pool value (68 / 5,000). DSCR compares income with debt payments only."
+   }
+  ],
+  "working": [
+   {
+    "label": "DSCR",
+    "display": "$68 / 54 = 1.26$",
+    "value": 1.259
+   },
+   {
+    "label": "Reading",
+    "display": "Above 1: NOI covers debt service with 26% to spare",
+    "value": null
+   }
+  ],
+  "takeaway": "DSCR = NOI / debt service. The pool value is a distractor, and above 1 means income covers payments.",
+  "check": {
+   "inputs": {
+    "noi": 68,
+    "ds": 54,
+    "pool": 5000
+   },
+   "steps": [
+    {
+     "name": "dscr",
+     "expr": "noi/ds",
+     "value": 1.25926
+    },
+    {
+     "name": "slip_inv",
+     "expr": "ds/noi",
+     "value": 0.794118
+    },
+    {
+     "name": "slip_pool",
+     "expr": "noi/pool",
+     "value": 0.0136
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-10",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1228"
+  },
+  "trap_category": "Definition",
+  "setup": "An MBS holds four pools (USD m at yield): Apartment 24 at 8.4%, Villa 32 at 7.0%, Penthouse 16 at 6.8%, Farmhouse 8 at 5.6%. The plain average of the four yields is 6.95%.",
+  "ask": "The balance-weighted average coupon (WAC) is:",
+  "options": [
+   {
+    "label": "Above 6.95%",
+    "correct": true
+   },
+   {
+    "label": "Equal to 6.95%",
+    "correct": false,
+    "why": "Averaged the four yields without weighting by balance."
+   },
+   {
+    "label": "Below 6.95%",
+    "correct": false,
+    "why": "Assumed the small low-yield pools pull the average down. The two largest pools (Villa and Apartment, 70% of balance) yield 7.0% and 8.4%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted sum",
+    "display": "$24(8.4\\%) + 32(7.0\\%) + 16(6.8\\%) + 8(5.6\\%) = 5.792$",
+    "value": 5.792
+   },
+   {
+    "label": "WAC",
+    "display": "$5.792 / 80 = 7.24\\%$",
+    "value": 0.0724
+   }
+  ],
+  "takeaway": "A weighted average moves toward the big balances; here the two biggest pools sit above the plain average.",
+  "check": {
+   "inputs": {
+    "b1": 24,
+    "b2": 32,
+    "b3": 16,
+    "b4": 8,
+    "y1": 0.084,
+    "y2": 0.07,
+    "y3": 0.068,
+    "y4": 0.056
+   },
+   "steps": [
+    {
+     "name": "simple",
+     "expr": "(y1+y2+y3+y4)/4",
+     "value": 0.0695
+    },
+    {
+     "name": "wac",
+     "expr": "(b1*y1+b2*y2+b3*y3+b4*y4)/(b1+b2+b3+b4)",
+     "value": 0.0724
+    },
+    {
+     "name": "gap",
+     "expr": "wac-simple",
+     "value": 0.0029
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-11",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1230"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "An MBS has four pools (balance in USD m, maturity in days): 2 at 90, 3 at 180, 5 at 270 and 10 at 360. The weighted average maturity is the sum of balance $\\times$ maturity divided by the total balance (20).",
+  "ask": "In the sum of balance × maturity, the 360-day pool's share is closest to:",
+  "options": [
+   {
+    "label": "≈ 40%",
+    "correct": false,
+    "why": "Compared maturities only (360 / 900) and ignored the balances."
+   },
+   {
+    "label": "≈ 50%",
+    "correct": false,
+    "why": "Compared balances only (10 / 20) and ignored the maturities."
+   },
+   {
+    "label": "≈ 63%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted sum",
+    "display": "$180 + 540 + 1350 + 3600 = 5670$",
+    "value": 5670
+   },
+   {
+    "label": "Largest term",
+    "display": "$3600 / 5670 = 63\\%$",
+    "value": 0.635
+   },
+   {
+    "label": "WAM",
+    "display": "$5670 / 20 = 283.5$ days",
+    "value": 283.5
+   }
+  ],
+  "takeaway": "The big, long pool dominates the weighted sum, so the WAM (about 284 days) sits close to 360, well above the plain average of 225.",
+  "check": {
+   "inputs": {
+    "b1": 2,
+    "b2": 3,
+    "b3": 5,
+    "b4": 10,
+    "m1": 90,
+    "m2": 180,
+    "m3": 270,
+    "m4": 360
+   },
+   "steps": [
+    {
+     "name": "ws",
+     "expr": "b1*m1+b2*m2+b3*m3+b4*m4",
+     "value": 5670.0
+    },
+    {
+     "name": "share",
+     "expr": "b4*m4/ws",
+     "value": 0.634921
+    },
+    {
+     "name": "wam",
+     "expr": "ws/(b1+b2+b3+b4)",
+     "value": 283.5
+    },
+    {
+     "name": "slip_mat_only",
+     "expr": "m4/(m1+m2+m3+m4)",
+     "value": 0.4
+    },
+    {
+     "name": "slip_bal_only",
+     "expr": "b4/(b1+b2+b3+b4)",
+     "value": 0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-12",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1231"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A USD 1,000,000 mortgage amortizes over ten years with level annual payments of USD 135,868 at 6.0%. The principal repaid rises steadily from USD 75,868 in year 1 to USD 128,177 in year 10 and sums to USD 1,000,000. Ten equal repayments of USD 100,000 would give a weighted average life (WAL) of 5.5 years.",
+  "ask": "The WAL of this loan is:",
+  "options": [
+   {
+    "label": "Above 5.5 years",
+    "correct": true
+   },
+   {
+    "label": "Exactly 5.5 years",
+    "correct": false,
+    "why": "Treated level payments as equal principal repayments. Only the total payment is level; the principal share grows."
+   },
+   {
+    "label": "Below 5.5 years",
+    "correct": false,
+    "why": "Thought the large early interest portion shortens the life. WAL weights only principal, and principal is back-loaded."
+   }
+  ],
+  "working": [
+   {
+    "label": "Weighted sum",
+    "display": "$\\sum t \\times \\text{principal}_t = 5{,}977{,}985$",
+    "value": 5977985
+   },
+   {
+    "label": "WAL",
+    "display": "$5{,}977{,}985 / 1{,}000{,}000 = 5.98$ years",
+    "value": 5.978
+   }
+  ],
+  "takeaway": "Rising principal repayments put more weight on later years, so WAL is above the equal-principal 5.5 years.",
+  "check": {
+   "inputs": {
+    "p1": 75868,
+    "p2": 80420,
+    "p3": 85245,
+    "p4": 90360,
+    "p5": 95782,
+    "p6": 101528,
+    "p7": 107620,
+    "p8": 114077,
+    "p9": 120922,
+    "p10": 128177,
+    "L": 1000000
+   },
+   "steps": [
+    {
+     "name": "tot",
+     "expr": "p1+p2+p3+p4+p5+p6+p7+p8+p9+p10",
+     "value": 999999.0
+    },
+    {
+     "name": "ws",
+     "expr": "p1+2*p2+3*p3+4*p4+5*p5+6*p6+7*p7+8*p8+9*p9+10*p10",
+     "value": 5977980.0
+    },
+    {
+     "name": "wal",
+     "expr": "ws/L",
+     "value": 5.97799
+    },
+    {
+     "name": "gap",
+     "expr": "wal-5.5",
+     "value": 0.477985
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-13",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1235"
+  },
+  "trap_category": "Formula",
+  "setup": "A mortgage pool prepays at a single monthly mortality (SMM) rate of 0.45% of the outstanding balance each month.",
+  "ask": "The annualized prepayment rate (CPR) is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.04%",
+    "correct": false,
+    "why": "Divided by 12 instead of compounding up to a year."
+   },
+   {
+    "label": "≈ 0.45%",
+    "correct": false,
+    "why": "Read the monthly SMM as if it were already the annual CPR."
+   },
+   {
+    "label": "≈ 5.3%",
+    "correct": true
+   },
+   {
+    "label": "≈ 95%",
+    "correct": false,
+    "why": "Stopped at the survival factor $(1-\text{SMM})^{12}$ and forgot to subtract it from 1."
+   }
+  ],
+  "working": [
+   {
+    "label": "Twelve-month survival",
+    "display": "$(1 - 0.0045)^{12} = 0.9473$",
+    "value": 0.9473
+   },
+   {
+    "label": "CPR",
+    "display": "$1 - 0.9473 = 5.27\\%$",
+    "value": 0.0527
+   }
+  ],
+  "takeaway": "CPR = 1 - (1 - SMM)^12: a tiny monthly rate becomes a few percent a year.",
+  "check": {
+   "inputs": {
+    "smm": 0.0045
+   },
+   "steps": [
+    {
+     "name": "surv",
+     "expr": "(1-smm)**12",
+     "value": 0.947317
+    },
+    {
+     "name": "cpr",
+     "expr": "1-surv",
+     "value": 0.0526833
+    },
+    {
+     "name": "slip_div12",
+     "expr": "smm/12",
+     "value": 0.000375
+    },
+    {
+     "name": "slip_same",
+     "expr": "smm",
+     "value": 0.0045
+    },
+    {
+     "name": "slip_surv",
+     "expr": "surv",
+     "value": 0.947317
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-14",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1237"
+  },
+  "trap_category": "Formula",
+  "setup": "A mortgage pool prepays at 175% PSA. The 100% PSA benchmark has a CPR rising 0.2 percentage points per month until it reaches 6% at month 30.",
+  "ask": "The single monthly mortality (SMM) rate in month 10 is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.003%",
+    "correct": false,
+    "why": "Percent-as-decimal slip: read 0.002965 as a percentage figure of 0.003%."
+   },
+   {
+    "label": "≈ 0.30%",
+    "correct": true
+   },
+   {
+    "label": "≈ 3.5%",
+    "correct": false,
+    "why": "Used the annual CPR as if it were the monthly rate."
+   },
+   {
+    "label": "≈ 35%",
+    "correct": false,
+    "why": "Compounded the annual CPR up with $1-(1-\text{CPR})^{12}$ instead of down to a month."
+   }
+  ],
+  "working": [
+   {
+    "label": "100% PSA CPR, month 10",
+    "display": "$0.2\\% \\times 10 = 2.0\\%$",
+    "value": 0.02
+   },
+   {
+    "label": "At 175% PSA",
+    "display": "$1.75 \\times 2.0\\% = 3.5\\%$",
+    "value": 0.035
+   },
+   {
+    "label": "SMM",
+    "display": "$1 - (1 - 0.035)^{1/12} = 0.2965\\%$",
+    "value": 0.002965
+   }
+  ],
+  "takeaway": "SMM is the monthly equivalent of CPR: about CPR/12, here 3.5% / 12 = 0.29%.",
+  "check": {
+   "inputs": {
+    "m": 10,
+    "psa": 1.75,
+    "step": 0.002
+   },
+   "steps": [
+    {
+     "name": "cpr",
+     "expr": "psa*step*m",
+     "value": 0.035
+    },
+    {
+     "name": "smm",
+     "expr": "1-(1-cpr)**(1/12)",
+     "value": 0.00296453
+    },
+    {
+     "name": "slip_cpr",
+     "expr": "cpr",
+     "value": 0.035
+    },
+    {
+     "name": "slip_comp",
+     "expr": "1-(1-cpr)**12",
+     "value": 0.34788
+    },
+    {
+     "name": "slip_pct",
+     "expr": "smm/100",
+     "value": 2.96453e-05
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-15",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1239"
+  },
+  "trap_category": "Sequence",
+  "setup": "Sequential-pay CMO on an USD 800m pool (WAC 7.2%). Month 1: the pool's total scheduled payment is USD 5.430m (interest plus scheduled principal). Prepayments run at 200% PSA, so the month-1 CPR is $2 \\times 0.2\\% = 0.4\\%$. Prepayment equals SMM times the balance after scheduled principal.",
+  "ask": "The month-1 prepayment is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.27m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 2.7m",
+    "correct": false,
+    "why": "Decimal slip: used an SMM of 0.334% instead of 0.0334%."
+   },
+   {
+    "label": "≈ USD 3.2m",
+    "correct": false,
+    "why": "Applied the annual CPR (0.4%) directly to the balance without converting to a monthly rate."
+   }
+  ],
+  "working": [
+   {
+    "label": "Pool interest",
+    "display": "$0.072/12 \\times 800 = 4.800$",
+    "value": 4.8
+   },
+   {
+    "label": "Scheduled principal",
+    "display": "$5.430 - 4.800 = 0.630$",
+    "value": 0.63
+   },
+   {
+    "label": "SMM",
+    "display": "$1 - (1 - 0.004)^{1/12} = 0.0334\\%$",
+    "value": 0.000334
+   },
+   {
+    "label": "Prepayment",
+    "display": "$0.000334 \\times (800 - 0.63) = 0.267$",
+    "value": 0.267
+   }
+  ],
+  "takeaway": "Convert the annual CPR to a monthly SMM before applying it: 0.4% a year is only about 0.03% a month.",
+  "check": {
+   "inputs": {
+    "bal": 800,
+    "wac": 0.072,
+    "pay": 5.43,
+    "cpr": 0.004
+   },
+   "steps": [
+    {
+     "name": "int",
+     "expr": "wac/12*bal",
+     "value": 4.8
+    },
+    {
+     "name": "sched",
+     "expr": "pay-int",
+     "value": 0.63
+    },
+    {
+     "name": "smm",
+     "expr": "1-(1-cpr)**(1/12)",
+     "value": 0.000333946
+    },
+    {
+     "name": "prepay",
+     "expr": "smm*(bal-sched)",
+     "value": 0.266946
+    },
+    {
+     "name": "slip_cpr",
+     "expr": "cpr*(bal-sched)",
+     "value": 3.19748
+    },
+    {
+     "name": "slip_dec",
+     "expr": "10*prepay",
+     "value": 2.66946
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-16",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1241"
+  },
+  "trap_category": "Sequence",
+  "setup": "A pass-through assumes 200% PSA. The pool is 60 months old (original maturity 360 months). The 100% PSA benchmark has a CPR rising 0.2 percentage points a month to 6% at month 30, and staying at 6% after that.",
+  "ask": "The CPR applied in month 60 is:",
+  "options": [
+   {
+    "label": "6%",
+    "correct": false,
+    "why": "Forgot the 200% multiplier and used the 100% benchmark plateau."
+   },
+   {
+    "label": "12%",
+    "correct": true
+   },
+   {
+    "label": "24%",
+    "correct": false,
+    "why": "Kept the ramp going to month 60 ($0.2\\% \\times 60 = 12\\%$) before doubling, ignoring the 6% plateau."
+   }
+  ],
+  "working": [
+   {
+    "label": "100% PSA CPR, month 60",
+    "display": "$\\min(0.2\\% \\times 60,\\ 6\\%) = 6\\%$",
+    "value": 0.06
+   },
+   {
+    "label": "At 200% PSA",
+    "display": "$2 \\times 6\\% = 12\\%$",
+    "value": 0.12
+   },
+   {
+    "label": "SMM",
+    "display": "$1 - (1 - 0.12)^{1/12} = 1.06\\%$",
+    "value": 0.0106
+   }
+  ],
+  "takeaway": "The PSA ramp stops at month 30: apply the speed multiplier to the capped 6%, not the extended ramp.",
+  "check": {
+   "inputs": {
+    "m": 60,
+    "psa": 2,
+    "step": 0.002,
+    "cap": 0.06
+   },
+   "steps": [
+    {
+     "name": "bench",
+     "expr": "min(step*m,cap)",
+     "value": 0.06
+    },
+    {
+     "name": "cpr",
+     "expr": "psa*bench",
+     "value": 0.12
+    },
+    {
+     "name": "smm",
+     "expr": "1-(1-cpr)**(1/12)",
+     "value": 0.0105962
+    },
+    {
+     "name": "slip_noplateau",
+     "expr": "psa*step*m",
+     "value": 0.24
+    },
+    {
+     "name": "slip_nomult",
+     "expr": "bench",
+     "value": 0.06
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-17",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-23: An Introduction to Securitisation",
+  "reading_id": "CR-23",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-QB-1247"
+  },
+  "trap_category": "Scope",
+  "setup": "A mortgage pool is 20 months old and prepays at a CPR of 6.0% a year. The 100% PSA benchmark has a CPR rising 0.2 percentage points a month up to 6% at month 30, then flat.",
+  "ask": "Relative to 100% PSA, the pool's speed is:",
+  "options": [
+   {
+    "label": "Faster than 100% PSA",
+    "correct": true
+   },
+   {
+    "label": "Exactly 100% PSA",
+    "correct": false,
+    "why": "Matched the pool's 6.0% to the benchmark's 6% plateau. At month 20 the benchmark is still on the ramp, at 4.0%."
+   },
+   {
+    "label": "Slower than 100% PSA",
+    "correct": false,
+    "why": "Read a young pool as a slow one without comparing 6.0% with the month-20 benchmark of 4.0%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Benchmark at month 20",
+    "display": "$0.2\\% \\times 20 = 4.0\\%$",
+    "value": 0.04
+   },
+   {
+    "label": "PSA speed",
+    "display": "$6.0\\% / 4.0\\% = 150\\%$",
+    "value": 1.5
+   }
+  ],
+  "takeaway": "Compare CPR with the benchmark at the pool's own age, not with the 6% ceiling.",
+  "check": {
+   "inputs": {
+    "age": 20,
+    "step": 0.002,
+    "cpr": 0.06
+   },
+   "steps": [
+    {
+     "name": "bench",
+     "expr": "step*age",
+     "value": 0.04
+    },
+    {
+     "name": "psa",
+     "expr": "cpr/bench",
+     "value": 1.5
+    },
+    {
+     "name": "excess",
+     "expr": "cpr-bench",
+     "value": 0.02
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-18",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-4d-3"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A term loan has exposure SGD 20m, one-year PD 2.0% (Bernoulli default) and a loss rate with mean 40% and standard deviation 25%. Exposure, loss rate and default are independent. Per unit of exposure the loss variance is $\\text{PD}\\cdot\\sigma^2_{LR} + \\text{LR}^2\\cdot\\sigma^2_{PD}$, with $\\sigma^2_{PD} = \\text{PD}(1-\\text{PD})$.",
+  "ask": "Which term contributes most of the loss variance?",
+  "options": [
+   {
+    "label": "The default-indicator term, $\\text{LR}^2\\sigma^2_{PD}$",
+    "correct": true
+   },
+   {
+    "label": "The loss-rate term, $\\text{PD}\\cdot\\sigma^2_{LR}$",
+    "correct": false,
+    "why": "Compared the 25% loss-rate volatility with the 2% PD. The loss-rate term is scaled by PD, while default itself has a volatility $\\sigma_{PD} = \\sqrt{0.0196} = 14\\%$."
+   },
+   {
+    "label": "They are about equal",
+    "correct": false,
+    "why": "Ignored the factors LR² and PD that multiply each variance; the two terms differ by a factor of 2.5."
+   }
+  ],
+  "working": [
+   {
+    "label": "Default term",
+    "display": "$0.40^2 \\times 0.0196 = 0.003136$",
+    "value": 0.003136
+   },
+   {
+    "label": "Loss-rate term",
+    "display": "$0.02 \\times 0.25^2 = 0.00125$",
+    "value": 0.00125
+   },
+   {
+    "label": "Standalone UL",
+    "display": "$20\\sqrt{0.004386} = 1.32$",
+    "value": 1.32
+   }
+  ],
+  "takeaway": "Most of a loan's unexpected loss comes from whether it defaults, not from how much is lost if it does.",
+  "check": {
+   "inputs": {
+    "PD": 0.02,
+    "LR": 0.4,
+    "sLR": 0.25,
+    "EA": 20
+   },
+   "steps": [
+    {
+     "name": "vpd",
+     "expr": "PD*(1-PD)",
+     "value": 0.0196
+    },
+    {
+     "name": "tdef",
+     "expr": "LR**2*vpd",
+     "value": 0.003136
+    },
+    {
+     "name": "tlr",
+     "expr": "PD*sLR**2",
+     "value": 0.00125
+    },
+    {
+     "name": "share",
+     "expr": "tdef/(tdef+tlr)",
+     "value": 0.715002
+    },
+    {
+     "name": "ul",
+     "expr": "EA*sqrt(tdef+tlr)",
+     "value": 1.32454
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-19",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-4e-5"
+  },
+  "trap_category": "Formula",
+  "setup": "A GBP 12m corporate loan has a known loss rate of 45% (standard deviation zero) and Bernoulli default. After a downgrade the one-year PD rises from 1% to 4%; exposure and loss rate do not change. Expected loss quadruples with PD.",
+  "ask": "The standalone unexpected loss rises by a factor of about:",
+  "options": [
+   {
+    "label": "2",
+    "correct": true
+   },
+   {
+    "label": "4",
+    "correct": false,
+    "why": "Scaled UL linearly with PD like expected loss. UL depends on $\\sqrt{\\text{PD}(1-\\text{PD})}$."
+   },
+   {
+    "label": "16",
+    "correct": false,
+    "why": "Squared the PD ratio instead of taking a square root; UL is a standard deviation, not a variance."
+   }
+  ],
+  "working": [
+   {
+    "label": "Before",
+    "display": "$\\sqrt{0.01 \\times 0.99} = 0.0995$",
+    "value": 0.0995
+   },
+   {
+    "label": "After",
+    "display": "$\\sqrt{0.04 \\times 0.96} = 0.1960$",
+    "value": 0.196
+   },
+   {
+    "label": "Ratio",
+    "display": "$0.1960 / 0.0995 = 1.97$",
+    "value": 1.97
+   }
+  ],
+  "takeaway": "With the loss rate known, UL grows with the square root of PD: PD up 4 times, UL up about 2 times.",
+  "check": {
+   "inputs": {
+    "p0": 0.01,
+    "p1": 0.04
+   },
+   "steps": [
+    {
+     "name": "s0",
+     "expr": "sqrt(p0*(1-p0))",
+     "value": 0.0994987
+    },
+    {
+     "name": "s1",
+     "expr": "sqrt(p1*(1-p1))",
+     "value": 0.195959
+    },
+    {
+     "name": "ratio",
+     "expr": "s1/s0",
+     "value": 1.96946
+    },
+    {
+     "name": "slip_linear",
+     "expr": "p1/p0",
+     "value": 4.0
+    },
+    {
+     "name": "slip_square",
+     "expr": "(p1/p0)**2",
+     "value": 16.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-20",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-4e-6"
+  },
+  "trap_category": "Formula",
+  "setup": "A credit model reports the standard deviation of a performing borrower's default probability as 21.79%, and says default is a Bernoulli event. Let $\\sigma^2_{PD}$ be the square of that figure.",
+  "ask": "The borrower's one-year PD, relative to $\\sigma^2_{PD}$, is:",
+  "options": [
+   {
+    "label": "Slightly above $\\sigma^2_{PD}$",
+    "correct": true
+   },
+   {
+    "label": "Equal to $\\sigma^2_{PD}$",
+    "correct": false,
+    "why": "Treated the variance as the PD itself, forgetting the factor $(1-\\text{PD})$ in $\\text{PD}(1-\\text{PD})$."
+   },
+   {
+    "label": "Below $\\sigma^2_{PD}$",
+    "correct": false,
+    "why": "Flipped the inequality. Since $(1-\\text{PD}) < 1$, PD must be larger than the variance it produces."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "$0.2179^2 = 0.04748$",
+    "value": 0.04748
+   },
+   {
+    "label": "Solve",
+    "display": "$\\text{PD}(1-\\text{PD}) = 0.04748 \\Rightarrow \\text{PD} = 5.00\\%$",
+    "value": 0.05
+   },
+   {
+    "label": "Check",
+    "display": "$\\sqrt{0.05 \\times 0.95} = 0.2179$",
+    "value": 0.2179
+   }
+  ],
+  "takeaway": "For Bernoulli default, variance = PD(1 - PD), which is slightly below PD for small PD: PD is a little above the variance.",
+  "check": {
+   "inputs": {
+    "sd": 0.2179,
+    "pd": 0.05
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "sd**2",
+     "value": 0.0474804
+    },
+    {
+     "name": "back",
+     "expr": "sqrt(pd*(1-pd))",
+     "value": 0.217945
+    },
+    {
+     "name": "gap",
+     "expr": "pd-var",
+     "value": 0.00251959
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-21",
+  "mode": "magnitude",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-4f-7"
+  },
+  "trap_category": "Scope",
+  "setup": "Portfolio of 1,000 identical loans, each CAD 5m exposure, PD 1.0% (Bernoulli), loss rate 50% known with certainty, pairwise default correlation 0.05. For identical loans, $\\text{ULC}_i = \\text{UL}_i\\sqrt{1/n + \\rho(1 - 1/n)}$.",
+  "ask": "The unexpected loss contribution of one loan is closest to:",
+  "options": [
+   {
+    "label": "≈ CAD 8,000",
+    "correct": false,
+    "why": "Assumed full diversification, $\\text{UL}_i\\sqrt{1/n}$, and left out the correlation term."
+   },
+   {
+    "label": "≈ CAD 56,000",
+    "correct": true
+   },
+   {
+    "label": "≈ CAD 250,000",
+    "correct": false,
+    "why": "Quoted the loan's standalone UL; the contribution is only a fraction of it once correlation is below 1."
+   },
+   {
+    "label": "≈ CAD 2.5m",
+    "correct": false,
+    "why": "Used the loss given default $\\text{EA}\\times\\text{LR}$ and left out the default volatility $\\sqrt{\\text{PD}(1-\\text{PD})}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Standalone UL",
+    "display": "$5\\text{m} \\times 0.5 \\times \\sqrt{0.01 \\times 0.99} = 248{,}700$",
+    "value": 248700
+   },
+   {
+    "label": "Diversification factor",
+    "display": "$\\sqrt{0.001 + 0.05 \\times 0.999} = 0.2257$",
+    "value": 0.2257
+   },
+   {
+    "label": "ULC",
+    "display": "$248{,}700 \\times 0.2257 \\approx 56{,}100$",
+    "value": 56100
+   }
+  ],
+  "takeaway": "Default correlation, not the number of loans, sets how much of its standalone UL a loan contributes.",
+  "check": {
+   "inputs": {
+    "EA": 5000000,
+    "LR": 0.5,
+    "PD": 0.01,
+    "rho": 0.05,
+    "n": 1000
+   },
+   "steps": [
+    {
+     "name": "ul",
+     "expr": "EA*LR*sqrt(PD*(1-PD))",
+     "value": 248747.0
+    },
+    {
+     "name": "f",
+     "expr": "sqrt(1/n+rho*(1-1/n))",
+     "value": 0.225721
+    },
+    {
+     "name": "ulc",
+     "expr": "ul*f",
+     "value": 56147.4
+    },
+    {
+     "name": "slip_divers",
+     "expr": "ul*sqrt(1/n)",
+     "value": 7866.07
+    },
+    {
+     "name": "slip_standalone",
+     "expr": "ul",
+     "value": 248747.0
+    },
+    {
+     "name": "slip_noPD",
+     "expr": "EA*LR",
+     "value": 2500000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-22",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-4: Capital Structure in Banks",
+  "reading_id": "CR-4",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-4f-9"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A homogeneous pool of 200 equal loans has standalone UL of GBP 0.30m per loan and portfolio UL of GBP 10.0m. For identical loans, $\\text{UL}_P^2 = \\text{UL}_i^2\\,[\\,n + \\rho(n^2 - n)\\,]$, so the squared ratio $(\\text{UL}_P/\\text{UL}_i)^2$ is about 1,111.",
+  "ask": "After taking out the $n = 200$ own-variance terms, what remains for the covariance part is closest to:",
+  "options": [
+   {
+    "label": "≈ 911",
+    "correct": true
+   },
+   {
+    "label": "≈ 1,111",
+    "correct": false,
+    "why": "Left the 200 own-variance terms in the covariance part."
+   },
+   {
+    "label": "≈ 1,311",
+    "correct": false,
+    "why": "Added the 200 own-variance terms instead of subtracting them."
+   }
+  ],
+  "working": [
+   {
+    "label": "Squared ratio",
+    "display": "$(10.0 / 0.30)^2 = 1{,}111$",
+    "value": 1111.1
+   },
+   {
+    "label": "Covariance part",
+    "display": "$1{,}111 - 200 = 911$",
+    "value": 911.1
+   },
+   {
+    "label": "Implied correlation",
+    "display": "$911 / (200^2 - 200) = 0.0229$",
+    "value": 0.0229
+   }
+  ],
+  "takeaway": "Square the UL ratio first, then strip out the n diagonal terms; what is left over measures correlation.",
+  "check": {
+   "inputs": {
+    "ULp": 10.0,
+    "ULi": 0.3,
+    "n": 200
+   },
+   "steps": [
+    {
+     "name": "ratio2",
+     "expr": "(ULp/ULi)**2",
+     "value": 1111.11
+    },
+    {
+     "name": "cov",
+     "expr": "ratio2-n",
+     "value": 911.111
+    },
+    {
+     "name": "rho",
+     "expr": "cov/(n**2-n)",
+     "value": 0.0228922
+    },
+    {
+     "name": "slip_keep",
+     "expr": "ratio2",
+     "value": 1111.11
+    },
+    {
+     "name": "slip_add",
+     "expr": "ratio2+n",
+     "value": 1311.11
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-23",
+  "mode": "direction",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-5e-5"
+  },
+  "trap_category": "Role",
+  "setup": "A borrower has a single zero-coupon debt of KRW 700bn due in 3 years. Assets are KRW 900bn with 22% volatility. The risk-free rate is 3% (continuous) and the expected asset return is 11%. Merton default probability is $N(-d_2)$ with $d_2 = [\\ln(V/D) + (m - \\sigma^2/2)T]/(\\sigma\\sqrt{T})$, using drift $m = r$ for the risk-neutral PD and $m = \\mu$ for the real-world PD.",
+  "ask": "Compared with the real-world PD, the risk-neutral PD is:",
+  "options": [
+   {
+    "label": "Higher",
+    "correct": true
+   },
+   {
+    "label": "Lower",
+    "correct": false,
+    "why": "Assumed the 11% expected return makes default more likely. A higher drift pushes assets away from the debt, lowering PD."
+   },
+   {
+    "label": "The same",
+    "correct": false,
+    "why": "Treated the drift as irrelevant. The drift moves the whole asset-value distribution, so the two PDs differ."
+   }
+  ],
+  "working": [
+   {
+    "label": "Risk-neutral $d_2$",
+    "display": "$(0.2513 + 0.0174)/0.3811 = 0.705$, PD $= 24.0\\%$",
+    "value": 0.705
+   },
+   {
+    "label": "Real-world $d_2$",
+    "display": "$(0.2513 + 0.2574)/0.3811 = 1.335$, PD $= 9.1\\%$",
+    "value": 1.335
+   }
+  ],
+  "takeaway": "Risk-neutral drift (r = 3%) is lower than the real-world drift (11%), so the risk-neutral PD is the larger.",
+  "check": {
+   "inputs": {
+    "V": 900,
+    "D": 700,
+    "sig": 0.22,
+    "T": 3,
+    "r": 0.03,
+    "mu": 0.11
+   },
+   "steps": [
+    {
+     "name": "den",
+     "expr": "sig*sqrt(T)",
+     "value": 0.381051
+    },
+    {
+     "name": "d2rn",
+     "expr": "(log(V/D)+(r-sig**2/2)*T)/den",
+     "value": 0.705192
+    },
+    {
+     "name": "d2rw",
+     "expr": "(log(V/D)+(mu-sig**2/2)*T)/den",
+     "value": 1.33503
+    },
+    {
+     "name": "gap",
+     "expr": "d2rw-d2rn",
+     "value": 0.629837
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-CRq05-24",
+  "mode": "intermediate",
+  "area": "CR",
+  "reading": "CR-5: Introduction to Credit Risk Modeling and Assessment",
+  "reading_id": "CR-5",
+  "source": {
+   "kind": "bank",
+   "questionId": "CR-WB-5e-6"
+  },
+  "trap_category": "Definition",
+  "setup": "A firm has assets of USD 2,400m, short-term debt of USD 900m and long-term debt of USD 1,000m. The Moody's KMV approach sets the default point from these debts.",
+  "ask": "The KMV default point is:",
+  "options": [
+   {
+    "label": "USD 900m",
+    "correct": false,
+    "why": "Counted short-term debt only."
+   },
+   {
+    "label": "USD 1,400m",
+    "correct": true
+   },
+   {
+    "label": "USD 1,900m",
+    "correct": false,
+    "why": "Counted all debt at face value. KMV counts only half of long-term debt."
+   }
+  ],
+  "working": [
+   {
+    "label": "Default point",
+    "display": "$\\text{STD} + 0.5\\,\\text{LTD} = 900 + 500 = 1{,}400$",
+    "value": 1400
+   },
+   {
+    "label": "Distance to default",
+    "display": "$[\\ln(2400/1400) + (0.04 - 0.18^2/2)]/0.18 = 3.13$",
+    "value": 3.13
+   }
+  ],
+  "takeaway": "KMV default point = short-term debt plus half of long-term debt.",
+  "check": {
+   "inputs": {
+    "std": 900,
+    "ltd": 1000,
+    "V": 2400,
+    "sig": 0.18,
+    "r": 0.04
+   },
+   "steps": [
+    {
+     "name": "dp",
+     "expr": "std+0.5*ltd",
+     "value": 1400.0
+    },
+    {
+     "name": "dd",
+     "expr": "(log(V/dp)+(r-sig**2/2))/sig",
+     "value": 3.12665
+    },
+    {
+     "name": "slip_all",
+     "expr": "std+ltd",
+     "value": 1900.0
+    },
+    {
+     "name": "slip_std",
+     "expr": "std",
+     "value": 900.0
+    }
+   ]
+  }
+ }
+]

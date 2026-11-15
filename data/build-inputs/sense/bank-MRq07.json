@@ -1,0 +1,1044 @@
+[
+ {
+  "id": "SC-bank-MRq07-01",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-7: Beyond Exceedance-Based Backtesting of Value-at-Risk Models",
+  "reading_id": "MR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0359"
+  },
+  "trap_category": "Definition",
+  "setup": "PIT backtest. A model forecasts tomorrow's P&L as normal with mean USD 0 and standard deviation USD 500. The realised P&L is a loss of USD 250. The PIT is the forecast CDF evaluated at the realised outcome.",
+  "ask": "The PIT value for this day is:",
+  "options": [
+   {
+    "label": "Above 0.5",
+    "correct": false,
+    "why": "Treated the loss as a gain, $N(+0.5) = 0.69$. A loss sits below the forecast mean, so less than half of the forecast distribution lies under it."
+   },
+   {
+    "label": "Exactly 0.5",
+    "correct": false,
+    "why": "Used the mean, which is the forecast centre. The outcome is 0.5 standard deviations below it, so the CDF is below one half."
+   },
+   {
+    "label": "Below 0.5",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Standardise",
+    "display": "$z = (-250 - 0)/500 = -0.5$",
+    "value": -0.5
+   },
+   {
+    "label": "PIT",
+    "display": "$N(-0.5) \\approx 0.309$",
+    "value": 0.3085
+   }
+  ],
+  "takeaway": "PIT = forecast CDF at the outcome: a result below the forecast mean gives a PIT below 0.5, and a well-calibrated model produces PITs spread evenly over 0 to 1.",
+  "check": {
+   "inputs": {
+    "x": -250,
+    "mu": 0,
+    "sd": 500
+   },
+   "steps": [
+    {
+     "name": "z",
+     "expr": "(x-mu)/sd",
+     "value": -0.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-02",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-7: Beyond Exceedance-Based Backtesting of Value-at-Risk Models",
+  "reading_id": "MR-7",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0371"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Kolmogorov-Smirnov test on five sorted PIT values: 0.05, 0.20, 0.35, 0.40, 0.90. If the model is calibrated, PITs are uniform on [0, 1], so the theoretical CDF at $x$ is $x$. The empirical CDF steps up by $1/5$ at each observation.",
+  "ask": "Just after its jump, the empirical CDF sits furthest above the theoretical CDF at which observation?",
+  "options": [
+   {
+    "label": "1st observation (PIT 0.05)",
+    "correct": false,
+    "why": "Picked the smallest PIT as the most extreme. The gap there is only $0.20 - 0.05 = 0.15$."
+   },
+   {
+    "label": "3rd observation (PIT 0.35)",
+    "correct": false,
+    "why": "Stopped at the first large-looking gap: $0.60 - 0.35 = 0.25$. The 4th is bigger."
+   },
+   {
+    "label": "4th observation (PIT 0.40)",
+    "correct": true
+   },
+   {
+    "label": "5th observation (PIT 0.90)",
+    "correct": false,
+    "why": "Picked the largest PIT, which is closest to 1. The empirical CDF is 1.00 there, a gap of only 0.10."
+   }
+  ],
+  "working": [
+   {
+    "label": "Gaps after each jump",
+    "display": "$0.15,\\ 0.20,\\ 0.25,\\ 0.40,\\ 0.10$",
+    "value": null
+   },
+   {
+    "label": "Largest",
+    "display": "$0.80 - 0.40 = 0.40$ at the 4th observation",
+    "value": 0.4
+   }
+  ],
+  "takeaway": "KS statistic = largest vertical gap between empirical and theoretical CDF. Four of the five points have already been passed by the time the PIT reaches 0.40, so the empirical CDF has run far ahead.",
+  "check": {
+   "inputs": {
+    "p1": 0.05,
+    "p2": 0.2,
+    "p3": 0.35,
+    "p4": 0.4,
+    "p5": 0.9,
+    "n": 5
+   },
+   "steps": [
+    {
+     "name": "g1",
+     "expr": "1/n-p1",
+     "value": 0.15
+    },
+    {
+     "name": "g2",
+     "expr": "2/n-p2",
+     "value": 0.2
+    },
+    {
+     "name": "g3",
+     "expr": "3/n-p3",
+     "value": 0.25
+    },
+    {
+     "name": "g4",
+     "expr": "4/n-p4",
+     "value": 0.4
+    },
+    {
+     "name": "g5",
+     "expr": "5/n-p5",
+     "value": 0.1
+    },
+    {
+     "name": "D",
+     "expr": "max(g1,g2,g3,g4,g5)",
+     "value": 0.4
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-03",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-9: Empirical Properties of Correlation: How Do Correlations Behave in the Real World?",
+  "reading_id": "MR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0480"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Mean reversion: $S_t - S_{t-1} = a(\\mu - S_{t-1})$ with $a = 0.4$. A variable moves from $S_{t-1} = 30$ to $S_t = 50$ in one period. You want the long-run mean $\\mu$.",
+  "ask": "First the gap $\\mu - S_{t-1}$. It equals:",
+  "options": [
+   {
+    "label": "8",
+    "correct": false,
+    "why": "Multiplied the move by $a$ ($0.4 \\times 20$) instead of dividing. The move is only 40% of the gap, so the gap is bigger than the move."
+   },
+   {
+    "label": "20",
+    "correct": false,
+    "why": "Took the observed move as the gap, which is $a = 1$. With $a = 0.4$ the move covers only part of the gap."
+   },
+   {
+    "label": "50",
+    "correct": true
+   },
+   {
+    "label": "80",
+    "correct": false,
+    "why": "This is $\\mu$ itself ($30 + 50$), not the gap $\\mu - S_{t-1}$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Observed move",
+    "display": "$50 - 30 = 20$",
+    "value": 20
+   },
+   {
+    "label": "Gap",
+    "display": "$20 / 0.4 = 50$",
+    "value": 50
+   },
+   {
+    "label": "Long-run mean",
+    "display": "$\\mu = 30 + 50 = 80$",
+    "value": 80
+   }
+  ],
+  "takeaway": "The move is a fraction $a$ of the gap, so gap = move / $a$ and $\\mu = S_{t-1} + $ gap. A small $a$ means the mean is much further away than the move suggests.",
+  "check": {
+   "inputs": {
+    "a": 0.4,
+    "S0": 30,
+    "S1": 50
+   },
+   "steps": [
+    {
+     "name": "move",
+     "expr": "S1-S0",
+     "value": 20.0
+    },
+    {
+     "name": "gap",
+     "expr": "move/a",
+     "value": 50.0
+    },
+    {
+     "name": "mu",
+     "expr": "S0+gap",
+     "value": 80.0
+    },
+    {
+     "name": "slip_mult",
+     "expr": "a*move",
+     "value": 8.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-04",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-9: Empirical Properties of Correlation: How Do Correlations Behave in the Real World?",
+  "reading_id": "MR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0486"
+  },
+  "trap_category": "Sign",
+  "setup": "Average Dow correlation was 30% in September; its long-run mean is 35%. A regression of the monthly change in correlation on its lagged level gives a slope of $-0.78$. The model is $\\Delta S = a(\\mu - S_{t-1})$, so the slope equals $-a$.",
+  "ask": "The expected October correlation is:",
+  "options": [
+   {
+    "label": "Lower than 30%, about 26%",
+    "correct": false,
+    "why": "Read $a = -0.78$ straight off the slope: $30 + (-0.78)(5) = 26.1$. The slope is $-a$, so $a = +0.78$ and the pull is toward the mean."
+   },
+   {
+    "label": "Higher than 30%, about 34%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Reversion rate",
+    "display": "$a = -(-0.78) = 0.78$",
+    "value": 0.78
+   },
+   {
+    "label": "Expected change",
+    "display": "$0.78 \\times (35 - 30) = +3.9$",
+    "value": 3.9
+   },
+   {
+    "label": "October",
+    "display": "$30 + 3.9 = 33.9\\%$",
+    "value": 33.9
+   }
+  ],
+  "takeaway": "A negative regression slope on the lagged level is mean reversion: $a = -\\text{slope}$ is positive, and the variable is pulled toward its long-run mean.",
+  "check": {
+   "inputs": {
+    "S": 30,
+    "mu": 35,
+    "slope": -0.78
+   },
+   "steps": [
+    {
+     "name": "a",
+     "expr": "-slope",
+     "value": 0.78
+    },
+    {
+     "name": "chg",
+     "expr": "a*(mu-S)",
+     "value": 3.9
+    },
+    {
+     "name": "next",
+     "expr": "S+chg",
+     "value": 33.9
+    },
+    {
+     "name": "slip_next",
+     "expr": "S+slope*(mu-S)",
+     "value": 26.1
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-05",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-9: Empirical Properties of Correlation: How Do Correlations Behave in the Real World?",
+  "reading_id": "MR-9",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0489"
+  },
+  "trap_category": "Definition",
+  "setup": "Correlation mean reversion: $S_t - S_{t-1} = a(\\mu - S_{t-1})$. A regression on 600 months of S&P 500 average correlation gives $Y = 0.334 - 0.79X$, so $a = 0.79$. The long-run mean is 44% and the July 2017 level is 37%.",
+  "ask": "The one-period autocorrelation of the average correlation is:",
+  "options": [
+   {
+    "label": "Above 0.5, about 0.79",
+    "correct": false,
+    "why": "Reported $a$ itself. Rewriting the model as $S_t = (1-a)S_{t-1} + a\\mu$ shows the autocorrelation is $1 - a$, and a fast reversion rate means low persistence."
+   },
+   {
+    "label": "Negative, about -0.79",
+    "correct": false,
+    "why": "Took the regression slope as the autocorrelation. The slope is $-a$, and the persistence is $1 - a$, which is positive here."
+   },
+   {
+    "label": "Below 0.5, about 0.21",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Rewrite",
+    "display": "$S_t = (1-a)S_{t-1} + a\\mu$",
+    "value": null
+   },
+   {
+    "label": "Autocorrelation",
+    "display": "$1 - 0.79 = 0.21$",
+    "value": 0.21
+   }
+  ],
+  "takeaway": "Fast mean reversion means low persistence: autocorrelation is $1 - a$. The mean (44%) and the current level (37%) do not enter.",
+  "check": {
+   "inputs": {
+    "a": 0.79
+   },
+   "steps": [
+    {
+     "name": "rho",
+     "expr": "1-a",
+     "value": 0.21
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-06",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0531"
+  },
+  "trap_category": "Formula",
+  "setup": "Regression hedge. A trader is short USD 100m of nominal Treasuries (DV01 0.0400 per 100 face) and hedged with TIPS using the regression of nominal yield changes on real yield changes: beta 1.094, R-squared 68%, residual standard error 5.3 bp per day.",
+  "ask": "Daily volatility of the hedged portfolio's P&L is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 2,100",
+    "correct": false,
+    "why": "Scale slip: divided by 100 twice when turning the DV01 quote into dollars, giving USD 400 per bp instead of USD 40,000."
+   },
+   {
+    "label": "≈ USD 40,000",
+    "correct": false,
+    "why": "Stopped at the dollar DV01, which is the P&L of a 1 bp move. The hedged position's yield spread moves by the 5.3 bp residual, not by 1 bp."
+   },
+   {
+    "label": "≈ USD 212,000",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 1,100,000",
+    "correct": false,
+    "why": "Used the residual variance ($5.3^2 = 28.1$) instead of the standard error."
+   }
+  ],
+  "working": [
+   {
+    "label": "Dollar DV01",
+    "display": "$100{,}000{,}000 \\times 0.04/100 = 40{,}000$ per bp",
+    "value": 40000
+   },
+   {
+    "label": "Residual volatility",
+    "display": "$5.3$ bp per day",
+    "value": 5.3
+   },
+   {
+    "label": "Hedged P&L volatility",
+    "display": "$40{,}000 \\times 5.3 = 212{,}000$",
+    "value": 212000
+   }
+  ],
+  "takeaway": "What is left after a regression hedge is the residual: P&L volatility = dollar DV01 times the regression standard error. Beta sizes the hedge, R-squared describes fit; neither is multiplied in.",
+  "check": {
+   "inputs": {
+    "F": 100000000.0,
+    "dv": 0.04,
+    "se": 5.3
+   },
+   "steps": [
+    {
+     "name": "d01",
+     "expr": "F*dv/100",
+     "value": 40000.0
+    },
+    {
+     "name": "vol",
+     "expr": "d01*se",
+     "value": 212000.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "F*dv/100/100*se",
+     "value": 2120.0
+    },
+    {
+     "name": "slip_no_se",
+     "expr": "d01",
+     "value": 40000.0
+    },
+    {
+     "name": "slip_var",
+     "expr": "d01*se**2",
+     "value": 1124000.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-07",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0534"
+  },
+  "trap_category": "Definition",
+  "setup": "Daily yield changes in bp over four days, portfolio $Y_p$ and hedge instrument $Y_h$: day 1 (1.2, 2.0), day 2 (1.8, 2.5), day 3 (0.8, 1.5), day 4 (2.4, 3.0). $Y_p$ averages 1.55 and $Y_h$ averages 2.25.",
+  "ask": "The regression beta of $Y_p$ on $Y_h$, $\\text{Cov}(Y_p,Y_h)/\\text{Var}(Y_h)$, is:",
+  "options": [
+   {
+    "label": "Below 1",
+    "correct": false,
+    "why": "Compared the averages, $1.55/2.25 = 0.69$. Beta is a slope: it depends on how the two series move around their means, not on their levels."
+   },
+   {
+    "label": "Above 1",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Deviations of $Y_h$",
+    "display": "$-0.25,\\ +0.25,\\ -0.75,\\ +0.75$",
+    "value": null
+   },
+   {
+    "label": "Deviations of $Y_p$",
+    "display": "$-0.35,\\ +0.25,\\ -0.75,\\ +0.85$",
+    "value": null
+   },
+   {
+    "label": "Cross-products and squares",
+    "display": "$\\sum = 1.35$ and $\\sum = 1.25$",
+    "value": null
+   },
+   {
+    "label": "Beta",
+    "display": "$1.35/1.25 = 1.08$",
+    "value": 1.08
+   }
+  ],
+  "takeaway": "Beta is a slope, not a ratio of averages. Here $Y_p$ swings slightly more than $Y_h$ around their means, so beta is a little above 1 even though $Y_p$ is lower on average.",
+  "check": {
+   "inputs": {
+    "p1": 1.2,
+    "p2": 1.8,
+    "p3": 0.8,
+    "p4": 2.4,
+    "h1": 2.0,
+    "h2": 2.5,
+    "h3": 1.5,
+    "h4": 3.0
+   },
+   "steps": [
+    {
+     "name": "mp",
+     "expr": "(p1+p2+p3+p4)/4",
+     "value": 1.55
+    },
+    {
+     "name": "mh",
+     "expr": "(h1+h2+h3+h4)/4",
+     "value": 2.25
+    },
+    {
+     "name": "sxy",
+     "expr": "(p1-mp)*(h1-mh)+(p2-mp)*(h2-mh)+(p3-mp)*(h3-mh)+(p4-mp)*(h4-mh)",
+     "value": 1.35
+    },
+    {
+     "name": "sxx",
+     "expr": "(h1-mh)**2+(h2-mh)**2+(h3-mh)**2+(h4-mh)**2",
+     "value": 1.25
+    },
+    {
+     "name": "beta",
+     "expr": "sxy/sxx",
+     "value": 1.08
+    },
+    {
+     "name": "slip_ratio",
+     "expr": "mp/mh",
+     "value": 0.6889
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-08",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0537"
+  },
+  "trap_category": "Formula",
+  "setup": "Minimum-variance hedge of a bond portfolio with bond futures. Correlation of yield changes $\\rho = 0.60$; standard deviation of portfolio yield changes $\\sigma_p = 0.08$; of futures yield changes $\\sigma_h = 0.05$.",
+  "ask": "The regression hedge ratio $\\beta$ is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.0024",
+    "correct": false,
+    "why": "Stopped at the covariance $\\rho\\sigma_p\\sigma_h$ and never divided by the hedge variance $\\sigma_h^2$."
+   },
+   {
+    "label": "≈ 0.38",
+    "correct": false,
+    "why": "Inverted the volatility ratio: $\\rho\\,\\sigma_h/\\sigma_p = 0.6 \\times 0.625$."
+   },
+   {
+    "label": "≈ 0.96",
+    "correct": true
+   },
+   {
+    "label": "≈ 2.67",
+    "correct": false,
+    "why": "Divided by the correlation instead of multiplying: $(\\sigma_p/\\sigma_h)/\\rho = 1.6/0.6$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Covariance",
+    "display": "$0.6 \\times 0.08 \\times 0.05 = 0.0024$",
+    "value": 0.0024
+   },
+   {
+    "label": "Hedge variance",
+    "display": "$0.05^2 = 0.0025$",
+    "value": 0.0025
+   },
+   {
+    "label": "Beta",
+    "display": "$0.0024/0.0025 = 0.96$",
+    "value": 0.96
+   }
+  ],
+  "takeaway": "$\\beta = \\rho\\,\\sigma_p/\\sigma_h$: the volatility ratio of the thing hedged over the hedge, scaled down by a correlation below 1.",
+  "check": {
+   "inputs": {
+    "rho": 0.6,
+    "sp": 0.08,
+    "sh": 0.05
+   },
+   "steps": [
+    {
+     "name": "cov",
+     "expr": "rho*sp*sh",
+     "value": 0.0024
+    },
+    {
+     "name": "var",
+     "expr": "sh**2",
+     "value": 0.0025
+    },
+    {
+     "name": "beta",
+     "expr": "cov/var",
+     "value": 0.96
+    },
+    {
+     "name": "slip_inv",
+     "expr": "rho*sh/sp",
+     "value": 0.375
+    },
+    {
+     "name": "slip_div",
+     "expr": "(sp/sh)/rho",
+     "value": 2.667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-09",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0539"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Regression hedge of USD 100m face. DV01 per 100 face: portfolio 0.300, hedge instrument 0.250. The regression adjustment factor is $\\hat\\beta = 0.800$. Hedge face = portfolio face $\\times$ (DV01 ratio) $\\times\\ \\hat\\beta$.",
+  "ask": "Before computing the face, the combined multiplier (DV01 ratio times $\\hat\\beta$) is:",
+  "options": [
+   {
+    "label": "≈ 1.20",
+    "correct": false,
+    "why": "Left out $\\hat\\beta$ and used the plain DV01 ratio $0.300/0.250$."
+   },
+   {
+    "label": "≈ 0.67",
+    "correct": false,
+    "why": "Inverted the DV01 ratio ($0.250/0.300$) before applying $\\hat\\beta$."
+   },
+   {
+    "label": "≈ 0.96, just under 1",
+    "correct": true
+   },
+   {
+    "label": "≈ 1.50",
+    "correct": false,
+    "why": "Divided the DV01 ratio by $\\hat\\beta$ ($1.2/0.8$) instead of multiplying."
+   }
+  ],
+  "working": [
+   {
+    "label": "DV01 ratio",
+    "display": "$0.300/0.250 = 1.20$",
+    "value": 1.2
+   },
+   {
+    "label": "With beta",
+    "display": "$1.20 \\times 0.800 = 0.96$",
+    "value": 0.96
+   },
+   {
+    "label": "Hedge face",
+    "display": "$-100 \\times 0.96 = -96$ (USD m)",
+    "value": -96
+   }
+  ],
+  "takeaway": "The DV01 ratio pushes the hedge up (1.2) and beta pulls it back down (0.8): the two nearly cancel, so the offset is a little under the portfolio face.",
+  "check": {
+   "inputs": {
+    "dp": 0.3,
+    "dh": 0.25,
+    "beta": 0.8
+   },
+   "steps": [
+    {
+     "name": "ratio",
+     "expr": "dp/dh",
+     "value": 1.2
+    },
+    {
+     "name": "mult",
+     "expr": "ratio*beta",
+     "value": 0.96
+    },
+    {
+     "name": "slip_nobeta",
+     "expr": "dp/dh",
+     "value": 1.2
+    },
+    {
+     "name": "slip_inv",
+     "expr": "dh/dp*beta",
+     "value": 0.6667
+    },
+    {
+     "name": "slip_div",
+     "expr": "dp/dh/beta",
+     "value": 1.5
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-11: Regression Hedging and Principal Component Analysis",
+  "reading_id": "MR-11",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0541"
+  },
+  "trap_category": "Role",
+  "setup": "A market maker buys USD 100m face of a 30-year JNJ bond (DV01 0.3124 per 100 face) and hedges by selling 30-year Treasuries (DV01 0.2910 per 100 face). Ignore the regression beta for now: match plain DV01.",
+  "ask": "The Treasury face needed to match the JNJ DV01 is:",
+  "options": [
+   {
+    "label": "Below USD 100m, about USD 93m",
+    "correct": false,
+    "why": "Inverted the DV01 ratio ($0.2910/0.3124$). The bond with the larger DV01 is the one being hedged, so the hedge needs more face, not less."
+   },
+   {
+    "label": "Exactly USD 100m",
+    "correct": false,
+    "why": "Same maturity, so assumed the same face. The DV01s differ per 100 face, so equal face does not give equal DV01."
+   },
+   {
+    "label": "Above USD 100m, about USD 107m",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "DV01 ratio",
+    "display": "$0.3124/0.2910 = 1.0735$",
+    "value": 1.0735
+   },
+   {
+    "label": "Plain DV01 hedge",
+    "display": "$100 \\times 1.0735 = 107.35$ (USD m)",
+    "value": 107.35
+   }
+  ],
+  "takeaway": "Hedge face = face hedged $\\times$ DV01 of the hedged bond / DV01 of the hedge. The less sensitive instrument needs a larger face to carry the same DV01.",
+  "check": {
+   "inputs": {
+    "F": 100,
+    "dj": 0.3124,
+    "dt": 0.291
+   },
+   "steps": [
+    {
+     "name": "plain",
+     "expr": "F*dj/dt",
+     "value": 107.4
+    },
+    {
+     "name": "slip_inv",
+     "expr": "F*dt/dj",
+     "value": 93.15
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-11",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0589"
+  },
+  "trap_category": "Polarity",
+  "setup": "Binomial tree: the six-month rate moves up or down by 50 bp each step. Real-world probabilities are 50% up, 50% down. Under the risk-neutral probabilities the expected rate change per step (the drift) is $+20$ bp.",
+  "ask": "The risk-neutral probability of the up move, $p$, is:",
+  "options": [
+   {
+    "label": "Exactly 50%",
+    "correct": false,
+    "why": "Reused the real-world probabilities. A drift of $+20$ bp cannot come from a symmetric $\\pm50$ bp move at 50/50, which has zero drift."
+   },
+   {
+    "label": "Below 50%",
+    "correct": false,
+    "why": "Wrong direction: a positive expected change needs the up move to be more likely than the down move."
+   },
+   {
+    "label": "Above 50%, about 70%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Expected change",
+    "display": "$p(50) + (1-p)(-50) = 100p - 50$ bp",
+    "value": null
+   },
+   {
+    "label": "Set equal to drift",
+    "display": "$100p - 50 = 20$",
+    "value": null
+   },
+   {
+    "label": "Probability",
+    "display": "$p = 0.70$",
+    "value": 0.7
+   }
+  ],
+  "takeaway": "With symmetric moves, drift = $(2p-1)\\times$ move size. A positive risk-neutral drift means $p > 50\\%$.",
+  "check": {
+   "inputs": {
+    "up": 50,
+    "drift": 20
+   },
+   "steps": [
+    {
+     "name": "p",
+     "expr": "(drift+up)/(2*up)",
+     "value": 0.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0611"
+  },
+  "trap_category": "Scope",
+  "setup": "A constant-maturity swap, notional USD 1m, struck at 6%, pays $1{,}000{,}000 \\times (y - 6\\%)/2$ at 6 months and 1 year, where $y$ is the six-month rate then. Today's rate is 6%. Risk-neutral up-probability: 45% today (to 6.5% or 5.5%), then 70% at each node (to 7%, 6% or 5% at 1 year).",
+  "ask": "The value of the swap today is:",
+  "options": [
+   {
+    "label": "Negative",
+    "correct": false,
+    "why": "Stopped at the first date, where 45% up gives a slightly negative expected payment ($-250$). The 1-year payment has expected value $+750$ and outweighs it."
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Treated it as at-the-money because the rate equals the strike today. The risk-neutral drift is not symmetric, so the expected payments do not cancel."
+   },
+   {
+    "label": "Positive, about USD 459",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "6-month payments",
+    "display": "$\\pm 2{,}500$ at 6.5% / 5.5%",
+    "value": null
+   },
+   {
+    "label": "1-year payments",
+    "display": "$+5{,}000,\\ 0,\\ -5{,}000$ at 7% / 6% / 5%",
+    "value": null
+   },
+   {
+    "label": "Upper node",
+    "display": "$[0.7(5000) + 0.3(0)]/1.0325 + 2500 = 5{,}889.83$",
+    "value": 5889.83
+   },
+   {
+    "label": "Lower node",
+    "display": "$[0.7(0) + 0.3(-5000)]/1.0275 - 2500 = -3{,}959.85$",
+    "value": -3959.85
+   },
+   {
+    "label": "Today",
+    "display": "$[0.45(5889.83) + 0.55(-3959.85)]/1.03 = 458.74$",
+    "value": 458.74
+   }
+  ],
+  "takeaway": "Once the first-date drift is small and the later drift is large, the later payment dominates. Never read the sign of a multi-date swap off its first leg alone.",
+  "check": {
+   "inputs": {
+    "N": 1000000.0,
+    "k": 0.06,
+    "pu": 0.7,
+    "p0": 0.45
+   },
+   "steps": [
+    {
+     "name": "pay_up_1y",
+     "expr": "N*(0.07-k)/2",
+     "value": 5000.0
+    },
+    {
+     "name": "pay_dn_1y",
+     "expr": "N*(0.05-k)/2",
+     "value": -5000.0
+    },
+    {
+     "name": "pay_6m",
+     "expr": "N*(0.065-k)/2",
+     "value": 2500.0
+    },
+    {
+     "name": "up",
+     "expr": "(pu*pay_up_1y+(1-pu)*0)/1.0325+pay_6m",
+     "value": 5890.0
+    },
+    {
+     "name": "dn",
+     "expr": "(pu*0+(1-pu)*pay_dn_1y)/1.0275-pay_6m",
+     "value": -3960.0
+    },
+    {
+     "name": "V",
+     "expr": "(p0*up+(1-p0)*dn)/1.03",
+     "value": 458.7
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq07-13",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-12: Arbitrage Pricing with Term Structure Models",
+  "reading_id": "MR-12",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0613"
+  },
+  "trap_category": "Scope",
+  "setup": "A constant-maturity swap, notional USD 1m, pays $1{,}000{,}000 \\times (y - 3\\%)/2$ every six months for one year, with $y$ the six-month rate then. Today $y = 3\\%$; each six months it moves $\\pm20$ bp on a recombining tree. Risk-neutral probability is 70% up, 30% down at every node.",
+  "ask": "The swap's risk-neutral price is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 117",
+    "correct": false,
+    "why": "Scale slip (0.1×): read the 20 bp move as 2 bp, so every payment is a tenth of the size."
+   },
+   {
+    "label": "≈ USD 394",
+    "correct": false,
+    "why": "Valued only the 6-month payment ($0.7 \\times 1000 - 0.3 \\times 1000$, discounted) and left out the 1-year payment."
+   },
+   {
+    "label": "≈ USD 1,170",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 11,700",
+    "correct": false,
+    "why": "Scale slip (10×): read the 20 bp move as 200 bp, so every payment is ten times the size."
+   }
+  ],
+  "working": [
+   {
+    "label": "Payments",
+    "display": "$\\pm 1{,}000$ at 6 months; $+2{,}000,\\ 0,\\ -2{,}000$ at 1 year",
+    "value": null
+   },
+   {
+    "label": "Upper node",
+    "display": "$(0.7 \\times 2000)/1.016 + 1000 = 2{,}377.95$",
+    "value": 2377.95
+   },
+   {
+    "label": "Lower node",
+    "display": "$(0.3 \\times -2000)/1.014 - 1000 = -1{,}591.72$",
+    "value": -1591.72
+   },
+   {
+    "label": "Today",
+    "display": "$[0.7(2377.95) + 0.3(-1591.72)]/1.015 = 1{,}169.5$",
+    "value": 1169.51
+   }
+  ],
+  "takeaway": "Each payment is notional/2 times the rate gap, so 20 bp on USD 1m is USD 1,000 per date. Both dates add up under the 70% up drift; dropping either one, or a factor of 10 in the move, is what the wrong answers do.",
+  "check": {
+   "inputs": {
+    "N": 1000000.0,
+    "k": 0.03,
+    "pu": 0.7
+   },
+   "steps": [
+    {
+     "name": "pay6",
+     "expr": "N*0.002/2",
+     "value": 1000.0
+    },
+    {
+     "name": "pay_up",
+     "expr": "N*0.004/2",
+     "value": 2000.0
+    },
+    {
+     "name": "pay_dn",
+     "expr": "-N*0.004/2",
+     "value": -2000.0
+    },
+    {
+     "name": "up",
+     "expr": "(pu*pay_up)/1.016+pay6",
+     "value": 2378.0
+    },
+    {
+     "name": "dn",
+     "expr": "((1-pu)*pay_dn)/1.014-pay6",
+     "value": -1592.0
+    },
+    {
+     "name": "V",
+     "expr": "(pu*up+(1-pu)*dn)/1.015",
+     "value": 1170.0
+    },
+    {
+     "name": "slip_first",
+     "expr": "(pu*pay6+(1-pu)*-pay6)/1.015",
+     "value": 394.1
+    },
+    {
+     "name": "slip_small",
+     "expr": "V*0.1",
+     "value": 117.0
+    },
+    {
+     "name": "slip_big",
+     "expr": "V*10",
+     "value": 11700.0
+    }
+   ]
+  }
+ }
+]
