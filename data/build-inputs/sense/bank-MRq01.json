@@ -1,0 +1,2014 @@
+[
+ {
+  "id": "SC-bank-MRq01-01",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0014"
+  },
+  "trap_category": "Scope",
+  "setup": "Geometric returns are normally distributed with $\\mu = 12\\%$ and $\\sigma = 32\\%$, on a USD 85m portfolio. At 95% ($z = 1.645$) the normal-VaR formula $P(z\\sigma - \\mu)$ gives USD 34.54m. The lognormal formula is $P(1 - e^{\\mu - z\\sigma})$.",
+  "ask": "The 95% lognormal VaR is:",
+  "options": [
+   {
+    "label": "Above USD 34.54m",
+    "correct": false,
+    "why": "Treated the lognormal figure as the bigger one. Since $1 - e^{-x} < x$ for every $x > 0$, the lognormal loss can never exceed the straight-line one."
+   },
+   {
+    "label": "Below USD 34.54m",
+    "correct": true
+   },
+   {
+    "label": "Equal to USD 34.54m",
+    "correct": false,
+    "why": "Assumed the two formulas agree. They coincide only as $x \\to 0$; at $x = 0.41$ the curvature of $e^{-x}$ already cuts the loss by about 18%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent size",
+    "display": "$z\\sigma - \\mu = 1.645 \\times 0.32 - 0.12 = 0.4064$",
+    "value": 0.4064
+   },
+   {
+    "label": "Loss fraction",
+    "display": "$1 - e^{-0.4064} = 1 - 0.6661 = 0.3339$",
+    "value": 0.3339
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$85 \\times 0.3339 \\approx \\text{USD } 28.39\\text{m}$",
+    "value": 28.39
+   }
+  ],
+  "takeaway": "Lognormal VaR is always below normal VaR on the same inputs, because $1 - e^{-x}$ grows more slowly than $x$.",
+  "check": {
+   "inputs": {
+    "P": 85,
+    "mu": 0.12,
+    "s": 0.32,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "z*s-mu",
+     "value": 0.4064
+    },
+    {
+     "name": "normal",
+     "expr": "P*x",
+     "value": 34.544
+    },
+    {
+     "name": "f",
+     "expr": "1-exp(-x)",
+     "value": 0.3339563
+    },
+    {
+     "name": "logn",
+     "expr": "P*f",
+     "value": 28.38629
+    },
+    {
+     "name": "gap",
+     "expr": "normal-logn",
+     "value": 6.157714
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-02",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0015"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "GBP 10m portfolio, annual $\\mu = 15\\%$, $\\sigma = 30\\%$, $z = 2.326$ at 99%. Normal VaR takes the loss fraction $z\\sigma - \\mu = 0.5478$. Lognormal VaR takes $1 - e^{-0.5478}$ of the portfolio instead. The first step is the factor $e^{-0.5478}$.",
+  "ask": "$e^{-0.5478}$ is closest to:",
+  "options": [
+   {
+    "label": "0.42",
+    "correct": false,
+    "why": "That is $1 - e^{-0.5478}$, the loss fraction, one step further down the chain than the factor asked for."
+   },
+   {
+    "label": "1.73",
+    "correct": false,
+    "why": "Dropped the minus sign: $e^{+0.5478} = 1.73$. A negative exponent must give a number below 1."
+   },
+   {
+    "label": "0.58",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Factor",
+    "display": "$e^{-0.5478} = 0.5782$",
+    "value": 0.5782
+   },
+   {
+    "label": "Lognormal loss fraction",
+    "display": "$1 - 0.5782 = 0.4218$",
+    "value": 0.4218
+   },
+   {
+    "label": "Lognormal VaR",
+    "display": "$10\\text{m} \\times 0.4218 = \\text{GBP } 4.22\\text{m}$",
+    "value": 4.218
+   },
+   {
+    "label": "Normal minus lognormal",
+    "display": "$5.478 - 4.218 = \\text{GBP } 1.26\\text{m}$",
+    "value": 1.26
+   }
+  ],
+  "takeaway": "$e^{-0.55} \\approx 0.58$: roughly 42% of the position is lost, against the 55% the normal formula claims. The gap is about GBP 1.3m.",
+  "check": {
+   "inputs": {
+    "z": 2.326,
+    "s": 0.3,
+    "mu": 0.15,
+    "P": 10
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "z*s-mu",
+     "value": 0.5478
+    },
+    {
+     "name": "fac",
+     "expr": "exp(-x)",
+     "value": 0.5782205
+    },
+    {
+     "name": "f",
+     "expr": "1-fac",
+     "value": 0.4217795
+    },
+    {
+     "name": "logn",
+     "expr": "P*f",
+     "value": 4.217795
+    },
+    {
+     "name": "normal",
+     "expr": "P*x",
+     "value": 5.478
+    },
+    {
+     "name": "gap",
+     "expr": "normal-logn",
+     "value": 1.260205
+    },
+    {
+     "name": "slip_sign",
+     "expr": "exp(x)",
+     "value": 1.729444
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-03",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0018"
+  },
+  "trap_category": "Sign",
+  "setup": "Profit/loss over the period is normally distributed with mean $+12$ and $\\sigma = 18$. At 95%, $z = 1.645$, so $z\\sigma = 29.61$. VaR is quoted as a positive loss.",
+  "ask": "The 95% VaR is:",
+  "options": [
+   {
+    "label": "Above 29.61",
+    "correct": false,
+    "why": "Added the mean ($12 + 29.61 = 41.61$). A positive mean P/L is an expected gain, so it moves the loss quantile closer to zero, not further out."
+   },
+   {
+    "label": "Below 29.61",
+    "correct": true
+   },
+   {
+    "label": "Exactly 29.61",
+    "correct": false,
+    "why": "Dropped the mean term. It is stated, and at 12 it moves the answer by well over a third."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail distance",
+    "display": "$1.645 \\times 18 = 29.61$",
+    "value": 29.61
+   },
+   {
+    "label": "VaR",
+    "display": "$-12 + 29.61 = 17.61$",
+    "value": 17.61
+   }
+  ],
+  "takeaway": "For P/L, VaR $= -\\mu + z\\sigma$: a positive mean shaves the loss quantile, a mean loss would add to it.",
+  "check": {
+   "inputs": {
+    "mu": 12,
+    "s": 18,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "zs",
+     "expr": "z*s",
+     "value": 29.61
+    },
+    {
+     "name": "VaR",
+     "expr": "-mu+zs",
+     "value": 17.61
+    },
+    {
+     "name": "slip_add",
+     "expr": "mu+zs",
+     "value": 41.61
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-04",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0019"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 200 position has normally distributed arithmetic returns with mean $+5\\%$ and $\\sigma = 10\\%$. Use $z = 2.33$ for 99% and VaR $= (-\\mu + z\\sigma) \\times P$.",
+  "ask": "The 99% VaR in dollars is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.18",
+    "correct": false,
+    "why": "Stopped at the loss fraction 0.183 and never multiplied by the USD 200 position."
+   },
+   {
+    "label": "≈ USD 37",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 370",
+    "correct": false,
+    "why": "Scale slip (10×). A loss of USD 370 is bigger than the whole USD 200 position."
+   },
+   {
+    "label": "≈ USD 3,700",
+    "correct": false,
+    "why": "Entered the mean and $\\sigma$ as 5 and 10 instead of 0.05 and 0.10, which inflates the answer 100×."
+   }
+  ],
+  "working": [
+   {
+    "label": "Loss fraction",
+    "display": "$-0.05 + 2.33 \\times 0.10 = 0.183$",
+    "value": 0.183
+   },
+   {
+    "label": "VaR",
+    "display": "$0.183 \\times 200 = \\text{USD } 36.6$",
+    "value": 36.6
+   }
+  ],
+  "takeaway": "A VaR bigger than the position is always a red flag: check percent versus decimal before anything else.",
+  "check": {
+   "inputs": {
+    "mu": 0.05,
+    "s": 0.1,
+    "z": 2.33,
+    "P": 200
+   },
+   "steps": [
+    {
+     "name": "f",
+     "expr": "-mu+z*s",
+     "value": 0.183
+    },
+    {
+     "name": "VaR",
+     "expr": "P*f",
+     "value": 36.6
+    },
+    {
+     "name": "slip_noP",
+     "expr": "f",
+     "value": 0.183
+    },
+    {
+     "name": "slip_pct",
+     "expr": "P*(-5+z*10)",
+     "value": 3660.0
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*VaR",
+     "value": 366.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-05",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0020"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 100m portfolio has normally distributed geometric returns: $\\mu = 10\\%$, $\\sigma = 40\\%$. Use $z = 1.645$ at 95% and the lognormal VaR $P(1 - e^{\\mu - z\\sigma})$.",
+  "ask": "The 95% lognormal VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.43m",
+    "correct": false,
+    "why": "Stopped at the loss fraction 0.428 and forgot to multiply by the USD 100m portfolio."
+   },
+   {
+    "label": "≈ USD 15m",
+    "correct": false,
+    "why": "Put the variance $0.16$ where the volatility $0.40$ belongs inside the exponent."
+   },
+   {
+    "label": "≈ USD 43m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 175m",
+    "correct": false,
+    "why": "Flipped the sign of the exponent, $100 \\times e^{+0.558}$. That is more than the whole portfolio."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$\\mu - z\\sigma = 0.10 - 1.645 \\times 0.40 = -0.558$",
+    "value": -0.558
+   },
+   {
+    "label": "Factor",
+    "display": "$e^{-0.558} = 0.5724$",
+    "value": 0.5724
+   },
+   {
+    "label": "VaR",
+    "display": "$100 \\times (1 - 0.5724) \\approx \\text{USD } 42.8\\text{m}$",
+    "value": 42.76
+   }
+  ],
+  "takeaway": "Lognormal VaR is a fraction of the portfolio, $1 - e^{\\mu - z\\sigma}$, so it sits between 0 and the full position.",
+  "check": {
+   "inputs": {
+    "P": 100,
+    "mu": 0.1,
+    "s": 0.4,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "mu-z*s",
+     "value": -0.558
+    },
+    {
+     "name": "fac",
+     "expr": "exp(x)",
+     "value": 0.5723526
+    },
+    {
+     "name": "VaR",
+     "expr": "P*(1-fac)",
+     "value": 42.76474
+    },
+    {
+     "name": "slip_noP",
+     "expr": "1-fac",
+     "value": 0.4276474
+    },
+    {
+     "name": "slip_var",
+     "expr": "P*(1-exp(mu-z*s**2))",
+     "value": 15.05787
+    },
+    {
+     "name": "slip_sign",
+     "expr": "P*exp(-x)",
+     "value": 174.7175
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-06",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0022"
+  },
+  "trap_category": "Formula",
+  "setup": "Profit/loss over a period is normally distributed with mean $+14.1$ and $\\sigma = 28.2$. Use VaR $= -\\mu + z\\sigma$ with $z = 2.326$ at 99%.",
+  "ask": "The 99% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 2.3",
+    "correct": false,
+    "why": "Reported the multiplier $z = 2.326$ itself and never scaled it by $\\sigma$."
+   },
+   {
+    "label": "≈ 14",
+    "correct": false,
+    "why": "Left $z$ out: $\\sigma - \\mu = 28.2 - 14.1 = 14.1$."
+   },
+   {
+    "label": "≈ 51",
+    "correct": true
+   },
+   {
+    "label": "≈ 1,800",
+    "correct": false,
+    "why": "Used the variance ($28.2^2 = 795$) in place of the standard deviation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail distance",
+    "display": "$2.326 \\times 28.2 = 65.59$",
+    "value": 65.59
+   },
+   {
+    "label": "VaR",
+    "display": "$-14.1 + 65.59 = 51.49$",
+    "value": 51.49
+   }
+  ],
+  "takeaway": "VaR is in the same units as $\\sigma$: roughly $2.3\\sigma$ at 99%, less the gain in the mean.",
+  "check": {
+   "inputs": {
+    "mu": 14.1,
+    "s": 28.2,
+    "z": 2.326
+   },
+   "steps": [
+    {
+     "name": "zs",
+     "expr": "z*s",
+     "value": 65.5932
+    },
+    {
+     "name": "VaR",
+     "expr": "-mu+zs",
+     "value": 51.4932
+    },
+    {
+     "name": "slip_nosigma",
+     "expr": "z",
+     "value": 2.326
+    },
+    {
+     "name": "slip_noz",
+     "expr": "s-mu",
+     "value": 14.1
+    },
+    {
+     "name": "slip_var",
+     "expr": "-mu+z*s**2",
+     "value": 1835.628
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-07",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0027"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Profit/loss is normally distributed with mean $+8$ and $\\sigma = 16$ (USD). The 95% VaR is $-\\mu + z\\sigma$ with $z = 1.645$.",
+  "ask": "Compared with one standard deviation (16), the 95% VaR is:",
+  "options": [
+   {
+    "label": "Below 16",
+    "correct": false,
+    "why": "Subtracted the mean from $\\sigma$ ($16 - 8 = 8$) instead of from $z\\sigma$."
+   },
+   {
+    "label": "About equal to 16",
+    "correct": false,
+    "why": "Applied the rule of thumb that VaR is about one $\\sigma$. The multiplier is 1.645, and the mean of 8 only pulls it back to 18.3."
+   },
+   {
+    "label": "Above 16",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail distance",
+    "display": "$1.645 \\times 16 = 26.32$",
+    "value": 26.32
+   },
+   {
+    "label": "VaR",
+    "display": "$26.32 - 8 = 18.32$, above 16",
+    "value": 18.32
+   }
+  ],
+  "takeaway": "A mean of half a $\\sigma$ cannot undo a $1.645\\sigma$ tail: VaR stays above $\\sigma$ at 95%.",
+  "check": {
+   "inputs": {
+    "mu": 8,
+    "s": 16,
+    "z": 1.645
+   },
+   "steps": [
+    {
+     "name": "zs",
+     "expr": "z*s",
+     "value": 26.32
+    },
+    {
+     "name": "VaR",
+     "expr": "zs-mu",
+     "value": 18.32
+    },
+    {
+     "name": "excess",
+     "expr": "VaR-s",
+     "value": 2.32
+    },
+    {
+     "name": "slip_sub",
+     "expr": "s-mu",
+     "value": 8.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-08",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0032"
+  },
+  "trap_category": "Formula",
+  "setup": "A USD 5.2m portfolio has normally distributed geometric returns with $\\mu = 12.2\\%$ and $\\sigma = 23\\%$. Use $z = 1.65$ for the 5% tail and the lognormal VaR $P(1 - e^{\\mu - z\\sigma})$.",
+  "ask": "The lognormal VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 0.23m",
+    "correct": false,
+    "why": "Stopped at the loss fraction 0.227 and did not multiply by USD 5.2m."
+   },
+   {
+    "label": "≈ USD 1.2m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 4.0m",
+    "correct": false,
+    "why": "Dropped the $1 -$ and reported $P \\times e^{\\mu - z\\sigma}$. That is the portfolio's worst-case value, not the loss."
+   },
+   {
+    "label": "≈ USD 12m",
+    "correct": false,
+    "why": "Scale slip (10×). A loss of USD 12m is more than twice the whole USD 5.2m portfolio."
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$0.122 - 1.65 \\times 0.23 = -0.2575$",
+    "value": -0.2575
+   },
+   {
+    "label": "Factor",
+    "display": "$e^{-0.2575} = 0.7730$",
+    "value": 0.773
+   },
+   {
+    "label": "VaR",
+    "display": "$5.2 \\times (1 - 0.7730) \\approx \\text{USD } 1.18\\text{m}$",
+    "value": 1.18
+   }
+  ],
+  "takeaway": "Lognormal VaR is the loss, $P(1 - e^{\\cdot})$. Without the $1 -$ you have the surviving value.",
+  "check": {
+   "inputs": {
+    "P": 5.2,
+    "mu": 0.122,
+    "s": 0.23,
+    "z": 1.65
+   },
+   "steps": [
+    {
+     "name": "x",
+     "expr": "mu-z*s",
+     "value": -0.2575
+    },
+    {
+     "name": "fac",
+     "expr": "exp(x)",
+     "value": 0.7729816
+    },
+    {
+     "name": "VaR",
+     "expr": "P*(1-fac)",
+     "value": 1.180496
+    },
+    {
+     "name": "slip_noP",
+     "expr": "1-fac",
+     "value": 0.2270184
+    },
+    {
+     "name": "slip_value",
+     "expr": "P*fac",
+     "value": 4.019504
+    },
+    {
+     "name": "slip_scale",
+     "expr": "10*VaR",
+     "value": 11.80496
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-09",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0035"
+  },
+  "trap_category": "Formula",
+  "setup": "Returns over the horizon are normally distributed with mean $+0.04$ and $\\sigma = 0.32$. Use $z = 1.28$ for 90% and VaR $= -\\mu + z\\sigma$, expressed as a percentage of portfolio value.",
+  "ask": "The 90% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.37%",
+    "correct": false,
+    "why": "Computed 0.3696 correctly but read the fraction as a percent, so 36.96% became 0.37%."
+   },
+   {
+    "label": "≈ 9.1%",
+    "correct": false,
+    "why": "Used the variance ($0.32^2 = 0.1024$) in place of $\\sigma$."
+   },
+   {
+    "label": "≈ 37%",
+    "correct": true
+   },
+   {
+    "label": "≈ 124%",
+    "correct": false,
+    "why": "Left $\\sigma$ out: $z - \\mu = 1.28 - 0.04 = 1.24$. A VaR above 100% of the portfolio is an instant red flag."
+   }
+  ],
+  "working": [
+   {
+    "label": "Tail distance",
+    "display": "$1.28 \\times 0.32 = 0.4096$",
+    "value": 0.4096
+   },
+   {
+    "label": "VaR",
+    "display": "$-0.04 + 0.4096 = 0.3696 = 36.96\\%$",
+    "value": 0.3696
+   }
+  ],
+  "takeaway": "A fraction is not a percent: 0.37 of the portfolio is 37%.",
+  "check": {
+   "inputs": {
+    "mu": 0.04,
+    "s": 0.32,
+    "z": 1.28
+   },
+   "steps": [
+    {
+     "name": "VaR",
+     "expr": "-mu+z*s",
+     "value": 0.3696
+    },
+    {
+     "name": "slip_pct",
+     "expr": "VaR",
+     "value": 0.3696
+    },
+    {
+     "name": "slip_var",
+     "expr": "100*(-mu+z*s**2)",
+     "value": 9.1072
+    },
+    {
+     "name": "slip_noS",
+     "expr": "100*(z-mu)",
+     "value": 124.0
+    },
+    {
+     "name": "pct",
+     "expr": "100*VaR",
+     "value": 36.96
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-10",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-1: Estimating Market Risk Measures: An Introduction and Overview",
+  "reading_id": "MR-1",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0037"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "A portfolio is $P = A + B$ with independent normal P/L positions. $A$ has mean 0.5 and variance 1; $B$ has mean 3 and variance 15. The first step to VaR is the portfolio's standard deviation.",
+  "ask": "$\\sigma_P$ is:",
+  "options": [
+   {
+    "label": "About 4.9",
+    "correct": false,
+    "why": "Added the two standard deviations, $1 + \\sqrt{15} = 4.87$. That is only right at correlation $+1$."
+   },
+   {
+    "label": "Exactly 4",
+    "correct": true
+   },
+   {
+    "label": "16",
+    "correct": false,
+    "why": "Stopped at the combined variance $1 + 15$ and never took the square root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Variance",
+    "display": "Independent, so variances add: $1 + 15 = 16$",
+    "value": 16
+   },
+   {
+    "label": "Standard deviation",
+    "display": "$\\sqrt{16} = 4$",
+    "value": 4
+   },
+   {
+    "label": "VaR (95%)",
+    "display": "$-3.5 + 1.645 \\times 4 = 3.08$",
+    "value": 3.08
+   }
+  ],
+  "takeaway": "Independent risks: variances add, standard deviations do not.",
+  "check": {
+   "inputs": {
+    "vA": 1,
+    "vB": 15,
+    "z": 1.645,
+    "mu": 3.5
+   },
+   "steps": [
+    {
+     "name": "var",
+     "expr": "vA+vB",
+     "value": 16.0
+    },
+    {
+     "name": "sd",
+     "expr": "sqrt(var)",
+     "value": 4.0
+    },
+    {
+     "name": "slip_sum",
+     "expr": "sqrt(vA)+sqrt(vB)",
+     "value": 4.872983
+    },
+    {
+     "name": "VaR",
+     "expr": "-mu+z*sd",
+     "value": 3.08
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-11",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0089"
+  },
+  "trap_category": "Definition",
+  "setup": "Bootstrap historical simulation, 95% ES. Four resamples give ES estimates (USD m) of 3.0, 3.1, 3.2 and 3.9. The bootstrap estimate is the average of the resample ESs. The middle of the set (median) is 3.15.",
+  "ask": "The bootstrap ES estimate is:",
+  "options": [
+   {
+    "label": "Below 3.15",
+    "correct": false,
+    "why": "Would need the low end to be the stretched one. The 3.9 pulls the mean up by far more than 3.0 pulls it down."
+   },
+   {
+    "label": "Above 3.15",
+    "correct": true
+   },
+   {
+    "label": "Equal to 3.15",
+    "correct": false,
+    "why": "Took the median. The estimate averages the resamples, and the set is skewed (3.9 is 0.75 above the middle, 3.0 only 0.15 below)."
+   }
+  ],
+  "working": [
+   {
+    "label": "Sum",
+    "display": "$3.0 + 3.1 + 3.2 + 3.9 = 13.2$",
+    "value": 13.2
+   },
+   {
+    "label": "Average",
+    "display": "$13.2 / 4 = 3.30$",
+    "value": 3.3
+   }
+  ],
+  "takeaway": "The bootstrap estimate is a mean of resample ESs, so one large resample drags it above the median.",
+  "check": {
+   "inputs": {
+    "a": 3.0,
+    "b": 3.1,
+    "c": 3.2,
+    "d": 3.9
+   },
+   "steps": [
+    {
+     "name": "m",
+     "expr": "(a+b+c+d)/4",
+     "value": 3.3
+    },
+    {
+     "name": "med",
+     "expr": "(b+c)/2",
+     "value": 3.15
+    },
+    {
+     "name": "gap",
+     "expr": "m-med",
+     "value": 0.15
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-12",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0103"
+  },
+  "trap_category": "Polarity",
+  "setup": "Volatility-weighted historical simulation. An asset returned $+5\\%$ at a time when its daily volatility estimate was 2%. Today's daily volatility estimate is 1.5%.",
+  "ask": "The volatility-adjusted return is:",
+  "options": [
+   {
+    "label": "Smaller than 5%",
+    "correct": true
+   },
+   {
+    "label": "Larger than 5%",
+    "correct": false,
+    "why": "Inverted the ratio ($5\\% \\times 2/1.5 = 6.67\\%$). Today is calmer than then, so the old move is scaled down, not up."
+   },
+   {
+    "label": "Equal to 5%",
+    "correct": false,
+    "why": "Ignored the volatility update. Without scaling, the method would be plain historical simulation."
+   }
+  ],
+  "working": [
+   {
+    "label": "Scaling ratio",
+    "display": "$\\sigma_{today}/\\sigma_{then} = 1.5/2 = 0.75$",
+    "value": 0.75
+   },
+   {
+    "label": "Adjusted return",
+    "display": "$5\\% \\times 0.75 = 3.75\\%$",
+    "value": 3.75
+   }
+  ],
+  "takeaway": "Scale each old return by current vol over vol-at-the-time: a calmer today shrinks the old shocks.",
+  "check": {
+   "inputs": {
+    "r": 5,
+    "sT": 1.5,
+    "st": 2
+   },
+   "steps": [
+    {
+     "name": "k",
+     "expr": "sT/st",
+     "value": 0.75
+    },
+    {
+     "name": "adj",
+     "expr": "r*k",
+     "value": 3.75
+    },
+    {
+     "name": "slip_inv",
+     "expr": "r/k",
+     "value": 6.666667
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-13",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0104"
+  },
+  "trap_category": "Formula",
+  "setup": "Age-weighted historical simulation with $n = 300$ daily observations and $\\lambda = 0.8$. The weight on an observation $i$ days old is $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$.",
+  "ask": "The weight on the 13-day-old observation is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.0033",
+    "correct": false,
+    "why": "Equal weighting, $1/300$. This ignores $\\lambda$ altogether."
+   },
+   {
+    "label": "≈ 0.014",
+    "correct": true
+   },
+   {
+    "label": "≈ 0.069",
+    "correct": false,
+    "why": "Left out the $(1 - \\lambda) = 0.2$ factor, giving $0.8^{12}$ on its own."
+   },
+   {
+    "label": "≈ 0.20",
+    "correct": false,
+    "why": "Used $(1 - \\lambda)$, the weight on the newest observation, with no decay for the 12 extra days."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay",
+    "display": "$0.8^{12} = 0.0687$",
+    "value": 0.0687
+   },
+   {
+    "label": "Weight",
+    "display": "$0.0687 \\times 0.2 / (1 - 0.8^{300}) = 0.01374$",
+    "value": 0.01374
+   }
+  ],
+  "takeaway": "The newest weight is $1 - \\lambda$. Each day of age multiplies it by $\\lambda$, so at $\\lambda = 0.8$ a two-week-old observation carries about a fifth of that.",
+  "check": {
+   "inputs": {
+    "l": 0.8,
+    "n": 300,
+    "i": 13
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "l**(i-1)*(1-l)/(1-l**n)",
+     "value": 0.0137439
+    },
+    {
+     "name": "slip_equal",
+     "expr": "1/n",
+     "value": 0.003333333
+    },
+    {
+     "name": "slip_no1l",
+     "expr": "l**(i-1)/(1-l**n)",
+     "value": 0.06871948
+    },
+    {
+     "name": "slip_newest",
+     "expr": "(1-l)/(1-l**n)",
+     "value": 0.2
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-14",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0106"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Age-weighted historical simulation with a window of $n = 100$ days and $\\lambda = 0.96$, using $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$. Equal weighting would give every observation 0.01.",
+  "ask": "The weight on the observation 45 days old is:",
+  "options": [
+   {
+    "label": "Above 0.01",
+    "correct": false,
+    "why": "The newest observation does carry $1 - \\lambda = 0.04$, but at 45 days the decay factor $0.96^{44}$ is only about 0.17."
+   },
+   {
+    "label": "Below 0.01",
+    "correct": true
+   },
+   {
+    "label": "Equal to 0.01",
+    "correct": false,
+    "why": "Equal weights arise only at $\\lambda = 1$. Here weights fall steadily with age."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay",
+    "display": "$0.96^{44} = 0.1662$",
+    "value": 0.1662
+   },
+   {
+    "label": "Numerator",
+    "display": "$0.1662 \\times 0.04 = 0.00665$",
+    "value": 0.00665
+   },
+   {
+    "label": "Weight",
+    "display": "$0.00665 / (1 - 0.96^{100}) = 0.00675$",
+    "value": 0.00675
+   }
+  ],
+  "takeaway": "With decay, only recent observations beat the equal weight $1/n$. By 45 days at $\\lambda = 0.96$ the weight has dropped to about two thirds of it.",
+  "check": {
+   "inputs": {
+    "l": 0.96,
+    "n": 100,
+    "i": 45
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "l**(i-1)*(1-l)/(1-l**n)",
+     "value": 0.006751238
+    },
+    {
+     "name": "equal",
+     "expr": "1/n",
+     "value": 0.01
+    },
+    {
+     "name": "ratio",
+     "expr": "w/equal",
+     "value": 0.6751238
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-15",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0111"
+  },
+  "trap_category": "Formula",
+  "setup": "Correlation-weighted historical simulation. Historical returns are $r_1 = 10\\%$ and $r_2 = 12\\%$. The historical correlation was 0, so the old Cholesky factor is the identity. The current correlation is $\\rho = 0.40$, giving $r_2^{adj} = \\rho\\, r_1 + \\sqrt{1 - \\rho^2}\\, r_2$.",
+  "ask": "The adjusted $r_2$ is:",
+  "options": [
+   {
+    "label": "Below 12%",
+    "correct": false,
+    "why": "Used only $\\sqrt{1 - \\rho^2}\\, r_2 = 0.9165 \\times 12 = 11.0$ and dropped the $\\rho\\, r_1$ term."
+   },
+   {
+    "label": "Equal to 12%",
+    "correct": false,
+    "why": "Assumed nothing changes because the historical correlation was zero. The current factor still mixes in $r_1$."
+   },
+   {
+    "label": "Above 12%",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Cross term",
+    "display": "$0.40 \\times 10\\% = 4.0\\%$",
+    "value": 4.0
+   },
+   {
+    "label": "Own term",
+    "display": "$\\sqrt{0.84} \\times 12\\% = 11.0\\%$",
+    "value": 11.0
+   },
+   {
+    "label": "Adjusted $r_2$",
+    "display": "$4.0\\% + 11.0\\% = 15.0\\%$",
+    "value": 15.0
+   }
+  ],
+  "takeaway": "Raising correlation makes the second return borrow from the first: the cross term (+4.0) outweighs the shrink in its own weight (−1.0).",
+  "check": {
+   "inputs": {
+    "r1": 10,
+    "r2": 12,
+    "rho": 0.4
+   },
+   "steps": [
+    {
+     "name": "cross",
+     "expr": "rho*r1",
+     "value": 4.0
+    },
+    {
+     "name": "own",
+     "expr": "sqrt(1-rho**2)*r2",
+     "value": 10.99818
+    },
+    {
+     "name": "adj",
+     "expr": "cross+own",
+     "value": 14.99818
+    },
+    {
+     "name": "slip_own",
+     "expr": "own",
+     "value": 10.99818
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-16",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-2: Non-Parametric Approaches",
+  "reading_id": "MR-2",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0116"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Age-weighted historical simulation over 250 daily losses with $\\lambda = 0.85$ and $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{250})$, where the denominator is about 1. The worst loss, USD 9.60m, was 7 days ago. The 99% tail holds 1% of probability. Basic (equal-weight) HS puts the 99% VaR at 5.50m.",
+  "ask": "The age weight on the 9.60m loss is closest to:",
+  "options": [
+   {
+    "label": "0.4%",
+    "correct": false,
+    "why": "Equal weighting, $1/250$. This is the basic-HS answer and ignores age."
+   },
+   {
+    "label": "5.7%",
+    "correct": true
+   },
+   {
+    "label": "15%",
+    "correct": false,
+    "why": "Used $1 - \\lambda$, the weight of today's observation, without decaying it for 6 further days."
+   },
+   {
+    "label": "38%",
+    "correct": false,
+    "why": "Computed $\\lambda^{6} = 0.377$ and forgot to multiply by $(1 - \\lambda)$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Decay",
+    "display": "$0.85^{6} = 0.3771$",
+    "value": 0.3771
+   },
+   {
+    "label": "Weight",
+    "display": "$0.3771 \\times 0.15 = 0.0566$",
+    "value": 0.0566
+   },
+   {
+    "label": "Against the tail",
+    "display": "$5.7\\% > 1\\%$, so the 9.60m loss alone fills the tail: VaR $= 9.60$",
+    "value": null
+   }
+  ],
+  "takeaway": "With age weights, one recent big loss can fill the whole 1% tail, so VaR jumps from the basic-HS 5.50 to 9.60.",
+  "check": {
+   "inputs": {
+    "l": 0.85,
+    "n": 250,
+    "i": 7
+   },
+   "steps": [
+    {
+     "name": "w",
+     "expr": "l**(i-1)*(1-l)/(1-l**n)",
+     "value": 0.05657243
+    },
+    {
+     "name": "slip_equal",
+     "expr": "1/n",
+     "value": 0.004
+    },
+    {
+     "name": "slip_newest",
+     "expr": "1-l",
+     "value": 0.15
+    },
+    {
+     "name": "slip_nofactor",
+     "expr": "l**(i-1)",
+     "value": 0.3771495
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-17",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0137"
+  },
+  "trap_category": "Definition",
+  "setup": "The standardised Gumbel distribution has quantile function $x_p = -\\ln[-\\ln p]$.",
+  "ask": "Which quantile lies further from zero?",
+  "options": [
+   {
+    "label": "The 5% quantile",
+    "correct": false,
+    "why": "Has the tail mirrored. The 5% quantile is only $-\\ln(2.996) = -1.10$."
+   },
+   {
+    "label": "They are equidistant",
+    "correct": false,
+    "why": "Assumed symmetry, as for the normal. The Gumbel is skewed to the right."
+   },
+   {
+    "label": "The 95% quantile",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "5% quantile",
+    "display": "$-\\ln[-\\ln 0.05] = -\\ln 2.996 = -1.097$",
+    "value": -1.0972
+   },
+   {
+    "label": "95% quantile",
+    "display": "$-\\ln[-\\ln 0.95] = -\\ln 0.0513 = +2.970$",
+    "value": 2.9702
+   }
+  ],
+  "takeaway": "The Gumbel has a long right tail: its 95% quantile (2.97) sits nearly three times as far from zero as its 5% quantile (−1.10).",
+  "check": {
+   "inputs": {
+    "a": 0.05,
+    "b": 0.95
+   },
+   "steps": [
+    {
+     "name": "q05",
+     "expr": "-ln(-ln(a))",
+     "value": -1.097189
+    },
+    {
+     "name": "q95",
+     "expr": "-ln(-ln(b))",
+     "value": 2.970195
+    },
+    {
+     "name": "gap",
+     "expr": "abs(q95)-abs(q05)",
+     "value": 1.873007
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-18",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0138"
+  },
+  "trap_category": "Formula",
+  "setup": "Block-maxima (Fréchet) VaR is $\\mu - \\frac{\\sigma}{\\xi}\\left[1 - (-n\\ln\\alpha)^{-\\xi}\\right]$. Take $\\mu = 4.0\\%$, $\\sigma = 0.80$, $\\xi = 0.5$, block size $n = 100$ and $\\alpha = 99.9\\%$.",
+  "ask": "The VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.54%",
+    "correct": false,
+    "why": "Flipped the sign of the bracket term, $4.0 + 1.6\\,(1 - 3.16)$, so the tail correction was subtracted."
+   },
+   {
+    "label": "≈ 2.9%",
+    "correct": false,
+    "why": "Used $+\\xi$ instead of $-\\xi$ as the exponent: $0.10^{+0.5} = 0.32$."
+   },
+   {
+    "label": "≈ 7.5%",
+    "correct": true
+   },
+   {
+    "label": "≈ 53%",
+    "correct": false,
+    "why": "Left $n$ out of the bracket, so the base is $0.001$ instead of $0.100$ and $0.001^{-0.5} = 31.6$."
+   }
+  ],
+  "working": [
+   {
+    "label": "Base",
+    "display": "$-100\\ln 0.999 = 0.10005$",
+    "value": 0.10005
+   },
+   {
+    "label": "Power",
+    "display": "$0.10005^{-0.5} = 3.1615$",
+    "value": 3.1615
+   },
+   {
+    "label": "VaR",
+    "display": "$4.0 - 1.6\\,(1 - 3.1615) = 4.0 + 3.458 = 7.46\\%$",
+    "value": 7.4584
+   }
+  ],
+  "takeaway": "For $\\xi > 0$ and a small base, $(\\cdot)^{-\\xi}$ is above 1, so the bracket is negative and VaR lies above $\\mu$.",
+  "check": {
+   "inputs": {
+    "mu": 4.0,
+    "s": 0.8,
+    "xi": 0.5,
+    "n": 100,
+    "a": 0.999
+   },
+   "steps": [
+    {
+     "name": "base",
+     "expr": "-n*ln(a)",
+     "value": 0.10005
+    },
+    {
+     "name": "pw",
+     "expr": "base**(-xi)",
+     "value": 3.161487
+    },
+    {
+     "name": "VaR",
+     "expr": "mu-(s/xi)*(1-pw)",
+     "value": 7.458379
+    },
+    {
+     "name": "slip_bracket",
+     "expr": "mu+(s/xi)*(1-pw)",
+     "value": 0.541621
+    },
+    {
+     "name": "slip_exp",
+     "expr": "mu-(s/xi)*(1-base**xi)",
+     "value": 2.906091
+    },
+    {
+     "name": "slip_non",
+     "expr": "mu-(s/xi)*(1-(-ln(a))**(-xi))",
+     "value": 52.98379
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-19",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0139"
+  },
+  "trap_category": "Formula",
+  "setup": "Loss tails follow a power law $F(x) \\approx k x^{-\\alpha}$ with $\\alpha = 4.0$ and $k$ constant. The 99.5% VaR is USD 6.0m. The tail probability falls from 0.5% to 0.1%, a factor of 5.",
+  "ask": "The 99.9% VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ USD 1.2m",
+    "correct": false,
+    "why": "Divided by the probability ratio ($6.0/5$). VaR cannot fall as confidence rises."
+   },
+   {
+    "label": "≈ USD 9.0m",
+    "correct": true
+   },
+   {
+    "label": "≈ USD 30m",
+    "correct": false,
+    "why": "Multiplied by the probability ratio (5) without taking the fourth root."
+   },
+   {
+    "label": "≈ USD 3,750m",
+    "correct": false,
+    "why": "Raised the ratio to the fourth power ($5^4 = 625$) instead of taking the fourth root."
+   }
+  ],
+  "working": [
+   {
+    "label": "Probability ratio",
+    "display": "$0.005 / 0.001 = 5$",
+    "value": 5
+   },
+   {
+    "label": "Loss ratio",
+    "display": "$5^{1/4} = 1.495$",
+    "value": 1.495
+   },
+   {
+    "label": "VaR",
+    "display": "$6.0 \\times 1.495 \\approx \\text{USD } 9.0\\text{m}$",
+    "value": 8.97
+   }
+  ],
+  "takeaway": "Tail probability falls with $x^{-\\alpha}$, so loss grows only with the $\\alpha$-th root of the probability ratio.",
+  "check": {
+   "inputs": {
+    "V": 6.0,
+    "al": 4.0,
+    "p1": 0.005,
+    "p2": 0.001
+   },
+   "steps": [
+    {
+     "name": "r",
+     "expr": "p1/p2",
+     "value": 5.0
+    },
+    {
+     "name": "k",
+     "expr": "r**(1/al)",
+     "value": 1.495349
+    },
+    {
+     "name": "VaR",
+     "expr": "V*k",
+     "value": 8.972093
+    },
+    {
+     "name": "slip_div",
+     "expr": "V/r",
+     "value": 1.2
+    },
+    {
+     "name": "slip_mult",
+     "expr": "V*r",
+     "value": 30.0
+    },
+    {
+     "name": "slip_pow",
+     "expr": "V*r**al",
+     "value": 3750.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-20",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0141"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Fréchet VaR $= \\mu - \\frac{\\sigma}{\\xi}\\left[1 - (-n\\ln\\alpha)^{-\\xi}\\right]$ with $\\mu = 2\\%$, $\\sigma = 0.6$, $\\xi = 0.4$, $n = 100$ and $\\alpha = 95\\%$. The base is already done: $-100\\ln 0.95 = 5.13$.",
+  "ask": "$(5.13)^{-0.4}$ is closest to:",
+  "options": [
+   {
+    "label": "1.9",
+    "correct": false,
+    "why": "Dropped the minus sign on the exponent, $5.13^{+0.4}$. A base above 1 raised to a negative power must fall below 1."
+   },
+   {
+    "label": "−2.1",
+    "correct": false,
+    "why": "Multiplied the base by the exponent ($-0.4 \\times 5.13$) instead of raising to the power."
+   },
+   {
+    "label": "0.52",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Power",
+    "display": "$5.13^{-0.4} = 0.520$",
+    "value": 0.52
+   },
+   {
+    "label": "Bracket",
+    "display": "$1 - 0.520 = +0.480$, so VaR is below $\\mu$",
+    "value": 0.48
+   },
+   {
+    "label": "VaR",
+    "display": "$2 - 1.5 \\times 0.480 = 1.28\\%$",
+    "value": 1.28
+   }
+  ],
+  "takeaway": "When the base exceeds 1, $(\\cdot)^{-\\xi}$ is below 1 and VaR falls under $\\mu$. It only crosses $\\mu$ when $-n\\ln\\alpha < 1$, here beyond about 99%.",
+  "check": {
+   "inputs": {
+    "n": 100,
+    "a": 0.95,
+    "xi": 0.4,
+    "mu": 2.0,
+    "s": 0.6
+   },
+   "steps": [
+    {
+     "name": "base",
+     "expr": "-n*ln(a)",
+     "value": 5.129329
+    },
+    {
+     "name": "pw",
+     "expr": "base**(-xi)",
+     "value": 0.519967
+    },
+    {
+     "name": "VaR",
+     "expr": "mu-(s/xi)*(1-pw)",
+     "value": 1.27995
+    },
+    {
+     "name": "slip_sign",
+     "expr": "base**xi",
+     "value": 1.923199
+    },
+    {
+     "name": "slip_mult",
+     "expr": "-xi*base",
+     "value": -2.051732
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-21",
+  "mode": "direction",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0145"
+  },
+  "trap_category": "Sign",
+  "setup": "Standardised Fréchet ($\\mu = 0$, $\\sigma = 1$, $\\xi = 0.3$) has quantile $x_p = -\\frac{1}{\\xi}\\left[1 - (-\\ln p)^{-\\xi}\\right]$. For $p = 5\\%$, $-\\ln p = 3.0$.",
+  "ask": "The 5% quantile is:",
+  "options": [
+   {
+    "label": "Positive",
+    "correct": false,
+    "why": "Flipped the sign of the exponent: $3.0^{+0.3} = 1.39$ makes the bracket negative and $x = +1.30$. With $-\\xi$, the power is below 1."
+   },
+   {
+    "label": "Negative",
+    "correct": true
+   },
+   {
+    "label": "Zero",
+    "correct": false,
+    "why": "Would need $(-\\ln p)^{-\\xi} = 1$, i.e. $-\\ln p = 1$, which holds at $p = 37\\%$ and not at 5%."
+   }
+  ],
+  "working": [
+   {
+    "label": "Power",
+    "display": "$3.0^{-0.3} = 0.72$",
+    "value": 0.7195
+   },
+   {
+    "label": "Bracket",
+    "display": "$1 - 0.72 = +0.28$",
+    "value": 0.2805
+   },
+   {
+    "label": "Quantile",
+    "display": "$-(1/0.3) \\times 0.28 = -0.935$",
+    "value": -0.9349
+   }
+  ],
+  "takeaway": "Below the median ($-\\ln p > 1$), the power $(\\cdot)^{-\\xi}$ is under 1, the bracket is positive and the leading minus makes the quantile negative.",
+  "check": {
+   "inputs": {
+    "p": 0.05,
+    "xi": 0.3
+   },
+   "steps": [
+    {
+     "name": "lp",
+     "expr": "-ln(p)",
+     "value": 2.995732
+    },
+    {
+     "name": "pw",
+     "expr": "lp**(-xi)",
+     "value": 0.7195303
+    },
+    {
+     "name": "x",
+     "expr": "-(1/xi)*(1-pw)",
+     "value": -0.9348989
+    },
+    {
+     "name": "slip_sign",
+     "expr": "-(1/xi)*(1-lp**xi)",
+     "value": 1.299318
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-22",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0149"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "Heavy-tailed losses: $P(X > x) \\approx k\\,x^{-1/\\xi}$ with $\\xi = 0.25$ and $k$ constant. The 99.5% VaR is USD 6.0m. Moving to 99.9% cuts the tail probability from 0.5% to 0.1%, a factor of 5.",
+  "ask": "The 99.9% VaR is what multiple of the 99.5% VaR?",
+  "options": [
+   {
+    "label": "About 5×",
+    "correct": false,
+    "why": "Treated VaR as proportional to the inverse tail probability and ignored the exponent."
+   },
+   {
+    "label": "About 625×",
+    "correct": false,
+    "why": "Applied $1/\\xi = 4$ as a power, $5^4$, instead of as the root that undoes $x^{-4}$."
+   },
+   {
+    "label": "About 1.5×",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Exponent",
+    "display": "$1/\\xi = 4$, so $P \\propto x^{-4}$",
+    "value": 4
+   },
+   {
+    "label": "Multiple",
+    "display": "$x_2/x_1 = 5^{1/4} = 1.495$",
+    "value": 1.495
+   },
+   {
+    "label": "VaR",
+    "display": "$6.0 \\times 1.495 \\approx \\text{USD } 9.0\\text{m}$",
+    "value": 8.97
+   }
+  ],
+  "takeaway": "The exponent $1/\\xi$ is on $x$ in the tail probability, so loss scales with the $\\xi$-th power of the probability ratio: $5^{0.25}$.",
+  "check": {
+   "inputs": {
+    "xi": 0.25,
+    "p1": 0.005,
+    "p2": 0.001,
+    "V": 6.0
+   },
+   "steps": [
+    {
+     "name": "r",
+     "expr": "p1/p2",
+     "value": 5.0
+    },
+    {
+     "name": "m",
+     "expr": "r**xi",
+     "value": 1.495349
+    },
+    {
+     "name": "VaR",
+     "expr": "V*m",
+     "value": 8.972093
+    },
+    {
+     "name": "slip_pow",
+     "expr": "r**(1/xi)",
+     "value": 625.0
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-23",
+  "mode": "magnitude",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0150"
+  },
+  "trap_category": "Formula",
+  "setup": "Block-maxima VaR is $\\mu - \\frac{\\sigma}{\\xi}\\left[1 - (-n\\ln\\alpha)^{-\\xi}\\right]$. Take $n = 160$, $\\mu = 2.00\\%$, $\\sigma = 1.50\\%$, $\\xi = 0.90$ and $\\alpha = 99.9\\%$.",
+  "ask": "The VaR is closest to:",
+  "options": [
+   {
+    "label": "≈ 0.65%",
+    "correct": false,
+    "why": "Used $+\\xi$ as the exponent: $0.16^{+0.9} = 0.19$ makes the tail correction far too small."
+   },
+   {
+    "label": "≈ 2.0%",
+    "correct": false,
+    "why": "Stopped at the location $\\mu$ and dropped the tail correction."
+   },
+   {
+    "label": "≈ 9.0%",
+    "correct": true
+   },
+   {
+    "label": "≈ 830%",
+    "correct": false,
+    "why": "Left $n$ out of the bracket: $0.001^{-0.9} = 500$. A VaR of 830% is more than eight times the position."
+   }
+  ],
+  "working": [
+   {
+    "label": "Base",
+    "display": "$-160\\ln 0.999 = 0.1601$",
+    "value": 0.1601
+   },
+   {
+    "label": "Power",
+    "display": "$0.1601^{-0.9} = 5.201$",
+    "value": 5.201
+   },
+   {
+    "label": "VaR",
+    "display": "$2.00 - 1.667\\,(1 - 5.201) = 2.00 + 7.00 = 9.0\\%$",
+    "value": 9.0
+   }
+  ],
+  "takeaway": "A small base and a negative exponent give a power well above 1, so the tail correction adds a lot to $\\mu$.",
+  "check": {
+   "inputs": {
+    "n": 160,
+    "mu": 2.0,
+    "s": 1.5,
+    "xi": 0.9,
+    "a": 0.999
+   },
+   "steps": [
+    {
+     "name": "base",
+     "expr": "-n*ln(a)",
+     "value": 0.1600801
+    },
+    {
+     "name": "pw",
+     "expr": "base**(-xi)",
+     "value": 5.201116
+    },
+    {
+     "name": "VaR",
+     "expr": "mu-(s/xi)*(1-pw)",
+     "value": 9.001859
+    },
+    {
+     "name": "slip_exp",
+     "expr": "mu-(s/xi)*(1-base**xi)",
+     "value": 0.6537774
+    },
+    {
+     "name": "slip_non",
+     "expr": "mu-(s/xi)*(1-(-ln(a))**(-xi))",
+     "value": 835.2694
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-24",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0155"
+  },
+  "trap_category": "Intermediate result",
+  "setup": "POT VaR $= u + \\frac{\\beta}{\\xi}\\left[\\left(\\frac{n}{N_u}(1 - \\alpha)\\right)^{-\\xi} - 1\\right]$ with $u = 3.0\\%$, 45 exceedances in $n = 750$ days ($N_u/n = 6.0\\%$), $\\beta = 0.90\\%$, $\\xi = 0.25$ and $\\alpha = 99.5\\%$.",
+  "ask": "The inner quantity $\\frac{n}{N_u}(1 - \\alpha)$ is closest to:",
+  "options": [
+   {
+    "label": "12",
+    "correct": false,
+    "why": "Inverted it, $0.06/0.005 = 12$, by dividing $N_u/n$ by $(1 - \\alpha)$. The tail probability $(1 - \\alpha)$ goes on top and $N_u/n$ underneath."
+   },
+   {
+    "label": "0.0003",
+    "correct": false,
+    "why": "Multiplied $(1 - \\alpha)$ by $N_u/n$ ($0.005 \\times 0.06$) instead of dividing."
+   },
+   {
+    "label": "0.083",
+    "correct": true
+   }
+  ],
+  "working": [
+   {
+    "label": "Inner quantity",
+    "display": "$0.005 / 0.06 = 0.0833$",
+    "value": 0.0833
+   },
+   {
+    "label": "Power",
+    "display": "$0.0833^{-0.25} = 1.861$",
+    "value": 1.861
+   },
+   {
+    "label": "VaR",
+    "display": "$3.0 + 3.6 \\times 0.861 = 6.10\\%$",
+    "value": 6.1
+   }
+  ],
+  "takeaway": "The inner quantity is the target tail probability over the exceedance probability. It is below 1 for any VaR beyond $u$, so its negative power is above 1 and the excess over $u$ is positive.",
+  "check": {
+   "inputs": {
+    "a": 0.995,
+    "n": 750,
+    "Nu": 45,
+    "u": 3.0,
+    "b": 0.9,
+    "xi": 0.25
+   },
+   "steps": [
+    {
+     "name": "q",
+     "expr": "(n/Nu)*(1-a)",
+     "value": 0.08333333
+    },
+    {
+     "name": "pw",
+     "expr": "q**(-xi)",
+     "value": 1.86121
+    },
+    {
+     "name": "VaR",
+     "expr": "u+(b/xi)*(pw-1)",
+     "value": 6.100355
+    },
+    {
+     "name": "slip_inv",
+     "expr": "(Nu/n)/(1-a)",
+     "value": 12.0
+    },
+    {
+     "name": "slip_mult",
+     "expr": "(Nu/n)*(1-a)",
+     "value": 0.0003
+    }
+   ]
+  }
+ },
+ {
+  "id": "SC-bank-MRq01-25",
+  "mode": "intermediate",
+  "area": "MR",
+  "reading": "MR-3: Parametric Approaches (II): Extreme Value",
+  "reading_id": "MR-3",
+  "source": {
+   "kind": "bank",
+   "questionId": "MR-QB-0157"
+  },
+  "trap_category": "Sequence",
+  "setup": "POT expected shortfall: $ES = \\frac{\\text{VaR} + \\beta - \\xi u}{1 - \\xi}$. The inputs are $u = 6.00\\%$, $\\beta = 0.80$, $\\xi = 0.23$ and a 99% VaR of 7.00%. The numerator is computed before the division.",
+  "ask": "The numerator $\\text{VaR} + \\beta - \\xi u$ is:",
+  "options": [
+   {
+    "label": "Above the VaR of 7.00",
+    "correct": false,
+    "why": "Added $\\beta$ and dropped $\\xi u$, giving $7.80$. The $\\xi u = 1.38$ term outweighs $\\beta = 0.80$."
+   },
+   {
+    "label": "Below the VaR of 7.00",
+    "correct": true
+   },
+   {
+    "label": "Equal to the VaR of 7.00",
+    "correct": false,
+    "why": "Assumed $\\beta$ and $\\xi u$ cancel. They are 0.80 and 1.38."
+   }
+  ],
+  "working": [
+   {
+    "label": "Numerator",
+    "display": "$7.00 + 0.80 - 0.23 \\times 6.00 = 6.42$",
+    "value": 6.42
+   },
+   {
+    "label": "ES",
+    "display": "$6.42 / 0.77 = 8.34\\%$",
+    "value": 8.34
+   }
+  ],
+  "takeaway": "The numerator can dip below VaR; the division by $1 - \\xi$ is what lifts ES above it. Always finish the division before judging.",
+  "check": {
+   "inputs": {
+    "u": 6.0,
+    "b": 0.8,
+    "xi": 0.23,
+    "V": 7.0
+   },
+   "steps": [
+    {
+     "name": "num",
+     "expr": "V+b-xi*u",
+     "value": 6.42
+    },
+    {
+     "name": "gap",
+     "expr": "num-V",
+     "value": -0.58
+    },
+    {
+     "name": "ES",
+     "expr": "num/(1-xi)",
+     "value": 8.337662
+    },
+    {
+     "name": "slip_noxiu",
+     "expr": "V+b",
+     "value": 7.8
+    }
+   ]
+  }
+ }
+]
