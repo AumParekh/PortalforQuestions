@@ -11,7 +11,7 @@ import { ROUNDS_OPTIONS, leafKey, loadHistory, loadPick, savePick, useSenseRun }
 import type { SensePick } from './store';
 import { AREAS, AREA_NAME, MODES, MODE_LABEL } from './types';
 import type { Scenario, SenseMode } from './types';
-import { ModeTag, Shell, btnPrimary, card } from './ui';
+import { ModeTag, Shell, btnPrimary, btnSecondary, card } from './ui';
 
 const MODE_BLURB: Record<SenseMode, string> = {
   direction: 'A full setup changes one thing. Which way does the answer move?',
@@ -183,7 +183,9 @@ export function IntroView({ scenarios, states, attempts, progressUnavailable }: 
             </p>
             {!all && plan.rounds.length < size && (
               <p className="mt-1 text-[15px] text-slate-600 dark:text-slate-400">
-                That's all your choice has for one session (two rounds on the same question never share one). Pick more for the full {size}, or choose All.
+                {plan.rounds.length === pool.length
+                  ? 'That is every scenario your choice has.'
+                  : `That's all your choice has for one session (two rounds on the same question never share one). Pick more for the full ${size}, or play all below.`}
               </p>
             )}
             {review > 0 && (
@@ -239,6 +241,20 @@ export function IntroView({ scenarios, states, attempts, progressUnavailable }: 
           <Play className="h-5 w-5" aria-hidden="true" />
           Start
         </button>
+
+        {/* One tap to every scenario of the choice, whatever "Rounds" is set to. */}
+        {picking && !all && plan && pool.length > plan.rounds.length && (
+          <button
+            type="button"
+            onClick={() => {
+              const everything = planSession(pool, states, loadHistory(), { today, areaRule: false, rounds: pool.length, allowRepeats: true });
+              if (everything) useSenseRun.getState().start(everything);
+            }}
+            className={`${btnSecondary} min-h-[52px] w-full`}
+          >
+            Play all {pool.length.toLocaleString()} scenarios of your choice
+          </button>
+        )}
 
         {picking && explainer}
       </div>

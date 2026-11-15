@@ -217,6 +217,11 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
     if (!canStart) return;
     onStart(buildDeck(cards, states, setup));
   };
+  /** Every statement of the selection, whatever the deck size is set to. */
+  const startAll = () => {
+    if (!canStart) return;
+    onStart(buildDeck(cards, states, { ...setup, size: 'all' }));
+  };
 
   const smallBtn =
     'min-h-[44px] rounded-xl border border-slate-200 px-3 text-[15px] font-medium hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800';
@@ -283,6 +288,11 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
           </p>
         </section>
 
+        {/* Above the list: with a chapter unfolded the options below it are a long scroll away. */}
+        <Field label="Deck size">
+          <Segmented label="Deck size" value={setup.size} options={SIZE_OPTIONS} onChange={(size) => update({ size })} />
+        </Field>
+
         {picking ? (
           <LoPicker subjects={loSubjects} selected={setup.los} onChange={(los) => update({ los })} idPrefix="tf" />
         ) : (
@@ -342,10 +352,6 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
           <Segmented label="Statement status" value={setup.status} options={STATUS_OPTIONS} onChange={setStatus} />
         </Field>
 
-        <Field label="Deck size">
-          <Segmented label="Deck size" value={setup.size} options={SIZE_OPTIONS} onChange={(size) => update({ size })} />
-        </Field>
-
         <Field label="Order">
           <Segmented label="Order" value={setup.order} options={ORDER_OPTIONS} onChange={(order) => update({ order })} />
           {setup.order === 'weakest' && (
@@ -373,15 +379,27 @@ export function TfSetupView({ cards, states, progressUnavailable, onStart }: Pro
           <p aria-live="polite" className="min-w-0 text-[15px] font-medium tabular-nums text-slate-700 dark:text-slate-300">
             {counter}
           </p>
-          <button
-            type="button"
-            onClick={start}
-            disabled={!canStart}
-            className="inline-flex min-h-[48px] shrink-0 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-white shadow-sm hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
-          >
-            <Play className="h-4 w-4" aria-hidden="true" />
-            Start
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            {canStart && deckCount < pool.length && (
+              <button
+                type="button"
+                onClick={startAll}
+                aria-label={`Play all ${pool.length} statements`}
+                className="inline-flex min-h-[48px] items-center rounded-xl border border-slate-300 px-3 font-semibold tabular-nums text-primary-700 hover:bg-primary-50 dark:border-slate-600 dark:text-primary-100 dark:hover:bg-primary/15"
+              >
+                All {pool.length.toLocaleString()}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={start}
+              disabled={!canStart}
+              className="inline-flex min-h-[48px] items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-white shadow-sm hover:bg-primary-600 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+            >
+              <Play className="h-4 w-4" aria-hidden="true" />
+              Start
+            </button>
+          </div>
         </div>
       </div>
     </div>
