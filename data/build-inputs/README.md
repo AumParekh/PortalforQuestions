@@ -7,6 +7,7 @@ be rebuilt or corrected without regenerating it.
 |---|---|---|
 | `formulas/s*.json`, `formula-twins.json`, `enrich/e*.json` | `content/games/formulas.json` | `python3 tools/games/build_formulas.py data/build-inputs/formulas data/build-inputs/formula-twins.json data/build-inputs/enrich` |
 | `sense/{bank,notes}-*.json` | `content/games/sensecheck.json` | `python3 tools/games/build_sensecheck.py data/build-inputs/sense` |
+| `flashcards/new/<CODE>-<nn>.json` and their `.verify.json` | the True/False decks `content/flashcards/<CODE>.json` (existing cards re-labelled with official chapters, plus the verified new cards) | `python3 tools/content/build_flashcards.py merge` |
 | `traps/t*.json` | traps in `content/games/game-blocks.json` | `python3 tools/notes/extract.py` then `python3 tools/notes/merge_traps.py data/build-inputs/traps` |
 | `lo-map/FRM_P2_Master_LO_Map_v3.pdf` | `lo-map/lo-map.json` (107 readings, 591 LOs, P1–P4 bands, LO type by wording) | `python3 tools/content/build_lo_map.py` |
 | `question-banks/pdf/FRM_Workbook_Vol1_TierA.pdf`, `FRM_Workbook_Vol2_TiersB-D.pdf` | `lo-map/tiers.json` (76 recall-workbook sections, the tier A–D of each LO) | `python3 tools/content/build_tiers.py` |
@@ -32,6 +33,10 @@ needs `pdfplumber` and poppler's `pdftotext`).
 - `question-banks/overrides.json`: hand transcriptions for the layouts the extractor cannot express.
 - `question-banks/vocab.txt`: words seen in the PDFs, used to tell a hyphenated compound from a
   word broken at a line end.
+- Drill material from the imported questions. `flashcards/BRIEF.md` and `sense/BRIEF.md` are the rules the
+  writers followed; `VERIFY.md` in each folder is the independent check. Input slices are rebuilt with
+  `build_flashcards.py slice <dir>` and `tools/games/sense_slices.py slice <dir>`; a slice only goes into the
+  portal once its verifier has reported, and the cards or scenarios it disputes are left out.
 - LO type (`loKind` on each question: Numerical, Conceptual or Both). The map prints no such label, so
   `build_lo_map.py` reads it off the official wording ("Calculate" / "Describe" / "Define and calculate") and
   `build_question_bank.py` moves a conceptually worded LO to Both when at least 3 and 30% of its questions are

@@ -1,5 +1,6 @@
 // Pure normalisation and indexing of game-blocks.json. No React, no zustand, so it can be
 // unit-tested in node.
+import { READING_TITLES } from '../formulas/readingTitles';
 import type { Area, Block, GameBlocks, Reading, SubItem, SubItemLike, Trap, TrapCategory } from './types';
 import { AREAS, TRAP_CATEGORIES, isLearningObjective } from './types';
 
@@ -105,7 +106,8 @@ export function normaliseReading(r: Reading, key: string): Reading {
   return {
     ...r,
     reading_id: r.reading_id || key,
-    title: r.title ?? key,
+    // The official chapter title where there is one; the notes' own title otherwise.
+    title: READING_TITLES[key] ?? r.title ?? key,
     area: r.area ?? key.replace(/-\d+.*$/, ''),
     objectives: (Array.isArray(r.objectives) ? r.objectives : []).map((o) => ({
       ...o,

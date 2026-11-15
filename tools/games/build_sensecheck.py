@@ -9,6 +9,10 @@ check step evaluates (arithmetic whitelist) to its stated value within 0.5%. Mag
 also have 4 options whose leading numbers are pairwise at least 2.5x apart.
 Magnitude rounds are rebalanced so the correct option's rank among the sorted values is spread
 evenly (a fixed rank would give the answer away); the resulting distribution is reported.
+
+Slices written from the imported question banks (bank-<CODE>q<nn>.json, see BRIEF.md and sense_slices.py) only go in
+once their independent verifier has reported (bank-<CODE>q<nn>.verify.json); the scenarios it disputes are left out.
+Every bank scenario is filed under the official chapter of its question, the same reading ids the notes use.
 """
 import collections
 import glob
@@ -154,14 +158,57 @@ def place_correct(s):
     s['options'] = rest[:target] + [correct] + rest[target:]
 
 
+def question_chapters():
+    """Question id -> official reading id ("MR-14") of its chapter."""
+    out = {}
+    for code in ('IR', 'MR', 'CR', 'LR', 'OR', 'CI'):
+        for q in json.load(open(os.path.join(ROOT, 'content', f'{code}.json'), encoding='utf8'))['questions']:
+            m = re.match(r'[A-Z]+-\d+(?=:)', q.get('reading', ''))
+            if m:
+                out[q['id']] = m.group(0)
+    return out
+
+
+def disputes_for(path):
+    """Ids the slice's verifier disputed; None when the slice has not been verified in full yet."""
+    verify_path = path[: -len('.json')] + '.verify.json'
+    if not os.path.exists(verify_path):
+        return None
+    v = json.load(open(verify_path, encoding='utf8'))
+    n = len(json.load(open(path, encoding='utf8')))
+    if not isinstance(v, dict) or v.get('checked') != n or not isinstance(v.get('disputes'), list):
+        return None
+    return {d.get('id') for d in v['disputes'] if isinstance(d, dict)}
+
+
 def main():
     slice_dir = sys.argv[1]
     out, dropped, seen, rebalanced = [], [], set(), []
+    chapters, unverified, disputed, unfiled = question_chapters(), [], 0, 0
     for f in sorted(glob.glob(os.path.join(slice_dir, '*.json'))):
         base = os.path.basename(f)
         if not re.fullmatch(r'(bank|notes)-[A-Za-z0-9]+\.json', base):
             continue
+        refused = set()
+        if re.fullmatch(r'bank-[A-Z]+q\d+\.json', base):
+            refused = disputes_for(f)
+            if refused is None:
+                unverified.append(base)
+                continue
         for s in json.load(open(f)):
+            if s.get('id') in refused:
+                disputed += 1
+                continue
+            src = s.get('source') or {}
+            if src.get('kind') == 'bank':
+                chapter = chapters.get(src.get('questionId'))
+                if chapter:
+                    s['reading'] = s['reading_id'] = chapter
+                else:
+                    unfiled += 1
+            # One key per chapter: the bare reading id, which the screen labels with the official title.
+            if re.fullmatch(r'[A-Z]+-\d+', str(s.get('reading_id') or '')):
+                s['reading'] = s['reading_id']
             problem = 'duplicate id' if s.get('id') in seen else check(s)
             if problem:
                 dropped.append((s.get('id'), problem))
@@ -193,6 +240,9 @@ def main():
     print(f'rebalanced {len(rebalanced)} magnitude rounds')
     slots = collections.Counter((s['mode'], len(s['options']), next(i for i, o in enumerate(s['options']) if o.get('correct'))) for s in out if s['mode'] != 'magnitude')
     print('direction/intermediate correct slot', dict(sorted(slots.items())))
+    print(f'left out as disputed by a verifier: {disputed}; bank scenarios without an official chapter: {unfiled}')
+    if unverified:
+        print(f'slices waiting for verification (not merged): {len(unverified)}', unverified[:8])
     for d in dropped:
         print('dropped', *d)
     if len(dropped) > 0.05 * (len(out) + len(dropped)):

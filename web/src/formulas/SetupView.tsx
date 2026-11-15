@@ -194,7 +194,7 @@ export function SetupView({ formulas, states, progressUnavailable, onStart, onSh
             const title = readingTitle(id);
             return {
               id,
-              label: title ? `${id} ${title}` : id,
+              label: title ? `${id}: ${title}` : id,
               keywords: list.map((f) => f.name).join(' '),
               detail: `${t.total} ${t.total === 1 ? 'formula' : 'formulas'}${t.seen > 0 ? ` · ${t.due} due · ${pct(t.mastered, t.total)}% mastered` : ' · not started'}`,
             };

@@ -119,7 +119,8 @@ export function subjectInfo(cards: TFCard[], states: Record<string, TFState>): S
       ...s,
       topics: [...topicMap.entries()]
         .map(([topic, total]) => ({ key: topicKey(s.subject, topic), topic, total }))
-        .sort((a, b) => a.topic.localeCompare(b.topic)),
+        // Chapters carry their official label ("MR-2: Non-Parametric Approaches"): numeric order is syllabus order.
+        .sort((a, b) => a.topic.localeCompare(b.topic, undefined, { numeric: true })),
     }));
 }
 
