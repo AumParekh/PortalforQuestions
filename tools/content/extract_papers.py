@@ -42,6 +42,10 @@ _EX = {
     '': '', '': '', '': '', '': '', '': '', '': '',
 }
 GLYPHS = {(font, k): v for font in ('LMMathExtension10-Regular', 'CMEX10') for k, v in _EX.items()}
+#: Heights (ems) of the tall brackets: \\big, \\Big, \\bigg and \\Bigg, by slot number or by the letter reported for it.
+_TALL = {**dict.fromkeys((0, 1, 2, 3, 8, 9), 1.2), **dict.fromkeys((16, 17, 'h', 'i', 'n', 'o'), 1.8),
+         **dict.fromkeys((18, 19, 20, 21, 26, 27), 2.4), **dict.fromkeys((32, 33, 34, 35, 40, 41, ' ', '!', '"', '#', '(', ')'), 3.0)}
+TALL = {(font, k): v for font in ('LMMathExtension10-Regular', 'CMEX10') for k, v in _TALL.items()}
 #: Fraction bars and radical bars; every other rule is a table rule or the running head's.
 MATH_RULE = (0.33, 0.47)
 CLIP = (58.0, 790.0)
@@ -364,6 +368,7 @@ def extract(pdf_path: str, first: int = 1, last: int | None = None) -> dict:
     L.OWN_BAR_RADICALS = True
     L.WRAPPED_ROWS = True
     L.SUP_SHIFT = 0.04
+    L.TALL = TALL
     L.MATH_FONT = lambda font: 'math' in font.lower() or font.startswith('CM')
     L.MATH_ITALIC_FONT = lambda font: font.startswith('CMMI') or font.startswith('LMMathItalic')
     shared = B.build_vocab([])

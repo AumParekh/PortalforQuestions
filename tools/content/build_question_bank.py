@@ -313,10 +313,23 @@ def _attach_scripts(text: str) -> str:
 def _delta(value):
     if isinstance(value, str):
         # A delta inside a formula is read as a text glyph; KaTeX has it only as a math symbol.
-        return _attach_scripts(value.replace(r'\text{∆}', r'\Delta '))
+        # (A long implication arrow is drawn as "=" and "⇒" side by side: one arrow is meant.)
+        return _attach_scripts(value.replace(r'\text{∆}', r'\Delta ').replace(r'=$\Rightarrow', r'$\Rightarrow'))
     if isinstance(value, dict):
         return {k: _delta(v) for k, v in value.items()}
     return value
+
+
+def _option_label(reason: str) -> str:
+    """A wrong option's note opens by repeating its value in bold, "A (+22.08 bp; 1.6708%). Error type: ...". The
+    figures are set in the math font, so the bold run arrives in pieces and without its bracket: put it back."""
+    m = re.match(r'^(.{1,90}?)\)\.\*\*\s+(?=Error type)', reason)
+    if not m:
+        return reason
+    label = m.group(1).replace('**', '').strip()
+    # Only the tail of a label that ended in a formula: nothing worth repeating.
+    head = '' if re.match(r'^\$[\^_]\{[^$]*\$$', label) else f'**({label}).** '
+    return head + reason[m.end():]
 
 
 def from_papers(code: str, area: str, offset: int, label: str, subject: str, data: dict, lo_index: dict, overrides: dict, report: dict) -> list:
@@ -356,7 +369,7 @@ def from_papers(code: str, area: str, offset: int, label: str, subject: str, dat
         if q['reference']:
             parts.append('**Reference**\n\n' + q['reference'])
         parts.append(f"**Source:** High quality question set, {label}: the paper for {lo['id']}, where it is Q{q['n']} of {q['of']}.")
-        reasons = dict(q['others'])
+        reasons = {k: _option_label(v) for k, v in q['others'].items()}
         reasons[q['answer']] = re.sub(r'^\*\*Option [A-E] is correct\.\*\*\s*', '', q['why'])
         item = question(key, subject, HQ_TIER, lo, text, q['options'], q['answer'], '\n\n'.join(parts), reasons, f"High quality paper {lo['id']} Q{q['n']}")
         item['highQuality'] = True

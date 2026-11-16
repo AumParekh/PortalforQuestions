@@ -198,6 +198,12 @@ def MATH_ITALIC_FONT(font: str) -> bool:
     return False
 
 
+#: (font, slot) -> height in ems of the tall delimiters of a TeX extension font, whose glyphs hang below their
+#: reference point; TALL_DESCENT is that font's descent in ems. Empty unless a document family fills it.
+TALL = {}
+TALL_DESCENT = 0.6
+
+
 def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bool = False) -> list:
     """Glyphs of a page as Items. `cid_text` maps (font, cid) to text for glyphs the PDF gives no Unicode for."""
     out = []
@@ -206,21 +212,30 @@ def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bo
         font = _font(c['fontname'])
         m = _CID.match(text)
         big = False
+        slot = None
         if m:
             key = (font, int(m.group(1)))
             if key in cid_text:
                 text = cid_text[key]
                 big = text in BRACKETS
+                slot = key
             else:
                 if unknown is not None:
                     unknown.setdefault(key, []).append(page.page_number)
                 text = '�'
         # Private-use code points some fonts use for ordinary punctuation, and legacy math fonts whose slots mean
-        # something other than the letter they report (a root sign, a sum, a bracket).
+        # something other than the letter they report (a root sign, a sum, a bracket). A glyph already named by its
+        # number is not looked up again by the symbol it stands for.
         text = cid_text.get(('char', text), text)
-        if (font, text) in cid_text:
-            text = cid_text[(font, text)]
+        if slot is None and (font, text) in cid_text:
+            slot = (font, text)
+            text = cid_text[slot]
             big = text in BRACKETS
+        top, bottom = c['top'], c['bottom']
+        if slot in TALL:
+            # A tall delimiter hangs from its reference point; the box the PDF reports for it sits above the ink.
+            top = bottom - TALL_DESCENT * c['size']
+            bottom = top + TALL[slot] * c['size']
         if c['size'] < 1:
             continue
         if text.isspace() or (not text and not keep_empty):
@@ -231,7 +246,7 @@ def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bo
             color = (color,)
         out.append(
             Item(
-                x0=c['x0'], x1=c['x1'], top=c['top'], bottom=c['bottom'], size=c['size'], text=text,
+                x0=c['x0'], x1=c['x1'], top=top, bottom=bottom, size=c['size'], text=text,
                 bold='bold' in low or low.endswith('-bd') or 'semibold' in low or 'black' in low,
                 italic='italic' in low or 'oblique' in low or low.endswith('-it'),
                 math=MATH_FONT(font),
@@ -287,6 +302,9 @@ def _is_script(item: Item, base: float, cy: float) -> str:
 
 def _row_metrics(items: list) -> tuple:
     glyphs = [i for i in items if i.latex is None]
+    if TALL:
+        # Tall delimiters are set in their own size and say nothing about the row's.
+        glyphs = [i for i in glyphs if not i.big] or glyphs
     if not glyphs:
         return (10.0, statistics.median((i.top + i.bottom) / 2 for i in items))
     sizes = {}
