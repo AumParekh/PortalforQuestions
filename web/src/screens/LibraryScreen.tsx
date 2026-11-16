@@ -391,7 +391,7 @@ export function LibraryScreen() {
               {filterCount > 0 && (
                 <button
                   type="button"
-                  onClick={() => setFilters({ ...EMPTY_FILTERS, bands: filters.bands, kinds: filters.kinds, recallOnly: filters.recallOnly })}
+                  onClick={() => setFilters({ ...EMPTY_FILTERS, bands: filters.bands, kinds: filters.kinds, recallOnly: filters.recallOnly, highQualityOnly: filters.highQualityOnly })}
                   className={pillClass}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />

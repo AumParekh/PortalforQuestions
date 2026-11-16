@@ -296,7 +296,7 @@ export function FilterSheet({
           <button
             type="button"
             // Priority bands and LO types are chosen on the setup screen itself, so Reset leaves them alone.
-            onClick={() => setDraft({ ...EMPTY_FILTERS, bands: draft.bands, kinds: draft.kinds, recallOnly: draft.recallOnly })}
+            onClick={() => setDraft({ ...EMPTY_FILTERS, bands: draft.bands, kinds: draft.kinds, recallOnly: draft.recallOnly, highQualityOnly: draft.highQualityOnly })}
             disabled={draftActive === 0}
             className="min-h-[48px] rounded-xl border border-slate-200 px-4 text-[15px] font-medium hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
           >

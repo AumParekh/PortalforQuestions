@@ -22,7 +22,8 @@ verdicts); `textgames/` (fact-check reports for the eight text-based notes games
 
 `question-banks/pdf/` holds the source PDFs: five question banks (MR, CR, LR, OR, RMIM), six
 "Notes + Question" workbooks and the two Current Issues question banks the CI file was first
-built from. `tools/content/extract_bank.py` and `extract_workbook.py` read them with
+built from, plus the high quality question sets (`HQ_*.pdf`). `tools/content/extract_bank.py`, `extract_workbook.py`
+and `extract_papers.py` read them with
 `pdf_layout.py`, which rebuilds what plain text extraction loses (sub- and superscripts,
 fractions, roots, tables, glyphs without a Unicode value) and keeps the wording as printed.
 Extractor output goes to `question-banks/extracted/` (not committed; `--extract` rebuilds it,
@@ -41,6 +42,13 @@ needs `pdfplumber` and poppler's `pdftotext`).
   `build_lo_map.py` reads it off the official wording ("Calculate" / "Describe" / "Define and calculate") and
   `build_question_bank.py` moves a conceptually worded LO to Both when at least 3 and 30% of its questions are
   calculations. `lo-coverage.csv` lists both the final type and the type by wording.
+- High quality question sets (`HQ_*.pdf`, read by `extract_papers.py`): one paper per learning objective, each
+  question with a worked solution (concept, working, why each option is right or wrong, fragile fact, reference).
+  Every question goes into the bank with `highQuality: true`, which is what the portal's "High quality questions
+  only" filter reads; a question the bank already holds is tagged where it is instead of being added twice. To add
+  a set: put the PDF in `question-banks/pdf/`, add its name to `PAPERS` in `build_question_bank.py` under its
+  subject, run with `--extract`, and clear whatever the build reports as blocked with an entry in `overrides.json`.
+  These questions are left out of the LO-type count above, so adding a set never changes an LO's type.
 - `question-banks/import-report.json` and `lo-coverage.csv` (questions per official LO) are
   written by the build.
 - `lo-map/existing-lo-map.json`: the official LO chosen for each question that was already in

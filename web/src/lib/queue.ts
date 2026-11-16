@@ -38,6 +38,7 @@ export function hasActiveFilters(f: SessionFilters | undefined): boolean {
     (f.bands?.length ?? 0) > 0 ||
     (f.kinds?.length ?? 0) > 0 ||
     f.recallOnly === true ||
+    f.highQualityOnly === true ||
     f.status.length > 0 ||
     f.trapOperators.length > 0 ||
     f.hasTrap !== null ||
@@ -60,6 +61,7 @@ export function matchesFilters(q: Question, s: QuestionState | undefined, f: Ses
   if (f.bands && f.bands.length > 0 && !(q.band && f.bands.includes(q.band))) return false;
   if (f.kinds && f.kinds.length > 0 && !(q.loKind && f.kinds.includes(q.loKind))) return false;
   if (f.recallOnly && !q.recall) return false;
+  if (f.highQualityOnly && !q.highQuality) return false;
   if (f.status.length > 0) {
     const hit = f.status.some((st) => {
       switch (st) {

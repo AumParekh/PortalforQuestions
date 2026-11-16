@@ -63,6 +63,8 @@ export interface Question {
   source?: string;
   /** Its number in the Recall + Priority Map workbooks ("A13.2"), for the questions printed there. */
   recall?: string;
+  /** True for the questions of the high quality question sets (the "High quality questions" filter). */
+  highQuality?: boolean;
   question: string;
   options: QuestionOption[];
   answer: OptionKey;
@@ -138,6 +140,8 @@ export interface SessionFilters {
   kinds?: LoKind[];
   /** Only the questions printed in the Recall + Priority Map workbooks. */
   recallOnly?: boolean;
+  /** Only the questions of the high quality question sets. */
+  highQualityOnly?: boolean;
   status: ProgressFilter[];
   trapOperators: TrapOperator[];
   hasTrap: boolean | null;

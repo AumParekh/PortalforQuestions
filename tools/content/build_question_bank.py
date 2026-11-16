@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Adds the question-bank and workbook questions to content/*.json and tags every question with its official
-chapter, learning objective, priority band and LO type (Numerical, Conceptual or Both).
+"""Adds the question-bank, workbook and high-quality paper questions to content/*.json and tags every question with
+its official chapter, learning objective, priority band and LO type (Numerical, Conceptual or Both).
 
     build_question_bank.py [--extract]
 
@@ -9,14 +9,20 @@ Inputs (data/build-inputs/):
   lo-map/existing-lo-map.json        official LO of each question that was in the portal before this import
   lo-map/tiers.json                  recall-workbook sections and the tier (A-D) of each LO (build_tiers.py)
   question-banks/pdf/*.pdf           the source PDFs
-  question-banks/extracted/*.json    extract_bank.py / extract_workbook.py output (rebuilt with --extract)
+  question-banks/extracted/*.json    extract_bank.py / extract_workbook.py / extract_papers.py output (rebuilt
+                                     with --extract)
   question-banks/overrides.json      hand transcriptions for layouts the extractor cannot express
 
 What goes in: every multiple-choice question of the five question banks, and every workbook question that is not
 marked as a repeat of a bank question ("Bank Q..."). Wording is kept as printed. Open-ended bank questions (no
 options) cannot be multiple choice and are left out; so is anything still carrying a blocking flag.
 
-Re-running is safe: imported questions (ids with -QB- or -WB-) are replaced, the others only re-tagged.
+High-quality papers (PAPERS below) are sets of one paper per learning objective, each question with a worked
+solution. All of their questions go in, tagged highQuality (the portal's "High quality questions" filter); a paper
+question that repeats one already in the bank is not added twice: the one in the bank gets the tag. To add a set,
+put its PDF in question-banks/pdf/, name it in PAPERS and run with --extract.
+
+Re-running is safe: imported questions (ids with -QB-, -WB- or -HQ-) are replaced, the others only re-tagged.
 """
 from __future__ import annotations
 
@@ -44,9 +50,19 @@ SUBJECTS = OrderedDict([
     ('OR', ('ORR', 'OR_Question_Bank.pdf', 41, 'FRM_P2_ORR_P1-P3_Workbook.pdf', 'Operational Risk and Resilience')),
     ('CI', ('CI', None, 0, 'FRM_P2_CI_Workbook.pdf', 'Current Issues')),
 ])
+#: High-quality question papers by portal file code. Their reading numbers are the bank's (SUBJECTS gives the offset).
+PAPERS = OrderedDict([
+    ('IR', ['HQ_RMIM_Ch8-9-10-11-14_All_LOs.pdf']),
+    ('MR', ['HQ_MarketRisk_R14-18_All_LOs.pdf']),
+    ('OR', ['HQ_OR_Ch8-16_All_LOs.pdf']),
+])
 RECALL_SOURCE = re.compile(r'^Workbook ([A-D]\d+\.\d+)\b')
 BANK_TIER = 'Question Bank'
 WORKBOOK_TIER = 'Workbook'
+HQ_TIER = 'High Quality'
+IMPORTED = ('-QB-', '-WB-', '-HQ-')
+#: What every paper's instructions say; anything else in them is notation its questions rely on.
+PAPER_BOILERPLATE = re.compile(r'^Instructions:\s*|choose the single best answer for each question\.\s*|Answers and solutions begin after the blank page\.\s*', re.I)
 #: Flags that mean the text may be wrong; a question keeps them only until an override clears them.
 BLOCKING = {
     'no-stem', 'no-answer', 'unknown-glyph', 'bare-radical', 'matrix', 'brace', 'unused-rule', 'text-outside-frame',
@@ -151,6 +167,9 @@ def run_extraction():
     for volume, pdf in ((1, 'FRM_Workbook_Vol1_TierA.pdf'), (2, 'FRM_Workbook_Vol2_TiersB-D.pdf')):
         # Read only to confirm that each of their questions is already in the bank (see the report).
         jobs.append(subprocess.Popen([sys.executable, os.path.join(here, 'extract_recall.py'), os.path.join(QB, 'pdf', pdf), os.path.join(EXTRACTED, f'recall-{volume}.json')]))
+    for pdfs in PAPERS.values():
+        for pdf in pdfs:
+            jobs.append(subprocess.Popen([sys.executable, os.path.join(here, 'extract_papers.py'), os.path.join(QB, 'pdf', pdf), os.path.join(EXTRACTED, pdf[:-4] + '.json')]))
     if any(j.wait() != 0 for j in jobs):
         sys.exit('extraction failed')
 
@@ -270,6 +289,81 @@ def from_workbook(code: str, area: str, name: str, sections: dict, subject: str,
     return out
 
 
+_SCRIPT_BASE = re.compile(r'(?<![\w$\\}.,/()∆−-])([A-Za-z0-9.,/()∆−-]+)$')
+
+
+def _attach_scripts(text: str) -> str:
+    """Moves a base set in the text font into the formula that holds its script: "K$_{p}$" and "bp$^{2}$" become
+    "$\\text{K}_{p}$" and "$\\text{bp}^{2}$", so a phone cannot break the line between the two."""
+    parts = re.split(r'(?<!\\)\$', text)
+    if len(parts) % 2 == 0:
+        return text
+    for i in range(1, len(parts), 2):
+        if not parts[i].startswith(('_{', '^{')) or '\n' in parts[i - 1][-1:]:
+            continue
+        m = _SCRIPT_BASE.search(parts[i - 1])
+        if not m or (i >= 2 and m.start() == 0):
+            continue
+        base = m.group(1)
+        parts[i - 1] = parts[i - 1][:m.start()]
+        parts[i] = (r'\Delta ' if base == '∆' else r'\text{' + base.replace('∆', r'}\Delta \text{') + '}') + parts[i]
+    return '$'.join(parts)
+
+
+def _delta(value):
+    if isinstance(value, str):
+        # A delta inside a formula is read as a text glyph; KaTeX has it only as a math symbol.
+        return _attach_scripts(value.replace(r'\text{∆}', r'\Delta '))
+    if isinstance(value, dict):
+        return {k: _delta(v) for k, v in value.items()}
+    return value
+
+
+def from_papers(code: str, area: str, offset: int, label: str, subject: str, data: dict, lo_index: dict, overrides: dict, report: dict) -> list:
+    out = []
+    for q in data['questions']:
+        number = q['reading'] - offset
+        key = f"{code}-HQ-{number}{q['letter']}-{q['n']:02d}"
+        q, flags = apply_override(q, overrides.get(key, {}), key)
+        q = {k: _delta(v) for k, v in q.items()}
+        blocking = sorted(set(flags) & BLOCKING) + [f for f in flags if f.startswith(('options-', 'others-'))]
+        if blocking:
+            report['blocked'].append((key, blocking))
+            continue
+        lo = lo_index.get(f"{area}-{number} {q['letter']}")
+        if lo is None:
+            report['blocked'].append((key, [f"no official LO {area}-{number} {q['letter']}"]))
+            continue
+        # Each paper prints its LO: a low match with the official wording means the reading numbers are misaligned.
+        sim = difflib.SequenceMatcher(None, norm(q['wording']), norm(lo['text'])).ratio()
+        if sim < 0.55 and q['n'] == 1:
+            report['lo-wording'].append((key, lo['id'], round(sim, 2), q['wording'][:70], lo['text'][:70]))
+        # The notation a paper sets out once, above its first question, travels with each of its questions.
+        conventions = PAPER_BOILERPLATE.sub('', q.get('instructions') or '').strip()
+        text = q['stem'] + (f'\n\n*Conventions for this paper:* {conventions}' if conventions else '')
+        parts = []
+        if q['title']:
+            parts.append(f"**{q['title']}**")
+        if q['summary']:
+            parts.append(q['summary'])
+        for heading, body in (('Concept and theory', q['concept']), ('Applying it to this question', q['applying'])):
+            if body:
+                parts.append(f'**{heading}**\n\n{body}')
+        if q['others_intro']:
+            parts.append(q['others_intro'])
+        if q['fragile']:
+            parts.append('**Fragile fact.** ' + re.sub(r'^\*\*Fragile fact\.\*\*\s*', '', q['fragile']))
+        if q['reference']:
+            parts.append('**Reference**\n\n' + q['reference'])
+        parts.append(f"**Source:** High quality question set, {label}: the paper for {lo['id']}, where it is Q{q['n']} of {q['of']}.")
+        reasons = dict(q['others'])
+        reasons[q['answer']] = re.sub(r'^\*\*Option [A-E] is correct\.\*\*\s*', '', q['why'])
+        item = question(key, subject, HQ_TIER, lo, text, q['options'], q['answer'], '\n\n'.join(parts), reasons, f"High quality paper {lo['id']} Q{q['n']}")
+        item['highQuality'] = True
+        out.append(item)
+    return out
+
+
 def tag_tier(q: dict, lo_tiers: dict):
     """Sets the question's recall tier (A-D) and the workbook sections that cover its LO; clears them if none do."""
     hit = lo_tiers.get(q['lo'])
@@ -287,8 +381,11 @@ def tag_kinds(questions: list, lo_index: dict, kinds: dict, numerical: Counter):
     ("Describe CDS spreads and explain how they can be used to estimate hazard rates") whose questions are often
     calculations is examined both ways, so it counts as Both.
     """
-    total = Counter(q['lo'] for q in questions)
-    for q in questions:
+    # The high-quality papers are left out of the count: a set written to cover an LO evenly says nothing about how
+    # often the LO is examined as a calculation, and adding one must not change the type of an LO.
+    counted = [q for q in questions if '-HQ-' not in q['id']]
+    total = Counter(q['lo'] for q in counted)
+    for q in counted:
         if q['notes']['loType'] == 'Numerical':
             numerical[q['lo']] += 1
     for q in questions:
@@ -363,10 +460,10 @@ def main():
     tiers = load(os.path.join(INPUTS, 'lo-map', 'tiers.json'))
     write_tiers_module(tiers)
     section_titles = {sec['id']: sec['title'] for sec in tiers['sections']}
-    report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
+    report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'hq-repeats': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
     coverage = Counter()
     kinds, numerical = {}, Counter()
-    totals = OrderedDict()
+    totals, hq = OrderedDict(), {}
     seen_text = {}
     for code, (area, bank, offset, workbook, label) in SUBJECTS.items():
         path = os.path.join(CONTENT, f'{code}.json')
@@ -374,8 +471,9 @@ def main():
         subject = content['name']
         kept = []
         for q in content['questions']:
-            if '-QB-' in q['id'] or '-WB-' in q['id']:
+            if any(tag in q['id'] for tag in IMPORTED):
                 continue
+            q.pop('highQuality', None)
             new_lo = lo_index.get(existing_lo.get(q['id'], {}).get('lo'))
             if new_lo is None or new_lo['area'] != area:
                 report['unmapped-existing'].append(q['id'])
@@ -401,17 +499,35 @@ def main():
                 continue
             seen_text[sig] = q['id']
             final.append(q)
+        # High-quality papers: a question the bank already holds is tagged where it is, the rest are added.
+        own = {norm(q['question'] + ' ' + ' '.join(sorted(o['text'] for o in q['options']))): q for q in kept + final}
+        papers = []
+        for pdf in PAPERS.get(code, []):
+            for q in from_papers(code, area, offset, label, subject, load(os.path.join(EXTRACTED, pdf[:-4] + '.json')), lo_index, overrides, report):
+                bad = check(q)
+                if bad:
+                    report['invalid'].append((q['id'], bad))
+                    continue
+                sig = norm(q['question'] + ' ' + ' '.join(sorted(o['text'] for o in q['options'])))
+                if sig in own:
+                    own[sig]['highQuality'] = True
+                    report['hq-repeats'].append((q['id'], own[sig]['id']))
+                    continue
+                own[sig] = q
+                papers.append(q)
+        final += papers
         content['questions'] = kept + final
         for q in content['questions']:
             tag_tier(q, tiers['los'])
         tag_kinds(content['questions'], lo_index, kinds, numerical)
-        content['tiers'] = [t for t in content.get('tiers', []) if t not in (BANK_TIER, WORKBOOK_TIER)] + sorted({q['tier'] for q in final})
+        content['tiers'] = [t for t in content.get('tiers', []) if t not in (BANK_TIER, WORKBOOK_TIER, HQ_TIER)] + sorted({q['tier'] for q in final})
         with open(path, 'w', encoding='utf8') as f:
             json.dump(content, f, ensure_ascii=False, indent=1)
             f.write('\n')
         for q in content['questions']:
             coverage[q['lo']] += 1
-        totals[code] = (len(kept), sum(1 for q in final if q['tier'] == BANK_TIER), sum(1 for q in final if q['tier'] == WORKBOOK_TIER))
+        totals[code] = (len(kept), sum(1 for q in final if q['tier'] == BANK_TIER), sum(1 for q in final if q['tier'] == WORKBOOK_TIER), len(papers))
+        hq[code] = sum(1 for q in content['questions'] if q.get('highQuality'))
 
     with open(os.path.join(QB, 'lo-coverage.csv'), 'w', newline='', encoding='utf8') as f:
         w = csv.writer(f)
@@ -419,10 +535,10 @@ def main():
         for lo in lo_index.values():
             w.writerow([lo['id'], lo['band'], kinds.get(lo['id'], lo['kind']), lo['kind'], lo['reading'], lo['text'], coverage.get(lo['id'], 0), numerical.get(lo['id'], 0)])
 
-    print('file   already-there  bank  workbook  total')
-    for code, (a, b, c) in totals.items():
-        print(f'{code:5s} {a:13d} {b:5d} {c:9d} {a + b + c:6d}')
-    print('all  ', sum(a for a, _, _ in totals.values()), sum(b for _, b, _ in totals.values()), sum(c for _, _, c in totals.values()), sum(sum(t) for t in totals.values()))
+    print('file   already-there  bank  workbook  papers  total  high-quality')
+    for code, (a, b, c, d) in totals.items():
+        print(f'{code:5s} {a:13d} {b:5d} {c:9d} {d:7d} {a + b + c + d:6d} {hq[code]:13d}')
+    print('all  ', *(sum(t[i] for t in totals.values()) for i in range(4)), sum(sum(t) for t in totals.values()), sum(hq.values()))
     bands = Counter()
     for lo_id, n in coverage.items():
         if lo_id in lo_index:
@@ -444,7 +560,7 @@ def main():
     in_bank = {q.get('recall') for code in SUBJECTS for q in load(os.path.join(CONTENT, f'{code}.json'))['questions']} - {None}
     report['recall-missing'] = sorted(recall_ids - in_bank)
     print(f"recall-volume questions: {len(recall_ids)} in the two volumes, {len(recall_ids & in_bank)} of them in the bank")
-    for name in ('blocked', 'invalid', 'duplicates', 'lo-wording', 'unmapped-existing', 'recall-missing'):
+    for name in ('blocked', 'invalid', 'duplicates', 'hq-repeats', 'lo-wording', 'unmapped-existing', 'recall-missing'):
         print(f'{name}: {len(report[name])}')
         for item in report[name][:12]:
             print('   ', item)

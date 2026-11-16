@@ -268,12 +268,17 @@ def frames(page) -> list:
 # Rows of items -> text.
 
 
+#: How far above the row's centre line, in ems of the row's size, a small glyph must sit to be a superscript. Fonts
+#: whose glyph boxes barely move with the raise (Latin Modern, Palladio) need a smaller value: extract_papers.py.
+SUP_SHIFT = 0.115
+
+
 def _is_script(item: Item, base: float, cy: float) -> str:
     """'sup', 'sub' or '' for an item on a row whose main glyphs have size `base` and centre `cy`."""
     if item.latex is not None or item.size >= 0.86 * base:
         return ''
     shift = (item.top + item.bottom) / 2 - cy
-    if shift < -0.115 * base:
+    if shift < -SUP_SHIFT * base:
         return 'sup'
     if shift > 0.17 * base:
         return 'sub'
@@ -304,7 +309,7 @@ def _looks_like_script_row(glyphs: list, small: float, big: float) -> bool:
     if not bigs or not smalls:
         return False
     cy = statistics.median(bigs)
-    off = sum(1 for s in smalls if s - cy < -0.115 * big or s - cy > 0.17 * big)
+    off = sum(1 for s in smalls if s - cy < -SUP_SHIFT * big or s - cy > 0.17 * big)
     return off > len(smalls) / 2
 
 
@@ -613,6 +618,11 @@ def fix_text(text: str) -> str:
 RADICALS = {'√', '√'}
 
 
+#: Set by a document family whose stacked equations put one line's radical sign under the previous line's bar: a
+#: radical sign that starts a bar of its own further down then never counts as lying under (or inside) this one.
+OWN_BAR_RADICALS = False
+
+
 def _is_radical(item: Item) -> bool:
     return item.latex is None and item.text.startswith('√')
 
@@ -628,13 +638,25 @@ def build_structures(items: list, rules: list) -> tuple:
         span = [it for it in items if r['x0'] - 1.2 <= it.cx <= r['x1'] + 1.2]
         stacked.update(id(i) for i in _stack(span, r['y'], above=True) + _stack(span, r['y'], above=False))
     for r in sorted(rules, key=lambda r: r['x1'] - r['x0']):
-        if not _consume_rule(items, r, stacked):
+        if not _consume_rule(items, r, stacked, rules if OWN_BAR_RADICALS else ()):
             left.append(r)
     return items, left
 
 
-def _consume_rule(items: list, r: dict, stacked: set = frozenset()) -> bool:
+def _consume_rule(items: list, r: dict, stacked: set = frozenset(), rules: tuple = ()) -> bool:
     y, x0, x1 = r['y'], r['x0'], r['x1']
+    if rules:
+        # Radical signs of a later line (each starts its own bar, lower down) sit this rule out.
+        held = [
+            it for it in items
+            if _is_radical(it) and any(r2 is not r and r2['y'] > y + 3 and abs(it.x1 - r2['x0']) < 0.9 and it.top - 26 < r2['y'] < it.bottom + 2 for r2 in rules)
+        ]
+        if held:
+            for it in held:
+                items.remove(it)
+            done = _consume_rule(items, r, stacked)
+            items.extend(held)
+            return done
     # Square root: the bar starts where a radical sign ends. Fonts report the sign's box differently (level with
     # the bar, or hanging from it), so the bar may sit anywhere from above the box to just under its bottom.
     # The sign ends exactly where its bar starts, which is what tells it from the sign on the next line.
@@ -871,6 +893,75 @@ def JOIN(a: str, b: str) -> str:
     return a + ' ' + b
 
 
+#: Set by a document family whose tables wrap text inside cells: the lines of one wrapped row are then put back
+#: together (see _merge_wrapped). Off by default: earlier families rely on one printed line being one row.
+WRAPPED_ROWS = False
+_LONE_NUMBER = re.compile(r'^[−\-+±]?\s*[$€£¥]?\s*\d[\d.,]*\s*(%|bp|bps|x|m|bn|k)?$')
+
+
+def _merge_wrapped(grid: list, rules: list, ncols: int, ends: dict | None = None, cols: list | None = None, closed: dict | None = None) -> list:
+    """Joins the printed lines of a wrapped table row. `grid` is [(cy, cells)] for the body lines.
+
+    Where rows are set further apart than the lines inside a cell, the spacing tells them apart (this also catches a
+    first cell that wraps). Where all lines are evenly spaced, a line whose first cell is empty continues the row
+    above it; so does a line whose filled cells sit under lines that ran to the edge of their column (`ends`: cy ->
+    right edge of each cell on that line; `cols`: the columns' extents), because the word they open with would not
+    have fitted there. A line holding a number on its own is always a row: figures do not wrap.
+
+    `closed` is filled with, per joined row (by the cy of its first line), the columns whose cell ended before the
+    row's last line.
+    """
+    if len(grid) < 2 or ncols < 2:
+        return grid
+
+    def same_block(a, b):
+        return not any(a < y < b for y in rules)
+
+    gaps = [b[0] - a[0] for a, b in zip(grid, grid[1:]) if same_block(a[0], b[0])]
+    if not gaps:
+        return grid
+    small = min(gaps)
+    spaced = max(gaps) >= small + 1.8
+
+    def wraps(k, text):
+        # Room left on the line above, against a rough width of the word this line opens with.
+        if above[k] is None:
+            return False
+        word = re.sub(r'\\[A-Za-z]+|[$^_{}*]', '', text.split(' ')[0]) or 'x'
+        return cols[k][1] - above[k] < min(len(word), 14) * 4.6 + 2.5
+
+    out, last_cy, above, line = [], None, None, None
+    for cy, cells in grid:
+        cont = False
+        if out and same_block(last_cy, cy) and not any(c and _LONE_NUMBER.match(c) for c in cells):
+            prev = out[-1][1]
+            if spaced:
+                cont = cy - last_cy <= small + 1.0
+            else:
+                # (With the lines' extents known, the cell must be filled on the line directly above: one that ended
+                # further up is not continued by a later line.)
+                cont = not cells[0] and all((prev if ends is None else line)[k] for k, c in enumerate(cells) if c)
+                if not cont and ends is not None:
+                    # Each filled cell must read on from the line above it: by the room left there, or by its own
+                    # wording (a small letter after an unfinished phrase); the room must show in one cell at least.
+                    filled = [k for k, c in enumerate(cells) if c]
+                    geo = [wraps(k, cells[k]) for k in filled]
+                    lex = [bool(line[k]) and bool(re.match(r'[a-z(]', cells[k])) and not re.search(r'[.;:!?]$', line[k]) for k in filled]
+                    cont = any(geo) and all(g or w for g, w in zip(geo, lex)) and (len(filled) < len(cells) or lex[0])
+        here = list(ends[cy]) if ends is not None else None
+        line = cells
+        if cont:
+            out[-1] = (out[-1][0], [JOIN(a, b) if a and b else a or b for a, b in zip(out[-1][1], cells)])
+            if closed is not None:
+                closed[out[-1][0]] = {k for k, c in enumerate(cells) if not c and out[-1][1][k]}
+        else:
+            out.append((cy, list(cells)))
+        # A cell left empty on this line has ended: nothing can continue it further down.
+        above = here
+        last_cy = cy
+    return out
+
+
 def table_markdown(items: list, table: dict) -> tuple:
     """Pipe table for the items inside a ruled table. Returns (markdown, flags)."""
     flags = []
@@ -895,20 +986,29 @@ def table_markdown(items: list, table: dict) -> tuple:
             cols[-1][1] = max(cols[-1][1], b)
         else:
             cols.append([a, b])
-    grid = []
+    grid, edges, closed = [], {}, {}
     for r in rows:
         out = [''] * len(cols)
+        edge = [None] * len(cols)
         for c in r['cells']:
             a, b = min(i.x0 for i in c), max(i.x1 for i in c)
             k = max(range(len(cols)), key=lambda n: min(b, cols[n][1]) - max(a, cols[n][0]))
             text = _render(c)[0].replace('|', r'\|')
             out[k] = (out[k] + ' ' + text).strip()
+            edge[k] = b if edge[k] is None else max(edge[k], b)
         grid.append((r['cy'], out))
+        edges[r['cy']] = edge
+    if WRAPPED_ROWS:
+        inner_rules = list(table['rules'][1:-1])
+        first = inner_rules[0] if inner_rules else None
+        top = [g for g in grid if first is not None and g[0] < first]
+        grid = top + _merge_wrapped([g for g in grid if g not in top], inner_rules, len(cols), edges, cols, closed)
     # A row holding text in one column only, under a row that has that column filled, is that cell's next line.
     merged_rows = []
     for cy, out in grid:
         filled = [k for k, v in enumerate(out) if v]
-        if merged_rows and len(cols) > 1 and len(filled) == 1 and filled[0] > 0 and merged_rows[-1][1][filled[0]]:
+        # (Not a cell that had already ended before the last printed line of the row above: _merge_wrapped.)
+        if merged_rows and len(cols) > 1 and len(filled) == 1 and filled[0] > 0 and merged_rows[-1][1][filled[0]] and filled[0] not in closed.get(merged_rows[-1][0], ()):
             k = filled[0]
             merged_rows[-1][1][k] = JOIN(merged_rows[-1][1][k], out[k])
         else:

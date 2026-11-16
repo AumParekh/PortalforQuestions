@@ -1,10 +1,12 @@
+import { useMemo } from 'react';
 import type { Band, LoKind, SessionFilters } from '../../types';
+import { useContent } from '../../store/content';
 import { FilterChip } from './FilterSheet';
 import { BAND_OPTIONS, KIND_OPTIONS } from './filterModel';
 
 /**
- * Priority (P1 to P4), LO type (Numerical, Conceptual, Both) and "Recall workbook only" chips. They narrow the
- * questions; `noun` finishes the helper lines ("go into the session" on Session Setup).
+ * Priority (P1 to P4), LO type (Numerical, Conceptual, Both), "High quality questions only" and "Recall workbook
+ * only" chips. They narrow the questions; `effect` finishes the helper lines ("go into the session" on Session Setup).
  */
 export function ScopeChips({
   filters,
@@ -17,6 +19,8 @@ export function ScopeChips({
 }) {
   const bands = filters.bands ?? [];
   const kinds = filters.kinds ?? [];
+  const questions = useContent((s) => s.subjectQuestions);
+  const highQuality = useMemo(() => questions.reduce((n, q) => n + (q.highQuality ? 1 : 0), 0), [questions]);
   // Kept in the printed order (P1…P4, Numerical…Both) whatever order they were tapped in.
   const toggleBand = (b: Band) =>
     onChange((f) => {
@@ -57,6 +61,21 @@ export function ScopeChips({
         {kinds.length === 0
           ? 'All types. Each learning objective is Numerical (a calculation), Conceptual (describe or explain) or Both.'
           : `Only questions from ${kinds.join(' and ')} learning objectives ${effect}.`}
+      </p>
+      <div role="group" aria-label="Question set" className="flex flex-wrap items-center gap-2">
+        <span className="text-[15px] font-medium text-slate-700 dark:text-slate-300">Set</span>
+        <FilterChip
+          active={filters.highQualityOnly === true}
+          title="Only the questions from the high quality question sets"
+          onClick={() => onChange((f) => ({ ...f, highQualityOnly: !f.highQualityOnly }))}
+        >
+          High quality questions only
+        </FilterChip>
+      </div>
+      <p className="text-[15px] text-slate-600 dark:text-slate-400">
+        {filters.highQualityOnly
+          ? `Only the ${highQuality.toLocaleString()} high quality questions ${effect}.`
+          : `All question sets. ${highQuality.toLocaleString()} questions are tagged high quality: one paper per learning objective, each with a full worked solution.`}
       </p>
       <FilterChip
         active={filters.recallOnly === true}

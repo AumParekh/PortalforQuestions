@@ -45,3 +45,15 @@ export function KindBadge({ kind }: { kind: LoKind }) {
     </span>
   );
 }
+
+/** Marks a question from the high quality question sets. */
+export function HighQualityBadge() {
+  return (
+    <span
+      title="From the high quality question sets"
+      className="inline-flex shrink-0 items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[13px] font-semibold leading-none text-emerald-900 dark:bg-emerald-500/20 dark:text-emerald-100"
+    >
+      High quality
+    </span>
+  );
+}
