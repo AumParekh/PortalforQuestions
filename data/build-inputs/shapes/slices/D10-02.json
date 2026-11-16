@@ -1,0 +1,482 @@
+[
+ {
+  "id": "MR-WB-6b-6",
+  "lo": "MR-6 b",
+  "loText": "Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis.",
+  "outside": false,
+  "question": "A validation team wants to measure how much a thinly traded structured note, which was valued on only a few days in the past year, contributes to the desk’s 99% historical-simulation VaR. Which approach is most consistent with the methods described for this situation?",
+  "options": {
+   "A": "Regress the note’s value changes on the portfolio’s value changes over the full year, estimate $\\beta$, and set component VaR equal to VaR times the note’s weight times $\\beta$.",
+   "B": "Replace the note with a liquid proxy and use the proxy’s beta, since a proxy is at least as volatile and as correlated with the portfolio as the note.",
+   "C": "Use the change in the note’s value on the day that determines the historical-simulation VaR, or an average of ordered observations near that day.",
+   "D": "Exclude the note, since a material omission would already have produced an unexpected cluster of exceptions in the desk’s backtest."
+  },
+  "answer": "C",
+  "solution": "**Step 1 – Why the regression fails here**\n\nEquation 6.5 needs a full time series of the position’s value changes. The note was valued on only a few days, so that series does not exist.\n\n**Step 2 – Apply Tasche and Hallerbach**\n\nOn the scenario that sets the HS VaR, the portfolio loss equals the sum of the positions’ changes. So a position’s component VaR can be estimated by its change in value on that day.\n\n⇒ One day is noisy, so an average of the ordered observations near the HS VaR may be used instead.\n\n**Interpretation**\n\nThe method is “especially easy to implement when using historic simulation”, which is the model in the stem.\n\n**LO:** MR-6 b: Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis. • **Reference:** Lynch, Section 6.4 (Tasche 2000; Hallerbach 2003)"
+ },
+ {
+  "id": "MR-WB-6b-7",
+  "lo": "MR-6 b",
+  "loText": "Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis.",
+  "outside": false,
+  "question": "A bank’s VaR pseudo history values an options book with a first-order (delta) Taylor approximation and omits basis risk on several emerging-market bonds. The head of validation asks what sensitivity analysis can achieve in this situation. Which response is most accurate?",
+  "options": {
+   "A": "It tests whether the assumption that the omitted terms and positions are immaterial holds, and gives a consistent way to prioritise which risk factors or higher-order terms to add.",
+   "B": "It proves that the omissions are immaterial whenever the VaR model passes its backtest with fewer than five exceptions over the past 250 days.",
+   "C": "It removes the need to track data proxies, because supervisors accept sensitivity results in place of an inventory of the risks not in VaR.",
+   "D": "It estimates the omitted risks precisely, because the scarcer the data on a position, the easier its effect on VaR is to isolate."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – What the analysis tests**\n\nIt tests the assumption that the omitted positions or risk factors (here, basis risk and the next Taylor term) are immaterial.\n\n**Step 2 – What it delivers**\n\nA consistent framework for quantifying omitted risks and a more rigorous way to prioritise model changes: more risk factors or higher-order terms.\n\n⇒ This is Jarrow’s view of validation: check whether the model is sensitive to its assumptions.\n\n**Interpretation**\n\nSensitivity analysis complements, rather than replaces, backtesting and the tracking of proxies that supervisors require.\n\n**LO:** MR-6 b: Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis. • **Reference:** Lynch, Section 6.4\n\nMR-6 • Validating Bank Holding Companies’ Value-at-Risk Models for Market Risk • Vardeez: IMPORTANT (new topic, highly testable)"
+ },
+ {
+  "id": "MR-WB-6c-4",
+  "lo": "MR-6 c",
+  "loText": "Describe the challenges a financial institution could face when calculating confidence intervals for VaR.",
+  "outside": false,
+  "question": "A bank holding company’s validation team proposes to place a 90% confidence interval around its one-day 99% historical-simulation VaR using Jorion’s asymptotic standard error of a quantile, $SE = \\frac{1}{f(\\text{VaR})}\\sqrt{c(1 - c)/T}$. Which of the following is the main challenge in applying this formula?",
+  "options": {
+   "A": "The coverage level $c$ and the sample size $T$ are unknown and must first be estimated from the pseudo history.",
+   "B": "The density at the VaR, $f(\\text{VaR})$, must be specified, and assuming a normal density is probably a mistake because returns are non-normal.",
+   "C": "The formula gives intervals that are too narrow whenever more data are used, so $T$ must be kept to one year or less.",
+   "D": "The formula cannot be applied to VaR at all, because VaR is not a quantile of the distribution of portfolio value changes."
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Which inputs are known**\n\nVaR, $T$ and $c$ are known, so the calculation is “seemingly straightforward”.\n\n**Step 2 – Which input is hard**\n\n$f(\\text{VaR})$, the probability density at the VaR. Imposing a distribution, usually normal, is convenient, but financial returns are non-normal, so “imposing a normal distribution would probably be a mistake”.\n\n⇒ The challenge is specifying $f(\\cdot)$; non-parametric methods (order statistics, bootstrap) avoid it.\n\n**Interpretation**\n\nJorion also suggests basing the interval on more than the single quantile point, using the variance of the distribution of pseudo returns.\n\n**LO:** MR-6 c: Describe the challenges a financial institution could face when calculating confidence intervals for VaR.\n\n- **Reference:** Lynch, Section 6.5 (Jorion 1996)"
+ },
+ {
+  "id": "MR-WB-6c-5",
+  "lo": "MR-6 c",
+  "loText": "Describe the challenges a financial institution could face when calculating confidence intervals for VaR.",
+  "outside": false,
+  "question": "A risk analyst bootstraps confidence intervals for two VaR models of the same trading book: a historical-simulation VaR and a GARCH(1,1) VaR. Which of the following statements is correct?",
+  "options": {
+   "A": "For the historical-simulation VaR, resampling the pseudo history with replacement assumes daily value changes are independent, so dependence over time is not reflected.",
+   "B": "For the GARCH VaR, the analyst should resample the raw daily value changes directly, because the GARCH model already accounts for their dependence.",
+   "C": "For the GARCH VaR, the parameters estimated on the original sample should be held fixed in every bootstrap sample, so that estimation risk is kept out.",
+   "D": "Filtered historical simulation typically yields the widest intervals of the three, because it combines GARCH volatility with an empirical distribution."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – HS bootstrap**\n\nDrawing observations from the pseudo history with replacement treats the changes as independent over time.\n\n⇒ It is non-parametric, like HS itself, but it does not reflect dependence.\n\n**Step 2 – GARCH bootstrap**\n\nThe standardised residuals $z_{t}$ are IID, so resample them, rebuild the series, and re-estimate the GARCH equation on each sample so that estimation risk enters the interval.\n\n**Interpretation**\n\nThe two bootstraps are designed differently because the bootstrap must mimic the dependence of the data. FHS, which keeps the re-estimated residuals, gives the narrowest intervals in Table 6.1.\n\n**LO:** MR-6 c: Describe the challenges a financial institution could face when calculating confidence intervals for VaR.\n\n- **Reference:** Lynch, Section 6.5 (Christoffersen and Goncalves 2005)"
+ },
+ {
+  "id": "MR-WB-6d-7",
+  "lo": "MR-6 d",
+  "loText": "Discuss the challenges in benchmarking VaR models and various approaches proposed to overcome them.",
+  "outside": false,
+  "question": "A validation analyst compares the bank’s positional VaR with a GARCH(1,1) VaR estimated on the bank’s trading P&L, both one-day 99%, using the sign test under two loss functions. Based on the evidence reported for US bank holding companies, which of the following conclusions is correct?",
+  "options": {
+   "A": "Under the regulatory loss function the P&L VaR outperformed the positional VaR at most banks, showing that positional VaR models are too aggressive.",
+   "B": "Under the regulatory loss function the positional VaR outperformed in every case, while under the check loss function the P&L VaR was more accurate at 16 of 19 banks.",
+   "C": "Under the check loss function the positional VaR outperformed at 16 of 19 banks, because conservatism is rewarded when accuracy is measured.",
+   "D": "Under both loss functions the two models were statistically indistinguishable, so a plot of the two VaR series is suﬀicient benchmarking."
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Regulatory loss function**\n\n“The positional VaR model significantly outperforms the P&L VaR in every case.”\n\n⇒ This shows the conservative nature of banks’ positional VaR models, often attributed to regulatory oversight.\n\n**Step 2 – Check loss function**\n\n“The P&L VaR outperforms the positional VaR at sixteen out of nineteen banks.” One bank’s positional VaR won; two were insignificant.\n\n**Interpretation**\n\nConservatism wins under a loss that penalises only exceedances; accuracy wins under the check loss (Figure 1). The same pair of facts is option C of Question MR-6 a.7.\n\n**LO:** MR-6 d: Discuss the challenges in benchmarking VaR models and various approaches proposed to overcome them. • **Reference:** Lynch, Section 6.8\n\nMR-7 • Beyond Exceedance-Based Backtesting of Value-at-Risk Models • Vardeez: IMPORTANT"
+ },
+ {
+  "id": "MR-WB-7a-8",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": true,
+  "question": "A model validation analyst at a US bank holding company is presenting to newly hired analysts on how the bank’s subportfolio VaR models are validated. The bank stores, for each day, the one-day 99% VaR, the clean P&L and the corresponding probability integral transform (PIT). Which of the following statements is correct for the analyst to make?",
+  "options": {
+   "A": "A hump-shaped PIT histogram, with realised P&L clustering in the middle of the forecast distribution, signals aggressive misspecification because the model distribution is too narrow.",
+   "B": "Uniformity of the PITs on the interval from 0 to 1 is the counterpart of unconditional coverage, so a PIT test uses information from every percentile of the forecast distribution.",
+   "C": "The Kolmogorov-Smirnov test is the preferred uniformity test for a 99% VaR model, because it places more weight on the tails of the PIT distribution than the Anderson-Darling test.",
+   "D": "Because PITs use the whole forecast distribution, a subportfolio that passes Kupiec’s unconditional coverage test will also pass a Kolmogorov-Smirnov test of PIT uniformity."
+  },
+  "answer": "B",
+  "solution": "**Step 1 – What the PIT is**\n\n$p_{t+1} = F_{t}(P \\&L_{t+1})$: the previous day’s forecast distribution evaluated at the realised P&L. A correctly specified model produces i.i.d. $U(0, 1)$ PITs.\n\n**Step 2 – Map the two exceedance properties**\n\nUnconditional coverage (exceedances at 1% VaR observed 1% of the time, at 3% VaR 3% of the time, and so on) “is analogous to the uniformity distributional property of a series of PITs”; independence of exceedances maps to independence of the PITs.\n\n**Interpretation**\n\nB is correct. An exceedance count tests the model at a single percentile; PITs, when well estimated, “provide information on the accuracy of the risk model at any percentile of the forecast distribution”. That is why PIT tests can reveal misspecifications that pure exceedance analysis misses.\n\n**LO:** MR-7 a, b, c, d • **Reference:** Iercosan, Shcherbakova, McArthur and Alper, GARP MR Ch.7, 7.1, 7.2, 7.6, 7.7\n\nMR-7 • Beyond Exceedance-Based Backtesting of Value-at-Risk Models • Vardeez: IMPORTANT"
+ },
+ {
+  "id": "CR-QB-0153",
+  "lo": "CR-5 b",
+  "loText": "Describe quantitative measurements and factors of credit risk, including probability of default, loss given default, exposure at default, expected loss, and time horizon.",
+  "outside": true,
+  "question": "Highlands Bank forms part of a Bank Holding Company (BHC). The bank is computing loss estimates on a number of its business lines. What are the components that the bank should take into account when estimating losses?",
+  "options": {
+   "A": "Probability of default (PD), time value of money (TM), and loss given default (LGD).",
+   "B": "Probability of default (PD), loss given default (LGD), and exposure at default (EAD).",
+   "C": "Probability of default (PD), time value of money (TM), and exposure at default (EAD).",
+   "D": "Loss given default (LGD), exposure at default (EAD), and credit rating (CR)."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Expected loss over the horizon (usually one year) is EL $= \\text{PD} \\times\\text{EAD} \\times$ LGD.\n2. So the three required components are PD, EAD and LGD.\n3. Only option B lists exactly these three."
+ },
+ {
+  "id": "LR-T2-45",
+  "lo": "LTR-12 a",
+  "loText": "Distinguish between the various sources of non-deposit liabilities at a bank.",
+  "outside": true,
+  "question": "A bank holding company plans to raise USD 1 billion of short-term funds. The current annual market interest rates and non-interest costs of the alternative sources are shown below. Assume a reserve requirement of 10% applies, so that only 90% of the funds raised are investable.\n\n| Source | Market interest rate | Non-interest cost |\n|---|---|---|\n| Federal funds | 2.10% | 0.42% |\n| Negotiable CDs | 2.25% | 0.42% |\n| Eurodollars | 2.15% | 0.52% |\n| Commercial paper | 2.20% | 0.67% |\n\nWhich of the following is closest to the effective cost rate of federal funds and of negotiable CDs respectively?",
+  "options": {
+   "A": "2.10% and 2.25%",
+   "B": "2.52% and 2.67%",
+   "C": "2.80% and 2.97%",
+   "D": "3.11% and 3.30%"
+  },
+  "answer": "C",
+  "solution": "**Concept tested:** The effective cost rate of a funding source, combining interest and non-interest costs and grossing up for the proportion of funds that cannot be invested.\n\n$$\\text{Effective cost rate} = \\frac{\\text{interest cost} + \\text{non-interest cost}}{\\text{net investable funds as a proportion of funds raised}}$$\n\n**Step 1.** Total cost of federal funds, adding the two cost components:\n$$2.10\\% + 0.42\\% = 2.52\\%$$\n\n**Step 2.** Gross up for the reserve requirement. Only 90 cents of each dollar raised can be invested in earning assets, so the cost must be spread over that smaller base:\n$$2.52\\% \\div 0.90 = 2.80\\%$$\n\n**Step 3.** Repeat for negotiable CDs:\n$$(2.25\\% + 0.42\\%) \\div 0.90 = 2.67\\% \\div 0.90 = 2.97\\%$$\n\nInterpretation: the headline market rates differ by only 15 basis points, but the effective rates differ by 17 basis points once both adjustments are made. The grossing up amplifies every difference by a factor of $1 \\div 0.90$, which is why the reserve treatment of a funding source matters as much as its quoted rate. A source exempt from the reserve requirement avoids the grossing up entirely."
+ },
+ {
+  "id": "LR-QB-0292",
+  "lo": "LTR-8 a",
+  "loText": "Compare and contrast the major lines of business in which dealer banks operate and the risk factors they face in each line of business.",
+  "outside": true,
+  "question": "The formation of large bank holding companies results in diseconomies of scope with respect to:",
+  "options": {
+   "A": "risk management.",
+   "B": "technology.",
+   "C": "marketing.",
+   "D": "financial innovation."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Dealer banks operate as holding companies spanning commercial banking, prime brokerage, investment banking, asset management and off‑balance‑sheet activities.\n2. Combining these activities is argued to produce economies of scope in information technology, marketing and financial innovation.\n3. The 2007‑2009 crisis showed that executive management and boards did not fully understand or control risk taking across the firm, i.e., diseconomies of scope in risk management (and corporate governance).\n4. Therefore the answer is risk management."
+ },
+ {
+  "id": "LR-QB-0409",
+  "lo": "LTR-12 c",
+  "loText": "Discuss factors affecting the choice of non-deposit funding sources.",
+  "outside": true,
+  "question": "Banks and other lending affiliates within Niche Bank Holding Company have substantial loan demand from companies planning facility expansions before the next financial year. The holding company plans to raise \\$1 billion in short‑term funds this week, of which \\$0.9 billion will be used to meet the new loan requests (net investable funds). Current annual rates:\n\n| Source | Market interest rate | Noninterest cost rate |\n|---|---|---|\n| Federal Funds | 2.10% | 0.42% |\n| Negotiable CDs | 2.25% | 0.42% |\n| Eurodollars | 2.15% | 0.52% |\n| Commercial paper | 2.20% | 0.67% |\n| Fed Discount Rate | 3.10% | 0.42% |\n\nNoninterest costs are a percentage of the \\$1 billion raised. Calculate the effective cost rates of the Federal Funds and Negotiable CDs, respectively.",
+  "options": {
+   "A": "2.10% and 2.25%",
+   "B": "2.80% and 2.97%",
+   "C": "2.97% and 3.19%",
+   "D": "2.80% and 3.91%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Effective cost = (interest cost + noninterest cost) / net investable funds; costs are on the \\$1,000 million raised, the base is \\$900 million.\n2. Fed funds: (0.0210 + 0.0042) × 1000 = 25.2 million; 25.2/900 = 2.80%.\n3. Negotiable CDs: (0.0225 + 0.0042) × 1000 = 26.7 million; 26.7/900 = 2.967% ≈ 2.97%."
+ },
+ {
+  "id": "LR-QB-0410",
+  "lo": "LTR-12 c",
+  "loText": "Discuss factors affecting the choice of non-deposit funding sources.",
+  "outside": true,
+  "question": "Niche Bank Holding Company plans to raise \\$1 billion in short‑term funds, of which \\$0.9 billion is net investable. Current annual rates:\n\n| Source | Market interest rate | Noninterest cost rate |\n|---|---|---|\n| Federal Funds | 2.10% | 0.42% |\n| Negotiable CDs | 2.25% | 0.42% |\n| Eurodollars | 2.15% | 0.52% |\n| Commercial paper | 2.20% | 0.67% |\n| Fed Discount Rate | 3.10% | 0.42% |\n\nNoninterest costs are a percentage of the \\$1 billion raised. If effective cost is the only selection criterion, which source should management use?",
+  "options": {
+   "A": "Federal Funds",
+   "B": "Negotiable CDs",
+   "C": "Eurodollars",
+   "D": "Fed Discount Rate"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Effective cost = (market rate + noninterest rate)/0.9 for each source.\n2. Fed funds: 2.52/0.9 = 2.80%; CDs: 2.67/0.9 = 2.97%; Eurodollars: 2.67/0.9 = 2.97%; commercial paper: 2.87/0.9 = 3.19%; discount rate: 3.52/0.9 = 3.91%.\n3. The lowest is Fed funds at 2.80%.\n\n**REBUILT** — Stem did not say cost was the only criterion and commercial paper was in the table but not the options; added ’effective cost is the only criterion’ so the answer follows from the effective‑cost ranking."
+ },
+ {
+  "id": "LR-WB-3b-7",
+  "lo": "LTR-3 b",
+  "loText": "Identify EWI guidelines from banking regulators and supervisors (OCC, BCBS, Federal Reserve).",
+  "outside": true,
+  "question": "A compliance oﬀicer at a US bank holding company is mapping each item on the bank’s liquidity EWI dashboard to the supervisory document that recommends it. Which of the following pairings is correct?",
+  "options": {
+   "A": "BCBS (2008) Sound Principles: the daily maximum liquidity requirement and intraday throughput.",
+   "B": "OCC (2012) Comptroller’s Handbook: negative publicity concerning an asset class owned by the institution and concerns over the funding of off-balance-sheet items.",
+   "C": "BCBS (2012) intraday indicators: rapid asset growth funded with potentially volatile liabilities and a decrease in the weighted average maturity of liabilities.",
+   "D": "SR 10-6 Interagency Policy Statement: EWIs and event triggers tailored to the institution’s liquidity risk profile, so that it can move into progressive states of readiness as an event evolves."
+  },
+  "answer": "D",
+  "solution": "**Step 1 – Locate each pair of items**\n\nDaily maximum liquidity requirement and intraday throughput: BCBS 2012. Negative publicity about an owned asset class and off-balance-sheet funding concerns: SR 10-6. Rapid asset growth funded with volatile liabilities and a falling weighted average maturity: BCBS 2008.\n\n**Step 2 – Check D**\n\nSR 10-6: management “should monitor for potential liquidity stress events by using early-warning indicators and event triggers”, tailored to “its specific liquidity risk profile”; early recognition lets the institution “position itself into progressive states of readiness as the event evolves”.\n\n⇒ D is the only pairing that names the right document.\n\n**Interpretation**\n\nEach wrong option is a true list item placed under the wrong document, the role-misassignment shape Vardeez warns about. Learn one discriminator per document and the shape is easy.\n\n**LO:** LTR-3 b: Identify EWI guidelines from banking regulators and supervisors (OCC, BCBS, Federal Reserve). • **Reference:** Venkat and Baird, Ch.6, Key Supervisory Guidelines, Table 3.2\n\nLTR-3 • Early Warning Indicators • Vardeez: VERY IMPORTANT"
+ },
+ {
+  "id": "LR-WB-11a-6",
+  "lo": "LTR-11 a",
+  "loText": "Discuss the relationship between contingency funding planning and liquidity stress testing.",
+  "outside": true,
+  "question": "The CRO of a bank holding company notes that its liquidity and capital stress tests, and the contingency plans built on them, have always been run by separate teams. Which change is most consistent with the practice described for contingency funding plans?",
+  "options": {
+   "A": "Bring them together: use a common set of EWIs and assess the effect of liquidity stress results and proposed CFP actions on capital, and of capital stress on liquidity, in line with recovery and resolution plans.",
+   "B": "Keep them separate, because a liquidity crisis unfolds too quickly for contingent actions to affect capital positions.",
+   "C": "Replace the liquidity stress test with the capital stress test, because a well-capitalised bank cannot face a liquidity shortfall.",
+   "D": "Fold the CFP into the business continuity plan, as large and complex institutions typically do, so that one crisis document covers both."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – The reading’s diagnosis**\n\n“Historically, capital and liquidity management practices have been highly siloed; however, most recently, institutions have started to bring a more integrated approach.”\n\n**Step 2 – What integration brings**\n\n“A common set of EWIs, a more comprehensive view of the impact of liquidity specific stress test results, and proposed response actions on capital positions and vice versa”, aligned with recovery and resolution plans, capital management and ERM.\n\n⇒ A.\n\n**Interpretation**\n\nThe two interact both ways: selling assets to raise cash can crystallise losses that reduce capital, and a capital or rating hit can bring collateral calls that drain liquidity.\n\n**LO:** LTR-11 a: Discuss the relationship between contingency funding planning and liquidity stress testing. • **Refer-**"
+ },
+ {
+  "id": "LR-WB-11b-4",
+  "lo": "LTR-11 b",
+  "loText": "Describe best practices in the design of a sound contingency funding plan.",
+  "outside": true,
+  "question": "Over three years a bank holding company has added a prime brokerage business, a ring-fenced bank subsidiary supervised by a different regulator, and a large foreign exchange business. Its single contingency funding plan (CFP) has not been revised since. Which recommendation is most consistent with best practice in CFP design?",
+  "options": {
+   "A": "Keep one CFP for the whole group, since a single document guarantees consistency and the group stress test already covers every business.",
+   "B": "Leave the CFP unchanged until the next supervisory examination, since a CFP needs updating only when a regulator asks for it.",
+   "C": "Fold the CFP into the group’s business continuity plan, as is common practice at large and complex institutions.",
+   "D": "Refresh the CFP for the new business and risk profile, tie it to the risk appetite statement through quantifiable EWIs, limits and escalation levels, and move to a portfolio of CFPs, including one for the ring-fenced subsidiary and possibly a currency CFP."
+  },
+  "answer": "D",
+  "solution": "**Step 1 – Alignment to the business and risk profile**\n\nThe CFP must reflect the scope of businesses, products, geographic and FX coverage and legal entities, with the risk appetite statement aligned “through quantifiable early warning indicators, limits, and escalation levels”, and it “should be refreshed accordingly as the institution’s business and risk profile changes over time”.\n\n**Step 2 – Structure**\n\n“It is unlikely that a single CFP document can properly cover all these elements”; institutions run a portfolio of CFPs. “Ring-fenced entities that are supervised by a different regulator … have separate CFPs”, and firms with large FX businesses “may develop a currency CFP”.\n\n⇒ D.\n\n**Interpretation**\n\nThe prime brokerage business also changes the stresses the CFP must plan for: clients withdrawing their accounts and counterparties making collateral calls.\n\n**LO:** LTR-11 b: Describe best practices in the design of a sound contingency funding plan. • **Reference:** Venkat and Baird, Ch.7, Design Considerations I; 11.5 Organizational Structure of the CFPs"
+ },
+ {
+  "id": "OR-T2-04",
+  "lo": "ORR-2 a",
+  "loText": "Explain the Basel regulatory expectations for the governance of an operational risk management framework.",
+  "outside": true,
+  "question": "A risk consultant advising a group with banking subsidiaries in Europe, an insurance subsidiary and a US bank holding company is explaining how Pillar 2 capital sufficiency is evaluated in each. Which of the following mappings is most accurate?",
+  "options": {
+   "A": "European banks: ORSA within the SREP. Insurance: ICAAP. United States: CCAR only.",
+   "B": "European banks: ICAAP, which forms part of the SREP. Insurance: ORSA. United States: the overall supervisory review process, including but not limited to CCAR.",
+   "C": "European banks: SREP within the ICAAP. Insurance: CCAR. United States: ORSA.",
+   "D": "All three use the ICAAP, since Pillar 2 is harmonised across jurisdictions and industries by the Basel Committee."
+  },
+  "answer": "B",
+  "solution": "| Jurisdiction or industry | Evaluation | Note |\n|---|---|---|\n| Europe, banks and financial firms | Internal Capital Adequacy Assessment Process (ICAAP) | The firm's own assessment; it forms part of the wider Supervisory Review and Evaluation Process (SREP) conducted by the supervisor |\n| Insurance industry | Own Risk and Solvency Assessment (ORSA) | |\n| United States | Part of the overall supervisory review process | Including but not limited to the Comprehensive Capital Analysis and Review (CCAR) programme |\n\nThe containment direction matters: the firm-run ICAAP sits inside the supervisor-run SREP, not the other way round. In all three regimes the assessment requires identification of key threats and scenarios for large loss events and assessment of the firm's resilience to internal and external shocks. Alongside solvency, regulators use the Pillar 2 evaluation to assess governance arrangements, corporate culture and values, and the ability of managers to perform their duties through effective, comprehensive and reliable risk reporting."
+ },
+ {
+  "id": "OR-T3-14",
+  "lo": "ORR-17 a",
+  "loText": "Describe the evolution of the stress testing process and compare the methodologies of historical European Banking Association (EBA), Comprehensive Capital Analysis and Review (CCAR), and Supervisory Capital Assessment Program (SCAP) stress tests.",
+  "outside": true,
+  "question": "A newly appointed head of stress testing is explaining how the role of supervisory stress testing has evolved since 2009. Which of the following statements is most accurate?",
+  "options": {
+   "A": "Broad-based supervisory stress testing became the new tool because standard approaches such as regulatory capital ratios were no longer credible during the crisis, and it evolved from a one-off crisis diagnostic into a recurring supervisory programme, in the United States through CCAR.",
+   "B": "Stress testing replaced regulatory capital ratios entirely, so that a bank clearing its stress test no longer needs to meet minimum ratio requirements.",
+   "C": "Because the crisis has passed, the cost-benefit balance of stress test disclosure has tipped decisively towards more bank-specific disclosure over time.",
+   "D": "Supervisory stress tests are designed to provide an all-encompassing assessment of the risks a bank faces, which is why a bank's internal capital planning process should replicate the supervisory scenario and methodology."
+  },
+  "answer": "A",
+  "solution": "During the crisis, answers to the question of how much capital and liquidity a bank needs, obtained using standard approaches such as regulatory capital ratios, were no longer credible, and broad-based supervisory stress testing became the new tool. Because bank balance sheets are opaque and susceptible to asset substitution, a tailored stress test with open disclosure of results and approaches could restore trust in a way a ratio could not.\n\nThe 2009 SCAP was a crisis diagnostic. In the United States it became a recurring programme: CCAR is the Federal Reserve's supervisory programme for assessing capital plans, and in 2013 it covered the 18 BHCs that had participated in the 2009 SCAP. From 2014 the capital plans of all BHCs subject to the Capital Plan Rule were evaluated in a single unified process through CCAR.\n\nTwo qualifications matter. First, on disclosure, the reading's own view is that once trust is re-established the cost-benefit of stress testing disclosures may tip away from bank-specific towards more aggregated information, which is the opposite of option (c). Second, and examinably, the supervisory scenarios and stress tests required under the Dodd-Frank Act play an important role in CCAR but are not meant to be, and should not be viewed as, an all-encompassing assessment of the possible risks a BHC may face. A robust internal capital planning process should includ […]"
+ },
+ {
+  "id": "OR-T3-15",
+  "lo": "ORR-20 a",
+  "loText": "Describe the Federal Reserve’s Capital Plan Rule and explain the seven principles of an effective capital adequacy process for bank holding companies (BHCs) subject to the Capital Plan Rule.",
+  "outside": false,
+  "question": "A regulatory affairs analyst is summarising the Federal Reserve's Capital Plan Rule for her firm's board. Which of the following statements is most accurate?",
+  "options": {
+   "A": "The Rule requires all US-domiciled, top-tier bank holding companies with total consolidated assets of USD 50 billion or more to develop and maintain a capital plan supported by a robust process for assessing their capital adequacy, and CCAR is the supervisory programme through which those plans are assessed.",
+   "B": "The Rule sets a minimum common equity Tier 1 ratio that BHCs must maintain and is enforced through the standardised approach to risk-weighted assets.",
+   "C": "The Rule applies only to those BHCs that participated in the 2009 SCAP, and other institutions remain outside the capital planning regime.",
+   "D": "The Rule prescribes the models a BHC must use to project losses and revenues, so that results are comparable across firms."
+  },
+  "answer": "A",
+  "solution": "The Capital Plan Rule requires all US-domiciled, top-tier BHCs with total consolidated assets of USD 50 billion or more to develop and maintain a capital plan supported by a robust process for assessing their capital adequacy. CCAR is the Federal Reserve's supervisory programme for assessing those capital plans. The Rule creates the obligation; CCAR is how compliance is examined.\n\nThe Federal Reserve's assessment of a BHC's capital planning process covers three things: the risk-identification, measurement and management practices that support capital planning and stress scenario analysis; stressed loss and revenue estimation practices; and the governance and controls around those practices. Note the emphasis, which the reading states directly: these initiatives focus not just on the amount of capital a BHC has, but on the internal practices and policies the firm uses to determine what amount and composition would be adequate.\n\nThe preamble to the Rule sets out the elements against which the Federal Reserve evaluates the robustness of internal capital planning, referred to as the capital adequacy process or CAP, and summarised as seven principles. In 2013 CCAR covered the 18 BHCs that had participated in the 2009 SCAP, with the remaining BHCs subject to the Rule assessed through a separate Capital Plan Review; from 2014 all were brought into a single unified CCAR process."
+ },
+ {
+  "id": "OR-T3-16",
+  "lo": "ORR-20 a",
+  "loText": "Describe the Federal Reserve’s Capital Plan Rule and explain the seven principles of an effective capital adequacy process for bank holding companies (BHCs) subject to the Capital Plan Rule.",
+  "outside": false,
+  "question": "A BHC is self-assessing its capital adequacy process against the seven CAP principles. Which of the following is NOT one of those seven principles?",
+  "options": {
+   "A": "Sound foundational risk management",
+   "B": "Effective loss-estimation methodologies",
+   "C": "Comprehensive capital policy and capital planning",
+   "D": "Independent third-party attestation of the capital plan"
+  },
+  "answer": "D",
+  "solution": "| # | Principle | What it requires |\n|---|---|---|\n| 1 | Sound foundational risk management | Risk-measurement and risk-management infrastructure supporting the identification, measurement, assessment and control of all material risks arising from exposures and business activities |\n| 2 | Effective loss-estimation methodologies | Processes for translating risk measures into estimates of potential losses over a range of stressful scenarios and environments |\n| 3 | Solid resource-estimation methodologies | Processes for projecting the resources available to absorb losses, principally pre-provision net revenue and the allowance for loan and lease losses |\n| 4 | Sufficient capital adequacy impact assessment | Bringing loss and resource estimates together to assess the combined impact on capital adequacy relative to stated goals, including balance sheet and risk-weighted asset projections |\n| 5 | Comprehensive capital policy and capital planning | Capital goals and targets, decisions on capital actions such as dividends, repurchases and issuance, and a capital contingency plan |\n| 6 | Robust internal controls | Policies and procedures, change control, independent model review and validation, documentation, and internal audit review |\n| 7 | Effective governance | Board and senior management oversight, including review of the risk infrastructure and estimation methodologies, evaluatio […]"
+ },
+ {
+  "id": "OR-T3-17",
+  "lo": "ORR-20 a",
+  "loText": "Describe the Federal Reserve’s Capital Plan Rule and explain the seven principles of an effective capital adequacy process for bank holding companies (BHCs) subject to the Capital Plan Rule.",
+  "outside": false,
+  "question": "A supervisory team is reviewing a BHC's capital adequacy process. Which of the following practices would the Federal Reserve most likely regard as weak?",
+  "options": {
+   "A": "Risk identification conducted as a comprehensive, firm-wide exercise that captures risks from all exposures and activities, including those not well captured by the supervisory scenario.",
+   "B": "Internal audit reviewing the capital adequacy process, and model review and validation performed independently of the model developers.",
+   "C": "A capital policy that sets out capital goals and targets, the analysis supporting them, and a capital contingency plan specifying actions if capital falls below target.",
+   "D": "A capital planning process built to replicate the Federal Reserve's supervisory scenarios and estimation methodologies as closely as possible, on the view that this maximises the chance of a favourable CCAR outcome."
+  },
+  "answer": "D",
+  "solution": "The Federal Reserve's publication explicitly identifies practices considered stronger or leading and practices it deems weaker or in some cases unacceptable. Mirroring the supervisor is named among the weak ones: a robust internal capital planning process should include modelling practices and scenario assumptions that reflect BHC-specific factors, which in certain instances may differ considerably from those used by the Federal Reserve.\n\nThe reason is structural. The supervisory scenario is one path through one set of macro variables, designed to be broadly applicable across many firms. A BHC's own material risks include concentrations, business lines and idiosyncratic exposures the supervisory scenario was never designed to stress. A firm that models only what the supervisor models has, by construction, no view of the risks that distinguish it from its peers.\n\nThe other three options describe practices consistent with Principles 1, 6 and 5 respectively. Note that Principle 1 requires risk identification to reach all material risks, and that the reading treats a strong process as one that identifies risks not well captured by the supervisory scenario rather than one that stops at the scenario's boundary.\n\nOne further caution the reading attaches: practices identified as leading or industry best should not be treated as a safe harbour, because leading practices continue to evol […]"
+ },
+ {
+  "id": "OR-FT-21",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "Which of the following **best describes** the elements of a strong model validation process?",
+  "options": {
+   "A": "Evaluation of conceptual soundness, ongoing monitoring including process verification and benchmarking, and outcomes analysis including back-testing, all performed by parties independent of model development with the competence and influence to compel change, and covering vendor models as well as those built in-house.",
+   "B": "A single annual review of model output performed by the model's developers, who are best placed to interpret results.",
+   "C": "Outcomes analysis alone, since a model that produces accurate forecasts is by definition sound whatever its internal construction.",
+   "D": "A review restricted to internally built models, since vendor models carry the vendor's own validation."
+  },
+  "answer": "A",
+  "solution": "*Concept tested:* the three core elements of validation, the independence requirement, and the inclusion of vendor models in scope.\n\n1. **Conceptual soundness** — is the model theoretically well founded and appropriate for its purpose? Qualitative review of documentation, derivation, and comparison with theory and alternative approaches.\n2. **Ongoing monitoring** — is it still working in current conditions? Process verification, benchmarking, sensitivity analysis.\n3. **Outcomes analysis** — do outputs match realised experience? Back-testing and forecast comparison.\n\nOption (c) fails on a specific point: a model can produce accurate forecasts for the wrong reasons, in which case its accuracy is an artefact of the period observed and will not persist. Conceptual soundness is what distinguishes a model that works from one that has happened to work.\n\nVendor models are in scope. The vendor's methodology may be proprietary, which makes conceptual review harder, but the bank remains responsible for the appropriateness of the model for its own use and must validate it accordingly."
+ },
+ {
+  "id": "OR-FT-23",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "A validation team finds that back-testing provides almost no discriminating power for one of the bank's models. Which model is **most likely** to be affected, and what should follow?",
+  "options": {
+   "A": "A daily trading value at risk model at a 99% confidence level, which should therefore be validated on conceptual soundness alone.",
+   "B": "A model whose output is a very high confidence level over a long horizon, such as a one-year economic capital measure, where the expected number of exceedances over any available history is close to zero; validation must then rest more heavily on conceptual soundness, input and parameter validation, benchmarking, and sensitivity and stress testing of the key assumptions.",
+   "C": "A short-horizon model with abundant observations, since a large sample makes individual exceptions statistically indistinguishable.",
+   "D": "Any model, since back-testing is an unreliable technique and has been superseded by benchmarking in supervisory practice."
+  },
+  "answer": "B",
+  "solution": "*Concept tested:* that the power of a back-test depends on the expected number of exceedances, which falls as the confidence level rises and the horizon lengthens, and what compensates when it collapses.\n\n$$\\text{Expected exceedances} = \\text{observations} \\times (1 - \\text{confidence level})$$\n\n- Daily 99% VaR over 2 years: about $500 \\times 0.01 = 5$ exceedances → testable\n- One-year 99.9% economic capital: about $1 \\times 0.001$ → roughly one per thousand years → not testable\n\nThe problem is structural, not a data-collection failure a better system could fix. When the headline test loses power, the validation burden shifts rather than disappears: onto conceptual soundness, onto the inputs and parameters that dominate the output, onto benchmarking against alternative models and methods, and onto sensitivity and stress testing of the assumptions the answer is most sensitive to. Use test evidence also becomes more important, since a model genuinely relied upon in decisions is subject to a form of continuous challenge that an unused model escapes."
+ },
+ {
+  "id": "OR-FT-43",
+  "lo": "ORR-20 b",
+  "loText": "Describe practices that can result in a strong and effective capital adequacy process for a BHC in the following areas: - Risk identification - Internal controls, including model review and validation - Corporate governance - Capital policy, including setting of goals and targets and contingency planning - Stress testing and stress scenario design - Estimating losses, revenues, and expenses, including quantitative and qualitative methodologies - Assessing the impact of capital adequacy, including risk-weighted asset (RWA) and balance sheet projections",
+  "outside": false,
+  "question": "Which of the following describes a **strong** risk identification practice within a bank holding company's capital adequacy process?",
+  "options": {
+   "A": "A comprehensive, firm-wide and regularly refreshed identification process covering all exposures and activities, explicitly reaching risks not well captured by the supervisory scenario, with an owner for each identified risk and a documented link from each material risk to the loss estimation methodology that captures it.",
+   "B": "A risk identification exercise scoped to the variables contained in the supervisory scenario, so that identification and estimation are aligned.",
+   "C": "A risk identification exercise performed once at the inception of the capital planning framework and thereafter updated only when the business acquires a new legal entity.",
+   "D": "A risk identification process owned exclusively by the independent risk function, so that business line optimism does not influence the inventory."
+  },
+  "answer": "A",
+  "solution": "*Concept tested:* risk identification as the foundation of the whole capital adequacy process, and the requirement that every material risk be traceable to something that estimates its loss.\n\nPrinciple 1 requires a risk-measurement and risk-management infrastructure supporting the identification, measurement, assessment and control of all material risks arising from a firm's exposures and business activities. Foundational risk management is first in the sequence because everything downstream inherits its completeness: a risk that is never identified is never estimated, never capitalised and never governed.\n\nThe test of a strong process is traceability: every material risk identified → mapped to a loss estimation methodology → reflected in the capital adequacy conclusion. Any material risk with no methodology attached is an acknowledged gap requiring judgement, an overlay or a documented rationale, not silence.\n\nThe scoping point in option (b) is the one the Federal Reserve treats as weak. A robust internal process should include modelling practices and scenario assumptions reflecting BHC-specific factors, which may differ considerably from the supervisor's, and building a process that simply mirrors the supervisory stress test is expressly a weak practice. Risks not captured by the supervisory scenario are precisely the ones a firm-specific process exists to find."
+ },
+ {
+  "id": "OR-FT-44",
+  "lo": "ORR-20 b",
+  "loText": "Describe practices that can result in a strong and effective capital adequacy process for a BHC in the following areas: - Risk identification - Internal controls, including model review and validation - Corporate governance - Capital policy, including setting of goals and targets and contingency planning - Stress testing and stress scenario design - Estimating losses, revenues, and expenses, including quantitative and qualitative methodologies - Assessing the impact of capital adequacy, including risk-weighted asset (RWA) and balance sheet projections",
+  "outside": false,
+  "question": "Which combination of practices **best reflects** supervisory expectations for internal controls and governance over the capital adequacy process?",
+  "options": {
+   "A": "Independent model review and validation covering the models used in capital planning; documented policies and procedures with change control; comprehensive documentation sufficient for an independent party to reproduce the results; internal audit review of the process; and board oversight extending to periodic review of the risk infrastructure and estimation methodologies, evaluation of capital goals, assessment of scenario appropriateness, and approval of capital decisions.",
+   "B": "Board approval of the final capital plan, with the underlying methodology, assumptions and limitations reviewed at management level only, so that board time is used efficiently.",
+   "C": "Validation of capital planning models by the teams that built them, since capital planning models are too specialised for an independent function to review.",
+   "D": "Documentation sufficient for the bank's own staff to reproduce the results, with external reproducibility unnecessary given the proprietary nature of the methodology."
+  },
+  "answer": "A",
+  "solution": "*Concept tested:* the control and governance wrapper around the capital adequacy process, and specifically the depth of board engagement expected.\n\nPrinciples 6 and 7 supply the wrapper around the analytical chain. Internal controls comprise the scope of controls over the process, internal audit's review, independent model review and validation, policies and procedures, controls ensuring the integrity of results, and documentation. Governance comprises the board of directors, board reporting, senior management and the documenting of decisions.\n\nTwo expectations are more demanding than candidates typically assume.\n\n**Board engagement is substantive, not approval-only.** The board is expected to review the risk infrastructure and the loss and resource estimation methodologies periodically, to evaluate the capital goals, to assess whether the stressful scenarios considered are appropriate, to review limitations and uncertainties regularly, and to approve capital decisions. Approving an output whose assumptions the board has never examined does not satisfy that.\n\n**Documentation is reproducibility-grade.** The standard is documentation sufficient for an independent party to understand and reproduce the analysis, which is what allows validation, audit and supervisory review to function at all. Documentation adequate only for the team that produced it is a common weak practice, becau […]"
+ },
+ {
+  "id": "OR-FT-45",
+  "lo": "ORR-20 b",
+  "loText": "Describe practices that can result in a strong and effective capital adequacy process for a BHC in the following areas: - Risk identification - Internal controls, including model review and validation - Corporate governance - Capital policy, including setting of goals and targets and contingency planning - Stress testing and stress scenario design - Estimating losses, revenues, and expenses, including quantitative and qualitative methodologies - Assessing the impact of capital adequacy, including risk-weighted asset (RWA) and balance sheet projections",
+  "outside": false,
+  "question": "Which of the following **best describes** a strong capital policy at a bank holding company?",
+  "options": {
+   "A": "A policy stating capital goals and targets with the analysis supporting them, setting out how capital actions such as dividends, repurchases and issuance are determined in a range of conditions, and containing a capital contingency plan specifying the triggers and the actions to be taken if capital approaches or falls below target.",
+   "B": "A policy setting a single minimum capital ratio equal to the regulatory minimum, since holding capital above the minimum destroys shareholder value.",
+   "C": "A policy specifying a target dividend payout ratio to be maintained irrespective of conditions, so that shareholders receive a predictable return.",
+   "D": "A policy deferring all capital action decisions to the point at which they arise, since pre-committing to contingent actions removes management flexibility."
+  },
+  "answer": "A",
+  "solution": "*Concept tested:* the three components of a capital policy, and why contingent actions must be decided in advance rather than in the event.\n\nPrinciple 5 requires a comprehensive capital policy and robust capital planning practices for establishing capital goals, determining appropriate capital levels and composition, making decisions about capital actions, and maintaining capital contingency plans.\n\n1. **Goals and targets**, with the analysis supporting them: why this level, given this risk profile, this strategy and these stakeholder expectations?\n2. **Capital action framework**: how dividends, repurchases and issuance are determined across a range of conditions, rather than case by case.\n3. **Contingency plan**: the triggers at which action is required and the actions available, agreed in advance.\n\nThe contingency component is the one option (d) attacks, and the reasoning against it is specific. Capital actions become harder to execute exactly as they become necessary: issuance is most dilutive and least available when the firm is under stress, and dividend reduction carries a signalling cost that management is most reluctant to bear at the moment it matters. Deciding triggers and actions in advance, in calm conditions, removes that decision from the moment of maximum pressure. Flexibility retained until the event is flexibility exercised under duress.\n\nOption (b) is wrong fo […]"
+ },
+ {
+  "id": "OR-QB-0311",
+  "lo": "ORR-13 b",
+  "loText": "Describe the lessons learned from the presented case studies.",
+  "outside": true,
+  "question": "An enterprise risk consultant is presenting about the management of risk associated with third‑party vendor relationships at a financial conference. To emphasize the importance of understanding this risk and to illustrate lessons learned, the consultant describes several past examples of large losses and data breaches incurred by different financial institutions due to deficient or fraudulent third‑party vendor practices. One example provided is the large loss incurred by Capital One, a US‑based bank holding company, that resulted from its relationship with a third‑party vendor. Which of the following best describes the circumstances that led to the loss in this case?",
+  "options": {
+   "A": "The vendor provided an inaccurate loan pricing model to Capital One, which incurred far greater default losses than expected.",
+   "B": "A bill payment system provided by the vendor failed for an extended period of time, resulting in many Capital One customers canceling their accounts and causing severe reputational damage.",
+   "C": "The vendor’s sales manager established extremely high incentives for its representatives to sell Capital One products, resulting in regulatory fines for selling inappropriate products to consumers.",
+   "D": "A former staff member of the vendor hacked into a database of Capital One’s personal customer information that was stored on the vendor’s cloud services platform and stole much of this information."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Recall the Capital One case: in July 2019 the bank announced that data on about 100 million people had been illegally accessed.\n2. The attacker was a former employee of AWS, Capital One’s cloud services provider, who exploited a misconfigured web application firewall to reach files in an AWS database.\n3. The stolen data was unencrypted, so it was immediately usable; the OCC later fined Capital One \\$80 million for failing to establish effective risk assessment before migrating significant IT operations to the cloud.\n4. The circumstances therefore match option D (a former vendor staff member stealing customer data hosted on the vendor’s cloud platform)."
+ },
+ {
+  "id": "OR-QB-0332",
+  "lo": "ORR-15 b",
+  "loText": "Describe elements of an effective model risk management process.",
+  "outside": true,
+  "question": "A BHC is having a supervisory review performed on its modeling practices for capital planning. Following the review, the company receives very positive feedback regarding its model documentation as part of risk management. What could be the reason for the positive feedback?",
+  "options": {
+   "A": "Large‑scale collection of relevant historical data for use as input data.",
+   "B": "Presence of an updated inventory of all models used in the process.",
+   "C": "Presence of qualified modeling staff.",
+   "D": "Adoption of large‑scale sensitivity testing and stress testing."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Documentation of model risk management includes a comprehensive, up‑to‑date model inventory (purpose, usage, restrictions, inputs, components).\n2. A, C and D concern data, staff competence and testing, not documentation.\n3. So B is correct."
+ },
+ {
+  "id": "OR-QB-0342",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "Bank of Elmwood, part of a Bank Holding Company (BHC), is preparing for independent model review and validation. What is included in such a process?",
+  "options": {
+   "A": "An evaluation of conceptual soundness",
+   "B": "Ongoing monitoring that includes process verification and benchmarking",
+   "C": "Outcomes analysis",
+   "D": "All of the above"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Recall the three core elements of a strong validation process: evaluation of conceptual soundness, ongoing monitoring, and outcomes analysis.\n2. A is element 1; B is element 2 (process verification and benchmarking are its parts); C is element 3.\n3. Since all three are included, the answer is all of the above."
+ },
+ {
+  "id": "OR-QB-0343",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "A bank holding company was recently subjected to a supervisory review of its model risk management and received negative feedback. Which of the following is the most likely cause?",
+  "options": {
+   "A": "Using models without validation, or models with identified weaknesses",
+   "B": "Using benchmark or challenger models to help assess the reasonableness of the primary model output",
+   "C": "Employing independent validation staff to critically evaluate the models",
+   "D": "Clearly disclosing the validation status of all models used for capital planning"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Supervisory guidance expects every model in use to be validated and weaknesses to be addressed or limited.\n2. B, C and D are recognized good practices: benchmarking, independent critical review and transparency about validation status.\n3. Only A is a lapse that would draw negative feedback."
+ },
+ {
+  "id": "OR-QB-0348",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "According to the FDIC, an effective model validation framework should include three core elements. What are they?",
+  "options": {
+   "A": "Implementation; ongoing error correction; and reporting",
+   "B": "Evaluation of sound governance; back‑testing; and vendor validation",
+   "C": "Evaluation of conceptual soundness; ongoing monitoring; and outcomes analysis",
+   "D": "Evaluation of simulated errors; expert screening; and policy/procedure validation"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The core elements are conceptual soundness evaluation, ongoing monitoring (process verification, benchmarking) and outcomes analysis (including back‑testing).\n2. C matches exactly.\n3. A, B and D mix model‑process or governance terms that are not the three elements."
+ },
+ {
+  "id": "OR-QB-0350",
+  "lo": "ORR-15 d",
+  "loText": "Describe elements of a strong model validation process and challenges to an effective validation process.",
+  "outside": true,
+  "question": "Backtesting is most appropriately classified in which element of the validation process?",
+  "options": {
+   "A": "Evaluation of conceptual soundness",
+   "B": "Ongoing monitoring",
+   "C": "Outcomes analysis",
+   "D": "Post‑validation review"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Backtesting compares actual results with model estimates over a period different from the development sample.\n2. This comparison of outputs with what actually happened is outcomes analysis.\n3. Backtesting is a specific form of outcomes analysis."
+ },
+ {
+  "id": "OR-QB-0372",
+  "lo": "ORR-17 a",
+  "loText": "Describe the evolution of the stress testing process and compare the methodologies of historical European Banking Association (EBA), Comprehensive Capital Analysis and Review (CCAR), and Supervisory Capital Assessment Program (SCAP) stress tests.",
+  "outside": true,
+  "question": "Stress testing is a simulation technique used in banking to determine the ability of a financial institution to deal with an economic crisis. Which of the following is NOT a stress test exercise conducted by an authoritative body?",
+  "options": {
+   "A": "SCAP 2009 ‑ Supervisory Capital Assessment Program",
+   "B": "CEBS 2010 ‑ Committee of European Bank Supervisors",
+   "C": "TCAP 2009 ‑ Treasury’s Capital Assistance Program",
+   "D": "CCAR 2011/2012 ‑ Comprehensive Capital Analysis and Review"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. SCAP (2009), the CEBS test (2010) and CCAR (2011/2012) are all macro‑prudential stress tests.\n2. The Treasury’s Capital Assistance Program (CAP) was a funding backstop: the Treasury would borrow and inject equity into banks that failed SCAP and could not raise capital privately. It is not a stress test."
+ },
+ {
+  "id": "OR-QB-0374",
+  "lo": "ORR-17 a",
+  "loText": "Describe the evolution of the stress testing process and compare the methodologies of historical European Banking Association (EBA), Comprehensive Capital Analysis and Review (CCAR), and Supervisory Capital Assessment Program (SCAP) stress tests.",
+  "outside": true,
+  "question": "In regard to the historical evolution of the stress testing process, each of the following is true EXCEPT, which is inaccurate?",
+  "options": {
+   "A": "The U.S. Federal Reserve conducts an annual assessment of bank holding companies (BHC) which includes a Comprehensive Capital Analysis and Review (CCAR) and Dodd‑Frank supervisory stress tests",
+   "B": "The Committee of European Banking Supervisors (CEBS) oversees the most forward‑looking and comprehensive regulatory stress tests, in particular with respect to liquidity risks, emerging cyber‑risks, and the linkage between macro and intermediate risk factors",
+   "C": "The Supervisory Capital Assessment Program (SCAP) was the first of the macro‑prudential stress tests of the global financial crisis (GFC); its state space had only three dimensions (GDP growth, unemployment, and house price index), and the market risk scenario was based in historical experience",
+   "D": "For the 2011 European Banking Authority (EBA) test, the supervisors specified over 70 risk factors for the trading book, eight macro‑factors for each of 21 countries (GDP growth, inflation, unemployment, residential and commercial real estate price indices, short and long‑term government rates, and stock prices), plus sovereign haircuts across seven maturity buckets"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A: the Fed’s annual BHC assessment includes CCAR and Dodd‑Frank tests ‑ true.\n2. C: SCAP was tri‑variate (GDP, unemployment, HPI) with a historically based market risk scenario ‑ true.\n3. D: the 2011 EBA scenario had over 70 trading‑book risk factors, 8 macro factors for 21 countries and sovereign haircuts over 7 maturity buckets ‑ true.\n4. B: the CEBS ran the 2010 test of 91 banks (covering market and credit risk only, with less disclosure than SCAP) and was succeeded by the EBA; it did not oversee the most forward‑looking and comprehensive tests. B is inaccurate."
+ }
+]

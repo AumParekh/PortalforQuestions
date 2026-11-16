@@ -7,6 +7,7 @@ import { useUi } from './store/ui';
 import { HomeScreen } from './screens/HomeScreen';
 import { SessionSetupScreen } from './screens/SessionSetupScreen';
 import { LibraryScreen } from './screens/LibraryScreen';
+import { ShapesScreen } from './screens/ShapesScreen';
 import { PracticeScreen } from './screens/PracticeScreen';
 import { DrillsScreen } from './screens/DrillsScreen';
 import { MocksScreen } from './screens/MocksScreen';
@@ -170,6 +171,8 @@ function Routes() {
       return <SessionSetupScreen />;
     case '/library':
       return <LibraryScreen />;
+    case '/shapes':
+      return <ShapesScreen />;
     case '/session':
       return sessionStatus === 'idle' ? <Skeleton /> : <QuestionScreen />;
     case '/summary':

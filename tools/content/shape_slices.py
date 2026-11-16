@@ -4,6 +4,7 @@
     shape_slices.py slice <TOPIC>              writes data/build-inputs/shapes/slices/<TOPIC>-<nn>.json
     shape_slices.py check <result.json>        validates a judge's file against its slice
     shape_slices.py reconcile <TOPIC>          joins the two independent judgements of each slice
+    shape_slices.py topiccheck <TOPIC>         validates topics/<TOPIC>.json (see AUTHOR.md)
 
 A topic's candidates are the questions of its learning objectives plus, from the rest of the library, those its
 `widerSearch` finds (marked `outside`). The recall workbook's own questions for the topic are not judged: the
@@ -18,8 +19,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 SHAPES = os.path.join(ROOT, 'data', 'build-inputs', 'shapes')
 CONTENT = os.path.join(ROOT, 'content')
 FILES = ('IR', 'MR', 'CR', 'LR', 'OR', 'CI')
-SIZE = 30
-SOLUTION_CHARS = 1800
+SIZE = 40
+SOLUTION_CHARS = 1400
+OUTSIDE_CAP = 30
 FORMS = {'calculation', 'concept', 'trap'}
 
 
@@ -35,14 +37,17 @@ def library():
 def candidates(topic: dict) -> list:
     own = {lo['id'] for lo in topic['los']}
     wider = re.compile(topic['widerSearch'], re.I) if topic.get('widerSearch') else None
-    out = []
+    out, hits = [], {}
     for q in library():
         if (q.get('recall') or '').split('.')[0] == topic['id']:
             continue
-        text = ' '.join([q['question'], q['solution']] + [o['text'] for o in q['options']])
         inside = q['lo'] in own
-        if not inside and not (wider and wider.search(text)):
-            continue
+        if not inside:
+            # Elsewhere in the library, only questions whose own wording (not their solution) uses the topic's terms.
+            found = len(wider.findall(' '.join([q['question']] + [o['text'] for o in q['options']]))) if wider else 0
+            if not found:
+                continue
+            hits[q['id']] = found
         solution = re.sub(r'\n*\*\*Source:\*\* [^\n]*\s*$', '', q['solution'])
         out.append({
             'id': q['id'], 'lo': q['lo'], 'loText': q['loText'], 'outside': not inside,
@@ -50,7 +55,9 @@ def candidates(topic: dict) -> list:
             'answer': q['answer'].upper(),
             'solution': solution if len(solution) <= SOLUTION_CHARS else solution[:SOLUTION_CHARS] + ' […]',
         })
-    return out
+    # The strongest outside candidates only: going wider is for the questions that are plainly about the topic.
+    keep = set(sorted(hits, key=lambda i: -hits[i])[:OUTSIDE_CAP])
+    return [r for r in out if not r['outside'] or r['id'] in keep]
 
 
 def slice_topic(topic_id: str):
@@ -89,6 +96,54 @@ def problems(result_path: str) -> list:
     return out
 
 
+def topic_problems(topic_id: str) -> list:
+    """What is wrong with a topic file, against its source file and the official LO list."""
+    try:
+        t = load(os.path.join(SHAPES, 'topics', f'{topic_id}.json'))
+    except (OSError, ValueError) as e:
+        return [f'unreadable: {e}']
+    out = []
+    for key in ('id', 'tier', 'title', 'returnOnLO', 'august', 'maps', 'vardeezReading', 'los', 'selectors', 'notSelected', 'widerSearch'):
+        if key not in t:
+            out.append(f'missing field {key}')
+    if out:
+        return out
+    if t['id'] != topic_id:
+        out.append('id does not match the file name')
+    source = open(os.path.join(SHAPES, 'topics', f'{topic_id}.source.txt'), encoding='utf8').read()
+    index = source.split('2. WORKBOOK INDEX OF SHAPES')[1].split('=' * 30)[0]
+    printed = re.findall(r'^(S\d+)  ', index, flags=re.M)
+    ids = [s.get('id') for s in t['selectors']]
+    if [i for i in ids if str(i).startswith('S')] != printed:
+        out.append(f'S selectors must be exactly {printed}, in order')
+    if len(set(ids)) != len(ids) or any(not re.fullmatch(r'[SMV]\d+', str(i)) for i in ids):
+        out.append('selector ids must be unique and of the form S1, M1, V1')
+    for s in t['selectors']:
+        for key in ('name', 'source', 'what'):
+            if not str(s.get(key, '')).strip():
+                out.append(f"{s.get('id')}: needs {key}")
+        if len(str(s.get('name', '')).split()) > 9:
+            out.append(f"{s.get('id')}: name is longer than a short label")
+        if re.search(r'\\[a-zA-Z]+|\$', json.dumps(s, ensure_ascii=False).replace('\\\\', '')):
+            out.append(f"{s.get('id')}: plain text only, no LaTeX")
+    official = {lo['id'] for a in load(os.path.join(ROOT, 'data', 'build-inputs', 'lo-map', 'lo-map.json'))['areas'] for r in a['readings'] for lo in r['los']}
+    if not t['los']:
+        out.append('no learning objectives')
+    for lo in t['los']:
+        if lo.get('id') not in official:
+            out.append(f"{lo.get('id')}: not an official learning objective id")
+        for pin in lo.get('pins', []):
+            if pin not in ids:
+                out.append(f"{lo.get('id')}: pin {pin} is not one of the selectors")
+    try:
+        re.compile(t['widerSearch'])
+    except re.error as e:
+        out.append(f'widerSearch is not a valid regular expression: {e}')
+    if not isinstance(t['maps'], list):
+        out.append('maps must be a list')
+    return out
+
+
 def reconcile(topic_id: str):
     """Agreement of the two judges, per question: both keep (selectors in common), both drop, or split."""
     res = os.path.join(SHAPES, 'results')
@@ -120,6 +175,10 @@ def main():
         sys.exit(1 if bad else 0)
     elif cmd == 'reconcile':
         reconcile(arg)
+    elif cmd == 'topiccheck':
+        bad = topic_problems(arg)
+        print('\n'.join(bad) if bad else 'ok')
+        sys.exit(1 if bad else 0)
 
 
 if __name__ == '__main__':

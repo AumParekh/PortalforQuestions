@@ -1,0 +1,422 @@
+[
+ {
+  "id": "IR-QB-0311",
+  "lo": "IM-6 e",
+  "loText": "Describe and compare the following types of risk: absolute risk, relative risk, policy-mix risk, active management risk, funding risk, and sponsor risk.",
+  "outside": true,
+  "question": "A fund with value of \\$10 million is benchmarked against an index. The fund’s volatility is 10.0% and normally distributed. The benchmark volatility is 5.0% and normally distributed. The fund’s active risk (tracking error) is 8.0% and normally distributed. What is the 95% tracking error value at risk (tracking error VaR)? Use z = 1.645.",
+  "options": {
+   "A": "\\$820,000",
+   "B": "\\$1.32 million",
+   "C": "\\$1.65 million",
+   "D": "\\$1.96 million"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Relative VaR uses the volatility of the excess return, i.e. the 8.0% tracking error.\n2. TEVaR = 1.645 × 0.08 × 10,000,000\n3. = \\$1,316,000 ≈ \\$1.32 million."
+ },
+ {
+  "id": "MR-T4-01",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A risk team cannot measure every individual risk factor affecting a large trading book, so it applies VaR mapping. What is the essential purpose of the mapping process?",
+  "options": {
+   "A": "To convert every position into its notional amount so that positions can be added directly.",
+   "B": "To simplify the portfolio by mapping positions onto every risk factor that could have any impact, however small.",
+   "C": "To eliminate the need for a covariance matrix by treating each position as independent.",
+   "D": "To simplify the portfolio by replacing each position with exposures to a SELECTED set of primitive risk factors."
+  },
+  "answer": "D",
+  "solution": "Mapping as a dimension-reduction step: many instruments are replaced by exposures to a small number of chosen primitive risk factors.\n\nA portfolio of several thousand instruments cannot be modelled instrument by instrument. The covariance matrix alone would require an infeasible number of estimated parameters, and many of those parameters would be estimated from very short histories.\n\nMapping solves this by replacing each position with an equivalent exposure to a small set of PRIMITIVE RISK FACTORS, for example a handful of points on the yield curve, a few equity indices, and the main currencies. The VaR is then computed on the factor exposures rather than on the instruments.\n\n$$\\text{number of parameters in a covariance matrix of } N \\text{ factors} = \\frac{N(N+1)}{2}$$\n\nThe quadratic growth in that expression is the whole motivation. Halving the number of factors cuts the parameter count by roughly three quarters, which is why the word SELECTED in the correct option is load bearing.\n\nThe cost is basis risk: whatever is not captured by the selected factors becomes specific risk, which the mapping leaves unmodelled."
+ },
+ {
+  "id": "MR-T4-02",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Having selected a set of primitive risk factors, an analyst must choose how to map the portfolio positions onto them. Which condition should the chosen mapping satisfy?",
+  "options": {
+   "A": "The mapping should preserve the par value of the position.",
+   "B": "The mapping should preserve the market value of the position only.",
+   "C": "The mapping should preserve both the market value and the market risk of the position.",
+   "D": "The mapping should preserve the market risk of the position only, since market value is recovered from the risk factors."
+  },
+  "answer": "C",
+  "solution": "The two-part fidelity condition on a mapping: the mapped position must be worth the same AND behave the same.\n\nA mapping replaces a real position with a synthetic bundle of risk factor exposures. For the substitution to be legitimate the bundle must match the original on two counts:\n\n| Condition | What fails if it is dropped |\n|---|---|\n| Preserve MARKET VALUE | The mapped portfolio has the wrong size, so every VaR figure is scaled wrongly even if the sensitivities are right |\n| Preserve MARKET RISK | The mapped portfolio has the right size but responds differently to factor moves, so the VaR is wrong in shape even though the totals reconcile |\n\nPAR value is not preserved and should not be. Par is an accounting artefact of the instrument's terms; it carries no information about current exposure. A bond trading at 60 and a bond trading at 130 can share a par value of 100 and have entirely different risk.\n\nThe three fixed-income mapping methods differ precisely in how well they honour the second condition while all honouring the first."
+ },
+ {
+  "id": "MR-T4-03",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "An analyst must choose the set of primitive risk factors for a mapping exercise. The choice should reflect which consideration?",
+  "options": {
+   "A": "The approach that produces acceptable results in the shortest time.",
+   "B": "The preference for factors with the highest individual volatility, since these dominate portfolio risk.",
+   "C": "The requirement that the number of factors equal the number of instruments in the portfolio.",
+   "D": "The trade-off between better risk measurement from more factors and the greater complexity and estimation burden they impose."
+  },
+  "answer": "D",
+  "solution": "Factor selection as a trade-off between measurement fidelity and model complexity, not a search for completeness or for speed.\n\nAdding factors improves fidelity and raises cost. Both directions matter:\n\n| More factors | Fewer factors |\n|---|---|\n| Finer capture of the risk profile; less residual specific risk | Coarser capture; more residual specific risk |\n| Quadratic growth in covariance parameters, each estimated with error | Fewer parameters, each estimated more reliably |\n| Greater risk of overfitting the estimation sample | Greater risk of missing a genuine exposure |\n\nThe trade-off has no closed-form solution. In practice a small number of factors explains most of the variation, which is the same concentration result that makes principal component analysis useful on a yield curve.\n\nAdding general risk factors reduces the residual specific risk, so the two are complements. Every factor left out reappears as specific risk."
+ },
+ {
+  "id": "MR-T4-04",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A risk manager adds several additional GENERAL risk factors to an existing VaR model. What is the most likely effect on the size of the specific risks in the model?",
+  "options": {
+   "A": "Specific risk increases, because more factors introduce more estimation error.",
+   "B": "The direction cannot be determined without knowing which factors were added.",
+   "C": "Specific risk is unaffected, because general and specific risks are measured independently.",
+   "D": "Specific risk decreases, because more of the total variation is now explained by the general factors."
+  },
+  "answer": "D",
+  "solution": "General and specific risk as complements: total variance is fixed, so anything the general factors capture is removed from the specific residual.\n\nThe variance decomposition underlying a mapped VaR splits total portfolio variance into a systematic part explained by the general factors and a residual specific part:\n\n$$V(R_p) = \\beta_p^2 \\, V(R_m) + \\sum_i w_i^2 \\, \\sigma_{specific,i}^2$$\n\nThe first term is general risk and the second is specific risk. Total portfolio variance is a property of the portfolio and does not change when the analyst chooses a different factor set. What changes is how that fixed total is divided between the two terms.\n\nAdding general factors therefore moves variation from the residual into the explained component. Specific risk DECREASES. In the limit, a factor set rich enough to explain everything would drive specific risk to zero.\n\nThis is the same logic as adding regressors to a regression: the residual sum of squares cannot rise when an explanatory variable is added."
+ },
+ {
+  "id": "MR-T4-05",
+  "lo": "MR-5 c",
+  "loText": "Differentiate among the three methods for mapping portfolios of fixed-income securities.",
+  "outside": false,
+  "question": "A risk analyst is documenting the three approaches to mapping a portfolio of fixed-income securities. Which statement correctly matches each method to what it does?",
+  "options": {
+   "A": "PRINCIPAL mapping uses the average maturity of the portfolio; DURATION mapping uses the timing of every cash flow; CASH FLOW mapping uses only the redemption payment.",
+   "B": "PRINCIPAL mapping decomposes the position into individual cash flows; DURATION mapping uses only the redemption payment; CASH FLOW mapping groups by average maturity.",
+   "C": "All three methods decompose the position into its individual cash flows and differ only in the discount rates applied.",
+   "D": "PRINCIPAL mapping uses only the timing of the principal repayment; DURATION mapping groups the position by its duration; CASH FLOW mapping decomposes the position into each of its individual cash flows."
+  },
+  "answer": "D",
+  "solution": "The three fixed-income mapping methods, ordered by how much of the position's cash flow structure each retains.\n\n| Method | What is mapped | Information retained | Accuracy |\n|---|---|---|---|\n| PRINCIPAL mapping | Only the timing of the principal repayment, treated as a single zero-coupon cash flow at maturity | Least. Coupons are ignored entirely. | Crudest |\n| DURATION mapping | The position is replaced by a single zero-coupon bond with maturity equal to the portfolio duration | More. Coupons enter through the duration calculation but the timing structure is collapsed to one point. | Intermediate |\n| CASH FLOW mapping | Every individual cash flow is mapped to the vertex or vertices matching its timing | Most. The full timing structure survives. | Finest |\n\nThe ordering is the examinable content: PRINCIPAL retains least, CASH FLOW retains most, DURATION sits between them. Accuracy improves in that order, and so does the computational burden.\n\nThe consequence for VaR is systematic. Because principal and duration mapping collapse the position onto a single point on the curve, they implicitly assume perfect correlation between all the cash flows they have merged. Cash flow mapping preserves the separate exposures and therefore captures the imperfect correlation between vertices, which generally produces a LOWER VaR."
+ },
+ {
+  "id": "MR-T4-06",
+  "lo": "MR-5 d",
+  "loText": "Summarize how to map a fixed-income portfolio into positions of standard instruments.",
+  "outside": false,
+  "question": "For a two-bond portfolio an analyst computes a VaR of 2.80 using duration mapping and 2.67 using cash flow mapping. What explains the difference between the two figures?",
+  "options": {
+   "A": "Duration mapping omits the coupon payments, which cash flow mapping includes, so the duration-mapped position is larger.",
+   "B": "Risk measures are perfectly linear in maturity, and the correlations between the mapped vertices are below one.",
+   "C": "Cash flow mapping applies a higher discount rate, which reduces the present value of the position.",
+   "D": "Risk measures are not perfectly linear in maturity, and the correlations between the mapped vertices are below one."
+  },
+  "answer": "D",
+  "solution": "Why the finer mapping produces a lower VaR: it preserves the separate vertex exposures and therefore captures diversification that the collapsed mapping assumes away.\n\nDuration mapping replaces the whole position with a single zero-coupon exposure at the duration point. That merges every cash flow into one vertex and therefore assumes those cash flows move together perfectly.\n\nCash flow mapping spreads the position across several vertices. Those vertices are highly but not perfectly correlated, so the aggregation picks up a diversification benefit:\n\n$$VaR_{portfolio}^2 = \\sum_{i,j} VaR_i \\, VaR_j \\, \\rho_{ij}$$\n\nWith every $\\rho_{ij}$ below one, the cross terms are smaller than they would be under perfect correlation, so the aggregated VaR is lower. That is why 2.67 falls below 2.80.\n\nThe second half of the explanation matters too. Risk is not a linear function of maturity: the volatility of yields varies across the curve rather than scaling proportionally with term. Collapsing several maturities onto a single duration point therefore misstates the exposure even before correlation is considered.\n\nThe general result: the finer the mapping, the more diversification it can recognise, and the lower the resulting VaR. Duration mapping is conservative by construction."
+ },
+ {
+  "id": "MR-T4-07",
+  "lo": "MR-5 f",
+  "loText": "Explain how VaR can be calculated and used relative to a performance benchmark.",
+  "outside": false,
+  "question": "A portfolio is evaluated against a benchmark index. The tracking error VaR is defined as the VaR of the deviation of the portfolio from the benchmark, and is computed as USD 0.63 million at the 95% confidence level. What does this figure mean?",
+  "options": {
+   "A": "The benchmark and the portfolio have a correlation such that their combined VaR is USD 0.63 million.",
+   "B": "The portfolio will outperform the benchmark by at least USD 0.63 million with 95% confidence.",
+   "C": "The absolute loss on the portfolio will not exceed USD 0.63 million with 95% confidence.",
+   "D": "The portfolio will underperform the benchmark by at most USD 0.63 million on 95% of occasions over the horizon."
+  },
+  "answer": "D",
+  "solution": "Tracking error VaR as a measure of RELATIVE underperformance, distinct from absolute VaR.\n\nBenchmark-relative VaR measures the risk of the DEVIATION between the portfolio and the benchmark rather than the risk of the portfolio itself:\n\n$$VaR_{TE} = \\alpha \\sqrt{(x-x_0)'\\,\\Sigma\\,(x-x_0)}$$\n\nwhere $x$ is the vector of portfolio weights, $x_0$ the vector of benchmark weights, $\\Sigma$ the covariance matrix of the risk factors, and $\\alpha$ the normal deviate for the confidence level. The quantity $(x - x_0)$ is the ACTIVE position, and setting it to zero gives a tracking error VaR of zero: a portfolio that replicates the benchmark exactly has no relative risk, however volatile the benchmark itself may be.\n\nReading the result: with 95% confidence, the portfolio will not fall short of the benchmark by more than USD 0.63 million over the horizon. Equivalently, on 5% of occasions the shortfall relative to the benchmark will exceed that figure.\n\nThe critical distinction: this says nothing about ABSOLUTE loss. A portfolio tracking a benchmark that falls 30% can have a tiny tracking error VaR while losing a great deal of money. Relative and absolute risk are different questions and are answered by different calculations."
+ },
+ {
+  "id": "MR-T4-08",
+  "lo": "MR-5 f",
+  "loText": "Explain how VaR can be calculated and used relative to a performance benchmark.",
+  "outside": false,
+  "question": "A bank compares an actively managed portfolio against its benchmark index. The VaR of the index at the 95% confidence level is USD 2.080 million and the tracking error VaR is USD 1.090 million. The cash flow decomposition of the portfolio has a duration of 5 years. What is the variance improvement of the active portfolio relative to the original index?",
+  "options": {
+   "A": "23.5%",
+   "B": "33.6%",
+   "C": "72.5%",
+   "D": "95.1%"
+  },
+  "answer": "C",
+  "solution": "Expressing benchmark-relative risk as the proportion of index variance eliminated, which requires squaring the ratio of the two VaR figures.\n\nVariance improvement measures how much of the index variance the active position has removed. Because VaR is proportional to standard deviation, the two VaR figures must be SQUARED before they can be compared as variances:\n\n$$\\text{variance improvement} = 1 - \\left(\\frac{VaR_{TE}}{VaR_{index}}\\right)^2$$\n\n$$\\text{ratio} = 1.090 / 2.080 = 0.52404$$\n$$\\text{ratio squared} = 0.52404^2 = 0.27462$$\n$$\\text{variance improvement} = 1 - 0.27462 = 0.72538, \\text{ that is } 72.5\\%$$\n\nReading the result: the active portfolio carries about 27.5% of the index variance, so roughly 72.5% of the index variance has been eliminated by tracking the benchmark.\n\nThe duration of 5 years is not used. It is supplied because a cash flow decomposition would normally be needed to compute the two VaR figures, but both are given directly, which makes the duration excess data."
+ },
+ {
+  "id": "MR-QB-0245",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "An equity portfolio holds 3,000 stocks. Each stock has a market component and a firm‑specific component, and each stock is treated as its own risk factor. How many distinct covariance terms (between different risk factors) would be needed to evaluate the correlations among all of these risk factors without using mapping?",
+  "options": {
+   "A": "3,000",
+   "B": "About 4.5 million",
+   "C": "About 8.997 million",
+   "D": "9.0 million"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. With $N = 3{,}000$ risk factors, each distinct pair needs one covariance term.\n2. Number of pairs = $N(N - 1)/2 = 3{,}000 \\times2{,}999/2 = 4{,}498{,}500 \\approx4.5$ million.\n3. Mapping the market component of each stock onto a few general factors (e.g. a market index) removes the need for this huge matrix.\n\n**REBUILT** — Original distractors (1.5M, 3.0M) did not correspond to realistic mistakes; replaced with plausible counting errors and tightened the stem."
+ },
+ {
+  "id": "MR-QB-0246",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Which statement best describes the principle underlying VaR mapping?",
+  "options": {
+   "A": "Only the most extreme (abnormal) risk factors are retained, because normal factors do not contribute to tail losses.",
+   "B": "Each position is mapped to every risk factor that could affect its price, so that no approximation error is introduced.",
+   "C": "Every portfolio is mapped to exactly five risk factors regardless of its composition.",
+   "D": "The current values of many positions are replaced by exposures to a smaller set of selected primitive risk factors, because modeling each position separately is impractical."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. VaR mapping first measures current positions, then replaces them with exposures to common risk factors.\n2. Purpose: aggregate risk when valuing and modeling each position separately would require too many computations.\n3. The number of factors is a choice trading accuracy against complexity, not a fixed number or all conceivable factors.\n\n**REBUILT** — Original had a giveaway answer and distractors that were obviously wrong; rewrote the stem and options to test the core principle with plausible alternatives."
+ },
+ {
+  "id": "MR-QB-0247",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "VaR mapping is especially useful when historical prices of the instrument itself are not a reliable guide to its risk. Which position best illustrates such a case?",
+  "options": {
+   "A": "A large holding of an index fund whose price history is long and whose characteristics are stable.",
+   "B": "A cash deposit in the bank’s domestic currency.",
+   "C": "A fixed‑rate bond whose maturity and interest rate sensitivity shrink as it ages, or an option whose sensitivity to the underlying changes with the market.",
+   "D": "A single stock position exposed to one risk factor and with unchanged characteristics."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Historical price series describe an instrument only if its risk characteristics are stable.\n2. A bond’s duration falls as it ages, and an option’s delta/gamma shift with the market, so past prices of the instrument misstate current risk.\n3. Mapping handles this by expressing the position as exposures to risk factors (e.g. current spot yields, the underlying) matching its current profile.\n\n**REBUILT** — Original stem was garbled and option C/D were not true alternatives; rewrote as a clear situation‑recognition question."
+ },
+ {
+  "id": "MR-QB-0248",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A position with market value $V_{m}$ is mapped to risk exposures $X_{1}, X_{2}, X_{3}$ on three risk factors. The exposures sum to less than $V_{m}$, and no relevant risk factor has been omitted. What does this imply about the remainder of the value?",
+  "options": {
+   "A": "The remainder is an omitted risk factor that must be added before VaR can be computed.",
+   "B": "The remainder is held in cash, which is not a risk factor and so contributes no market risk.",
+   "C": "The remainder is specific risk that is unmapped and must be estimated as a separate risk factor.",
+   "D": "The remainder is allocated to a second, separate set of risk factors."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Mapping must preserve the position’s market value.\n2. If exposures to the risk factors sum to less than $V_{m}$ and no factor was omitted, the difference must be value that is not exposed to a market risk factor.\n3. That remainder is treated as cash, which is not a risk factor.\n\n**REBUILT** — Original options A and B were both arguably defensible; reworded so only the cash‑not‑a‑risk‑factor answer is right."
+ },
+ {
+  "id": "MR-QB-0249",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "When selecting the primitive risk factors for a VaR mapping, the choice should mainly reflect:",
+  "options": {
+   "A": "A trade‑off between a better approximation of risk (more factors) and faster, simpler modeling (fewer factors).",
+   "B": "The use of as many factors as possible, so that specific risk is eliminated entirely.",
+   "C": "The use of a single market factor, because specific risk does not depend on which factors are chosen.",
+   "D": "Only the availability of long historical data for each factor, regardless of whether it explains the portfolio’s exposures."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. More risk factors give a better approximation of portfolio risk but make modeling more time consuming.\n2. Fewer factors are faster but leave more residual (specific) risk.\n3. The choice is therefore a trade‑off, and the amount of specific risk depends on the factors chosen.\n\n**REBUILT** — Original options B and C were nearly equivalent; rewrote options so only the accuracy‑versus‑complexity trade‑off is correct."
+ },
+ {
+  "id": "MR-QB-0250",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Once risk factors are selected, positions are mapped onto them using the most suitable mapping approach. Whichever approach is chosen, what should the mapping preserve?",
+  "options": {
+   "A": "Only the market value of the position.",
+   "B": "The par value and the market risk of the position.",
+   "C": "The market value and the interest rate risk of the position.",
+   "D": "The market value and the market risk of the position."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. A mapping replaces the position with exposures to risk factors.\n2. For the replacement to be valid it must reproduce the position’s current market value.\n3. It must also reproduce the position’s market risk, i.e. how the value responds to the risk factors."
+ },
+ {
+  "id": "MR-QB-0251",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A bank is mapping several portfolios to risk factors: a fund investing in IPOs; a fund investing in emergent assets with little historical data; a small equity portfolio with fewer than 30 positions; a large equity portfolio with 1,000 positions; and a corporate bond portfolio with six ratings and maturities of 3, 5 and 7 years. Each of the following statements is true EXCEPT:",
+  "options": {
+   "A": "The large equity portfolio is a good candidate for mapping because a small set of general and specific factors needs far fewer estimates than a full covariance matrix of 1,000 positions.",
+   "B": "The corporate bond portfolio can be mapped to a small set of general risk factors, such as maturity vertices and rating spreads, rather than one factor per bond.",
+   "C": "Equity mapping contains model risk, including factor‑sensitivity (beta) estimation error, subjective choice of risk factors, and omission of specific risk.",
+   "D": "The IPO and emergent‑asset funds cannot be mapped because they lack historical data, so sensitivities cannot be estimated."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Mapping is useful precisely when there is insufficient historical data: such positions are expressed as exposures to similar risk factors that do have histories. So D is false.\n2. A: a 1,000‑position covariance matrix needs 1000×1001/2 = 500,500 terms (with variances), versus far fewer factor estimates. True.\n3. B: bonds are mapped to a small set of general factors rather than per bond. True.\n4. C: betas are estimated with error, factor choice is subjective and specific risk may be omitted. True.\n\n**REBUILT** — Merged duplicates; option A relied on a debatable ’3 maturities + 6 ratings = nine factors’ count, so it was reworded to a defensible statement; the false statement is unchanged."
+ },
+ {
+  "id": "MR-QB-0252",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Each of the following is a valid reason to map portfolio positions to risk factors (VaR mapping) EXCEPT:",
+  "options": {
+   "A": "In a large portfolio there are too many positions to model individually.",
+   "B": "Risk factors are common to various positions and/or instruments.",
+   "C": "Risk factors allow for more accurate pricing (valuation) of the portfolio.",
+   "D": "It is typically easier to stress test the risk factors."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Mapping aggregates many positions into a small set of common risk factors (A and B are principles of mapping).\n2. Fewer, common factors are easier to shock in stress tests (D).\n3. Mapping simplifies risk measurement and tolerates approximation; it does not improve pricing accuracy, and if anything it is less accurate than full valuation (C is not a reason)."
+ },
+ {
+  "id": "MR-QB-0253",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Each of the following is consistent with the principles underlying VaR mapping EXCEPT:",
+  "options": {
+   "A": "Mapping aggregates risk exposures when it is impractical to treat each position separately.",
+   "B": "Mapping helps when there is insufficient price history for an investment, such as a recent IPO.",
+   "C": "Mapping helps with positions whose characteristics change over time, such as bonds that move toward maturity.",
+   "D": "Aggregating many positions into one risk factor is as acceptable for pricing a portfolio as it is for measuring its risk."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Recall the principles: mapping aggregates exposures, simplifies them into primitive risk factors, handles changing characteristics and missing history.\n2. A, B and C each restate one of these principles.\n3. D claims aggregation is acceptable for pricing; the reading states that prices cannot be aggregated, only risk exposures can, so D is the exception.\n\n**REBUILT** — Original had two defensible false statements (option C ’only solution’ and option D on options) and relied on Jorion material outside the Schweser text; rebuilt around the Schweser VaR mapping principles with one clearly false statement."
+ },
+ {
+  "id": "MR-QB-0254",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Which of the following is the LEAST likely to be a primitive risk factor in a VaR mapping?",
+  "options": {
+   "A": "The market value of a commodity forward position",
+   "B": "The spot price of the commodity",
+   "C": "The spot foreign exchange rate",
+   "D": "A zero‑coupon yield"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Primitive risk factors are market variables (spot prices, FX rates, zero yields, equity prices) onto which position values are mapped.\n2. B, C and D are market variables.\n3. A is the value of a position, which is what gets mapped onto primitive factors (spot price and interest rate); it is not itself a primitive factor.\n\n**REBUILT** — Option B (’price of commodity forward’) was ambiguous because a forward price can also be treated as a risk factor; reworded options so exactly one is a position value rather than a primitive factor."
+ },
+ {
+  "id": "MR-QB-0255",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Each of the following is a step in the VaR mapping process EXCEPT:",
+  "options": {
+   "A": "Measure the current market value of each position.",
+   "B": "Allocate the market value of each position to one or more common risk factors.",
+   "C": "Sum the allocated exposures across positions for each risk factor.",
+   "D": "Build a separate model from the full price history of every individual position."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Mapping steps: value the positions, allocate each to common risk factors, then sum exposures by factor (yielding a vector of factor exposures) and apply risk‑factor distributions.\n2. A, B, C match these steps.\n3. D is the position‑by‑position approach that mapping replaces, so it is not a step.\n\n**REBUILT** — Original option B (’distribution for each position’) was subtly confusable with constructing risk factor distributions, which is a genuine step; replaced with an option describing position‑level modelling that mapping is designed to avoid."
+ },
+ {
+  "id": "MR-QB-0256",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A firm currently computes VaR without mapping. Which of these developments would support adopting VaR mapping?\n\nI. The equity book increasingly holds recent IPOs with little price history.\n\nII. The portfolio holds bonds and other exposures whose risk characteristics change over time.\n\nIII. The portfolio has grown to thousands of positions, making position‑by‑position risk computation impractical.\n\nIV. The portfolio holds three large, liquid equity positions, each with more than 20 years of clean daily price history.",
+  "options": {
+   "A": "I only",
+   "B": "I and III only",
+   "C": "I, II and III only",
+   "D": "I, II, III and IV"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. I: insufficient history favours mapping.\n2. II: changing characteristics (e.g. maturing bonds) favour mapping to current spot yields.\n3. III: too many positions to treat individually favours aggregation into risk factors.\n4. IV: few positions with ample history can be modelled directly, so no case for mapping. Supported: I, II, III.\n\n**REBUILT** — Item IV (stale prices) is outside the Schweser reading’s rationale for mapping, so it was replaced with a development that clearly does not justify mapping; answer options adjusted."
+ },
+ {
+  "id": "MR-QB-0257",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "Which of the following statements about VaR mapping is TRUE?",
+  "options": {
+   "A": "Pricing a portfolio may aggregate positions into a single risk factor, just as risk measurement does.",
+   "B": "Aggregating positions into risk factor exposures is acceptable for risk measurement even though prices themselves cannot be aggregated.",
+   "C": "Mapping is useful only when long price histories are available for each position.",
+   "D": "After mapping, the number of variables whose covariances must be estimated equals the number of positions."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Mapping replaces position values with exposures to a smaller set of common risk factors.\n2. The reading states that VaR measurement differs from pricing: prices cannot be aggregated, but aggregation to risk factors is fine for risk.\n3. That matches B; A reverses it, C contradicts the IPO/no‑history use, D contradicts the reduction in variables.\n\n**REBUILT** — Original key (B, remainder to cash) and distractors relied on Jorion material not in the Schweser reading and A was debatable; rebuilt on the Schweser principles with one unambiguous true statement."
+ },
+ {
+  "id": "MR-QB-0258",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "According to Malz, which of the following statements about the mapping of risk factors to positions is incorrect?",
+  "options": {
+   "A": "Mapping is the process of assigning risk factors to positions; in order to compute risk measures, we have to assign risk factors to securities.",
+   "B": "When the underlying position and its hedge can be mapped to the same risk factor (or set of risk factors), the appropriate measure of value at risk (VaR) is zero.",
+   "C": "Mapping decisions are often pragmatic; for example, fixed‑income cash‑flow mappings are more accurate than duration mappings but are more complex and require more risk factors.",
+   "D": "As a practical matter, it may be difficult to find data that address certain risk factors, a problem that may merely mirror the real‑world challenge of hedging or expressing some trade ideas."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Mapping assigns each position’s exposure to a (smaller) set of risk factors so that risk measures can be computed: A is true.\n2. If a position and its hedge map to the same factor(s), the modelled exposures offset exactly, so the model reports zero risk.\n3. In reality the two instruments differ in features the mapping ignores (basis, credit, liquidity, idiosyncratic risk), so real risk remains and VaR is not zero: B is the false statement.\n4. C (cash‑flow mapping is more precise but needs more factors than duration mapping) and D (data limits for some factors) are true statements of practical trade‑offs."
+ },
+ {
+  "id": "MR-QB-0259",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "In VaR mapping, a position’s exposure to a primitive risk factor (for example, a stock’s exposure to a market index or a derivative’s exposure to its underlying) can be determined in which of the following ways?",
+  "options": {
+   "A": "Only analytically, as the partial derivative (sensitivity) of the position value with respect to the risk factor.",
+   "B": "Only statistically, by regressing the position’s returns on the risk factor’s returns.",
+   "C": "Either analytically, as a partial derivative of the position value with respect to the risk factor, or empirically, as a regression slope estimated from historical returns.",
+   "D": "By setting the exposure equal to the position’s market value, regardless of how the value responds to the factor."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Mapping replaces a position with exposures to risk factors, so we need the sensitivity of position value to each factor.\n2. When a pricing formula is available (e.g., a forward or a bond), the exposure is the partial derivative (delta/duration) of value with respect to the factor.\n3. When no formula is practical (e.g., a stock vs. the market index), the exposure is the regression slope β of the position’s return on the factor’s return (Jorion).\n4. Hence both methods are valid: answer C. Setting exposure to market value ignores sensitivity.\n\n**REBUILT** — Original ’Both/Neither’ stem was vague and gave away the answer; rewritten with concrete wording and plausible single‑method distractors."
+ },
+ {
+  "id": "MR-QB-0260",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A risk manager is mapping a large fixed‑income portfolio to risk factors. The yield curve has 20 highly correlated vertices, and she wants to reduce them to a few uncorrelated primitive risk factors (such as level, slope and curvature) that explain most of the variation in rate changes. Which technique is most appropriate?",
+  "options": {
+   "A": "Natural language processing of central bank statements",
+   "B": "Random forest classification of bonds into investment‑grade and high‑yield",
+   "C": "Principal component analysis (PCA) of yield changes",
+   "D": "Logistic regression of default events on bond ratings"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Goal: dimension reduction, replacing many correlated factors by a few primitive ones, which is the essence of mapping.\n2. PCA decomposes the covariance matrix of yield changes into orthogonal components; for yield curves the first three (level, slope, curvature) typically explain the vast majority of variance.\n3. NLP deals with text, random forests and logistic regression are supervised classifiers: none constructs a small set of uncorrelated factors from correlated ones.\n4. Answer: C.\n\n**REBUILT** — Original distractors (hierarchical‑based logistic clusters, NLP) were nonsensical or irrelevant; stem made specific to reducing correlated yield‑curve factors and distractors made plausible ML techniques."
+ },
+ {
+  "id": "MR-QB-0261",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": false,
+  "question": "A risk manager must compute the VaR of a large portfolio that contains a recently listed IPO stock with only three months of price history, plus hundreds of bonds with differing maturities and coupons. Which approach is most consistent with the principles of VaR mapping?",
+  "options": {
+   "A": "Estimate the IPO’s volatility from its three months of returns and treat each bond as a separate risk factor, so that no information is lost.",
+   "B": "Measure the current value of each position, replace each position with exposures to a small set of common risk factors (e.g., a proxy equity index for the IPO and standard‑maturity interest rate vertices for the bonds), and compute VaR from those exposures and the risk factors’ covariance matrix.",
+   "C": "Exclude the IPO from the VaR calculation until it has a full history, and map only the bonds because mapping is unsuitable for positions with limited data.",
+   "D": "Map the portfolio to a larger set of risk factors than the number of positions, so that each position’s idiosyncratic risk is captured by its own factor."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Mapping starts by measuring all current positions in the portfolio.\n2. Each position is then expressed as exposures to a limited set of common (primitive) risk factors, such as equity indices or interest rates at standard maturities.\n3. For the IPO, a short history makes its own return series unreliable, so a proxy factor (e.g., an index of comparable firms) replaces it. For the bonds, whose characteristics change as maturity shortens, exposures to fixed vertices on the yield curve replace the individual securities.\n4. VaR is then computed from the factor exposures and the volatilities and correlations of the factors, which greatly reduces the number of variables to model.\n5. Option B describes exactly this process.\n\n**REBUILT** — Original was a two‑statement true/true item with a giveaway ’None of the above’ option; rebuilt as a scenario that tests the mapping process and rationale with plausible distractors."
+ },
+ {
+  "id": "MR-QB-0262",
+  "lo": "MR-5 b",
+  "loText": "Explain how the mapping process captures general and specific risks, and calculate these risks in a portfolio given a set of primitive risk factors.",
+  "outside": false,
+  "question": "A risk manager maps a bond portfolio first onto a single general risk factor (duration only) and later adds further general risk factors such as credit spreads and currencies. Total portfolio risk is unchanged. Compared with the single‑factor mapping, the specific (residual) risk in the multi‑factor mapping will most likely be:",
+  "options": {
+   "A": "greater, because more factors add more estimation error.",
+   "B": "smaller, because the additional general factors explain part of what was previously unexplained.",
+   "C": "unchanged, because specific risk is independent of the choice of general factors.",
+   "D": "impossible to determine without knowing the betas of the portfolio on each added factor."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Total risk = general (factor‑explained) risk + specific (residual) risk.\n2. Specific risk is whatever the chosen general factors fail to explain, so its size depends on which general factors are used.\n3. Adding factors (credit spread, currency) moves variance from the residual into the explained component.\n4. With total risk fixed, more general‑factor detail therefore means less specific risk.\n\n**REBUILT** — Merged two duplicate items (AnalystPrep Q.2644 and BT L2.T5.62.2); reworded the stem to state total risk is fixed and to name the added factors."
+ },
+ {
+  "id": "MR-QB-0263",
+  "lo": "MR-5 b",
+  "loText": "Explain how the mapping process captures general and specific risks, and calculate these risks in a portfolio given a set of primitive risk factors.",
+  "outside": false,
+  "question": "A portfolio holds four stocks with equal weights of 25%. Each stock is mapped to the market factor, and the portfolio beta is 0.90. The market return volatility is 2.0% per day, and each stock’s idiosyncratic return has a volatility of 3.0% per day, uncorrelated with the market and with each other. Using $V(R_{p}) = \\beta^{2}_{p}V(R_{m}) + \\sum w^{2}_{i}\\sigma^{2}_{\\epsilon i}$, the daily volatility of the portfolio return is closest to:",
+  "options": {
+   "A": "1.80%",
+   "B": "2.34%",
+   "C": "2.42%",
+   "D": "3.50%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. General market variance: $0.90^{2} \\times0.02^{2} = 0.81 \\times0.0004 = 0.000324$.\n2. Specific variance: $4 \\times0.25^{2} \\times0.03^{2} = 4 \\times0.0625 \\times0.0009 = 0.000225$.\n3. Total variance: 0.000324 + 0.000225 = 0.000549.\n4. Volatility: $\\sqrt{0.000549} = 2.343\\%$.\n\n**REBUILT** — Original was a vague, formula‑garbled conceptual item duplicating the concept in item 1; rebuilt as a numerical decomposition of portfolio variance into general and specific components."
+ }
+]

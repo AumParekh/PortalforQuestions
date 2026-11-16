@@ -1,0 +1,270 @@
+TOPIC B1: Credit VaR and Granularity (Tier B)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+B1 Credit VaR and Granularity
+Readings: CR-10 a, b, c, f · Credit Value at Risk (Hull, RMFI 6e, Ch.19); CR-11 c, g, h · Portfolio Credit Risk (Malz, Ch.8,
+8.1 to 8.3); CR-12 g · Credit Risk (Hull, OFOD 11e, Ch.24, 24.3)
+ MAP TIER B · #10 · 6/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #10: “Reported as ‘CVaR calculation, direct formula application’ and ‘CVaR (1) FC’. Credit VaR = worst-case
+  loss at the confidence level minus expected loss: the classic error is forgetting to subtract EL. Two granularity effects
+  are separately examinable (LO 29.h): Credit VaR per unit of exposure falls as the portfolio becomes more granular,
+  but does not fall to zero because of systematic correlation.”
+  Shapes covered here:
+  S1 Credit VaR by direct formula: worst-case loss at the confidence level minus expected loss (Q1)
+  S2 formula-card form and the dropped-EL trap (Q1)
+  S3 granularity effect 1: Credit VaR falls as the portfolio becomes more granular (Q2)
+  S4 granularity effect 2: it does not fall to zero when defaults are correlated (Q2)
+  Revision notes
+  • The specific: Credit VaR as a quantile minus EL (CR-11 c, S1). Malz: portfolio Credit VaR “is a quantile
+  of the credit loss, minus the expected loss of the portfolio”. Because EL is always subtracted, Credit VaR
+  can be negative: a single credit with π = 2% has a 95% Credit VaR of 0 − 20,000,000 = −20,000,000 (a
+  gain), since the 95th percentile loss is zero.
+  • Hull’s wording (CR-10 b; CR-12 g). Hull defines credit risk VaR “similarly to market risk VaR”: “the credit
+  risk loss over a certain time period that will not be exceeded with a certain confidence level”. His Vasicek
+  estimate L(1 − R)V (X, T ) is a loss quantile with no EL deduction (Example 12.5: USD 100 million retail
+  book, PD 2%, recovery 60%, ρ = 0.1: WCDR 12.8%, 99.9% credit VaR USD 5.13 million). When a question
+  says Credit VaR and gives EL or PD, apply the Malz definition (quantile minus EL); when it reproduces Hull’s
+  L(1 − R)V (X, T ), it is asking for the loss quantile.
+  • Market VaR versus credit VaR (CR-10 a). Definition: same concept (loss not exceeded at a confidence
+  level); some credit models count only default losses, others also downgrades and spread changes. Horizon:
+  market VaR often one day; credit VaR for instruments not held for trading usually one year (Basel: one
+  year, 99.9%). Tools: historical simulation is the main market-risk tool; credit VaR needs “a more elaborate
+  model”. Scenario PDs should be real-world; risk-neutral estimates are then used to value the portfolio on the
+  horizon date.
+  • Credit correlation (CR-10 a; CR-11 c). Defaults are not independent: in a downturn most companies
+  become more likely to default. Credit correlation rises in stressed conditions and so does the risk of a credit
+  portfolio. Malz: correlation “affects the volatility and extreme quantiles of loss rather than the expected
+  loss”.
+  • Two extremes of correlation (CR-11 c). Default correlation 1: the portfolio behaves as if n = 1 (all-or-
+  nothing), no diversification. Default correlation 0: the number of defaults is binomial(n, π) and significant
+  diversification is possible. Malz’s USD 1 billion book, π = 2%, zero recovery, n = 50: 95th percentile = 3
+  defaults, loss USD 60 million, Credit VaR 60 − 20 = USD 40 million; n = 1,000: 28 defaults, Credit VaR
+  USD 8 million.
+  • Granularity, effect 1 (CR-11 h, S3). For a given default probability, Credit VaR “decreases as the credit
+  portfolio becomes more granular”. The convergence is more drastic with a high default probability; con-
+  versely “it is harder to reduce VaR by making the portfolio more granular, if the default probability is low”.
+  Expected loss is unchanged by granularity (π× portfolio value in every panel of Malz’s Table 11.1).
+  • Granularity, effect 2 (CR-11 d, h, S4). With independent credits the loss converges to EL “almost certainly”
+  and Credit VaR goes to zero. In the single-factor model the granular portfolio’s loss rate converges to the
+  conditional default probability p(m), so “portfolio returns are driven by the market factor”: idiosyncratic
+  risk diversifies away, systematic risk does not, and Credit VaR stays positive. Malz Ch.9 adds that a more
+  granular collateral pool lets a securitisation carry a larger senior tranche with no increase in Credit VaR (see
+  D15).
+FRM Part II · Volume 2: Tiers B to D  B1 Credit VaR and Granularity
+  • Simulation of joint defaults (CR-11 g). Draw correlated standard normals (copula correlation), map each to
+  a default time or rating outcome, compute the loss on each thread, repeat, and read Credit VaR off the sorted
+  simulated losses (Malz, Ch.9, 22.3: the 10th largest of 1,000 losses for 99%, minus EL). Hull’s CreditRisk+
+  Monte Carlo: sample an overall default rate, link each category’s rate to it, sample defaults and LGDs, total
+  the loss, repeat, read VaR.
+  • Rating transition matrices (CR-10 c). Historical one-year matrices (S&P 1981 to 2020: A stays A with
+  92.61%, defaults with 0.05%). Assuming independence across periods, the n-year matrix is the nth power;
+  six months needs the square root, three months the fourth root. Independence is not exactly true: recently
+  downgraded companies are more likely to be downgraded again (ratings momentum).
+  • CreditMetrics mechanics (CR-10 c; CR-12 g). Sample correlated normals xA , xB (copula correlation
+  set to the equity-return correlation, e.g. 0.2), convert transition probabilities into thresholds with N −1 of
+  cumulative probabilities, revalue every counterparty at the horizon; upgrades count as negative losses. See
+  D20 for the model comparison.
+  • Credit spread risk (CR-10 f). Trading-book credit products depend critically on spreads.√  Approach 1:
+  historical simulation of 500 days of spread changes for a one-day 99% VaR, scaled by 10. Problems: a
+  company alive today did not default in the past, so no future default is assumed (regulators add jump-to-
+  default risk); spread data are not updated daily for all names. Approach 2: a 10-day transition matrix plus
+  a distribution of spread changes per rating category, simulated; correlation through a Gaussian copula on
+  ratings and near-perfectly correlated spread moves across categories.
+  • Example 10.1 (CR-10 f). Two-year zero, USD 1,000 principal, yield 5%, price 907.03; worst outcome
+  default (0.1%, value 400, loss 507.03); next worst B at 500 bp (0.267%, loss 44.17). VaR is 507.03 above
+  99.9% confidence, 44.17 between 99.633% and 99.9%, and 2.92 at 99%.
+  • Constant level of risk (CR-10 f). Rebalancing monthly back to BBB: default probability 12 × 0.0001 ×
+  0.999911 = 0.0012 versus 0.0017 buy-and-hold; one downgrade to BB about 0.040 versus 0.0378. Fewer
+  big losses, more small ones: VaR and ES are generally smaller under the constant level of risk strategy.
+  Formulas
+  P
+  Credit VaR (Malz). Credit VaRα = qα (credit loss) − EL,  EL = i EADi × LGDi × πi
+  Worst-case default rate (Vasicek; Hull 10.1, 12.10).
+   −1  √  
+  N (PD) + ρ N −1 (X)
+  WCDR(T, X) = V (X, T ) = N  √
+  1−ρ
+  P
+  Loss quantile (Hull; Gordy, eq. 10.2).  i WCDRi (T, X) × EADi × LGDi ; for a homogeneous book L(1 −
+  R)V (X, T ); loan contribution Li (1 − R)V (X, T )
+  Transition matrices. Mn years = M n ,  M6 months = M 1/2 ,  M3 months = M 1/4
+  √(1 − qm ) with qm the one-month probability
+  Constant level of risk. P (one event in 12 months) = 12 qm
+  Credit spread VaR (historical simulation). VaR10-day = 10 × VaR1-day
+  Exam traps
+  • Dropped term (EL): reporting the worst-case loss as Credit VaR. In Malz’s framework the EL is always sub-
+  tracted, which is also why Credit VaR can be negative.
+  • Quantile threshold: the 99% quantile is the smallest number of defaults whose cumulative probability is at
+  least 99%, not the last row below 99%.
+  • Wrong-input twin: recovery rate in place of LGD in both the worst-case loss and the EL.
+  • Sibling swap: granularity changes the dispersion of losses, not the expected loss.
+  • Polarity flip: granularity helps most when the default probability is high; with a low PD it is harder to reduce
+  Credit VaR.
+  • Absolute claim: “a granular portfolio has zero Credit VaR” is true only for independent defaults; with correla-
+  tion the common factor remains.
+FRM Part II · Volume 2: Tiers B to D  B1 Credit VaR and Granularity
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  Credit VaR by direct formula: worst-case loss at the confidence level minus expected loss  B1.1
+S2  formula-card form and the dropped-EL trap  B1.1
+S3  granularity effect 1: Credit VaR falls as the portfolio becomes more granular  B1.2
+S4  granularity effect 2: it does not fall to zero when defaults are correlated  B1.2
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  CR-10  Credit Value at Risk
+  P1 ×1  P2 ×3  P4 ×2  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: Here, We can expect Different Credit Risk Models comparison to show up on exam. Don’t get into Formulas too much here,
+  but atleast know the details of each of 4 Models discussed here. Credit Spread Risk can be imp too.
+  RECALL WORKBOOK SECTIONS
+  A15 Hazard Rates, CDS Spreads and Conditional vs Unconditional PD
+  Tier A • Aug ✓• Map #17 (5/16) • TG ✓• 7 Qs • Vol 1 p.113 • cross-reference
+  A31 Basel IRB Capital
+  Tier A • Aug ✓• 5 Qs • Vol 1 p.214 • LOs d
+  B1 Credit VaR and Granularity
+  Tier B • Map #10 (6/16) • TG ✓• 2 Qs • Vol 2 p.15 • LOs c, f
+  D5 Credit Spread and PD from Spreads
+  Tier D • Map #42 (2/16) • 2 Qs • Vol 2 p.97 • LOs f
+  D20 Credit Model Comparison: Vasicek, CreditRisk+, CreditMetrics, KMV
+  Tier D • Map #41 (2/16) • notes only • Vol 2 p.152 • LOs d, e
+  P4  a  Compare market risk value at risk (VaR) with credit VaR in terms of definition, time horizon, and tools for
+  measuring them.
+  P2  b  Define and calculate Credit VaR.
+  WORKBOOK B1
+  B1·S1 Credit VaR by direct formula: worst-case loss at the confidence level minus expected loss
+  B1·S2 formula-card form and the dropped-EL trap
+  P4  c  Describe the use of rating transition matrices for calculating credit VaR.
+  P1  d  Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II
+  internal-ratings- based (IRB) approach.
+  WORKBOOK A31, D20 + VARDEEZ FOCUS
+  ▶ Vardeez: Vasicek model: know the details
+  A31·S1 IRB capital for a single corporate loan under Advanced IRB, with the correlation formula and maturity adjustment:
+  the plain form
+  D20·S3 Vasicek as the model under the Basel IRB formula (notes; distractors 3, 6)
+  P2  e  Explain the Vasicek’s model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of
+  estimating the probability distribution of losses arising from defaults as well as modeling the default
+  correlation.
+  WORKBOOK D20 + VARDEEZ FOCUS
+  ▶ Vardeez: Comparison of credit risk models: know each model, not formulas
+  D20·S1 CreditRisk+ as the actuarial, default-mode model (notes; distractors 1, 5)
+  D20·S2 CreditMetrics as the ratings-migration, mark-to-market model (notes; distractor 2)
+  D20·S3 Vasicek as the model under the Basel IRB formula (notes; distractors 3, 6)
+  D20·S5 four-way comparison on loss recognition and correlation modelling (comparison table)
+  P2  f  Define credit spread risk and assess its impact on calculating credit VaR.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Credit spread risk
+
+  CR-11  Portfolio Credit Risk
+  P2 ×5  P4 ×3  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER B
+  Vardeez: LO 29.a: LO 29.c: LO 29.h: (These 3 LOs are Very Important here) Any other LOs are not important. Single Factor model
+  will be tested but not from this chapter - from later readings. Also, Just read Crash Course Notes for unimportant LOs. Conditional
+  Default Probability can be imp, hence will upload a Practical Question for this on the Portal, just below this Particular Chapter.(Note
+  : Do not get stuck on any Formulas or Notations)
+  ! Conditional default probability can be important (Vardeez posts a practice question).
+  ! Do not get stuck on formulas or notation.
+  RECALL WORKBOOK SECTIONS
+  B1 Credit VaR and Granularity
+  Tier B • Map #10 (6/16) • TG ✓• 2 Qs • Vol 2 p.15 • LOs c, g, h
+  B3 Default Correlation, Joint PD and Copulas
+  Tier B • Map #16 (6/16) • TG ✓• 3 Qs • Vol 2 p.24 • LOs a to f
+  P2  a  Define and calculate default correlation for credit portfolios.
+  WORKBOOK B3 + VARDEEZ FOCUS
+  B3·S1 default correlation of two firms
+  B3·S3 default correlation between credits with unequal default probabilities
+  P4  b  Identify drawbacks in using the correlation-based credit portfolio framework.
+  × Vardeez says skip: Crash-course notes only
+  P2  c  Assess the impact of correlation on a credit portfolio and its Credit VaR.
+  WORKBOOK B1 + VARDEEZ FOCUS
+  B1·S4 granularity effect 2: it does not fall to zero when defaults are correlated
+  P2  d  Describe the use of a single factor model to measure portfolio credit risk, including the impact of cor-
+  relation.
+  WORKBOOK B3
+  × Vardeez says skip: Single factor model tested from later readings (CR-12 f), not here
+  B3·S6 conditional default probability given the common factor
+  P4  e  Define beta and calculate the asset return correlation of any pair of firms using the single factor model.
+  × Vardeez says skip: Crash-course notes only
+  P2  f  Estimate the probability of a joint default of any pair of credits and the default correlation between any
+  pair of credits using the single factor model.
+  WORKBOOK B3
+  × Vardeez says skip: Crash-course notes only
+  B3·S2 joint probability of default, direct calculation
+  B3·S5 dropped-term trap: omitting π1 × π2
+  P4  g  Describe how Credit VaR can be calculated using a simulation of joint defaults.
+  × Vardeez says skip: Crash-course notes only
+  P2  h  Assess the effect of granularity on Credit VaR.
+  WORKBOOK B1 + VARDEEZ FOCUS
+  B1·S3 granularity effect 1: Credit VaR falls as the portfolio becomes more granular
+  B1·S4 granularity effect 2: it does not fall to zero when defaults are correlated
+
+  CR-12  Credit Risk
+  P2 ×1  P3 ×3  P4 ×3  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER B
+  Vardeez: LO30.g: This LO which talks abt Credit Var is imp for exam. Also here LO 30.f, in this we have One Factor Model I was
+  talking abt. Imp it is for the exam. LO 30.e here we can consider it relevant for the exam. So read it carefully. Rest all other LOs are
+  just a repeat and not so relevant. just skim through
+  ! Rest are repeats; skim.
+  RECALL WORKBOOK SECTIONS
+  B1 Credit VaR and Granularity
+  Tier B • Map #10 (6/16) • TG ✓• 2 Qs • Vol 2 p.15 • LOs g
+  B3 Default Correlation, Joint PD and Copulas
+  Tier B • Map #16 (6/16) • TG ✓• 3 Qs • Vol 2 p.24 • LOs e, f
+  C8 Counterparty Exposure Profiles: EE, PFE, EPE
+  Tier C • Map #37 (3/16) • TG ✓• 2 Qs • Vol 2 p.69 • LOs a
+  D5 Credit Spread and PD from Spreads
+  Tier D • Map #42 (2/16) • 2 Qs • Vol 2 p.97 • LOs c
+  D20 Credit Model Comparison: Vasicek, CreditRisk+, CreditMetrics, KMV
+  Tier D • Map #41 (2/16) • notes only • Vol 2 p.152 • LOs g
+  P4  a  Assess the credit risks of derivatives.
+  P4  b  Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).
+  P3  c  Calculate the probability of default using credit spreads.
+  WORKBOOK D5
+  D5·S1 credit spread from the market value of debt, with the card’s inverted sign as the distractor
+  D5·S2 deriving PD from credit spreads( )
+  D5·S3 one-period PD = (1/LGD) × [1 − (1 + rf)/(1 + y)], where recovery decides the ranking (Q2)
+  P4  d  Describe, compare, and contrast various credit risk mitigants and their role in credit analysis.
+  P3  e  Describe the significance of estimating default correlation for credit portfolios and distinguish between re-
+  duced form and structural default correlation models.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Read carefully
+  P2  f  Describe the Gaussian copula model for time to default and calculate the probability of default using
+  the one-factor Gaussian copula model.
+  WORKBOOK B3, D15 + VARDEEZ FOCUS
+  ▶ Vardeez: One-factor model: important
+  B3·S4 Gaussian copula and implied correlation
+  D15·S4 Gaussian copula and implied correlation
+  P3  g  Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.
+  WORKBOOK D20 + VARDEEZ FOCUS
+  ▶ Vardeez: Credit VaR
+  D20·S2 CreditMetrics as the ratings-migration, mark-to-market model (notes; distractor 2)
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+10  Credit VaR
+  CREDIT RISK  6 OF 16 SOURCES  VERY IMPORTANT
+  R28, R29, R30 · Credit Value at Risk; Portfolio Credit Risk; Credit Risk
+  W H AT I S T E S T E D
+  Tested as a direct-formula computation and as a comparison against market-risk VaR on
+  definition, horizon and toolset. The importance sheet singles out LO 30.g as the exam-
+  relevant Credit VaR objective and warns against over-investing in the formulas of Reading
+  28 while still knowing all four models by name.
+  SPECIFICS REPORTED
+  Reported as 'CVaR calculation, direct formula application' and 'CVaR (1) FC'. Credit VaR =
+  worst-case loss at the confidence level minus expected loss — the classic error is
+  forgetting to subtract EL. Two granularity effects are separately examinable (LO 29.h):
+  Credit VaR per unit of exposure falls as the portfolio becomes more granular, but does not
+  fall to zero because of systematic correlation.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Telegram recall — Nov 2024 (10–14 numericals), Telegram pinned — 'repeat RAROC,
+  BCVA, CVaR, UL, UL_c, LVaR', Telegram consolidated list (08/08/25), Telegram recall —
+  Sajan Singh (list 2)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 28.a Compare market risk value at risk (VaR) with credit VaR in terms of definition, time
+  horizon, and tools for measuring them.
+  LO 28.b Define and calculate Credit VaR.
+  LO 28.c Describe the use of rating transition matrices for calculating credit VaR.
+  LO 28.f Define credit spread risk and assess its impact on calculating credit VaR.
+  LO 29.c Assess the impact of correlation on a credit portfolio and its Credit VaR.
+  LO 29.h Assess the effect of granularity on Credit VaR.
+  LO 30.g Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics
+  approach.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #10 Credit VaR: rank 35, Strike first

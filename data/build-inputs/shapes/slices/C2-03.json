@@ -1,0 +1,572 @@
+[
+ {
+  "id": "MR-QB-0235",
+  "lo": "MR-4 e",
+  "loText": "Explain the need to consider conditional coverage in the backtesting framework.",
+  "outside": false,
+  "question": "An analyst backtests a VaR model using Christoffersen’s approach, with joint statistic $LR_{cc} = LR_{uc} + LR_{ind}$. The results are: $LR_{uc} = 2.58$, below the $\\chi^{2}(1)$ cutoff of 3.841, so the null is not rejected; and $LR_{ind} = 15.36$, above the cutoff, so the null is rejected. The analyst hopes that the model is unbiased and that exceptions do not cluster. What do the results say?",
+  "options": {
+   "A": "Good news: the VaR model is unbiased and there is no clustering.",
+   "B": "Mixed news: the VaR model is unbiased, but there is clustering.",
+   "C": "Mixed news: there is no clustering, but the VaR model is biased.",
+   "D": "Bad news: the VaR model is biased and there is clustering."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. $LR_{uc}$ tests whether the exception frequency equals the expected frequency: 2.58 \\< 3.841, so we fail to reject correct coverage (model unbiased).\n2. $LR_{ind}$ tests independence of exceptions: 15.36 > 3.841, so we reject independence (exceptions cluster).\n3. Check: $LR_{cc} = 2.58 + 15.36 = 17.94 > 5.99$ ($\\chi^{2}(2)$), so the model fails conditional coverage overall, driven by the independence term.\n4. Result: unbiased coverage but clustered exceptions, i.e., mixed news."
+ },
+ {
+  "id": "MR-QB-0236",
+  "lo": "MR-4 e",
+  "loText": "Explain the need to consider conditional coverage in the backtesting framework.",
+  "outside": false,
+  "question": "Unconditional testing does not reflect the:",
+  "options": {
+   "A": "size of the portfolio.",
+   "B": "number of exceptions.",
+   "C": "confidence level chosen.",
+   "D": "timing of the exceptions."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Unconditional coverage compares the observed number of exceptions with the number expected at the chosen confidence level.\n2. It treats each day alike and does not consider when the exceptions occurred.\n3. Timing (bunching) is captured only by adding the independence test, giving conditional coverage."
+ },
+ {
+  "id": "MR-QB-0237",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "If a bank’s backtest produces exceptions in the yellow zone (five to nine exceptions out of 250 days at 99% VaR), how is the VaR multiplier treated?",
+  "options": {
+   "A": "The multiplier remains at 3.0.",
+   "B": "The multiplier might be increased by between +0.40 and +0.85 (to between 3.40 and 3.85), at the supervisor’s discretion depending on the cause of the exceptions.",
+   "C": "The multiplier must be increased to 4.0 or greater.",
+   "D": "An additional stressed VaR must be added to the standard VaR."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Yellow zone = 5 to 9 exceptions; the plus‑factor scale runs from +0.40 (5 exceptions) to +0.85 (9 exceptions).\n2. The base multiplier is 3, so the possible range is 3 + 0.40 = 3.40 to 3 + 0.85 = 3.85.\n3. Application depends on the cause: model integrity/accuracy problems should attract the penalty, intraday trading should be considered, bad luck gives no guidance.\n4. Only the red zone (10 or more) makes the increase to 4.0 automatic.\n\n**REBUILT** — Source option B was internally inconsistent (’0 to +1.0’ vs ’3.0 to 3.85’) and one source had no key; rewrote option B to the Basel yellow‑zone plus‑factors of +0.40 to +0.85."
+ },
+ {
+  "id": "MR-QB-0238",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "In regard to backtest outcomes in the yellow zone, which of the following is MOST accurate?",
+  "options": {
+   "A": "The increase to the multiplier is specified (e.g., +0.65 at 7 exceptions), and the supervisor must apply it in all cases.",
+   "B": "The increase to the multiplier is specified, but the supervisor has discretion in whether to apply it.",
+   "C": "The increase to the multiplier is subjective, but the supervisor must apply it in all cases.",
+   "D": "The increase to the multiplier is subjective and the supervisor has discretion in whether to apply it."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Basel specifies a scale of plus‑factors: +0.40 (5), +0.50 (6), +0.65 (7), +0.75 (8), +0.85 (9 exceptions), so the size of the increase is given, not subjective.\n2. Applying it in the yellow zone is subject to supervisors’ judgement of the cause (model integrity/accuracy: should apply; intraday trading: consider; bad luck: no guidance).\n3. Only in the red zone (10 or more, +1.0) is the increase automatic.\n4. So: increase is specified, application is discretionary."
+ },
+ {
+  "id": "MR-QB-0239",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "Under Basel’s backtest, a 99% one‑day VaR is tested over 250 days (green 0‑4, yellow 5‑9, red 10 or more exceptions). Regulators want to catch banks that understate risk without unduly penalizing banks with a correct model that are merely unlucky. EACH of the following is true EXCEPT:",
+  "options": {
+   "A": "Shrinking the green zone (e.g., to 0‑2 exceptions) increases the probability of catching banks that understate their risk.",
+   "B": "Raising the red‑zone threshold (e.g., to 13 or more exceptions) makes it less likely that a bank with a correct model is penalized through bad luck.",
+   "C": "Lowering the red‑zone threshold (e.g., to 7 or more exceptions) makes it less likely that a bank with a correct model is penalized through bad luck.",
+   "D": "Lowering the red‑zone threshold (e.g., to 7 or more exceptions) increases the probability of catching banks that understate their risk."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. For a correct model, exceptions \\~ Binomial(250, 0.01). $P(X \\ge10) \\approx0.025\\%$, $P(X \\ge7) \\approx1.4\\%$, $P(X \\ge13) \\approx$ 0.0002%.\n2. Lowering the threshold to 7 raises the chance a correct model is wrongly flagged (Type I error) from about 0.025% to about 1.4%, so C is false.\n3. The same lowering makes it easier to flag a truly deficient model (fewer Type II errors), so D is true.\n4. Raising the threshold to 13 cuts false penalties (B true); shrinking the green zone to 0‑2 flags more deficient banks (A true).\n\n**REBUILT** — Original question was tangled, quote‑heavy and unkeyed; rewrote as a clear EXCEPT item on the Type I/Type II trade‑off in setting Basel zone thresholds, with a supporting binomial calculation."
+ },
+ {
+  "id": "MR-QB-0240",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "A regulatory analyst at an investment bank is reviewing the Basel rules for backtesting VaR models. Under the Basel framework, a penalty can be given to banks that have more than four exceptions to their 1‑day 99% VaR over the last 250 trading days. Which of the following scenarios is most likely to result in a penalty?",
+  "options": {
+   "A": "A large move in interest rates occurs in conjunction with a small move in correlations.",
+   "B": "The bank’s model calculates interest rate risk based on the median duration of the bonds in the portfolio.",
+   "C": "A sudden market crisis in an emerging market leads to losses in the bank’s equity positions in that country.",
+   "D": "A sudden devastating earthquake causes major losses in the bank’s key area of operation."
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Mock 3 Q23 (a variant with different options) keyed C (emerging‑market crisis); under the Basel categories that is bad luck, so the model‑deficiency scenario in B is the one that attracts a penalty.\n\n**Step by step**\n\n1. Basel classes causes of exceptions: basic integrity of model lacking and model accuracy needs improvement (penalty should apply), intraday trading (consider), bad luck (no penalty guidance).\n2. A large rate move with a small correlation move, an emerging‑market crisis, and an earthquake are unforeseeable market/event shocks: bad luck.\n3. Using the median duration to measure interest rate risk is a model‑accuracy flaw that the bank could fix.\n4. Hence B is the scenario most likely to be penalized."
+ },
+ {
+  "id": "MR-QB-0241",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "A risk manager computes the market risk capital charge for a trading portfolio under the internal models approach, max$(\\text{VaR}_{t-1}, k \\times\\text{VaR}_{avg,60})$. The bank’s own VaR is at a 95% confidence level and a one‑day horizon:\n\nVaR of previous trading day: USD 40,000\n\nAverage VaR of last 60 trading days: USD 22,000\n\nBacktesting zone: red\n\nAssume normally distributed returns, scale to the regulatory 99% confidence level and 10‑day horizon using zvalues of 1.65 (95%) and 2.33 (99%) and the square‑root‑of‑time rule. What is the market risk charge?",
+  "options": {
+   "A": "USD 178,621",
+   "B": "USD 124,267",
+   "C": "USD 294,724",
+   "D": "USD 392,966"
+  },
+  "answer": "D",
+  "solution": "**Key correction:** Source key D was correct; its working gave 392,944 because of rounding.\n\n**Step by step**\n\n1. Scaling factor $= (2.33/1.65)\\sqrt{10} = 1.4121 \\times3.1623 = 4.4655$.\n2. VaR$_{t-1} = 40{,}000 \\times4.4655 = 178{,}621$; VaR$_{avg} = 22{,}000 \\times4.4655 = 98{,}241$.\n3. Red zone: $k = 4$, so $k \\times\\text{VaR}_{avg} = 392{,}966$.\n4. Charge $= \\text{max}(178{,}621; 392{,}966) = 392{,}966$.\n\n**REBUILT** — Source distractors were unexplained; stated the z‑values used and rebuilt distractors from realistic errors (no multiplier, wrong multiplier, no sqrt‑10 scaling)."
+ },
+ {
+  "id": "MR-QB-0242",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "A bank uses VaR and stressed VaR (SVaR) for its market risk capital requirement: max$(\\text{VaR}_{t-1}, k \\overline{\\text{VaR}}_{60}) +$ max$(\\text{SVaR}_{t-1}, k \\overline{\\text{SVaR}}_{60})$. The regulatory 10‑day figures are taken at the 99% confidence level. Data:\n\n| Confidence level | Latest 10‑day VaR | Latest 10‑day SVaR | Avg 10‑day VaR, last 60 days | Avg 10‑day SVaR, last 60 days |\n|---|---|---|---|---|\n| 95% | 538 | 844 | 243 | 610 |\n| 99% | 756 | 1,039 | 544 | 865 |\n| 99.9% | 962 | 1,527 | 726 | 1,229 |\n\nThe VaR backtest shows 10 exceptions over the past 250 days. What is the overall market risk capital charge?",
+  "options": {
+   "A": "4,227",
+   "B": "5,636",
+   "C": "7,820",
+   "D": "3,412"
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key C (5,636) was correct; it is option B in this rebuilt version.\n\n**Step by step**\n\n1. 10 exceptions is the red zone, so $k = 4$ (3 + 1.0).\n2. VaR term: max(756, 4 × 544 = 2,176) = 2,176.\n3. SVaR term: max(1,039, 4 × 865 = 3,460) = 3,460.\n4. Total = 2,176 + 3,460 = 5,636.\n\n**REBUILT** — Source distractors were unexplained; kept the data, specified the regulatory 99% row and rebuilt options from realistic errors (k=3, wrong confidence level)."
+ },
+ {
+  "id": "MR-QB-0243",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "The Basel Committee has established four categories of causes for exceptions. Which of the following does not apply to one of those categories?",
+  "options": {
+   "A": "The sample is small.",
+   "B": "Intraday trading activity.",
+   "C": "Model accuracy needs improvement.",
+   "D": "The basic integrity of the model is lacking."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Basel’s four categories: basic integrity of the model lacking, model accuracy needs improvement, intraday trading activity, and bad luck.\n2. B, C and D are three of these; sample size is not a category.\n3. So A is the one that does not apply."
+ },
+ {
+  "id": "MR-QB-0244",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "Saugatuck National Bank uses the internal model‑based approach to set market risk capital as prescribed by the 1996 Amendment to the 1988 Basel Accord. The bank has backtested its 99% one‑day VaRs against the actual losses over the last 250 trading days. Based on the results of the backtesting, the bank recorded 11 exceptions. Based on these results, the multiplicative factor (m) in the model should be set:",
+  "options": {
+   "A": "less than 3.",
+   "B": "equal to 3.",
+   "C": "between 3.1 and 3.9.",
+   "D": "equal to 4."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Backtest window is 250 days at 99%, so the expected number of exceptions is 250 × 0.01 = 2.5.\n2. Basel zones: green = 0‑4 exceptions (multiplier 3.00); yellow = 5‑9 exceptions (multiplier 3.40 to 3.85); red = 10 or more exceptions.\n3. The bank has 11 exceptions, which is 10 or more, so it is in the red zone.\n4. The red zone carries an automatic plus factor of 1, so $m = 3 + 1 = 4$."
+ },
+ {
+  "id": "MR-QB-0318",
+  "lo": "MR-6 a",
+  "loText": "Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.",
+  "outside": true,
+  "question": "ABC Financial uses historical simulation VaR with an equally weighted 10‑year window of portfolio returns. In a recent period of unusually high volatility, daily losses exceeded the 99% VaR on several occasions. A validation team is assessing the conceptual soundness of the model. Which change would MOST directly address the cause of the exceedances?",
+  "options": {
+   "A": "Raising the confidence level while keeping the same equally weighted history",
+   "B": "Adding a stress‑testing overlay and using the stress results in place of the VaR figure",
+   "C": "Replacing the equally weighted history with a volatility‑updating approach (e.g., GARCH‑based VaR) that reflects recent changes in volatility",
+   "D": "Extending the historical window from 10 to 20 years to obtain more tail observations"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Exceedances clustered in a high‑volatility period: the model is slow to react to changing volatility.\n2. An equally weighted 10‑year history gives recent turbulent observations only a small weight, so VaR lags the current risk level.\n3. Schweser notes that historical VaR does not account for dynamic volatility and that GARCH VaR models were developed to allow for recent volatility changes.\n4. So a volatility‑updating method addresses the cause; the other options leave the lag in place.\n\n**REBUILT** — Original keyed ’shorten window to 5 years’, which is defensible but arbitrary (other fixes also arguable); rebuilt so the Schweser point (equal‑weighted historical VaR ignores dynamic volatility; GARCH‑type updating fixes it) gives a single answer."
+ },
+ {
+  "id": "MR-QB-0319",
+  "lo": "MR-6 a",
+  "loText": "Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.",
+  "outside": true,
+  "question": "Zenith Securities is validating a new simulation‑based VaR model for a trading portfolio of equities, fixed income, and derivatives. The validation team is assessing conceptual soundness, in particular how the model reflects changes in risk caused by trading activity. A junior analyst proposes to rely primarily on backtesting against historical profit and loss (P&L). Why is relying solely on backtesting insufficient to assess conceptual soundness?",
+  "options": {
+   "A": "Backtesting primarily evaluates the model’s ability to predict future losses rather than its ability to simulate historical risks.",
+   "B": "Backtesting assesses historical performance but does not evaluate how the model links position changes to risk.",
+   "C": "Backtesting primarily focuses on tail risks, which may not represent the model’s overall behavior.",
+   "D": "Backtesting is primarily a regulatory requirement and not a useful tool for internal model validation."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Conceptual soundness requires that VaR respond appropriately when positions change; a model that does not show a change in risk when positions change fails a crucial conceptual test.\n2. Backtesting only compares VaR with realized P&L, which can be passed by chance and says nothing about the position‑to‑risk linkage.\n3. So additional tests (pseudo‑history, sensitivity analysis) are needed; B states this."
+ },
+ {
+  "id": "MR-QB-0320",
+  "lo": "MR-6 a",
+  "loText": "Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.",
+  "outside": true,
+  "question": "A risk manager explains the concept of a ”pseudo history” in VaR model validation to the board. Which statement best describes the purpose of creating a pseudo history of portfolio value changes?",
+  "options": {
+   "A": "To backtest the model against historical market crashes",
+   "B": "To incorporate positional information so the model reflects how risk changes with trading activity",
+   "C": "To test the model’s ability to predict future portfolio losses under extreme market conditions",
+   "D": "To generate synthetic data for improving the model’s predictive accuracy"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A pseudo history applies historical market changes to the CURRENT portfolio positions.\n2. Example: holding EUR 10m today versus EUR 5m historically doubles the impact of past FX moves in the pseudo history.\n3. So VaR reflects current composition and changes made by trading, as in B."
+ },
+ {
+  "id": "MR-QB-0323",
+  "lo": "MR-6 a",
+  "loText": "Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.",
+  "outside": true,
+  "question": "A mid‑sized investment bank trades structured credit and commodity derivatives. Its VaR model is parametric (variance‑covariance), assumes normally distributed returns, and uses a one‑year window of historical portfolio returns without adjusting for changes in portfolio composition. Backtesting shows exceedances in market shocks. Management is considering Monte Carlo or historical simulation but worries about computing cost. Which of the following is NOT a conceptual weakness of the current model?",
+  "options": {
+   "A": "Assuming normally distributed returns understates fat‑tailed risk in structured credit and commodities.",
+   "B": "A one‑year window may omit extreme market conditions and past crises.",
+   "C": "Monte Carlo and historical simulation require more computing power than a variance‑covariance model.",
+   "D": "Using unadjusted historical portfolio returns ignores changes in portfolio composition over the window."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Conceptual weaknesses concern the model’s methodology, input data and assumptions (the three validation areas in the reading).\n2. A is an assumption weakness (non‑normal returns); B is a data weakness (short window); D is an input weakness (no pseudo‑history for changed positions).\n3. C concerns the operational cost of alternatives, not a flaw in the current model’s logic, so C is the one that is NOT a weakness.\n\n**REBUILT** — Original option B (illiquidity) is outside the reading and the options were loosely true; rebuilt the ’NOT a conceptual weakness’ item around Schweser’s points (normality, data window, historical returns ignoring portfolio composition)."
+ },
+ {
+  "id": "MR-QB-0326",
+  "lo": "MR-6 b",
+  "loText": "Explain how to conduct sensitivity analysis for a VaR model, and describe the potential benefits and challenges of performing such an analysis.",
+  "outside": true,
+  "question": "A financial analyst is performing sensitivity analysis on a VaR model. What is the primary purpose of such an exercise?",
+  "options": {
+   "A": "To determine the model’s backtesting performance.",
+   "B": "To evaluate the accuracy of the VaR model in predicting portfolio losses.",
+   "C": "To identify the key drivers of VaR and assess model robustness.",
+   "D": "To assess whether the model’s VaR estimates meet regulatory requirements under varying assumptions."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Sensitivity analysis changes key inputs (positions, volatilities, correlations) one at a time and recalculates VaR.\n2. The size of the change in VaR shows which inputs drive the result and whether the model is robust to its assumptions.\n3. This matches C; accuracy and exception counting are backtesting functions."
+ },
+ {
+  "id": "MR-QB-0346",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "Exceedance‑based backtests of a VaR model often have low statistical power when the sample is small and the VaR confidence level is high, because exceedances are rare. Which of the following is the MOST effective way to address this power problem?",
+  "options": {
+   "A": "Use overlapping windows to create more backtest observations from the same data.",
+   "B": "Tighten the significance level of the test from 5% to 1%.",
+   "C": "Rely on the unconditional coverage test alone, since it uses the total number of exceedances.",
+   "D": "Use a PIT‑based backtest, which draws on the entire forecast distribution rather than only the exceedance indicator."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. An exceedance backtest reduces each day’s P&L to a 0/1 indicator (exceedance or not), discarding information on how far inside or outside the VaR the P&L fell.\n2. With a 99% VaR and about 250 observations, only about 2.5 exceedances are expected, so the test has little ability to reject a wrong model.\n3. A PIT‑based backtest converts every P&L observation into a PIT value using the full forecast distribution, so every observation carries information, which raises power.\n4. Therefore D is the remedy; A, B and C do not add information (A adds dependence, B lowers power, C uses only the count).\n\n**REBUILT** — Original relied on DQ/LDQ tests outside the reading and option A was arguably defensible; reframed around the exceedance‑count limitation that PIT‑based backtests address, with realistic distractors."
+ },
+ {
+  "id": "MR-QB-0347",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A regulator reviews backtests of the one‑day 99% VaR models of 20 banks over a benign market period. The average exceedance rate across banks is 0.4%. The table shows the number of the 20 banks whose model is rejected by each test at the 90% confidence level.\n\n| Test | Banks rejected (of 20) |\n|---|---|\n| Unconditional Coverage | 4 |\n| Conditional Coverage | 3 |\n| Dynamic Quantile | 2 |\n| Logistic Dynamic Quantile | 3 |\n| VaR Quantile Regression | 19 |\n\nWhich assessment is MOST consistent with these results?",
+  "options": {
+   "A": "The models are accurately calibrated, because few banks fail the exceedance‑based tests.",
+   "B": "The models are on average conservative in the tail, yet the VQR rejections show deficiencies that exceedance counts do not capture.",
+   "C": "The VQR results show a systemic failure, so all models should immediately be recalibrated to be more conservative.",
+   "D": "Benign market conditions make all the backtest results meaningless."
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key for Q.6480 (C) said VQR is overly sensitive to minor deviations; this is not supportable since a test using more information is more powerful, so the VQR rejections signal real weaknesses. Q.6481 key (B) retained.\n\n**Step by step**\n\n1. A 99% VaR should be exceeded about 1% of the time; the observed average of 0.4% is below this, so VaR is on average too high (conservative).\n2. Few banks fail UC (4), CC (3), DQ (2) and LDQ (3), so the exceedance‑based tests do not flag a calibration problem; rejections that occur reflect overly few exceedances.\n3. 19 of 20 banks fail the VQR test, which uses the distribution of outcomes rather than just exceedance counts, so the models are deficient in ways counts miss.\n4. Hence the models are conservative at the tail but not necessarily well specified: B.\n\n**REBUILT** — Merged two items using the same results table; clarified that ’failures’ means the number of the 20 banks rejected by each test at 90% confidence, and rewrote the ambiguous inference so exactly one answer is defensible."
+ },
+ {
+  "id": "MR-QB-0348",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A regulator reviews backtests of the one‑day 99% VaR models of 20 banks during a benign market period. The average exceedance rate is 1.8%. The table shows the number of the 20 banks whose model is rejected by each test at the 90% confidence level.\n\n| Test | Banks rejected (of 20) |\n|---|---|\n| Unconditional Coverage | 15 |\n| Conditional Coverage | 14 |\n| Dynamic Quantile | 16 |\n| Logistic Dynamic Quantile | 13 |\n| VaR Quantile Regression | 2 |\n\nWhich assessment is MOST consistent with these results?",
+  "options": {
+   "A": "The models underestimate risk: exceedances occur well above the 1% expected rate and most banks fail the exceedance‑based tests.",
+   "B": "The models are aggressive but adequate, since few banks fail VQR, so no action is needed.",
+   "C": "Benign markets explain the high exceedance rate, so the models are well calibrated.",
+   "D": "The high exceedance rate contradicts benign conditions, so the backtesting methodology itself is flawed."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Expected exceedance rate for a 99% VaR is 1%; observed average is 1.8%, i.e., about 1.8 times too many exceedances, indicating VaR is too low.\n2. UC rejects 15 of 20 banks and CC 14 of 20, confirming the exceedance count is statistically inconsistent with 99% for most banks.\n3. The low VQR count (2) does not offset this, since the exceedance‑based property of correct coverage clearly fails.\n4. In benign conditions a well‑calibrated model should have fewer, not more, exceedances, so the issue lies with the models: A.\n\n**REBUILT** — Clarified that ’failures’ means number of the 20 banks rejected at 90% confidence, and reworded options so the key is unambiguous."
+ },
+ {
+  "id": "MR-QB-0349",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A risk management team is conducting an exceedance‑based backtest on its VaR model and wants to reflect the model’s key properties through a PIT‑based backtest. Which attributes of the probability integral transforms are essential for validating that the exceedance‑based properties are maintained?",
+  "options": {
+   "A": "Skewness and heavy tails.",
+   "B": "Uniform distribution and independence.",
+   "C": "Periodicity and cyclicality.",
+   "D": "Concentration and clustering."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. If the forecast distribution is correct, PIT values $u_{t} = F_{t}(r_{t})$ are i.i.d. Uniform(0,1).\n2. Uniformity corresponds to unconditional coverage: the share of PITs below $p$ equals $p$, so exceedances occur at the right frequency.\n3. Independence corresponds to the independence property (no clustering of exceedances).\n4. Together they mirror conditional coverage: B."
+ },
+ {
+  "id": "MR-QB-0350",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A study of 20 bank holding companies finds an average exceedance rate of 0.4% for their one‑day 99% VaR models. What does this suggest about the models?",
+  "options": {
+   "A": "On average they underestimate risk.",
+   "B": "On average they accurately capture risk.",
+   "C": "On average they overestimate risk (are conservative).",
+   "D": "Further information is needed to reach any conclusion."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A 99% VaR should be exceeded about 1 − 0.99 = 1% of the time.\n2. Observed 0.4% is below 1%: fewer exceedances than expected.\n3. Fewer exceedances mean VaR thresholds are set too far out, so risk is overestimated: C."
+ },
+ {
+  "id": "MR-QB-0351",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A regulator observes that 20 banks have an average exceedance rate of 0.4% for their 99% VaR models over a period described as benign for markets. Which is the MOST likely interpretation?",
+  "options": {
+   "A": "The models are accurately calibrated and effectively capture market risk.",
+   "B": "The low rate may indicate excessive conservatism, potentially leading to inefficient capital allocation.",
+   "C": "Benign conditions make it impossible to draw any conclusion from the exceedance rate.",
+   "D": "The low rate is due to fees and commissions being included in reported P&L."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Expected exceedance rate is 1%; 0.4% is well below.\n2. Benign markets make tail events rarer, but a 0.4% rate is still informative: VaR is set higher than needed.\n3. Overly high VaR means excess capital held against market risk, i.e., conservatism and inefficiency: B."
+ },
+ {
+  "id": "MR-QB-0352",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "Historically, regulators have focused on backtests based on the indicator variable for a VaR exceedance. What is the main limitation of relying only on such exceedance‑based tests?",
+  "options": {
+   "A": "They use only whether the loss exceeded the VaR threshold, so a model can pass while misrepresenting the rest of the forecast distribution.",
+   "B": "They can only detect models that are too conservative, not models that are too aggressive.",
+   "C": "They require the P&L to be normally distributed.",
+   "D": "They test independence of exceedances but not their total number."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. An exceedance test reduces each day to a 0/1 indicator for a single preselected tail cutoff.\n2. It tests unconditional coverage (count), independence (clustering) and conditional coverage (both), but only at that cutoff.\n3. A model can therefore pass these tests while the rest of its forecast distribution is badly wrong; PIT‑based tests address this using the whole distribution: A.\n\n**REBUILT** — Original distractors were weak (several clearly irrelevant); rewrote options to make a single plausible criticism of exceedance‑only testing."
+ },
+ {
+  "id": "MR-QB-0353",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "An investment firm is assessing the predictive accuracy of its VaR model using exceedance‑based backtesting. It further explores the application of PITs to validate model assumptions thoroughly. What does a proper implementation of PIT‑based backtesting reveal about the VaR model?",
+  "options": {
+   "A": "It confirms the presence of higher moments affecting distribution shape.",
+   "B": "It indicates uniformity and absence of temporal patterns.",
+   "C": "It highlights cyclic trends and overfitting potential.",
+   "D": "It shows deviations at the distribution extremes."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. If the forecast distribution is correct, each realized P&L is a draw from that forecast, so its PIT (the forecast CDF evaluated at the realization) is uniform on \\[0,1\\].\n2. Correct unconditional coverage appears as a uniform PIT distribution (the tail share of PITs matches the VaR tail probability); correct independence appears as PITs with no serial pattern (no clustering of tail PITs).\n3. So a well‑specified model shows uniform PITs with no temporal pattern."
+ },
+ {
+  "id": "MR-QB-0354",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "A risk manager backtests the 99% one‑day VaR of two portfolios over 750 trading days. Both portfolios have 8 exceedances (expected: 7.5). Using the Schweser/Kupiec framework (critical values: 3.84 for LRuc and LRind, 5.99 for LRcc at 95% confidence):\n\n| Portfolio | Exceedances | Pattern of exceedances | Pattern of tail PITs |\n|---|---|---|---|\n| A | 8 | All isolated; never on consecutive days | Evenly scattered, no serial pattern |\n| B | 8 | Four pairs of back‑to‑back days | Tail PITs appear in consecutive‑day pairs |\n\nCounts of day‑to‑day transitions: A has n00 = 733, n01 = 8, n10 = 8, n11 = 0; B has n00 = 737, n01 = 4, n10 = 4, n11 = 4. Which portfolio’s backtest indicates an accurate VaR model?",
+  "options": {
+   "A": "Both A and B, since both have the same number of exceedances.",
+   "B": "Only B.",
+   "C": "Only A.",
+   "D": "Neither A nor B."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Unconditional coverage (both): $LR_{uc} = -2 \\text{ln} \\left[ \\frac{0.99^{742}\\times0.01^{8}}{(742/750)^{742}\\times(8/750)^{8}} \\right] = 0.033 < 3.84$, so both pass.\n2. Independence A: $\\pi_{01} = 8/741 = 0.0108$, $\\pi_{11} = 0/8 = 0$, $\\pi= 8/749$; $LR_{ind} = 0.173 < 3.84$, so A shows no clustering.\n3. Independence B: $\\pi_{01} = 4/741 = 0.0054$, $\\pi_{11} = 4/8 = 0.50$ versus $\\pi= 8/749 = 0.0107$; $LR_{ind} = 27.70 >$ 3.84, so B rejects independence.\n4. Conditional coverage: A $LR_{cc} = 0.033 + 0.173 = 0.21 < 5.99$ (pass); B $LR_{cc} = 0.033 + 27.70 = 27.73 > 5.99$ (reject).\n5. PIT view: A’s PITs are uniform and serially unpatterned; B’s consecutive‑day tail PITs reveal dependence. Only A is accurate.\n\n**REBUILT** — Original treated PIT kurtosis of 3 as ’uniform’ (a uniform has kurtosis 1.8) and failed Y on 1.20% vs 1.00% with no sample size; rebuilt with a sample size, explicit Kupiec and independence statistics, and a qualitative PIT description."
+ },
+ {
+  "id": "MR-QB-0355",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "Which of the following characteristics must a VaR model satisfy to ensure it passes the unconditional coverage test?",
+  "options": {
+   "A": "Exceedances must occur in clusters.",
+   "B": "Exceedances must be independent of prior exceedances.",
+   "C": "Exceedances must follow a uniform distribution over \\[0,1\\].",
+   "D": "The total number of exceedances must match the expected frequency within a confidence level."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Unconditional coverage (Kupiec) looks only at the total number of exceedances x out of n observations.\n2. The $LR_{uc}$ statistic compares $x/n$ with the model’s tail probability $p$; the model is rejected if $LR_{uc} > 3.84$.\n3. Hence passing requires the exceedance count to be statistically consistent with the expected frequency (e.g., 6 to 20 for a 95% VaR over 252 days)."
+ },
+ {
+  "id": "MR-QB-0356",
+  "lo": "MR-7 a",
+  "loText": "Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe how these properties are reflected in a PIT-based backtest.",
+  "outside": false,
+  "question": "What does it mean when exceedance‑based backtest analysis on VaR models suggests that the model has conditional coverage at a given confidence level?",
+  "options": {
+   "A": "The model performs well only on a subset of positions.",
+   "B": "The model requires specific distribution assumptions to adequately deliver results.",
+   "C": "The model cannot be rejected on the basis of observed exceedances, nor can it be rejected for potential lack of independence.",
+   "D": "The suggested rate of exceedance incidents cannot be rejected; however, there is serial correlation among the exceedance observations."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Conditional coverage jointly tests $H_{0} : \\pi_{01} = \\pi_{11} = p$, combining unconditional coverage and independence.\n2. $LR_{cc} = LR_{uc} + LR_{ind}$ is chi‑squared with 2 df; reject if $LR_{cc} > 5.99$.\n3. Having conditional coverage means neither the exceedance rate nor the independence of exceedances is rejected."
+ },
+ {
+  "id": "MR-QB-0357",
+  "lo": "MR-7 b",
+  "loText": "Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.",
+  "outside": false,
+  "question": "In the Schweser procedure for deriving a probability integral transform (PIT) for a single day, which step comes first?",
+  "options": {
+   "A": "Locate the realized P&L on the cumulative distribution function to obtain a value in \\[0,1\\].",
+   "B": "Obtain the forecast distribution of P&L for the period (e.g. normal with mean 0 and standard deviation 500).",
+   "C": "Test the set of PIT values for uniformity and independence.",
+   "D": "Count the days on which the realized loss exceeded the VaR."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Step 1: obtain the forecast distribution of P&L for the period.\n2. Step 2: collect the realized P&L for that period.\n3. Step 3: map the observation through the forecast CDF to get the PIT in \\[0,1\\].\n4. Step 4: analyze the PITs for uniformity, independence and conditional coverage.\n5. The forecast must exist before an observation can be located within it, so the forecast is first.\n\n**REBUILT** — Stem was vague (’initial step ... alignment with expectations’) and distractors were jargon; restated as the ordered Schweser steps with plausible wrong‑step distractors."
+ },
+ {
+  "id": "MR-QB-0358",
+  "lo": "MR-7 b",
+  "loText": "Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.",
+  "outside": false,
+  "question": "Forecast distributions of daily P&L change from day to day because volatility and positions change. Why does the PIT method pass each day’s realized P&L through that day’s own forecast CDF?",
+  "options": {
+   "A": "To remove outlier days before computing the VaR.",
+   "B": "To re‑estimate the model parameters from historical data.",
+   "C": "To count how many days exceeded the VaR threshold.",
+   "D": "To put observations drawn from different forecast distributions on one common \\[0,1\\] scale so they can be tested together."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Raw P&L from different days cannot be pooled because each comes from a different forecast distribution.\n2. Applying $F_{t}$ to $x_{t}$ gives the cumulative probability of the realized outcome under that day’s forecast.\n3. If every $F_{t}$ is correct, all PITs share the same Uniform\\[0,1\\] distribution and can be tested jointly.\n\n**REBUILT** — Original asked a vague purpose question with loosely worded answer; rebuilt to test why each day’s observation is mapped through that day’s own forecast CDF."
+ },
+ {
+  "id": "MR-QB-0359",
+  "lo": "MR-7 b",
+  "loText": "Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.",
+  "outside": false,
+  "question": "A model forecasts tomorrow’s P&L as normal with mean \\$0 and standard deviation \\$500. The realized P&L is ‑\\$250. What is the PIT value for this observation?",
+  "options": {
+   "A": "0.692",
+   "B": "‑0.500",
+   "C": "0.352",
+   "D": "0.309"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Standardize: $z = (-250 - 0)/500 = -0.5$.\n2. The PIT is the forecast CDF at the outcome: $N(-0.5) = 0.3085$, about 0.309.\n3. So about 30.9% of the forecast distribution lies at or below the realized loss.\n\n**REBUILT** — Original conceptual question had vague distractors; made it quantitative using the Schweser example (normal, mean 0, SD 500, P&L ‑250)."
+ },
+ {
+  "id": "MR-QB-0360",
+  "lo": "MR-7 b",
+  "loText": "Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.",
+  "outside": false,
+  "question": "A model forecasts daily results as normal with mean 0.5 and standard deviation 1. Realized results and PITs for ten days are:\n\n| Day | Realized result | Statistic (z) | PIT value |\n|---|---|---|---|\n| 1 | 1.2 | 0.7 | 75.8% |\n| 2 | ‑0.3 | ‑0.8 | 21.2% |\n| 3 | ‑0.8 | ‑1.3 | 9.7% |\n| 4 | 2.0 | ? | 93.3% |\n| 5 | ‑0.7 | ‑1.2 | 11.5% |\n| 6 | 0.0 | ‑0.5 | 30.9% |\n| 7 | 1.9 | 1.4 | 91.9% |\n| 8 | ‑1.8 | ‑2.3 | 1.1% |\n| 9 | 0.4 | ‑0.1 | 46.0% |\n| 10 | 1.1 | 0.6 | 72.6% |\n\nWhat is the statistic (z‑score) for Day 4, and on which day did the realized result fall furthest into the lower tail of the forecast distribution?",
+  "options": {
+   "A": "1.50, Day 4",
+   "B": "1.70, Day 8",
+   "C": "1.50, Day 8",
+   "D": "‑1.50, Day 8"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. $z = (\\text{realized} - \\text{expected})/\\text{SD} = (2.0 - 0.5)/1 = 1.50$ for Day 4; check $N(1.50) = 0.9332$, matching the 93.3% PIT.\n2. The lower tail corresponds to the lowest PIT values; the smallest PIT is Day 8 at 1.1% (z = ‑2.3).\n3. Answer: 1.50 and Day 8.\n\n**REBUILT** — Original had a redundant ’actual average’ line, an ambiguous ’a day in the lower tail’ (Days 3, 5, 8 all qualify) and a nonsensical option; tightened to the day with the lowest PIT and rebuilt options from real mistakes."
+ },
+ {
+  "id": "MR-QB-0361",
+  "lo": "MR-7 b",
+  "loText": "Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.",
+  "outside": false,
+  "question": "Which of the following statements correctly describes the purpose of probability integral transform (PIT) values for backtesting VaR models? PIT values:",
+  "options": {
+   "A": "are used to determine the total number of exceedances for a VaR model.",
+   "B": "measure the conditional coverage property of exceedance‑based models.",
+   "C": "analyze exceedance independence by forming a Markov chain of observations.",
+   "D": "convert observed data points into a uniform distribution for the entire forecasted distribution."
+  },
+  "answer": "D",
+  "solution": "**Key correction:** Source key (Schweser Module Quiz 7.2 Q1) said C; correct is D because the source’s own explanation states PITs convert observations to a uniform distribution over the entire forecast, which is option D, while the Markov‑chain test applies to exceedances.\n\n**Step by step**\n\n1. Each realized P&L is located on its forecast CDF, giving a value in \\[0,1\\].\n2. If the model is correct, these values are Uniform\\[0,1\\] across the entire distribution, not only at the VaR tail.\n3. This uniformity is what the PIT backtest then tests, so D describes the purpose."
+ },
+ {
+  "id": "MR-QB-0362",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "A risk manager computes a probability integral transform (PIT) for each day’s realized P&L using that day’s forecast distribution. If the VaR model’s forecast distributions are correct, which description of the resulting PIT values is correct?",
+  "options": {
+   "A": "They are skewed toward 0 and 1, reflecting the fat tails of P&L.",
+   "B": "They cluster around 0.5, reflecting the central tendency of P&L.",
+   "C": "They are uniformly distributed over \\[0,1\\] and independent over time.",
+   "D": "They are normally distributed with mean 0 and standard deviation 1."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Each PIT is $u_{t} = F_{t}(x_{t})$, the forecast CDF evaluated at the realized outcome.\n2. If $F_{t}$ is the true distribution of $x_{t}$, then $u_{t}$ is Uniform\\[0,1\\] (any continuous variable passed through its own CDF is uniform).\n3. Correct forecasts also imply the PITs are independent across days.\n4. So correct models give a flat PIT histogram with about 10% of values in each decile.\n\n**REBUILT** — Original options were vague jargon (B, D) and the stem was awkward; rewrote so each distractor is a realistic misconception about PIT distributions."
+ },
+ {
+  "id": "MR-QB-0363",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "A risk analyst is evaluating a VaR model by examining the shape of the probability integral transform (PIT) distribution. Why is the shape of the PIT distribution crucial in assessing model quality, and what characteristic best indicates a well‑calibrated model?",
+  "options": {
+   "A": "A heavy‑tailed distribution, indicating extreme event capture.",
+   "B": "A bimodal distribution, indicating inconsistent risk segmentation.",
+   "C": "A clustered distribution, displaying conservative risk estimates.",
+   "D": "A uniform distribution, signifying consistent predictive accuracy."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. The PIT is the forecast CDF evaluated at the realized P&L, so it measures where each outcome fell within the forecast distribution.\n2. If the forecast distribution is correct, outcomes fall at every percentile with equal frequency, so the PITs are uniform on \\[0,1\\] (e.g., 10% in each decile) and independent.\n3. Any systematic shape (U, hump, slope) shows that the forecast under‑ or over‑states risk in some region, so uniformity is the benchmark for good calibration."
+ },
+ {
+  "id": "MR-QB-0364",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "A fund backtests its VaR model with PITs. A histogram of 1,000 PITs is essentially flat, with about 100 observations in each decile, and a Kolmogorov‑Smirnov test does not reject uniformity. However, the PITs show strong positive serial correlation: runs of high PITs tend to be followed by high PITs, and runs of low PITs by low PITs. Which conclusion is most appropriate?",
+  "options": {
+   "A": "The model is well calibrated, because uniformity of the PITs is the only requirement.",
+   "B": "The model fails the independence requirement; forecasts are not adapting to changing conditions such as volatility clustering, so the dynamics of the model should be revised.",
+   "C": "The forecast distributions are too narrow, so the model underestimates risk in the tails.",
+   "D": "The forecast distributions are biased in location, so the mean P&L forecast should be shifted."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A perfect forecast produces PITs that are both uniform on \\[0,1\\] and independent across periods.\n2. A flat histogram satisfies the uniformity part (the analogue of unconditional coverage).\n3. Serial correlation in PITs means outcomes in consecutive periods fall in similar regions of their forecast distributions: the analogue of clustered exceedances, which fails independence (conditional coverage).\n4. This pattern typically arises when the model is slow to update for time‑varying volatility or dynamics, so the model’s dynamics should be revised.\n\n**REBUILT** — Original asked vaguely what a fund should ’prioritize’ and had a weakly grounded key (recalibrate inputs); rebuilt as a concrete case on the independence requirement of PIT‑based backtesting."
+ },
+ {
+  "id": "MR-QB-0365",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "A risk manager computes 1,000 PITs for a VaR model’s daily P&L forecasts. Expected frequency is 100 per decile. The observed counts are 190 in the 0.0‑0.1 decile, 180 in the 0.9‑1.0 decile, and a combined 630 across the eight middle deciles (about 79 each). What does this indicate, and what is the appropriate adjustment?",
+  "options": {
+   "A": "The forecast distributions are too wide and risk is overstated; reduce the volatility estimate.",
+   "B": "The forecast distributions are too narrow and risk is understated in both tails; widen the forecast distribution (e.g., higher volatility or fatter tails).",
+   "C": "The forecasts are biased toward gains; shift the forecast mean P&L downward.",
+   "D": "The model is well calibrated, since the middle deciles are close to the expected 100 and extra capital is not needed."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Expected count per decile = 1,000 × 10% = 100.\n2. The extreme deciles have 190 and 180, i.e., 19% and 18% of PITs instead of 10%: a U‑shaped histogram.\n3. PITs near 0 or 1 mean realized P&L fell far into the tails of the forecast distribution more often than the model implies, so tail outcomes are more frequent than forecast.\n4. This is the signature of a forecast distribution that is too narrow, so risk is understated; the remedy is to widen it (higher volatility or fatter tails).\n\n**REBUILT** — Two vague AnalystPrep items (clustering at unspecified intervals; excess tail mass with a loosely worded key) tested the same U‑shape point; merged into one with concrete decile data and an unambiguous key."
+ },
+ {
+  "id": "MR-QB-0366",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "In the evaluation of a VaR model, an analyst detects clustering in the PIT distribution concentrated around the middle of the \\[0,1\\] interval, with few PITs near 0 or 1. What does this suggest about the model’s risk assumptions?",
+  "options": {
+   "A": "The model is conservative: forecast distributions are too wide, overstating risk.",
+   "B": "The model is aggressive: forecast distributions are too narrow, underestimating risk.",
+   "C": "Middle clustering indicates a perfectly balanced risk model.",
+   "D": "Middle clustering indicates randomness, so the model is precise in normal states."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. PIT near 0.5 means the realized P&L is close to the median of the forecast distribution.\n2. If PITs pile up in the middle, outcomes are less dispersed than the forecast implies, and tail outcomes occur less often than predicted.\n3. So the forecast distribution is too wide: VaR is overstated and capital is excessive; the model should be recalibrated to be less dispersed."
+ },
+ {
+  "id": "MR-QB-0367",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "An analyst computes the PITs of a VaR model’s P&L forecasts over a long sample. The PIT histogram is skewed: frequencies rise steadily from the 0.0‑0.1 decile (about 5% of PITs) to the 0.9‑1.0 decile (about 15% of PITs). What does this indicate?",
+  "options": {
+   "A": "The forecast distributions are too narrow, so risk is understated in both tails.",
+   "B": "The forecast distributions are too wide, so risk is overstated.",
+   "C": "The forecast distributions are biased in location: realized P&L is systematically higher than forecast, so the forecast is too pessimistic and the location (mean) should be adjusted.",
+   "D": "The PITs are serially dependent, so exceedances cluster in time."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A PIT is the forecast CDF at the realized P&L, so a high PIT means the outcome was better (higher P&L) than most of the forecast distribution.\n2. Mass rising toward 1 (15% vs 5% in the extreme deciles, versus 10% expected) shows outcomes systematically landing in the upper part of the forecast distribution.\n3. A one‑sided slope (asymmetry), not symmetric tails or a central hump, is a location bias: the forecast P&L distribution is centered too low (too pessimistic).\n4. The model’s central tendency or skew assumptions should be recalibrated.\n\n**REBUILT** — Original options were irrelevant distractors (yield curves, execution times) with a vague key; rebuilt with a concrete sloped PIT histogram and plausible alternative diagnoses."
+ },
+ {
+  "id": "MR-QB-0368",
+  "lo": "MR-7 c",
+  "loText": "Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.",
+  "outside": false,
+  "question": "The risk team at Horizon Capital reviews its VaR model after a period of unexpected volatility. It computes 200 PITs, where a PIT is the forecast CDF evaluated at the realized P&L (so losses map to low values). The decile counts are:\n\n| PIT bin | 0.0‑0.1 | 0.1‑0.2 | 0.2‑0.3 | 0.3‑0.4 | 0.4‑0.5 | 0.5‑0.6 | 0.6‑0.7 | 0.7‑0.8 | 0.8‑0.9 | 0.9‑1.0 |\n|---|---|---|---|---|---|---|---|---|---|---|\n| Count | 62 | 28 | 22 | 18 | 17 | 15 | 12 | 10 | 9 | 7 |\n\nWhich observation best indicates that the model is poorly calibrated?",
+  "options": {
+   "A": "The PIT distribution is uniform on \\[0,1\\], with no clustering in the tails or center.",
+   "B": "The PIT distribution has a concentration of values near 0 (31% of PITs in the lowest decile versus 10% expected), indicating frequent underestimation of large losses.",
+   "C": "The PIT distribution shows slight deviations around the center but aligns well with a uniform distribution in the tails.",
+   "D": "The PIT distribution has skewness near 0 and kurtosis near 3, indicating balanced calibration."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Expected count per decile = 200 / 10 = 20.\n2. The lowest decile has 62, i.e., 62/200 = 31% versus 10% expected, and the counts decline steadily toward the top decile (7).\n3. PITs near 0 mean realized P&L fell in the far left tail of the forecast, so large losses occur much more often than the model predicts: risk (losses) is underestimated.\n4. The histogram is far from uniform, so the model is poorly calibrated.\n\n**REBUILT** — Exhibit (PIT histogram) was unreadable; replaced with explicit decile counts consistent with the described concentration near 0 and tightened the options."
+ }
+]

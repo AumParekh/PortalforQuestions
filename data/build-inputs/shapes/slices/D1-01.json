@@ -1,0 +1,572 @@
+[
+ {
+  "id": "MR-T2-06",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "Term structure models in which the terminal distribution of rates is normal are called Gaussian models. A known limitation is that the modelled short rate can become negative. Which statement best characterises the economic objection to negative short-term rates?",
+  "options": {
+   "A": "Negative rates are attractive to lenders because they eliminate lending risk.",
+   "B": "Negative short-term rates affect neither borrowers nor lenders, because rates revert to positive levels in the long run.",
+   "C": "Negative rates cannot arise in practice because central banks are legally prohibited from setting a policy rate below zero.",
+   "D": "Individuals will generally not lend at a negative rate, because they can instead hold cash and earn zero."
+  },
+  "answer": "D",
+  "solution": "The objection is an arbitrage argument, not a legal one. Physical currency is a zero-coupon, zero-yield instrument available to anyone. If lending at a negative rate means being repaid less than the amount lent, an individual can simply hold the cash instead and be repaid exactly what they started with. That dominates the negative-rate loan, so no such loan should occur. This is the ZERO LOWER BOUND.\n\nTwo qualifications matter, and both are examinable. The bound is not absolute: holding large quantities of physical cash has real costs including storage, insurance and transport, so the true bound is slightly below zero rather than exactly at zero. Institutions facing those costs, and institutions obliged to hold central bank reserves, have accepted negative rates in practice, and negative policy rates have been observed in Japan, Switzerland and the euro area.\n\nThe word INDIVIDUALS is doing work in the correct option. The argument applies most cleanly to an agent who can costlessly substitute into cash. Central banks and governments can and do transact at negative rates under specific policy conditions."
+ },
+ {
+  "id": "MR-T2-07",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "One method of handling negative rates is to construct an interest rate tree with the desired distribution and then set any negative rates in that tree to zero. Under this method, how are the rates in the ORIGINAL tree and the rates in the ADJUSTED tree respectively described?",
+  "options": {
+   "A": "Original rates are the observed rates; adjusted rates are the shadow rates.",
+   "B": "Original rates are the expected rates; adjusted rates are the volatile market rates.",
+   "C": "Original rates are the short-term rates; adjusted rates are the forward rates.",
+   "D": "Original rates are the shadow rates; adjusted rates are the observed rates."
+  },
+  "answer": "D",
+  "solution": "The method proceeds in two stages. First, build the tree exactly as the model specifies, allowing rates to go wherever the distribution takes them, including below zero. Second, replace every negative rate with zero and use the adjusted tree for pricing.\n\n| Tree | Name | What it is |\n|---|---|---|\n| Original, unadjusted | SHADOW rates | What the rate 'would be' if the cash alternative did not exist. May be negative. |\n| Adjusted, floored at zero | OBSERVED rates | What can actually be transacted at, and what is used to discount cash flows. |\n\nThe naming follows the economics: the shadow rate is unobservable and hypothetical, while the floored rate is the one you can see in the market. Get the direction wrong and the whole concept inverts.\n\nThe method has a side effect that the LO expects you to know: flooring truncates the left tail of the distribution, which RAISES the mean of the modelled rate and REDUCES its volatility relative to the unadjusted model. The adjusted tree is therefore no longer the distribution you specified."
+ },
+ {
+  "id": "MR-T2-08",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "A model validation analyst is documenting the approaches available for preventing negative short-term rates in a term structure model. Which of the following is the most accurate assessment?",
+  "options": {
+   "A": "Flooring a normally distributed tree at zero leaves the mean and volatility of the modelled rate unchanged, which is why it is preferred to changing the distribution.",
+   "B": "The only available method is to adopt a distribution that cannot go negative, such as a lognormal or square-root process, because flooring a tree introduces arbitrage.",
+   "C": "There are two methods: flooring a normally distributed tree at zero, and adopting a distribution that cannot produce negative rates. Flooring raises the mean and lowers the volatility of the modelled rate relative to the unadjusted model.",
+   "D": "There are two methods, but both are unnecessary in practice, since observed nominal short rates have never been negative."
+  },
+  "answer": "C",
+  "solution": "Two families of solution exist, and the LO asks for methods in the plural.\n\n| Method | How it works | Cost |\n|---|---|---|\n| Floor the tree at zero | Build the tree from the chosen (normal) distribution, then replace negative nodes with zero. Original nodes are shadow rates; floored nodes are observed rates. | The realised distribution is no longer the one specified. Truncating the left tail RAISES the mean and LOWERS the volatility. |\n| Change the distribution | Use a process that cannot go negative by construction, for example a lognormal process, or a square-root process in which basis-point volatility falls to zero as the rate approaches zero. | The rate distribution and the behaviour of volatility are no longer free choices; they are dictated by the functional form. |\n\nThe flooring side effect is the examinable nuance. Setting all negative draws to zero removes mass from the left tail and piles it at zero. Removing the lowest values raises the mean, and compressing the range reduces dispersion. So a model that was calibrated to a target volatility before flooring will exhibit LOWER volatility after it."
+ },
+ {
+  "id": "MR-T2-09",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "An analyst constructs a short-rate tree under the Ho-Lee model, $dr = \\lambda(t)\\, dt + \\sigma\\, dw$. The current short rate is 5.00% and the annualised volatility is 1.20%. Each step is three months. The calibrated time-dependent drift is $\\lambda(1) = 0.40\\%$ per year over the first step and $\\lambda(2) = 0.80\\%$ per year over the second step. Which is the MIDDLE node of the tree after two steps?",
+  "options": {
+   "A": "5.00%",
+   "B": "5.10%",
+   "C": "5.30%",
+   "D": "6.20%"
+  },
+  "answer": "C",
+  "solution": "Ho-Lee is Model 2 with the constant drift replaced by a date-dependent drift, calibrated so that the model reproduces observed market bond prices:\n\n$$dr = \\lambda(t)\\, dt + \\sigma\\, dw$$\n\nStep 1. Compute the volatility step, which is constant across the tree:\n\n$\\sigma\\sqrt{dt} = 1.20\\% \\times \\sqrt{0.25} = 0.60\\%$\n\nStep 2. Compute the drift applied at each step, remembering to scale by $dt$:\n\nfirst step: $\\lambda(1) \\times dt = 0.40\\% \\times 0.25 = 0.10\\%$\n\nsecond step: $\\lambda(2) \\times dt = 0.80\\% \\times 0.25 = 0.20\\%$\n\nStep 3. Build the tree. Every node at a given date receives the SAME drift increment; only the volatility term differs by path.\n\n| Path | Node value |\n|---|---|\n| Date 0 | 5.00% |\n| Up (Date 1) | 5.70% $= 5.00\\% + 0.10\\% + 0.60\\%$ |\n| Up-Up (Date 2) | 6.50% $= 5.70\\% + 0.20\\% + 0.60\\%$ |\n| Up-Down (Date 2) | 5.30% $= 5.70\\% + 0.20\\% - 0.60\\%$ |\n| Down (Date 1) | 4.50% $= 5.00\\% + 0.10\\% - 0.60\\%$ |\n| Down-Up (Date 2) | 5.30% $= 4.50\\% + 0.20\\% + 0.60\\%$ |\n| Down-Down (Date 2) | 4.10% $= 4.50\\% + 0.20\\% - 0.60\\%$ |\n\nThe middle node is 5.30%, reached by both the up-down and the down-up paths, so the tree RECOMBINES: an up followed by a down cancels exactly because the drift increment at each date is identical across nodes and the volatility step is constant.\n\nCross-check without building the tree: the middle node equals the starting rate plus the cumulative dri […]"
+ },
+ {
+  "id": "MR-T2-12",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "A time-dependent volatility function for the short rate can be written as $dr = \\lambda(t)\\, dt + \\sigma(t)\\, dw$. In this specification, on what does the volatility of the short rate depend?",
+  "options": {
+   "A": "On the level of the short rate itself.",
+   "B": "On the volatility of the parameter sigma.",
+   "C": "On time.",
+   "D": "On changes in the market prices of the securities being fitted."
+  },
+  "answer": "C",
+  "solution": "Read the notation literally. The diffusion coefficient is written $\\sigma(t)$, a function whose single argument is $t$. Volatility therefore depends on TIME and on nothing else.\n\nThree distinctions follow, and each is contested by one of the distractors:\n\n| Specification | Volatility depends on | Example model |\n|---|---|---|\n| $\\sigma$ (constant) | nothing | Model 1, Model 2, Ho-Lee |\n| $\\sigma(t)$ | calendar time only, deterministically | Model 3, time-dependent volatility models |\n| $\\sigma \\times f(r)$ | the LEVEL of the rate | square-root and lognormal processes |\n| stochastic $\\sigma$ | its own random process | stochastic volatility models |\n\nThe word DETERMINISTIC matters. $\\sigma(t)$ is known in advance for every future date; it is not random. That is why these are called deterministic volatility functions, and it is what makes them tractable enough to be calibrated to a set of option prices."
+ },
+ {
+  "id": "MR-T2-13",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "Deterministic volatility functions are used to match the market prices of caplets with different expiration dates, because a caplet's value depends on the distribution of the short rate at its expiry. At expiration, what does a caplet pay?",
+  "options": {
+   "A": "The difference between the short rate and the strike rate, if that difference is positive, on a notional amount.",
+   "B": "The difference between the short rate and the strike rate, if that difference is negative, on a notional amount.",
+   "C": "The strike rate on a notional amount, provided the strike rate has risen.",
+   "D": "The short rate on a notional amount, regardless of the strike rate."
+  },
+  "answer": "A",
+  "solution": "A caplet is a call option on an interest rate. At expiry it pays:\n\n$$\\text{payoff} = \\text{Notional} \\times \\max(r - K, 0) \\times (\\text{day count fraction})$$\n\nwhere $r$ is the reference short rate at expiry and $K$ is the strike rate. The holder is compensated only when the rate exceeds the strike, which is what makes a caplet insurance against rising rates. A strip of caplets covering successive periods is a CAP.\n\nThe connection to the LO is the important part. The value of a caplet expiring at date $T$ depends on the DISTRIBUTION of the short rate at date $T$, and therefore on the volatility of the short rate between now and $T$. Caplets with different expiries therefore reveal information about volatility at different horizons. A model with a single constant $\\sigma$ has only one degree of freedom and generally cannot match a whole strip of caplet prices. A model with $\\sigma(t)$ has as many degrees of freedom as there are dates, so it CAN be fitted to them. That flexibility is the reason deterministic volatility functions exist."
+ },
+ {
+  "id": "MR-T2-14",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "In a model where the volatility of the short rate is a deterministic function of time, an analyst reports $\\sigma(1) = 1.25\\%$ and $\\sigma(2) = 1.28\\%$, with $t$ measured in years. What do these two values represent?",
+  "options": {
+   "A": "The volatility of the short rate over six months is 125 basis points and over one year is 128 basis points.",
+   "B": "The volatility of the short rate in one year is 128 basis points per year and in two years is 125 basis points per year.",
+   "C": "The volatility of the short rate in one year is 125 basis points per year and in two years is 128 basis points per year.",
+   "D": "The time-dependence of the short rate is 125 basis points in one year and 128 basis points in two years."
+  },
+  "answer": "C",
+  "solution": "Two conventions must both be applied correctly.\n\nThe argument is time in years. $\\sigma(1)$ is the volatility that applies one year from now, and $\\sigma(2)$ is the volatility two years from now. The argument is not an index and not a half-year count.\n\nThe units are annualised basis points. One basis point is 0.01%, so:\n\n$\\sigma(1) = 1.25\\% = 125$ basis points per year\n\n$\\sigma(2) = 1.28\\% = 128$ basis points per year\n\nEconomic reading: the model says the short rate is expected to be slightly MORE volatile two years from now than one year from now, a mild upward slope in the volatility term structure. Note that this is a statement about the volatility applying AT a future date, not about cumulative volatility up to that date."
+ },
+ {
+  "id": "MR-T2-15",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "Model 3 is a special case of the time-dependent volatility specification, written as $dr = \\lambda(t)\\, dt + \\sigma e^{-\\alpha t}\\, dw$. Which statement about the behaviour of short-rate volatility in this model is correct?",
+  "options": {
+   "A": "Volatility begins at the constant sigma and decays exponentially towards zero.",
+   "B": "Volatility begins at the constant lambda and decays exponentially towards zero.",
+   "C": "Volatility begins at the constant sigma and grows exponentially without bound.",
+   "D": "Volatility begins at zero and rises exponentially towards the constant sigma."
+  },
+  "answer": "A",
+  "solution": "Isolate the diffusion coefficient of Model 3:\n\n$$\\text{volatility at time } t = \\sigma \\times e^{-\\alpha t}$$\n\nEvaluate it at the two ends of the horizon. At $t=0$: $\\sigma \\times e^0 = \\sigma$. As $t$ increases: $e^{-\\alpha t}$ falls monotonically towards 0, so volatility falls towards 0.\n\nSo volatility starts at $\\sigma$ and decays exponentially to zero at rate $\\alpha$. The parameter $\\alpha$ controls the SPEED of decay: a larger $\\alpha$ means volatility dies away faster.\n\nKeep the two parameters in their roles. $\\lambda(t)$ is the DRIFT and sits in the $dt$ term; $\\sigma$ is the initial VOLATILITY and sits in the $dw$ term. Note also that the decay in Model 3 is a decay in the volatility of the short rate at FUTURE dates, which is a different statement from mean reversion in the rate itself, even though the two produce similar-looking term structures of volatility."
+ },
+ {
+  "id": "MR-T2-16",
+  "lo": "MR-15 b",
+  "loText": "Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.",
+  "outside": false,
+  "question": "An analyst uses Model 3, $dr = \\lambda(t)\\, dt + \\sigma e^{-\\alpha t}\\, dw$, with $\\sigma = 1.50\\%$ per year and $\\alpha = 0.05$ per year. At $t = 3$ years the drift is $\\lambda = 0.30\\%$ per year and the interval is one month. Over that month the random variable $dw$ takes the value 0.20. Which is nearest to the change in the short-term rate?",
+  "options": {
+   "A": "0.2582%",
+   "B": "0.2832%",
+   "C": "0.3250%",
+   "D": "0.5582%"
+  },
+  "answer": "B",
+  "solution": "Step 1. Evaluate the volatility applicable at $t = 3$:\n\n$\\sigma(t) = \\sigma \\times e^{-\\alpha t}$\n\n$\\sigma(3) = 1.50\\% \\times e^{-0.05 \\times 3} = 1.50\\% \\times e^{-0.15}$\n\n$\\sigma(3) = 1.50\\% \\times 0.860708 = 1.29106\\%$\n\nVolatility has decayed from 1.50% at inception to about 1.29% by year three, a fall of roughly 14%.\n\nStep 2. Compute the drift contribution, scaled by $dt$:\n\n$\\lambda \\times dt = 0.30\\% \\times (1/12) = 0.02500\\%$\n\nStep 3. Compute the random contribution using the DECAYED volatility:\n\n$\\sigma(3) \\times dw = 1.29106\\% \\times 0.20 = 0.25821\\%$\n\nStep 4. Add:\n\n$dr = 0.02500\\% + 0.25821\\% = 0.28321\\%$\n\nThe rate rises by approximately 28.3 basis points.\n\nOn the behaviour of the standard deviation: the annualised standard deviation of the rate change at date $t$ is $\\sigma e^{-\\alpha t}$, which declines monotonically towards zero. Over an interval of length $dt$ the standard deviation is $\\sigma e^{-\\alpha t}\\sqrt{dt}$. Both the decay in $t$ and the square-root scaling in $dt$ apply, and they are independent of one another."
+ },
+ {
+  "id": "MR-T2-17",
+  "lo": "MR-15 c",
+  "loText": "Assess the efficacy of time-dependent volatility models.",
+  "outside": false,
+  "question": "Models with time-dependent volatility and models with mean reversion suit different purposes. If the objective is to PRICE a fixed income OPTION, and separately if the objective is to price and hedge fixed income SECURITIES, which models are respectively preferable?",
+  "options": {
+   "A": "Time-dependent drift for the option; time-dependent volatility for the securities.",
+   "B": "Time-dependent volatility for the option; time-dependent drift for the securities.",
+   "C": "Time-dependent volatility for the option; mean reversion for the securities.",
+   "D": "Mean reversion for the option; time-dependent volatility for the securities."
+  },
+  "answer": "C",
+  "solution": "The two model families are good at different things, and the LO asks you to assess rather than merely describe.\n\n| Objective | Preferred model | Reason |\n|---|---|---|\n| Price a fixed income OPTION, especially by interpolating from quoted options | Time-dependent VOLATILITY | $\\sigma(t)$ has enough degrees of freedom to match a strip of observed option prices exactly, so unobserved option prices can be interpolated consistently from observed ones |\n| Price and HEDGE fixed income securities | MEAN REVERSION | A mean-reverting model produces a realistic term structure of volatility and realistic co-movement across maturities, which is what hedge ratios depend on |\n\nThe underlying trade-off is FLEXIBILITY against STRUCTURE. A model with a free function of time can be made to fit almost anything, which is ideal for interpolation and poor for extrapolation or for describing how the curve actually moves. A mean-reverting model imposes economic structure, fits less exactly, and generalises better."
+ },
+ {
+  "id": "MR-T2-18",
+  "lo": "MR-15 c",
+  "loText": "Assess the efficacy of time-dependent volatility models.",
+  "outside": false,
+  "question": "Many practitioners object to time-dependent volatility models on the grounds that they imply the market has a specific forecast of short-rate volatility in the DISTANT future. Which modification to the model addresses this objection?",
+  "options": {
+   "A": "Assume volatility depends on time in the near term and then settles at a constant thereafter.",
+   "B": "Assume the short RATE depends on time in the near term and then settles at a constant.",
+   "C": "Assume volatility depends on time in the distant future and settles at an increasing rate.",
+   "D": "Assume volatility depends on time in the near term and then decays without limit."
+  },
+  "answer": "A",
+  "solution": "The objection: a function $\\sigma(t)$ specified out to thirty years asserts a precise volatility for every future date. Practitioners find that implausible: it is one thing to say the market has a view on volatility over the next year or two, and quite another to say it has a view on volatility twenty years from now. Under Model 3 in particular, $\\sigma e^{-\\alpha t}$ drives volatility all the way to ZERO in the far future, which asserts that the short rate eventually stops moving. Almost nobody believes that.\n\nThe remedy: let volatility be time-dependent over the near horizon, where the market plausibly does have a view and where option prices provide information, and then hold it CONSTANT beyond some date:\n\n$\\sigma(t) = $ a time-dependent function for $t \\le T^*$, then $\\sigma(t) = $ constant for $t > T^*$\n\nThis preserves the flexibility needed to fit near-dated option prices while removing the indefensible claim about the distant future, and it stops volatility from decaying to zero.\n\nAssessment: the fix is a compromise, not a solution. It concedes that the model's flexibility is an artefact of calibration rather than a description of reality, which is the general reason mean-reverting models are preferred where structure matters."
+ },
+ {
+  "id": "MR-T2-47",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "Model 1 and Model 2 are described as equilibrium models because their drift is respectively zero and constant. In a model with a TIME-DEPENDENT drift, such as Ho-Lee, what does the drift represent over any given period?",
+  "options": {
+   "A": "Only the change in the risk premium over the period.",
+   "B": "Only the observed change in market short-term rates over the period.",
+   "C": "Expected changes in the volatility of short-term rates over the period.",
+   "D": "Some combination of the risk premium and expected changes in the short-term rate."
+  },
+  "answer": "D",
+  "solution": "The drift in a risk-neutral short-rate model is not a pure forecast. It bundles two economically distinct components that the model cannot separate:\n\n$$\\text{time-dependent drift} = \\text{expected change in the short rate} + \\text{risk premium}$$\n\nThe first component reflects where the market expects rates to go. The second reflects the compensation investors demand for bearing interest rate risk, which is embedded in observed bond prices and therefore in any drift calibrated to them.\n\nThis inseparability is exactly why a calibrated drift path should be inspected for plausibility. If fitting the model to market prices requires a drift path implying, say, that short rates are expected to rise by 400 basis points and then fall back, that is a warning sign. Either the model is too rigid elsewhere, or the prices being fitted are not all reliable.\n\nTerminology to keep straight: models with zero or constant drift (Models 1 and 2) are EQUILIBRIUM models; models whose drift is calibrated date by date to match market prices (Ho-Lee) are ARBITRAGE-FREE models."
+ },
+ {
+  "id": "MR-T4-21",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": false,
+  "question": "In the Cox-Ingersoll-Ross model the basis-point volatility of the short rate falls to zero as the rate approaches zero. Combined with a positive drift at zero, this prevents the rate from becoming negative. What is the corresponding problem with models that assume CONSTANT basis-point volatility?",
+  "options": {
+   "A": "They imply that the volatility of the short rate is the same whether rates are at 2% or at 20%, which is empirically implausible, and they permit the short rate to become negative.",
+   "B": "They imply that the volatility of the short rate rises with the level of the rate, which overstates risk when rates are low.",
+   "C": "They prevent the short rate from becoming negative but do so by imposing an artificial floor that distorts the distribution.",
+   "D": "They require the short rate to be lognormally distributed, which understates the probability of large rate moves."
+  },
+  "answer": "A",
+  "solution": "The two consequences of constant basis-point volatility: implausible behaviour across rate levels, and the absence of any barrier at zero.\n\nCompare how the three specifications treat the relationship between the level of the rate and its volatility:\n\n| Specification | Basis-point volatility | Behaviour at $r=0$ |\n|---|---|---|\n| Constant, as in Model 1 and Vasicek | $\\sigma$, independent of the rate level | Volatility remains at $\\sigma$, so the rate can be driven below zero |\n| CIR | $\\sigma\\sqrt{r}$, proportional to the square root of the rate | Volatility falls to ZERO, and with positive drift the rate is pushed back up |\n| Lognormal | $\\sigma r$, proportional to the rate | Volatility falls to ZERO, and the rate cannot reach or cross zero |\n\nConstant basis-point volatility therefore fails on two counts. Empirically, rate volatility is observed to rise with the level of rates, so a single $\\sigma$ cannot describe both a 2% and a 20% environment. Structurally, a constant volatility that does not shrink near zero allows a normally distributed shock to push the rate negative, which is the limitation the negative-rate methods exist to patch.\n\nThe CIR square-root specification is the intermediate case: volatility rises with the rate but less than proportionally, so it is more responsive than a constant and less aggressive than the lognormal."
+ },
+ {
+  "id": "MR-T4-22",
+  "lo": "MR-15 e",
+  "loText": "Calculate the short-term rate change and describe the basis point volatility using the CIR and lognormal models.",
+  "outside": false,
+  "question": "An analyst models the short rate with the Cox-Ingersoll-Ross process. The current short rate is 4.00%, the long-run level is 6.00%, the speed of mean reversion is 0.40 per year, and the volatility parameter is 0.03 in annualised decimal units. The time step is one month and the realised value of dw over the month is 0.15. Which is nearest to the change in the short rate over the month?",
+  "options": {
+   "A": "0.0667%",
+   "B": "0.0900%",
+   "C": "0.1567%",
+   "D": "0.9667%"
+  },
+  "answer": "C",
+  "solution": "Executing one step of the CIR process, in which the drift term scales with $dt$ while the volatility term is proportional to the square root of the current rate.\n\nThe CIR dynamics are:\n\n$$dr = k(\\theta - r)\\,dt + \\sigma\\sqrt{r}\\,dw$$\n\nwhere $k$ is the speed of mean reversion, $\\theta$ the long-run level, $\\sigma$ the volatility parameter, $r$ the current short rate, and $dw$ a normal variable with standard deviation $\\sqrt{dt}$. All rates are in decimal form.\n\n**Step 1. The drift term.** Note that it scales LINEARLY with $dt$.\n\n$$k(\\theta - r)\\,dt = 0.40 \\times (0.0600 - 0.0400) \\times (1/12) = 0.40 \\times 0.0200 \\times 0.083333 = 0.000667, \\text{ that is } 0.0667\\%$$\n\n**Step 2. The volatility term.** Note that $\\sqrt{r}$ uses the CURRENT rate in decimal form.\n\n$$\\sqrt{r} = \\sqrt{0.0400} = 0.2000$$\n$$\\sigma\\sqrt{r}\\,dw = 0.03 \\times 0.2000 \\times 0.15 = 0.00090, \\text{ that is } 0.0900\\%$$\n\n**Step 3. Combine.** The realised $dw$ already embeds the time step, so no further scaling is required.\n\n$$dr = 0.000667 + 0.00090 = 0.001567, \\text{ that is } 0.1567\\%$$\n\nThe basis-point volatility, which the objective also asks you to describe, is the coefficient on $dw$:\n\n$$\\text{basis-point volatility} = \\sigma\\sqrt{r} = 0.03 \\times \\sqrt{0.04} = 0.006, \\text{ that is } 0.60\\% \\text{ annualised}$$\n\nIt rises with the level of the rate but less than proportionally, and falls to zero as the […]"
+ },
+ {
+  "id": "MR-T4-23",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": false,
+  "question": "A lognormal model with deterministic drift is specified as $d[\\ln(r)] = a(t)\\,dt + \\sigma\\, dw$. What does this specification imply about the distribution of the short rate and about its basis-point volatility?",
+  "options": {
+   "A": "The short rate is normally distributed, and its basis-point volatility is constant at sigma.",
+   "B": "The natural logarithm of the short rate is normally distributed, so the short rate is LOGNORMALLY distributed and cannot become negative, and its basis-point volatility is proportional to the rate itself.",
+   "C": "The short rate is lognormally distributed, and its basis-point volatility is proportional to the square root of the rate.",
+   "D": "The natural logarithm of the short rate is lognormally distributed, and the short rate therefore has a fatter right tail than a normal variable."
+  },
+  "answer": "B",
+  "solution": "The relationship between modelling the logarithm of the rate and the resulting distribution and volatility structure of the rate itself.\n\nThe specification places the stochastic term on the LOGARITHM of the rate:\n\n$$d[\\ln(r)] = a(t)\\,dt + \\sigma\\, dw$$\n\nSince $\\ln(r)$ is driven by a normal shock, $\\ln(r)$ is normally distributed. By definition, a variable whose natural logarithm is normally distributed is LOGNORMALLY distributed. So $r$ is lognormal.\n\nTwo consequences follow immediately:\n\n| Consequence | Why |\n|---|---|\n| The rate cannot become negative | A lognormal variable is strictly positive, since the exponential of any real number is positive. This is the structural advantage over the normal specifications. |\n| Basis-point volatility is PROPORTIONAL TO THE RATE | Applying Ito to $r = \\exp(\\ln r)$ gives a diffusion term of $\\sigma r$. So $\\sigma$ is the YIELD volatility, a proportional measure, while $\\sigma r$ is the basis-point volatility. |\n\nThe distinction between the two volatility measures is the examinable point across this family of models:\n\n$$\\text{yield volatility} = \\sigma, \\text{ a proportional or percentage measure}$$\n$$\\text{basis-point volatility} = \\sigma r \\text{ for the lognormal model}, \\ \\sigma\\sqrt{r} \\text{ for CIR}$$\n\nA yield volatility of 15% means the rate moves by 15% OF ITSELF per year, so at a rate of 4% the basis-point volatility is 60 basis p […]"
+ },
+ {
+  "id": "MR-T4-24",
+  "lo": "MR-15 f",
+  "loText": "Describe lognormal models with deterministic drift and mean reversion.",
+  "outside": false,
+  "question": "A lognormal model with mean reversion, known as the Black-Karasinski model, is specified as $d[\\ln(r)] = k(t)[\\ln(\\theta(t)) - \\ln(r)]\\,dt + \\sigma(t)\\, dw$. Which statement about this model is correct?",
+  "options": {
+   "A": "It assumes the logarithm of the short rate follows a time-dependent Vasicek process, and because the volatility, the mean reversion speed and the central tendency may all depend on time, the user can introduce or remove as much time dependence as the application requires.",
+   "B": "It assumes the short rate itself follows a time-dependent Vasicek process, and the volatility must be constant for the model to remain arbitrage-free.",
+   "C": "It permits negative short rates, since the mean reversion term can pull the logarithm of the rate below zero.",
+   "D": "It is an equilibrium model, because the presence of a mean reversion parameter fixes the long-run level rather than fitting it to market prices."
+  },
+  "answer": "A",
+  "solution": "Black-Karasinski as a Vasicek process applied to the logarithm of the rate, with three time-dependent parameters and the flexibility that provides.\n\nRead the specification against the Vasicek form. Vasicek writes:\n\n$$dr = k(\\theta - r)\\,dt + \\sigma\\, dw$$\n\nBlack-Karasinski writes the same structure with $\\ln(r)$ in place of $r$ and with all three parameters allowed to vary by date:\n\n$$d[\\ln(r)] = k(t)[\\ln(\\theta(t)) - \\ln(r)]\\,dt + \\sigma(t)\\, dw$$\n\nSo it is a time-dependent Vasicek process applied to the LOGARITHM of the rate. Three features follow.\n\n| Feature | Consequence |\n|---|---|\n| $\\ln(r)$ is modelled, not $r$ | The rate is lognormal and therefore strictly positive. Negative rates are excluded by construction. |\n| Three time-dependent parameters: $k(t)$, $\\theta(t)$, $\\sigma(t)$ | The model can be calibrated to match observed bond prices AND observed option prices, which makes it ARBITRAGE-FREE rather than equilibrium. |\n| Time dependence is optional in each parameter | The user may hold any of the three constant. Setting all three constant recovers a lognormal Vasicek; letting all three vary gives maximum flexibility. |\n\nThe model is a family rather than a single specification, and the analyst chooses how much time dependence to admit. More flexibility fits more market prices and, as with any richly parameterised model, risks fitting noise."
+ },
+ {
+  "id": "MR-QB-0667",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "A normally distributed short‑rate tree allows negative rates. A common fix is to construct the tree with the desired distribution and then force every negative rate to zero. Which of the following statements about this method is correct?",
+  "options": {
+   "A": "It replaces the normal distribution with a lognormal distribution at every node, so all rates in the tree change.",
+   "B": "It changes the original distribution only where rates are very low, leaving rates away from zero unchanged.",
+   "C": "It introduces skewness and inappropriate volatilities across the entire distribution of rates.",
+   "D": "It removes the negative rate problem only when the investment horizon is long and the current rate is high."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The Schweser text gives two remedies for negative rates: (1) use a distribution that is always non‑negative (lognormal, chi‑squared); (2) force negative tree rates to zero.\n2. Remedy (2) leaves every node with a positive rate as originally computed; only nodes that would be below zero are reset to 0.\n3. Hence the distribution is changed only in a very low rate environment, which is why this method may be preferred to remedy (1), which reshapes the whole distribution.\n4. Statement B is the only one consistent with this.\n\n**REBUILT** — Original options used undefined labels (expected/observed/shadow rates) not in the Schweser text and two options were near‑identical; rebuilt around the two Schweser remedies with clear distinct statements."
+ },
+ {
+  "id": "MR-QB-0668",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "Analyst Susan is evaluating a normally distributed short‑rate model and wants to avoid negative short‑term rates in the model. Each of the following approaches can help her EXCEPT:",
+  "options": {
+   "A": "Using a lognormal distribution for the short rate.",
+   "B": "Using a chi‑squared distribution for the short rate.",
+   "C": "Adjusting the interest rate tree so that any negative rate is set to zero.",
+   "D": "Increasing the number of time steps so the terminal distribution approaches a continuous normal distribution."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Schweser’s two remedies: (1) use distributions that are always non‑negative, e.g. lognormal or chi‑squared; (2) force negative rates in the tree to zero.\n2. A and B are remedy (1); C is remedy (2).\n3. D moves the terminal distribution closer to a normal distribution, which has unbounded support below zero, so a positive probability of negative rates remains (and the problem grows with horizon).\n4. D is therefore the exception.\n\n**REBUILT** — Source option A (’increase the convexity effect input’) is not a defined modelling input and the CIR option belongs to another reading; rebuilt as an EXCEPT question on the Schweser remedies with exactly one non‑remedy."
+ },
+ {
+  "id": "MR-QB-0669",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": false,
+  "question": "In term structure models with normally distributed rates, the short‑term rate can become negative. Which of the following statements best explains why negative rates are a drawback of such models?",
+  "options": {
+   "A": "Lenders would accept negative rates because lending at a negative rate removes all credit risk.",
+   "B": "Investors can instead hold cash and earn a zero rate, so lending at a materially negative rate makes little economic sense.",
+   "C": "Negative rates are harmless because they always revert to positive levels within one period.",
+   "D": "Negative rates occur only for short horizons, so the problem is smaller as the investment horizon lengthens."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Lending 100 and receiving less than 100 back is dominated by holding cash at a 0% return.\n2. Schweser notes a small negative rate can be rationalized only if the safety or inconvenience of holding cash is high enough.\n3. So materially negative rates make little economic sense, which is the model’s drawback.\n4. The problem worsens with longer horizons and lower current rate levels, ruling out D.\n\n**REBUILT** — Option A (negative rates give lenders ’zero lending risk’) and D were giveaway distractors; reworded all options around the economic argument in the Schweser text."
+ },
+ {
+  "id": "MR-QB-0670",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "In the Ho‑Lee model, the drift of the short‑term rate is allowed to differ from period to period (time‑dependent drift). What does the drift in a given period represent?",
+  "options": {
+   "A": "A combination of the risk premium and the expected change in the short‑term rate over that period",
+   "B": "Only the expected change in the short‑term rate over that period",
+   "C": "The expected change in the volatility of the short‑term rate over that period",
+   "D": "Only the risk premium demanded by investors over that period"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. In Models 2 and Ho‑Lee the drift term λ(t)dt is the expected (risk‑neutral) change in the short rate.\n2. Per Tuckman, that drift reflects both the risk premium for bearing interest rate risk and the expected change in the short rate.\n3. The two components cannot be separated, and λ is calibrated to market prices so the tree fits the term structure; volatility is a separate parameter σ.\n\n**REBUILT** — Removed the loosely worded ’equilibrium model’ preamble and tightened the stem to ask directly about the Ho‑Lee time‑dependent drift."
+ },
+ {
+  "id": "MR-QB-0671",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "A risk analyst constructs a binomial interest rate tree by using the Ho‑Lee model. The time step is monthly and the annualized drift is 80 bps in the first month and 120 bps in the second month. Assuming the current annualized short‑term rate is 3.2% and the annual basis‑point volatility is 2.1%, what is the interest rate at the lowest node after 2 months?",
+  "options": {
+   "A": "1.82%",
+   "B": "2.15%",
+   "C": "2.76%",
+   "D": "3.03%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. dt = 1/12, so √dt = 0.288675.\n2. Cumulative drift = (0.80% + 1.20%)/12 = 0.1667%.\n3. Volatility step per move = σ√dt = 2.1% × 0.288675 = 0.6062%.\n4. Lowest node = two down moves: r = 3.2% + 0.1667% − 2(0.6062%) = 2.1543% ≈ 2.15%."
+ },
+ {
+  "id": "MR-QB-0672",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "The current short‑term rate, r(0), is 4.00%. Under a Ho‑Lee model with time‑dependent drift, the time step is monthly (dt = 1/12). The annualized drifts are +100 bps in the first month and +80 bps in the second month, and the annual basis‑point volatility is 200 bps. In the recombining two‑month tree, what is the interest rate at the lowest node after two months?",
+  "options": {
+   "A": "2.845%",
+   "B": "3.573%",
+   "C": "2.995%",
+   "D": "3.817%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. √dt = 0.288675; σ√dt = 2.00% × 0.288675 = 0.5774%.\n2. Cumulative drift = (1.00% + 0.80%) × 1/12 = 0.1500%.\n3. Middle node = 4.00% + 0.15% = 4.150%; each down move subtracts 0.5774%.\n4. Lowest node = 4.150% − 2(0.5774%) = 2.995%.\n\n**REBUILT** — Source relied on a partially unreadable tree exhibit; made the stem self‑contained with all inputs and replaced distractors with ones that follow from realistic errors."
+ },
+ {
+  "id": "MR-QB-0673",
+  "lo": "MR-14 d",
+  "loText": "Construct a short-term rate tree under the Ho-Lee Model with time-dependent drift.",
+  "outside": false,
+  "question": "An analyst uses the Ho‑Lee model, dr = λ(t)dt + σdw, with monthly steps (dt = 1/12), current rate r(0) = 4.000%, annual basis‑point volatility of 300 bps, and annualized drifts of λ(1) = 110 bps in month one and λ(2) = 70 bps in month two. In the simulation, the standard normal draw is −0.52 in month one and +0.84 in month two. What is the simulated short rate after two months, r(2/12)?",
+  "options": {
+   "A": "4.277%",
+   "B": "4.877%",
+   "C": "4.427%",
+   "D": "5.110%"
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (BT) gave 4.425% as the answer; the exact value is 4.427% (rounding in the source option).\n\n**Step by step**\n\n1. Cumulative drift = (1.10% + 0.70%) × 1/12 = 0.1500%.\n2. Sum of shocks = −0.52 + 0.84 = 0.32.\n3. Volatility term = 0.32 × 3.00% × √(1/12) = 0.32 × 0.8660% = 0.2771%.\n4. r(2/12) = 4.000% + 0.150% + 0.2771% = 4.427%.\n\n**REBUILT** — Source option B (4.425%) was a rounded value; exact result is 4.427%, so options were rebuilt with an exact answer and error‑based distractors."
+ },
+ {
+  "id": "MR-QB-0681",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "In the Vasicek model, a risk premium ($\\lambda$) is introduced. What is the key implication of this risk premium for the observed term structure of interest rates?",
+  "options": {
+   "A": "The risk premium directly affects the volatility of the short‑term rate.",
+   "B": "The risk premium is indistinguishable from the long‑run value of the short‑term rate ($\\theta$) when observing security prices.",
+   "C": "The risk premium only affects the short end of the yield curve and has no impact on long‑term rates.",
+   "D": "The risk premium causes the short‑term rate to become negatively correlated with the long‑run value ($\\theta$)."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Under the risk‑neutral process the drift is $k(\\theta- r) + \\lambda$, which equals $k(\\theta^{*} - r)$ with $\\theta^{*} \\approx\\theta+ \\lambda/k$.\n2. The risk premium therefore enters only as a constant shift of the long‑run level used for pricing.\n3. Prices depend only on $\\theta^{*}$, so $\\theta$ and $\\lambda$ cannot be separately identified from security prices."
+ },
+ {
+  "id": "MR-QB-0682",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Analyst Steven builds a monthly (dt = 1/12) short‑rate tree under the Vasicek model $dr = k(\\theta- r)dt + \\sigma dw$ with r(0) = 8.00%, $\\theta$ = 3.00%, k = 0.60 and annual volatility $\\sigma$ = 2.00% (200 bps). After the first month the tree has r(u) = 8.3274% and r(d) = 7.1726%. The unrecombined tree is then made recombining by averaging the two middle nodes of month 2 (up‑down and down‑up). What is the value of the recombined middle node at month 2?",
+  "options": {
+   "A": "7.484%",
+   "B": "7.513%",
+   "C": "7.542%",
+   "D": "7.750%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Monthly shock: $\\sigma\\sqrt{dt} = 2\\% \\times\\sqrt{1/12} = 0.5774\\%$.\n2. Up‑down node: from 8.3274%, drift = 0.60(3 ‑ 8.3274)/12 = ‑0.2664%, so 8.3274 ‑ 0.2664 ‑ 0.5774 = 7.4836%.\n3. Down‑up node: from 7.1726%, drift = 0.60(3 ‑ 7.1726)/12 = ‑0.2086%, so 7.1726 ‑ 0.2086 + 0.5774 = 7.5414%.\n4. The two nodes differ (7.4836% vs 7.5414%), so the tree does not recombine; average them: (7.4836 + 7.5414)/2 = 7.5125%, about 7.513%.\n\n**REBUILT** — Node label \\[2,1\\] was ambiguous because the Vasicek tree does not recombine (two distinct middle nodes) and the source used a drift‑only shortcut; reframed to ask for the recombined middle node (average of the up‑down and down‑up nodes) with plausible distractors."
+ },
+ {
+  "id": "MR-QB-0683",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "A risk manager is reviewing short‑term interest rate assumptions by applying the Vasicek model. The first task is to estimate the long‑run value of the short‑term interest rate. The current interest rate is 5% and you estimate the true long‑term interest rate is 5.5%, annual drift (risk premium) of 0.32%, annual volatility of 1.8%, dt = 1/12, and a mean reversion adjustment (k) of 0.04. What is the long‑run value of the short‑term rate, assuming risk neutrality?",
+  "options": {
+   "A": "5.82%",
+   "B": "5.51%",
+   "C": "13.50%",
+   "D": "‑2.50%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Risk‑neutral long‑run value: $\\theta\\approx r_{\\infty} + \\lambda/k$.\n2. $\\lambda/k = 0.32\\%/0.04 = 8.0\\%$.\n3. $\\theta= 5.5\\% + 8.0\\% = 13.5\\%$.\n4. The current rate 5%, volatility 1.8% and dt are not needed.\n\n**REBUILT** — Distractors were evenly spaced offsets of the answer (giveaway pattern); replaced with results of realistic formula errors."
+ },
+ {
+  "id": "MR-QB-0684",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Using the Vasicek model, assume a current short‑term rate of 5.2% and an annual volatility of the interest rate process of 3.5%. Also assume that the long‑run mean‑reverting level is 14.2% with a speed of adjustment of 0.4. Within a binomial interest rate tree, what are the upper and lower node rates after the first month?",
+  "options": {
+   "A": "Upper 9.81%; lower 7.79%",
+   "B": "Upper 5.91%; lower 3.89%",
+   "C": "Upper 6.51%; lower 4.49%",
+   "D": "Upper 9.00%; lower 2.00%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Drift: $k(\\theta- r_{0})dt = 0.4 \\times(14.2\\% - 5.2\\%) \\times1/12 = 0.30\\%$.\n2. Volatility: $\\sigma\\sqrt{dt} = 3.5\\% \\times\\sqrt{1/12} = 1.0104\\%$.\n3. Upper = 5.2 + 0.30 + 1.0104 = 6.51%.\n4. Lower = 5.2 + 0.30 ‑ 1.0104 = 4.49%.\n\n**REBUILT** — Distractors were not traceable to realistic errors; options rebuilt from common formula mistakes keeping the same data."
+ },
+ {
+  "id": "MR-QB-0685",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "A risk manager at a fixed‑income hedge fund is evaluating methods to improve the fund’s ability to model interest rate term structures. The manager would like to adopt a model that is flexible enough to incorporate both mean reversion and a risk premium and considers the Vasicek model for this purpose. Which of the following statements is correct about the Vasicek model?",
+  "options": {
+   "A": "The model incorporates mean reversion and a drift of zero.",
+   "B": "The model incorporates mean reversion and models the risk premium as a component of the drift.",
+   "C": "The model incorporates a drift of zero, but it cannot incorporate a risk premium.",
+   "D": "The model can be used to model the time‑varying risk premium, but it cannot incorporate mean reversion."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Vasicek: $dr = k(\\theta- r)dt + \\sigma dw$; the drift $k(\\theta- r)$ is non‑zero and produces mean reversion.\n2. The drift combines the expected rate change and a risk premium ($\\lambda$), which shifts the risk‑neutral long‑run level $\\theta\\approx r_{\\infty} + \\lambda/k$.\n3. So mean reversion and a risk premium are both embedded in the drift."
+ },
+ {
+  "id": "MR-QB-0686",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Using the Vasicek model, assume a current short‑term rate of 6.2% and an annual volatility of the interest rate process of 2.5%. Also assume that the long‑run mean‑reverting level is 14.2% with a speed of adjustment of 0.4. Within a binomial interest rate tree, what are the upper and lower node rates after the first month?",
+  "options": {
+   "A": "Upper 10.12%; lower 8.68%",
+   "B": "Upper 8.97%; lower 3.97%",
+   "C": "Upper 6.66%; lower 5.21%",
+   "D": "Upper 7.19%; lower 5.74%"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Drift: 0.4 × (14.2% − 6.2%) × 1/12 = 0.2667%.\n2. Volatility: $2.5\\% \\times\\sqrt{1/12} = 0.7217\\%$.\n3. Upper = 6.2 + 0.2667 + 0.7217 = 7.19%.\n4. Lower = 6.2 + 0.2667 ‑ 0.7217 = 5.74%.\n\n**REBUILT** — Original was an open item with answer choices and worked numbers lost to OCR; converted to a 4‑option MCQ with recomputed nodes and error‑based distractors."
+ },
+ {
+  "id": "MR-QB-0687",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Each of the following statements is true about the Vasicek Model EXCEPT:",
+  "options": {
+   "A": "The Vasicek Model is an equilibrium model like the Cox‑Ingersoll‑Ross (CIR) model and unlike the Ho‑Lee model, which is an arbitrage‑free (aka, no‑arbitrage) model",
+   "B": "In the Vasicek Model, half‑life is given by LN(2)/k and can be interpreted as the time it takes for the short‑rate (the factor) to progress half the distance toward the long‑run value (Theta)",
+   "C": "The mean reversion in Vasicek dampens volatility relative to the same process without mean reversion, particularly at long horizons",
+   "D": "Due to the mean‑reversion, it is impossible to develop a rate tree that recombines under Vasicek"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. The unadjusted Vasicek tree does not recombine because the reversion adjustment differs after up and down moves.\n2. It can be made recombining by averaging the two middle nodes and solving for new probabilities (p, q) and outer nodes, so D is false.\n3. A is true (equilibrium vs arbitrage‑free), B is true (half‑life = ln2/k), C is true (volatility term structure slopes downward)."
+ },
+ {
+  "id": "MR-QB-0705",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "A term structure model specifies the short‑term rate process as $dr = \\lambda(t) dt + \\sigma(t) dw$. On which factor does the volatility of the short rate depend in this model?",
+  "options": {
+   "A": "The current level of the short‑term rate, as in the CIR model",
+   "B": "Time only, through the function $\\sigma(t)$",
+   "C": "Neither the rate level nor time; volatility is a constant as in the Ho‑Lee model",
+   "D": "The drift $\\lambda(t)$, since both are functions of time"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The diffusion term is $\\sigma(t) dw$; the coefficient $\\sigma(t)$ is a deterministic function of calendar time t.\n2. Nothing in $\\sigma(t)$ involves r, so basis‑point volatility does not change with the rate level (that would require $\\sigma\\sqrt{r}$ as in CIR or $\\sigma r$ as in lognormal models).\n3. The Ho‑Lee model has $\\sigma$ constant, so letting $\\sigma$ vary with t is what distinguishes the time‑dependent volatility model (e.g. Model 3: $\\sigma e^{-\\alpha t}$).\n4. Hence volatility depends on time only.\n\n**REBUILT** — Original distractors were weak (circular ’volatility of σ’, unrelated ’security prices’); rewrote the stem and options so each wrong option reflects a realistic confusion among Model 1, Ho‑Lee, Model 3 and CIR/lognormal."
+ },
+ {
+  "id": "MR-QB-0706",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": false,
+  "question": "Consider the following summary of the interest rate models in Tuckman:\n\nI. Model 1 is a simple equilibrium model with normally distributed rates and no drift.\n\nII. Model 2 adds a constant drift (risk premium) to Model 1 and is also an equilibrium model with normally distributed rates.\n\nIII. The Ho‑Lee model has normally distributed rates and a time‑dependent drift, and can be calibrated so that it is arbitrage‑free.\n\nIV. The Vasicek model has normally distributed rates with mean reversion toward a long‑run value.\n\nV. Model 3 replaces the normal distribution of rates with a lognormal distribution while keeping volatility constant. Which of the statements are TRUE?",
+  "options": {
+   "A": "I and II only",
+   "B": "III and V only",
+   "C": "I, II, III and IV only",
+   "D": "All of the statements"
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (BT notes) said D (all true); that relied on a flawed statement V. In the original V, Model 3 was contrasted with models ’which assume normally distributed rates’, yet Model 3 is itself normal. V has been rewritten as false.\n\n**Step by step**\n\n1. I: Model 1, $dr = \\sigma dw$, has normal rates and no drift. True.\n2. II: Model 2, $dr = \\lambda dt + \\sigma dw$, has constant drift and normal rates. True.\n3. III: Ho‑Lee, $dr = \\lambda(t) dt + \\sigma dw$, has time‑dependent drift fitted to the market curve (arbitrage‑free). True.\n4. IV: Vasicek, $dr = k(\\theta- r)dt + \\sigma dw$, is normal with mean reversion. True.\n5. V: Model 3, $dr = \\lambda(t)dt + \\sigma e^{-\\alpha t}dw$, keeps normal rates and has time‑dependent (not constant) volatility, and is not lognormal. False.\n6. So I, II, III and IV only.\n\n**REBUILT** — Original statement V wrongly implied Model 3 abandons normally distributed rates (it keeps them), making ’all true’ defensible and the item ambiguous; rewrote V as a clearly false statement and reset options."
+ },
+ {
+  "id": "MR-QB-0707",
+  "lo": "MR-15 b",
+  "loText": "Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.",
+  "outside": false,
+  "question": "An analyst applies Tuckman’s Model 3 for the short‑term rate: $dr = \\lambda(t) dt + \\sigma e^{-\\alpha t} dw$. Assumptions:\n\n‑ Time step is monthly, $dt = 1/12$ year\n\n‑ Initial short rate $r(0) = 4.00\\%$\n\n‑ Basis‑point volatility parameter $\\sigma= 3.00\\%$ per year\n\n‑ Drift $\\lambda(t)$ is constant at 1.30% per year\n\n‑ $\\alpha= 0.380$\n\nIn the 60th month ($t = 5.0$ years), the random uniform draw is 0.20, so the standard normal draw is NORM.S.INV(0.20) = ‑0.8416 and $dw = -0.8416 \\times\\sqrt{1/12} = -0.2430$ (already time‑scaled).\n\nWhich is nearest to the change in the rate, dr, in the 60th month?",
+  "options": {
+   "A": "‑1.00%",
+   "B": "0.00%",
+   "C": "+1.00%",
+   "D": "+2.00%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Drift term: $\\lambda dt = 1.30\\% \\times1/12 = 0.1083\\%$.\n2. Volatility at t = 5: $\\sigma e^{-\\alpha t} = 3.00\\% \\times e^{-0.380\\times5} = 3.00\\% \\times e^{-1.9} = 3.00\\% \\times0.14957 = 0.4487\\%$.\n3. Shock term: 0.4487% × (−0.2430) = −0.1090%.\n4. $dr = 0.1083\\% - 0.1090\\% = -0.0007\\% \\approx0.00\\%$."
+ },
+ {
+  "id": "MR-QB-0708",
+  "lo": "MR-15 b",
+  "loText": "Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.",
+  "outside": false,
+  "question": "A bank models the short rate with $dr = \\lambda(t) dt + \\sigma(t) dw$, where $dw$ has mean zero and standard deviation $\\sqrt{dt}$, using a monthly binomial tree ($dt = 1/12$) with up and down moves equally likely. Inputs:\n\n| Current short rate (date 0) | 2.75% |\n|---|---|\n| Drift $\\lambda(1)$ | 0.0018 per year |\n| Drift $\\lambda(2)$ | 0.0030 per year |\n| Annualized volatility $\\sigma(1)$ | 0.0050 |\n| Annualized volatility $\\sigma(2)$ | 0.0080 |\n\nWhat is the change in the rate from date 0 to the upper node (two up‑moves) at date 2?",
+  "options": {
+   "A": "16 bps",
+   "B": "42 bps",
+   "C": "26 bps",
+   "D": "86 bps"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Up‑move at date 1: $\\lambda(1)dt + \\sigma(1)\\sqrt{dt} = 0.0018/12 + 0.0050 \\times0.28868 = 0.000150 + 0.001443 = 0.001593$ (15.9 bps).\n2. Up‑move at date 2: 0.0030/12 + 0.0080 × 0.28868 = 0.000250 + 0.002309 = 0.002559 (25.6 bps).\n3. Upper node at date 2 = 2.75% + 0.1593% + 0.2559% = 3.165%.\n4. Change = 0.1593% + 0.2559% = 0.4152% ≈ 42 bps.\n\n**REBUILT** — Original distractors (52 bps, 178 bps) were not traceable to realistic errors; replaced with distractors from the first step only, second step only, and unscaled drift."
+ },
+ {
+  "id": "MR-QB-0709",
+  "lo": "MR-15 b",
+  "loText": "Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.",
+  "outside": false,
+  "question": "A model of the short rate has the form $dr = \\lambda(t) dt + \\sigma(t) dw$, where t is measured in years. If $\\sigma(1) = 1.25\\%$ and $\\sigma(2) = 1.28\\%$, which statement is correct?",
+  "options": {
+   "A": "The volatility of the short rate is 125 bps per year at t = 1 year and 128 bps per year at t = 2 years.",
+   "B": "The volatility of the short rate is 128 bps per year at t = 1 year and 125 bps per year at t = 2 years.",
+   "C": "The volatility of the short rate is 125 bps per year at t = 6 months and 128 bps per year at t = 1 year.",
+   "D": "The volatility of the short rate is 1.25% in the first year and 1.28% in the second year, constant within each year, so volatility is declining over time."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. $\\sigma(t)$ is the annualized basis‑point volatility of the short rate evaluated at date t.\n2. $\\sigma(1) = 1.25\\%$ = 125 bps per year at t = 1 year.\n3. $\\sigma(2) = 1.28\\%$ = 128 bps per year at t = 2 years; volatility rises slightly with time.\n\n**REBUILT** — Stem referred to an equation not shown and option A/D were poorly worded; made self‑contained with the process stated and clean options."
+ },
+ {
+  "id": "MR-QB-0710",
+  "lo": "MR-15 b",
+  "loText": "Calculate the short-term rate change and determine the behavior of the standard deviation of the rate change using a model with time-dependent volatility.",
+  "outside": false,
+  "question": "In Model 3, $dr = \\lambda(t) dt + \\sigma e^{-\\alpha t} dw$ with $\\sigma= 1.20\\%$, $\\alpha= 0.25$ and $\\lambda(t)$ constant. Which statement best describes the standard deviation of the short‑rate change per unit of $dw$?",
+  "options": {
+   "A": "It starts at 1.20% per year and declines exponentially toward zero, reaching about 0.44% at t = 4 years.",
+   "B": "It starts at 1.20% per year and declines exponentially toward zero, reaching about 0.73% at t = 4 years.",
+   "C": "It starts at 1.20% and rises exponentially with time, reaching about 3.26% at t = 4 years.",
+   "D": "It is constant at 1.20% per year; α only affects the drift."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. At t = 0, $\\sigma e^{0} = 1.20\\%$.\n2. Since $\\alpha> 0$, $e^{-\\alpha t}$ decays toward zero, so volatility falls exponentially.\n3. At t = 4: $1.20\\% \\times e^{-0.25\\times4} = 1.20\\% \\times e^{-1} = 0.4415\\% \\approx0.44\\%$.\n\n**REBUILT** — Original options B and D were giveaways (calling the drift lambda the volatility); replaced with plausible numeric‑behaviour options."
+ },
+ {
+  "id": "MR-QB-0711",
+  "lo": "MR-15 c",
+  "loText": "Assess the efficacy of time-dependent volatility models.",
+  "outside": false,
+  "question": "According to Tuckman, the purpose of the model drives the choice between a time‑dependent volatility model (Model 3) and a mean‑reverting model (Vasicek). Which statement is correct?",
+  "options": {
+   "A": "Time‑dependent drift is best for pricing options on fixed‑income securities, while time‑dependent volatility is best for pricing and hedging fixed‑income securities.",
+   "B": "Time‑dependent volatility is best for pricing options on fixed‑income securities, while time‑dependent drift is best for pricing and hedging fixed‑income securities.",
+   "C": "Time‑dependent volatility is best for pricing options on fixed‑income securities, while mean reversion is best for pricing and hedging fixed‑income securities.",
+   "D": "Mean reversion is best for pricing options on fixed‑income securities, while time‑dependent volatility is best for pricing and hedging fixed‑income securities."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Option pricing needs a model that can be fitted to observed option prices at several expiries: the free function $\\sigma(t)$ lets the model interpolate between observed market prices.\n2. Valuing or hedging securities (and options) calls for a model with sensible economics for rates over time: mean reversion provides this.\n3. Match: option pricing ‑> time‑dependent volatility; pricing/hedging securities ‑> mean reversion (C).\n\n**REBUILT** — Stem was garbled (the same sentence asked about pricing an option and about pricing and hedging securities); reworded to a clean contrast."
+ },
+ {
+  "id": "MR-QB-0712",
+  "lo": "MR-15 c",
+  "loText": "Assess the efficacy of time-dependent volatility models.",
+  "outside": false,
+  "question": "The choice of term structure model depends on the purpose at hand. Many users prefer the mean‑reversion model for valuing or hedging fixed‑income securities because they dispute the time‑dependent volatility model’s implicit claim that the market forecasts short‑term volatility far into the future. Which modification of the time‑dependent volatility model addresses this objection?",
+  "options": {
+   "A": "Assuming that volatility depends on time in the near future and then settles at a constant.",
+   "B": "Assuming that the short rate depends on time in the near future and then settles at a constant.",
+   "C": "Assuming that volatility depends on time in the distant future and then settles at an increasing rate.",
+   "D": "Assuming that volatility depends on time in the near future and then settles at a decreasing rate."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. The objection: it is implausible that the market can forecast short‑rate volatility in the distant future.\n2. Compromise (Tuckman): let volatility vary with time only over the near term and let it approach a constant value afterwards.\n3. Only A describes volatility, not the short rate, converging to a constant."
+ }
+]

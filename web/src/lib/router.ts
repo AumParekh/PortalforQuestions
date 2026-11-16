@@ -10,6 +10,7 @@ export type Route =
   | '/progress'
   | '/setup'
   | '/library'
+  | '/shapes'
   | '/session'
   | '/summary'
   | '/review'

@@ -1,0 +1,171 @@
+TOPIC D15: Structured Credit and Implied Correlation (Tier D)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+D15 Structured Credit and Implied Correlation
+Readings: CR-22 h, i, j, k, l · Structured Credit Risk (Malz, Ch.9, 22.3 Measuring Structured Credit Risk via Simulation;
+22.4 Standard Tranches and Implied Credit Correlation)
+ MAP TIER D · #60 · 2/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #60: “Named: LO 40.i, ‘just remember the impacts via the table’, with one possible calculation; and the concept
+  of implied correlation, described as ‘likely to be testable.’ Reported independently as ‘Gaussian copula, implied
+  correlation.’ ”
+  Shapes covered here:
+  S1 LO 40.i impacts table: how default probability and correlation move each tranche (Q1)
+  S2 the one possible calculation: reading tranche values and writedowns off the simulation grid (Q1)
+  S3 implied correlation backed out of a tranche price (Q1)
+  S4 Gaussian copula and implied correlation (Q1; copula mechanics in B3.3)
+  Revision notes
+  • See also A9 for CR-22 a to g and m: product types, tranching, waterfall, participants and conflicts, interim
+  cash flows, overcollateralization account, the custodian’s tests and motivations. This section covers the sim-
+  ulation, the impacts table, sensitivities, risk factors and implied correlation.
+  • Simulation procedure (CR-22 h). Estimate parameters (each loan’s default probability, physical or risk-
+  neutral, and a pairwise copula correlation restricted to ρ ≥ 0); draw I = 1,000 threads of N = 100
+  correlated standard normals; map each to a default time t = − log[1 − Φ(z)]/λ with λ = − log(1 − π)
+  (π = 0.0225 ⇒ λ = 0.022757); count defaults per year; pass each thread through the waterfall to get
+  tranche losses and equity IRRs. New simulations are needed only for more threads, more loans or new
+  correlation settings; changing recovery or collateral interest only changes the processing.
+  • Impacts table, default probability (CR-22 i, S1). For any given correlation, a higher default rate raises
+  bond losses and lowers the equity IRR: it hurts every tranche.
+  • Impacts table, correlation (CR-22 i, S1). At low default rates the impact of correlation is relatively low. At
+  higher default rates, higher correlation materially raises the equity value and raises the senior bond’s losses:
+  “the equity benefits from high correlation, while the senior bond is hurt by it”. Malz: “correlation is more
+  decisive for equity risk and value than default probability”.
+  • Mezzanine (CR-22 i). Ambiguous: at low default rates higher correlation increases its losses (it behaves
+  like a senior bond); at high default rates it decreases them (it behaves like equity). Table 22.3 writedowns:
+  at π = 0.0075, 0.00% (ρ = 0) to 4.84% (ρ = 0.9); at π = 0.0975, 103.92% to 52.87%.
+  • Why: clustering. High correlation makes defaults arrive in clusters: some threads have very many, some
+  very few. The equity distribution turns U-shaped, a “lottery ticket”; with low correlation some defaults hit
+  almost every thread, and since equity takes the first loss, low correlation is bad for the equity. The senior is
+  safe unless a cluster breaches its attachment point.
+  • Convexity (CR-22 i). At low correlations the equity value is positively convex in default rates (“you can’t
+  beat a dead horse”), the senior has negative convexity (losses accelerate), the mezzanine is negatively convex
+  at low and positively convex at high default rates. At high correlations all tranches respond more nearly
+  linearly.
+  • Tranche Credit VaR (CR-22 h, i). Equity: par minus the 10th (50th) lowest of 1,000 simulated values at
+  99% (95%). Bonds: the 10th (50th) highest loss minus EL. Equity VaR falls at high π and ρ because EL is
+  already so high. Senior: 99% Credit VaR of about half of par at high correlation, virtually risk-free when
+  defaults are uncorrelated. At (π, ρ) = (0.0075, 0.30) the senior VaR is negative (EL above the 1% quantile
+  loss), a simulation artifact that would disappear at 99.5% or 99.9%.
+  • Default01 (CR-22 j). −[V (π + 10 bp) − V (π − 10 bp)]/20, the change per 1 bp rise in default probability,
+  reusing the same normal draws to avoid simulation noise. Always positive; converges to zero at very high
+  default rates; varies most with π when correlation is low; the peak sits where pool losses approach a tranche’s
+  attachment point (equity at π = 0, mezzanine before senior). Underestimating default correlation was an
+FRM Part II · Volume 2: Tiers B to D  D15 Structured Credit and Implied Correlation
+  important factor in the subprime crisis. Lumpy curves show how costly simulation is, and that defaults stay
+  “lumpy” even in a 100-loan pool.
+  • Risk factors (CR-22 k). Systematic risk (high correlation exposes even a senior bond on a well-diversified
+  pool to large tail losses); tranche thinness (conditional on any loss, the loss is large, so 95% and 99% Credit
+  VaR are close); granularity (lumpy pools such as CMBS and fusion deals carry concentration risk; a granular
+  pool allows a larger senior tranche with no increase in Credit VaR); prepayment, extension and refinancing
+  risk.
+  • Standard tranches (CR-22 l). CDX.NA.IG: equal notional CDS on 125 investment-grade names (USD 1
+  million each per USD 125 million); iTraxx for Europe and Asia; series initiated semiannually; a default cuts
+  the notional by 0.8%. Standard synthetic CDO tranches: equity 0 to 3%, junior mezzanine 3 to 7%, senior
+  mezzanine 7 to 10%, senior 10 to 15%, super senior 15 to 30%. Bespoke tranches are issued to order.
+  • Implied correlation (CR-22 l, S3). Use risk-neutral PDs from single-name CDS spreads (and risk-free
+  discount rates); the copula correlation is the remaining unobservable input; the unique correlation at which
+  the modelled tranche value equals the market price is the implied correlation. Tied to a tranche’s attachment
+  point: base correlation; it varies by tranche: correlation skew. Malz’s example: equity priced at 5.0 with a
+  2% CDS-implied PD matches ρ = 0.3; a rise to 5.6 with no change in PD means implied correlation has
+  risen to 0.6, an increase in the market’s assessment of systematic risk.
+  • As much market as credit risk (CR-22 l). Implied credit correlation is “as much a market-risk as a credit-
+  risk concept”. Each standard tranche has risk-neutral partial spread01s to the 125 constituents rather than
+  a default01; changes in implied correlation and spreads cause mark-to-market changes, whereas in the cash
+  CLO they change fundamental value. Implied credit correlation is the copula correlation inferred from prices
+  (see B3 for the six correlation concepts; D14 for compound versus base correlation).
+  Formulas
+  log[1 − Φ(zn,i )]
+  Hazard rate and simulated default time. λ = − log(1 − π),  tn,i = −
+  λ
+  V (π + 0.0010) − V (π − 0.0010)
+  Default01. default01 = −
+  Tranche Credit VaR (1,000 threads). Equity: par − 10th lowest value; bonds: 10th highest loss − EL (99%; use
+  the 50th for 95%)
+  Standard tranche arithmetic. Loss per default =  (1−R) of index notional; the notional and the spread premium
+  shrink by 1/125 = 0.8% per default
+  Exam traps
+  • Polarity flip: higher correlation helps the equity and hurts the senior; a rising equity price with unchanged PDs
+  means implied correlation has risen.
+  • Scope error, mezzanine: it behaves like the senior at low default rates and like the equity at high ones; “always
+  like the equity” is false.
+  • Sibling swap, inputs: implied correlation uses risk-neutral PDs from CDS spreads and risk-free rates, not
+  physical PDs from ratings; it is as much a market-risk as a credit-risk concept.
+  • Absolute claim: a well-diversified collateral pool does not make the senior bond safe when correlation is high.
+  • Intermediate result: the equity tranche’s Credit VaR can fall as π and ρ rise, because its expected loss is already
+  very high.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  LO 40.i impacts table: how default probability and correlation move each tranche  D15.1
+S2  the one possible calculation: reading tranche values and writedowns off the simulation grid  D15.1
+S3  implied correlation backed out of a tranche price  D15.1
+S4  Gaussian copula and implied correlation  D15.1
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  CR-22  Structured Credit Risk
+  P1 ×3  P2 ×2  P3 ×1  P4 ×7  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: LO 40.i - This is Imp LO. Just remember the impacts via the table. There can be one calculation question come from this
+  reading. However Would recommend do it at the very end coz that will just consume your time. Concept of LO 40.L - Implied correlation
+  seems likely to be testable.
+  ! Do this reading at the very end; it consumes time.
+  RECALL WORKBOOK SECTIONS
+  A9 Securitisation: Tranches, Waterfall, Prepayment and Performance Ratios
+  Tier A • Aug ✓• Map #9 (7/16) • TG ✓• 7 Qs • Vol 1 p.72 • LOs a to m
+  B3 Default Correlation, Joint PD and Copulas
+  Tier B • Map #16 (6/16) • TG ✓• 3 Qs • Vol 2 p.24 • LOs l
+  D15 Structured Credit and Implied Correlation
+  Tier D • Map #60 (2/16) • TG ✓• 1 Qs • Vol 2 p.137 • LOs l
+  P4  a  Describe common types of structured products.
+  P4  b  Describe tranching and the distribution of credit losses in a securitization.
+  P1  c  Describe a waterfall structure in a securitization.
+  WORKBOOK A9
+  A9·S4 shares paid to the senior and equity tranches in the final-year waterfall
+  P4  d  Identify the key participants in the securitization process and describe conflicts of interest that can arise in the
+  process.
+  P1  e  Calculate and evaluate one or two iterations of interim cashflows in a three-tiered securitization struc-
+  ture.
+  WORKBOOK A9
+  A9·S2 cash flow into the equity tranche after the interim waterfall, with defaults and fees
+  A9·S4 shares paid to the senior and equity tranches in the final-year waterfall
+  P1  f  Describe the treatment of excess spread in a securitization structure and estimate the value of the over-
+  collateralization account at the end of each year.
+  WORKBOOK A9
+  A9·S3 overcollateralisation account balance at a year end
+  P4  g  Explain the tests on the excess spread that a custodian must go through at the end of each year to determine
+  the cash flow to the overcollateralization account and to the equity noteholders.
+  P3  h  Describe a simulation approach to calculating credit losses for different tranches in a securitization.
+  WORKBOOK D15
+  D15·S2 the one possible calculation: reading tranche values and writedowns off the simulation grid
+  P2  i  Explain how the default probabilities and default correlations affect the credit risk in a securitization.
+  WORKBOOK B3, D15 + VARDEEZ FOCUS
+  ▶ Vardeez: Remember the impacts via the table; one calculation question possible
+  B3·S7 LO 40.i impacts table for tranches (D15.1)
+  D15·S1 LO 40.i impacts table: how default probability and correlation move each tranche
+  P4  j  Explain how default sensitivities for tranches are measured.
+  P4  k  Describe risk factors that impact structured products.
+  P2  l  Define implied correlation and describe how it can be measured.
+  WORKBOOK B3, D15 + VARDEEZ FOCUS
+  ▶ Vardeez: Implied correlation: likely testable
+  B3·S4 Gaussian copula and implied correlation
+  D15·S3 implied correlation backed out of a tranche price
+  D15·S4 Gaussian copula and implied correlation
+  P4  m  Identify the motivations for using structured credit products.
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+60  Structured Credit Risk & Implied Correlation
+  CREDIT RISK  2 OF 16 SOURCES  IMPORTANT
+  R40 · Structured Credit Risk
+  W H AT I S T E S T E D
+  The sheet flags one LO for the impact table and one concept as likely testable, while
+  recommending you do this reading last because of its time cost.
+  SPECIFICS REPORTED
+  Named: LO 40.i, 'just remember the impacts via the table', with one possible calculation;
+  and the concept of implied correlation, described as 'likely to be testable.' Reported
+  independently as 'Gaussian copula, implied correlation.'
+  Sources: Vardeez importance sheet (xlsx), Telegram consolidated list (08/08/25)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 40.i Explain how the default probabilities and default correlations affect the credit risk in a
+  securitization.
+  LO 40.a Describe common types of structured products.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #60 Structured Credit Risk & Implied Correlation: rank 79, Defer

@@ -1,0 +1,527 @@
+[
+ {
+  "id": "MR-T2-33",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Simon is using the age-weighted historical simulation approach to estimate the value at risk of a stock portfolio. Under age-weighted historical simulation, which of the following is true?",
+  "options": {
+   "A": "More recent observations are weighted more heavily and distant observations less heavily.",
+   "B": "All observations in the window are weighted equally.",
+   "C": "The decay parameter takes a value of 1.",
+   "D": "The historical window of observations must not exceed 250 days."
+  },
+  "answer": "A",
+  "solution": "Basic historical simulation gives every observation in the window the same weight, $1/n$. That treats a return from two years ago as exactly as informative about tomorrow as yesterday's return, which is implausible when volatility clusters.\n\nAge-weighted historical simulation replaces the equal weight with a geometrically decaying weight:\n\n$$w(i) = \\frac{\\lambda^{i-1}(1-\\lambda)}{1-\\lambda^n}$$\n\nwhere $i$ is the age of the observation in days, $n$ is the window length and $\\lambda$ is the decay parameter between 0 and 1. Because $\\lambda$ is raised to a power that grows with age, weight declines geometrically as observations get older.\n\nThe role of $\\lambda$ is the examinable nuance:\n\n| Value of lambda | Behaviour |\n|---|---|\n| close to 1 | Very slow decay. Weights approach equality and the method converges to BASIC historical simulation. |\n| exactly 1 | No decay at all. The method IS basic historical simulation. |\n| close to 0 | Very fast decay. Almost all weight sits on the most recent few observations, and the effective sample size collapses. |\n\nA further benefit: because old observations lose weight gradually rather than dropping out abruptly when they leave the window, age weighting reduces the discrete jumps in VaR that basic historical simulation produces when a large return rolls off."
+ },
+ {
+  "id": "MR-T2-34",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A risk analyst is explaining volatility-weighted historical simulation, the Hull and White approach, to a graduate trainee. Which statement best characterises what the method does and why?",
+  "options": {
+   "A": "It discards every historical return drawn from a period whose volatility differed materially from today's, shortening the effective window.",
+   "B": "It rescales each historical return by the ratio of today's volatility forecast to the volatility that prevailed on the day the return was observed, so the adjusted series reflects current market conditions.",
+   "C": "It rescales each historical return by the ratio of the volatility that prevailed when the return was observed to today's volatility forecast, so that quiet periods are amplified.",
+   "D": "It assigns geometrically declining weights by age, on the grounds that volatility is higher in recent data."
+  },
+  "answer": "B",
+  "solution": "Basic historical simulation implicitly assumes that the volatility prevailing when each historical return was observed is the same as today's. Volatility clusters, so that assumption fails: a 2% move drawn from a calm period and a 2% move drawn from a turbulent period carry very different information about tomorrow.\n\nHull and White's adjustment rescales every historical return onto today's volatility scale:\n\n$$r^*(t,i) = \\frac{\\sigma(T,i)}{\\sigma(t,i)} \\times r(t,i)$$\n\nwhere $r(t,i)$ is the return on asset $i$ at time $t$, $\\sigma(t,i)$ is the volatility estimate for asset $i$ at time $t$, and $\\sigma(T,i)$ is the CURRENT volatility forecast. Today's volatility sits in the NUMERATOR.\n\nThe direction is the whole question. If today is more volatile than the historical day, the ratio exceeds 1 and the historical return is scaled UP. If today is calmer, the ratio is below 1 and the return is scaled DOWN. Reversing the ratio would amplify exactly the wrong observations.\n\nTwo consequences worth holding:\n\n| Property | Consequence |\n|---|---|\n| It can produce losses larger than any in the sample | Scaling up a historical return during a volatility spike creates a value the raw data never contained. Basic and age-weighted historical simulation cannot do this. |\n| It uses the whole window | No observation is discarded. Every return is retained and rescaled, so the effective sample size i […]"
+ },
+ {
+  "id": "MR-T2-35",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which statement correctly captures the essence of a correlation-weighted approach within the historical simulation framework?",
+  "options": {
+   "A": "It forces all pairwise asset correlations to zero by partitioning returns into uncorrelated blocks, while leaving individual volatilities unchanged.",
+   "B": "It imposes a desired set of updated correlations among assets by systematically adjusting historical returns, typically without altering each asset's own volatility.",
+   "C": "It re-weights observed co-movements so that the sample correlation matrix becomes diagonal, leaving only variances.",
+   "D": "It replicates only those return paths whose correlations exceed a specified threshold and discards the rest."
+  },
+  "answer": "B",
+  "solution": "Basic historical simulation inherits whatever correlations happened to prevail over the sample window. If the analyst believes the current correlation structure differs, for example because correlations have risen in a stress episode, the historical sample must be adjusted.\n\nThe correlation-weighted approach substitutes the historical correlation matrix with a target one. Mechanically, the historical return matrix is transformed using the Cholesky decomposition of the two correlation matrices, so that the adjusted returns exhibit the desired correlations. Crucially, the adjustment acts on the DEPENDENCE structure only. Each asset's own volatility is left as it was, unless volatility weighting is applied as well.\n\nThe three weighted approaches update three different things, and keeping them apart is what this LO tests:\n\n| Approach | What it updates | What it leaves alone |\n|---|---|---|\n| Age-weighted | The weight on each observation, by age | Volatilities and correlations |\n| Volatility-weighted | The scale of each return, by volatility ratio | The correlation structure |\n| Correlation-weighted | The dependence structure between assets | Each asset's own volatility |"
+ },
+ {
+  "id": "MR-T2-36",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following most closely characterises the role of filtered historical simulation in estimating risk?",
+  "options": {
+   "A": "It fits a time-varying volatility model such as GARCH, standardises historical returns by the fitted conditional volatility, and then resamples the standardised residuals before rescaling to current volatility.",
+   "B": "It reorders past returns chronologically to match short-term volatility changes but leaves the correlation structure unaltered.",
+   "C": "It discards all returns falling outside a user-defined confidence interval, ensuring the final distribution contains no extreme tail events.",
+   "D": "It transforms each asset's average return to zero while holding the standard deviation fixed at its historical level."
+  },
+  "answer": "A",
+  "solution": "Filtered historical simulation addresses the same weakness as volatility weighting, the assumption of constant volatility, but does so by combining a parametric model with bootstrap resampling. The sequence is:\n\n| Step | What happens |\n|---|---|\n| 1. Model volatility | Fit a conditional volatility model, typically GARCH, to the return series |\n| 2. Standardise, or FILTER | Divide each historical return by its fitted conditional volatility, producing standardised residuals that are approximately independent and identically distributed |\n| 3. Resample | Bootstrap from the standardised residuals, which is legitimate precisely because standardising removed the volatility clustering that made the raw returns non-independent |\n| 4. Rescale and simulate | Multiply the resampled residuals by the CURRENT conditional volatility forecast and build simulated paths, from which VaR and expected shortfall are read |\n\nThe word FILTERED refers to step 2: the returns are filtered through the conditional volatility model.\n\nWhy it matters: standardising is what makes the bootstrap valid. Bootstrapping raw returns assumes they are independent and identically distributed, which volatility clustering violates. Filtered historical simulation removes the clustering first, bootstraps the residuals, then puts the clustering back. It is a semi-parametric method: parametric in the volatility model, non-par […]"
+ },
+ {
+  "id": "MR-T2-37",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A model validation analyst is comparing four refinements to basic historical simulation. Which of the following statements is correct?",
+  "options": {
+   "A": "Age weighting and volatility weighting both leave the effective sample size unchanged, whereas correlation weighting reduces it.",
+   "B": "Only filtered historical simulation is capable of producing a simulated loss larger than the worst loss in the historical sample.",
+   "C": "Volatility weighting and filtered historical simulation can both generate losses larger than any observed in the raw sample, whereas basic and age-weighted historical simulation cannot.",
+   "D": "All four refinements require the assumption that returns are independent and identically distributed, which is why none of them can accommodate volatility clustering."
+  },
+  "answer": "C",
+  "solution": "Basic historical simulation and age weighting both work with the RAW returns. Age weighting changes the probability attached to each observation but never changes the observation itself. It follows that neither method can ever report a loss worse than the worst loss in the window. That is a serious limitation in a rising-volatility environment, where the worst plausible loss today may exceed anything in the sample.\n\nVolatility weighting and filtered historical simulation both RESCALE returns by a volatility ratio. If today's volatility exceeds the volatility that prevailed when a large historical loss occurred, that loss is scaled UP, producing a value the raw data never contained.\n\n| Approach | Changes the observation? | Can exceed the historical worst? | Handles volatility clustering? |\n|---|---|---|---|\n| Basic historical simulation | No | NO | No |\n| Age-weighted | No, changes the weight only | NO | Partly, via recency |\n| Volatility-weighted | Yes, rescales by a volatility ratio | YES | Yes |\n| Correlation-weighted | Yes, adjusts the dependence structure | Yes, for a portfolio | Not directly; it targets correlation |\n| Filtered historical simulation | Yes, standardises then rescales | YES | Yes |\n\nOn sample size: none of the four discards observations, so all preserve the raw window. Age weighting does reduce the EFFECTIVE sample size, because concentrating weight on recen […]"
+ },
+ {
+  "id": "MR-T2-49",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "An analyst performing a historical simulation to measure the VaR of a portfolio uses a volatility-weighted approach. One month ago the actual return of the asset was 5% and its daily volatility estimate at that time was 2%. If the current daily volatility forecast is 1.5%, what is the volatility-adjusted return?",
+  "options": {
+   "A": "0.0281",
+   "B": "0.0375",
+   "C": "0.0500",
+   "D": "0.0667"
+  },
+  "answer": "B",
+  "solution": "The volatility-weighted historical simulation adjustment rescales each historical return onto the current volatility scale:\n\n$$r^*(t,i) = \\frac{\\sigma(T,i)}{\\sigma(t,i)} \\times r(t,i)$$\n\nwhere $\\sigma(T,i)$ is the CURRENT volatility forecast, $\\sigma(t,i)$ is the volatility estimate prevailing when the return was observed, and $r(t,i)$ is the raw historical return.\n\n$r^* = (1.5\\%/2.0\\%)\\times5\\% = 0.75\\times5\\% = 3.75\\% = 0.0375$\n\nCurrent volatility is LOWER than it was a month ago, so the historical return is scaled DOWN. That is the correct direction: a 5% move that occurred in a more turbulent environment is less impressive evidence about today than the raw figure suggests."
+ },
+ {
+  "id": "MR-T2-50",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Using the age-weighted historical simulation approach, what is the weight attached to an observation from 13 days ago, if the historical window contains 300 days and the decay parameter is 0.8?",
+  "options": {
+   "A": "0.01099",
+   "B": "0.01374",
+   "C": "0.01718",
+   "D": "0.06872"
+  },
+  "answer": "B",
+  "solution": "The weight attached to an observation $i$ days old is:\n\n$$w(i) = \\frac{\\lambda^{i-1}(1-\\lambda)}{1-\\lambda^n}$$\n\nwhere $\\lambda$ is the decay parameter and $n$ the window length. Note the exponent is $i-1$, not $i$, so that the most recent observation ($i=1$) carries weight $(1-\\lambda)/(1-\\lambda^n)$ rather than a decayed value.\n\nnumerator $= 0.8^{13-1}\\times(1-0.8) = 0.8^{12}\\times0.2$\n\n$0.8^{12} = 0.068719$\n\nnumerator $= 0.068719\\times0.2 = 0.0137439$\n\ndenominator $= 1-0.8^{300}$, which is indistinguishable from 1\n\n$w(13) = 0.0137439/1 = 0.01374$\n\nThe denominator is a normalising constant ensuring the weights across the whole window sum to one. With $\\lambda=0.8$ and $n=300$ it is effectively 1, since 0.8 raised to the power 300 is astronomically small. That is a general feature: whenever $\\lambda^n$ is negligible, the denominator can be ignored."
+ },
+ {
+  "id": "MR-T4-09",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A risk analyst applies the bootstrap historical simulation approach to estimate the 90% expected shortfall of a desk. She draws four resamples from the original loss series and computes the expected shortfall within each, obtaining the figures below in USD thousands. What is the bootstrapped estimate of the expected shortfall?\n\n| Resample | 1 | 2 | 3 | 4 |\n|---|---|---|---|---|\n| Expected shortfall (USD thousands) | 58.0 | 71.0 | 63.0 | 68.0 |",
+  "options": {
+   "A": "USD 58.0 thousand",
+   "B": "USD 63.0 thousand",
+   "C": "USD 65.0 thousand",
+   "D": "USD 71.0 thousand"
+  },
+  "answer": "C",
+  "solution": "The bootstrap estimator is the AVERAGE of the statistic computed across resamples, not any individual resample value.\n\nThe bootstrap procedure has three steps:\n\n| Step | What happens |\n|---|---|\n| 1. Resample | Draw a new sample of the same size from the original data, WITH replacement, so observations may repeat or be omitted |\n| 2. Estimate | Compute the statistic of interest, here the expected shortfall, within that resample |\n| 3. Repeat and average | Repeat many times and take the AVERAGE of the resample estimates as the bootstrapped estimate |\n\n$$\\hat{\\theta} = \\frac{1}{B}\\sum_{b=1}^{B} \\theta_b$$\n\n$$\\text{estimate} = \\frac{58.0 + 71.0 + 63.0 + 68.0}{4} = \\frac{260.0}{4} = \\text{USD } 65.0 \\text{ thousand}$$\n\nTwo properties worth carrying. The bootstrap estimate must lie between the smallest and largest resample values, which is an immediate check on any answer. And the dispersion ACROSS resamples is itself informative: it provides a standard error and hence a confidence interval for the estimate, which the raw historical simulation cannot supply.\n\nIn practice B would be in the hundreds or thousands rather than four. Four is used here so the arithmetic is visible."
+ },
+ {
+  "id": "MR-T4-10",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "Non-parametric density estimation is motivated by the claim that basic historical simulation does not extract all the information available in the data. Which example demonstrates that drawback?",
+  "options": {
+   "A": "With 100 observations, basic historical simulation weights recent observations more heavily than distant ones.",
+   "B": "With 100 observations, basic historical simulation gives the 95% VaR as the seventh largest loss.",
+   "C": "With 100 profit and loss observations, basic historical simulation can only produce VaR at discrete confidence levels corresponding to individual observations, so a figure at 95.5% confidence cannot be read off directly.",
+   "D": "With 100 observations, basic historical simulation cannot produce a loss estimate larger than the sample mean."
+  },
+  "answer": "C",
+  "solution": "The discreteness limitation of the empirical distribution, and how smoothing the data into a continuous density removes it.\n\nBasic historical simulation reads the VaR directly off the ordered sample. With $n$ observations the accessible quantiles are limited to the positions of actual data points, which restricts the confidence levels available:\n\n$$\\text{available quantile positions} = \\frac{1}{n}, \\frac{2}{n}, \\ldots, \\frac{n}{n}$$\n\nWith 100 observations the positions correspond to 99%, 98%, 97% and so on. A confidence level of 95.5% falls BETWEEN two observations and cannot be read off. The empirical distribution is a step function, and there is nothing between the steps.\n\nNon-parametric density estimation, of which kernel density estimation is the standard example, replaces each observation with a small continuous kernel and sums them into a smooth density. Any quantile can then be read off, and the estimate at a given confidence level draws on neighbouring observations rather than resting on a single data point.\n\nThe benefit is largest when the sample is small, because that is when the steps are widest and a single observation carries the most weight."
+ },
+ {
+  "id": "MR-T4-11",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A quantitative analyst is explaining the bootstrap to a new team member. Which statement about a bootstrapping exercise is correct?",
+  "options": {
+   "A": "It resamples from the existing data set WITHOUT replacement, so each observation appears once per resample.",
+   "B": "It resamples from the existing data set WITH replacement, and implicitly assumes the observations are drawn from a distribution that is stable over the period modelled.",
+   "C": "It generates new observations from a fitted parametric distribution rather than from the original data.",
+   "D": "It requires the original sample to be normally distributed before resampling can be applied."
+  },
+  "answer": "B",
+  "solution": "The defining mechanic of the bootstrap and the distributional assumption it carries.\n\nTwo features define the bootstrap and both are tested here.\n\nResampling is WITH replacement. Each draw returns the observation to the pool, so a resample of the same size as the original can contain some observations several times and omit others entirely. That variation between resamples is what generates the sampling distribution of the statistic. Sampling without replacement would simply reproduce the original sample in a different order, and every resample would give an identical estimate.\n\nThe distribution is assumed stable. The bootstrap treats the observed sample as representative of the distribution generating future outcomes. If the underlying distribution shifts, resampling the past faithfully reproduces a distribution that no longer applies. This is the same criticism that attaches to historical simulation generally, and the bootstrap does not escape it.\n\nNote what the bootstrap does NOT assume. It is non-parametric: no distributional form is fitted, and normality is neither required nor used. That is its principal advantage over parametric approaches."
+ },
+ {
+  "id": "MR-T4-12",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A risk analyst is documenting the disadvantages of non-parametric estimation methods. Which of the following correctly identifies a limitation?",
+  "options": {
+   "A": "RE-SAMPLING VARIABILITY, meaning that because only a finite number of bootstrap resamples is taken, the estimate itself carries an error that shrinks as the number of resamples rises.",
+   "B": "UN-SAMPLING VARIABILITY, meaning that observations excluded from a resample bias the estimate downward.",
+   "C": "The requirement to specify a parametric distribution before resampling, which reintroduces model risk.",
+   "D": "The fact that non-parametric methods cannot be applied when the holding period exceeds one day."
+  },
+  "answer": "A",
+  "solution": "Resampling variability as a genuine cost of the bootstrap, and the separate data-scarcity problem created by a longer holding period.\n\nNon-parametric methods carry two distinct costs.\n\n| Advantage | Disadvantage |\n|---|---|\n| No distributional assumption is imposed, so the method cannot be wrong about a shape it never assumed | RESAMPLING VARIABILITY: with a finite number of resamples $B$, the estimate is itself a random quantity. The error falls roughly with the square root of $B$. |\n| Fat tails and skewness in the data are captured automatically | The estimate can only reflect events that occurred in the sample |\n| Simple to implement and to explain | Data scarcity worsens as the holding period lengthens, because a fixed calendar history yields fewer non-overlapping observations |\n\nOn the holding period point: a ten-year daily history gives roughly 2,500 one-day observations but only about 250 non-overlapping ten-day observations. The longer the holding period, the FEWER the observations, and the weaker every non-parametric estimate becomes. Overlapping windows can be used to increase the count, at the cost of dependence between observations.\n\nResampling variability is controllable and data scarcity is not. Raising $B$ costs only computing time; extending the sample requires history that does not exist."
+ },
+ {
+  "id": "MR-T4-25",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A data analyst wishes to calculate the VaR of a credit firm using the bootstrap historical simulation approach. How is the final VaR estimate obtained?",
+  "options": {
+   "A": "By taking the highest VaR across all resamples.",
+   "B": "By taking the lowest VaR across all resamples.",
+   "C": "By averaging the VaR figures obtained from all resamples.",
+   "D": "By taking the median VaR across all resamples."
+  },
+  "answer": "C",
+  "solution": "The bootstrap estimator as the mean of the resample statistics.\n\nThe bootstrap draws $B$ resamples with replacement from the original data, computes the statistic in each, and takes the AVERAGE:\n\n$$\\text{bootstrapped VaR} = \\frac{1}{B}\\sum_{b=1}^{B} VaR_b$$\n\nAveraging is what makes the procedure work. Each individual resample is a noisy estimate because it happens to include some observations twice and omit others; averaging cancels that noise. The dispersion ACROSS resamples is then used separately to build a confidence interval, which is the second reason for bootstrapping.\n\nA worked numerical version of this appears in the main set."
+ },
+ {
+  "id": "MR-QB-0084",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "Which of the following is an essential difference between basic historical simulation and bootstrap historical simulation; i.e., one of them involves this feature or element, but the other does not?",
+  "options": {
+   "A": "Random number generator",
+   "B": "Non‑parametric methodology",
+   "C": "Parametric distributional assumption",
+   "D": "Actual observed (i.e., historical) loss data"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Basic HS orders the single historical sample and reads off the VaR quantile; no randomness is involved.\n2. Bootstrap HS repeatedly draws observations from the sample with replacement, which needs random draws (a random number generator), records each resample’s VaR, and averages them.\n3. Both methods are non‑parametric and both use only actual historical data, so only the random resampling distinguishes them."
+ },
+ {
+  "id": "MR-QB-0085",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A risk manager wishes to use the bootstrap historical simulation approach to estimate VaR. What is the main reason for using historical returns to forecast VaR in this approach?",
+  "options": {
+   "A": "The distribution of returns is expected to change over time.",
+   "B": "The distribution of returns will remain the same in the past and in the future.",
+   "C": "The historical returns are always normally distributed.",
+   "D": "The historical returns have no impact on future returns."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Bootstrap HS resamples observed returns and treats their empirical distribution as the forecast distribution.\n2. That is only valid if the return distribution is assumed to be the same in the past and the future (stationarity).\n3. Check each other option against this premise: a changing distribution, forced normality, or no link between past and future would each undermine the method."
+ },
+ {
+  "id": "MR-QB-0086",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "Which of the following statements about a bootstrapping exercise for historical simulation VaR is most likely correct? A bootstrapping exercise:",
+  "options": {
+   "A": "resamples from the existing data set without replacement.",
+   "B": "assumes that the distribution of returns will remain the same in the past and in the future.",
+   "C": "assumes that the distribution of returns in the future will be markedly different from past distributions.",
+   "D": "results in a VaR estimate that is a sum of sample VaRs after repeated sampling."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Bootstrap draws a sample, records its VaR, returns the data to the pool, and repeats: this is sampling WITH replacement (rules out A).\n2. Using historical data to forecast presupposes the return distribution stays the same (B), not that it differs (C).\n3. The final estimate is the AVERAGE of the sample VaRs, not the sum (rules out D)."
+ },
+ {
+  "id": "MR-QB-0087",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A data analyst wishes to calculate the VaR of a credit firm using the bootstrap historical simulation approach. How is the final VaR estimate calculated?",
+  "options": {
+   "A": "By taking the highest VaR from all resamples.",
+   "B": "By taking the lowest VaR from all resamples.",
+   "C": "By averaging the VaR from all resamples.",
+   "D": "By taking the median VaR from all resamples."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Each resample (drawn with replacement) produces its own VaR.\n2. The best VaR estimate for the full dataset is the average of all the sample VaRs.\n3. Extremes or the median discard information from the other resamples."
+ },
+ {
+  "id": "MR-QB-0088",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "Compared to basic (raw) historical simulation, which of the following statements correctly characterizes what occurs during bootstrapping?",
+  "options": {
+   "A": "Bootstrapping compresses the original data, leading to repeated observations.",
+   "B": "It replicates the most extreme historical returns in every sample.",
+   "C": "It scales each historical return by a constant factor obtained from the sample’s mean.",
+   "D": "It resamples (with replacement) many times, creating multiple ”alternative” data sets."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Basic HS uses the single original sample once.\n2. Bootstrapping draws many samples with replacement from that sample, each giving a different ’alternative’ data set (some observations repeated, some omitted).\n3. No scaling or forced inclusion of extremes occurs."
+ },
+ {
+  "id": "MR-QB-0089",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A risk manager applies bootstrap historical simulation to estimate 95% expected shortfall (ES). Four resamples, each drawn with replacement from the original loss dataset, give the following ES estimates (in USD millions): 3.0, 3.1, 3.2 and 3.9. What is the bootstrap estimate of ES?",
+  "options": {
+   "A": "3.00",
+   "B": "3.15",
+   "C": "3.30",
+   "D": "3.90"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Each resample computes its own ES by averaging the tail quantile VaRs of that resample.\n2. The best ES estimate for the original dataset is the average of the resample ESs.\n3. Mean = (3.0 + 3.1 + 3.2 + 3.9)/4 = 13.2/4 = 3.30.\n\n**REBUILT** — Original asked for the term ’resampling variability’, which is not in the assigned reading; replaced with a computational item on averaging resample ES, which is part of LO 2.a."
+ },
+ {
+  "id": "MR-QB-0090",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "According to Dowd, EACH of the following is TRUE about bootstrapped historical simulation EXCEPT:",
+  "options": {
+   "A": "Bootstrap draws at random without replacement.",
+   "B": "The bootstrap is very intuitive and easy to apply.",
+   "C": "A bootstrapped estimate will often be more accurate than a ’raw’ sample estimate.",
+   "D": "Bootstraps are useful for gauging the precision (i.e., standard errors) of our estimates."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. The bootstrap draws a sample, records the VaR, and returns the data, i.e., sampling WITH replacement, so A is false.\n2. B is true: the procedure is simple and intuitive.\n3. C is true: bootstrapping gives more precise estimates of coherent risk measures than raw HS.\n4. D is true: the spread of resample estimates gauges precision."
+ },
+ {
+  "id": "MR-QB-0091",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "What is the primary difference between historical simulation and bootstrapped historical simulation?",
+  "options": {
+   "A": "Bootstrapping is non‑parametric.",
+   "B": "Bootstrapping can be used to compute both value at risk (VaR) and expected shortfall (ES).",
+   "C": "Bootstrapping does not require a variance‑covariance matrix.",
+   "D": "Bootstrapping generates multiple samples."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Both methods are non‑parametric, need no variance‑covariance matrix, and can give VaR and ES (rules out A, B, C).\n2. Basic HS uses the one historical sample; bootstrap generates many resamples with replacement, computes a risk measure on each, and averages."
+ },
+ {
+  "id": "MR-QB-0092",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "Betty has 1,000 daily P&L observations and applies the bootstrap historical simulation approach to estimate the 95% VaR and expected shortfall (ES). Which of the following statements about the procedure is TRUE?",
+  "options": {
+   "A": "Because resampling adds randomness, the bootstrap can produce a VaR or ES estimate larger than the worst loss in the original dataset.",
+   "B": "The best VaR estimate is the VaR computed once from the original dataset; the resamples are used only to assess its accuracy.",
+   "C": "Each resample is drawn without replacement so that no observation appears twice within a resample.",
+   "D": "The best estimates of VaR and ES are the averages of the VaRs and ES values computed from the many resampled datasets."
+  },
+  "answer": "D",
+  "solution": "**Key correction:** Source key (BT answers/notes) said D for a different version of the question (about avoiding closed‑form confidence intervals); the rebuilt question has D correct as well.\n\n**Step by step**\n\n1. Bootstrap HS draws a sample from the original data, records the VaR (and ES, by averaging tail‑slice VaRs) from that sample, and returns the data to the dataset.\n2. Because the data are returned each time, sampling is with replacement.\n3. The procedure is repeated many times, giving many sample VaRs and ES values.\n4. The best estimate for the original dataset is the average of the sample VaRs (and of the sample ES values), which is more precise than raw HS.\n5. Every draw uses only observed losses, so no estimate can exceed the worst observed loss.\n\n**REBUILT** — Original had two defensible answers (B about ease of communication was also arguably true) and tested peripheral points; rebuilt around the core bootstrap HS mechanics with exactly one correct statement."
+ },
+ {
+  "id": "MR-QB-0093",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "Johanna Roberto has collected a dataset of 1,000 daily observations on equity returns. She is concerned about the appropriateness of using parametric techniques as the data appears skewed. Ultimately, she decides to use historical simulation and bootstrapping to estimate the 5% VaR. Which of the following steps is most likely to be part of the estimation procedure?",
+  "options": {
+   "A": "Filter the data to remove the obvious outliers.",
+   "B": "Repeated sampling with replacement.",
+   "C": "Identify the tail region from reordering the original data.",
+   "D": "Apply a weighting procedure to reduce the impact of older data."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Bootstrap HS draws a sample from the 1,000 observations, records the 5% VaR, and returns the data to the dataset.\n2. Returning the data means sampling with replacement.\n3. The draw‑and‑record step is repeated many times and the sample VaRs are averaged for the final estimate."
+ },
+ {
+  "id": "MR-QB-0094",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "Regarding historical simulation using non‑parametric density estimation, each of the following statements is true EXCEPT:",
+  "options": {
+   "A": "By smoothing the data, it creates new information, so with 100 observations a 99.9% VaR beyond the largest observed loss can be estimated reliably.",
+   "B": "It is free from restrictive assumptions about the shape of the underlying distribution.",
+   "C": "Connecting the midpoints of successive histogram bars allows VaR to be estimated at confidence levels between observed data points.",
+   "D": "When midpoints are connected, the area gained by the lower bar equals the area lost by the upper bar, so total probability remains one."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Check B: the method uses the data themselves and imposes no distribution, so it is true.\n2. Check C: connecting bar midpoints makes the density continuous, so VaR is available at any confidence level; true.\n3. Check D: area is displaced, not created or lost, so the surrogate is still a valid pdf; true.\n4. Check A: smoothing interpolates between observed points; it cannot add information about losses worse than the worst observation, so a reliable 99.9% VaR from 100 observations is false.\n\n**REBUILT** — Source option D relied on Dowd’s kernel‑estimator remark not covered in the Schweser reading; rewrote the EXCEPT statements around the midpoint‑connecting method taught in the reading."
+ },
+ {
+  "id": "MR-QB-0095",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "Non‑parametric density estimation rests on the premise that basic historical simulation (HS) does not extract all the information in the data. Which of the following best demonstrates this drawback?",
+  "options": {
+   "A": "With 100 P/L observations, basic HS gives every observation the same weight regardless of how old it is.",
+   "B": "With 100 P/L observations, basic HS can estimate VaR only at discrete confidence levels (e.g., 95%, 96%), so a 95.5% VaR cannot be obtained.",
+   "C": "With 100 P/L observations, basic HS requires the assumption that P/L is normally distributed.",
+   "D": "With 100 P/L observations, basic HS cannot reflect the fact that current volatility differs from volatility in the sample."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. With n observations, basic HS provides only n distinct confidence levels (steps of 1/100 = 1%).\n2. A 95.5% VaR lies between two ordered observations, so basic HS cannot give it.\n3. Non‑parametric density estimation connects the midpoints of histogram bars to smooth the data and fill this gap.\n4. Therefore B is the drawback this method addresses; the other options describe different issues.\n\n**REBUILT** — Source distractors hinged on an inconsistent order‑statistic convention (fourth/seventh/ninth‑largest loss); replaced with distinct, unambiguous drawback statements."
+ },
+ {
+  "id": "MR-QB-0096",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "A drawback of historical simulation is that the discreteness of the data rules out VaR estimates between data points. For example, with 100 historical observations, VaR is straightforward at the 95% or 96% confidence level but impossible at 95.5%. Which of the following methods can solve this problem?",
+  "options": {
+   "A": "Applying brute force",
+   "B": "Bootstrapping",
+   "C": "Non‑parametric density estimation",
+   "D": "Use of a large number of re‑samples"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. With 100 observations, basic HS offers only discrete levels (steps of 1%); 95.5% falls between two ordered losses.\n2. Non‑parametric density estimation connects the midpoints of successive histogram bars, producing a continuous surrogate density.\n3. VaR can then be read at any confidence level, including 95.5%."
+ },
+ {
+  "id": "MR-QB-0097",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "A small prop trading firm has only 80 daily P/L observations and wants a VaR at the 98% confidence level. With basic historical simulation, available confidence levels are spaced 1/80 = 1.25% apart (e.g., 97.5% and 98.75%), so 98% cannot be obtained. The head quant proposes historical simulation with non‑parametric density estimation. What is the key benefit of this approach for the firm?",
+  "options": {
+   "A": "It generates additional independent observations, enlarging the effective sample beyond 80.",
+   "B": "It fits a normal distribution to the 80 observations so VaR follows from the mean and standard deviation.",
+   "C": "It allows reliable VaR estimates at levels beyond the worst observed loss, such as 99.9%.",
+   "D": "It smooths between data points so VaR can be estimated at any confidence level, including 98%."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Basic HS levels: 100% ‑ k/80: 97.5% (k = 2) and 98.75% (k = 1); 98% lies between them.\n2. Non‑parametric density estimation connects histogram midpoints to form a continuous density.\n3. VaR can be read at 98% (or any level) from this surrogate density.\n4. The method adds no new information and assumes no distribution.\n\n**REBUILT** — Source distractors were giveaways (Zero outliers, Constant correlation) and 97.5% is exactly attainable with 80 observations; changed the target level to 98% and built plausible distractors."
+ },
+ {
+  "id": "MR-QB-0098",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "Peter has 250 daily P/L observations for a new equity portfolio. His board wants VaR at confidence levels 99.0%, 99.1%, ..., 99.9% and prefers a non‑parametric approach. With 250 observations, basic historical simulation (BHS) can only provide confidence levels spaced 1/250 = 0.4% apart (e.g., 99.2%, 99.6%). Which of the following statements is TRUE?",
+  "options": {
+   "A": "BHS can directly retrieve a distinct VaR for each of the levels 99.0%, 99.1%, ..., 99.9% because the data are non‑parametric.",
+   "B": "Non‑parametric density estimation requires Peter to assume normally distributed P/L in order to interpolate between observations.",
+   "C": "Non‑parametric density estimation smooths between data points, so Peter can obtain VaR at granular levels such as 99.1% without a distributional assumption.",
+   "D": "Non‑parametric density estimation allows reliable VaR at 99.9% even though it lies beyond the worst of the 250 observations."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Tail spacing with 250 observations: 1/250 = 0.4%, so BHS levels are 98.8%, 99.2%, 99.6%, ...; 99.1% is not attainable.\n2. Eliminate A: ten requested levels exceed the number of distinct BHS levels near 99%.\n3. Non‑parametric density estimation connects histogram midpoints to make the distribution continuous, with no parametric assumption.\n4. Thus 99.1% and every level between observations is available; it cannot reliably extend beyond the worst loss, so D fails.\n\n**REBUILT** — Source options relied on confidence‑interval/order‑statistic claims outside the reading and option A was arguable; rewrote around the 0.4% discreteness of 250 observations and what smoothing can and cannot do."
+ },
+ {
+  "id": "MR-QB-0099",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "Which of the following LEAST describes historical simulation using non‑parametric density estimation?",
+  "options": {
+   "A": "Fitting a normal distribution with the sample mean and standard deviation, then reading VaR from the fitted curve.",
+   "B": "Connecting the midpoints of successive histogram bars to create a smooth surrogate density.",
+   "C": "Shifting area from the upper bar to the lower bar so that total area remains one.",
+   "D": "Obtaining VaR at confidence levels that fall between ordered observations."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Non‑parametric density estimation starts from the empirical histogram and imposes no distribution.\n2. B, C and D are the mechanism and benefit described in the reading: connect midpoints, reallocate area, VaR at any level.\n3. A imposes a normal distribution calibrated by mean and standard deviation, which is parametric, so it least describes the method.\n\n**REBUILT** — Source relied on Dowd’s histogram/naive‑estimator terminology and an ambiguous ’sixth worst loss’ convention; reframed in Schweser terms."
+ },
+ {
+  "id": "MR-QB-0100",
+  "lo": "MR-2 b",
+  "loText": "Describe historical simulation using non-parametric density estimation.",
+  "outside": false,
+  "question": "What is the primary advantage of historical simulation using non‑parametric density estimation over basic historical simulation?",
+  "options": {
+   "A": "It is simpler to implement because no smoothing step is required.",
+   "B": "VaR can be calculated at a continuum of confidence levels, not just the n levels implied by the ordered observations.",
+   "C": "It places more weight on recent observations than on older observations.",
+   "D": "It calibrates a familiar distribution (e.g., beta or gamma) to the data and reads VaR from it."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Basic HS with n observations gives only n confidence levels.\n2. Non‑parametric density estimation connects histogram midpoints, creating a continuous surrogate density.\n3. VaR can then be computed for a continuum of points; this is the major improvement cited in the reading.\n\n**REBUILT** — Reworded the key option to the Schweser statement of the main improvement (VaR on a continuum of confidence levels) and replaced the kernelsuperiority distractor, which is outside the reading."
+ },
+ {
+  "id": "MR-QB-0101",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Risk factors exhibit time‑varying volatility, and volatility has recently risen well above its average level over the historical window. Relative to the VaR implied by the true current volatility, an unadjusted equal‑weighted historical simulation VaR will most likely:",
+  "options": {
+   "A": "Over‑estimate risk, because older observations carry more weight than recent ones.",
+   "B": "Under‑estimate risk, because the window is dominated by lower‑volatility observations.",
+   "C": "Be unbiased, because historical simulation makes no distributional assumption.",
+   "D": "Be unaffected, because VaR is a quantile and quantiles ignore volatility."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Equal‑weighted HS gives every observation in the window weight $1/n$, regardless of age or the volatility regime.\n2. If current volatility is above the window’s typical volatility, most observations come from calmer periods.\n3. The empirical quantile therefore reflects calmer conditions than today’s, so VaR is too low.\n4. The remedy is the volatility‑weighted approach: $r^{*}_{t} = r_{t} \\times\\sigma_{T}/\\sigma_{t}$, which scales returns up when current volatility is higher.\n\n**REBUILT** — Original item had two defensible answers (plain HS can over‑estimate after a volatility fall as well as under‑estimate); fixed the scenario to a volatility rise and replaced the options."
+ },
+ {
+  "id": "MR-QB-0102",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "In comparison to equal‑weighted and age‑weighted approaches, Dowd asserts EACH of the following is TRUE about volatility‑weighted historical simulation EXCEPT for:",
+  "options": {
+   "A": "Allows us to obtain VaR and ES estimates that can exceed the maximum loss in our historical data set",
+   "B": "Produces risk estimates that are naturally sensitive to current volatility estimates, enabling us to incorporate information from GARCH forecasts into HS VaR and ES estimation",
+   "C": "Empirical evidence indicates it produces superior VaR estimates to the age‑weighted approach",
+   "D": "Only drawback is that it does not naturally combine with age‑weighted approach or bootstrap, forcing a choice"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. A: scaling by $\\sigma_{T}/\\sigma_{t}$ can push adjusted losses beyond any historical loss, so true.\n2. B: estimates respond to current volatility, using GARCH/EWMA forecasts, so true.\n3. C: Dowd cites empirical evidence that it outperforms age‑weighting, so true.\n4. D: volatility weighting can be combined with other refinements (e.g., age weighting, bootstrap), so false, and the EXCEPT answer."
+ },
+ {
+  "id": "MR-QB-0103",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "An analyst performing a historical simulation to measure the VaR of a portfolio uses a volatility‑weighted approach. One month ago, the actual return of the asset was 5% and its daily volatility estimate was 2%. If the current daily volatility is 1.5%, calculate the volatility‑adjusted return.",
+  "options": {
+   "A": "0.03",
+   "B": "0.0167",
+   "C": "0.0375",
+   "D": "0.0667"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Volatility‑adjusted return: $r^{*} = r_{t} \\times\\sigma_{T}/\\sigma_{t}$.\n2. $r^{*} = 5\\% \\times1.5\\%/2\\% = 5\\% \\times0.75 = 3.75\\% = 0.0375$."
+ },
+ {
+  "id": "MR-QB-0104",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "In an age‑weighted historical simulation, the historical window contains $n = 300$ daily observations and the decay factor is $\\lambda= 0.8$. What is the weight on the observation that is 13 days old?",
+  "options": {
+   "A": "0.00333",
+   "B": "0.01100",
+   "C": "0.01374",
+   "D": "0.06872"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Weight of the observation $i$ days old: $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$.\n2. $w(13) = 0.8^{12} \\times0.2/(1 - 0.8^{300})$.\n3. $0.8^{12} = 0.068719$, so the numerator is 0.013744; $0.8^{300} \\approx0$, so $w(13) = 0.01374$.\n\n**REBUILT** — Original options included 0.014 (a rounding of the correct value) and an unexplained 0.0205; replaced with distractors that each come from a specific formula error."
+ },
+ {
+  "id": "MR-QB-0105",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Simon is using the age‑weighted historical simulation approach to estimate the VaR of a stock portfolio. Under age‑weighted historical simulation,",
+  "options": {
+   "A": "more recent observations are weighted more and distant observations weighted less.",
+   "B": "all observations are weighted equally.",
+   "C": "the decay parameter takes a value of 1.",
+   "D": "the historical window of observations must not exceed 250 days."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Weights follow $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$ with $0 \\le\\lambda\\le1$, so weight falls geometrically with age.\n2. Hence recent observations get more weight and distant ones less."
+ },
+ {
+  "id": "MR-QB-0106",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Paul uses age‑weighted historical simulation with a window of 100 days and decay factor $\\lambda= 0.96$. Over the recent past, the portfolio has registered the following returns:\n\n| Return | Periods Ago (Days) |\n|---|---|\n| ‑3.2% | 109 |\n| ‑3.3% | 75 |\n| ‑2.3% | 66 |\n| ‑1.3% | 22 |\n| ‑3.0% | 45 |\n\nDetermine the weight on the return earned 45 days ago.",
+  "options": {
+   "A": "0.010000",
+   "B": "0.006372",
+   "C": "0.006637",
+   "D": "0.006751"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$ with $i = 45, n = 100$.\n2. Numerator: $0.96^{44} \\times0.04 = 0.006637$.\n3. Denominator: $1 - 0.96^{100} = 1 - 0.01687 = 0.98313$.\n4. $w(45) = 0.006637/0.98313 = 0.006751$.\n\n**REBUILT** — Original distractors 0.05, 0.0025 and 0.0065 were arbitrary or near‑duplicates of the correct value; replaced with options from specific formula errors."
+ }
+]

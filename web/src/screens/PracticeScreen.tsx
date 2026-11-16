@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useToday } from '../hooks/useToday';
-import { CalendarDays, Dices, Flag, History, Library, Play } from 'lucide-react';
+import { CalendarDays, Dices, Flag, History, Library, Play, Target } from 'lucide-react';
 import { CardGrid, Section, TabShell } from '../components/shell/TabShell';
 import { ActionCard, FileCard, TierCard, fileProgress } from '../components/dashboard/Cards';
 import type { TierGroup } from '../components/dashboard/Cards';
@@ -15,6 +15,7 @@ import { wrongQuestionStates } from '../lib/stats';
 import { useContent } from '../store/content';
 import { useProgress } from '../store/progress';
 import { useUi } from '../store/ui';
+import { useShapes } from '../shapes/store';
 import { addDays, localDay } from '../formulas/storage';
 
 /** A local YYYY-MM-DD at midday, so a DST change at midnight can't move it to another day. */
@@ -69,15 +70,28 @@ export function PracticeScreen() {
     for (const f of subjectFiles) out[f.path] = fileProgress(f, states);
     return out;
   }, [subjectFiles, states]);
-  // Recall-workbook tiers: a question belongs to every tier one of its sections is in.
+  const shapeTopics = useShapes((s) => s.topics);
+  useEffect(() => {
+    void useShapes.getState().load();
+  }, []);
+  const byShape = shapeTopics.length > 0;
+  // Recall-workbook tiers. With the exam shapes loaded, a tier holds the questions that practise a reported shape of
+  // one of its topics; without them, every question whose learning objective one of its sections covers.
   const tierGroups = useMemo((): TierGroup[] => {
+    if (byShape) {
+      return RECALL_TIERS.map((info) => {
+        const topics = shapeTopics.filter((t) => t.tier === info.id);
+        const ids = new Set(topics.flatMap((t) => t.selectors.flatMap((s) => s.questions.map(([id]) => id))).filter((id) => byId[id]));
+        return { info, questionIds: [...ids], sectionKeys: topics.map((t) => t.id) };
+      }).filter((t) => t.questionIds.length > 0);
+    }
     const sections = buildCatalog(subjectQuestions, 'section');
     return RECALL_TIERS.map((info) => ({
       info,
       questionIds: subjectQuestions.filter((q) => tiersOf(q).includes(info.id)).map((q) => q.id),
       sectionKeys: sections.filter((it) => it.code?.startsWith(info.id)).map((it) => it.key),
     })).filter((t) => t.questionIds.length > 0);
-  }, [subjectQuestions]);
+  }, [subjectQuestions, shapeTopics, byShape, byId]);
   const progressByTier = useMemo(() => tierGroups.map((t) => fileProgress(t, states)), [tierGroups, states]);
   const none = subjectQuestions.length === 0;
 
@@ -110,6 +124,15 @@ export function PracticeScreen() {
             }}
             disabled={none}
           />
+          {byShape && (
+            <ActionCard
+              icon={<Target className="h-5 w-5" aria-hidden="true" />}
+              title="Exam shapes"
+              detail="The tier topics, with only the questions that practise a reported shape"
+              onClick={() => navigate('/shapes')}
+              disabled={none}
+            />
+          )}
           <ActionCard
             icon={<Dices className="h-5 w-5" aria-hidden="true" />}
             title="Random Drill"
@@ -154,10 +177,27 @@ export function PracticeScreen() {
       </Section>
 
       {tierGroups.length > 0 && (
-        <Section title="By tier" hint="Recall workbook sections, Tier A first. Tap a tier to choose its sections; a question can sit in more than one tier.">
+        <Section
+          title="By tier"
+          hint={
+            byShape
+              ? 'Recall workbook topics, Tier A first, holding only the questions that practise a reported shape. Tap a tier to open its topics.'
+              : 'Recall workbook sections, Tier A first. Tap a tier to choose its sections; a question can sit in more than one tier.'
+          }
+        >
           <CardGrid>
             {tierGroups.map((t, i) => (
-              <TierCard key={t.info.id} tier={t} progress={progressByTier[i]} onOpen={() => openSetupWith('section', t.sectionKeys)} />
+              <TierCard
+                key={t.info.id}
+                tier={t}
+                progress={progressByTier[i]}
+                unit={byShape ? ['topic', 'topics'] : undefined}
+                onOpen={() => {
+                  if (!byShape) return openSetupWith('section', t.sectionKeys);
+                  useUi.getState().setPendingShapesTier(t.info.id);
+                  navigate('/shapes');
+                }}
+              />
             ))}
           </CardGrid>
         </Section>

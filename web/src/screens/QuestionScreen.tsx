@@ -119,7 +119,8 @@ export function QuestionScreen() {
       return;
     }
     if (!window.confirm('Leave this session?')) return;
-    const back = useSession.getState().config?.origin === 'library' ? '/library' : '/setup';
+    const origin = useSession.getState().config?.origin;
+    const back = origin === 'library' ? '/library' : origin === 'shapes' ? '/shapes' : '/setup';
     useSession.getState().reset();
     navigate(back);
   };

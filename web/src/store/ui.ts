@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { ScopeKind } from '../types';
+import type { RecallTier, ScopeKind } from '../types';
 
 /** What Session Setup should open with: a "Select by" scope and the rows ticked in it. */
 export interface SetupSelection {
@@ -19,6 +19,9 @@ interface UiState {
   /** Which view the Question library should open on (handed over by a dashboard card), consumed once on arrival. */
   pendingLibraryView: 'all' | 'marked' | null;
   setPendingLibraryView: (v: 'all' | 'marked' | null) => void;
+  /** Which tier Exam shapes should open on (handed over by a tier card), consumed once on arrival. */
+  pendingShapesTier: RecallTier | null;
+  setPendingShapesTier: (t: RecallTier | null) => void;
 }
 
 export const useUi = create<UiState>((set) => ({
@@ -29,4 +32,6 @@ export const useUi = create<UiState>((set) => ({
   setPendingSetupSelection: (s) => set({ pendingSetupSelection: s }),
   pendingLibraryView: null,
   setPendingLibraryView: (v) => set({ pendingLibraryView: v }),
+  pendingShapesTier: null,
+  setPendingShapesTier: (t) => set({ pendingShapesTier: t }),
 }));

@@ -1,0 +1,166 @@
+TOPIC C3: VaR Mapping (Tier C)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+C3 VaR Mapping
+Readings: MR-5 a-g · VaR Mapping (Jorion, Value at Risk 3e, Ch.11)
+ MAP TIER C · #22 · 4/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #22: “Reported twice in identical wording: ‘difference in VaR mapping: principal, duration, cash flow.’ The
+  sheet additionally singles out LO 5.f, ‘especially interpretation of variance improvement’: VaR relative to a perfor-
+  mance benchmark. Principal mapping uses only the timing of principal; duration mapping uses portfolio duration;
+  cash-flow mapping decomposes every payment onto the grid. Ranking their risk-capture fidelity is the classic com-
+  parison.”
+  Shapes covered here:
+  S1 difference among principal, duration and cash-flow mapping (Q2)
+  S2 VaR relative to a benchmark: tracking error VaR and the interpretation of variance improvement (Q1)
+  S3 ranking the three methods by how faithfully they capture risk (Q2).
+  Revision notes
+  • Why mapping (MR-5 a): “Mapping is the process by which the current values of the portfolio positions are
+  replaced by exposures on the risk factors.” VaR is aggregation at the highest level (J.P. Morgan Chase: 2.1
+  million positions, 240,000 pricing series). Thousands of USD/EUR forwards collapse onto one risk factor,
+  the spot rate: acceptable for risk measurement, not for pricing.
+  • Mapping as a data solution (MR-5 a): instruments whose profile changes as they age (bonds must be
+  mapped on yields that represent their current profile; options on their primary risk factors); positions with no
+  history (IPOs replaced by similar risk factors); stale prices across time zones (Tokyo closes 15 hours before
+  New York), which make daily cross-market correlations too low.
+  • The process (MR-5 a): mark every position to market in the reference currency, allocate each market value
+  to the risk factors (any unallocated part is cash, which has no risk), then sum exposures by factor into the
+  vector x. Allocation is exact for derivatives priced off the factors (partial derivatives) and estimated for others
+  (a stock’s regression beta on the index).
+  P
+  • General and specific risk (MR-5 b): with  P  each stock mapped on the index, βp =  wi βi , the exposure is
+  x = W βp , and V (Rp ) = βp2 V (Rm ) + wi2 σϵ,i  2
+  : general market risk plus aggregate specific risk. “With
+  more detail on the primitive or general-market risk factors, there will be less specific risk for a fixed amount
+  of total risk.” The choice of factors trades approximation quality against speed.
+  • Three fixed-income methods (MR-5 c; S1): principal mapping uses one risk factor at the average portfolio
+  maturity (redemption timing only); duration mapping uses one risk factor at the portfolio duration; cash-
+  flow mapping groups the portfolio cash flows into maturity buckets (vertices). “Mapping should preserve
+  the market value of the position. Ideally, it also should preserve its market risk.”
+  • Jorion’s two-bond example (MR-5 c, d; S3): USD 100 million 5-year 6% plus USD 100 million 1-year
+  4%, both at par; average maturity 3 years, duration 2.733 years. Principal VaR = 200 × 1.484% = USD
+  2.97 million (“overstates the true risk because it ignores intervening coupon payments”). Duration VaR:
+  interpolated risk 0.987 + (1.484 − 0.987)(0.733) = 1.351%, USD 2.70 million. Cash flow: undiversified
+  USD 2.63 million, diversified USD 2.57 million.
+  • Decomposing the gap (MR-5 c): of the USD 130,000 between duration (2.70) and diversified cash-flow
+  (2.57) VaR, USD 70,000 comes from risk not being linear in maturity (2.70 versus 2.63) and USD 60,000
+  from correlations below one (2.63 versus 2.57). Ranking by fidelity: cash flow best, then duration, principal
+  crudest.
+  • Cash-flow mapping mechanics (MR-5 d): each  p cash flow is represented by its present value at the zero-
+  coupon rate and placed
+  P  on the  vertex; VaR =  (x × V )′ R(x × V ) with V = ασ the vector of zero VaRs;
+  undiversified VaR =  |xi |Vi . Cash flows between vertices have their present values apportioned.
+  • Stress test (MR-5 e): with perfect correlation, shock every zero by its VaR (1-year zero 0.9615 × (1 −
+  0.4696%) = 0.9570) and reprice: USD 197.37 million, exactly USD 2.63 million lower, the undiversified
+  VaR. Matrix multiplication is more direct and allows imperfect correlations.
+FRM Part II · Volume 2: Tiers B to D  C3  VaR Mapping
+  p
+  • VaR relative to a benchmark (MR-5 f; S2): TE-VaR = α (x − x0 )′ Σ(x − x0 ). J.P. Morgan US bond
+  index (duration 4.62): absolute monthly 95% VaR USD 1.99 million on USD 100 million. A duration-
+  matched 4- and 5-year zero portfolio (USD 38 million and 62 million) has TE-VaR USD 0.43 million.
+  • Variance improvement (MR-5 f; S2): 1 − (TE-VaR/VaRindex )2 = 1 − (0.43/1.99)2 = 95.4%, “similar to
+  an R2 in a regression” and “in line with the explanatory power of the first factor”. The remaining tracking
+  error “is due to nonparallel moves in the term structure”.
+  • Absolute is not relative (MR-5 f): Jorion’s portfolios 2 to 5 have TE-VaR 0.29, 0.16, 0.20, 0.81. Portfolio
+  3 (2- and 9-year) tracks best because it comes closest to the index cash flows; portfolio 5 (1-month bills
+  and 30-year zeros, a barbell) has the lowest absolute VaR (1.71) but the worst tracking error. “Minimizing
+  absolute market risk is not the same as minimizing relative market risk”; duration hedging is only a first
+  approximation.
+  • Linear derivatives (MR-5 g): long currency forward = long foreign currency spot + long foreign currency
+  bill + short USD bill (EUR 100 million example: USD 125.89 million each; spot VaR 5.713, total 5.735).
+  Commodity forwards map on the forward price (convenience yield is not tied to another financial variable):
+  12-month oil, USD 43.743 million × 14.05% = USD 6.146 million. Long 6 × 12 FRA = long 6-month bill
+  + short 12-month bill (VaR 0.327). A swap is a fixed bond against an FRN (FRN on cash just before reset)
+  or a string of forwards; VaR USD 2.152 million either way, 1.763 after the first reset.
+  • Options (MR-5 g): delta-normal mapping: long call = long ∆ of the asset + short (∆S − c) in a bill (ATM:
+  ∆ = 0.536, c = 4.20, asset 53.60, loan 49.40). Delta is not constant; a linear approximation is acceptable
+  for long-dated options over short risk horizons. Deep in the money, the option behaves like a forward.
+  Formulas
+  P  P
+  General and specific risk. βp = i wi βi , x = W βp , V (Rp ) = βp2 V (Rm ) + i wi2 σϵ,i  2
+  Principal mapping. VaR = W × VM̄ , M̄ = average maturity of principal.
+  Duration mapping. VaR = W  p× VD , with VD = Vj + (Vj+1 − Vj )(D  P
+  − j) by linear interpolation.
+  Cash-flow mapping. VaR = (x ×  ′ R (x × V ); undiversified =
+  p V )  i |xi |Vi .
+  Tracking error VaR. TE-VaR = α (x − x0 )′ Σ (x − x0 )
+   TE-VaR 2
+  Variance improvement. 1 −
+  VaR
+  ∗
+  benchmark
+  Currency forward. ft = St e−r τ − Ke−rτ : long spot + long foreign bill + short domestic bill. Option. Long
+  ∗
+  call = long ∆S in the asset + short (∆S − c) in a bill, ∆ = e−r τ N (d1 ).
+  Book checks. Principal 2.97, duration 2.70, cash flow 2.63 (undiversified) and 2.57 (diversified); index 1.99, TE-VaR
+  0.43, variance improvement 95.4%.
+  Exam traps
+  • Principal mapping polarity: it overstates risk (ignores intervening coupons), so it gives the highest VaR of the
+  three.
+  • Duration versus cash flow (sibling swap): duration mapping uses one vertex at the portfolio duration; only
+  cash-flow mapping spreads each payment over the grid and captures imperfect correlation.
+  • Variance improvement, not VaR improvement: square the ratio; 1 − TE-VaR/VaR understates the improve-
+  ment.
+  • Absolute versus relative risk: the barbell (cash and a 30-year zero) has the lowest absolute VaR and the worst
+  tracking error; matching absolute VaR to the index is not tracking.
+  • Market value is preserved by all three methods (scope error): what distinguishes them is how well they
+  preserve market risk.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  difference among principal, duration and cash-flow mapping  C3.2
+S2  VaR relative to a benchmark: tracking error VaR and the interpretation of variance improvement  C3.1
+S3  ranking the three methods by how faithfully they capture risk (Q2)  C3.2
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-5  VaR Mapping
+  P3 ×3  P4 ×4  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER C
+  Vardeez: a) Differentiate Principal Duration & Cashflow mapping b) calc of Principal & Duration mapping c) LO 5.f especially
+  interpretation of Variance improvement Note: DO NOT WORRY abt Non Linear & Linear Derivatives (Huge calculations may not
+  show up)
+  RECALL WORKBOOK SECTIONS
+  C3 VaR Mapping
+  Tier C • Map #22 (4/16) • TG ✓• 2 Qs • Vol 2 p.46 • LOs a to g
+  P4  a  Explain the principles underlying VaR mapping and describe the mapping process.
+  P4  b  Explain how the mapping process captures general and specific risks, and calculate these risks in a portfolio
+  given a set of primitive risk factors.
+  P3  c  Differentiate among the three methods for mapping portfolios of fixed-income securities.
+  WORKBOOK C3 + VARDEEZ FOCUS
+  ▶ Vardeez: Principal vs duration vs cash-flow mapping
+  C3·S1 difference among principal, duration and cash-flow mapping
+  C3·S3 ranking the three methods by how faithfully they capture risk (Q2)
+  P3  d  Summarize how to map a fixed-income portfolio into positions of standard instruments.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Calculation of principal and duration mapping
+  P4  e  Describe how mapping of risk factors can support stress testing.
+  P3  f  Explain how VaR can be calculated and used relative to a performance benchmark.
+  WORKBOOK C3 + VARDEEZ FOCUS
+  ▶ Vardeez: Interpretation of variance improvement (his ”LO 5.f”)
+  C3·S2 VaR relative to a benchmark: tracking error VaR and the interpretation of variance improvement
+  P4  g  Describe the method of mapping forwards, forward rate agreements, interest rate swaps, and options.
+  × Vardeez says skip: Do not worry about linear and non-linear derivatives mapping; heavy calculations unlikely
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+22  VaR Mapping: Principal, Duration & Cash-Flow
+  MARKET RISK  4 OF 16 SOURCES  IMPORTANT
+  R5 · VaR Mapping
+  W H AT I S T E S T E D
+  The differentiation among the three mapping methods is the tested object, not the heavy
+  derivative mapping. One sheet is explicit: 'do NOT worry about non-linear and linear
+  derivatives — huge calculations may not show up.'
+  SPECIFICS REPORTED
+  Reported twice in identical wording: 'difference in VaR mapping: principal, duration, cash
+  flow.' The sheet additionally singles out LO 5.f, 'especially interpretation of variance
+  improvement' — VaR relative to a performance benchmark. Principal mapping uses only
+  the timing of principal; duration mapping uses portfolio duration; cash-flow mapping
+  decomposes every payment onto the grid. Ranking their risk-capture fidelity is the classic
+  comparison.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Telegram recall — Nov 2024 (20–22 numericals), Telegram consolidated list (08/08/25)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 5.a Explain the principles underlying VaR mapping and describe the mapping process.
+  LO 5.c Differentiate among the three methods of mapping portfolios of fixed-income securities.
+  LO 5.d Summarize how to map a fixed-income portfolio into positions of standard instruments.
+  LO 5.f Explain how VaR can be calculated and used relative to a performance benchmark.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #22 VaR Mapping: Principal, Duration & Cash-Flow: rank 48, Grind

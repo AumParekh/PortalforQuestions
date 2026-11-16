@@ -1,0 +1,512 @@
+[
+ {
+  "id": "MR-T4-24",
+  "lo": "MR-15 f",
+  "loText": "Describe lognormal models with deterministic drift and mean reversion.",
+  "outside": true,
+  "question": "A lognormal model with mean reversion, known as the Black-Karasinski model, is specified as $d[\\ln(r)] = k(t)[\\ln(\\theta(t)) - \\ln(r)]\\,dt + \\sigma(t)\\, dw$. Which statement about this model is correct?",
+  "options": {
+   "A": "It assumes the logarithm of the short rate follows a time-dependent Vasicek process, and because the volatility, the mean reversion speed and the central tendency may all depend on time, the user can introduce or remove as much time dependence as the application requires.",
+   "B": "It assumes the short rate itself follows a time-dependent Vasicek process, and the volatility must be constant for the model to remain arbitrage-free.",
+   "C": "It permits negative short rates, since the mean reversion term can pull the logarithm of the rate below zero.",
+   "D": "It is an equilibrium model, because the presence of a mean reversion parameter fixes the long-run level rather than fitting it to market prices."
+  },
+  "answer": "A",
+  "solution": "Black-Karasinski as a Vasicek process applied to the logarithm of the rate, with three time-dependent parameters and the flexibility that provides.\n\nRead the specification against the Vasicek form. Vasicek writes:\n\n$$dr = k(\\theta - r)\\,dt + \\sigma\\, dw$$\n\nBlack-Karasinski writes the same structure with $\\ln(r)$ in place of $r$ and with all three parameters allowed to vary by date:\n\n$$d[\\ln(r)] = k(t)[\\ln(\\theta(t)) - \\ln(r)]\\,dt + \\sigma(t)\\, dw$$\n\nSo it is a time-dependent Vasicek process applied to the LOGARITHM of the rate. Three features follow.\n\n| Feature | Consequence |\n|---|---|\n| $\\ln(r)$ is modelled, not $r$ | The rate is lognormal and therefore strictly positive. Negative rates are excluded by construction. |\n| Three time-dependent parameters: $k(t)$, $\\theta(t)$, $\\sigma(t)$ | The model can be calibrated to match observed bond prices AND observed option prices, which makes it ARBITRAGE-FREE rather than equilibrium. |\n| Time dependence is optional in each parameter | The user may hold any of the three constant. Setting all three constant recovers a lognormal Vasicek; letting all three vary gives maximum flexibility. |\n\nThe model is a family rather than a single specification, and the analyst chooses how much time dependence to admit. More flexibility fits more market prices and, as with any richly parameterised model, risks fitting noise."
+ },
+ {
+  "id": "MR-QB-0679",
+  "lo": "MR-14 e",
+  "loText": "Describe uses and benefits of the arbitrage-free models and assess the issue of fitting models to market prices.",
+  "outside": true,
+  "question": "A trading unit wants a simple interest rate model for scenario analysis, chosen from among these candidate models in Tuckman: Model 1 (normally distributed rates, no drift), Model 2 (constant drift and risk premium), Ho‑Lee (time‑dependent drift), and Vasicek (mean reversion). Which of these four is easiest to fit to a wide variety of observed prices?",
+  "options": {
+   "A": "Model 1",
+   "B": "Model 2",
+   "C": "Ho‑Lee",
+   "D": "Vasicek"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Fitting to many observed prices requires a free parameter for each maturity of the curve.\n2. Model 1 has none (zero drift) and Model 2 has one constant drift, so neither can match a general curve.\n3. Ho‑Lee’s drift can differ every period ($\\lambda_{1}, \\lambda_{2}, \\dots$), so each $\\lambda$ can be solved to match the next market price.\n4. Vasicek has constant parameters ($k, \\theta, \\sigma$), so it cannot match an arbitrary curve."
+ },
+ {
+  "id": "MR-QB-0681",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "In the Vasicek model, a risk premium ($\\lambda$) is introduced. What is the key implication of this risk premium for the observed term structure of interest rates?",
+  "options": {
+   "A": "The risk premium directly affects the volatility of the short‑term rate.",
+   "B": "The risk premium is indistinguishable from the long‑run value of the short‑term rate ($\\theta$) when observing security prices.",
+   "C": "The risk premium only affects the short end of the yield curve and has no impact on long‑term rates.",
+   "D": "The risk premium causes the short‑term rate to become negatively correlated with the long‑run value ($\\theta$)."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Under the risk‑neutral process the drift is $k(\\theta- r) + \\lambda$, which equals $k(\\theta^{*} - r)$ with $\\theta^{*} \\approx\\theta+ \\lambda/k$.\n2. The risk premium therefore enters only as a constant shift of the long‑run level used for pricing.\n3. Prices depend only on $\\theta^{*}$, so $\\theta$ and $\\lambda$ cannot be separately identified from security prices."
+ },
+ {
+  "id": "MR-QB-0682",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Analyst Steven builds a monthly (dt = 1/12) short‑rate tree under the Vasicek model $dr = k(\\theta- r)dt + \\sigma dw$ with r(0) = 8.00%, $\\theta$ = 3.00%, k = 0.60 and annual volatility $\\sigma$ = 2.00% (200 bps). After the first month the tree has r(u) = 8.3274% and r(d) = 7.1726%. The unrecombined tree is then made recombining by averaging the two middle nodes of month 2 (up‑down and down‑up). What is the value of the recombined middle node at month 2?",
+  "options": {
+   "A": "7.484%",
+   "B": "7.513%",
+   "C": "7.542%",
+   "D": "7.750%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Monthly shock: $\\sigma\\sqrt{dt} = 2\\% \\times\\sqrt{1/12} = 0.5774\\%$.\n2. Up‑down node: from 8.3274%, drift = 0.60(3 ‑ 8.3274)/12 = ‑0.2664%, so 8.3274 ‑ 0.2664 ‑ 0.5774 = 7.4836%.\n3. Down‑up node: from 7.1726%, drift = 0.60(3 ‑ 7.1726)/12 = ‑0.2086%, so 7.1726 ‑ 0.2086 + 0.5774 = 7.5414%.\n4. The two nodes differ (7.4836% vs 7.5414%), so the tree does not recombine; average them: (7.4836 + 7.5414)/2 = 7.5125%, about 7.513%.\n\n**REBUILT** — Node label \\[2,1\\] was ambiguous because the Vasicek tree does not recombine (two distinct middle nodes) and the source used a drift‑only shortcut; reframed to ask for the recombined middle node (average of the up‑down and down‑up nodes) with plausible distractors."
+ },
+ {
+  "id": "MR-QB-0683",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "A risk manager is reviewing short‑term interest rate assumptions by applying the Vasicek model. The first task is to estimate the long‑run value of the short‑term interest rate. The current interest rate is 5% and you estimate the true long‑term interest rate is 5.5%, annual drift (risk premium) of 0.32%, annual volatility of 1.8%, dt = 1/12, and a mean reversion adjustment (k) of 0.04. What is the long‑run value of the short‑term rate, assuming risk neutrality?",
+  "options": {
+   "A": "5.82%",
+   "B": "5.51%",
+   "C": "13.50%",
+   "D": "‑2.50%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Risk‑neutral long‑run value: $\\theta\\approx r_{\\infty} + \\lambda/k$.\n2. $\\lambda/k = 0.32\\%/0.04 = 8.0\\%$.\n3. $\\theta= 5.5\\% + 8.0\\% = 13.5\\%$.\n4. The current rate 5%, volatility 1.8% and dt are not needed.\n\n**REBUILT** — Distractors were evenly spaced offsets of the answer (giveaway pattern); replaced with results of realistic formula errors."
+ },
+ {
+  "id": "MR-QB-0684",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Using the Vasicek model, assume a current short‑term rate of 5.2% and an annual volatility of the interest rate process of 3.5%. Also assume that the long‑run mean‑reverting level is 14.2% with a speed of adjustment of 0.4. Within a binomial interest rate tree, what are the upper and lower node rates after the first month?",
+  "options": {
+   "A": "Upper 9.81%; lower 7.79%",
+   "B": "Upper 5.91%; lower 3.89%",
+   "C": "Upper 6.51%; lower 4.49%",
+   "D": "Upper 9.00%; lower 2.00%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Drift: $k(\\theta- r_{0})dt = 0.4 \\times(14.2\\% - 5.2\\%) \\times1/12 = 0.30\\%$.\n2. Volatility: $\\sigma\\sqrt{dt} = 3.5\\% \\times\\sqrt{1/12} = 1.0104\\%$.\n3. Upper = 5.2 + 0.30 + 1.0104 = 6.51%.\n4. Lower = 5.2 + 0.30 ‑ 1.0104 = 4.49%.\n\n**REBUILT** — Distractors were not traceable to realistic errors; options rebuilt from common formula mistakes keeping the same data."
+ },
+ {
+  "id": "MR-QB-0685",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "A risk manager at a fixed‑income hedge fund is evaluating methods to improve the fund’s ability to model interest rate term structures. The manager would like to adopt a model that is flexible enough to incorporate both mean reversion and a risk premium and considers the Vasicek model for this purpose. Which of the following statements is correct about the Vasicek model?",
+  "options": {
+   "A": "The model incorporates mean reversion and a drift of zero.",
+   "B": "The model incorporates mean reversion and models the risk premium as a component of the drift.",
+   "C": "The model incorporates a drift of zero, but it cannot incorporate a risk premium.",
+   "D": "The model can be used to model the time‑varying risk premium, but it cannot incorporate mean reversion."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Vasicek: $dr = k(\\theta- r)dt + \\sigma dw$; the drift $k(\\theta- r)$ is non‑zero and produces mean reversion.\n2. The drift combines the expected rate change and a risk premium ($\\lambda$), which shifts the risk‑neutral long‑run level $\\theta\\approx r_{\\infty} + \\lambda/k$.\n3. So mean reversion and a risk premium are both embedded in the drift."
+ },
+ {
+  "id": "MR-QB-0686",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Using the Vasicek model, assume a current short‑term rate of 6.2% and an annual volatility of the interest rate process of 2.5%. Also assume that the long‑run mean‑reverting level is 14.2% with a speed of adjustment of 0.4. Within a binomial interest rate tree, what are the upper and lower node rates after the first month?",
+  "options": {
+   "A": "Upper 10.12%; lower 8.68%",
+   "B": "Upper 8.97%; lower 3.97%",
+   "C": "Upper 6.66%; lower 5.21%",
+   "D": "Upper 7.19%; lower 5.74%"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Drift: 0.4 × (14.2% − 6.2%) × 1/12 = 0.2667%.\n2. Volatility: $2.5\\% \\times\\sqrt{1/12} = 0.7217\\%$.\n3. Upper = 6.2 + 0.2667 + 0.7217 = 7.19%.\n4. Lower = 6.2 + 0.2667 ‑ 0.7217 = 5.74%.\n\n**REBUILT** — Original was an open item with answer choices and worked numbers lost to OCR; converted to a 4‑option MCQ with recomputed nodes and error‑based distractors."
+ },
+ {
+  "id": "MR-QB-0687",
+  "lo": "MR-14 f",
+  "loText": "Describe the process of constructing a simple and recombining tree for a short-term rate under the Vasicek Model with mean reversion.",
+  "outside": false,
+  "question": "Each of the following statements is true about the Vasicek Model EXCEPT:",
+  "options": {
+   "A": "The Vasicek Model is an equilibrium model like the Cox‑Ingersoll‑Ross (CIR) model and unlike the Ho‑Lee model, which is an arbitrage‑free (aka, no‑arbitrage) model",
+   "B": "In the Vasicek Model, half‑life is given by LN(2)/k and can be interpreted as the time it takes for the short‑rate (the factor) to progress half the distance toward the long‑run value (Theta)",
+   "C": "The mean reversion in Vasicek dampens volatility relative to the same process without mean reversion, particularly at long horizons",
+   "D": "Due to the mean‑reversion, it is impossible to develop a rate tree that recombines under Vasicek"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. The unadjusted Vasicek tree does not recombine because the reversion adjustment differs after up and down moves.\n2. It can be made recombining by averaging the two middle nodes and solving for new probabilities (p, q) and outer nodes, so D is false.\n3. A is true (equilibrium vs arbitrage‑free), B is true (half‑life = ln2/k), C is true (volatility term structure slopes downward)."
+ },
+ {
+  "id": "MR-QB-0688",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "In a Vasicek model, the half‑life of the short rate is 28.72 years. Which statement is correct?",
+  "options": {
+   "A": "The rate takes 28.72 years to cover half of the distance between its current value and its long‑run mean‑reverting level, which implies a speed of reversion $k \\approx0.0241$.",
+   "B": "The rate takes 28.72 years to reach its long‑run mean‑reverting level, which implies $k \\approx0.0348$.",
+   "C": "The rate takes 57.44 years to cover half of the distance to its long‑run level, which implies $k \\approx0.0121$.",
+   "D": "The rate takes 14.36 years to cover half of the distance to its long‑run level, which implies $k \\approx0.0483$."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Half‑life is the time for the gap between the rate and the mean‑reverting level to shrink by half: $\\tau= \\text{ln} 2/k$.\n2. So $k = \\text{ln} 2/28.72 = 0.6931/28.72 = 0.02413$.\n3. The gap decays as $e^{-kt}$, so after 28.72 years it is 50% of its initial size (not zero).\n\n**REBUILT** — Units (years) were only implied and the weighted‑average distractors were weak; stated units and added the implied k."
+ },
+ {
+  "id": "MR-QB-0689",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "In a Vasicek model, the speed of mean reversion is $k = 0.025$ and the annual volatility is 126 basis points. The short rate in 10 years is normally distributed with an expected value of 7.4812%. What is the standard deviation of the short rate in 10 years?",
+  "options": {
+   "A": "265 basis points",
+   "B": "353 basis points",
+   "C": "398 basis points",
+   "D": "500 basis points"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Vasicek terminal standard deviation: $\\sigma_{T} = \\sqrt{\\frac{\\sigma^{2}}{2k} (1 - e^{-2kT})}$.\n2. $2k = 0.05$; $e^{-2kT} = e^{-0.5} = 0.6065$, so $1 - e^{-0.5} = 0.3935$.\n3. $\\sigma^{2}/(2k) = (1.26\\%)^{2}/0.05 = 31.752$ (in %²).\n4. $\\sigma_{T} = \\sqrt{31.752 \\times0.3935} = \\sqrt{12.493} = 3.535\\% \\approx353$ bp. The expected value 7.4812% is not needed.\n\n**REBUILT** — Distractors were arbitrary near‑misses of the key; replaced with results of realistic formula errors."
+ },
+ {
+  "id": "MR-QB-0690",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "In a Vasicek model, the long‑run true interest rate is $r_{\\infty} = 2\\%$ and the risk‑premium drift term is $\\lambda= 0.1\\%$ per year. The mean‑reverting level $\\theta= r_{\\infty} + \\lambda/k$ is 4%. The current short rate is 1.5%. What is the speed of mean reversion, $k$?",
+  "options": {
+   "A": "0.025",
+   "B": "0.067",
+   "C": "0.05",
+   "D": "0.04"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Schweser convention: $\\theta= r_{\\infty} + \\lambda/k$.\n2. $4\\% = 2\\% + 0.1\\%/k \\Rightarrow\\lambda/k = 2\\%$.\n3. $k = 0.1\\%/2\\% = 0.05$. The current rate (1.5%) is not needed.\n\n**REBUILT** — Stem mixed ambiguous inputs (current rate, ’drift’); restated which inputs define the mean‑reverting level and replaced weak options."
+ },
+ {
+  "id": "MR-QB-0691",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "A Vasicek model is $dr = k ([r_{\\infty} + \\lambda/k] - r) dt + \\sigma dw$. The speed of mean reversion is $k = 0.42$, the true long‑run rate is $r_{\\infty} = 5.286\\%$, the risk‑premium term is $\\lambda= 0.256\\%$, the current short rate is 4.256% and $\\sigma= 2.07\\%$ per year. Over the next month ($dt = 1/12$), what are the expected change in the short rate and the standard deviation of the change?",
+  "options": {
+   "A": "5.74 bp and 59.76 bp",
+   "B": "38.87 bp and 59.76 bp",
+   "C": "5.74 bp and 207.00 bp",
+   "D": "68.86 bp and 59.76 bp"
+  },
+  "answer": "A",
+  "solution": "**Key correction:** Source key (D: 38.87 and 59.76) included the random shock in the ’expected’ change; the expectation excludes dw, so the expected change is 5.74 bp.\n\n**Step by step**\n\n1. Mean‑reverting level: $\\theta= 5.286\\% + 0.256\\%/0.42 = 5.8955\\%$.\n2. Expected change $= k(\\theta- r) dt = 0.42 \\times(5.8955\\% - 4.256\\%) \\times1/12 = 0.05738\\% = 5.74$ bp.\n3. Standard deviation $= \\sigma\\sqrt{dt} = 207 \\times\\sqrt{1/12} = 59.76$ bp.\n\n**REBUILT** — Source asked for ’expected change’ but its key included the random shock σdw (not an expectation); rebuilt to ask for the true expected change and the one‑month standard deviation."
+ },
+ {
+  "id": "MR-QB-0692",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "In a Vasicek model, the speed of mean reversion is 0.37 and the annual volatility is 197 basis points. The short rate is normally distributed. What is the standard deviation of the short rate after 5 years?",
+  "options": {
+   "A": "0.0441",
+   "B": "0.0226",
+   "C": "0.0210",
+   "D": "0.0320"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. $\\sigma_{T} = \\sqrt{\\frac{\\sigma^{2}}{2k} (1 - e^{-2kT})}$ with $\\sigma= 0.0197$, $k = 0.37$, $T = 5$.\n2. $2kT = 3.7$; $1 - e^{-3.7} = 0.97530$.\n3. $\\sigma^{2}/2k = 0.00038809/0.74 = 0.00052445$.\n4. $\\sigma_{T} = \\sqrt{0.00052445 \\times0.97530} = 0.02262$.\n\n**REBUILT** — Options were arbitrary and the source working mixed 197 bp and 0.0197; replaced options with outcomes of realistic errors."
+ },
+ {
+  "id": "MR-QB-0693",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "Consider a Vasicek model with speed of mean reversion $k = 0.03$, annual volatility of 200 basis points, a true long‑run interest rate $r_{\\infty} = 6\\%$, a current short rate of 5.0% and an annual drift (risk‑premium) term $\\lambda= 0.35\\%$. What is the expected short rate after 10 years?",
+  "options": {
+   "A": "3.70%",
+   "B": "5.26%",
+   "C": "8.28%",
+   "D": "11.67%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. $\\theta= r_{\\infty} + \\lambda/k = 6\\% + 0.35\\%/0.03 = 17.667\\%$.\n2. $e^{-kT} = e^{-0.3} = 0.74082$.\n3. $E[r_{T}] = r_{0}e^{-kT} + \\theta(1 - e^{-kT}) = 5\\%(0.74082) + 17.667\\%(0.25918) = 3.704\\% + 4.579\\% = 8.28\\%$.\n\n**REBUILT** — Option A (4.55%) matched no realistic error; replaced with the result of omitting the λ/k adjustment."
+ },
+ {
+  "id": "MR-QB-0694",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "Consider a Vasicek model with speed of mean reversion $k = 0.05$, annual volatility of 150 basis points, a true long‑run interest rate of 6%, a current short rate of 5.0% and an annual drift term of 0.4%. What is the half‑life of the model (in years)?",
+  "options": {
+   "A": "6.93",
+   "B": "10.00",
+   "C": "13.86",
+   "D": "20.00"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Half‑life $\\tau= \\text{ln} 2/k$.\n2. $\\tau= 0.6931/0.05 = 13.86$ years. Volatility, rates and drift are irrelevant.\n\n**REBUILT** — Options 5.8/26.0/14.5 corresponded to no identifiable error; replaced with results of realistic formula mistakes."
+ },
+ {
+  "id": "MR-QB-0695",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "Analyst Susan is employing the Vasicek model: $dr = k(\\theta- r) dt + \\sigma dw$. Her version is $dr = 0.40(8.00\\% -$ $r) dt + (3.0\\%) dw$. The current short rate is $r(0) = 2.00\\%$. Assumptions: time step one month ($dt = 1/12$); $\\theta= 8.00\\%$; $k = 0.40$; annual volatility 300 basis points. For the first month, the simulation uses a uniform random value of 45%, which transforms (inverse normal) into a standard normal of −0.13164. Including time scaling, $dw = -0.13164 \\times\\sqrt{1/12} = -0.0380$. What are the rate in the first month, $r(1/12)$, and the half‑life of the process?",
+  "options": {
+   "A": "r(1/12) = 2.0860% and half‑life is \\~1.7 years",
+   "B": "r(1/12) = 3.1920% and half‑life is \\~2.5 years",
+   "C": "r(1/12) = 4.3333% and half‑life is \\~7.4 years",
+   "D": "r(1/12) = 5.2136% and half‑life is \\~15.5 years"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Drift: $k(\\theta- r) dt = 0.40 \\times(8\\% - 2\\%) \\times1/12 = 0.20\\%$.\n2. Shock: $\\sigma dw = 3.0\\% \\times(-0.0380) = -0.114\\%$.\n3. $dr = 0.20\\% - 0.114\\% = 0.086\\%$, so $r(1/12) = 2.0860\\%$.\n4. Half‑life $= \\text{ln} 2/k = 0.6931/0.40 = 1.73$ years."
+ },
+ {
+  "id": "MR-QB-0696",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "A quantitative analyst on the fixed‑income desk of an investment bank is applying the Vasicek model to estimate future short‑term interest rates. The model is given below: $dr = k(\\theta- r) dt + \\sigma dw$, where dr is the change in the short‑term interest rate, θ is the estimated long‑run value of the short‑term interest rate, k is the mean reversion rate, r is the current level of the short‑term interest rate, σ is the annual basis‑point volatility of the short‑term interest rate, dt is the time interval measured in years, and dw is a normally distributed random variable with mean zero and standard deviation equal to the square root of dt. The analyst gathers the following information:\n\nCurrent short‑term interest rate (r): 3.35%\n\nLong‑run value of short‑term interest rate (θ): 4.55%\n\nMean reversion rate (k): 0.06\n\nAnnual basis‑point volatility (σ): 120 bps\n\nThe analyst then creates an interest rate tree, determines the expected short‑term interest rate after 8 years, and calculates how long it will take the short‑term interest rate to revert halfway to the long‑run value. Which of the following statements would be correct for the analyst to make?",
+  "options": {
+   "A": "The expected short‑term interest rate is 3.81% and the half‑life is 11.6 years.",
+   "B": "The expected short‑term interest rate is 3.81% and the half‑life is 16.7 years.",
+   "C": "The expected short‑term interest rate is 4.09% and the half‑life is 11.6 years.",
+   "D": "The expected short‑term interest rate is 4.09% and the half‑life is 16.7 years."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Decay factor: $e^{-kT} = e^{-0.06\\times8} = e^{-0.48} = 0.6188$.\n2. Expected rate: $E[r_{8}] = \\theta+(r_{0} -\\theta)e^{-kT} = 4.55\\%+(3.35\\%-4.55\\%)(0.6188) = 3.807\\% \\approx3.81\\%$. Equivalently 0.6188 × 3.35% + 0.3812 × 4.55%.\n3. Half‑life: $\\tau= \\text{ln} 2/k = 0.6931/0.06 = 11.55 \\approx11.6$ years.\n4. The 120 bp volatility does not affect the expected rate."
+ },
+ {
+  "id": "MR-QB-0697",
+  "lo": "MR-14 g",
+  "loText": "Calculate the Vasicek Model rate change, standard deviation of the rate change, expected rate in T years, and half-life.",
+  "outside": false,
+  "question": "In a risk‑neutral Vasicek model, $dr = k(\\theta- r) dt + \\sigma dw$ with $\\theta= r_{\\infty} + \\lambda/k$. Assume k = 0.020, σ = 125 basis points per year, râ ˆž = 6.180%, λ = 0.227% per year, current short rate r = 5.212%, a one‑month interval (dt = 1/12), and a realized random shock of dw = 0.14 (use it directly in σÂ ·dw). What are the change in the short rate over the month and the standard deviation of the monthly rate change?",
+  "options": {
+   "A": "Change of 17.66 bp; standard deviation of 36.08 bp",
+   "B": "Change of 19.55 bp; standard deviation of 125.00 bp",
+   "C": "Change of 19.55 bp; standard deviation of 36.08 bp",
+   "D": "Change of 2.05 bp; standard deviation of 36.08 bp"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Long‑run risk‑neutral rate: $\\theta= 6.180\\% + 0.227\\%/0.020 = 17.53\\%$.\n2. Drift: $k(\\theta- r)dt = 0.020 \\times(17.53\\% - 5.212\\%) \\times(1/12) = 0.02053\\% = 2.05$ bp.\n3. Shock: $\\sigma dw = 125 \\times0.14 = 17.50$ bp.\n4. Rate change: 2.05 + 17.50 = 19.55 bp.\n5. Monthly standard deviation: $\\sigma\\sqrt{dt} = 125\\sqrt{1/12} = 36.08$ bp.\n\n**REBUILT** — Original options were giveaways (swapped values, an odd 35.04/1.54 pair) and the shock dw was ambiguous; made the shock explicit and replaced distractors with realistic mistakes."
+ },
+ {
+  "id": "MR-QB-0698",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "The U.S. Department of Transport has just announced an unexpected technological breakthrough that will have a major bearing on the development of self‑driving autonomous vehicles. What is the most likely anticipated impact on a mean‑reverting model of interest rates?",
+  "options": {
+   "A": "The economic information is long‑lived with a low mean reversion parameter.",
+   "B": "The economic information is short‑lived with a low mean reversion parameter.",
+   "C": "The economic information is long‑lived with a high mean reversion parameter.",
+   "D": "The economic information is short‑lived with a high mean reversion parameter."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. A major technological breakthrough changes economic fundamentals, so the news is long‑lived (persistent).\n2. In the Vasicek model $dr = k(\\theta- r)dt + \\sigma dw$, k is the speed of reversion toward the long‑run level.\n3. Persistent shocks are expected to die out slowly, so the pull back to the long‑run mean is weak: low k.\n4. Long‑lived information therefore pairs with a low mean reversion parameter.\n\n**REBUILT** — Original option D was a non‑parallel giveaway and omitted the short‑lived/high‑k pairing; options rebuilt as the full 2x2 of lifespan versus mean reversion speed."
+ },
+ {
+  "id": "MR-QB-0699",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "The Bureau of Labor Statistics has just reported an unexpected short‑term increase in high‑priced luxury automobiles. What is the most likely anticipated impact on a mean‑reverting model of interest rates?",
+  "options": {
+   "A": "The economic information is long‑lived with a low mean reversion parameter.",
+   "B": "The economic information is short‑lived with a low mean reversion parameter.",
+   "C": "The economic information is long‑lived with a high mean reversion parameter.",
+   "D": "The economic information is short‑lived with a high mean reversion parameter."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. A temporary jump in one narrow sector (luxury cars) does not alter long‑run fundamentals, so the information is short‑lived.\n2. Short‑lived shocks should decay quickly toward the long‑run rate $\\theta$.\n3. Fast decay means a large reversion adjustment per period, i.e., a high k.\n4. Short‑lived information pairs with a high mean reversion parameter."
+ },
+ {
+  "id": "MR-QB-0700",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "Which of the following is the best interpretation of a Vasicek model with a high mean reversion parameter k?",
+  "options": {
+   "A": "Economic news affecting the short rate is short‑lived",
+   "B": "The half‑life of a deviation from the long‑run rate is long",
+   "C": "A shock to the short rate has a larger effect on long‑maturity rates than it would with a low k",
+   "D": "The standard deviation of the short rate’s terminal distribution in T years exceeds $\\sigma\\sqrt{T}$"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Half‑life $= \\text{ln} 2/k$: a high k gives a short half‑life, so deviations (shocks) decay quickly, i.e., news is short‑lived (A true, B false).\n2. Because shocks fade as the rate reverts, they affect long maturities less than short ones; a higher k strengthens this (C false).\n3. Mean reversion pulls the rate back, so terminal variance is below the no‑reversion value $\\sigma^{2}T$; the standard deviation is less than $\\sigma\\sqrt{T}$ (D false).\n\n**REBUILT** — Option C contained an OCR‑damaged symbol and a garbled claim, and the LO fits 14.h (model effectiveness); replaced with clear, unambiguous false statements."
+ },
+ {
+  "id": "MR-QB-0701",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "An analyst graphs the effect of a 10‑basis‑point increase in the short‑term rate factor on the spot rate curve under the Vasicek model, which includes mean reversion. What is the effect on short‑term and long‑term spot rates?",
+  "options": {
+   "A": "Short‑term rates decrease by about 10 bp, while longer‑term rates are less affected.",
+   "B": "Short‑term rates increase by about 10 bp, while longer‑term rates are affected by less than 10 bp.",
+   "C": "Short‑term rates increase by about 10 bp, while longer‑term rates are affected by more than 10 bp.",
+   "D": "Short‑term and long‑term rates all increase by 10 bp because of the increase in volatility."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The shock is applied to the short‑term rate, so short rates rise by about 10 bp.\n2. With mean reversion ($k > 0$) the shocked rate is pulled back toward the long‑run mean, so expected future short rates, which drive long‑term spot rates, rise by less than 10 bp.\n3. Hence the curve does not shift in parallel: the impact declines with maturity (in the Tuckman example the 30‑year rate moves noticeably less than 10 bp)."
+ },
+ {
+  "id": "MR-QB-0702",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "In a mean‑reverting short‑rate model, economic news is classified as long‑lived or short‑lived. Which statement is correct?",
+  "options": {
+   "A": "News is short‑lived if it changes the market’s view of the economy many years in the future, and long‑lived if it changes the view only in the near future.",
+   "B": "News is long‑lived if it changes the market’s view of the economy many years in the future, and short‑lived if it changes the view only in the near future.",
+   "C": "Long‑lived news is associated with a high mean reversion parameter, and short‑lived news with a low mean reversion parameter.",
+   "D": "Both types of news are incorporated at the same speed because the mean reversion parameter is independent of the type of news."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Long‑lived news alters expectations of the economy far into the future, so the shock persists in the rate (low $k$).\n2. Short‑lived news affects only the near term, so the rate reverts quickly to its long‑run mean (high $k$).\n3. Only B states the definition correctly.\n\n**REBUILT** — Original stem was garbled and option C vague; reworded the stem and options so only the long‑lived versus short‑lived news distinction (and its link to $k$) is tested."
+ },
+ {
+  "id": "MR-QB-0703",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "An analyst fits a Vasicek model when the current short‑term rate is 4.60% and the long‑run mean‑reversion level, $\\theta$, is 13.50%. Each of the following statements is true EXCEPT which is false?",
+  "options": {
+   "A": "A key advantage of the Vasicek model is that it is a relatively simple model.",
+   "B": "If the half‑life is nine years, then we might expect the short rate to reach about 9.0% in nine years or so.",
+   "C": "The standard deviation of the short rate in ten years is less than it would be without mean reversion.",
+   "D": "Because it is a multi‑factor model, the Vasicek model is popularly applied to hedge portfolios that contain short‑, medium‑ and long‑term bonds."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Vasicek is a one‑factor model (only the short rate is random), so D’s premise is false.\n2. Check B: after one half‑life the gap to $\\theta$ halves: 4.60% + 0.5 × (13.50% − 4.60%) = 9.05%, about 9.0% ($k =$ ln 2/9 ≈ 0.077); true.\n3. Check C: mean reversion bounds the variance, whereas without it variance grows linearly with time; true.\n4. A is true: few parameters and closed‑form prices."
+ },
+ {
+  "id": "MR-QB-0704",
+  "lo": "MR-14 h",
+  "loText": "Describe the effectiveness of the Vasicek Model.",
+  "outside": false,
+  "question": "Which of the following best describes the effectiveness of the Vasicek model relative to a normal model with no drift (Model 1)?",
+  "options": {
+   "A": "It produces a flat term structure of volatility and parallel shifts from short‑rate shocks, as in Model 1.",
+   "B": "It produces a declining term structure of volatility, overstating short‑term and understating long‑term volatility, and a short‑rate shock does not shift the curve in parallel.",
+   "C": "It produces an increasing term structure of volatility, because long‑term rates accumulate more shocks, and short‑rate shocks move all rates equally.",
+   "D": "It produces a declining term structure of volatility, but a short‑rate shock still moves all rates equally."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Model 1 (no drift) gives flat volatility across maturities and parallel shifts.\n2. In Vasicek, mean reversion damps the effect of a short‑rate shock at longer horizons, so the volatility term structure declines (short‑term vol overstated, long‑term understated).\n3. For the same reason the effect of a shock falls with maturity, so shifts are not parallel. Only B has both features.\n\n**REBUILT** — Original option B (normal rates, constant mean reversion) is also a true Vasicek assumption, giving two defensible answers; rebuilt around the LO 14.h effectiveness points (volatility term structure, non‑parallel shifts)."
+ },
+ {
+  "id": "MR-QB-0706",
+  "lo": "MR-15 a",
+  "loText": "Describe the short-term rate process under a model with time-dependent volatility.",
+  "outside": true,
+  "question": "Consider the following summary of the interest rate models in Tuckman:\n\nI. Model 1 is a simple equilibrium model with normally distributed rates and no drift.\n\nII. Model 2 adds a constant drift (risk premium) to Model 1 and is also an equilibrium model with normally distributed rates.\n\nIII. The Ho‑Lee model has normally distributed rates and a time‑dependent drift, and can be calibrated so that it is arbitrage‑free.\n\nIV. The Vasicek model has normally distributed rates with mean reversion toward a long‑run value.\n\nV. Model 3 replaces the normal distribution of rates with a lognormal distribution while keeping volatility constant. Which of the statements are TRUE?",
+  "options": {
+   "A": "I and II only",
+   "B": "III and V only",
+   "C": "I, II, III and IV only",
+   "D": "All of the statements"
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (BT notes) said D (all true); that relied on a flawed statement V. In the original V, Model 3 was contrasted with models ’which assume normally distributed rates’, yet Model 3 is itself normal. V has been rewritten as false.\n\n**Step by step**\n\n1. I: Model 1, $dr = \\sigma dw$, has normal rates and no drift. True.\n2. II: Model 2, $dr = \\lambda dt + \\sigma dw$, has constant drift and normal rates. True.\n3. III: Ho‑Lee, $dr = \\lambda(t) dt + \\sigma dw$, has time‑dependent drift fitted to the market curve (arbitrage‑free). True.\n4. IV: Vasicek, $dr = k(\\theta- r)dt + \\sigma dw$, is normal with mean reversion. True.\n5. V: Model 3, $dr = \\lambda(t)dt + \\sigma e^{-\\alpha t}dw$, keeps normal rates and has time‑dependent (not constant) volatility, and is not lognormal. False.\n6. So I, II, III and IV only.\n\n**REBUILT** — Original statement V wrongly implied Model 3 abandons normally distributed rates (it keeps them), making ’all true’ defensible and the item ambiguous; rewrote V as a clearly false statement and reset options."
+ },
+ {
+  "id": "MR-QB-0711",
+  "lo": "MR-15 c",
+  "loText": "Assess the efficacy of time-dependent volatility models.",
+  "outside": true,
+  "question": "According to Tuckman, the purpose of the model drives the choice between a time‑dependent volatility model (Model 3) and a mean‑reverting model (Vasicek). Which statement is correct?",
+  "options": {
+   "A": "Time‑dependent drift is best for pricing options on fixed‑income securities, while time‑dependent volatility is best for pricing and hedging fixed‑income securities.",
+   "B": "Time‑dependent volatility is best for pricing options on fixed‑income securities, while time‑dependent drift is best for pricing and hedging fixed‑income securities.",
+   "C": "Time‑dependent volatility is best for pricing options on fixed‑income securities, while mean reversion is best for pricing and hedging fixed‑income securities.",
+   "D": "Mean reversion is best for pricing options on fixed‑income securities, while time‑dependent volatility is best for pricing and hedging fixed‑income securities."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Option pricing needs a model that can be fitted to observed option prices at several expiries: the free function $\\sigma(t)$ lets the model interpolate between observed market prices.\n2. Valuing or hedging securities (and options) calls for a model with sensible economics for rates over time: mean reversion provides this.\n3. Match: option pricing ‑> time‑dependent volatility; pricing/hedging securities ‑> mean reversion (C).\n\n**REBUILT** — Stem was garbled (the same sentence asked about pricing an option and about pricing and hedging securities); reworded to a clean contrast."
+ },
+ {
+  "id": "MR-QB-0717",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": true,
+  "question": "In the CIR model, basis‑point volatility equals $\\sigma\\sqrt{r}$, which is zero when the short rate is zero; together with a positive drift at $r = 0$, this prevents negative rates. What is the main weakness of models with constant basis‑point volatility (such as Vasicek or Ho‑Lee) that this CIR feature addresses?",
+  "options": {
+   "A": "Shocks have the same size near zero as at high rate levels, so the short rate can become negative.",
+   "B": "Constant basis‑point volatility makes the short rate deterministic, so no interest rate risk is modelled.",
+   "C": "Constant basis‑point volatility prevents the model from including mean reversion toward a long‑run rate.",
+   "D": "Basis‑point volatility rises roughly in proportion to the rate level, overstating risk when rates are high."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. In a constant‑basis‑point‑volatility model, the standard deviation of $dr$ is $\\sigma$ regardless of the level of $r$.\n2. When $r$ is near zero, a normal shock of size $\\sigma\\sqrt{dt}$ can still push the rate below zero; a normal terminal distribution always has mass below zero, more so at long horizons.\n3. CIR scales volatility by $\\sqrt{r}$, so shocks vanish at $r = 0$ and a positive drift keeps rates non‑negative.\n\n**REBUILT** — Original options B‑D were giveaways (positive rates or responsiveness to markets are not flaws); rewrote the distractors around realistic misconceptions."
+ },
+ {
+  "id": "MR-QB-0719",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": true,
+  "question": "For his term structure model, Peter considered the Vasicek model but, on reflection, prefers the Cox‑Ingersoll‑Ross (CIR) model. Which of the following statements about the CIR model is TRUE?",
+  "options": {
+   "A": "A drawback of the CIR model is that it does not mean revert to a long‑term rate.",
+   "B": "In the CIR model, the drift is time‑dependent so that the model is an arbitrage‑free fit to the curve.",
+   "C": "An advantage of the CIR model is that the terminal distribution of the short rate is eventually normally distributed.",
+   "D": "Unlike the Vasicek model’s constant volatility, the CIR model’s basis‑point volatility is not constant, which (with positive drift) prevents the short rate from becoming negative."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Vasicek: $dr = k(\\theta- r) dt + \\sigma dw$; CIR: $dr = k(\\theta- r) dt + \\sigma\\sqrt{r} dw$.\n2. As $r \\to0$, basis‑point volatility $\\sigma\\sqrt{r} \\to0$ while drift $k\\theta> 0$, so r cannot turn negative.\n3. A, B, C contradict the CIR specification (mean reversion, constant parameters, non‑negative skewed terminal distribution)."
+ },
+ {
+  "id": "MR-QB-0737",
+  "lo": "MR-16 a",
+  "loText": "Describe the structure of the Gauss+ model and discuss the implications of this structure for the model’s ability to replicate empirically observed interest rate dynamics.",
+  "outside": false,
+  "question": "What structural feature of the Gauss+ model allows it to replicate the complex interest rate dynamics observed in financial markets?",
+  "options": {
+   "A": "A single mean‑reverting factor capturing short‑term dynamics.",
+   "B": "Independent, non‑mean‑reverting factors that simplify modeling.",
+   "C": "Three mean‑reverting factors representing the short‑, medium‑, and long‑term rate levels.",
+   "D": "A linear deterministic path for rates over time."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Gauss+ has three state variables: $r_{t}$, $m_{t}$, $l_{t}$.\n2. They form a cascade: $r_{t}$ reverts to $m_{t}$, $m_{t}$ reverts to $l_{t}$, and $l_{t}$ reverts to the fixed constant $\\mu$, each at a different speed ($\\alpha_{r} > \\alpha_{m} > \\alpha_{l}$).\n3. This multi‑speed mean reversion lets the model match empirical rate dynamics and the volatility term structure."
+ },
+ {
+  "id": "MR-QB-0738",
+  "lo": "MR-16 a",
+  "loText": "Describe the structure of the Gauss+ model and discuss the implications of this structure for the model’s ability to replicate empirically observed interest rate dynamics.",
+  "outside": false,
+  "question": "Which volatility term structure can the Gauss+ model be calibrated to replicate, in line with empirically observed interest rate behavior?",
+  "options": {
+   "A": "Volatility that is highest at the short end and declines steadily with maturity.",
+   "B": "Volatility that rises steadily with maturity.",
+   "C": "Low volatility at the short end, higher volatility at medium maturities, and declining volatility at long maturities (hump‑shaped).",
+   "D": "Constant volatility across all maturities."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The short rate $r_{t}$ has no direct random shock; it only follows $m_{t}$, so short‑end volatility is low.\n2. The medium‑term factor $m_{t}$ carries its own shock $\\sigma_{m}$, giving higher volatility at medium maturities.\n3. The long‑term factor reverts slowly and its influence diminishes, so volatility declines at long maturities.\n4. This hump shape matches historical norms, which the single‑volatility Vasicek model cannot reproduce.\n\n**REBUILT** — Original distractors were obvious giveaways and the correct option was vague; rebuilt around the volatility term structure the reading says Gauss+ replicates, with plausible alternative shapes."
+ },
+ {
+  "id": "MR-QB-0739",
+  "lo": "MR-16 a",
+  "loText": "Describe the structure of the Gauss+ model and discuss the implications of this structure for the model’s ability to replicate empirically observed interest rate dynamics.",
+  "outside": false,
+  "question": "In the Gauss+ model, the medium‑term factor has shock $\\sigma_{m}(\\rho dW^{1}_{t} + \\sqrt{1 - \\rho^{2}} dW^{2}_{t})$ and the long‑term factor has shock $\\sigma_{l} dW^{1}_{t}$, where $dW^{1}_{t}$ and $dW^{2}_{t}$ are independent. With $\\rho= 0.6$, $\\sigma_{m} = 0.01$ and $\\sigma_{l} = 0.005$, what is the correlation between the random shocks to $m_{t}$ and $l_{t}$?",
+  "options": {
+   "A": "0.36",
+   "B": "0.60",
+   "C": "0.80",
+   "D": "0.000030"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance of shocks: $\\sigma_{m}\\sigma_{l}\\rho dt = 0.01 \\times0.005 \\times0.6 dt = 0.00003 dt$.\n2. Standard deviations: $\\sigma_{m} \\sqrt{dt}$ (since $\\rho^{2} + (1 - \\rho^{2}) = 1$) and $\\sigma_{l} \\sqrt{dt}$.\n3. Correlation $= 0.00003/(0.01 \\times0.005) = 0.6 = \\rho$.\n\n**REBUILT** — Original stem was vague and distractors were absurd; rebuilt as a concrete test of the correlation structure between factors under Gauss+."
+ },
+ {
+  "id": "MR-QB-0740",
+  "lo": "MR-16 a",
+  "loText": "Describe the structure of the Gauss+ model and discuss the implications of this structure for the model’s ability to replicate empirically observed interest rate dynamics.",
+  "outside": false,
+  "question": "In the Gauss+ model, suppose at some date $r_{t} > m_{t}$ and $m_{t} > l_{t} > \\mu$. Ignoring random shocks, which statement best describes the drift of the factors?",
+  "options": {
+   "A": "$r_{t}$ drifts down toward $m_{t}$, $m_{t}$ drifts down toward $l_{t}$, and $l_{t}$ drifts down toward $\\mu$.",
+   "B": "$r_{t}$ drifts up toward $m_{t}$, while $m_{t}$ and $l_{t}$ drift down.",
+   "C": "$r_{t}$ drifts down toward $\\mu$ directly, bypassing $m_{t}$.",
+   "D": "$r_{t}$ does not move because it has no random shock."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Short‑rate drift $-\\alpha_{r}(r_{t} - m_{t}) < 0$ since $r_{t} > m_{t}$: it falls toward $m_{t}$.\n2. Medium drift $-\\alpha_{m}(m_{t} - l_{t}) < 0$ since $m_{t} > l_{t}$: it falls toward $l_{t}$.\n3. Long drift $-\\alpha_{l}(l_{t} - \\mu) < 0$ since $l_{t} > \\mu$: it falls toward $\\mu$, the only fixed target.\n\n**REBUILT** — Keyed answer (regime‑switching) is not a feature of Gauss+ in the reading; replaced with a cascade mean‑reversion question testing the same LO."
+ }
+]

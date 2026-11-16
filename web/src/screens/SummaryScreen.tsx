@@ -97,9 +97,10 @@ export function SummaryScreen() {
   };
 
   const fromLibrary = config?.origin === 'library';
+  const fromShapes = config?.origin === 'shapes';
   const goSetup = () => {
     useSession.getState().reset();
-    navigate(fromLibrary ? '/library' : '/setup');
+    navigate(fromLibrary ? '/library' : fromShapes ? '/shapes' : '/setup');
   };
 
   const goHome = () => {
@@ -136,7 +137,7 @@ export function SummaryScreen() {
           className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 font-medium text-white shadow-sm transition hover:bg-primary-600"
         >
           <Plus className="h-5 w-5" aria-hidden="true" />
-          {fromLibrary ? 'Back to library' : 'New session'}
+          {fromLibrary ? 'Back to library' : fromShapes ? 'Back to exam shapes' : 'New session'}
         </button>
         {wrongIds.length > 0 && (
           <button

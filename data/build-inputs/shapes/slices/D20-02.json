@@ -1,0 +1,422 @@
+[
+ {
+  "id": "CR-T2-22",
+  "lo": "CR-12 g",
+  "loText": "Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.",
+  "outside": false,
+  "question": "Which of the following statements is correct about the modelling of default correlation in CreditMetrics and in Vasicek's model?",
+  "options": {
+   "A": "Vasicek's model calculates default correlation using multiple Gaussian copulas to reflect varying economic conditions across sectors.",
+   "B": "CreditMetrics employs a single-factor model that simplifies the correlation of defaults to a common economic influence affecting all entities equally.",
+   "C": "Vasicek's model uses a single systematic factor representing overall economic conditions to model default correlations, affecting all entities in the portfolio.",
+   "D": "CreditMetrics uses sector-based risk adjustments in addition to a Gaussian copula for modelling default correlations specifically tied to individual industries."
+  },
+  "answer": "C",
+  "solution": "Vasicek's model reduces all dependence to one systematic factor with a common correlation, whereas CreditMetrics uses a full asset return correlation matrix derived from equity indices.\n\nBoth models use a Gaussian copula to link individual credit outcomes, but they differ fundamentally in how much structure they impose on the dependence.\n\n| Feature | Vasicek | CreditMetrics |\n|---|---|---|\n| Dependence structure | One systematic factor, a single correlation parameter | Full asset return correlation matrix |\n| Source of correlation | Assumed or regulatory prescribed | Equity index correlations by country and industry |\n| Scope of credit events | Default only | Default and rating migration, mark to market |\n| Solution method | Closed form, asymptotic | Monte Carlo simulation |\n| Principal use | Basel IRB capital formula | Portfolio credit VaR |\n\nVasicek's single factor. Each obligor's latent asset return is driven by one common factor plus an idiosyncratic term:\n\n$$a_i = \\sqrt{\\rho} \\times m + \\sqrt{1-\\rho} \\times \\varepsilon_i$$\n\nwhere $m$ is the single systematic factor common to all obligors and $\\varepsilon_i$ is idiosyncratic. All pairwise correlations collapse to the single parameter $\\rho$. This drastic simplification is what makes the model analytically tractable and is why it underpins the Basel IRB capital formula: a formula requiring a full correlation matrix could not […]"
+ },
+ {
+  "id": "CR-T2-23",
+  "lo": "CR-12 g",
+  "loText": "Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.",
+  "outside": false,
+  "question": "Which feature distinguishes CreditMetrics from both Vasicek's model and CreditRisk+?",
+  "options": {
+   "A": "It ignores credit rating migrations and focuses solely on default events.",
+   "B": "It incorporates mark-to-market revaluations arising from credit downgrades.",
+   "C": "It assumes fixed recovery rates for all obligors in the portfolio.",
+   "D": "It uses a Poisson distribution to model default frequency."
+  },
+  "answer": "B",
+  "solution": "CreditMetrics is a mark-to-market model that prices rating migrations as well as defaults, whereas Vasicek and CreditRisk+ are default-mode models.\n\nThe three models divide on a single question: what counts as a credit loss?\n\n| Model | Loss recognised on | Correlation structure | Distributional engine |\n|---|---|---|---|\n| CreditMetrics | Default and rating migration, mark to market | Full asset return correlation matrix | Gaussian copula, simulation |\n| Vasicek | Default only | Single systematic factor | Gaussian, closed form |\n| CreditRisk+ | Default only | Sector factors with gamma-distributed rates | Poisson, then negative binomial |\n\nDefault-mode models. Vasicek and CreditRisk+ recognise a loss only when an obligor defaults. A bond downgraded from A to BBB generates no loss in these frameworks, even though its market value has fallen.\n\nMark-to-market models. CreditMetrics revalues every position at its end-of-horizon rating using that rating's forward credit spread curve. A downgrade produces a real, measured loss. The full loss distribution therefore spans every migration outcome, not just the default column.\n\nWhy the distinction matters for credit VaR. For an investment-grade portfolio over one year, default is very unlikely but downgrade is not. A default-mode model reports very little risk; a mark-to-market model captures the substantial value at risk from migration. T […]"
+ },
+ {
+  "id": "CR-T2-24",
+  "lo": "CR-12 g",
+  "loText": "Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.",
+  "outside": false,
+  "question": "A risk manager is evaluating two strategies for a portfolio of BBB-rated corporate bonds. The first is a buy-and-hold approach, holding the bonds for one year without rebalancing. The second is a constant level of risk approach, rebalancing monthly so that any bond downgraded below BBB is sold and replaced with a BBB-rated bond.\n\nWhich statement most accurately describes the impact of the constant level of risk strategy relative to buy and hold?",
+  "options": {
+   "A": "It increases the probability of large losses from defaults but reduces losses from small rating changes.",
+   "B": "It reduces the probability of large losses from defaults but increases losses from small rating changes.",
+   "C": "It reduces both the probability of large losses from defaults and the losses from small rating changes.",
+   "D": "It leaves the credit loss distribution unchanged, since the average rating of the portfolio is BBB under both strategies."
+  },
+  "answer": "B",
+  "solution": "Rebalancing to a constant credit quality truncates the path to default but crystallises every downgrade as a realised loss, trading tail risk for more frequent small losses.\n\nThe two strategies produce the same average rating and very different loss distributions.\n\nWhat rebalancing does to the tail. Issuers rarely default straight from BBB. They migrate downward over months or years, and the default occurs from a low speculative-grade rating. Selling a bond as soon as it leaves BBB interrupts that path, so the portfolio is very unlikely ever to hold a bond at the point of default. Large default losses become much less likely.\n\nWhat rebalancing does to the body. Every downgrade is now a realised loss: the bond is sold at the lower post-downgrade price rather than held in the hope of recovery. Under buy and hold, a bond downgraded to BB and later upgraded back to BBB produces no realised loss at all. Rebalancing forecloses that recovery and converts a paper loss into a permanent one, repeatedly.\n\nThe trade in one line.\n\n| | Buy and hold | Constant level of risk |\n|---|---|---|\n| Path to default | Retained; bonds can migrate all the way down | Interrupted; bonds sold on leaving BBB |\n| Large default losses | More likely | Less likely |\n| Small downgrade losses | Unrealised, and reversible on upgrade | Realised and permanent |\n| Effect on the loss distribution | Long thin tail | Sh […]"
+ },
+ {
+  "id": "CR-FT-12",
+  "lo": "CR-11 d",
+  "loText": "Describe the use of a single factor model to measure portfolio credit risk, including the impact of correlation.",
+  "outside": true,
+  "question": "Which of the following statements is correct about the modelling of default correlation in CreditMetrics and in Vasicek's model?",
+  "options": {
+   "A": "Vasicek's model calculates default correlation using multiple Gaussian copulas to reflect varying economic conditions across sectors.",
+   "B": "CreditMetrics employs a single-factor model that simplifies the correlation of defaults to a common economic influence affecting all entities equally.",
+   "C": "Vasicek's model uses a single systematic factor representing overall economic conditions to model default correlations, affecting all entities in the portfolio.",
+   "D": "CreditMetrics uses sector-based risk adjustments in addition to a Gaussian copula for modelling default correlations specifically tied to individual industries."
+  },
+  "answer": "C",
+  "solution": "Vasicek's model reduces all dependence to one systematic factor with a common correlation, whereas CreditMetrics uses a full asset return correlation matrix derived from equity indices.\n\nBoth models use a Gaussian copula to link individual credit outcomes, but they differ fundamentally in how much structure they impose on the dependence.\n\n| Feature | Vasicek | CreditMetrics |\n|---|---|---|\n| Dependence structure | One systematic factor, a single correlation parameter | Full asset return correlation matrix |\n| Source of correlation | Assumed or regulatory prescribed | Equity index correlations by country and industry |\n| Scope of credit events | Default only | Default and rating migration, mark to market |\n| Solution method | Closed form, asymptotic | Monte Carlo simulation |\n| Principal use | Basel IRB capital formula | Portfolio credit VaR |\n\n**Vasicek's single factor.** Each obligor's latent asset return is driven by one common factor plus an idiosyncratic term:\n\n$$a_i = \\sqrt{\\rho} \\times m + \\sqrt{1 - \\rho} \\times \\epsilon_i$$\n\nwhere $m$ is the single systematic factor common to all obligors and $\\epsilon_i$ is idiosyncratic. All pairwise correlations collapse to the single parameter $\\rho$. This drastic simplification is what makes the model analytically tractable and is why it underpins the Basel IRB capital formula: a formula requiring a full correlation matrix could not […]"
+ },
+ {
+  "id": "CR-QB-0192",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "An analyst has already computed the distance to default for a firm and now uses the Moody’s KMV (EDF) model to convert it into a probability of default. Which of the following best describes how KMV maps distance to default to a probability of default?",
+  "options": {
+   "A": "By applying the standard normal distribution to the distance to default.",
+   "B": "By using a Poisson distribution based on the firm’s past default history.",
+   "C": "By deriving an empirical distribution of default frequencies from historical data.",
+   "D": "By assigning a constant default probability regardless of the distance to default."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The Merton model maps distance to default to PD with the standard normal CDF, PD $= N(-\\text{DD})$.\n2. The Moody’s KMV EDF model replaces this step: firms with a given DD are grouped in a historical default database and the observed default frequency for that DD becomes the EDF.\n3. So KMV uses an empirical distribution of default frequencies."
+ },
+ {
+  "id": "CR-QB-0193",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "An analyst assesses a corporation’s credit risk with the Moody’s KMV model. The company’s short‑term debt is much larger than its long‑term debt. How does the KMV model define the default point used to compute distance to default?",
+  "options": {
+   "A": "The total amount of the company’s equity.",
+   "B": "All short‑term debt plus half of long‑term debt.",
+   "C": "The volatility of the company’s stock.",
+   "D": "The current market value of the company’s assets."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. In the Merton model the default point is the face value of (short‑term) debt.\n2. KMV defines the default point as short‑term debt plus 50% of long‑term debt, since long‑term obligations are only partly due within the horizon.\n3. Equity amount, stock volatility and asset value are model inputs, but none of them is the default point."
+ },
+ {
+  "id": "CR-QB-0194",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A credit analyst applies the Moody’s KMV model to a listed corporation that has just issued new equity and restructured its capital. The analyst needs to back out the unobservable asset value and asset volatility to compute the distance to default. Which pair of inputs, observable in the market, is used for this purpose?",
+  "options": {
+   "A": "The book value of equity and the volatility of accounting earnings.",
+   "B": "The borrower’s credit rating and the rating transition matrix.",
+   "C": "The market value of equity (market capitalization) and the volatility of equity.",
+   "D": "The recovery rate and the credit spread for each rating grade."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. KMV/Merton treat equity as a call option on the firm’s assets.\n2. This gives two equations linking equity value $E$ and equity volatility $\\sigma_{E}$ to the two unknowns, asset value $A$ and asset volatility $\\sigma_{A}$.\n3. Therefore the market value of equity and equity volatility, both observed from the stock market, are the key inputs.\n\n**REBUILT** — Original options were giveaways (dividend payout, current ratio, interest coverage); rewrote distractors as realistic confusions with other models’ inputs."
+ },
+ {
+  "id": "CR-QB-0195",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A risk analyst is considering CreditMetrics for a client’s long‑term fixed‑income portfolio with various maturities. Which of the following limitations of CreditMetrics should concern the analyst most in this context?",
+  "options": {
+   "A": "The model’s inability to incorporate economic forecasting into its analysis.",
+   "B": "The use of fixed interest rates when calculating recovery rates.",
+   "C": "The complexity of the model requiring extensive computational resources.",
+   "D": "The exclusion of equity instruments from the model’s credit risk assessment."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Two criticisms of CreditMetrics are the assumption that credit grades are homogeneous and the use of fixed interest rates.\n2. The fixed‑rate assumption is most damaging over long horizons because interest rates over long periods can be quite volatile.\n3. Hence for a long‑term portfolio, B is the key limitation."
+ },
+ {
+  "id": "CR-QB-0196",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "An analyst at an asset manager is considering CreditRisk+ for a diverse corporate loan portfolio. Which feature of CreditRisk+ is most distinctive?",
+  "options": {
+   "A": "It monitors fluctuations in the equity market prices of the borrowers.",
+   "B": "It treats default frequency as a continuous random variable described by a Poisson distribution.",
+   "C": "It evaluates the historical performance and dividend yields of the borrowers.",
+   "D": "It assesses the impact of changing global economic conditions on the portfolio."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. CreditRisk+ (Credit Suisse, 1997) ignores the borrower’s capital structure and equity prices.\n2. It treats the default frequency as a continuous random variable, with defaults rare and independent.\n3. The Poisson distribution suits this because its mean equals its variance; the model needs only default events and little data."
+ },
+ {
+  "id": "CR-QB-0197",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "An analyst compares CreditMetrics and CreditRisk+ for a bank holding debt securities and loans. Which statement correctly reflects a key difference between them?",
+  "options": {
+   "A": "CreditRisk+ assesses credit risk from market capitalization, unlike CreditMetrics.",
+   "B": "CreditMetrics assesses losses only in bankruptcy, while CreditRisk+ considers a broader range of credit events.",
+   "C": "CreditRisk+ distinguishes only two credit events, bankruptcy and bad credit condition, so losses arise only on default.",
+   "D": "Both models equally emphasize macroeconomic factors in credit risk assessment."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. CreditMetrics values debt across rating migrations (upgrades, downgrades, default) in a mark‑to‑market framework.\n2. CreditRisk+ recognises only two credit events, bankruptcy and bad credit condition, and losses occur only on default.\n3. Hence C is correct, and B reverses the two models."
+ },
+ {
+  "id": "CR-QB-0198",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A risk manager wants a model for a portfolio of corporate borrowers that (i) uses market data so default probabilities update continuously, (ii) maps distance to default to PD using historical default frequencies rather than the normal distribution, and (iii) sets the default point at short‑term debt plus half of long‑term debt. Which model fits all three requirements?",
+  "options": {
+   "A": "CreditMetrics",
+   "B": "Moody’s KMV (EDF) model",
+   "C": "CreditRisk+",
+   "D": "Merton model"
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key (D, Moody’s‑KMV) is retained as the same model; the original stem allowed the Merton model, which also uses equity data, as a competing answer.\n\n**Step by step**\n\n1. Merton: uses N(‑DD) and a default point equal to debt face value, so fails (ii) and (iii).\n2. CreditMetrics: PD from rating peer analysis and transition matrices (mark‑to‑market), no DD or default point; fails (ii) and (iii).\n3. CreditRisk+: actuarial Poisson default‑only model ignoring capital structure; fails all three.\n4. Moody’s KMV: equity‑market‑based DD, empirical default‑frequency mapping, default point = short‑term debt + 50% of long‑term debt.\n\n**REBUILT** — Original stem was a long scenario in which several models plausibly fit (all described as using market data); replaced by three distinguishing features from the reading."
+ },
+ {
+  "id": "CR-QB-0199",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A risk manager at a bank is conducting an internal training program for newly hired credit risk analysts. The manager gives an overview of credit risk models, compares the bank’s internal credit rating models to the rating agencies’ models, and explains the assumptions, structure, and performance measures of these models as applied to counterparty default prediction. Assuming a stable market environment, which of the following statements would the manager be correct to make?",
+  "options": {
+   "A": "The Credit Risk Plus (CreditRisk+) model relies on the use of a company’s capital structure and credit ratings to predict default of the company.",
+   "B": "Unlike the Merton model that produces default predictions based on asset and liability values, the agencies’ rating models produce default predictions from a substantially larger set of business factors.",
+   "C": "Unlike the agencies’ rating models, the KMV model is only used to compute the risk of pure debt contracts and is not applicable to portfolios that include derivatives contracts.",
+   "D": "A good rating model is expected to provide accurate borrower default predictions without the need to be backtested."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Merton uses only the market value of assets, asset volatility and the face value of debt (liabilities) to produce a default probability.\n2. Rating‑agency (judgmental) models also weigh country, industry, competitive and other business factors, so B is true.\n3. CreditRisk+ does not use capital structure and does not use credit ratings, so A is false.\n4. A rating model must be backtested to confirm its predictive accuracy, so D is false; the claim about KMV in C is unsupported."
+ },
+ {
+  "id": "CR-QB-0200",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "The Merton model differs from the Moody’s KMV Expected Default Frequency (EDF) approach in two key areas. Which of the following statements describes one of those differences?",
+  "options": {
+   "A": "The Merton model uses the market value of the borrower’s equity, while Moody’s KMV uses its book value.",
+   "B": "The Merton model is based on an option‑pricing framework, while Moody’s KMV is based on a rating transition matrix.",
+   "C": "Moody’s KMV defines the default point as short‑term debt plus half of long‑term debt, while the Merton model uses short‑term debt only.",
+   "D": "The Merton model uses historical data to derive an empirical distribution of default frequencies, while Moody’s KMV maps distance to default using the standard normal distribution."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Merton: default point L = short‑term debt; DD is mapped to PD with the standard normal distribution.\n2. KMV EDF: default point = short‑term debt + 1/2 long‑term debt; DD is mapped to PD using an empirical distribution of historical default frequencies.\n3. Compare options: only C states a true difference.\n\n**REBUILT** — Option B (risk‑free rate vs customized value) was arguably defensible; replaced it with a clearly false option so only C is correct, per GARP’s two differences (empirical default distribution, default point)."
+ },
+ {
+  "id": "CR-QB-0201",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A credit risk manager wants a method that estimates default risk by comparing a borrower with the default records of similar borrowers (a peer set), using the borrower’s credit rating, a rating transition matrix and a mark‑to‑market valuation of the loan. Which model should the manager select?",
+  "options": {
+   "A": "Merton model",
+   "B": "CreditRisk+ model",
+   "C": "Moody’s KMV model",
+   "D": "CreditMetrics model"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Peer‑set analysis with a rating transition matrix and mark‑to‑market revaluation is the defining feature of CreditMetrics.\n2. Merton and KMV are option‑pricing (structural) models using asset value and debt; CreditRisk+ models default events only, with no ratings.\n3. Answer: CreditMetrics.\n\n**REBUILT** — Original stem cited ’volatility’, which points to Merton/KMV; reworded to state the CreditMetrics features (peer set, rating transitions, mark‑to‑market) unambiguously."
+ },
+ {
+  "id": "CR-QB-0202",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "A credit risk analyst at a regional bank is evaluating the use of the CreditMetrics model to assess the bank’s loan portfolio. The analyst is aware of certain criticisms and limitations of the model. Which of the following points would be a valid concern when using the CreditMetrics model for this purpose?",
+  "options": {
+   "A": "The inability of the model to assess credit risk in real‑time market conditions.",
+   "B": "The assumption of homogeneity in credit grades within the model.",
+   "C": "The lack of focus on market‑based instruments like derivatives in the model.",
+   "D": "The model’s reliance on highly complex algorithms that are difficult to interpret."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. CreditMetrics assumes all borrowers within a given credit grade are homogeneous (same transition and default behavior).\n2. It also computes recovery rates using fixed interest rates, ignoring their volatility.\n3. It is a mark‑to‑market model and covers derivatives such as swaps, so A and C are false; D is not a recognized criticism."
+ },
+ {
+  "id": "CR-QB-0203",
+  "lo": "CR-5 f",
+  "loText": "Compare and contrast different approaches to credit risk modeling, such as those related to the Merton model, Credit Risk Plus (CreditRisk+), CreditMetrics, and the Moody’s-KMV model.",
+  "outside": false,
+  "question": "Which of the following statements correctly distinguishes the CreditMetrics model from the CreditRisk+ model?",
+  "options": {
+   "A": "CreditMetrics is a mark‑to‑market model using rating transitions, whereas CreditRisk+ considers only default events and does not use credit ratings.",
+   "B": "CreditRisk+ uses a rating transition matrix to revalue loans, whereas CreditMetrics considers only bankruptcy.",
+   "C": "CreditMetrics assumes defaults follow a Poisson distribution, whereas CreditRisk+ revalues loans using bond‑market spreads.",
+   "D": "CreditRisk+ requires extensive data on the borrower’s capital structure, whereas CreditMetrics requires only default counts."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. CreditMetrics: inputs are rating, transition matrix, recovery rates, yield spreads; output is a distribution of loan value changes (mark‑to‑market), including upgrades and downgrades.\n2. CreditRisk+ (Credit Suisse, 1997): considers only default events; Poisson distribution; small data requirement; ignores capital structure.\n3. Only A matches.\n\n**REBUILT** — Original compared CreditMetrics to Black‑Scholes (outside the LO) with a giveaway key; rebuilt as CreditMetrics vs CreditRisk+ comparison."
+ },
+ {
+  "id": "CR-QB-0412",
+  "lo": "CR-9 n",
+  "loText": "Assess the quality of the default probabilities produced by the Merton model, the Moody’s KMV model, and the Kamakura model.",
+  "outside": true,
+  "question": "A credit analyst is preparing a board report comparing the Merton model, the Moody’s KMV model and the Kamakura model as sources of default probabilities. Which statement best assesses the quality of these models’ default probabilities?",
+  "options": {
+   "A": "All three produce reliable and reasonably accurate rankings of default probabilities; the Merton output is in theory a risk‑neutral probability, and KMV and Kamakura restate it as a real‑world probability.",
+   "B": "The Merton model produces real‑world default probabilities directly, while KMV and Kamakura convert them into risk‑neutral probabilities.",
+   "C": "Only the KMV and Kamakura models rank default probabilities reliably; the Merton model’s rankings are poor because it ignores market data.",
+   "D": "None of the three models ranks default probabilities well enough to be useful, so ratings from agencies should be used instead."
+  },
+  "answer": "A",
+  "solution": "**Key correction:** Source key (BT answers) said B (KMV is superior because it uses more market data than Merton and Kamakura); the reading does not rank KMV above the others, and states all three rank default probabilities reliably.\n\n**Step by step**\n\n1. Empirical evidence shows Merton, Moody’s KMV and Kamakura all give reliable, reasonably accurate rankings of default probabilities.\n2. Merton’s N(‑d2) comes from an option pricing model, so it is in theory a risk‑neutral default probability.\n3. Because the ranking is good, a monotonic transformation can map the Merton output into a real‑world probability; KMV and Kamakura sell this transformed output.\n4. Only A states all of this correctly.\n\n**REBUILT** — Original key (B) is not supported by the syllabus text and the stem was a long scenario; rebuilt as a single‑concept question on ranking quality and the risk‑neutral vs real‑world distinction with exactly one correct option."
+ },
+ {
+  "id": "CR-QB-0414",
+  "lo": "CR-9 n",
+  "loText": "Assess the quality of the default probabilities produced by the Merton model, the Moody’s KMV model, and the Kamakura model.",
+  "outside": true,
+  "question": "A risk manager ranks a bank’s counterparties by default probability and also needs the likely frequency of actual defaults. She is considering the Merton model, Moody’s KMV and Kamakura. Which of the following is the most accurate assessment of these models’ default probabilities?",
+  "options": {
+   "A": "Merton output is risk‑neutral and therefore cannot be used to rank counterparties by default risk.",
+   "B": "KMV and Kamakura produce more reliable rankings than Merton because they do not use the Merton output.",
+   "C": "All three rank default probabilities reliably, but only KMV and Kamakura restate the risk‑neutral Merton output as a real‑world probability.",
+   "D": "Merton output is a real‑world probability, while KMV and Kamakura convert it to a risk‑neutral probability for pricing."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Empirical evidence supports all three as giving reliable, reasonably accurate rankings.\n2. The Merton output is risk‑neutral because it derives from an option pricing model.\n3. KMV and Kamakura take the Merton output and restate it as a real‑world probability.\n\n**NEW** — No source question covered this LO adequately; written from the 2026 reading (content per the GARP 2026 book) in GARP practice‑exam style."
+ },
+ {
+  "id": "CR-QB-0439",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "Kimpala Leasing Bank holds \\$690 million of retail loans. The bank’s actuary estimates a one‑year probability of default PD = 1% and a loss given default LGD = 40%. Using Vasicek’s model as in the Basel II IRB approach with credit correlation $\\rho= 0.1216$, what are the worst‑case default rate (WCDR) at the 99.9% confidence level and the expected loss (EL)?",
+  "options": {
+   "A": "WCDR about 9.1%; EL \\$2.76 million",
+   "B": "WCDR about 9.1%; EL \\$25.2 million",
+   "C": "WCDR about 8.1%; EL \\$2.76 million",
+   "D": "WCDR about 9.1%; EL \\$6.90 million"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. $N^{-1}(0.01) = -2.326$ and $N^{-1}(0.999) = 3.090$.\n2. WCDR $= N\\left[ \\frac{N^{-1}(\\text{PD}) + \\sqrt{\\rho} N^{-1}(X)}{\\sqrt{1 - \\rho}} \\right]$, with $\\sqrt{0.1216} = 0.3487$ and $\\sqrt{1 - 0.1216} = 0.9372$.\n3. Argument = (−2.326 + 0.3487 × 3.090)/0.9372 = −1.332.\n4. WCDR $= N(-1.332) \\approx0.091$, i.e. about 9.1% (rounding the z‑values to ‑2.33 and 3.09 gives 9.07%).\n5. EL $= \\text{EAD} \\times\\text{LGD} \\times\\text{PD} = 690 \\times0.40 \\times0.01 = \\$2.76$ million.\n\n**REBUILT** — Merged two near‑identical Kimpala items; replaced giveaway options (e.g. 0.8784, 0.1216) with distractors from realistic formula errors and used unrounded z‑values (answer about 9.1%)."
+ },
+ {
+  "id": "CR-QB-0440",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A junior risk analyst is asked which model is used to calculate the high‑percentile default rates that determine regulatory capital under the Basel II internal‑ratings‑based approach. Which model should the analyst identify?",
+  "options": {
+   "A": "CreditMetrics with Monte Carlo simulation",
+   "B": "Vasicek’s Gaussian copula model",
+   "C": "CreditRisk+",
+   "D": "Historical simulation"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Basel II IRB capital uses the worst‑case default rate at 99.9%.\n2. That WCDR comes from Vasicek’s one‑factor Gaussian copula model.\n3. CreditMetrics and CreditRisk+ are internal credit VaR methods, and historical simulation is not the regulatory method.\n\n**REBUILT** — Reworded stem for precision and replaced the ’multifactor Gaussian copula’ option with CreditMetrics."
+ },
+ {
+  "id": "CR-QB-0441",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A bank applies Vasicek’s model to a commercial loan portfolio to estimate Basel II IRB capital. How does the credit correlation parameter $\\rho$ affect the capital requirement?",
+  "options": {
+   "A": "A higher $\\rho$ lowers capital, since defaults are more diversified across the portfolio.",
+   "B": "A higher $\\rho$ lowers capital, since it implies better management of default risk.",
+   "C": "A lower $\\rho$ raises capital, since default patterns are less predictable.",
+   "D": "A higher $\\rho$ raises capital, since defaults are more likely to occur simultaneously."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. WCDR $= N[(N^{-1}(\\text{PD}) + \\sqrt{\\rho} N^{-1}(X))/\\sqrt{1 - \\rho}]$ with $N^{-1}(X) > 0$ at X = 99.9%.\n2. A larger $\\rho$ raises the numerator’s positive term and shrinks the denominator, so WCDR rises.\n3. A higher WCDR means more capital; the intuition is that defaults cluster."
+ },
+ {
+  "id": "CR-QB-0442",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A risk manager explains Vasicek’s model with PD = 2%, $\\rho= 12\\%$ and confidence level X = 99.9%. What role does X play in determining capital under the model?",
+  "options": {
+   "A": "It sets the expected loss the capital allocation must cover.",
+   "B": "It determines the worst‑case default rate the bank must be able to withstand.",
+   "C": "It is the minimum percentage of exposure that must be held as capital.",
+   "D": "It dictates the degree of diversification the loan portfolio must achieve."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. X enters the formula through $N^{-1}(X)$, which scales the systematic‑factor shock.\n2. It selects the percentile of the default rate distribution, i.e. WCDR(T,X).\n3. Expected loss uses PD, not X, and diversification is not set by X."
+ },
+ {
+  "id": "CR-QB-0443",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A regulatory auditor wants to independently recompute the worst‑case default rate (WCDR) that a bank derived from Vasicek’s model for its corporate loan portfolio. Which inputs does the auditor need?",
+  "options": {
+   "A": "The bank’s rating‑grade structure and the mapping of ratings to PDs only.",
+   "B": "The probability of default, the credit correlation, the confidence level, and how the first two were estimated.",
+   "C": "Macroeconomic forecasts and stress scenarios used to adjust PDs and correlations.",
+   "D": "Back‑testing reports comparing the model with actual defaults over recent years."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. WCDR $= N[(N^{-1}(\\text{PD}) + \\sqrt{\\rho} N^{-1}(X))/\\sqrt{1 - \\rho}]$.\n2. The only inputs are PD, the correlation and X (plus T).\n3. Hence recomputing needs those three and the basis for PD and correlation.\n\n**REBUILT** — Clarified that the auditor is independently recomputing WCDR so that only the model inputs are the defensible answer."
+ },
+ {
+  "id": "CR-QB-0444",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "Vasicek’s model gives WCDR$(T, X) = N \\left[ \\frac{N^{-1}(\\text{PD})+\\sqrt{\\rho} N^{-1}(X)}{\\sqrt{1-\\rho}} \\right]$. A bank has a large portfolio with one‑year PD of 2.0% and sets X = 99.9%. Evaluating the formula gives WCDR = 2.00% when $\\rho= 0$ and WCDR = 22.63% when $\\rho= 0.20$. Which statement about the role of the credit correlation $\\rho$ is correct?",
+  "options": {
+   "A": "At $\\rho= 0$ the worst‑case default rate equals the PD, and it rises as $\\rho$ increases because defaults become more clustered in the tail.",
+   "B": "The worst‑case default rate falls as $\\rho$ increases because higher correlation means greater diversification.",
+   "C": "At $\\rho= 0$ the worst‑case default rate is already far above the PD because X is so high.",
+   "D": "Once X is fixed at 99.9%, the worst‑case default rate no longer depends on $\\rho$."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Set $\\rho= 0$: WCDR $= N[N^{-1}(0.02)] = 2.00\\%$, the PD itself.\n2. Set $\\rho= 0.20$: $N^{-1}(0.02) = -2.0537$, $\\sqrt{0.2} \\times3.0902 = 1.3820$, numerator = −0.6717, divide by $\\sqrt{0.8} = 0.8944$ gives −0.7510; $N(-0.7510) = 22.63\\%$.\n3. So WCDR increases with $\\rho$ (the $\\sqrt{\\rho}N^{-1}(X)$ term is positive for X > 50%), which reflects defaults clustering in a bad state of the economy.\n\n**REBUILT** — Original asked which parameter ’directly determines’ sensitivity to rho; PD also interacts with rho, so the key (confidence level) was not defensible. Rewrote as a clear conceptual question on the role of rho with computed values."
+ },
+ {
+  "id": "CR-QB-0445",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A bank uses Vasicek’s Gaussian copula model for its loan portfolio. Which of the following statements about the model is INCORRECT?",
+  "options": {
+   "A": "The Xth percentile loss for a large portfolio of small loans is approximated by $\\sum_{i} \\text{WCDR}_{i}(T, X) \\times\\text{EAD}_{i} \\times\\text{LGD}_{i}$.",
+   "B": "The credit correlation $\\rho$ can be estimated from the average correlation between equity returns of the companies in the portfolio (or of similar publicly traded companies if they are private).",
+   "C": "The model is used to set the interest rate charged on new loans by assessing the portfolio’s expected profit.",
+   "D": "For regulatory capital the sum is evaluated with T = one year and X = 99.9%."
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (C = III, IV, V) was inconsistent: statements III and V are correct, only IV is incorrect; rebuilt so the unique false statement is the answer.\n\n**Step by step**\n\n1. A: Gordy’s result extends the single‑loan formula to a large portfolio of small loans as the sum of WCDR x EAD x LGD ‑ correct.\n2. B: structural models imply $\\rho$ is about the correlation of asset returns, approximated by equity‑return correlation ‑ correct.\n3. D: the Basel IRB capital is the summation with T = 1 year, X = 99.9% (times a maturity adjustment) ‑ correct.\n4. C: Vasicek’s model estimates a high‑percentile credit loss (capital); it is not a loan pricing model ‑ incorrect.\n\n**REBUILT** — Original ’all correct EXCEPT’ with Roman‑numeral combinations was ambiguous (statement V is actually correct per GARP, only IV is false, and key set C included V). Rebuilt as a single‑statement ’incorrect’ item."
+ },
+ {
+  "id": "CR-QB-0446",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A bank holds a highly granular \\$100.0 million portfolio of retail exposures with an average one‑year default probability of 2.0%, an average recovery rate of 50.0%, and a copula correlation of 0.130. Using Vasicek’s model, what is the 99.9% one‑year credit VaR (that is, WCDR $\\times\\text{EAD} \\times$ LGD)?",
+  "options": {
+   "A": "\\$6.845 million",
+   "B": "\\$7.845 million",
+   "C": "\\$8.845 million",
+   "D": "\\$15.689 million"
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key (B) of \\$6.845m subtracted expected loss (’Malz definition’); under the GARP/Hull definition used in this reading, credit VaR = \\$7.845m.\n\n**Step by step**\n\n1. $N^{-1}(0.02) = -2.0537$ and $N^{-1}(0.999) = 3.0902$.\n2. Numerator $= -2.0537 + \\sqrt{0.13} \\times3.0902 = -2.0537 + 1.1143 = -0.9394$; with $\\sqrt{0.87} = 0.9327$ the ratio is −1.0073.\n3. WCDR $= N(-1.0073) = 15.689\\%$.\n4. LGD = 1 ‑ 0.50 = 50%, so VaR = 100 × 0.15689 × 0.50 = \\$7.845 million.\n\n**REBUILT** — Source options had a correct ’unexpected loss’ answer (\\$6.845m) that conflicts with GARP, where credit VaR is WCDR x EAD x LGD with no EL deduction; restated the question and options accordingly."
+ },
+ {
+  "id": "CR-QB-0447",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "Two publicly traded companies, A and B, are in a loan portfolio. The average correlation between their equity returns is 0.24. The credit correlation $\\rho$ most likely used in Vasicek’s Gaussian copula model is closest to:",
+  "options": {
+   "A": "0.12",
+   "B": "0.24",
+   "C": "0.48",
+   "D": "0.76"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Structural models imply the credit correlation equals the correlation between the companies’ asset returns.\n2. As an approximation this equals the correlation between equity returns, which is given as 0.24.\n3. So $\\rho\\approx0.24$.\n\n**REBUILT** — Replaced the unrelated ROE figures (8% and 6%) and ’ROE correlation’ with equity‑return correlation, which is the GARP proxy for rho."
+ },
+ {
+  "id": "CR-QB-0448",
+  "lo": "CR-10 d",
+  "loText": "Describe the application of the Vasicek’s model to estimate capital requirements under the Basel II internal-ratingsbased (IRB) approach.",
+  "outside": false,
+  "question": "A bank holds a portfolio of mortgage‑backed securities worth \\$300 million. The average one‑year probability of default is 2.5%, the average recovery rate is 40%, and the copula correlation is 0.20. Using Vasicek’s model, what is the one‑year credit VaR at the 99.9% confidence level?",
+  "options": {
+   "A": "\\$22.30 million",
+   "B": "\\$46.63 million",
+   "C": "\\$31.09 million",
+   "D": "\\$42.13 million"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. $N^{-1}(0.025) = -1.9600$, $N^{-1}(0.999) = 3.0902$, $\\sqrt{0.2} = 0.4472$, $\\sqrt{0.8} = 0.8944$.\n2. Ratio = (−1.9600 + 1.3820)/0.8944 = −0.6462, so WCDR $= N(-0.6462) = 25.91\\%$.\n3. LGD = 1 ‑ 0.40 = 0.60.\n4. VaR = 300 × 0.2591 × 0.60 = \\$46.63 million.\n\n**REBUILT** — Source options were unitless and option B (46.61) did not match the exact result 46.63; added units, corrected the number and replaced a weak distractor."
+ }
+]

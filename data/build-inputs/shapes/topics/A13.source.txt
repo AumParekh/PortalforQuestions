@@ -1,0 +1,195 @@
+TOPIC A13: Lognormal VaR (Tier A)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+A13 Lognormal VaR
+Readings: MR-1 a, b, c, d, e, f · Estimating Market Risk Measures: An Introduction and Overview (Dowd, Measuring
+Market Risk 2e, Ch.3; 1.3 Eqs. 1.14 to 1.16, Examples 1.3 to 1.5); MR-2 c for the volatility-regime decision (Dowd Ch.4,
+Volatility-weighted Historical Simulation)
+ AUG 2026 RECALL  MAP TIER B · #14 · 6/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Your August 2026 recall: Log-normal VaR, straight forward formula, 2Q.
+  Map #14: “The complication is documented verbatim: ‘a simple lognormal calculation was complicated by asking
+  to choose between 2 volatilities, increasing from 16% to 18% six weeks ago.’ That is a scope/condition trap: the
+  candidate must decide which volatility regime governs the horizon, not just plug in. Second reported form: ‘calculate
+  lognormal VaR (direct formulae based)’. Keep the lognormal form (based on ln returns, VaR = P (1 − eµ−zσ ))
+  distinct from the normal-arithmetic form.”
+  Shapes covered here:
+  S1 choose between two volatilities, 16% rising to 18% six weeks ago: which regime governs the VaR horizon (Q3)
+  S2 direct lognormal VaR from the formula, the plain form seen in August (Q2, Q4)
+  S3 lognormal form 1 − eµ−zσ kept distinct from the normal arithmetic form −µ + σz (Q1, Q2, Q3, Q4)
+  Revision notes
+  • Data forms (MR-1 b): P/L, L/P (losses positive), arithmetic returns rt = (Pt + Dt − Pt−1 )/Pt−1 and
+  geometric returns Rt = ln[(Pt + Dt )/Pt−1 ] = ln(1 + rt ). Geometric returns assume interim payments are
+  continuously reinvested and keep the asset price non-negative; arithmetic returns “should not be used when
+  we are concerned with long horizons”. Example 1.1: r = 0.05 ⇒ R = 0.0488; R = 0.05 ⇒ r = 0.0513.
+  • Historical simulation VaR (MR-1 a): order the loss observations; with n observations and confidence level
+  α, VaR is the (1−α)n+1th highest loss (1000 observations at 95%: 50 in the tail, VaR is the 51st highest loss;
+  the book’s example gives 1.704). No distribution is assumed. See also A19 for weighted and bootstrapped
+  HS.
+  • Parametric approaches (MR-1 b) require us to explicitly specify the statistical distribution of the data; they
+  fit a curve through the data and read VaR off it. Both the distribution and the data type must be chosen, and
+  in practice VaR is computed from estimates m and s of the parameters (eq. 1.9).
+  • Normal P/L, L/P and arithmetic-return VaR are equivalent formulations: with the same underlying as-
+  sumptions they give the same VaR (1.645 for mean 0, s.d. 1 at 95%). Example 1.2: normal P/L with mean
+  10, s.d. 20 gives 95% VaR 22.9 and 99% VaR 36.52. Example 1.3: arithmetic returns with mean 0.1, s.d.
+  0.25 give 0.331 and 0.482.
+  • Drawback of normal (arithmetic) VaR: it assigns a positive probability to the asset value Pt becoming
+  negative.
+  • Lognormal VaR assumes geometric returns are normal (dividends zero or reinvested), so Pt is lognormal:
+  never negative, skewed with a long right-hand tail, and VaR is lognormally distributed. Lognormal VaR can
+  never exceed the portfolio value. Standardised case (µR = 0, σR = 1): 95% VaR = 0.807. Example 1.4:
+  µR = 0.05, σR = 0.20 gives 0.244 (95%) and 0.340 (99%), “quite close” to Example 1.3.
+  • Normal versus lognormal (Example 1.5): annual mean 0.10 and volatility 0.40, 1-day 95%: normal 4.12%,
+  lognormal 4.04%. They are “much the same” for short holding periods and realistic parameters; with the
+  same inputs the lognormal VaR is the smaller.
+  • Choosing the volatility input (S1): the VaR is a forecast for the coming holding period, so σR must describe
+  the regime that governs that period. Dowd’s volatility-weighting logic (MR-2 c): if current volatility is 1.5% a
+  day and was only 1% a month ago, “data a month old understate the changes we can expect to see tomorrow”;
+  an unusually quiet data period gives VaR estimates “that are too low for the risks we are actually facing”.
+  See also A19.
+  • Expected shortfall (MR-1 c): the probability-weighted average of tail losses. Estimate it by slicing the tail
+  into n equal-probability slices and averaging the n − 1 tail VaRs: with n = 10 the 95% normal ES estimate
+  is 2.0250; the estimate rises with n and converges to the true 2.063 (versus 95% VaR 1.645).
+FRM Part II · Volume 1: Tier A  A13 Lognormal VaR
+  • Coherent risk measures (MR-1 d) are weighted averages of quantiles qp with a user-chosen risk-aversion
+  function ϕ(p); ES gives every tail quantile weight 1/(1 − α) and all others 0. The exponential spectral
+  measure (γ = 0.05) converges to about 1.854 but needs a much larger n; double n until the halving error
+  falls below a tolerance. An existing VaR engine needs only small adjustments to produce coherent measures.
+  p
+  • Quantile standard error (MR-1 e): se(q) =  p(1 − p)/n / f (q). It falls as n rises and rises as we
+  move further into the tail. Example 1.6 (95% VaR, n = 1000): bin width h = 0.1 gives the 90% inter-
+  val [0.6081, 2.6819]; h = 0.2 narrows it to [1.1496, 2.1404].
+  • Weaknesses of the quantile-standard-error approach: relies on asymptotic theory and large samples,
+  gives wide confidence intervals, depends on the arbitrary bin width, and its symmetric intervals mislead for
+  extreme quantiles whose true intervals are asymmetric. ES versus VaR: heavy tails raise the standard errors
+  of ES estimators (Yamai and Yoshiba), but Acerbi finds the accuracies roughly comparable in empirically
+  realistic ranges; always estimate the standard error alongside the risk measure.
+  • QQ plot (MR-1 f): empirical quantiles plotted against a reference distribution’s quantiles. Linear means
+  the reference fits (also for a linear transformation, i.e. different location and scale; intercept and slope then
+  hint at location and scale). Steeper slopes in the tails mean the empirical tails are heavier than the reference
+  (Student-t data against a normal reference). Outliers stand out.
+  • The three core issues: which risk measure, which level (portfolio or position), which method (the “VaR
+  trinity”: non-parametric, parametric, Monte Carlo simulation).
+  Formulas
+  Normal VaR (arithmetic returns normal), eq. 1.14. αVaR = (−µr + σr zα ) Pt−1 , with z0.95 = 1.645, z0.99 =
+  2.326.
+  Lognormal VaR (geometric returns normal), eqs. 1.15 and 1.16.
+  R ∗ = µ R − σ R zα ,  P ∗ = Pt−1 exp[µR − σR zα ] ,  αVaR = Pt−1 − P ∗ = Pt−1 (1 − exp[µR − σR zα ])
+  R∗ : critical geometric return; P ∗ : critical asset value. Set Pt−1 = 1 for VaR as a fraction of portfolio
+  p value.
+  Horizon scaling (Example 1.5, 250 trading days). µh = µannual × h/250,  σh = σannual × h/250
+  µR − ln(1 − V )
+  Reverse-solving for σR . From V = 1 − exp[µR − σR zα ]: σR =
+  zα
+  Why lognormal is smaller. 1 − e−x < x for x > 0: the gap is tiny at short horizons and material at long horizons
+  with high volatility.
+  R1
+  ES and coherent measures. Mϕ = 0 ϕ(p)qp dp; ES: ϕ(p) = 1/(1 − α) for p ≥ α, 0 otherwise.
+  p
+  p(1 − p)/n
+  Quantile standard error and interval, eqs. 1.26 and 1.27. se(q) =  , 90% interval q ± 1.645 se(q).
+  f (q)
+  Exam traps
+  • Wrong formula twin: plugging the inputs into the normal formula −µ + σz instead of 1 − exp(µ − σz). It
+  gives a slightly larger number, and GARP places it right next to the correct answer.
+  • Stale volatility (scope/condition): when the stem reports a volatility that changed recently (16% rising to 18%
+  six weeks ago), the VaR horizon is governed by the current regime. Using the old figure, or an average across
+  both regimes, understates VaR.
+  √  p  p
+  • t scaling errors: scaling σ by h/T instead of h/T , or scaling µ by h/T instead of h/T .
+  • Dropped mean: using 1 − exp(−σz) and ignoring µR , which overstates VaR when µR > 0.
+  • Wrong critical value: 1.645 for a 99% question, 2.326 for a 95% question, or the two-tailed 2.576 for a one-
+  tailed 99% VaR.
+  • Sign inside the exponent: the critical return is µR −σR zα , a left-tail value. Writing ln(1+V ) in a reverse-solve
+  flips the tail.
+FRM Part II · Volume 1: Tier A  A13 Lognormal VaR
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  choose between two volatilities, 16% rising to 18% six weeks ago: which regime governs the VaR  A13.3 horizon
+S2  direct lognormal VaR from the formula, the plain form seen in August  A13.2, A13.4
+S3  lognormal form 1 − eµ−zσ kept distinct from the normal arithmetic form −µ + σz  A13.1,  A13.2, A13.3, A13.4
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-1  Estimating Market Risk Measures: An Introduction and Overview
+  P1 ×1  P2 ×3  P4 ×2  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: a) calc of Normal/Lognormal VaR b) calc of ES c) Interpretation of standard Errors d) Interpretation of QQ plots
+  RECALL WORKBOOK SECTIONS
+  A13 Lognormal VaR
+  Tier A • Aug ✓• Map #14 (6/16) • TG ✓• 4 Qs • Vol 1 p.101 • LOs a to f
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs e
+  P4  a  Estimate VaR using a historical simulation approach.
+  P1  b  Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.
+  WORKBOOK A13 + VARDEEZ FOCUS
+  ▶ Vardeez: Calculation of normal and lognormal VaR
+  A13·S1 choose between two volatilities, 16% rising to 18% six weeks ago: which regime governs the VaR horizon
+  A13·S2 direct lognormal VaR from the formula, the plain form seen in August
+  A13·S3 lognormal form 1 − eµ−zσ kept distinct from the normal arithmetic form −µ + σz
+  P2  c  Estimate the expected shortfall given profit and loss (P&L) or return data.
+  WORKBOOK B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Calculation of ES
+  B2·S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6
+  B2·S2 ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under FRTB
+  P4  d  Estimate risk measures by estimating quantiles.
+  P2  e  Evaluate estimators of risk measures by estimating their standard errors.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Interpretation of standard errors
+  P2  f  Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Interpretation of QQ plots
+
+  MR-2  Non-Parametric Approaches
+  P1 ×3  P4 ×1  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: a) know abt Bootstrapping method HS method b) Volatility weighted method c) Filtered HS method
+  RECALL WORKBOOK SECTIONS
+  A13 Lognormal VaR
+  Tier A • Aug ✓• Map #14 (6/16) • TG ✓• 4 Qs • Vol 1 p.101 • LOs c
+  A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+  Tier A • Aug ✓• Map #28 (4/16) • TG ✓• 5 Qs • Vol 1 p.140 • LOs a to d
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a, c, d
+  P1  a  Apply the bootstrap historical simulation approach to estimate coherent risk measures.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Bootstrapping HS method
+  A19·S3 bootstrap HS property question
+  B2·S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6
+  B2·S4 coherence: ES is subadditive, VaR is not (Q3)
+  P4  b  Describe historical simulation using non-parametric density estimation.
+  P1  c  Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the fil-
+  tered historical simulation approaches.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Volatility-weighted and filtered HS methods
+  A19·S1 age-weighted HS (BRW): single weights, cumulative weights and the weighted VaR read-off
+  A19·S2 volatility-weighted HS (HW), with the polarity trap: returns scaled up when current volatility is above the historical
+  level
+  A19·S4 differences among the non-parametric approaches
+  A19·S5 expected shortfall in filtered historical simulation
+  B2·S3 ES within filtered historical simulation
+  P1  d  Identify advantages and disadvantages of non-parametric estimation methods.
+  WORKBOOK A19
+  A19·S4 differences among the non-parametric approaches
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+14  Lognormal & Normal VaR
+  MARKET RISK  6 OF 16 SOURCES  VERY IMPORTANT
+  R1 · Estimating Market Risk Measures An Introduction and Overview
+  W H AT I S T E S T E D
+  Reported as a direct-formula item, but one recall shows GARP complicating it deliberately.
+  SPECIFICS REPORTED
+  The complication is documented verbatim: 'a simple lognormal calculation was
+  complicated by asking to choose between 2 volatilities, increasing from 16% to 18% six
+  weeks ago.' That is a scope/condition trap — the candidate must decide which volatility
+  regime governs the horizon, not just plug in. Second reported form: 'calculate lognormal
+  VaR (direct formulae based)'. Keep the lognormal form (based on ln returns, VaR = P(1 −
+  e^(μ−zσ))) distinct from the normal-arithmetic form.
+  Sources: Vardeez must-do topics (handwritten), Important Topics — 33-item exam recall,
+  Telegram recall — lognormal / policy-mix, Telegram recall — Sajan Singh (list 1),
+  Telegram recall — Manish Srivastava, Vardeez importance sheet (xlsx)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 1.a Estimate VaR using a historical simulation approach.
+  LO 1.b Estimate VaR using a parametric approach for both normal and lognormal return
+  distributions.
+  LO 1.d Estimate risk measures by estimating quantiles.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #14 Lognormal & Normal VaR: rank 31, Strike first

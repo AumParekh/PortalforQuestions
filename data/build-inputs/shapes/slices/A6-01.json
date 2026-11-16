@@ -1,0 +1,602 @@
+[
+ {
+  "id": "CR-T1-31",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "A risk analyst at a derivatives dealer is briefing newly hired analysts on the adjustments applied to the valuation of over-the-counter derivative positions. Which of the following best defines credit value adjustment?",
+  "options": {
+   "A": "The market value of counterparty market risk.",
+   "B": "The difference between the potential future exposure and the expected exposure of a derivative contract.",
+   "C": "The market value of counterparty credit risk.",
+   "D": "The process of loading a premium onto the risk-free rate to account for interest rate risk, liquidity risk and default risk."
+  },
+  "answer": "C",
+  "solution": "CVA is the market price of counterparty credit risk, that is, the amount by which the risk-free value of a derivative must be reduced to reflect the possibility that the counterparty defaults.\n\nCVA is the adjustment that converts a risk-free valuation into a risky one:\n\n$$\\text{Risky value} = \\text{Risk-free value} - CVA$$\n\nIt is a price, not a risk measure. It answers what the market would charge today to bear the possibility that the counterparty fails before the contract matures, and it can therefore be hedged, traded and marked to market like any other price.\n\nThe general expression makes the components explicit:\n\n$$CVA = LGD \\times \\sum_{i} EE(t_{i}) \\times PD(t_{i-1}, t_{i}) \\times DF(t_{i})$$\n\nwhere LGD is loss given default of the counterparty, EE is discounted expected exposure at each time point, PD is the marginal default probability over each interval, and DF is the discount factor.\n\n| Term | What it is | Not to be confused with |\n|---|---|---|\n| CVA | Market value of counterparty credit risk | A measure of exposure such as EE or PFE |\n| Expected exposure (EE) | Average of the positive exposure distribution at a future date | CVA, which prices that exposure against default |\n| Potential future exposure (PFE) | A high quantile of the exposure distribution | EE, which is the mean |\n| Credit spread | Compensation per annum for bearing default risk | CVA, which is a val […]"
+ },
+ {
+  "id": "CR-T1-32",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "A consulting firm is refining the sensitivity of its CVA calculations to market conditions. How should it treat the impact of varying credit spread and recovery rate assumptions on CVA?",
+  "options": {
+   "A": "CVA will decrease with an increasing credit spread and an increasing recovery rate, because the two effects offset.",
+   "B": "The firm should focus primarily on the recovery rate, because the credit spread has minimal impact on CVA.",
+   "C": "CVA increases with an increasing credit spread, while the effect of the recovery rate assumption is largely offsetting and therefore modest, provided the same recovery is used to imply the default probability.",
+   "D": "CVA is unaffected by either assumption once expected exposure has been fixed, since exposure is the only driver."
+  },
+  "answer": "C",
+  "solution": "CVA rises with the credit spread, but is only weakly sensitive to the recovery rate assumption because recovery enters twice with opposing signs.\n\n**Credit spread.** The relationship is direct and strong. A wider spread implies a higher default intensity, hence a higher probability of default, hence a larger charge:\n\n$$\\lambda \\approx s \\div (1 - R) \\quad \\rightarrow \\quad \\text{higher } s \\text{ gives higher } \\lambda \\text{ gives higher } CVA$$\n\n**Recovery rate.** This is the subtle part and the reason the item exists. Recovery enters the CVA calculation twice, with opposing effects:\n\n| Where recovery enters | Direction of effect | Mechanism |\n|---|---|---|\n| Loss given default, $(1-R)$ | Higher R reduces CVA | Less is lost per default |\n| Implied default probability, $\\lambda = s/(1-R)$ | Higher R increases CVA | The same spread must be explained by more frequent default if each default costs less |\n\nSubstituting the implied hazard rate into the CVA expression shows the cancellation directly:\n\n$$CVA \\approx (1-R) \\times EPE \\times \\lambda \\times T = (1-R) \\times EPE \\times [s \\div (1-R)] \\times T = EPE \\times s \\times T$$\n\nThe $(1-R)$ terms cancel, leaving CVA approximately independent of the recovery assumption and driven by exposure and spread. This is why the standard shortcut $CVA_{spread} = EPE \\times \\text{credit spread}$ carries no recovery term at all.\n\n**The conditi […]"
+ },
+ {
+  "id": "CR-T1-33",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "A counterparty risk manager is documenting how CVA behaves across the trades within a single netting set. Which of the following statements about netting sets is correct?",
+  "options": {
+   "A": "Within a netting set, quantities such as expected exposure and CVA are non-multiplicative, which results in reduced overall risk.",
+   "B": "Within a netting set, quantities such as expected exposure and CVA are additive, which results in reduced overall risk.",
+   "C": "Within a netting set, quantities such as expected exposure and CVA are multiplicative, which results in reduced overall risk.",
+   "D": "Within a netting set, quantities such as expected exposure and CVA are non-additive, which results in reduced overall risk."
+  },
+  "answer": "D",
+  "solution": "Netting makes exposure and CVA sub-additive, so the netting set total is less than the sum of standalone values, which is why trade-level attribution requires incremental or marginal CVA.\n\nUnder a legally enforceable netting agreement, only the net mark-to-market across all trades with the counterparty is at risk on default. Positive and negative positions offset.\n\n$$EE_{\\text{netting set}} = E[\\max(\\sum_{i} V_{i}, 0)] \\le \\sum_{i} E[\\max(V_{i}, 0)] = \\sum_{i} EE_{i}$$\n\nThe inequality is strict whenever any two trades can move in opposite directions. Because CVA is computed from exposure, it inherits the same property:\n\n$$CVA_{\\text{netting set}} \\le \\sum_{i} CVA_{i}^{\\text{standalone}}$$\n\nThis is non-additivity, more precisely sub-additivity. The whole is smaller than the sum of the parts.\n\n**Why the word matters practically.** If CVA were additive, each trade's contribution would simply be its standalone CVA and attribution would be trivial. Because it is not, allocating the netting set's CVA back to individual trades requires incremental CVA, which measures the change in netting set CVA when a trade is added, or marginal CVA, which decomposes the total into contributions that sum exactly."
+ },
+ {
+  "id": "CR-T1-34",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "A risk analyst is producing a quick estimate of the CVA charge on an uncollateralised swap with a single counterparty, using the following simplifying assumptions.\n\n- Expected exposure is constant at 5.0% of notional, so expected positive exposure is also 5.0% of notional\n- Counterparty credit spread of 400 basis points\n- Recovery rate of 40.0%\n- Constant hazard rate of 6.7%\n- Approximate maturity of 5.0 years\n\nWhich of the following is nearest to the correct estimate of the CVA charge, expressed as a running spread?",
+  "options": {
+   "A": "About 20.0 basis points per annum",
+   "B": "About 33.3 basis points per annum",
+   "C": "About 50.0 basis points per annum",
+   "D": "The CVA charge cannot be estimated, because the market risk component information is missing"
+  },
+  "answer": "A",
+  "solution": "The standard CVA running-spread approximation: expected positive exposure multiplied by the counterparty credit spread, with recovery and hazard rate cancelling out.\n\n**The approximation.** For an uncollateralised exposure with no wrong-way risk, the CVA expressed as a running spread is:\n\n$$CVA_{spread} \\approx EPE \\times \\text{credit spread}$$\n$$CVA_{spread} \\approx 0.050 \\times 400 \\text{ bps} = 20.0 \\text{ basis points per annum}$$\n\n**Why recovery and the hazard rate do not appear.** They are already embedded in the credit spread. Writing the charge out longhand:\n\n$$CVA_{spread} \\approx LGD \\times \\lambda \\times EPE = (1-R) \\times [s \\div (1-R)] \\times EPE = s \\times EPE$$\n\nThe inputs are consistent: $\\lambda = s/(1-R) = 0.04/(1-0.40) = 6.67\\%$, the stated hazard rate.\n\n**Why maturity does not enter a running spread.** The 5.0 year term matters for the upfront CVA, which is roughly the running spread multiplied by the risky duration, but a spread is already expressed per annum. Multiplying by 5 would answer a different question."
+ },
+ {
+  "id": "CR-T1-35",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "A trader at a European bank needs a quick approximation of the CVA spread on a swap. The risk management group provides an expected positive exposure of 13%. The counterparty's credit spread is approximately 225 basis points per annum.\n\nBased on this information, the CVA as a running spread, expressed in percentage terms, is closest to:",
+  "options": {
+   "A": "Negative 29.25%",
+   "B": "Negative 5.77%",
+   "C": "Negative 0.2925%",
+   "D": "Negative 0.577%"
+  },
+  "answer": "C",
+  "solution": "Applying the CVA running-spread approximation and converting correctly between basis points and percentage terms.\n\n**Step 1. Apply the approximation.**\n\n$$CVA_{spread} \\approx -EPE \\times \\text{credit spread} = -0.13 \\times 225 \\text{ bps} = -29.25 \\text{ basis points}$$\n\n**Step 2. Convert to percentage terms.** One basis point is one hundredth of one per cent:\n\n$$-29.25 \\text{ bps} \\div 100 = -0.2925\\%$$\n\n**On the sign.** CVA is a reduction in value to the party bearing the counterparty's credit risk, so it is conventionally written as negative when quoted as an adjustment to value or as a spread give-up. Where a question asks for the CVA charge, the same magnitude is quoted positive.\n\n**Interpretation.** The bank must give up roughly 29 basis points per annum of the swap's economics to compensate for the possibility that the counterparty defaults while the swap is in the bank's favour. Note the sensitivity: the charge scales linearly in both EPE and the spread, so a counterparty whose spread doubles doubles the CVA."
+ },
+ {
+  "id": "CR-T1-36",
+  "lo": "CR-20 i",
+  "loText": "Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.",
+  "outside": false,
+  "question": "An interest rate swap referencing a USD 10 million notional is expected to have a risky duration of 3 years. The upfront CVA is 0.75% of notional.\n\nThe CVA expressed as a running spread is approximately equal to:",
+  "options": {
+   "A": "250 basis points",
+   "B": "75 basis points",
+   "C": "12.5 basis points",
+   "D": "25 basis points"
+  },
+  "answer": "D",
+  "solution": "Converting an upfront CVA into an equivalent annual running spread by dividing by the risky duration of the trade.\n\nAn upfront CVA is a single payment today. A running spread is an annual payment over the life of the trade. Equating their present values gives the conversion:\n\n$$\\text{Upfront CVA} \\approx \\text{CVA running spread} \\times \\text{risky duration}$$\n$$\\text{CVA running spread} \\approx \\text{Upfront CVA} \\div \\text{risky duration}$$\n\n**Step 1. Express the upfront CVA in basis points.**\n\n$$0.75\\% \\text{ of notional} = 75 \\text{ basis points}$$\n\n**Step 2. Divide by the risky duration.**\n\n$$\\text{CVA running spread} = 75 \\text{ bps} \\div 3 = 25 \\text{ basis points per annum}$$\n\n**Check in currency terms.** Upfront CVA = 0.0075 × 10,000,000 = USD 75,000. An annual charge of 25 basis points on USD 10 million is USD 25,000 per year for three years, which totals USD 75,000 before discounting. Consistent.\n\n**Why duration and not maturity.** The correct divisor is the risky annuity, that is, the present value of one basis point paid annually conditional on survival. It is shorter than the contractual maturity because of discounting and because payments cease on default. Substituting maturity overstates the divisor and understates the spread."
+ },
+ {
+  "id": "CR-T1-37",
+  "lo": "CR-20 i",
+  "loText": "Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.",
+  "outside": false,
+  "question": "A firm is updating its CVA practices for a portfolio of over-the-counter transactions with a single counterparty under a netting agreement, containing a mix of directional and offsetting positions.\n\nHow should the firm incorporate netting into its CVA computations?",
+  "options": {
+   "A": "Calculate a standalone CVA for each transaction, then subtract the netting set's total CVA from each transaction's standalone CVA to measure the netting benefit.",
+   "B": "Use incremental CVA, calculated as the CVA of the netting set including the new trade less the CVA of the netting set excluding it, so that the netting benefit is captured at the point of pricing.",
+   "C": "Allocate the netting set CVA to trades in proportion to notional, since notional is the only observable that is additive across trades.",
+   "D": "Compute CVA on a standalone basis for each trade and ignore the netting agreement, since this produces a conservative valuation."
+  },
+  "answer": "B",
+  "solution": "Incremental CVA prices a new trade against the existing netting set, capturing the netting benefit or cost that the trade brings.\n\nBecause CVA is non-additive within a netting set, a trade's standalone CVA is not what it costs the firm to add it. What matters is the change it causes:\n\n$$\\text{Incremental CVA}_{\\text{new trade}} = CVA(\\text{netting set with new trade}) - CVA(\\text{netting set without new trade})$$\n\n**Why this is the pricing quantity.** A trade that offsets existing exposure can have an incremental CVA close to zero, or even negative in charge terms, meaning it reduces the netting set's total counterparty risk. Charging that trade its standalone CVA would overprice it and lose the business to a competitor who prices incrementally. Conversely a trade that adds directionally to existing exposure has an incremental CVA larger than its standalone CVA would suggest.\n\n**The order dependence.** Incremental CVA depends on what is already in the netting set, so it depends on the sequence in which trades were executed. The first trade's incremental CVA equals its standalone CVA, because there is nothing to net against. Incremental CVAs across all trades sum to the netting set total.\n\n| Measure | Definition | Primary use | Order dependent |\n|---|---|---|---|\n| Standalone CVA | CVA of the trade in isolation | Benchmark only | No |\n| Incremental CVA | Change in netting set CV […]"
+ },
+ {
+  "id": "CR-T1-38",
+  "lo": "CR-20 i",
+  "loText": "Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.",
+  "outside": false,
+  "question": "A counterparty risk analyst at a dealer is decomposing the CVA of a netting set containing exactly two trades with the same counterparty, an interest rate swap and a cross-currency swap. The following figures have been produced.\n\n| Trade | Standalone CVA | Marginal CVA |\n|---|---|---|\n| Interest rate swap | -0.620 | -0.420 |\n| Cross-currency swap | -0.700 | -0.510 |\n| Netting set total | -1.320 (sum of standalone) | -0.930 |\n\nIf the cross-currency swap was executed first, what is the incremental CVA of the interest rate swap, and what is the netting benefit of the set?",
+  "options": {
+   "A": "Incremental CVA of the interest rate swap is -0.230; netting benefit is 0.390",
+   "B": "Incremental CVA of the interest rate swap is -0.620; netting benefit is 0.390",
+   "C": "Incremental CVA of the interest rate swap is -0.230; netting benefit is 0.930",
+   "D": "Incremental CVA of the interest rate swap is -0.420; netting benefit is 0.210"
+  },
+  "answer": "A",
+  "solution": "Computing incremental CVA from the order of execution, and quantifying the netting benefit as the gap between the sum of standalone CVAs and the netting set total.\n\n**Step 1. The first trade's incremental CVA equals its standalone CVA.** The cross-currency swap was executed first, so it had nothing to net against:\n\n$$\\text{Incremental CVA}_{CCS} = \\text{Standalone CVA}_{CCS} = -0.700$$\n\n**Step 2. Incremental CVAs sum to the netting set total.**\n\n$$\\text{Incremental CVA}_{IRS} = \\text{Total CVA} - \\text{Incremental CVA}_{CCS} = -0.930 - (-0.700) = -0.230$$\n\n**Step 3. Netting benefit.**\n\n$$\\text{Netting benefit} = \\text{netting set CVA} - \\sum \\text{standalone CVA} = -0.930 - (-1.320) = 0.390$$\n\nThe two trades partially offset, so the counterparty charge is 0.390 smaller than the sum of the parts.\n\n**The relationships to hold.**\n\n| Property | Incremental CVA | Marginal CVA |\n|---|---|---|\n| Sums to netting set total | Yes | Yes |\n| Depends on execution order | Yes | No |\n| First trade equals standalone | Yes | No |\n| Used for | Pricing a new trade | Attributing existing CVA at a point in time |\n\nNote the order dependence: had the interest rate swap been executed first, its incremental CVA would have been its standalone -0.620 and the cross-currency swap's would have been -0.310. The total is -0.930 either way, but the allocation between trades is entirely different. Marginal CVA  […]"
+ },
+ {
+  "id": "CR-T1-39",
+  "lo": "CR-20 i",
+  "loText": "Define and calculate incremental CVA and marginal CVA and explain how to convert CVA into a running spread.",
+  "outside": false,
+  "question": "In which of the following cases is the use of marginal CVA most appropriate?",
+  "options": {
+   "A": "Pricing new transactions with an existing counterparty.",
+   "B": "Pricing trades that were transacted at different times.",
+   "C": "Pricing long-dated positions where exposure builds over many years.",
+   "D": "Calculating trade-level CVA contributions within a netting set at a given point in time."
+  },
+  "answer": "D",
+  "solution": "Marginal CVA decomposes an existing netting set CVA into additive, order-independent trade-level contributions; incremental CVA is the pricing measure for new trades.\n\nThe two measures answer different questions and are not interchangeable.\n\n| Question being asked | Correct measure |\n|---|---|\n| What should we charge for this new trade? | Incremental CVA |\n| How does the counterparty charge break down across the trades we already hold? | Marginal CVA |\n| What would this trade cost on its own, ignoring everything else? | Standalone CVA |\n\nMarginal CVA takes the netting set CVA as given at a point in time and splits it into contributions that sum exactly to the total, without reference to the order in which trades were done:\n\n$$\\sum_{i} \\text{Marginal CVA}_{i} = CVA_{\\text{netting set}}$$\n\nThat order independence is what makes it suitable for attribution, for example allocating a CVA charge across desks or reporting which trades drive the counterparty charge today.\n\nIncremental CVA, by contrast, is inherently a pricing measure: it answers what adding one more trade costs, which is exactly the question a trader quoting a new deal must answer."
+ },
+ {
+  "id": "CR-T1-40",
+  "lo": "CR-20 e",
+  "loText": "Describe debt value adjustment (DVA) and bilateral CVA (BCVA).",
+  "outside": false,
+  "question": "A dealer is incorporating both its own credit risk and that of its counterparties into the valuation of its derivative book. How should it proceed with respect to debt value adjustment and bilateral credit value adjustment?",
+  "options": {
+   "A": "Focus only on CVA, because DVA is no longer a recognised method of adjusting valuations for changes in the firm's own credit risk.",
+   "B": "Apply DVA to reflect the market's perception of the firm's own credit risk, in conjunction with CVA, to arrive at BCVA as a comprehensive bilateral valuation.",
+   "C": "Use DVA exclusively, since a firm can only reliably observe and hedge its own credit spread, whereas counterparty spreads are frequently unobservable.",
+   "D": "Apply DVA only when the firm's own credit spread is wider than the counterparty's, since otherwise the adjustment is immaterial."
+  },
+  "answer": "B",
+  "solution": "BCVA combines the charge for counterparty default risk with the benefit arising from the firm's own default risk, giving a symmetric valuation both parties can agree on.\n\n**The two components.**\n\n| Component | Whose default | Effect on the firm's valuation | Driver |\n|---|---|---|---|\n| CVA | The counterparty's default | Reduces value (a charge) | Counterparty credit spread × expected positive exposure |\n| DVA | The firm's own default | Increases value (a benefit) | Own credit spread × expected negative exposure |\n\n$$BCVA = CVA + DVA$$\n\nwith the sign convention that CVA is a negative adjustment to value and DVA a positive one, so BCVA is the net of the two.\n\n**Why bilateral valuation is needed.** Under a unilateral treatment, each party charges the other for default risk and neither recognises its own, so the two parties can never agree on a price: the trade is worth less to each of them than to the other. BCVA restores symmetry. A's CVA is B's DVA and vice versa, so the bilateral value seen by A is exactly the negative of the bilateral value seen by B.\n\n$$BCVA_{A} = -BCVA_{B}$$\n\n**The uncomfortable implication.** A deterioration in the firm's own credit quality widens its own spread, increases DVA, and therefore increases the reported value of its derivative book. Monetising that gain requires either defaulting or buying back one's own debt, which is why DVA is contentious in  […]"
+ },
+ {
+  "id": "CR-T1-41",
+  "lo": "CR-20 e",
+  "loText": "Describe debt value adjustment (DVA) and bilateral CVA (BCVA).",
+  "outside": false,
+  "question": "Each of the following statements about debt value adjustment is true EXCEPT which one?",
+  "options": {
+   "A": "Bilateral CVA is the sum of the credit value adjustment and the debt value adjustment.",
+   "B": "Compared with a risky value that incorporates only the unilateral CVA term, the insertion of DVA will increase the value of the risky position.",
+   "C": "DVA is the formalisation of a term that incorporates specific wrong-way risk, that is, wrong-way risk between exposure and the default of the counterparty, within the CVA framework.",
+   "D": "Many banks perceive DVA as a funding benefit arising from negative exposure, and correspondingly perceive that there should be an associated funding cost arising from positive exposure."
+  },
+  "answer": "C",
+  "solution": "DVA arises from the firm's own default risk applied to negative exposure; it has nothing to do with wrong-way risk, which is dependence between exposure and counterparty credit quality.\n\nOption (c) attaches DVA to the wrong phenomenon entirely.\n\n**What DVA actually is.** The mirror image of CVA. Where CVA charges for the possibility that the counterparty defaults while the firm is owed money, DVA credits the possibility that the firm itself defaults while it owes money:\n\n$$DVA \\approx ENE \\times \\text{own credit spread}$$\n\nwhere ENE is expected negative exposure. It is driven by the firm's own default, not by any dependence structure.\n\n**What wrong-way risk actually is.** An unfavourable dependence between exposure and counterparty credit quality: exposure rises precisely when the counterparty is most likely to default. It is a correlation phenomenon and it modifies the CVA calculation itself, not a separate valuation term.\n\n| Concept | Source | Nature |\n|---|---|---|\n| CVA | Counterparty default against positive exposure | Valuation charge |\n| DVA | The firm's own default against negative exposure | Valuation benefit |\n| Wrong-way risk | Dependence between exposure and counterparty credit quality | An adjustment to how CVA is computed, not a separate term |\n\n**Why (b) and (d) are true and worth understanding.** Adding DVA increases value because the firm books a benefit for it […]"
+ },
+ {
+  "id": "CR-T1-42",
+  "lo": "CR-20 f",
+  "loText": "Explain the differences between unilateral CVA (UCVA) and BCVA, and between unilateral DVA (UDVA) and BCVA.",
+  "outside": false,
+  "question": "A risk consultant is explaining to a board risk committee how unilateral and bilateral valuation adjustments differ. Which of the following statements is correct?",
+  "options": {
+   "A": "Unilateral CVA assumes the firm itself is default-free and therefore has a larger absolute magnitude than BCVA, whereas BCVA nets the counterparty charge against the benefit from the firm's own default risk.",
+   "B": "Unilateral CVA and BCVA are equal in magnitude whenever the two counterparties have identical credit spreads, because the CVA and DVA terms then cancel exactly.",
+   "C": "Unilateral DVA assumes the counterparty is default-free, so it is always smaller in magnitude than BCVA, which additionally recognises the counterparty's default risk.",
+   "D": "BCVA is the arithmetic average of unilateral CVA and unilateral DVA, which is why it produces a valuation both parties can agree on."
+  },
+  "answer": "A",
+  "solution": "Unilateral adjustments assume one party is default-free; BCVA recognises both parties' default risk and is therefore the net of the two unilateral terms.\n\n**The three constructions.**\n\n| Measure | Assumes default-free | Recognises | Typical sign |\n|---|---|---|---|\n| Unilateral CVA (UCVA) | The firm itself | Counterparty default only | Negative, a charge |\n| Unilateral DVA (UDVA) | The counterparty | The firm's own default only | Positive, a benefit |\n| BCVA | Neither party | Both defaults | Net of the two |\n\n$$BCVA = UCVA + UDVA, \\text{ with UCVA negative and UDVA positive}$$\n\n**Why UCVA exceeds BCVA in magnitude.** UCVA is the charge assuming the firm never defaults. BCVA takes that same charge and adds a positive DVA term. Since DVA is a benefit, the net is smaller in absolute value:\n\n$$|BCVA| = |UCVA + UDVA| \\le |UCVA| \\text{ whenever UDVA has the opposite sign and is not larger}$$\n\n**Why (b) fails even under equal spreads.** Equal credit spreads do not make CVA and DVA cancel, because the two terms are multiplied by different exposure profiles: CVA scales with expected positive exposure and DVA with expected negative exposure. Cancellation requires both equal spreads and a symmetric exposure profile, EPE equal to ENE, which holds only for certain trades such as a par swap at inception.\n\n$$BCVA \\approx -EPE \\times s_{counterparty} + ENE \\times s_{own}$$"
+ },
+ {
+  "id": "CR-T1-43",
+  "lo": "CR-20 g",
+  "loText": "Calculate DVA, BCVA, and BCVA as a spread.",
+  "outside": false,
+  "question": "CityBank is entering into a swap contract with FinCorp. From CityBank's perspective the expected positive exposure of the trade is 6.00% and the expected negative exposure is 4.20%. CityBank's credit spread is 110 basis points per annum and FinCorp's credit spread is 250 basis points per annum. From CityBank's perspective the maximum potential future exposure is 18.0%.\n\nWhich of the following is nearest to the estimate of the bilateral credit value adjustment, expressed as a spread?",
+  "options": {
+   "A": "5.49 basis points",
+   "B": "10.38 basis points",
+   "C": "23.00 basis points",
+   "D": "42.58 basis points"
+  },
+  "answer": "B",
+  "solution": "BCVA as a spread is the counterparty charge, EPE times the counterparty spread, netted against the own-default benefit, ENE times the firm's own spread.\n\n$$BCVA_{spread} \\approx -(EPE \\times s_{counterparty}) + (ENE \\times s_{own})$$\n\n**Step 1. The CVA leg.** CityBank bears FinCorp's default risk on its positive exposure, and FinCorp is the counterparty, so FinCorp's spread applies:\n\n$$CVA = -0.0600 \\times 250 \\text{ bps} = -15.00 \\text{ basis points}$$\n\n**Step 2. The DVA leg.** CityBank benefits from its own default risk on its negative exposure, so CityBank's own spread applies:\n\n$$DVA = +0.0420 \\times 110 \\text{ bps} = +4.62 \\text{ basis points}$$\n\n**Step 3. Combine.**\n\n$$BCVA = -15.00 + 4.62 = -10.38 \\text{ basis points, that is, 10.38 basis points as a charge}$$\n\n**The pairing that must be right.** Each exposure measure pairs with a specific spread, and swapping them is the principal error:\n\n| Leg | Exposure measure | Spread | Reason |\n|---|---|---|---|\n| CVA | EPE, 6.00% | Counterparty's spread, 250 bps | CityBank loses when FinCorp defaults and owes CityBank money |\n| DVA | ENE, 4.20% | CityBank's own spread, 110 bps | CityBank gains when it defaults owing FinCorp money |\n\n**Why the maximum PFE of 18.0% is present.** It is a red herring. PFE is a tail exposure measure used for limit setting and capital, not for valuation. CVA and DVA are priced off expected exposure, bec […]"
+ },
+ {
+  "id": "CR-T1-44",
+  "lo": "CR-20 g",
+  "loText": "Calculate DVA, BCVA, and BCVA as a spread.",
+  "outside": false,
+  "question": "A trader at VXR Financial Group has an existing swap agreement with Excellence Bank under a bilateral credit value adjustment arrangement. VXR has been downgraded from A to A minus, and Excellence from A minus to BBB. Over the same period VXR's credit spread has widened from 74 to 154 basis points, and Excellence Bank's credit spread has widened from 128 to 176 basis points.\n\nAssuming expected positive and expected negative exposures are equal and unchanged, by how much does the BCVA spread need to be adjusted from VXR's perspective?",
+  "options": {
+   "A": "32 basis points",
+   "B": "54 basis points",
+   "C": "22 basis points",
+   "D": "98 basis points"
+  },
+  "answer": "A",
+  "solution": "BCVA responds to changes in both parties' credit spreads with opposite signs, so a simultaneous widening produces a net adjustment equal to the difference in the spread changes.\n\n**Step 1. Identify the spread changes.**\n\n| Party | Spread before | Spread after | Change | Which leg | Sign of effect on VXR |\n|---|---|---|---|---|---|\n| VXR (own) | 74 bps | 154 bps | +80 bps | DVA | Positive, a benefit |\n| Excellence (counterparty) | 128 bps | 176 bps | +48 bps | CVA | Negative, a charge |\n\n**Step 2. Apply the correct sign to each.** From VXR's perspective:\n\n$$BCVA \\approx -(EPE \\times s_{Excellence}) + (ENE \\times s_{VXR})$$\n\nExcellence's spread drives the CVA leg, which reduces value, so a widening of 48 basis points is a 48 basis point deterioration. VXR's own spread drives the DVA leg, which increases value, so a widening of 80 basis points is an 80 basis point improvement.\n\n**Step 3. Net, with EPE equal to ENE.**\n\n$$\\Delta BCVA \\approx -48 + 80 = +32 \\text{ basis points}$$\n\n**Interpretation, and it is the uncomfortable one.** VXR's own creditworthiness deteriorated by more than its counterparty's, and the effect on VXR's bilateral valuation is a gain of 32 basis points. This is the DVA paradox: a firm's derivative book becomes more valuable as the firm itself becomes more likely to default, because it is less likely to have to honour what it owes.\n\n**The condition doing the wo […]"
+ },
+ {
+  "id": "CR-FT-27",
+  "lo": "CR-20 h",
+  "loText": "Explain how netting can be incorporated into the CVA calculation.",
+  "outside": false,
+  "question": "A CVA desk is refining its calculation to reflect an enforceable netting agreement and a credit support annex. Which of the following correctly describes how each is incorporated?",
+  "options": {
+   "A": "Netting is incorporated by computing expected exposure on the netted portfolio rather than trade by trade, so that CVA is computed once for the netting set and allocated to trades through incremental or marginal CVA; collateral is incorporated by replacing the exposure profile with the collateralised residual, which is driven by the threshold, the minimum transfer amount and the exposure accruing over the margin period of risk, with segregated initial margin further reducing it.",
+   "B": "Netting is incorporated by computing CVA trade by trade and then subtracting a netting benefit adjustment at the portfolio level; collateral is incorporated by setting expected exposure to zero for any netting set covered by a credit support annex.",
+   "C": "Netting has no effect on CVA because CVA is driven by the counterparty's credit spread rather than by exposure; collateral reduces CVA only to the extent that the collateral itself is credit risky.",
+   "D": "Both are incorporated by applying a fixed regulatory multiplier to the uncollateralised CVA, since the alpha factor of 1.4 already reflects typical netting and collateral arrangements."
+  },
+  "answer": "A",
+  "solution": "Netting changes the exposure profile that enters CVA, so CVA becomes a netting set quantity requiring allocation; collateral replaces that profile with a residual governed by the CSA parameters and the margin period of risk.\n\n**Netting in CVA.** CVA is computed from expected exposure, so netting enters by changing the exposure profile itself:\n\n$$CVA_{\\text{netting set}} = LGD \\times \\sum_t EE_{\\text{netted}}(t) \\times PD(t) \\times DF(t)$$\n\nBecause EE is computed on the net portfolio, CVA becomes a property of the netting set rather than of any individual trade, and it is non-additive:\n\n$$CVA_{\\text{netting set}} \\leq \\sum_i CVA_i^{\\text{standalone}}$$\n\nAllocation to trades therefore requires incremental CVA for pricing a new trade and marginal CVA for attributing the existing charge.\n\n**Collateral in CVA.** The exposure profile is replaced by the collateralised residual.\n\n| CSA parameter | Direction of effect on CVA |\n|---|---|\n| Higher threshold | Increases CVA; more exposure left uncollateralised |\n| Higher minimum transfer amount | Increases CVA |\n| Longer margin period of risk | Increases CVA; exposure accrues over a longer unprotected window |\n| Higher initial margin | Decreases CVA; absorbs the residual |\n\n**Why collateral does not take CVA to zero, which disposes of option (b).** Three residual terms survive. The threshold is uncollateralised by agreement. The minimum tr […]"
+ },
+ {
+  "id": "CR-FT-30",
+  "lo": "CR-21 f",
+  "loText": "Calculate the stressed CVA and the stress loss on CVA.",
+  "outside": true,
+  "question": "A counterparty risk team is stressing its bilateral CVA position for a credit spread widening scenario. The following figures apply to a single counterparty.\n\n- Expected positive exposure: 4.0% of notional; expected negative exposure: 3.0% of notional\n- Counterparty credit spread: 150 basis points at baseline, widening to 450 basis points under stress\n- The firm's own credit spread: 100 basis points at baseline, widening to 250 basis points under stress\n\nWhich of the following gives the stress loss on CVA and the stress gain on DVA, each expressed as a running spread?",
+  "options": {
+   "A": "Stress loss on CVA 12.0 basis points; stress gain on DVA 4.5 basis points",
+   "B": "Stress loss on CVA 18.0 basis points; stress gain on DVA 7.5 basis points",
+   "C": "Stress loss on CVA 12.0 basis points; stress gain on DVA 7.5 basis points",
+   "D": "Stress loss on CVA 18.0 basis points; stress gain on DVA 4.5 basis points"
+  },
+  "answer": "A",
+  "solution": "Stressing CVA means recomputing it with stressed credit spreads and taking the increment; DVA moves in the opposite direction and partially offsets, which is why bilateral aggregation must be done net.\n\n**Step 1. Baseline and stressed CVA.** CVA uses the counterparty's spread against expected positive exposure.\n\n$$CVA \\approx EPE \\times s_{\\text{counterparty}}$$\n$$CVA_{\\text{baseline}} = 0.040 \\times 150 = 6.0 \\text{ bps}$$\n$$CVA_{\\text{stressed}} = 0.040 \\times 450 = 18.0 \\text{ bps}$$\n$$\\text{Stress loss on CVA} = 18.0 - 6.0 = 12.0 \\text{ basis points}$$\n\n**Step 2. Baseline and stressed DVA.** DVA uses the firm's own spread against expected negative exposure.\n\n$$DVA \\approx ENE \\times s_{\\text{own}}$$\n$$DVA_{\\text{baseline}} = 0.030 \\times 100 = 3.0 \\text{ bps}$$\n$$DVA_{\\text{stressed}} = 0.030 \\times 250 = 7.5 \\text{ bps}$$\n$$\\text{Stress gain on DVA} = 7.5 - 3.0 = 4.5 \\text{ basis points}$$\n\n**Step 3. Aggregate.**\n\n$$\\text{Net stress impact on BCVA} = -12.0 + 4.5 = -7.5 \\text{ basis points}$$\n\n| Component | Baseline | Stressed | Change |\n|---|---|---|---|\n| CVA, a charge | 6.0 bps | 18.0 bps | -12.0 bps, a loss |\n| DVA, a benefit | 3.0 bps | 7.5 bps | +4.5 bps, a gain |\n| Net bilateral impact | | | -7.5 bps |\n\n**Why stressing DVA matters for aggregation, which is the examinable point.** In a systemic scenario the firm's own spread widens alongside its counterparties'. Stres […]"
+ },
+ {
+  "id": "CR-FT-36",
+  "lo": "CR-15 h",
+  "loText": "Explain the components of the X-Value Adjustment (xVA) term.",
+  "outside": true,
+  "question": "A dealer is decomposing the all-in cost of an uncleared over-the-counter derivative. Which of the following correctly identifies the xVA components and what each prices?",
+  "options": {
+   "A": "CVA prices the counterparty's default risk; DVA prices the dealer's own default risk as a benefit; FVA prices the funding cost of the uncollateralised exposure; MVA prices the funding cost of posting initial margin; and KVA prices the cost of the regulatory capital the trade consumes over its life.",
+   "B": "CVA prices the dealer's own default risk; DVA prices the counterparty's default risk; FVA prices the market risk of the position; MVA prices the cost of margin calls received; and KVA prices the counterparty's cost of capital.",
+   "C": "The xVA components are alternative names for the same adjustment, and applying more than one to a single trade double counts the cost of counterparty risk.",
+   "D": "xVA applies only to cleared derivatives, since uncleared trades are fully collateralised under the margin rules and therefore carry no valuation adjustment."
+  },
+  "answer": "A",
+  "solution": "Each xVA term prices a distinct economic cost of running a derivative position, and together they convert a risk-free valuation into an all-in price.\n\n**The chain from risk-free value to all-in price.**\n\n$$\\text{All-in value} = \\text{Risk-free value} - CVA + DVA - FVA - MVA - KVA$$\n\n| Component | Prices | Sign to the dealer |\n|---|---|---|\n| CVA | The counterparty's default risk against positive exposure | Negative, a charge |\n| DVA | The dealer's own default risk against negative exposure | Positive, a benefit |\n| FVA | Funding cost of the uncollateralised exposure | Negative |\n| MVA | Funding cost of posting initial margin, which cannot be reused | Negative |\n| KVA | Cost of the regulatory capital the trade consumes over its life | Negative |\n\n**Why the family grew.** The pre-crisis convention was to value derivatives off a single risk-free curve and to treat counterparty risk as a credit limit question. Each subsequent adjustment recognises a cost that was previously borne without being priced: default risk, then own-credit, then funding, then margin funding, then capital.\n\n**The overlap debate worth knowing.** DVA and FVA are widely argued to overlap, since both derive from the dealer's own credit and funding position. Recognising both in full is regarded by many as double counting, which is why practice varies and why the two are frequently reported together.\n\n**Why option […]"
+ },
+ {
+  "id": "CR-QB-0531",
+  "lo": "CR-12 b",
+  "loText": "Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).",
+  "outside": true,
+  "question": "An FRM candidate must explain how credit valuation adjustment (CVA) and debit (debt) valuation adjustment (DVA) affect the value of a bank’s derivatives portfolio with a counterparty. Which statement is correct?",
+  "options": {
+   "A": "CVA increases the portfolio value by accounting for the potential gain from the counterparty’s default, while DVA decreases it by considering the bank’s own default risk.",
+   "B": "CVA decreases the portfolio value by adjusting for the risk of counterparty default, and DVA increases it by considering the potential gain from the bank’s own default.",
+   "C": "CVA increases the portfolio value due to the risk of loss from the counterparty’s potential default, and DVA has no influence since it only affects the counterparty’s portfolio.",
+   "D": "Both CVA and DVA decrease the portfolio value since they both adjust for the losses expected from defaults by the counterparty and the bank, respectively."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. CVA = PV of the expected cost to the bank if the counterparty defaults, so it is a loss and is subtracted from the no‑default value.\n2. DVA = PV of the expected cost to the counterparty if the bank defaults. That is a benefit to the bank (it will not have to make some payments), so it is added.\n3. Value with defaults: $f = f_{nd} - \\text{CVA} +$ DVA.\n4. Option B states exactly these two signs."
+ },
+ {
+  "id": "CR-QB-0532",
+  "lo": "CR-12 b",
+  "loText": "Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).",
+  "outside": true,
+  "question": "Bank Z has derivatives with a counterparty. The present value of the bank’s expected exposure to the counterparty is \\$100 million, and the present value of the counterparty’s expected exposure to the bank is \\$60 million (treat both as constant over the life of the transactions and independent of default). The expected recovery rate is 40%. The total risk‑neutral probability of default over the life of the transactions is 5% for the counterparty and 3% for the bank. Which statement best describes the effect of CVA and DVA on the value of the derivatives portfolio to the bank?",
+  "options": {
+   "A": "CVA of \\$3.00 million reduces value and DVA of \\$1.08 million increases value, for a net decrease of \\$1.92 million.",
+   "B": "CVA of \\$5.00 million reduces value and DVA of \\$1.80 million increases value, for a net decrease of \\$3.20 million.",
+   "C": "CVA of \\$3.00 million reduces value and DVA of \\$1.08 million also reduces value, for a total decrease of \\$4.08 million.",
+   "D": "CVA of \\$3.00 million increases value and DVA of \\$1.08 million reduces value, for a net increase of \\$1.92 million."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. CVA $= (1 - R) \\times\\text{PD}_{cp} \\times\\text{EE}_{bank} = 0.60 \\times0.05 \\times100 = 3.00$ million.\n2. DVA $= (1 - R) \\times\\text{PD}_{bank} \\times\\text{EE}_{cp} = 0.60 \\times0.03 \\times60 = 1.08$ million.\n3. Value with defaults $= f_{nd} - \\text{CVA} +$ DVA, so the net effect is −3.00 + 1.08 = −1.92 million (a decrease).\n\n**REBUILT** — Original treated the \\$100m no‑default portfolio value as the exposure for both CVA and DVA; rebuilt with explicit, separate exposures and fixed options so exactly one is correct."
+ },
+ {
+  "id": "CR-QB-0533",
+  "lo": "CR-12 b",
+  "loText": "Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).",
+  "outside": true,
+  "question": "The credit spread of a bank suddenly widens, reflecting a higher probability that the bank itself will default. Holding everything else (including the counterparty’s credit quality and the no‑default value of the transactions) constant, what is the effect on the bank’s DVA and on the value of its derivatives portfolio with that counterparty?",
+  "options": {
+   "A": "DVA decreases and portfolio value decreases.",
+   "B": "DVA increases and portfolio value decreases.",
+   "C": "DVA decreases and portfolio value increases.",
+   "D": "DVA increases and portfolio value increases."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. DVA is the PV of the expected cost to the counterparty if the bank defaults; it depends on the bank’s default probability (implied by its credit spread).\n2. A wider bank spread raises the bank’s default probability, so DVA increases.\n3. Value with defaults $= f_{nd} -\\text{CVA}+$DVA; CVA is unchanged, so a larger DVA raises the portfolio value to the bank.\n\n**REBUILT** — Original asked about reported income, which is outside the reading; reframed to the effect on DVA and on the value of the bank’s derivatives portfolio, holding the counterparty’s credit unchanged."
+ },
+ {
+  "id": "CR-QB-0534",
+  "lo": "CR-12 b",
+  "loText": "Define credit valuation adjustment (CVA) and debt valuation adjustment (DVA).",
+  "outside": true,
+  "question": "A bank is assessing the impact of a new transaction on CVA and DVA. If the new transaction is negatively correlated to existing transactions, the impact will likely be a(n):",
+  "options": {
+   "A": "increase in both CVA and DVA.",
+   "B": "decrease in both CVA and DVA.",
+   "C": "increase in CVA and decrease in DVA.",
+   "D": "decrease in CVA and increase in DVA."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. CVA and DVA depend on the exposure of the whole netted portfolio.\n2. A new transaction positively correlated with existing ones tends to add to exposure and raise both CVA and DVA.\n3. A negatively correlated transaction (e.g., partly unwinding existing positions) offsets exposure, so both CVA and DVA likely decrease."
+ },
+ {
+  "id": "CR-QB-0536",
+  "lo": "CR-12 c",
+  "loText": "Calculate the probability of default using credit spreads.",
+  "outside": true,
+  "question": "As a Risk Analyst at Investment Bank Plc, you are evaluating the credit risks associated with a derivative contract linked to a specific counterparty. You have been given the following financial metrics to work with: a 5‑year credit spread for the counterparty is 200 basis points (bps), the prevailing risk‑free rate is set at 5%, and the recovery rate in case of default is assumed to be 40% compared to 50% when it was last assessed by a different analyst. Your task involves calculating the Probability of Default (PD) using the specified financial metrics and then assessing the implications of the change in the recovery rate on both the Credit Valuation Adjustment (CVA) and the Debt Valuation Adjustment (DVA) for a derivative contract. Select the statement that correctly describes these impacts.",
+  "options": {
+   "A": "PD = 15.35%; The CVA will increase, reflecting higher credit risk of the counterparty, reducing the derivative’s valuation, while DVA adjusts for the firm’s own risk, potentially increasing the value if its credit worsens.",
+   "B": "PD = 15.35%; The CVA will decrease as the counterparty’s credit risk is manageable, increasing the derivative’s valuation, while DVA remains unaffected as it only considers market conditions.",
+   "C": "PD = 5.82%; The CVA will decrease as the counterparty’s credit risk is manageable, increasing the derivative’s valuation, while DVA remains unaffected as it only considers market conditions.",
+   "D": "PD = 5.82%; The CVA will increase, reflecting higher credit risk of the counterparty, reducing the derivative’s valuation, while DVA adjusts for the firm’s own risk, potentially increasing the value if its credit worsens."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Average hazard rate $\\bar{\\lambda} = s/(1 - R) = 0.02/0.60 = 3.333\\%$ per year (the 5% risk‑free rate is not needed).\n2. PD$_{5y} = 1 - e^{-\\bar{\\lambda} T} = 1 - e^{-0.03333\\times5} = 1 - e^{-0.1667} = 15.35\\%$.\n3. Lowering recovery from 50% to 40% raises loss given default, so CVA (the cost of counterparty default) increases and reduces the derivative’s value.\n4. DVA reflects the dealer’s own default risk: if its own credit worsens, DVA rises and increases the derivative’s value (a gain to the firm), so DVA does not stay unaffected."
+ },
+ {
+  "id": "CR-QB-0693",
+  "lo": "CR-15 e",
+  "loText": "Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.",
+  "outside": true,
+  "question": "Traditional counterparty credit risk management depends on credit limits, but a more sophisticated approach employs a credit value adjustment (CVA). According to Gregory, which is the key advantage of CVA over a credit line?",
+  "options": {
+   "A": "CVA can include potential future exposure (PFE), but credit limits cannot incorporate PFE",
+   "B": "CVA incorporates a portfolio perspective, but credit limits are not portfolio credit risk management",
+   "C": "CVA enables transaction decisions based on profitability at the trade level, whereas limits only control exposure at the portfolio level",
+   "D": "CVA includes default probability, recovery, and correlation between counterparties, but credit limits cannot"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Credit limits are set on exposure (typically PFE) and act at the portfolio level; a trade is accepted or refused depending on whether it breaches the limit.\n2. So with a limit the implicit price of counterparty risk is zero (accepted) or infinite (rejected).\n3. CVA is the actual price of counterparty risk, defined at the trade and counterparty level.\n4. Hence a trade can be judged on whether its revenue exceeds the CVA, i.e. on profitability. This is the key advantage."
+ },
+ {
+  "id": "CR-QB-0694",
+  "lo": "CR-15 e",
+  "loText": "Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.",
+  "outside": true,
+  "question": "Patricia is a risk analyst working on a counterparty risk management system for her international financial services firm. The Risk Committee has requested that the system assess counterparty risk at three levels: trade level, counterparty level, and portfolio level. In this context, Patricia is evaluating the pros and cons of credit limits and the credit value adjustment (CVA). Each of the following is true EXCEPT, which is false?",
+  "options": {
+   "A": "CVA and credit limits are complements in this three‑level system",
+   "B": "Credit limits act at the portfolio level by limiting exposures to avoid concentrations",
+   "C": "CVA focuses on evaluating counterparty risk at the trade level and counterparty level",
+   "D": "CVA encourages maximizing the number of trading counterparties in order to maximize the benefits of netting, but credit limits encourage minimizing this number to encourage smaller exposures"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. CVA covers the trade level (trade features) and counterparty level (netting, collateral); credit limits act at the portfolio level. So C and B are true.\n2. Because they cover different levels, they are complementary and used together. A is true.\n3. Netting benefits are largest when trades are concentrated with few counterparties, so CVA encourages minimizing the number of counterparties.\n4. Limits cap exposure per name, which encourages more counterparties, smaller exposures and diversification.\n5. D reverses both statements, so D is the false one."
+ },
+ {
+  "id": "CR-QB-0695",
+  "lo": "CR-15 e",
+  "loText": "Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.",
+  "outside": true,
+  "question": "Herman, Ferry, and Quitzon LLC is a market maker with a position in an over‑the‑counter (OTC) derivatives contract. For this position, they have estimated the following values:\n\n‑ The risk‑free value of the position is +\\$32.0 million\n\n‑ The credit valuation adjustment (CVA) is \\$5.0 million\n\n‑ The debt valuation adjustment (DVA) is \\$8.0 million\n\nBased only on this information, which of the following is the best estimate of the risky value of the position from Herman’s perspective?",
+  "options": {
+   "A": "Risky value = \\$27.0 million",
+   "B": "Risky value = \\$29.0 million",
+   "C": "Risky value = \\$35.0 million",
+   "D": "Without estimates for the counterparty’s default probability (PD) and loss given default (LGD), we cannot estimate a risky value"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Risky value = risk‑free value $- \\text{CVA} +$ DVA.\n2. CVA is the cost of the counterparty’s default risk; DVA is the benefit from the firm’s own default risk (counterparty risk from the firm’s own point of view).\n3. 32.0 − 5.0 + 8.0 = 35.0 million."
+ },
+ {
+  "id": "CR-QB-0987",
+  "lo": "CR-20 a",
+  "loText": "Explain the motivation for and the challenges of pricing counterparty risk.",
+  "outside": false,
+  "question": "A bank’s risk manager explains why quantifying counterparty risk on an interest rate swap is significantly more difficult than pricing the credit risk of a bond issued by the same counterparty. Which statement best captures the reason?",
+  "options": {
+   "A": "A swap has bilateral cash flows, so a given cash flow is not fully at risk in default because it can be partly offset by opposing cash flows, and the exposure must therefore be modeled rather than read off the contract",
+   "B": "A swap has a notional that is exchanged at maturity, so the amount at risk is always the full notional",
+   "C": "A bond has no recovery value in default, whereas a swap always has a positive recovery rate",
+   "D": "A swap’s counterparty default probability cannot be estimated, whereas a bond issuer’s can"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. For a bond, payments are one‑way: the investor is owed the cash flows, so credit risk is handled by accounting for default when discounting and adding any recovery payments.\n2. For a swap, fixed, floating or contingent payments flow in both directions, so the net value can be positive or negative and varies with market variables.\n3. A cash flow owed to the bank is therefore not fully at risk, since it may be offset by current and future opposing payments; the exposure is max(V,0) at the default date and has to be modeled (simulated).\n4. This bilateral nature is what makes counterparty risk quantification significantly more difficult for derivatives, which is the challenge in LO 38.a.\n\n**REBUILT** — Original EXCEPT item relied on a ’centralized desk’ claim and an additivity claim not supported by the GARP chapter and had a contestable false statement; rebuilt as a single‑answer item on why swap counterparty risk is harder to price than bond credit risk."
+ },
+ {
+  "id": "CR-QB-0988",
+  "lo": "CR-20 a",
+  "loText": "Explain the motivation for and the challenges of pricing counterparty risk.",
+  "outside": false,
+  "question": "The price of a financial instrument can generally be defined in one of two ways:\n\nI. Actuarial price: the price represents an expected value of future cashflows, incorporating some adjustment for the risk that is being taken (the risk premium).\n\nII. Risk‑neutral price: the price is the cost of an associated hedging strategy.\n\nInto which camp does the credit valuation adjustment (CVA) fall?",
+  "options": {
+   "A": "I only",
+   "B": "II only",
+   "C": "Both, because the actual price must equal the risk‑neutral price",
+   "D": "Both, although the prices are likely to differ, perhaps dramatically"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Historically CVA was treated as an actuarial reserve/provision computed with historical (real‑world) parameters, i.e., an expected‑loss price (camp I).\n2. Under current accounting (exit price concept) CVA is computed with market‑implied (risk‑neutral) parameters, reflecting the cost of hedging (camp II).\n3. Market‑implied default probabilities are significantly higher than real‑world ones and default usually cannot be hedged with liquid single‑name CDS, so the two prices can differ greatly.\n4. So CVA can be seen in both camps, but the two prices need not agree."
+ },
+ {
+  "id": "CR-QB-0989",
+  "lo": "CR-20 a",
+  "loText": "Explain the motivation for and the challenges of pricing counterparty risk.",
+  "outside": false,
+  "question": "The finance director of a regional bank asks the counterparty risk manager why the bank charges a separate adjustment for counterparty risk on a newly executed 7‑year interest rate swap with a corporate client, rather than simply relying on the swap’s quoted price. Which of the following is the most accurate response?",
+  "options": {
+   "A": "The swap price already embeds the client’s default risk, so the adjustment is only a presentation item that does not generate any reserve.",
+   "B": "The adjustment should be computed on the swap in isolation, ignoring netting and collateral, so that the reserve is as conservative as possible.",
+   "C": "The adjustment is a price of counterparty risk on all outstanding positions with the client, charged in addition to the price of the swap itself, and it builds reserves to absorb potential default losses.",
+   "D": "The adjustment is needed mainly because the swap’s full notional is exchanged at maturity and is therefore wholly at risk in default."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Counterparty risk pricing is a function of the credit exposure to the counterparty and its default probability.\n2. The resulting price covers all outstanding positions with the counterparty and exists in addition to the price of the instrument itself (e.g., the swap).\n3. Charging it generates reserves that absorb potential losses from the counterparty’s default, and it must reflect risk mitigants such as netting and collateral.\n\n**NEW** — No source question covered this LO adequately; written from the 2026 reading (content per the GARP 2026 book) in GARP practice‑exam style."
+ },
+ {
+  "id": "CR-QB-0990",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "A bank is computing the unilateral credit value adjustment (CVA) on an uncollateralized portfolio of swaps with one counterparty, assuming no wrong‑way risk. Which of the following correctly lists the inputs that the standard discrete CVA formula, CVA $= -\\text{LGD} \\sum^{m}_{i=1}$ EPE$(t_{i})$ PD$(t_{i-1}, t_{i})$, combines?",
+  "options": {
+   "A": "Loss given default, discounted expected positive exposure at each future date, and the marginal default probability in each interval.",
+   "B": "Loss given default, the 97.5th‑percentile potential future exposure at each future date, and the marginal default probability in each interval.",
+   "C": "Loss given default, the current mark‑to‑market value of the portfolio only, and the cumulative default probability to maturity.",
+   "D": "Loss given default, discounted expected negative exposure at each future date, and the marginal default probability of the bank itself."
+  },
+  "answer": "A",
+  "solution": "**Key correction:** Source key (AnalystPrep) said C (incorporate PFE); the reading builds CVA from expected positive exposure (EPE), not a high‑percentile PFE, so PFE is not the correct input.\n\n**Step by step**\n\n1. CVA is the price of counterparty credit risk: CVA $= -\\text{LGD} \\sum$ EPE$(t_{i})$ PD$(t_{i-1}, t_{i})$.\n2. Three drivers: (1) LGD, (2) the exposure profile, measured as discounted expected positive exposure (risk‑free discounting is usually built into the EPE), (3) the marginal default probability in each interval.\n3. Exposure matters only when positive (counterparty owes the bank) and is averaged (expected), not taken at a high percentile.\n4. Hence A matches the formula.\n\n**REBUILT** — Original answer (PFE) conflicts with the reading, where CVA uses expected (positive) exposure; stem was vague about ’accuracy’, so it was rebuilt as a clear question on the inputs of the CVA formula."
+ },
+ {
+  "id": "CR-QB-0991",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "Eastpointe Bank has entered into a 10‑year receiver interest rate swap with Counterparty A (it receives fixed and pays floating). The risk team is computing the credit value adjustment (CVA) for this uncollateralized swap by Monte Carlo, choosing between a direct CVA calculation and a path‑wise CVA calculation. The bank wants to minimize computational time without sacrificing accuracy. Which approach is more effective?",
+  "options": {
+   "A": "A path‑wise CVA formula, because it is more intuitive as a sum over the EPE profile and therefore must be cheaper to compute.",
+   "B": "A path‑wise CVA formula, because valuations at successive simulation points have low correlation, so it converges quickly.",
+   "C": "A direct CVA formula, because assuming independence of default time, exposure at default and LGD lets one simulate default‑time exposure directly with a single average LGD, giving lower variance for the same number of valuations.",
+   "D": "A direct CVA formula, because it requires multiple valuations of the portfolio at every time interval of each simulation, which improves accuracy."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The path‑wise formula CVA $= -\\text{LGD} \\sum$ EPE$(t_{i})$PD$(t_{i-1}, t_{i})$ is intuitive, but each simulation needs valuations at all m time intervals.\n2. Valuations at successive points are highly correlated, so the extra valuations add little information and convergence is slow.\n3. The direct approach assumes default time, exposure at default and LGD are independent (no wrong‑way risk), so a single average LGD is used and only the exposure at the default time needs to be simulated.\n4. This gives a much smaller standard deviation for the same number of valuations (about six times smaller in the reading’s example, i.e. far fewer valuations for equal accuracy). So C.\n\n**REBUILT** — Option D was self‑contradictory (it credited the direct formula with a path‑wise feature); rewrote it as a clear distractor so only C is correct."
+ },
+ {
+  "id": "CR-QB-0992",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "The CVA of a five‑year interest rate swap is built from four components: LGD, discount factors, the expected (positive) exposure profile, and the marginal default probability in each annual interval. Assume a constant hazard rate (default intensity) of 5% per year, so the marginal (unconditional) default probability for year $i$ is $e^{-0.05(i-1)} - e^{-0.05i}$. Which of the following statements is correct?",
+  "options": {
+   "A": "The marginal default probability is 5.00% in every year, because the hazard rate is constant.",
+   "B": "The marginal default probability falls from 4.88% in year 1 to 3.99% in year 5, because survival to each interval declines.",
+   "C": "The marginal default probability rises from 4.88% in year 1 to 22.12% in year 5, because default risk accumulates.",
+   "D": "The exposure input to CVA is the potential future exposure (PFE) profile, which is why it is plotted alongside the marginal default probability."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Year 1: $1 - e^{-0.05} = 4.88\\%$.\n2. Year 5: $e^{-0.20} - e^{-0.25} = 3.99\\%$; each year’s marginal PD equals the previous one times $e^{-0.05}$, so it declines geometrically.\n3. The cumulative PD to year 5 is $1 - e^{-0.25} = 22.12\\%$, which is a different quantity from the marginal PD.\n4. The hazard rate is a conditional (given survival) default rate and is constant; the unconditional probability of defaulting in a given interval falls as survival probability falls.\n5. CVA uses expected exposure (EE/EPE), not PFE, so D is false.\n\n**REBUILT** — Original depended on an unavailable chart; rebuilt with explicit constant hazard rate and numeric marginal PDs, testing the same point (the exposure input is EE/EPE, marginal PD falls over time)."
+ },
+ {
+  "id": "CR-QB-0993",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": false,
+  "question": "Which of the following statements about credit value adjustment (CVA) is correct?",
+  "options": {
+   "A": "CVA is generally computed with market‑implied (risk‑neutral) parameters where practical, which supports the exit‑price concept required by accounting standards.",
+   "B": "Accounting standards require CVA to be computed with historical default probabilities and volatilities, so that it acts as an actuarial reserve.",
+   "C": "CVA depends only on the counterparty’s probability of default and is independent of the exposure profile.",
+   "D": "CVA is proportional to the counterparty’s exposure and likelihood of default, but not to the loss given default."
+  },
+  "answer": "A",
+  "solution": "**Key correction:** Source keys disagreed (BT Mock Q42: Risk‑neutrality misstated; BT P2.T6.914.1: Inseparability incorrect); the GARP chapter supports neither framing, so the question was rebuilt on its own statements.\n\n**Step by step**\n\n1. CVA is the price of counterparty risk: the difference between the value of the derivative with and without counterparty default.\n2. Historically CVA was an actuarial ’reserve’ using historical parameters; accounting rules have since made it an exit price computed with market‑implied (risk‑neutral) parameters wherever practical (historical use remains only in rare cases).\n3. CVA is driven by PD, exposure and LGD: CVA $= -\\text{LGD} \\sum$ EPE PD, so it depends on all three.\n4. Only A is correct.\n\n**REBUILT** — The source ’principles’ (risk‑neutrality either way, inseparability) are not supported by the GARP chapter and the two sources keyed different answers; rebuilt as a single question on what CVA is and how it is computed, using GARP’s statements."
+ },
+ {
+  "id": "CR-QB-0994",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "A trader needs a very quick estimate of the CVA on an interest rate swap and has no time for complex calculations. The exposure management group reports: expected exposure (EE) at maturity = 100 bps; potential future exposure (PFE) at maturity = 300 bps; average expected positive exposure (EPE) over the life of the swap = 250 bps; and maximum PFE = 600 bps (all as a percentage of notional). The counterparty’s credit spread is 200 bps per annum. Which is nearest to an approximation of the CVA as a running spread?",
+  "options": {
+   "A": "2.0 bps",
+   "B": "5.0 bps",
+   "C": "6.0 bps",
+   "D": "12.0 bps"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The running‑spread approximation is CVA$_{spread} \\approx-\\text{EPE}_{avg} \\times s$, assuming no wrong‑way risk and a roughly constant EPE profile.\n2. The correct exposure measure is the average EPE = 250 bps = 2.5%.\n3. $2.5\\% \\times200 \\text{bps} = 0.025 \\times200 = 5.0$ bps.\n4. The CVA is a charge, so it is ‑5.0 bps (a 5.0 bps running spread).\n\n**REBUILT** — Stem referred to an unseen ’swap’ context and listed EE at maturity (700 bps) above the maximum PFE (600 bps), an inconsistent/OCR‑damaged value; made the trade explicit, set EE at maturity to 100 bps and rebuilt the distractors as realistic wrong‑metric errors."
+ },
+ {
+  "id": "CR-QB-0995",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "Given a credit spread of 500 basis points and 1.6% EPE, the credit value adjustment is approximately equal to:",
+  "options": {
+   "A": "‑312.5 bps",
+   "B": "‑80 bps",
+   "C": "‑31.25 bps",
+   "D": "‑8 bps"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Approximation: CVA$_{spread} \\approx-\\text{EPE} \\times s$.\n2. EPE = 1.6% = 0.016; s = 500 bps.\n3. 0.016 × 500 = 8 bps, so CVA = ‑8 bps."
+ },
+ {
+  "id": "CR-QB-0996",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "Given a credit spread of 250 basis points and 1.2% EPE, the credit value adjustment is approximately equal to:",
+  "options": {
+   "A": "‑300 bps",
+   "B": "‑208 bps",
+   "C": "‑30 bps",
+   "D": "‑3 bps"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. CVA$_{spread} \\approx-\\text{EPE} \\times s$.\n2. 0.012 × 250 = 3 bps, so CVA = ‑3 bps.\n\n**REBUILT** — Original distractors (‑30, ‑8, ‑5) did not correspond to clear errors; replaced with options generated by realistic mistakes."
+ },
+ {
+  "id": "CR-QB-0997",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "In a swap transaction, the counterparty’s expected positive exposure (EPE) is 5% and its credit spread is 300 basis points. Calculate the CVA as a running spread.",
+  "options": {
+   "A": "‑1,500 bps",
+   "B": "‑167 bps",
+   "C": "‑60 bps",
+   "D": "‑15 bps"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. CVA$_{spread} \\approx-\\text{EPE} \\times s$.\n2. 0.05 × 300 = 15 bps, so CVA = ‑15 bps.\n\n**REBUILT** — Original distractors (‑800, ‑167, ‑200) were not tied to clear errors; replaced with options generated by realistic mistakes."
+ },
+ {
+  "id": "CR-QB-0998",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "Jon Boyle is a trader at a big German bank and needs a quick approximation of the CVA spread on a swap. The risk management group at the bank comes up with an expected positive exposure of 13%. The counterparty’s credit spread is around 225 basis points per year. Based on this information, the CVA, as a running spread in percentage terms, is closest to:",
+  "options": {
+   "A": "‑29.25%",
+   "B": "‑5.77%",
+   "C": "‑0.2925%",
+   "D": "‑0.577%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. CVA$_{spread} \\approx-\\text{EPE} \\times s$.\n2. $0.13 \\times225 \\text{bps} = 29.25$ bps.\n3. Convert: 29.25 bps = 0.2925%, so CVA = ‑0.2925%."
+ },
+ {
+  "id": "CR-QB-0999",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "Strongcore Financial has purchased a 3‑year European at‑the‑money call option from a risky counterparty. S = K = USD 25.0 million, volatility = 20.0%, risk‑free rate = 3.0% (continuous), T = 3.0 years, N(d1) = 0.66750, N(d2) = 0.53450. The counterparty has a constant hazard rate of 6.0% and may default at any time during the three years; recovery on default is 30.0% (LGD = 70.0%). Using the single‑period approximation CVA $\\approx\\text{LGD} \\times\\text{PD}(0, T) \\times V$, where V is the current value of the option (treated as the expected exposure) and PD(0,T) is the cumulative default probability, which is nearest to the CVA charge?",
+  "options": {
+   "A": "USD 188,000",
+   "B": "USD 221,000",
+   "C": "USD 516,000",
+   "D": "USD 737,000"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Option value: $V = 25$m(0.66750) − 25m $e^{-0.03\\times3}(0.53450) = 16.6875$m − 12.2124m ≈ 4.475m.\n2. Cumulative PD: PD$(0, 3) = 1 - e^{-0.06\\times3} = 1 - e^{-0.18} = 16.473\\%$.\n3. LGD = 1 − 30% = 70%.\n4. CVA ≈ 0.70 × 0.16473 × 4.475m $\\approx\\text{USD} 516{,}000$.\n\n**REBUILT** — Merged two identical questions; stem now states the single‑period approximation (CVA = LGD x PD(0,T) x current value) explicitly and distractors were rebuilt from realistic errors."
+ },
+ {
+  "id": "CR-QB-1000",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "CityBank holds a long position in a 5‑year OTC European put option on an asset with current price 70.00 and strike 50.00. Asset volatility is 30.0% and the continuously compounded risk‑free rate is 4.0%. N(d1) = 0.870 and N(d2) = 0.680. CityBank assumes the present‑valued expected exposure to the counterparty equals the option’s present value. The counterparty’s probability of default over the option’s life is 8.0% and LGD is 75.0%. Using the approximation CVA $\\approx\\text{LGD} \\times\\text{PD} \\times V$, which is nearest to the credit risk‑adjusted value of the long put (risk‑free value less CVA)?",
+  "options": {
+   "A": "3.68",
+   "B": "3.76",
+   "C": "3.92",
+   "D": "4.24"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Put value: $p = Ke^{-rT}N(-d_{2}) - S N(-d_{1})$ with $N(-d_{1}) = 0.130$ and $N(-d_{2}) = 0.320$.\n2. $50e^{-0.2}(0.320) - 70(0.130) = 50(0.81873)(0.320) - 9.10 = 13.10 - 9.10 \\approx4.00$.\n3. CVA ≈ 0.75 × 0.08 × 4.00 = 0.24.\n4. Risky value = 4.00 ‑ 0.24 = 3.76.\n\n**REBUILT** — Clarified that PD is over the option life and rebuilt distractors from realistic errors; corrected the garbled source explanation (put value verified at about 4.00)."
+ },
+ {
+  "id": "CR-QB-1001",
+  "lo": "CR-20 c",
+  "loText": "Calculate CVA and CVA as a spread with no wrong-way risk, netting, or collateralization.",
+  "outside": false,
+  "question": "The CRO of Global Financial wants to price the counterparty risk of a 3‑year derivative exposure to a major counterparty. There is no netting, collateral or wrong‑way risk. The counterparty’s default follows a constant hazard rate process, with the hazard rate implied by each year’s data as $\\lambda= s/(1 - R)$. Forecast data:\n\n| Year 1 | Year 2 | Year 3 |  |\n|---|---|---|---|\n| Expected exposure (USD millions) | 32.0 | 32.0 | 32.0 |\n| CDS spread (bps) | 100 | 200 | 300 |\n| Recovery rate (%) | 90% | 80% | 70% |\n\nThe risk‑free rate is 4.0% (continuous, flat term structure) and exposures are discounted at the end of each year. Which is nearest to the CVA for this position?",
+  "options": {
+   "A": "USD 2.30 million",
+   "B": "USD 1.60 million",
+   "C": "USD 1.54 million",
+   "D": "USD 1.46 million"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Hazard rate each year: 1%/10% = 2%/20% = 3%/30% = 10% (constant).\n2. Survival $e^{-0.1t}$: 0.9048, 0.8187, 0.7408, so marginal PDs are 9.516%, 8.611%, 7.791%.\n3. LGD = 10%, 20%, 30%; discount factors $e^{-0.04t}$ = 0.9608, 0.9231, 0.8869.\n4. CVA $= \\sum\\text{LGD}_{t} \\cdot DF_{t} \\cdot EE \\cdot PD_{t}$: Year 1 = 0.10(0.9608)(32)(0.09516) = 0.2926m; Year 2 = 0.20(0.9231)(32)(0.08611) = 0.5087m; Year 3 = 0.30(0.8869)(32)(0.07791) = 0.6633m.\n5. Total ≈ 0.2926 + 0.5087 + 0.6633 = 1.465 million.\n\n**REBUILT** — Original included a CSA/collateral (outside LO 38.c, and the collateral figure was OCR‑damaged); removed collateral so the question tests the plain CVA sum, stated the credit‑triangle hazard assumption, and rebuilt distractors."
+ }
+]

@@ -1,0 +1,182 @@
+TOPIC D19: LDA for Operational Risk (Tier D)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+D19 LDA for Operational Risk
+Readings: ORR-4 f · Risk Measurement and Assessment (GARP ORR Ch.4, 4.4 Operational Risk Modeling and Capi-
+tal: Loss Distribution Approach; Frequency Modeling; Severity Modeling; Limitations and Constraints; Using Internal and
+External Loss Data; Capital Modeling for Operational Risk); ORR-4 a · Operational Loss Data; ORR-6 c · Risk Reporting
+(Asymmetry of Operational Risk Event Data)
+ MAP TIER D · #74 · 2/16 SOURCES  VARDEEZ
+  Specifics reported
+  Map #74: “Reported: ‘LDA approach’; and ‘calculate z score (LDA)’, which suggests a discriminant-analysis framing
+  rather than the loss-distribution approach: these are two different things sharing an acronym and the recall is ambigu-
+  ous. Cover both: loss frequency × severity convolution for operational capital, and linear discriminant analysis for
+  scoring.”
+  Shapes covered here:
+  S1 loss frequency × severity convolution into an aggregated annual loss distribution (Q1)
+  S2 operational risk capital as the 99.9th percentile of the aggregated distribution, with aggregation across units of
+  measure (Q1; the discriminant-analysis reading of ‘LDA’, with the Altman Z-score, is tested in A10.2)
+  Revision notes
+  The specific: frequency × severity, then the 99.9th percentile (S1, S2)
+  • Key principle. The LDA is an old actuarial technique that decomposes loss data into frequency (how often
+  events occur) and severity (how much they cost). Decomposition doubles the observational data points,
+  valuable because early operational risk data were scarce. Frachot, Georges and Roncalli (Crédit Lyonnais,
+  2001) applied it to operational risk. Statistical modelling grew more in continental Europe; scenario-based
+  modelling and stress testing more in the United States.
+  • Convolution (S1). Frequency and severity distributions are estimated independently, then convoluted into
+  an aggregated loss distribution. The most common method is Monte Carlo (a million or more random
+  draws of frequency and severity); Fast Fourier transform and Panjer recursion are equation-based alternatives
+  needing more coding and mathematics but less computer time.
+  • Capital (S2). Economic capital is determined by extrapolating the 99.9th percentile of the estimated loss
+  distribution at a one-year horizon; the 99.9th percentile of the aggregated distribution is the stand-alone
+  operational risk capital when only the LDA is used. Under the AMA, banks held capital for all operational
+  losses up to 99.9% at one year (“VaR at 99.9% = Regulatory Capital”).
+  • Frequency: Poisson. Discrete count of events per period (typically a year). One parameter λ, equal to both
+  mean and variance (the intensity rate). Observations i.i.d. Additive: Pois(λX ) + Pois(λY ) = Pois(λX +λY ).
+  In a 2009 BIS study, nine of ten AMA firms used Poisson; the rest used the negative binomial.
+  • Severity: lognormal and heavier. Continuous, asymmetric and heavy-tailed: many small losses and a few
+  very large ones. Lognormal: ln X is normal with location µ and scale σ; positive values only; mode eµ−σ .
+  Heavier tails increasingly used: Weibull and the generalized Pareto distribution (GPD).
+  Limitations and units of measure (ORR-4 f)
+  • Two strong assumptions. (1) Frequency and severity are independent, a strong condition given the contrast
+  between the frequency of small and large events. (2) Within each risk class (unit of measure, UoM) losses
+  are i.i.d., with no implicit correlation and one data-generating mechanism; tested by clustering homogeneous
+  losses and checking for no autocorrelation.
+  • UoM trade-off. Good UoMs are homogeneous sets driven by the same factors (external fraud by business
+  line; damage to physical assets for all lines; internal fraud by business entity; processing errors by business
+  line). Finer segmentation: more homogeneous data, but less data, more uncertainty and harder aggrega-
+  tion. UoMs are aggregated with explicit correlations or copulas (which can capture tail dependence); the
+  dependency structure strongly drives capital and attracts validators and regulators.
+  • The tail. LDA alone does not capture the extreme skewness of operational losses: the tail is completed with
+  extreme value theory (block maxima or peaks over threshold), scenario data, or both. EVT is valid only if
+  one mechanism generates all losses, which is unlikely for operational data (see A17).
+FRM Part II · Volume 2: Tiers B to D  D19  LDA for Operational Risk
+  Data inputs and the regulatory context (ORR-4 a, f)
+  • Internal and external data. Internal loss data are the backbone of LDA and best for the body (frequent,
+  moderate losses); rules are needed for near misses, accidental gains and rapidly recovered losses (conserva-
+  tive firms include them in frequency and severity). External data supplement the tail: public databases (full
+  context, scarcer) and consortia such as ORX (anonymous, abundant). Mixing requires scaling (size, infla-
+  tion), a cut-off mix (severity level where external data enter) and filtering rules that avoid cherry-picking.
+  • AMA and its four inputs. Internal loss data (ILD), external loss data (ELD), scenario data (SD), business
+  environment and internal control factors (BEICF): the first two are past observations, the last two prospective.
+  AMA approval took about three years and around 30 criteria. A Tier-1 European bank calibrated body and
+  tail with two distributions and traced every loss and scenario to the capital number.
+  • After AMA. With the new Standardized Approach (effective 1 January 2023) there is no formal requirement
+  to model operational risk capital; modelling effort moves to Pillar 2 (ICAAP), stress testing and operational
+  resilience. Smaller firms often hold capital at least equal to the largest scenario and to clusters of two to four
+  scenarios that could occur together; Tier-1 firms aggregate scenarios with variance-covariance matrices or
+  copulas. Economic capital and ICAAP largely share a purpose.
+  • Why the tail dominates (ORR-6 c). ORX 2014 to 2019: losses above EUR 10 million were 0.4% of
+  occurrences but 66.6% of severity; losses of EUR 20,000 to 100,000 were 57.9% of occurrences but 4.4%
+  of severity. “No averages in operational risk.”
+  • The other LDA. Linear discriminant analysis (Altman’s Z-score) classifies borrowers into groups from
+  weighted ratios; it is a credit scoring tool, unrelated to capital. See also A10.
+  Formulas
+  λk e−λ
+  Poisson frequency: P (N = k) =  , E[N ] = Var[N ] = λ, Pois(λX ) + Pois(λY ) = Pois(λX + λY )
+  k!    
+  1  (ln x − µ)2  2
+  Lognormal severity: fX (x; µ, σ) =  √ exp −  2
+  , mode = eµ−σ
+  2σ
+  PNxσ 2π  P
+  Aggregated annual loss: S =  i=1 X  i , frequency  and  severity independent; P (S ≤ s) =  n≥0 P (N =
+  n) P (X1 + · · · + Xn ≤ s)
+  Expected annual loss (compound Poisson, outside-source): E[S] = λ E[X]
+  Capital: OpRisk capital = q99.9% (S) at a one-year horizon (stand-alone, LDA only)
+  Exam traps
+  • Acronym swap: “LDA” for scoring is linear discriminant analysis (Z-score, A10); “LDA” for capital is the loss
+  distribution approach.
+  • Dropped term: convolving only zero- and one-event years cuts the tail off at the largest single loss; years with
+  two or more events must be counted when the frequency is high enough to reach the 99.9% tail.
+  • Sibling swap with credit capital: the reading equates operational risk capital with the 99.9th percentile of the
+  aggregated loss distribution; do not subtract expected loss as in the IRB unexpected-loss formula, and do not
+  use 99%.
+  • Aggregation error: adding stand-alone UoM percentiles assumes perfect dependence; independent Poisson
+  UoMs with the same severity merge exactly into one Poisson UoM, and dependence in general is modelled with
+  copulas.
+  • Scope/condition: Poisson has one parameter (mean = variance); frequency and severity independence and i.i.d.
+  within a UoM are assumptions, not facts; the 99.9% one-year standard was the AMA rule, and under the 2023
+  SA modelling is no longer required for Pillar 1.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  loss frequency × severity convolution into an aggregated annual loss distribution  D19.1
+S2  operational risk capital as the 99.9th percentile of the aggregated distribution, with aggregation across  D19.1 units of measure
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  ORR-4  Risk Measurement and Assessment
+  P1 ×2  P3 ×3  P4 ×2  VARDEEZ: UNTIERED  WORKBOOK BEST: TIER A
+  ! Vardeez: use crash course notes for ORR-1 to ORR-9; no Schweser needed.
+  RECALL WORKBOOK SECTIONS
+  A17 Extreme Value Theory: GEV vs POT
+  Tier A • Aug ✓• Map #25 (5/16) • TG ✓• 2 Qs • Vol 1 p.127 • LOs f
+  D2 Outsourcing and Third-Party Risk
+  Tier D • Map #51 (3/16) • TG ✓• 2 Qs • Vol 2 p.84 • LOs g
+  D19 LDA for Operational Risk
+  Tier D • Map #74 (2/16) • 1 Qs • Vol 2 p.149 • LOs a, f
+  D22 Operational Risk Identification, Mitigation and Reporting
+  Tier D • Map #75 (2/16) • notes only • Vol 2 p.158 • LOs a to g
+  P3  a  Explain best practices for the collection of operational loss data and reporting of operational loss incidents,
+  including regulatory expectations.
+  WORKBOOK D22
+  D22·S4 loss-data collection: regulatory criteria, fields, dates, boundary events, completeness
+  P3  b  Explain operational risk-assessment processes and tools, including risk control self-assessments (RCSAs),
+  likelihood assessment scales, and heatmaps.
+  WORKBOOK D22
+  D22·S2 risk and control self-assessment (RCSA): inherent and residual risk, scales, heatmap, ownership of notes outcomes
+  P3  c  Describe the differences among key risk indicators (KRIs), key performance indicators (KPIs), and key control
+  indicators (KCIs).
+  WORKBOOK D22
+  D22·S3 key risk indicators, against KPIs and KCIs
+  P4  d  Describe the use of factor-based models that quantitatively assess operational risk, and explain the application
+  of the Swiss cheese model and the bowtie tool.
+  P4  e  Estimate operational risk exposures based on the fault tree model given probability assumptions.
+  P1  f  Describe approaches used to determine the level of operational risk capital for economic capital pur-
+  poses, including their application and limitations.
+  WORKBOOK A10, A17, D19
+  A10·S5 the two LDAs: linear discriminant analysis for scoring versus the loss distribution approach for operational capital
+  (Q2; the loss distribution approach itself is in D19)
+  A17·S6 operational-risk framing of EVT and block maxima
+  D19·S1 loss frequency × severity convolution into an aggregated annual loss distribution
+  D19·S2 operational risk capital as the 99.9th percentile of the aggregated distribution, with aggregation across units of
+  measure
+  P1  g  Describe and explain the steps to ensure a strong level of operational resilience, and to test the opera-
+  tional resilience of important business services.
+  WORKBOOK A23
+  A23·S2 operational resiliency as a regulatory concept: UK first, then BCBS, ECB, MAS
+
+  ORR-6  Risk Reporting
+  P4 ×4  VARDEEZ: UNTIERED  WORKBOOK BEST: TIER D
+  ! Vardeez: use crash course notes for ORR-1 to ORR-9; no Schweser needed.
+  RECALL WORKBOOK SECTIONS
+  D19 LDA for Operational Risk
+  Tier D • Map #74 (2/16) • 1 Qs • Vol 2 p.149 • LOs c
+  D22 Operational Risk Identification, Mitigation and Reporting
+  Tier D • Map #75 (2/16) • notes only • Vol 2 p.158 • LOs a to d
+  P4  a  Identify roles and responsibilities of different organizational committees, and explain how risk reports should
+  be developed for each committee or business function.
+  P4  b  Describe components of operational risk reports and explain best practices in operational risk reporting.
+  P4  c  Describe challenges to reporting operational risks, including characteristics of operational loss data, and ex-
+  plain ways to overcome these challenges.
+  P4  d  Explain best practices for reporting risk exposures to regulators and external stakeholders.
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+74  LDA Approach & Operational Risk Measurement
+  OPERATIONAL RISK  2 OF 16 SOURCES  IMPORTANT
+  R45 · Risk Measurement and Asessment Learning Objecives
+  W H AT I S T E S T E D
+  Named by the handwritten sheet alongside the EVT / block-maxima comparison.
+  SPECIFICS REPORTED
+  Reported: 'LDA approach'; and 'calculate z score (LDA)', which suggests a discriminant-
+  analysis framing rather than the loss-distribution approach — these are two different
+  things sharing an acronym and the recall is ambiguous. Cover both: loss frequency
+  × severity convolution for operational capital, and linear discriminant analysis for scoring.
+  Sources: Vardeez must-do topics (handwritten), Important Topics — 33-item exam recall
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 45.a Explain best practices for the collection of operational loss data and reporting of
+  operational loss incidents, including regulatory expectations.
+  LO 45.b Explain operational risk-assessment processes and tools, including risk control self-
+  assessments (RCSAs), likelihood assessment scales, and heatmaps.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #74 LDA Approach & Operational Risk Measurement: rank 46, Quick win

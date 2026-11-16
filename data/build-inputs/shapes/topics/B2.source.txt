@@ -1,0 +1,287 @@
+TOPIC B2: Expected Shortfall and Coherence (Tier B)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+B2 Expected Shortfall and Coherence
+Readings: MR-1 c, d, e · Estimating Market Risk Measures: An Introduction and Overview (Dowd, Ch.3); MR-2 a, c, d
+· Non-Parametric Approaches (Dowd, Ch.4); MR-18 a, b · Fundamental Review of the Trading Book (Hull, RMFI Ch.18);
+ORR-19 a · Range of Practices and Issues in Economic Capital Frameworks (BCBS 2009); CR-14 j · Derivatives (Gregory,
+Ch.2)
+ MAP TIER B · #12 · 6/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #12: “One recall captures the exact trap: ‘ES numerical given the sample and resampling values: I took the
+  average of all 5 samples, it could be average of 4 losses or 5.’ That off-by-one on tail membership is the intended
+  distractor. A second reported form is ES as the average of tail VaRs read off a confidence-level table, and a third is
+  ES within filtered historical simulation. Also the coherence argument: ES is subadditive, VaR is not.”
+  Shapes covered here:
+  S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6 (Q1)
+  S2 ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under FRTB (Q2)
+  S3 ES within filtered historical simulation (Q3)
+  S4 coherence: ES is subadditive, VaR is not (Q3).
+  Revision notes
+  • Expected shortfall (MR-1 c): “the probability-weighted average of tail losses”. For standard normal losses
+  the 95% VaR is 1.645 and the 95% ES is 2.063. ES is “the easiest” coherent risk measure to estimate.
+  • Which observations enter the tail (MR-1 a, c; S1): with n observations and confidence level α, the tail
+  holds (1 − α)n losses and the VaR is the (1 − α)n + 1 th highest loss, “the highest loss observation outside
+  the tail”. With 1,000 observations the 95% VaR is the 51st highest loss (1.704) and the ES is “the average of
+  the 50 highest losses” (2.196). With 100 observations the 95% VaR is the 6th largest loss and the 96% VaR
+  the 5th largest, so the 95% ES averages the 5 largest losses.
+  • Dowd’s footnote on the boundary: taking the VaR as the 50th, the 51st or a mix of the two is “just an issue
+  of approximation”; the convention adopted throughout is the highest loss outside the tail. Gregory (CR-14)
+  words ES as the average loss “equal to or above” VaR; for the MR-1 numerical, follow Dowd and leave the
+  VaR observation out.
+  • Average-of-tail-VaRs method (MR-1 c, d; S2): slice the tail into n equal-probability slices, estimate the
+  n − 1 tail VaRs at confidence levels above α, and average them. With n = 10 at 95%: nine VaRs from 95.5%
+  to 99.5%, average 2.0250 against a true 2.063. The estimate rises with n and converges (2.0513 at n = 50,
+  2.0626 at n = 10,000): coarse slicing understates ES.
+  R1
+  • Coherent risk measures (MR-1 d): Mϕ = 0 ϕ(p)qp dp, a weighted average of loss quantiles. ES sets
+  ϕ(p) = 1/(1 − α) for p ≥ α and 0 otherwise; spectral measures (e.g. exponential, γ = 0.05) put rising
+  weights on higher quantiles and need far more slices to converge (judged by the halving error). An existing
+  VaR engine needs only “the last few lines of code” changed to produce them.
+  • Standard errors (MR-1 e): quantile standard errors rise as the quantile moves into the tail and fall with
+  n. Yamai and Yoshiba found ES estimators have much bigger standard errors than VaR for heavy-tailed
+  distributions (“prone to the effects of large but infrequent losses”); Acerbi found the two roughly comparable
+  in empirically realistic ranges.
+  • Bootstrapped HS (MR-2 a; S1): resample with replacement; each resample gives a VaR and an ES (“the
+  average of the losses in each resample exceeding the resample VaR”); the best estimate is the mean of the
+  resample estimates (1.669 and 2.114 against basic HS 1.704 and 2.196). The bootstrapped ES histogram is
+  better behaved than the VaR histogram because ES is an average of tail VaRs; 90% bootstrap interval for ES
+  [1.986, 2.271].
+  • Age-weighted HS (BRW, MR-2 c): w(i) = λi−1 (1 − λ)/(1 − λn ); traditional HS is the special case λ → 1;
+  more responsive to recent large losses, reduces ghost effects, but shrinks the effective sample size and is ad
+  hoc.
+FRM Part II · Volume 2: Tiers B to D  B2  Expected Shortfall and Coherence
+  ∗
+  • Volatility-weighted HS (Hull and White, MR-2 c): rt,i  = (σT,i /σt,i ) rt,i ; returns are scaled up when current
+  volatility exceeds the volatility at the time; VaR and ES can exceed the largest historical loss. Correlation-
+  weighted HS adjusts returns through Choleski matrices of the historical and current correlation matrices.
+  • Filtered historical simulation (MR-2 c; S3): a semi-parametric bootstrap. (1) Fit an asymmetric GARCH
+  (AGARCH, captures the leverage effect); (2) divide realised returns by the model’s volatility forecasts to
+  get standardised, iid returns; (3) bootstrap these and multiply each by the AGARCH forecast of tomorrow’s
+  volatility; (4) read VaR off the simulated losses. It can exceed the maximum historical loss, keeps the corre-
+  lation structure for multi-asset portfolios, and “can also be extended easily to allow for the estimation of ES”.
+  Pritsker’s concern that FHS VaR may not pay enough attention to extremes has the partial response: use ES
+  instead of VaR.
+  • ES as the more informative measure (MR-2 c): after a crash, an equal-weight HS VaR may not move except
+  at very high confidence, but “the increase in risk would show up in ES estimates just after the first shock”.
+  • Non-parametric pros and cons (MR-2 d): no distributional assumption (fat tails, skewness accommodated),
+  easy to implement and explain, no covariance matrices; but results depend completely on the historical data
+  set, are constrained by the largest loss, slow to reflect shifts, and subject to ghost effects. Rule of thumb: at
+  least 500 daily observations.
+  • Coherence and subadditivity (ORR-19 a, CR-14 j; S4): the four conditions are monotonicity, positive
+  homogeneity, translation invariance and subadditivity (“the risk measure of two portfolios, if combined, is
+  always smaller or equal to the sum of the risk measures of the two individual portfolios”). VaR is subad-
+  ditive for elliptical distributions such as the normal, but not for very skewed losses, asymmetric copulas, or
+  independent but very heavy-tailed risk factors; the gap matters more for credit and operational risk. ES is
+  coherent, so capital allocation and limits for sub-portfolios stay consistent with the portfolio measure.
+  • FRTB (MR-18 a, b): stressed ES at 97.5% replaces 99% VaR and stressed VaR. For normal losses, 99%
+  VaR = µ + 2.326σ and 97.5% ES = µ + 2.338σ; with a heavier tail the 97.5% ES “can be considerably
+  greater” than the 99% VaR. Liquidity horizons 10, 20, 40, 60, 120 days; overlapping 10-day changes; cascade
+  formula
+  P across categories; partial (desk) ES sum always exceeds the whole-portfolio ES; WES = 0.5 EST +
+  0.5 ESP,j . See also C2 for FRTB backtesting.
+  Formulas
+  
+  HS from n losses at confidence α. Tail size (1 − α)n; VaR = the (1 − α)n + 1 th highest loss; ES =
+  1  P(1−α)n
+  L(i) (the losses beyond the VaR).
+  (1 − α)n i=1
+  P
+  Bootstrap point estimate. ES c B = 1 B ES(b)
+  B b=1
+  1 Pn−1
+  Average tail VaR (n slices). ESα ≈  VaRα+j(1−α)/n (the VaR at α itself is excluded)
+  n − 1 j=1
+  R1  1
+  Coherent risk measure. Mϕ = 0 ϕ(p) qp dp; ES: ϕ(p) =  for p ≥ α, else 0.
+  1−α
+  λ (1 − λ)
+  i−1
+  ∗  σT,i
+  Weighted HS. Age: w(i) =  . Volatility: rt,i  =  rt,i . FHS: zt = rt /σ̂t , simulated return =
+  1 − λn  σt,i
+  z (b) × σ̂T +1 .
+  Subadditivity. ρ(X + Y ) ≤ ρ(X) + ρ(Y )
+  FRTB.
+  r  99% VaR = µ + 2.326σ; 97.5% ES = µ + 2.338σ (normal).  Cascade:  ES =
+  P    q  2  P
+  LHj −LHj−1
+  ES21 + j≥2 ESj  10  ; WES = 0.5 EST + 0.5 j ESP,j .
+  Book checks. 1,000 obs: 95% VaR 1.704, ES 2.196; bootstrap 1.669, 2.114. Ten slices: ES 2.0250 vs true 2.063.
+  Exam traps
+  • Off-by-one on tail membership (S1): at 95% with 100 losses the tail is 5 losses. Averaging 4 gives the 96%
+  ES; averaging 6 drags the VaR observation into the tail.
+  • Including the VaR row (S2): in a tail-VaR table the ES at α averages only the VaRs at confidence levels above
+  α; and divide by the number of tail VaRs (n − 1), not by the number of slices n.
+  • Bootstrap intermediate result: the best bootstrap ES is the mean across resamples; one resample’s ES is only
+  an intermediate number.
+FRM Part II · Volume 2: Tiers B to D  B2  Expected Shortfall and Coherence
+  • Normal shortcut misapplied (sibling swap): “97.5% ES ≈ 99% VaR” holds for the normal only; for a heavy-
+  tailed book the ES is larger.
+  • Scope error on subadditivity: VaR is subadditive for elliptical distributions; claiming it for skewed or heavy-
+  tailed losses, or claiming ES fails subadditivity, are the two corruptions.
+  • FHS sibling swap: FHS (like Hull and White) can produce VaR and ES beyond the largest historical loss; only
+  basic HS is capped by it. FHS scales by tomorrow’s forecast volatility, not the volatility of the day drawn.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6  B2.1
+S2  ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under  B2.2 FRTB
+S3  ES within filtered historical simulation  B2.3
+S4  coherence: ES is subadditive, VaR is not (Q3)  B2.3
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-1  Estimating Market Risk Measures: An Introduction and Overview
+  P1 ×1  P2 ×3  P4 ×2  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: a) calc of Normal/Lognormal VaR b) calc of ES c) Interpretation of standard Errors d) Interpretation of QQ plots
+  RECALL WORKBOOK SECTIONS
+  A13 Lognormal VaR
+  Tier A • Aug ✓• Map #14 (6/16) • TG ✓• 4 Qs • Vol 1 p.101 • LOs a to f
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs e
+  P4  a  Estimate VaR using a historical simulation approach.
+  P1  b  Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.
+  WORKBOOK A13 + VARDEEZ FOCUS
+  ▶ Vardeez: Calculation of normal and lognormal VaR
+  A13·S1 choose between two volatilities, 16% rising to 18% six weeks ago: which regime governs the VaR horizon
+  A13·S2 direct lognormal VaR from the formula, the plain form seen in August
+  A13·S3 lognormal form 1 − eµ−zσ kept distinct from the normal arithmetic form −µ + σz
+  P2  c  Estimate the expected shortfall given profit and loss (P&L) or return data.
+  WORKBOOK B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Calculation of ES
+  B2·S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6
+  B2·S2 ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under FRTB
+  P4  d  Estimate risk measures by estimating quantiles.
+  P2  e  Evaluate estimators of risk measures by estimating their standard errors.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Interpretation of standard errors
+  P2  f  Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Interpretation of QQ plots
+
+  MR-2  Non-Parametric Approaches
+  P1 ×3  P4 ×1  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: a) know abt Bootstrapping method HS method b) Volatility weighted method c) Filtered HS method
+  RECALL WORKBOOK SECTIONS
+  A13 Lognormal VaR
+  Tier A • Aug ✓• Map #14 (6/16) • TG ✓• 4 Qs • Vol 1 p.101 • LOs c
+  A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+  Tier A • Aug ✓• Map #28 (4/16) • TG ✓• 5 Qs • Vol 1 p.140 • LOs a to d
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a, c, d
+  P1  a  Apply the bootstrap historical simulation approach to estimate coherent risk measures.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Bootstrapping HS method
+  A19·S3 bootstrap HS property question
+  B2·S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6
+  B2·S4 coherence: ES is subadditive, VaR is not (Q3)
+  P4  b  Describe historical simulation using non-parametric density estimation.
+  P1  c  Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the fil-
+  tered historical simulation approaches.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Volatility-weighted and filtered HS methods
+  A19·S1 age-weighted HS (BRW): single weights, cumulative weights and the weighted VaR read-off
+  A19·S2 volatility-weighted HS (HW), with the polarity trap: returns scaled up when current volatility is above the historical
+  level
+  A19·S4 differences among the non-parametric approaches
+  A19·S5 expected shortfall in filtered historical simulation
+  B2·S3 ES within filtered historical simulation
+  P1  d  Identify advantages and disadvantages of non-parametric estimation methods.
+  WORKBOOK A19
+  A19·S4 differences among the non-parametric approaches
+
+  MR-18  Fundamental Review of the Trading Book
+  P1 ×3  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: Again Full chapter is IMP (Refer GARP for Curve Risk)
+  ! Refer to the GARP book for curvature risk.
+  RECALL WORKBOOK SECTIONS
+  A4 Fundamental Review of the Trading Book (FRTB)
+  Tier A • Aug ✓• Map #5 (8/16) • TG ✓• 4 Qs • Vol 1 p.36 • LOs a to c
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a, b
+  C2 Backtesting VaR: Exceedance vs PIT
+  Tier C • Map #21 (4/16) • TG ✓• 3 Qs • Vol 2 p.41 • LOs c
+  P1  a  Describe the changes to the Basel framework for calculating market risk capital under the Fundamental
+  Review of the Trading Book (FRTB) and the motivations for these changes.
+  WORKBOOK A4, B2 + VARDEEZ FOCUS
+  A4·S1 stressed ES at 97.5% replaces 10-day VaR at 99%, and why
+  A4·S5 FRTB vs Basel I (1996 Amendment), Basel II, Basel 2.5: overall changes
+  A4·S6 curvature risk charge, from the GARP text (Q4)
+  B2·S2 ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under FRTB
+  P1  b  Compare the various liquidity horizons proposed by the FRTB for different asset classes and explain
+  how a bank can calculate its expected shortfall using the various horizons.
+  WORKBOOK A4 + VARDEEZ FOCUS
+  A4·S2 liquidity horizons by asset class and the cascade ES
+  P1  c  Explain the FRTB revisions to Basel regulations in the following areas: - Classification of positions in
+  the trading book compared to the banking book. - Backtesting, profit and loss attribution, credit risk,
+  and securitizations.
+  WORKBOOK A4 + VARDEEZ FOCUS
+  A4·S3 standardized vs internal models approach, with the desk-level backtesting and P&L attribution tests that decide
+  which applies
+  A4·S4 trading book / banking book boundary
+Credit Risk Measurement and Management  20% • 16 Qs
+
+  ORR-19  Range of Practices and Issues in Economic Capital Frameworks
+  P4 ×4  VARDEEZ: NOT SO IMP  WORKBOOK BEST: TIER B
+  RECALL WORKBOOK SECTIONS
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a
+  P4  a  Within the economic capital implementation framework, describe the challenges that appear in: - Defining
+  and calculating risk measures - Risk aggregation - Validation of models - Dependency modeling in credit risk
+  - Evaluating counterparty credit risk - Assessing interest rate risk in the banking book
+  P4  b  Describe the recommendations by the Bank for International Settlements (BIS) that supervisors should con-
+  sider in order to make effective use of internal risk measures, such as economic capital, that are not designed
+  for regulatory purposes.
+  P4  c  Explain benefits and impacts of using an economic capital framework within the following areas: - Credit
+  portfolio management - Risk-based pricing - Customer profitability analysis - Management incentives
+  P4  d  Describe best practices and assess key concerns for the governance of an economic capital framework.
+
+  CR-14  Derivatives
+  P3 ×1  P4 ×9  VARDEEZ: NOT SO IMP  WORKBOOK BEST: TIER B
+  Vardeez: LO 32.i - Counterparty Risk Intermediaries - These can be imp from exam point of view.
+  RECALL WORKBOOK SECTIONS
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs j
+  P4  a  Define derivatives and explain how derivative transactions create counterparty credit risk.
+  P4  b  Compare and contrast exchange-traded derivatives and over-the-counter (OTC) derivatives, and discuss the
+  features of their markets.
+  P4  c  Describe the process of clearing a derivative transaction.
+  P4  d  Identify the participants and describe the use of collateralization in the derivatives market.
+  P4  e  Define the International Swaps and Derivatives Association (ISDA) Master Agreement, the risk-mitigating
+  features it provides, and the default events it covers.
+  P4  f  Describe the features and use of credit derivatives and discuss potential risks they may create.
+  P4  g  Describe central clearing of OTC derivatives and discuss the roles, mandate, advantages, and disadvantages
+  of the central counterparty (CCP).
+  P4  h  Explain the margin requirements for both centrally-cleared and non-centrally-cleared derivatives.
+  P3  i  Define special purpose vehicles (SPVs), derivatives product companies (DPCs), monolines, and credit deriva-
+  tives product companies (CDPCs) and describe the limitations of using them as risk mitigating methods.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Counterparty risk intermediaries
+  P4  j  Describe the approaches used and the challenges faced in modeling derivatives risk.
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+12  Expected Shortfall
+  MARKET RISK  6 OF 16 SOURCES  VERY IMPORTANT
+  R1, R2, R18 · Estimating Market Risk Measures An Introduction and Overview; Non-Parametric Approaches; Fundamental Review of the
+  Trading Book
+  W H AT I S T E S T E D
+  Consistently reported as one of the easier numericals — 'ES calculation: simple one', 'ES
+  calculation easy'. The difficulty is not the arithmetic but knowing which observations
+  enter the tail average.
+  SPECIFICS REPORTED
+  One recall captures the exact trap: 'ES numerical given the sample and resampling values
+  — I took the average of all 5 samples, it could be average of 4 losses or 5.' That off-by-one
+  on tail membership is the intended distractor. A second reported form is ES as the
+  average of tail VaRs read off a confidence-level table, and a third is ES within filtered
+  historical simulation. Also the coherence argument: ES is subadditive, VaR is not.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Important Topics — 33-item exam recall, Telegram consolidated list (08/08/25), Telegram
+  recall — Aug 2025 (~25 numericals), Telegram recall — Sajan Singh (list 1)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 1.c Estimate the expected shortfall given profit and loss (P&L) or return data.
+  LO  2.c Compare and contrast the age-weighted, the volatilityweighted, the correlation-
+  weighted, and the filtered historical simulation approaches.
+  LO 18.b Compare the various liquidity horizons proposed by the FRTB for different asset
+  classes and explain how a bank can calculate its expected shortfall using the various horizons.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #12 Expected Shortfall: rank 30, Strike first

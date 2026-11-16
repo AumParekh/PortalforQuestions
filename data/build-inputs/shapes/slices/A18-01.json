@@ -1,0 +1,527 @@
+[
+ {
+  "id": "IR-T1-32",
+  "lo": "IM-3 f",
+  "loText": "Explain how to use style analysis to handle time-varying factor exposures.",
+  "outside": true,
+  "question": "In contrast to a factor regression that assumes constant factor weights, which of the following is the primary advantage of using style analysis to determine the factor benchmark?",
+  "options": {
+   "A": "The factor benchmark is built from actual tradeable funds.",
+   "B": "The factor benchmark can include a momentum factor.",
+   "C": "The factor benchmark naturally overcomes the beta anomaly.",
+   "D": "Statistical inference becomes easier once the factor loadings are allowed to vary over time."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** The two defects style analysis repairs, and the fact that tradeability rather than time variation is the primary one.\n\n| Shortcoming of the constant-weight regression | How style analysis fixes it |\n|---|---|\n| The Fama-French SMB and HML portfolios are *not tradeable*. An investor cannot buy HML, so an alpha measured against it is not an implementable alternative. | The benchmark is built from real, low-cost index funds and ETFs, for example SPY for the market, SPYV for value and SPYG for growth. The fitted style weights describe a portfolio the investor could actually have held. |\n| Factor loadings are held *constant* over the whole sample even though a manager's exposures drift. | The regression is re-estimated each period using information up to time $t$, so loadings update. Every new month requires a new regression. |\n\nBoth matter, but tradeability is primary because it is what makes the alpha meaningful. A benchmark must be well defined, tradeable, replicable and risk-adjusted; if alphas are not measured against a tradeable benchmark, the implied strategy cannot be implemented and the alpha is an accounting artefact rather than a description of forgone opportunity."
+ },
+ {
+  "id": "IR-T1-33",
+  "lo": "IM-3 f",
+  "loText": "Explain how to use style analysis to handle time-varying factor exposures.",
+  "outside": true,
+  "question": "An analyst is implementing Sharpe's style analysis to describe a long-only equity mutual fund's exposures over time. Which of the following most appropriately describes how the analysis is set up and what its output means?",
+  "options": {
+   "A": "Fund returns are regressed on tradeable style index returns, with coefficients constrained to be non-negative and to sum to 100%, and the resulting weights describe a passive portfolio that would have matched the fund's risk exposures.",
+   "B": "Fund returns are regressed on tradeable style index returns with no constraints, and the resulting weights describe the fund's active bets relative to its benchmark.",
+   "C": "Style index returns are regressed on fund returns, with coefficients constrained to sum to 100%, and the intercept measures the fund's alpha.",
+   "D": "Fund returns are regressed on a single style index chosen to maximise the adjusted R-squared, and the slope coefficient measures the fund's style exposure."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** The estimation set-up, its two constraints, and the interpretation of the fitted weights as a replicating passive allocation.\n\n$$R_{fund,t+1} = \\alpha + \\Sigma_k\\, w_{k,t}\\, R_{k,t+1} + \\varepsilon_{t+1} \\quad \\text{subject to} \\quad w_{k,t} \\ge 0 \\ \\text{and} \\ \\Sigma_k w_{k,t} = 1$$\n\n| Design choice | Why it is imposed |\n|---|---|\n| Regressors are *tradeable* style indices | So the fitted portfolio is one an investor could have bought. Ang's illustration uses SPY, SPYV and SPYG. |\n| Coefficients *non-negative* | Long-only funds are barred from short positions, so a negative implied allocation would describe a portfolio the fund could not hold. |\n| Coefficients *sum to one* | So the weights represent a complete asset allocation rather than an arbitrary set of sensitivities. |\n| Re-estimated *each period* | Uses information up to time $t$ only, so loadings update as the manager's style drifts. This is what makes the exposures time varying. |\n\nThe fitted weights are the style weights and they define a passive strategy that would have matched the fund's risk exposures. Performance is then the difference in return between the fund and that matching portfolio."
+ },
+ {
+  "id": "IR-T1-34",
+  "lo": "IM-7 b",
+  "loText": "Describe risk-adjusted performance measures, such as Sharpe’s measure, Treynor’s measure, Jensen’s measure (Jensen’s alpha), and the information ratio, and identify the circumstances under which the use of each measure is most relevant.",
+  "outside": false,
+  "question": "A consultant advises three clients, each needing a single risk-adjusted performance measure for a different purpose.\n\n**Client 1** holds one balanced fund representing essentially the whole of her investable wealth.\n\n**Client 2** is a large pension plan allocating across fifteen specialist managers, each running one sleeve of the overall risky portfolio.\n\n**Client 3** runs a passive index core and is deciding how much of a single active satellite portfolio to mix into it.\n\nWhich set of measures is most appropriate for the three clients respectively?",
+  "options": {
+   "A": "Sharpe ratio; Treynor measure; information ratio",
+   "B": "Treynor measure; Sharpe ratio; Jensen's alpha",
+   "C": "Information ratio; Sharpe ratio; Treynor measure",
+   "D": "Sharpe ratio; information ratio; Treynor measure"
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** Matching the measure to the role the portfolio plays. The choice turns entirely on whether the portfolio's idiosyncratic risk will be diversified away by something else.\n\n| Measure | Formula | Risk in the denominator | Use when |\n|---|---|---|---|\n| Sharpe ratio | $(\\bar{r}_p - r_f)/\\sigma_p$ | Total risk | The portfolio *is* the entire investment fund. Nothing else will diversify its specific risk, so total volatility is what the investor bears. |\n| Treynor measure | $(\\bar{r}_p - r_f)/\\beta_p$ | Systematic risk only | The portfolio is *one sub-portfolio of many*. Idiosyncratic risk cancels across sleeves, leaving beta as the relevant contribution. |\n| Information ratio | $\\alpha_p/\\sigma(e_p)$ | Non-systematic, tracking error | The portfolio is the *active portfolio to be optimally mixed with a passive portfolio*. |\n| Jensen's alpha | $\\bar{r}_p - [r_f + \\beta_p(\\bar{r}_m - r_f)]$ | Not a ratio; a level | A screening condition rather than a ranking tool. All the measures above require a positive alpha for the portfolio to be attractive at all. |\n\nClient 1 is the whole fund, so Sharpe. Client 2 is one of fifteen, so Treynor. Client 3 is an active overlay on a passive core, so the information ratio."
+ },
+ {
+  "id": "IR-T1-35",
+  "lo": "IM-7 b",
+  "loText": "Describe risk-adjusted performance measures, such as Sharpe’s measure, Treynor’s measure, Jensen’s measure (Jensen’s alpha), and the information ratio, and identify the circumstances under which the use of each measure is most relevant.",
+  "outside": false,
+  "question": "A portfolio manager increases the number of stocks in his portfolio from ten to twenty, spreading the additions across a range of industries. Assume the portfolio's excess return is unchanged and its beta is unchanged. What is the most likely effect on the portfolio's Sharpe ratio and Treynor measure?",
+  "options": {
+   "A": "Sharpe increases; Treynor broadly unaffected.",
+   "B": "Sharpe decreases; Treynor broadly unaffected.",
+   "C": "Sharpe broadly unaffected; Treynor increases.",
+   "D": "Sharpe broadly unaffected; Treynor decreases."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** What each denominator responds to. Diversification removes idiosyncratic risk, which sits inside total volatility but outside beta.\n\n$$Sharpe_p = (\\bar{r}_p - r_f)/\\sigma_p \\qquad Treynor_p = (\\bar{r}_p - r_f)/\\beta_p$$\n\nThe numerators are identical and the stem holds the numerator fixed, so the whole answer lies in the denominators.\n\n$$\\sigma_p^2 = \\beta_p^2\\sigma_m^2 + \\sigma^2(e_p)$$\n\n| Quantity | Effect of the diversification | Consequence |\n|---|---|---|\n| Excess return | Held constant by assumption | Both numerators unchanged |\n| $\\sigma^2(e_p)$ | Falls | Total volatility $\\sigma_p$ falls |\n| $\\sigma_p$ | Falls | Sharpe ratio rises |\n| $\\beta_p$ | Unchanged | Treynor measure unchanged |\n\nThis is the same fact that drives the choice of measure in Q34. Sharpe rewards diversification because an investor who holds only this portfolio genuinely benefits from it. Treynor is silent on diversification because it presumes some other holding is already doing that job."
+ },
+ {
+  "id": "IR-T1-36",
+  "lo": "IM-7 b",
+  "loText": "Describe risk-adjusted performance measures, such as Sharpe’s measure, Treynor’s measure, Jensen’s measure (Jensen’s alpha), and the information ratio, and identify the circumstances under which the use of each measure is most relevant.",
+  "outside": false,
+  "question": "Robert manages a portfolio and part of his compensation depends on performance over a three-year period. During the first eighteen months his performance was significantly below his benchmark. In response he greatly increases the leverage in his portfolio for the second eighteen months, which also magnifies its risk. His firm uses the Sharpe ratio, Jensen's alpha, the Treynor ratio, the information ratio and Morningstar's risk-adjusted rating. Among these, which is best suited to Robert's situation?",
+  "options": {
+   "A": "The information ratio, because it incorporates the investor's risk aversion.",
+   "B": "The Treynor ratio, because the manager's entire risky portfolio rather than a sub-component is being evaluated.",
+   "C": "The Sharpe ratio, because it is the most robust measure for handling a mid-period change in risk.",
+   "D": "Morningstar's risk-adjusted rating, because it is designed to handle a mid-cycle change in the portfolio's risk."
+  },
+  "answer": "D",
+  "solution": "**Concept tested.** The limitation shared by all four conventional measures: each assumes a stable risk level across the measurement window. MRAR is built from period-by-period relative wealth and therefore penalises a shifting risk profile.\n\nSharpe, Treynor, Jensen and the information ratio each reduce the sample to an average excess return divided by a single risk statistic estimated over the whole window. One $\\sigma_p$ or $\\beta_p$ estimated across a window in which the manager deliberately doubled his risk halfway through describes neither sub-period. It averages a low-risk regime and a high-risk regime into a number that misrepresents both and does not charge the manager for the gamble. This is precisely the shifting-mean-and-risk problem identified as a central difficulty in performance measurement.\n\n$$MRAR(\\gamma) = \\left[ (1/T)\\Sigma_{t=1}^{T} \\left( \\frac{1+r_t}{1+r_{f,t}} \\right)^{-\\gamma} \\right]^{-12/\\gamma} - 1$$\n\nMRAR averages a *power transform of period-by-period relative wealth* rather than dividing a mean by a single risk estimate. The exponent $-\\gamma$ penalises poor periods disproportionately, so a strategy that raises volatility mid-stream is charged for the resulting dispersion in a way a whole-period standard deviation does not capture. Nothing in its construction assumes constant risk."
+ },
+ {
+  "id": "IR-T1-37",
+  "lo": "IM-7 c",
+  "loText": "Describe the uses for the Modigliani-squared and Treynor’s measure in comparing two portfolios and the graphical representation of these measures.",
+  "outside": false,
+  "question": "An analyst prepares two exhibits. The first plots average return against standard deviation and shows the capital market line together with the capital allocation line for a managed portfolio P. The second plots average return against beta and shows the security market line together with the point representing P. Which of the following most appropriately describes what M-squared and T-squared represent on these exhibits?",
+  "options": {
+   "A": "M-squared is the vertical distance between the market portfolio and the point on P's capital allocation line whose standard deviation equals the market's; T-squared derives from the vertical distance between P and the security market line at P's beta.",
+   "B": "M-squared is the horizontal distance between P and the capital market line; T-squared is the horizontal distance between P and the security market line.",
+   "C": "M-squared is the difference in slope between P's capital allocation line and the capital market line; T-squared is the difference in slope between the line joining the risk-free rate to P and the security market line.",
+   "D": "M-squared is the vertical distance between P and the capital market line measured at P's own standard deviation; T-squared is the vertical distance between P and the security market line at the market's beta of 1.00."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** Both measures are constructed by equalising risk first and then reading a return difference. The risk that is equalised differs between them.\n\n**M-squared, on the return versus standard deviation plane**\n\nMix P with T-bills, or lever P by borrowing, until the adjusted portfolio $P'$ has exactly the market's standard deviation. Because $P'$ lies on P's capital allocation line, this means sliding along that line until it crosses the vertical at $\\sigma = \\sigma_m$.\n\nIf $\\sigma_p > \\sigma_m$, weight in P is $\\sigma_m/\\sigma_p$ with the remainder in T-bills\n\n$$M^2 = \\bar{r}_{P'} - \\bar{r}_m = \\sigma_m (Sharpe_p - Sharpe_m)$$\n\nGraphically it is the *vertical gap* between M and $P'$, both sitting at the same standard deviation. Since the two portfolios have identical risk by construction, comparing their returns is legitimate, which is what makes M-squared easier to interpret than a raw difference in Sharpe ratios.\n\n**T-squared, on the return versus beta plane**\n\n$$T^2 = Treynor_p - Treynor_m = (\\bar{r}_p - r_f)/\\beta_p - (\\bar{r}_m - r_f)$$\n\nThe same idea applied to systematic risk: lever or delever P until its beta equals 1.00, then compare its return with the market's. The security market line passes through the risk-free rate at $\\beta = 0$ and through the market at $\\beta = 1$, so the vertical distance from P to the SML at P's own beta is Jensen's alpha, and  […]"
+ },
+ {
+  "id": "IR-T1-38",
+  "lo": "IM-7 c",
+  "loText": "Describe the uses for the Modigliani-squared and Treynor’s measure in comparing two portfolios and the graphical representation of these measures.",
+  "outside": false,
+  "question": "A performance analyst notes that within her toolkit, certain measures always rank portfolios identically while others can disagree. Which of the following statements is most accurate?",
+  "options": {
+   "A": "M-squared always agrees with the Sharpe ratio, and Jensen's alpha and the Treynor measure always agree on whether the manager beat the market (same sign), but the two pairs can disagree when a manager carries a large proportion of unsystematic risk relative to systematic risk.",
+   "B": "M-squared always agrees with the Treynor measure, and Jensen's alpha always agrees with the Sharpe ratio, but the two pairs can disagree when a manager's beta is far from 1.00.",
+   "C": "All four measures produce identical rankings, because each is a monotonic transformation of the portfolio's excess return.",
+   "D": "The four measures can each disagree with any of the others, because no two of them share a denominator."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** Which measures share a risk definition, and the specific circumstance that drives a wedge between the total-risk pair and the systematic-risk pair.\n\n| Pair | Risk definition shared | How they agree |\n|---|---|---|\n| M-squared and Sharpe | Total risk, $\\sigma_p$ | $M^2 = \\sigma_m(Sharpe_p - Sharpe_m)$. Since $\\sigma_m$ is a positive constant across portfolios, M-squared is a strictly increasing transformation of the Sharpe ratio. |\n| Jensen's alpha and Treynor | Systematic risk, $\\beta_p$ | $T^2 = \\alpha_p/\\beta_p$, so alpha and Treynor always agree in sign and rank identically among portfolios with the same beta; across portfolios with different betas they can rank differently (Q54: $\\alpha_P$ 6.50% < $\\alpha_Q$ 8.00% but $T^2_P$ 9.29% > $T^2_Q$ 6.67%). Both charge only for systematic risk. |\n\nThe wedge between the two pairs opens when a portfolio carries a large amount of unsystematic risk relative to its systematic risk. That residual risk enters $\\sigma_p$ and therefore lowers the Sharpe ratio and M-squared, while leaving $\\beta_p$ and therefore Treynor and Jensen's alpha untouched. Q35 is the same mechanism observed in reverse: adding diversification lifted Sharpe and left Treynor alone.\n\nPractical reading: a portfolio ranking well on Treynor and poorly on Sharpe is concentrated. Whether that matters depends on the role test in Q34, since a sleeve within […]"
+ },
+ {
+  "id": "IR-T1-39",
+  "lo": "IM-7 e",
+  "loText": "Describe style analysis.",
+  "outside": false,
+  "question": "A trustee board currently evaluates its equity managers by ranking each within a comparison universe of similar funds and reporting the quartile in which the manager falls. A consultant recommends replacing this with style analysis. Which of the following is the strongest argument for the change?",
+  "options": {
+   "A": "A comparison universe median is not an investable strategy, whereas style analysis produces a benchmark built from index funds that a passive investor could actually have held.",
+   "B": "A comparison universe requires a long history, whereas style analysis can be estimated from a single period of data.",
+   "C": "A comparison universe adjusts for risk, whereas style analysis measures raw return and is therefore simpler to explain to trustees.",
+   "D": "A comparison universe cannot detect survivorship bias, whereas style analysis eliminates it entirely."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** The two defects of the comparison-universe methodology that style analysis repairs: managers within a universe are not truly comparable, and the median fund is not a strategy an investor could have bought.\n\n| Defect | Why it matters, and how style analysis repairs it |\n|---|---|\n| Not comparable | Within an equity universe one manager may concentrate on high-beta aggressive growth names while another runs a defensive book; within fixed income, durations differ widely. The ranking compares managers whose risk exposures are not alike. Style analysis fits each manager's own exposures before judging. |\n| Not investable | The more fundamental defect. The median fund cannot be identified in advance, so a passive investor cannot lock in the median return. It therefore does not represent the alternative the investor gave up. Style analysis regresses on *tradeable* index funds, so the style weights describe a portfolio the investor could genuinely have held instead. |\n\nThe investability point connects to the benchmark properties: a benchmark should be well defined, tradeable, replicable and risk-adjusted. A peer-group median fails tradeability and replicability outright."
+ },
+ {
+  "id": "IR-T1-40",
+  "lo": "IM-7 e",
+  "loText": "Describe style analysis.",
+  "outside": false,
+  "question": "A performance analyst has three figures for a manager: the manager's own return, the return on a style benchmark constructed to match the manager's asset-class exposures, and the return on the broad market index. She wants to separate the return attributable to the manager's choice of style from the return attributable to selection within that style. Which of the following describes the correct decomposition?",
+  "options": {
+   "A": "Style contribution is the style benchmark return less the market return; active contribution is the manager's return less the style benchmark return.",
+   "B": "Style contribution is the manager's return less the style benchmark return; active contribution is the style benchmark return less the market return.",
+   "C": "Style contribution is the manager's return less the market return; active contribution is the style benchmark return less the market return.",
+   "D": "Both contributions are measured against the market return, because the market is the only benchmark an investor could actually have held."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** Style analysis inserts a middle term between the manager and the market, and each component is measured against the adjacent term rather than against the market twice.\n\n$$\\text{Total excess over the market} = (r_{style} - r_{market}) + (r_{manager} - r_{style}) = \\text{style contribution} + \\text{active contribution}$$\n\nThe style benchmark cancels, so the two components must telescope to the total. Any pairing that does not telescope is wrong on its face, which is a useful structural check.\n\n| Component | Measured against | What it isolates |\n|---|---|---|\n| Style contribution | The market | Whether the manager's chosen asset-class and factor mix was in or out of favour. This is not a skill judgement. |\n| Active contribution | The style benchmark | Whether the manager's selection decisions within that mix added value. This is the skill judgement. |\n\nThe practical consequence is the one that matters in a review meeting: a manager can be genuinely skilful within his mandate and still underperform the market, because his style was out of favour. Judging him on the aggregate alone conflates a mandate decision with a selection decision."
+ },
+ {
+  "id": "IR-T1-41",
+  "lo": "IM-7 f",
+  "loText": "Explain the difficulties in measuring the performance of actively managed portfolios.",
+  "outside": false,
+  "question": "Betty is a chief investment officer evaluating Acme Fund's highly discretionary active strategy, which takes exposure to value, size, momentum, volatility and several other factors. Her analyst John runs almost 100 regressions of the strategy's five-year performance against different sets of factors. He finds a set under which Acme generates exactly zero alpha and concludes Acme has no skill. According to Ang, what is the key problem with John's analysis?",
+  "options": {
+   "A": "There is no theoretical problem; finding a zero-alpha factor set is valid evidence of no skill.",
+   "B": "Alpha and the benchmark are simultaneously determined, so a sufficiently flexible search over factor sets will always be able to drive measured alpha toward zero.",
+   "C": "It is typically impossible to find an ex-post benchmark portfolio that produces no alpha, so John's result must be a computational error.",
+   "D": "Grossman and Stiglitz demonstrated that markets are perfectly efficient, so alpha does not exist and the regressions are uninformative."
+  },
+  "answer": "B",
+  "solution": "**Concept tested.** The most fundamental difficulty: alpha is not a property of a manager, it is a property of a manager *and* a chosen benchmark. Ang's summary is that alpha tells you more about the factors used to construct the benchmark than about the skill involved in beating it.\n\n$$R_{p,t} - R_{f,t} = \\alpha + \\Sigma_k \\beta_k F_{k,t} + \\varepsilon_t$$\n\nThe estimated $\\alpha$ is defined only relative to the chosen factor set. Change the set and $\\alpha$ changes; a positive alpha under one set can turn negative under another.\n\n| What John did | Why it proves nothing |\n|---|---|\n| Searched roughly 100 factor sets | With enough candidate factors and a five-year window, some specification will absorb the strategy's returns almost entirely. Finding one is a statement about the search, not about Acme. |\n| Selected the specification producing zero alpha | The benchmark was chosen *after* seeing the result. That is the joint-determination problem: the yardstick was picked to produce the reading obtained. |\n| Concluded no skill | The symmetric search would have found a specification producing large positive alpha. |\n\nNeither conclusion is admissible without a benchmark justified ex ante. The correct procedure fixes the benchmark first on economic grounds, requiring it to be well defined, tradeable, replicable and risk-adjusted, then measures alpha against it once."
+ },
+ {
+  "id": "IR-T1-42",
+  "lo": "IM-7 f",
+  "loText": "Explain the difficulties in measuring the performance of actively managed portfolios.",
+  "outside": false,
+  "question": "Robert runs a portfolio with a focused strategy of selling put options. To evaluate it he runs a CAPM regression of the portfolio's excess returns on the market's excess returns over the most recent 48 months, obtaining $R(p) = +0.0520 + 0.67 \\times R(m) + \\varepsilon$, and declares an alpha of +5.20%. His colleague Mary criticises the conclusion. Which of the following is the BEST criticism?",
+  "options": {
+   "A": "It is impossible to evaluate strategies with nonlinear payoffs.",
+   "B": "Alpha is the residual term of the regression, not its intercept.",
+   "C": "The strategy's payoff is nonlinear and its return distribution is strongly negatively skewed, so a linear regression will report an alpha that reflects sold tail risk rather than skill.",
+   "D": "The 48-month sample is too short for the regression coefficients to be estimated with acceptable precision."
+  },
+  "answer": "C",
+  "solution": "**Concept tested.** Alpha is computed in a linear framework. Option-like payoffs cannot be represented linearly, so they generate apparent alpha that is in fact a premium for bearing tail risk that has not yet materialised.\n\n| Market state | Short put outcome |\n|---|---|\n| Flat or rising | Option expires worthless; the position keeps the premium. A small, steady, positive return. |\n| Falls modestly | Small loss, partly offset by the premium. |\n| Falls sharply | Large loss, potentially many times the premium collected. |\n\nOver 48 months without a severe drawdown, the regression sees a long run of small positive returns and fits a positive intercept. That intercept is not skill; it is accumulated premium for insurance not yet claimed. Nonlinear strategies can make it appear that alpha exists when it does not, and one reason is that the return distribution is not normal and exhibits negative skewness. Merger arbitrage, pairs trading and convertible bond arbitrage share the problem, which is why it matters so much for hedge fund evaluation. The 0.67 market beta is also suspect, since a short put's effective delta changes with the level of the market, so a single constant beta describes the exposure in neither tail."
+ },
+ {
+  "id": "IR-T1-43",
+  "lo": "IM-7 f",
+  "loText": "Explain the difficulties in measuring the performance of actively managed portfolios.",
+  "outside": false,
+  "question": "Analyst William evaluates a low volatility fund against its traditional benchmark, the Russell 1000, and finds an average excess return of only +0.28% per year, which he calls the fund's alpha. His colleague Emily points out that because the fund runs materially less risk than the index, its correct benchmark is a risk-adjusted portfolio of 65.0% Russell 1000 plus 35.0% of the risk-free asset. Assume the risk-free return is well below the Russell 1000 return. Re-evaluating over the same period against this risk-adjusted benchmark, what is the most likely outcome?",
+  "options": {
+   "A": "The fund's alpha will increase.",
+   "B": "The fund's systematic risk will increase.",
+   "C": "The fund's active return will decrease.",
+   "D": "The fund's information ratio will decrease, because its tracking error will increase."
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** Alpha is a residual relative to a benchmark, so it moves whenever the benchmark moves. A benchmark riskier than the fund understates both alpha and the information ratio.\n\n$$r_{new\\ benchmark} = 0.65 \\times r_{Russell\\ 1000} + 0.35 \\times r_f \\quad \\text{which is} \\quad \\text{lower than } r_{Russell\\ 1000}$$\n$$\\alpha = r_{fund} - r_{benchmark} \\quad \\text{fund return fixed, benchmark return falls, so } \\alpha \\text{ rises}$$\n\nTracking error moves the other way. The 65/35 blend was constructed to match the fund's risk level, so it tracks the fund far more closely than the full-beta Russell 1000 did, and tracking error *falls*.\n\n$$IR = \\alpha / \\sigma(e) \\quad \\text{numerator rises and denominator falls, so the information ratio rises on both counts}$$\n\nThis is the source's point in reverse: if the benchmark is riskier than the investment under review, both the alpha and the information ratio are calculated too low. William's initial analysis did exactly that."
+ },
+ {
+  "id": "IR-T1-44",
+  "lo": "IM-7 f",
+  "loText": "Explain the difficulties in measuring the performance of actively managed portfolios.",
+  "outside": false,
+  "question": "A board member asks why, if a manager's alpha is genuinely positive, it should take so long to demonstrate statistically. The chief risk officer explains that the $t$-statistic on alpha is the mean alpha divided by its standard error, and that the standard error of a mean falls with the square root of the number of observations. Holding the required confidence level and the residual volatility fixed, which of the following most appropriately describes how the number of observations required to establish significance responds to the manager's alpha?",
+  "options": {
+   "A": "It falls in proportion to the alpha, so halving the alpha doubles the number of observations required.",
+   "B": "It falls in proportion to the square of the alpha, so halving the alpha quadruples the number of observations required.",
+   "C": "It falls in proportion to the square root of the alpha, so halving the alpha requires roughly 40% more observations.",
+   "D": "It does not depend on the size of the alpha, only on the residual volatility and the confidence level."
+  },
+  "answer": "B",
+  "solution": "**Concept tested.** The parameter sensitivity that makes this LO qualitative rather than merely descriptive. The required sample scales with the square of the inverse information ratio, which is why detecting ordinary skill takes decades.\n\n$$t = \\bar{\\alpha}/SE(\\bar\\alpha) = \\bar\\alpha / [\\sigma(\\alpha)/\\sqrt{N}] = (\\bar\\alpha\\sqrt{N})/\\sigma(\\alpha)$$\n\nSet $t$ equal to the critical value $z$ and solve for $N$.\n\n$$\\sqrt{N} = z\\,\\sigma(\\alpha)/\\bar\\alpha \\quad \\Rightarrow \\quad N = z^2\\sigma(\\alpha)^2/\\bar\\alpha^2$$\n\n$N$ is inversely proportional to the *square* of alpha, so halving the alpha multiplies the required sample by four. Note the quantity $\\bar\\alpha/\\sigma(\\alpha)$ in the denominator is the information ratio, so the relation can be read as $N = z^2/IR^2$: the required sample is inversely proportional to the square of the information ratio.\n\n| Monthly alpha | Annualised | Months required | Years required |\n|---|---|---|---|\n| 1.90% | 22.8% | 12 | 1.0 |\n| 0.95%, half of the above | 11.4% | 48 | 4.0 |\n| 0.25% | 3.0% | 693 | 57.7 |\n\nHalving the alpha from 1.90% to 0.95% moves the requirement from 12 months to 48, a factor of four, exactly as the square relation predicts. This is why many observations and long sample periods are required to eliminate the luck of the draw, and why Ang finds even Berkshire Hathaway's alpha statistically insignificant over a ten-year window  […]"
+ },
+ {
+  "id": "IR-T1-45",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "Ang writes that the information ratio is the ratio of alpha to tracking error, which an FRM will recognise as loose wording. Regarding the relationships among alpha, tracking error, the information ratio and the Sharpe ratio, each of the following is TRUE EXCEPT which one?",
+  "options": {
+   "A": "The Sharpe ratio is a special case of the information ratio in which the benchmark is the risk-free asset.",
+   "B": "The information ratio is the portfolio's average active return divided by its tracking error, which is the standard deviation of that active return.",
+   "C": "If two funds use the same benchmark, the fund with the higher information ratio must have the lower tracking error.",
+   "D": "If the benchmark is risk-adjusted, meaning the fund's beta is measured by regressing its excess returns on the benchmark's, then tracking error can be described as idiosyncratic volatility."
+  },
+  "answer": "C",
+  "solution": "**Concept tested.** The precise definitions of all four quantities, and in particular that a ratio can be raised by lifting the numerator as readily as by cutting the denominator.\n\n| Quantity | Definition | Precision point |\n|---|---|---|\n| Alpha | Average return in excess of the benchmark, also called active return | It is a *mean*. Ang's phrase \"ratio of alpha to tracking error\" divides a mean by a standard deviation, which is why the exam-precise wording is average active return over the standard deviation of active return. |\n| Tracking error | Standard deviation of the active return | Not the active return itself. Under a risk-adjusted benchmark the active return is the regression residual, so its standard deviation is idiosyncratic volatility. |\n| Information ratio | $\\alpha/\\sigma(e)$ | Alpha per unit of residual risk taken to obtain it. |\n| Sharpe ratio | $(\\bar{r}_p - r_f)/\\sigma_p$ | The information ratio against a risk-free benchmark. Since the risk-free asset has zero volatility, the active return is just the excess return and its standard deviation is total volatility. |\n\nStatement (c) fails because a higher IR can come from a larger numerator, a smaller denominator, or both. A manager with alpha 6.00% and tracking error 30% has an IR of 0.200, which beats a manager with alpha 2.35% and tracking error 25%, whose IR is 0.094, while carrying more tracking error. One c […]"
+ },
+ {
+  "id": "IR-T1-46",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "Two fund managers at the same firm are measured against the same benchmark.\n\n| Parameter | Fund Manager 1 | Fund Manager 2 |\n|---|---|---|\n| Return | 12.35% | 13.00% |\n| Alpha | 2.35% | 3.00% |\n| Tracking error | 25% | 34% |\n\nWhich of the following statements is correct?",
+  "options": {
+   "A": "Manager 1 deviated more from the benchmark index.",
+   "B": "Manager 2 deviated more from the benchmark index.",
+   "C": "Manager 1 generated the higher excess return.",
+   "D": "Manager 2 has the higher information ratio."
+  },
+  "answer": "B",
+  "solution": "**Concept tested.** Tracking error is the measure of deviation from the benchmark, and the information ratio is not monotonic in alpha alone. The two managers rank oppositely on alpha and on the information ratio.\n\n$$\\text{Tracking error} = \\sigma(r_{fund} - r_{benchmark}) \\quad 34\\% > 25\\%, \\text{ so Manager 2 deviated more}$$\n$$IR = \\alpha / \\text{tracking error}$$\n\n| Manager | Calculation | Information ratio |\n|---|---|---|\n| Manager 1 | 2.35 / 25 | 0.0940 |\n| Manager 2 | 3.00 / 34 | 0.0882 |\n\nManager 1 has the higher information ratio despite the lower alpha, because he took materially less active risk to get it. Manager 2's alpha of 3.00% and total return of 13.00% both exceed Manager 1's, so (c) is false on either reading.\n\nThis is Q45 statement (c) turned into a live example. Which manager is preferable depends on the role the portfolio plays, exactly as in Q34."
+ },
+ {
+  "id": "IR-T1-47",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "A ten-year study of three portfolios and the market produced the following. The risk-free rate over the period was 6%.\n\n| Portfolio | Average annual return | Standard deviation | Beta |\n|---|---|---|---|\n| Portfolio 1 | 14% | 21% | 1.15 |\n| Portfolio 2 | 16% | 24% | 1.00 |\n| Portfolio 3 | 20% | 28% | 1.25 |\n| S&P 500 | 12% | 20% | 1.00 |\n\nUsing the Sharpe measure, rank the three portfolios from lowest to highest.",
+  "options": {
+   "A": "1, 3, 2",
+   "B": "2, 3, 1",
+   "C": "2, 1, 3",
+   "D": "1, 2, 3"
+  },
+  "answer": "D",
+  "solution": "**Concept tested.** Calculating and ranking on the Sharpe ratio, and recognising that the beta column is a red herring for this measure.\n\n$$Sharpe_p = (\\bar{r}_p - r_f)/\\sigma_p$$\n\n| Portfolio | Excess return | Calculation | Sharpe ratio |\n|---|---|---|---|\n| Portfolio 1 | 14 − 6 = 8% | 8 / 21 | 0.381 lowest |\n| Portfolio 2 | 16 − 6 = 10% | 10 / 24 | 0.417 |\n| Portfolio 3 | 20 − 6 = 14% | 14 / 28 | 0.500 highest |\n| S&P 500 | 12 − 6 = 6% | 6 / 20 | 0.300 |\n\nLowest to highest is 1, 2, 3, and all three beat the market's 0.300.\n\nThe beta column is not used. Had the question asked for the Treynor ranking the inputs would differ: 8/1.15 = 6.96%, 10/1.00 = 10.00% and 14/1.25 = 11.20%, which happens to preserve the same order here but need not in general. Confirm which measure is named before touching the numbers."
+ },
+ {
+  "id": "IR-T1-48",
+  "lo": "IM-3 d",
+  "loText": "Describe Grinold’s fundamental law of active management, including its assumptions and limitations, and calculate the maximum attainable information ratio using this law.",
+  "outside": false,
+  "question": "Patty the portfolio manager has an information coefficient of 0.150 and a breadth of 12.0. If she triples her breadth to 36, what happens to her information ratio?",
+  "options": {
+   "A": "It falls by one third, to 0.346.",
+   "B": "It has no effect on the information ratio.",
+   "C": "It rises by 0.380, to 0.900.",
+   "D": "It rises by 1.039, to 1.559."
+  },
+  "answer": "C",
+  "solution": "**Concept tested.** Calculating the maximum attainable information ratio, and the square-root relationship that means tripling breadth multiplies the information ratio by $\\sqrt{3}$ rather than by 3.\n\n$$IR = IC \\times \\sqrt{BR}$$\n\nIC is the information coefficient, the correlation between the manager's forecasts and realised returns. BR is the breadth, the number of independent bets taken per year.\n\n| Scenario | IC | BR | $IR = IC \\times \\sqrt{BR}$ |\n|---|---|---|---|\n| Original | 0.150 | 12 | 0.150 × 3.4641 = 0.5196 |\n| Tripled breadth | 0.150 | 36 | 0.150 × 6.0000 = 0.9000 |\n\n$$\\text{Change} = 0.9000 - 0.5196 = +0.3804$$\n\nTripling breadth multiplies the information ratio by $\\sqrt{3} = 1.732$, not by 3. The square root is the economics of the law: doubling the number of independent bets buys only a 41% improvement, so breadth has diminishing returns. That is why Grinold frames the choice as playing well versus playing often rather than as a free lunch from trading more."
+ },
+ {
+  "id": "IR-T1-49",
+  "lo": "IM-3 d",
+  "loText": "Describe Grinold’s fundamental law of active management, including its assumptions and limitations, and calculate the maximum attainable information ratio using this law.",
+  "outside": false,
+  "question": "A chief investment officer is briefing her board on the limitations of Grinold's fundamental law before using it to justify hiring a large number of specialist managers. Which of the following statements about the law's assumptions and limitations is LEAST accurate?",
+  "options": {
+   "A": "The law is derived under mean-variance utility, so it ignores downside risk and other higher-moment risks.",
+   "B": "The law assumes the forecasts underlying the individual bets are independent of one another.",
+   "C": "The law assumes the information coefficient is constant across breadth, whereas in practice the ability to generate a high information coefficient tends to fall as assets under management rise.",
+   "D": "The information ratio the law produces is a realistic net figure, because the derivation incorporates transaction costs and trading restrictions."
+  },
+  "answer": "D",
+  "solution": "**Concept tested.** The law delivers a *maximum attainable* information ratio, and it earns that word precisely by ignoring the frictions that reduce it in practice.\n\n$$IR_{max} = IC \\times \\sqrt{BR}$$\n\nThe subscript is the point. This is the maximum attainable information ratio *because it ignores transaction costs, restrictions on trading, and other real-world considerations*.\n\n| Assumption or limitation | Consequence |\n|---|---|\n| Mean-variance utility | Downside risk, skewness and kurtosis are ignored. A strategy with attractive mean-variance properties and severe crash risk, such as momentum in Q30 or the short-put strategy in Q42, looks better under the law than it should. |\n| Forecasts are independent | The single most fragile assumption. Correlated bets inflate the effective breadth count and therefore inflate the attainable information ratio. One hundred positions on one macro view is one bet. |\n| IC constant across breadth | The first manager hired may genuinely have a high IC; the hundredth probably does not. As assets under management grow, IC tends to decline, which is one reason funds close to new money. |\n| All information used optimally | Assumes frictionless implementation of forecasts into positions. |\n| No transaction costs or trading restrictions | This is what makes the output a ceiling rather than a forecast. Realised information ratios fall short of it. | […]"
+ },
+ {
+  "id": "IR-T1-50",
+  "lo": "IM-3 d",
+  "loText": "Describe Grinold’s fundamental law of active management, including its assumptions and limitations, and calculate the maximum attainable information ratio using this law.",
+  "outside": false,
+  "question": "Grinold notes that information coefficients are correlations and are small in practice, because forecasting residual returns is hard, and that an average manager has an information coefficient of zero by definition. Assume a good manager has an information coefficient of 0.060 while a great manager has 0.120. A certain stock has a residual volatility of 30.0%. A great manager holds a strongly positive view on this stock, quantified as a score, or standardised expectation, of 1.50. What is the implied alpha of this recommendation?",
+  "options": {
+   "A": "2.70%",
+   "B": "3.60%",
+   "C": "5.40%",
+   "D": "45.0%"
+  },
+  "answer": "C",
+  "solution": "**Concept tested.** Converting a forecast into an alpha using the information coefficient. This is the input side of the fundamental law: IC governs not only the attainable information ratio but also how much alpha a given level of conviction justifies.\n\n$$\\alpha = IC \\times \\sigma_{residual} \\times \\text{score}$$\n\n| Term | Value | Role |\n|---|---|---|\n| IC | 0.120 | How much of the manager's conviction is real signal rather than noise. It shrinks the forecast toward zero. |\n| $\\sigma_{residual}$ | 30.0% | How much scope for outperformance the stock offers. Converts a standardised score into return units. |\n| Score | 1.50 | Strength of the view in standard deviations. A score of zero is a neutral view. |\n\n$$\\alpha = 0.120 \\times 0.30 \\times 1.50 = 0.054 = 5.40\\%$$\n\nNotice the discipline the information coefficient imposes. A view 1.5 standard deviations positive on a stock with 30% residual volatility naively suggests 45% expected outperformance. Multiplying by an IC of 0.120 shrinks that to 5.40%, because only about 12% of the manager's signal is genuine. This is the quantitative expression of Grinold's warning that forecasting residual returns is hard."
+ },
+ {
+  "id": "IR-T1-53",
+  "lo": "IM-7 b",
+  "loText": "Describe risk-adjusted performance measures, such as Sharpe’s measure, Treynor’s measure, Jensen’s measure (Jensen’s alpha), and the information ratio, and identify the circumstances under which the use of each measure is most relevant.",
+  "outside": false,
+  "question": "While the risk-free rate was 3.0%, the market's return was 11.0% with a volatility of 20.0%. Over the same period, Donald's portfolio returned 15.0% with a volatility of 40.0%. The portfolio's correlation with the market was 0.80 and its residual standard deviation was 24.0%. How did Donald's portfolio compare with the market?",
+  "options": {
+   "A": "We cannot answer without being told the portfolio's beta.",
+   "B": "Jensen's alpha and the information ratio were negative, and both the Sharpe ratio and the Treynor measure were below the market's.",
+   "C": "Jensen's alpha and the information ratio were positive, and both the Sharpe ratio and the Treynor measure were above the market's.",
+   "D": "Jensen's alpha and the information ratio were zero, and both the Sharpe ratio and the Treynor measure matched the market's."
+  },
+  "answer": "B",
+  "solution": "**Concept tested.** Computing and jointly interpreting all four measures for a portfolio whose raw return beat the market. Higher return is not outperformance once risk is charged for.\n\n$$\\beta_p = \\rho_{p,m}\\,\\sigma_p/\\sigma_m = 0.80 \\times 40.0/20.0 = 1.60$$\n$$\\alpha_p = 15.0 - [3.0 + 1.60(11.0-3.0)] = 15.0 - 15.8 = -0.80\\%$$\n$$IR = \\alpha_p/\\sigma(e_p) = -0.80/24.0 = -0.033$$\n\n| Measure | Donald | Market | Verdict |\n|---|---|---|---|\n| Sharpe | (15 − 3)/40 = 0.300 | (11 − 3)/20 = 0.400 | Below |\n| Treynor | (15 − 3)/1.60 = 7.50% | (11 − 3)/1.00 = 8.00% | Below |\n| Jensen's alpha | −0.80% | 0 by construction | Below |\n| Information ratio | −0.033 | 0 by construction | Below |\n\nAll four agree, which is itself informative: the two pairs identified in Q38 do not diverge here, so the underperformance is unambiguous."
+ },
+ {
+  "id": "IR-T1-54",
+  "lo": "IM-7 c",
+  "loText": "Describe the uses for the Modigliani-squared and Treynor’s measure in comparing two portfolios and the graphical representation of these measures.",
+  "outside": false,
+  "question": "The table shows two portfolios and the market. The risk-free rate is 3.0% and all returns shown are excess returns over the risk-free rate.\n\n| | Portfolio P | Portfolio Q | Market |\n|---|---|---|---|\n| Beta | 0.70 | 1.20 | 1.00 |\n| Excess return | 10.0% | 14.0% | 5.0% |\n| Volatility | 12.0% | 27.0% | 16.0% |\n\nRegarding Portfolio P as it compares with Portfolio Q, which of the following is TRUE?",
+  "options": {
+   "A": "P has a higher alpha than Q but is equal to Q on both M-squared and T-squared.",
+   "B": "P has a higher alpha than Q but is inferior to Q on both M-squared and T-squared.",
+   "C": "P has a lower alpha than Q but is superior to Q on both M-squared and T-squared.",
+   "D": "P has a lower alpha than Q and is also inferior to Q on both M-squared and T-squared."
+  },
+  "answer": "C",
+  "solution": "**Concept tested.** Why a level measure such as Jensen's alpha can rank two portfolios differently from the two scaled measures. Alpha is not divided by risk; M-squared and T-squared both normalise before comparing.\n\n$$\\alpha_P = 10.0 - 0.70(5.0) = 6.50\\% \\qquad \\alpha_Q = 14.0 - 1.20(5.0) = 8.00\\%$$\n\nQ has the higher alpha, which eliminates (a) and (b).\n\n$$M^2_p = \\sigma_m(Sharpe_p - Sharpe_m) \\qquad T^2_p = Treynor_p - Treynor_m$$\n\n| | Sharpe | M-squared | Treynor | T-squared |\n|---|---|---|---|---|\n| Market | 5.0/16.0 = 0.3125 | 0 | 5.0% | 0 |\n| Portfolio P | 10.0/12.0 = 0.8333 | +8.33% | 10.0/0.70 = 14.286% | +9.29% |\n| Portfolio Q | 14.0/27.0 = 0.5185 | +3.30% | 14.0/1.20 = 11.667% | +6.67% |\n\nQ wins on the unscaled level; P wins decisively on both scaled measures. Alpha rewards Q for taking more risk, while M-squared and T-squared ask how much was earned per unit of risk carried."
+ },
+ {
+  "id": "IR-T1-55",
+  "lo": "IM-7 f",
+  "loText": "Explain the difficulties in measuring the performance of actively managed portfolios.",
+  "outside": false,
+  "question": "Jane Dart's portfolio delivered an alpha of 190 basis points per month. Her portfolio beta is 1.30, and the monthly standard deviation of the alpha estimate is 4.0%. The null hypothesis is that her alpha is due to luck. Using 90% confidence, so a two-sided significance level of 10%, approximately how many years of this outperformance are required before the null can be rejected?",
+  "options": {
+   "A": "1.0 year",
+   "B": "5.0 years",
+   "C": "12.0 years",
+   "D": "25.0 years"
+  },
+  "answer": "A",
+  "solution": "**Concept tested.** The numerical face of the sensitivity relation in Q44. This item calibrates how extreme an alpha must be for one year to suffice.\n\n$$t = (\\bar\\alpha\\sqrt{N})/\\sigma(\\alpha) \\ge 1.645 \\quad \\text{for a two-sided 10\\% level}$$\n$$\\sqrt{N} \\ge 1.645 \\times 4.0/1.90 = 3.4632$$\n$$N \\ge 3.4632^2 = 11.99 \\text{ months} \\approx 12 \\text{ months} = 1.0 \\text{ year}$$\n\nTwelve months looks reassuringly short only because Jane's alpha is extraordinary at 22.8% a year before compounding. Per the square relation in Q44, a manager with a monthly alpha of 0.25% would need 693 months, or 57.7 years. The beta of 1.30 is not used."
+ },
+ {
+  "id": "IR-NA-71",
+  "lo": "IM-17 c",
+  "loText": "Assess the impact of biases on reported returns for illiquid assets.",
+  "outside": true,
+  "question": "Reported returns on illiquid assets are subject to three biases. Which of the following correctly describes them and their combined effect?",
+  "options": {
+   "A": "Survivorship bias, since failed funds and assets drop out of the reported sample; selection bias, since assets tend to be transacted and reported when their prices are high; and infrequent trading, which smooths reported returns; together they overstate returns and understate risk, so reported Sharpe ratios are flattered from both directions.",
+   "B": "The three biases work in offsetting directions, so their net effect on reported Sharpe ratios is approximately neutral.",
+   "C": "Selection bias causes assets to be reported when prices are low, which understates reported returns and makes illiquid assets appear less attractive than they are.",
+   "D": "Infrequent trading affects reported volatility but leaves reported beta and correlation unaffected, since those are estimated from the same return series."
+  },
+  "answer": "A",
+  "solution": "| Bias | Mechanism | Effect |\n|---|---|---|\n| Survivorship | Failed funds and assets leave the sample | Overstates returns |\n| Selection | Assets are transacted and reported when prices are high; sellers withhold in weak markets | Overstates returns |\n| Infrequent trading | Stale prices produce autocorrelated returns | Understates volatility, beta and correlation |\n\nThe two directions compound. Returns are inflated and risk is suppressed, so every risk-adjusted measure built from reported data is flattered twice, and a mean-variance optimiser fed those inputs will over-allocate to the asset class.\n\nOption (d) is the sharpest distractor and is false: infrequent trading damages beta and correlation estimates most of all, because those depend on the co-movement between the asset and the market at a given point in time, and stale prices destroy the timing alignment entirely."
+ },
+ {
+  "id": "IR-T3-45",
+  "lo": "IM-17 c",
+  "loText": "Assess the impact of biases on reported returns for illiquid assets.",
+  "outside": true,
+  "question": "An illiquid-asset fund database reports an average annual return of 12.0% and an annual volatility of 8.0%. The risk-free rate is 2.0%. An analyst estimates that correcting for survivorship bias would reduce the average return by 4.0 percentage points, and that unsmoothing the reported series to correct for infrequent trading would raise the volatility to 11.0%. Which of the following is nearest to the reported Sharpe ratio and the corrected Sharpe ratio respectively?",
+  "options": {
+   "A": "1.25 and 0.91",
+   "B": "1.25 and 0.75",
+   "C": "1.25 and 0.55",
+   "D": "0.91 and 0.55"
+  },
+  "answer": "C",
+  "solution": "**Step 1. Reported**\n\n$$Sharpe_{reported} = \\frac{12.0 - 2.0}{8.0} = 1.25$$\n\n**Step 2. Corrected**\n\nReturn corrected for survivorship bias: $12.0 - 4.0 = 8.0\\%$\n\nVolatility corrected by unsmoothing: $11.0\\%$\n\n$$Sharpe_{corrected} = \\frac{8.0 - 2.0}{11.0} = \\frac{6.0}{11.0} = 0.545$$\n\n**Step 3. Read the magnitude**\n\n| Correction applied | Sharpe ratio | Share of the total distortion |\n|---|---|---|\n| None, as reported | 1.25 | Baseline |\n| Return only | 0.75 | Removes 40% of the reported ratio |\n| Volatility only | 0.91 | Removes 27% |\n| Both | 0.55 | Removes 56%. The reported figure is roughly 2.3 times the corrected one. |\n\nThe 4 percentage point survivorship adjustment is not arbitrary. Survivorship bias knocks at least 1% to 2% off expected returns for mutual funds, where the full universe is observable, and the effect can exceed 4% when defunct and live funds are compared separately. Those figures are described as **lower bounds** for illiquid asset managers, because their reporting is voluntary rather than mandatory. Unsmoothing, correspondingly, adds noise back to reported returns to uncover the true, noisier series."
+ },
+ {
+  "id": "IR-FT-14",
+  "lo": "IM-5 b",
+  "loText": "Explain the impact of correlation on portfolio risk.",
+  "outside": true,
+  "question": "A newly hired analyst asks why the correlation matrix matters for a delta-normal VaR calculation. Which of the following is most accurate?",
+  "options": {
+   "A": "Portfolio variance and standard deviation are lower when correlations are lower, so a covariance matrix incorporating both the volatilities of each risk factor and the correlations between them is required to derive the portfolio standard deviation and hence the VaR.",
+   "B": "Correlations affect the expected return of the portfolio but not its variance, so they matter for performance attribution rather than for VaR.",
+   "C": "Portfolio variance is lower when correlations are higher, because offsetting positions become more effective hedges as their co-movement rises.",
+   "D": "Only the volatilities are needed, since with more than two risk factors the correlation terms cancel in aggregate by the law of large numbers."
+  },
+  "answer": "A",
+  "solution": "Examining the variance formula is important because it reveals how the correlations of the asset returns affect volatility. The conclusion is direct: the variance and standard deviation are **lower when the correlations are lower**.\n\n| Input | What it supplies |\n|---|---|\n| Volatilities of each risk factor | The diagonal of the covariance matrix. Sufficient only for a single-factor position. |\n| Correlations between each pair | The off-diagonal terms. These determine how much of the individual risks offset, and therefore the gap between undiversified and diversified VaR. |\n\nTo calculate delta-normal VaR with more than one risk factor, a covariance matrix is required that incorporates the correlations between each risk factor and the volatilities of each. Knowing the volatilities **and** the correlations allows the portfolio standard deviation, and hence the VaR, to be derived.\n\nIndividual VaR is the VaR of a position in isolation, defined using the absolute value of the position weight, because both long and short positions pose risk. That absolute value is why undiversified VaR (portfolio VaR with all correlations set to +1) equals the sum of the individual VaRs only when no position is short. With a short position, setting the correlations to +1 lets the long and short legs offset, so undiversified VaR falls below the sum of the individual VaRs. The sum remains an upper bound […]"
+ },
+ {
+  "id": "IR-QB-0085",
+  "lo": "IM-3 a",
+  "loText": "Describe and evaluate the low-risk anomaly of asset returns.",
+  "outside": true,
+  "question": "Which of the following is the most likely reason why low‑beta stocks are attractive to investors?",
+  "options": {
+   "A": "They have historically delivered higher risk‑adjusted returns (Sharpe ratios) than high‑beta stocks, contrary to the CAPM’s prediction that return rises with beta.",
+   "B": "The CAPM predicts that low‑beta stocks earn a higher expected return than the market to compensate for their lower diversification.",
+   "C": "They are guaranteed to outperform the market in every period, including strongly rising markets.",
+   "D": "They earn a larger risk premium because a low beta signals greater systematic risk."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. CAPM: expected return is increasing in beta, so low‑beta stocks should earn less than the market.\n2. Empirically (low‑risk anomaly) low‑beta/low‑volatility stocks earned equal or higher returns with lower risk, so their Sharpe ratios are higher (e.g., Sharpe fell from 0.9 for the lowest‑beta quintile to 0.4 for the highest).\n3. This contradicts CAPM and is why low‑beta stocks are attractive: better risk‑adjusted performance.\n4. Hence A.\n\n**REBUILT** — Original options were weak (A is not a general property of low‑beta assets, C is a giveaway, D ’none of the above’); rewrote options so exactly one is correct and tied to the CAPM‑contradiction evidence."
+ },
+ {
+  "id": "IR-QB-0088",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "The performance parameters of two fund managers (measured against the same benchmark) in an investment firm are shown below:\n\n| Parameter | Fund Manager 1 | Fund Manager 2 |\n|---|---|---|\n| Return | 12.35% | 13.00% |\n| α | 2.35% | 3.00% |\n| Tracking error | 25% | 34% |\n\nWhich of the following statements is correct?",
+  "options": {
+   "A": "Fund manager 1 deviated more from the benchmark index.",
+   "B": "Fund manager 2 deviated more from the benchmark index.",
+   "C": "Fund manager 1 generated a higher excess return.",
+   "D": "Fund manager 2 has a higher information ratio."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Tracking error is the standard deviation of excess returns, so it measures dispersion around the benchmark: 34% (manager 2) > 25% (manager 1).\n2. Excess return (alpha): manager 1 = 2.35%, manager 2 = 3.00%, so manager 2 generated the higher excess return.\n3. IR$_{1} = 2.35/25 = 0.0940$; IR$_{2} = 3.00/34 = 0.0882$, so manager 1 has the higher IR."
+ },
+ {
+  "id": "IR-QB-0089",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "A fund manager regresses the monthly excess returns of ABC Corporation on the monthly excess returns of the market over the past 5 years (60 months). The regression output is:\n\n| Parameter | Coefficient |\n|---|---|\n| Alpha (intercept) | 0.82% per month |\n| Beta | 0.69 |\n| Assets under management | \\$10 million |\n\nAnnualize alpha by multiplying the monthly alpha by 12. Which of the following is correct?",
+  "options": {
+   "A": "Annualized alpha is 0.82%; ABC’s excess return moves about 0.69% for each 1% move in the market excess return.",
+   "B": "Annualized alpha is 9.84%; ABC’s excess return moves about 0.69% for each 1% move in the market excess return.",
+   "C": "Annualized alpha is 9.84%; ABC’s excess return moves about 1.45% for each 1% move in the market excess return.",
+   "D": "Annualized alpha is 2.84%; ABC’s excess return moves about 0.69% for each 1% move in the market excess return."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Alpha is the regression intercept: 0.82% per month of return beyond what the market exposure explains.\n2. Annualize by the stated convention: 0.82% × 12 = 9.84%.\n3. Beta = 0.69 is the slope: a 1% change in the market excess return is associated with about a 0.69% change in ABC’s excess return.\n4. AUM (\\$10 million) is irrelevant to alpha.\n\n**REBUILT** — Original conflated beta with a percentage of total market risk and left the annualization convention unstated; restated as a regression of excess returns with explicit annualization and a clean beta interpretation."
+ },
+ {
+  "id": "IR-QB-0090",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "You have been given the following information for a portfolio:\n\n| Portfolio return | 10% |\n|---|---|\n| Beta | 1.2 |\n| Standard deviation of the portfolio | 5% |\n| Benchmark return | 8% |\n| Tracking error | 10% |\n| Risk‑free rate | 3% |\n\nCalculate the Sharpe and the information ratios for the portfolio.",
+  "options": {
+   "A": "Sharpe ratio: 1.4; Information ratio: 0.2",
+   "B": "Sharpe ratio: 1.4; Information ratio: 0.7",
+   "C": "Sharpe ratio: 0.4; Information ratio: 0.2",
+   "D": "Sharpe ratio: 0.4; Information ratio: 0.7"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Sharpe ratio uses the risk‑free rate as benchmark and total volatility: (10% − 3%)/5% = 1.4.\n2. Information ratio uses the benchmark return and tracking error: (10% − 8%)/10% = 0.2.\n3. Beta (1.2) is not needed for either ratio."
+ },
+ {
+  "id": "IR-QB-0091",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "A portfolio manager invested \\$1 million in a portfolio of equities. At that time the benchmark index against which the portfolio is tracked stood at 2000 points. One year later the portfolio was worth \\$1.12 million and the benchmark index stood at 2180 points. Calculate the information ratio for the portfolio if the tracking error is 4%.",
+  "options": {
+   "A": "0.94",
+   "B": "1.33",
+   "C": "0.75",
+   "D": "3.00"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Portfolio return = 1.12/1.00 − 1 = 12%.\n2. Benchmark return = 2180/2000 − 1 = 9%.\n3. Alpha (active return) = 12% − 9% = 3%.\n4. IR = 3%/4% = 0.75.\n\n**REBUILT** — Original distractors (0.6, 0.83, 1.0) did not correspond to realistic errors; replaced with options from specific mistakes."
+ },
+ {
+  "id": "IR-QB-0092",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "Which of the following statements about tracking error (TE) and the information ratio (IR) is INCORRECT?",
+  "options": {
+   "A": "Tracking error is the standard deviation of a portfolio’s excess returns relative to its benchmark.",
+   "B": "The IR divides alpha by tracking error, so it measures active return per unit of active risk.",
+   "C": "A larger tracking error allowance gives a manager more freedom in decision making.",
+   "D": "Because TE and IR are computed from achieved returns, only a few observations are needed to conclude reliably that a manager is skilled, and the results are unaffected by the market environment."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. A is the definition of tracking error in the reading.\n2. B is the definition of IR: $\\alpha/$TE.\n3. C is true: mandates cap TE, so a higher cap permits larger active bets.\n4. D is false: TE and IR are sample statistics built on standard deviations, need many observations to be statistically meaningful, and achieved values depend heavily on the market environment during the sample.\n\n**REBUILT** — Source relied on an outside text (Litterman) with statements not verifiable in the Schweser reading; rewritten as a self‑contained EXCEPT item on tracking error and IR."
+ },
+ {
+  "id": "IR-QB-0093",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "A portfolio’s excess returns (return above the risk‑free rate) are regressed against the benchmark’s excess returns over 60 observations. Key output:\n\n‑ Portfolio: average excess return 3.29%, volatility 3.67%\n\n‑ Benchmark: average excess return 0.98%, volatility 1.99%\n\n‑ Average difference between portfolio and benchmark returns (active return): 2.31%\n\n‑ Regression intercept 1.80%; slope 1.5237\n\n‑ Tracking error (standard error of the regression): 2.10%\n\nWhich of the following is nearest to the information ratio if IR is measured as residual return (alpha) per unit of residual risk?",
+  "options": {
+   "A": "0.490",
+   "B": "0.857",
+   "C": "0.896",
+   "D": "1.100"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Residual return (alpha) is the regression intercept: 1.80% (check: 3.29 − 1.5237 × 0.98 = 1.80).\n2. Residual risk is the standard error of the regression: 2.10%.\n3. IR = 1.80/2.10 = 0.857.\n\n**REBUILT** — Source had OCR‑damaged/inconsistent numbers (benchmark volatility 7.99 vs 1.99, active return 2.37 vs 2.31) and missing options; data reconstructed consistently (check: 3.29 ‑ 1.5237x0.98 = 1.80%) and four options built from common errors."
+ },
+ {
+  "id": "IR-QB-0094",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "Regarding the relationship between alpha, tracking error, the information ratio (IR) and the Sharpe ratio, each of the following is true EXCEPT which is false?",
+  "options": {
+   "A": "The Sharpe ratio is a special case of the information ratio in which the benchmark is the risk‑free asset.",
+   "B": "The information ratio is the portfolio’s average active return (alpha) divided by its tracking error (the standard deviation of that active return).",
+   "C": "If two funds use the same benchmark, the fund with the higher information ratio must have the lower tracking error.",
+   "D": "If the benchmark is risk‑adjusted (beta estimated by regressing the fund’s excess returns on the benchmark’s excess returns), tracking error can be interpreted as idiosyncratic volatility."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A: with benchmark = risk‑free rate, active return is excess return and TE is the portfolio’s own volatility, which is the Sharpe ratio. True.\n2. B: this is the definition of IR. True.\n3. C: IR $= \\alpha/$TE can rise with a higher alpha even if TE is also higher. Example: 2%/4% = 0.50 vs 6%/8% = 0.75; the higher‑IR fund has the larger TE. False.\n4. D: with a regression benchmark, the residual standard deviation is idiosyncratic risk. True.\n\n**REBUILT** — Two identical sources merged; removed the confusing rhetorical ’(why?)’ clause from the stem."
+ },
+ {
+  "id": "IR-QB-0095",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "An analyst estimates the alpha of a low‑volatility fund against the Russell 1000 index using monthly data. Over the sample, the regression slope (beta) is 0.40, the fund’s average excess return is 3.15% per month, and the Russell index’s average excess return is 0.65% per month (excess returns are above the risk‑free rate). What is the fund’s monthly alpha?",
+  "options": {
+   "A": "+250 basis points",
+   "B": "+275 basis points",
+   "C": "+289 basis points",
+   "D": "+315 basis points"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Regression alpha = fund excess return ‑ beta x benchmark excess return.\n2. $\\alpha= 3.15\\% - 0.40 \\times0.65\\% = 3.15\\% - 0.26\\% = 2.89\\%$.\n3. 2.89% = 289 basis points per month.\n\n**REBUILT** — Source gave no answer and had a debatable option D (fees); restated as a numerical alpha calculation with distractors from specific errors."
+ },
+ {
+  "id": "IR-QB-0096",
+  "lo": "IM-3 b",
+  "loText": "Define and calculate alpha, tracking error, the information ratio, and the Sharpe ratio.",
+  "outside": false,
+  "question": "The excess returns of a fund are regressed against the excess returns of the benchmark. The intercept represents:",
+  "options": {
+   "A": "Alpha",
+   "B": "Beta",
+   "C": "The residual error",
+   "D": "The correlation coefficient"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Regression: $R_{t} - R_{F} = \\alpha+ \\beta(R_{B,t} - R_{F}) + \\epsilon_{t}$.\n2. The intercept is $\\alpha$: the expected excess return when the benchmark’s excess return is zero.\n3. The slope is $\\beta$; $\\epsilon_{t}$ is the error term; correlation is a separate statistic."
+ }
+]

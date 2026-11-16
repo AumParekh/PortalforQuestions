@@ -1,0 +1,587 @@
+[
+ {
+  "id": "CR-T2-09",
+  "lo": "CR-22 i",
+  "loText": "Explain how the default probabilities and default correlations affect the credit risk in a securitization.",
+  "outside": false,
+  "question": "A structurer is explaining to an investment committee how a rise in the default correlation of the collateral pool affects a securitisation, holding each individual asset's default probability constant.\n\nWhich of the following is correct?",
+  "options": {
+   "A": "The senior tranche becomes riskier and the equity tranche becomes safer, because higher correlation raises the probability of the extreme joint-default outcomes that reach the senior tranche while raising the probability that no assets default at all.",
+   "B": "Both the senior and the equity tranche become riskier, because higher correlation increases the expected number of defaults in the pool.",
+   "C": "The senior tranche becomes safer and the equity tranche becomes riskier, because higher correlation concentrates losses in the first-loss position.",
+   "D": "Neither tranche is affected, because the expected loss of the pool depends only on the individual default probabilities, which are unchanged."
+  },
+  "answer": "A",
+  "solution": "Correlation redistributes risk across the capital structure without changing pool expected loss: it fattens both tails, hurting the senior tranche and helping the equity tranche.\n\nThe invariant. Expected loss on the pool is the sum of individual expected losses and is unaffected by correlation, because expectation is linear:\n\n$$E[\\text{pool loss}] = \\sum_i PD_i \\times EAD_i \\times LGD_i, \\text{ independent of } \\rho$$\n\nWhat correlation changes is the shape of the loss distribution around that unchanged mean.\n\nWhat higher correlation does. It fattens both tails simultaneously. Assets increasingly default together or survive together, so the probability of very many defaults rises and the probability of very few or none also rises. Intermediate outcomes become less likely.\n\n| Outcome | Effect of higher correlation | Tranche affected |\n|---|---|---|\n| Very few or no defaults | More likely | Equity tranche benefits |\n| An intermediate number of defaults | Less likely | Mezzanine, ambiguous |\n| Very many defaults | More likely | Senior tranche is harmed |\n\nThe senior tranche. It suffers only in the extreme scenario where losses breach all the subordination beneath it. That scenario requires many simultaneous defaults, and higher correlation makes it more likely. The senior tranche is therefore long correlation risk, or equivalently short correlation.\n\nThe equity tranche. It absorbs  […]"
+ },
+ {
+  "id": "CR-T2-10",
+  "lo": "CR-22 i",
+  "loText": "Explain how the default probabilities and default correlations affect the credit risk in a securitization.",
+  "outside": false,
+  "question": "Two collateral pools support otherwise identical securitisations with the same tranche attachment points. Pool 1 contains assets with a 2% individual default probability and a pairwise default correlation of 0.05. Pool 2 contains assets with the same 2% individual default probability and a pairwise default correlation of 0.40.\n\nWhich statement most accurately describes the difference between the two structures?",
+  "options": {
+   "A": "The two pools have the same expected loss, but Pool 2's senior tranche requires more subordination to achieve the same rating.",
+   "B": "Pool 2 has a higher expected loss and therefore requires more subordination throughout the capital structure.",
+   "C": "The two pools have the same expected loss and the same tranche risk, since attachment points are identical.",
+   "D": "Pool 1 requires more subordination for its senior tranche, because lower correlation means defaults are less predictable."
+  },
+  "answer": "A",
+  "solution": "Raising the individual default probability shifts the whole loss distribution; raising correlation changes only its shape, and it is the shape that determines how much subordination a senior tranche needs.\n\nSeparate the two levers. They act on different features of the loss distribution.\n\n| Lever | Effect on pool expected loss | Effect on the tail | Effect on senior tranche |\n|---|---|---|---|\n| Higher individual PD | Increases | Shifts the whole distribution right | More subordination needed |\n| Higher default correlation | Unchanged | Fattens both tails | More subordination needed |\n\nExpected loss is identical. Both pools have individual PD of 2%, so:\n\n$$E[\\text{pool loss}] = n \\times 0.02 \\times LGD, \\text{ identical across the two pools}$$\n\nTail risk is not. The senior tranche is impaired only when cumulative losses exceed the subordination beneath it, which is a tail event. Pool 2's higher correlation makes clustered defaults more likely, so the probability of breaching any given attachment point is higher. To restore the same expected loss on the senior tranche, and therefore the same rating, the attachment point must be raised, which means more subordination.\n\nWhy this is the central lesson of structured credit. Two pools can look identical on every asset-level metric that a rating on the underlying collateral would capture, and still support very different amounts of se […]"
+ },
+ {
+  "id": "CR-T2-20",
+  "lo": "CR-11 c",
+  "loText": "Assess the impact of correlation on a credit portfolio and its Credit VaR.",
+  "outside": false,
+  "question": "A risk manager is evaluating the impact of default correlation on a credit portfolio's risk. Which of the following correctly describes the relationship between default correlation and credit portfolio risk?",
+  "options": {
+   "A": "Higher default correlation reduces credit portfolio risk, because it indicates a greater likelihood of joint defaults.",
+   "B": "Higher default correlation increases credit portfolio risk, because it indicates a greater likelihood of joint defaults.",
+   "C": "Default correlation has no impact on credit portfolio risk, as it only measures the co-movement of credit events.",
+   "D": "It is impossible to determine the relationship between default correlation and credit portfolio risk without further information."
+  },
+  "answer": "B",
+  "solution": "Higher default correlation increases the dispersion of portfolio losses and therefore credit VaR, while leaving expected loss unchanged.\n\nThe mechanism. Default correlation measures the tendency of obligors to fail together. Raising it makes clustered outcomes more likely, which fattens the right tail of the loss distribution.\n\n$$UL_P = \\sqrt{\\sum_i \\sum_j \\rho_{ij} UL_i UL_j}, \\text{ increasing in every } \\rho_{ij}$$\n\nBecause credit VaR is a tail quantile net of the mean, it increases with correlation.\n\nThe invariant that makes option (a) tempting and wrong. Expected loss is unchanged:\n\n$$E[\\text{loss}] = \\sum_i PD_i \\times EAD_i \\times LGD_i, \\text{ independent of correlation}$$\n\nSo correlation raises risk without raising expected loss, which is exactly why it consumes capital rather than spread.\n\nThe two boundary cases.\n\n| Correlation | Portfolio behaviour | Credit VaR |\n|---|---|---|\n| $\\rho = 0$ | Fully diversified; defaults arrive independently | Smallest, and it shrinks further as $n$ grows |\n| $0 < \\rho < 1$ | Partial diversification | Intermediate |\n| $\\rho = 1$ | Behaves as a single credit; no diversification at all | Largest, approaching the full notional less expected loss |\n\nThe same USD 1 million notional at a 3% default probability produced a credit VaR of USD 10,000 with independent credits and USD 970,000 at a correlation of one."
+ },
+ {
+  "id": "CR-T2-22",
+  "lo": "CR-12 g",
+  "loText": "Describe how to estimate credit VaR using the Gaussian copula and the CreditMetrics approach.",
+  "outside": true,
+  "question": "Which of the following statements is correct about the modelling of default correlation in CreditMetrics and in Vasicek's model?",
+  "options": {
+   "A": "Vasicek's model calculates default correlation using multiple Gaussian copulas to reflect varying economic conditions across sectors.",
+   "B": "CreditMetrics employs a single-factor model that simplifies the correlation of defaults to a common economic influence affecting all entities equally.",
+   "C": "Vasicek's model uses a single systematic factor representing overall economic conditions to model default correlations, affecting all entities in the portfolio.",
+   "D": "CreditMetrics uses sector-based risk adjustments in addition to a Gaussian copula for modelling default correlations specifically tied to individual industries."
+  },
+  "answer": "C",
+  "solution": "Vasicek's model reduces all dependence to one systematic factor with a common correlation, whereas CreditMetrics uses a full asset return correlation matrix derived from equity indices.\n\nBoth models use a Gaussian copula to link individual credit outcomes, but they differ fundamentally in how much structure they impose on the dependence.\n\n| Feature | Vasicek | CreditMetrics |\n|---|---|---|\n| Dependence structure | One systematic factor, a single correlation parameter | Full asset return correlation matrix |\n| Source of correlation | Assumed or regulatory prescribed | Equity index correlations by country and industry |\n| Scope of credit events | Default only | Default and rating migration, mark to market |\n| Solution method | Closed form, asymptotic | Monte Carlo simulation |\n| Principal use | Basel IRB capital formula | Portfolio credit VaR |\n\nVasicek's single factor. Each obligor's latent asset return is driven by one common factor plus an idiosyncratic term:\n\n$$a_i = \\sqrt{\\rho} \\times m + \\sqrt{1-\\rho} \\times \\varepsilon_i$$\n\nwhere $m$ is the single systematic factor common to all obligors and $\\varepsilon_i$ is idiosyncratic. All pairwise correlations collapse to the single parameter $\\rho$. This drastic simplification is what makes the model analytically tractable and is why it underpins the Basel IRB capital formula: a formula requiring a full correlation matrix could not […]"
+ },
+ {
+  "id": "CR-T2-25",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "An analyst holds two credits with the following characteristics.\n\n- Probability of default of credit 1: $\\pi_1 = 0.025$\n- Probability of default of credit 2: $\\pi_2 = 0.035$\n- Default correlation: $\\rho_{12} = 0.05$\n\nDetermine the joint default probability of firms 1 and 2.",
+  "options": {
+   "A": "0.231%",
+   "B": "0.088%",
+   "C": "0.143%",
+   "D": "1.435%"
+  },
+  "answer": "A",
+  "solution": "Rearranging the definition of default correlation between two Bernoulli variables to recover the joint default probability.\n\nThe definition. Default is a Bernoulli event, so the correlation between two default indicators is:\n\n$$\\rho_{12} = \\frac{\\pi_{12} - \\pi_1\\pi_2}{\\sqrt{\\pi_1(1-\\pi_1) \\times \\pi_2(1-\\pi_2)}}$$\n\nwhere $\\pi_{12}$ is the probability that both default. Rearranging:\n\n$$\\pi_{12} = \\pi_1\\pi_2 + \\rho_{12}\\sqrt{\\pi_1(1-\\pi_1)\\pi_2(1-\\pi_2)}$$\n\nStep 1. The independence term.\n\n$$\\pi_1\\pi_2 = 0.025 \\times 0.035 = 0.000875$$\n\nStep 2. The Bernoulli standard deviations.\n\n$$\\pi_1(1-\\pi_1) = 0.025 \\times 0.975 = 0.024375, \\quad \\pi_2(1-\\pi_2) = 0.035 \\times 0.965 = 0.033775$$\n\n$$\\sqrt{0.024375 \\times 0.033775} = \\sqrt{0.00082327} = 0.028697$$\n\nStep 3. Combine.\n\n$$\\pi_{12} = 0.000875 + (0.05 \\times 0.028697) = 0.000875 + 0.001435 = 0.002310 = 0.231\\%$$\n\nInterpretation. Under independence the joint probability would be 0.0875%. A correlation of only 0.05 raises it to 0.231%, roughly two and a half times. This extreme sensitivity of joint default to small correlations is why senior tranche ratings are so fragile to the correlation assumption."
+ },
+ {
+  "id": "CR-T2-26",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "A pair of credits rated BBB minus and BBB plus have default probabilities of 0.003 and 0.004 respectively. If the credits are correlated, what is the maximum permissible value of the default correlation between them?",
+  "options": {
+   "A": "0.500",
+   "B": "0.750",
+   "C": "0.812",
+   "D": "0.866"
+  },
+  "answer": "D",
+  "solution": "Default correlation between two Bernoulli variables is bounded above, because the joint default probability cannot exceed the smaller of the two marginal probabilities.\n\nThe binding constraint. Both credits can only default together as often as the less likely one defaults at all:\n\n$$\\pi_{12} \\le \\min(\\pi_1, \\pi_2) = \\min(0.003, 0.004) = 0.003$$\n\nStep 1. Substitute the maximum joint probability.\n\n$$\\rho_{max} = \\frac{0.003 - (0.003 \\times 0.004)}{\\sqrt{0.003 \\times 0.997 \\times 0.004 \\times 0.996}}$$\n\nStep 2. Numerator.\n\n$$0.003 - 0.000012 = 0.002988$$\n\nStep 3. Denominator.\n\n$$0.003 \\times 0.997 = 0.002991; \\quad 0.004 \\times 0.996 = 0.003984$$\n\n$$\\sqrt{0.002991 \\times 0.003984} = \\sqrt{0.0000119161} = 0.0034520$$\n\nStep 4. Divide.\n\n$$\\rho_{max} = \\frac{0.002988}{0.0034520} = 0.866$$\n\nWhy the bound is below 1. Perfect correlation of one would require the two credits to default in exactly the same states, which is impossible when their marginal probabilities differ: credit 2 defaults in states where credit 1 does not. The maximum attainable correlation therefore falls as the two marginals diverge, and reaches 1 only when $\\pi_1 = \\pi_2$.\n\nThe practical implication. A modelled correlation input must respect this bound. Feeding a Gaussian copula an asset correlation that implies a default correlation above the feasible maximum produces an internally inconsistent loss distribution."
+ },
+ {
+  "id": "CR-T2-27",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "An investment firm has exposure to two credits. The first, rated BBB, has a default probability of 0.003 over the time horizon $t$. The second, rated CCC, has a default probability of 0.005 over a comparable horizon. The probability that both credits default over the horizon $t$ is 0.0002.\n\nThe default correlation for this portfolio is closest to:",
+  "options": {
+   "A": "0.05796",
+   "B": "0.00262",
+   "C": "0.00338",
+   "D": "0.04796"
+  },
+  "answer": "D",
+  "solution": "Computing default correlation directly from the joint default probability and the two marginal default probabilities.\n\nThis is the reverse direction of the joint-default calculation: the joint probability is given and the correlation is the unknown.\n\n$$\\rho_{12} = \\frac{\\pi_{12} - \\pi_1\\pi_2}{\\sqrt{\\pi_1(1-\\pi_1) \\times \\pi_2(1-\\pi_2)}}$$\n\nStep 1. Numerator, the excess over independence.\n\n$$\\pi_1\\pi_2 = 0.003 \\times 0.005 = 0.000015, \\quad 0.0002 - 0.000015 = 0.000185$$\n\nStep 2. Denominator.\n\n$$0.003 \\times 0.997 = 0.002991; \\quad 0.005 \\times 0.995 = 0.004975$$\n\n$$\\sqrt{0.002991 \\times 0.004975} = \\sqrt{0.0000148802} = 0.0038575$$\n\nStep 3. Divide.\n\n$$\\rho_{12} = \\frac{0.000185}{0.0038575} = 0.04796$$\n\nInterpretation. A joint default probability of 0.02% against an independence benchmark of 0.0015% is more than thirteen times higher, yet the implied default correlation is only about 0.048. Very low default correlations are consistent with joint defaults being many multiples of the independent case, which is the single most counterintuitive feature of this measure and the reason correlation cannot be judged by eye.\n\nFeasibility check. The maximum joint probability here is $\\min(0.003, 0.005) = 0.003$, so the stated 0.0002 is well within the feasible range."
+ },
+ {
+  "id": "CR-T2-28",
+  "lo": "CR-11 e",
+  "loText": "Define beta and calculate the asset return correlation of any pair of firms using the single factor model.",
+  "outside": false,
+  "question": "A credit analyst is applying the single factor model to a portfolio. In this model each firm's standardised asset return is driven by a common market factor $m$ and an idiosyncratic shock, as follows.\n\n$$a_i = \\beta_i m + \\sqrt{1-\\beta_i^2}\\,\\varepsilon_i, \\text{ where } m \\text{ and each } \\varepsilon_i \\text{ are independent standard normal variables}$$\n\n- Firm 1 has a beta of 0.60\n- Firm 2 has a beta of 0.50\n\nWhat is the asset return correlation between firm 1 and firm 2, and what does beta represent?",
+  "options": {
+   "A": "0.30; beta is the sensitivity of the firm's asset return to the common market factor, and it equals the correlation between the firm's asset return and that factor.",
+   "B": "0.55; beta is the sensitivity of the firm's asset return to the common market factor, computed as the average of the two firms' factor loadings.",
+   "C": "0.30; beta is the proportion of the firm's asset return variance that is idiosyncratic and therefore diversifiable.",
+   "D": "0.548; beta is the sensitivity of the firm's asset return to the common market factor, and the pair correlation is the square root of the product of the two betas."
+  },
+  "answer": "A",
+  "solution": "In the single factor model, beta is both the factor loading and the correlation of the firm's asset return with the factor; the pairwise asset return correlation is the product of the two betas.\n\nWhat beta is. Because $m$ and $\\varepsilon_i$ are independent standard normals and the coefficients are constructed so that $a_i$ has unit variance, beta is simultaneously the factor loading and the correlation between the firm's asset return and the market factor:\n\n$$var(a_i) = \\beta_i^2 + (1-\\beta_i^2) = 1, \\quad corr(a_i, m) = cov(a_i, m) = \\beta_i$$\n\n| Component | Share of variance | Interpretation |\n|---|---|---|\n| Systematic, $\\beta_i^2$ | 0.36 for firm 1 | Driven by the common factor; not diversifiable |\n| Idiosyncratic, $1-\\beta_i^2$ | 0.64 for firm 1 | Firm specific; diversifiable across a large portfolio |\n\nThe pairwise asset return correlation. Two firms are linked only through the common factor, since their idiosyncratic shocks are independent of each other and of $m$:\n\n$$cov(a_1, a_2) = \\beta_1\\beta_2\\, var(m) = \\beta_1\\beta_2$$\n\n$$\\rho_{12}^{assets} = \\beta_1 \\times \\beta_2 = 0.60 \\times 0.50 = 0.30$$\n\nWhy this matters for the portfolio. All pairwise correlations in the portfolio are determined by $n$ betas rather than by $n(n-1)/2$ separate parameters. That reduction is the entire practical appeal of the single factor model, and it is why the Basel IRB formula can be wri […]"
+ },
+ {
+  "id": "CR-T2-29",
+  "lo": "CR-11 f",
+  "loText": "Estimate the probability of a joint default of any pair of credits and the default correlation between any pair of credits using the single factor model.",
+  "outside": false,
+  "question": "Two firms are modelled with the single factor structure $a_i = \\beta_i m + \\sqrt{1-\\beta_i^2}\\,\\varepsilon_i$. Both have an unconditional default probability of 2.0% and a beta of 0.40 with respect to the common factor. A firm defaults when its asset return falls below its threshold $k_i$.\n\nWhich of the following correctly describes the steps required to estimate the joint default probability of the pair?",
+  "options": {
+   "A": "Set $k = N^{-1}(0.02) = -2.054$ for both firms, then evaluate the bivariate standard normal cumulative distribution at $(k, k)$ with correlation equal to $\\beta_1\\beta_2 = 0.16$.",
+   "B": "Set $k = N^{-1}(0.02) = -2.054$ for both firms, then evaluate the bivariate standard normal cumulative distribution at $(k, k)$ with correlation equal to $\\beta_1 + \\beta_2 = 0.80$.",
+   "C": "Multiply the two unconditional default probabilities to obtain 0.04%, since the single factor model assumes conditional independence between firms.",
+   "D": "Set $k = N^{-1}(0.02) = -2.054$, then evaluate the univariate standard normal at $k$ divided by $\\sqrt{1-0.16}$, since the idiosyncratic component determines joint default."
+  },
+  "answer": "A",
+  "solution": "Joint default under the single factor model is a bivariate normal probability evaluated at the two default thresholds, with the asset return correlation equal to the product of the betas.\n\nStep 1. Recover the default threshold from the unconditional default probability. Asset returns are standard normal, so the threshold is the inverse normal at the default probability:\n\n$$\\pi_i = P(a_i < k_i) = N(k_i) \\rightarrow k_i = N^{-1}(\\pi_i), \\quad k = N^{-1}(0.02) = -2.054 \\text{ for both firms}$$\n\nStep 2. Establish the asset return correlation. The pair correlation is the product of the betas:\n\n$$\\rho^{assets} = \\beta_1\\beta_2 = 0.40 \\times 0.40 = 0.16$$\n\nStep 3. Joint default is a bivariate normal probability. Both firms default when both asset returns fall below their thresholds:\n\n$$\\pi_{12} = P(a_1 < k, a_2 < k) = \\Phi_2(k, k; \\rho^{assets}) = \\Phi_2(-2.054, -2.054; 0.16)$$\n\nThis evaluates to approximately 0.092%, against an independence benchmark of $2\\% \\times 2\\% = 0.04\\%$. An asset correlation of 0.16 therefore raises joint default by a factor of roughly 2.3.\n\nWhy conditional independence does not mean unconditional independence. Option (c) exploits a real property of the model. Firms are independent conditional on a given realisation of $m$, because their $\\varepsilon$ terms are independent. But $m$ itself is random, and integrating over its distribution reintroduces dependen […]"
+ },
+ {
+  "id": "CR-T2-30",
+  "lo": "CR-12 f",
+  "loText": "Describe the Gaussian copula model for time to default and calculate the probability of default using the one-factor Gaussian copula model.",
+  "outside": false,
+  "question": "In the single factor Gaussian copula model, the cumulative default probability conditional on the market factor $m$ is given by the expression below. A single firm has a beta of 0.60 and a default threshold $k$ of $-1.645$, so that its unconditional default probability is 5.0%.\n\nIf the economy enters a downturn such that the market factor $m$ takes the value $-1.41$, what is the conditional default probability?\n\n$$p(m) = N\\left[\\frac{k - \\beta m}{\\sqrt{1-\\beta^2}}\\right]$$",
+  "options": {
+   "A": "7.83%",
+   "B": "10.67%",
+   "C": "15.90%",
+   "D": "22.75%"
+  },
+  "answer": "C",
+  "solution": "Conditioning a firm's default probability on an adverse realisation of the systematic factor, which is the core computation of the one-factor Gaussian copula.\n\nThe structure. The firm defaults when $a = \\beta m + \\sqrt{1-\\beta^2}\\,\\varepsilon$ falls below $k$. Conditional on a known $m$, only $\\varepsilon$ remains random, so:\n\n$$p(m) = P\\left(\\varepsilon < \\frac{k-\\beta m}{\\sqrt{1-\\beta^2}}\\right) = N\\left[\\frac{k-\\beta m}{\\sqrt{1-\\beta^2}}\\right]$$\n\nStep 1. Confirm the threshold. The unconditional default probability is 5.0%, so $k = N^{-1}(0.05) = -1.645$. This is consistent with the stem.\n\nStep 2. Numerator.\n\n$$k - \\beta m = -1.645 - (0.60 \\times -1.41) = -1.645 + 0.846 = -0.799$$\n\nStep 3. Denominator.\n\n$$\\sqrt{1-0.60^2} = \\sqrt{1-0.36} = \\sqrt{0.64} = 0.80$$\n\nStep 4. Evaluate.\n\n$$p(m) = N\\left(\\frac{-0.799}{0.80}\\right) = N(-0.999) = 15.90\\%$$\n\nInterpretation. A one-and-a-half standard deviation downturn in the systematic factor triples the firm's default probability, from 5.0% unconditional to 15.9% conditional. That amplification is the entire content of the model: it is how a single common factor generates default clustering without any direct linkage between firms.\n\nThe direction to fix. The market factor enters with a negative sign in the numerator, so a fall in $m$ raises the conditional default probability. Set $m = 0$ and the expression returns $N(k) = 5.0\\%$, the u […]"
+ },
+ {
+  "id": "CR-T2-31",
+  "lo": "CR-12 e",
+  "loText": "Describe the significance of estimating default correlation for credit portfolios and distinguish between reduced form and structural default correlation models.",
+  "outside": false,
+  "question": "A risk manager is assessing the impact of default correlation on two credit portfolios. Portfolio A consists of uncorrelated bonds and Portfolio B consists of highly correlated bonds. Both have the same number of positions, the same individual default probabilities and the same total notional.\n\nWhich portfolio has the higher level of risk?",
+  "options": {
+   "A": "Portfolio A, because uncorrelated bonds carry less diversification benefit than highly correlated bonds.",
+   "B": "Portfolio B, because highly correlated bonds produce a wider loss distribution than uncorrelated bonds.",
+   "C": "Both portfolios have the same level of risk, because default correlation does not affect portfolio expected loss.",
+   "D": "It is impossible to determine without knowing the recovery rates and the confidence level."
+  },
+  "answer": "B",
+  "solution": "Correlation is the primary determinant of the dispersion of portfolio credit losses, so the correlated portfolio carries greater unexpected loss and credit VaR for identical expected loss.\n\nBoth portfolios have identical expected loss, since expectation is linear and unaffected by dependence. They differ entirely in the dispersion around that mean.\n\n$$E[\\text{loss}_A] = E[\\text{loss}_B] = n \\times \\pi \\times EAD \\times LGD$$\n\n$$\\sigma^2[\\text{loss}] \\text{ increases with every pairwise } \\rho_{ij}$$\n\nPortfolio A, uncorrelated. Defaults arrive independently, so the realised default rate clusters tightly around $\\pi$. The law of large numbers applies and unexpected loss shrinks as the number of positions grows.\n\nPortfolio B, highly correlated. Positions fail together or survive together. Most years produce few losses and occasional years produce catastrophic ones. The distribution is far more dispersed, so credit VaR and required economic capital are much larger.\n\nWhy this makes correlation estimation the central problem. Two portfolios that look identical on every observable asset-level metric can require dramatically different capital. Yet default correlation is the hardest parameter to estimate: joint defaults are rarer than single defaults, so the data is sparse, and credits are illiquid, so correlation cannot be read from market prices. The parameter that matters most is the […]"
+ },
+ {
+  "id": "CR-T2-32",
+  "lo": "CR-12 e",
+  "loText": "Describe the significance of estimating default correlation for credit portfolios and distinguish between reduced form and structural default correlation models.",
+  "outside": false,
+  "question": "A quantitative analyst is documenting the two families of model used to generate default correlation for a credit portfolio. Which of the following correctly distinguishes them?",
+  "options": {
+   "A": "Structural models derive correlated defaults from correlated firm asset values crossing default thresholds, whereas reduced form models treat default as an unpredictable event whose intensity is correlated across firms through common risk factors.",
+   "B": "Structural models treat default as an unpredictable jump governed by a hazard rate, whereas reduced form models derive default from the firm's balance sheet by comparing asset value with liabilities.",
+   "C": "Structural models are calibrated exclusively to CDS spreads, whereas reduced form models are calibrated exclusively to accounting statements.",
+   "D": "Structural models cannot generate default correlation at all, since each firm's asset value is modelled independently; only reduced form models can produce correlated defaults."
+  },
+  "answer": "A",
+  "solution": "Structural models explain default through the capital structure and generate correlation through correlated asset values; reduced form models treat default as an exogenous intensity and generate correlation through common factors driving that intensity.\n\nThe two families answer different questions about why a firm defaults, and each generates correlation by a different route.\n\n| Feature | Structural | Reduced form |\n|---|---|---|\n| Cause of default | Endogenous: asset value falls below the liability threshold | Exogenous: an unpredictable jump with intensity $\\lambda$ |\n| Source of correlation | Correlated asset values, typically through common factors | Correlated default intensities, through common risk factors |\n| Typical calibration | Equity price and equity volatility | CDS and bond credit spreads |\n| Examples | Merton, Moody's KMV, the single factor model | Jarrow-Turnbull, Duffie-Singleton, hazard rate models |\n| Short horizon default probability | Implausibly low, since assets move continuously | Realistic, since default can arrive at any instant |\n\nStructural models. Default is endogenous and predictable in principle: it occurs when asset value falls below the value of liabilities. Merton and Moody's KMV are the canonical examples. Correlation arises naturally, because asset values are correlated through common economic factors. The single factor model is a structural  […]"
+ },
+ {
+  "id": "CR-FT-10",
+  "lo": "CR-11 b",
+  "loText": "Identify drawbacks in using the correlation-based credit portfolio framework.",
+  "outside": false,
+  "question": "A model validation team is documenting the limitations of the correlation-based credit portfolio framework used to compute the bank's credit VaR. Which of the following correctly identifies its principal drawbacks?",
+  "options": {
+   "A": "Default correlations are very difficult to estimate because joint defaults are rare and credits are illiquid; the Gaussian copula understates tail dependence, so simultaneous extreme defaults are less likely under the model than in reality; and results are highly sensitive to a parameter that cannot be observed.",
+   "B": "Default correlations are readily observable from equity markets, so the framework's weakness is computational cost rather than parameter uncertainty; the Gaussian copula overstates tail dependence and therefore produces conservative capital numbers.",
+   "C": "The framework's principal drawback is that it cannot accommodate portfolios with more than a few hundred exposures, since the correlation matrix grows factorially with the number of names.",
+   "D": "The framework has no material drawbacks for portfolios of investment-grade credits, since default correlations for high-quality names are close to zero and the resulting loss distribution is approximately normal."
+  },
+  "answer": "A",
+  "solution": "The correlation framework is fragile precisely where it matters most: the parameter driving the tail is unobservable, sparsely estimated, and modelled with a copula that understates joint extreme outcomes.\n\n**Three connected drawbacks.**\n\n| Drawback | Why it matters |\n|---|---|\n| Estimation difficulty | Joint defaults are rare and credits illiquid, so correlation is inferred from proxies rather than observed |\n| Understated tail dependence | The Gaussian copula assigns near independence to extreme joint outcomes, which contradicts observed default clustering |\n| Extreme output sensitivity | Small changes in an unobservable parameter move credit VaR and tranche values materially |\n\n**Estimation.** Default correlation is inferred rather than observed. Defaults are rare, joint defaults rarer still, and credits are illiquid so no market price reveals the dependence. Asset correlations are typically proxied from equity index correlations, which imports a different dependence structure.\n\n**Tail dependence.** The Gaussian copula has zero tail dependence: as outcomes become more extreme, the probability of two names failing together approaches independence. Empirically defaults cluster far more in crises than that implies, which is the specific technical failure exposed in 2007 and 2008.\n\n**Sensitivity.** Senior tranche values and portfolio credit VaR are acutely sensitive to correlati […]"
+ },
+ {
+  "id": "CR-FT-12",
+  "lo": "CR-11 d",
+  "loText": "Describe the use of a single factor model to measure portfolio credit risk, including the impact of correlation.",
+  "outside": false,
+  "question": "Which of the following statements is correct about the modelling of default correlation in CreditMetrics and in Vasicek's model?",
+  "options": {
+   "A": "Vasicek's model calculates default correlation using multiple Gaussian copulas to reflect varying economic conditions across sectors.",
+   "B": "CreditMetrics employs a single-factor model that simplifies the correlation of defaults to a common economic influence affecting all entities equally.",
+   "C": "Vasicek's model uses a single systematic factor representing overall economic conditions to model default correlations, affecting all entities in the portfolio.",
+   "D": "CreditMetrics uses sector-based risk adjustments in addition to a Gaussian copula for modelling default correlations specifically tied to individual industries."
+  },
+  "answer": "C",
+  "solution": "Vasicek's model reduces all dependence to one systematic factor with a common correlation, whereas CreditMetrics uses a full asset return correlation matrix derived from equity indices.\n\nBoth models use a Gaussian copula to link individual credit outcomes, but they differ fundamentally in how much structure they impose on the dependence.\n\n| Feature | Vasicek | CreditMetrics |\n|---|---|---|\n| Dependence structure | One systematic factor, a single correlation parameter | Full asset return correlation matrix |\n| Source of correlation | Assumed or regulatory prescribed | Equity index correlations by country and industry |\n| Scope of credit events | Default only | Default and rating migration, mark to market |\n| Solution method | Closed form, asymptotic | Monte Carlo simulation |\n| Principal use | Basel IRB capital formula | Portfolio credit VaR |\n\n**Vasicek's single factor.** Each obligor's latent asset return is driven by one common factor plus an idiosyncratic term:\n\n$$a_i = \\sqrt{\\rho} \\times m + \\sqrt{1 - \\rho} \\times \\epsilon_i$$\n\nwhere $m$ is the single systematic factor common to all obligors and $\\epsilon_i$ is idiosyncratic. All pairwise correlations collapse to the single parameter $\\rho$. This drastic simplification is what makes the model analytically tractable and is why it underpins the Basel IRB capital formula: a formula requiring a full correlation matrix could not […]"
+ },
+ {
+  "id": "CR-FT-17",
+  "lo": "CR-13 f",
+  "loText": "Describe the process of valuing a synthetic CDO using the spread payments approach and the Gaussian copula model of time to default approach.",
+  "outside": true,
+  "question": "A structurer is valuing a tranche of a synthetic collateralised debt obligation. Which of the following correctly describes the two valuation approaches and the role of the Gaussian copula?",
+  "options": {
+   "A": "The spread payments approach equates the present value of the premium leg received by the protection seller with the present value of the expected protection payments on the tranche, and the Gaussian copula is used to generate correlated default times across the reference portfolio so that the tranche loss distribution can be simulated.",
+   "B": "The spread payments approach discounts the tranche's coupon at the risk-free rate and ignores default, while the Gaussian copula is used to calibrate the recovery rate assumption for each reference name.",
+   "C": "The two approaches are alternatives that produce identical values by construction, since the copula is simply a numerical implementation of the spread payments identity.",
+   "D": "The Gaussian copula generates independent default times for each reference name, and the spread payments approach then aggregates them, so that tranche value depends on the individual default probabilities but not on any correlation assumption."
+  },
+  "answer": "A",
+  "solution": "A synthetic CDO tranche is valued by equating premium and protection legs, and the loss distribution required for the protection leg is generated by simulating correlated default times through a Gaussian copula.\n\n**The two legs.** A synthetic CDO tranche is economically a portfolio credit default swap. The investor sells protection on a slice of the reference portfolio.\n\n$$PV(\\text{premium leg}) = s \\times \\sum_t E[\\text{outstanding tranche notional at } t] \\times DF(t)$$\n$$PV(\\text{protection leg}) = \\sum_t E[\\text{tranche loss in period } t] \\times DF(t)$$\n\nThe fair spread is the value of $s$ that equates the two.\n\n**What the copula supplies.** The protection leg requires the distribution of portfolio losses, which depends entirely on how defaults cluster. The Gaussian copula generates that dependence.\n\n| Step | Operation |\n|---|---|\n| 1 | Map each name's cumulative default probability to a default time through the marginal distribution |\n| 2 | Draw correlated standard normals, typically through a single common factor plus idiosyncratic terms |\n| 3 | Convert each correlated normal into a default time using the inverse of that name's marginal |\n| 4 | Aggregate losses across names in each simulation path |\n| 5 | Apply the tranche attachment and detachment points to obtain the tranche loss |\n| 6 | Average across paths to obtain expected tranche loss, then discount |\n\n**Why corre […]"
+ },
+ {
+  "id": "CR-FT-43",
+  "lo": "CR-22 i",
+  "loText": "Explain how the default probabilities and default correlations affect the credit risk in a securitization.",
+  "outside": false,
+  "question": "A structurer is explaining to an investment committee how a rise in the default correlation of the collateral pool affects a securitisation, holding each individual asset's default probability constant.\n\nWhich of the following is correct?",
+  "options": {
+   "A": "The senior tranche becomes riskier and the equity tranche becomes safer, because higher correlation raises the probability of the extreme joint-default outcomes that reach the senior tranche while raising the probability that no assets default at all.",
+   "B": "Both the senior and the equity tranche become riskier, because higher correlation increases the expected number of defaults in the pool.",
+   "C": "The senior tranche becomes safer and the equity tranche becomes riskier, because higher correlation concentrates losses in the first-loss position.",
+   "D": "Neither tranche is affected, because the expected loss of the pool depends only on the individual default probabilities, which are unchanged."
+  },
+  "answer": "A",
+  "solution": "Correlation redistributes risk across the capital structure without changing pool expected loss: it fattens both tails, hurting the senior tranche and helping the equity tranche.\n\n**The invariant.** Expected loss on the pool is the sum of individual expected losses and is unaffected by correlation, because expectation is linear:\n\n$$E[\\text{pool loss}] = \\sum_i PD_i \\times EAD_i \\times LGD_i, \\text{ independent of } \\rho$$\n\nWhat correlation changes is the shape of the loss distribution around that unchanged mean.\n\n**What higher correlation does.** It fattens both tails simultaneously. Assets increasingly default together or survive together, so the probability of very many defaults rises and the probability of very few or none also rises. Intermediate outcomes become less likely.\n\n| Outcome | Effect of higher correlation | Tranche affected |\n|---|---|---|\n| Very few or no defaults | More likely | Equity tranche benefits |\n| An intermediate number of defaults | Less likely | Mezzanine, ambiguous |\n| Very many defaults | More likely | Senior tranche is harmed |\n\n**The senior tranche.** It suffers only in the extreme scenario where losses breach all the subordination beneath it. That scenario requires many simultaneous defaults, and higher correlation makes it more likely. The senior tranche is therefore long correlation risk, or equivalently short correlation.\n\n**The equity tranch […]"
+ },
+ {
+  "id": "CR-QB-0452",
+  "lo": "CR-10 e",
+  "loText": "Explain the Vasicek’s model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of estimating the probability distribution of losses arising from defaults as well as modeling the default correlation.",
+  "outside": true,
+  "question": "A portfolio manager is exploring models for the probability distribution of losses from defaults and for credit correlation in a debt portfolio. How does Vasicek’s model conceptualize default losses and default correlation?",
+  "options": {
+   "A": "Losses arise only from defaults, and default events are correlated through a multiple‑factor Gaussian copula.",
+   "B": "Losses arise only from defaults, and default correlation is captured by a one‑factor Gaussian copula with a single credit (asset) correlation parameter.",
+   "C": "Defaults follow a Poisson distribution, and losses are quantified without explicitly modeling default correlation.",
+   "D": "Defaults are treated as independent events, so the loss distribution is estimated separately for each borrower."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Vasicek’s model considers only defaults (no downgrades).\n2. It uses a one‑factor Gaussian copula: one common systematic factor plus an idiosyncratic factor per borrower, so correlation is summarised by a single parameter $\\rho$.\n3. The worst case default rate is WCDR$(T, X) = N \\left[ \\frac{N^{-1}(PD)+\\sqrt{\\rho} N^{-1}(X)}{\\sqrt{1-\\rho}} \\right]$, with $\\rho$ approximated by the correlation of asset (or equity) returns.\n4. Only B matches both features: default‑only losses and a one‑factor copula.\n\n**REBUILT** — Option B bundled an unclear ’time to default’ clause; reworded so the correct option states the one‑factor copula and single correlation parameter cleanly."
+ },
+ {
+  "id": "CR-QB-0457",
+  "lo": "CR-10 e",
+  "loText": "Explain the Vasicek’s model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of estimating the probability distribution of losses arising from defaults as well as modeling the default correlation.",
+  "outside": true,
+  "question": "Which of the following statements is correct about the modeling of default correlation in CreditMetrics and Vasicek’s model?",
+  "options": {
+   "A": "Vasicek’s model calculates default correlation using multiple Gaussian copulas to reflect varying economic conditions across sectors.",
+   "B": "CreditMetrics employs a single‑factor model that simplifies the correlation of defaults to a common economic influence affecting all entities equally.",
+   "C": "Vasicek’s model uses a single systematic factor that represents overall economic conditions to model default correlations, affecting all entities in the portfolio.",
+   "D": "CreditMetrics uses sector‑based risk adjustments in addition to a Gaussian copula for modeling the default correlations specifically tied to individual industries."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Vasicek: one Gaussian copula, one systematic factor plus idiosyncratic noise, one correlation parameter.\n2. CreditMetrics: Gaussian copula on rating transitions with the correlation between two companies set to their equity‑return correlation (pairwise, not one common factor).\n3. Only C describes these correctly."
+ },
+ {
+  "id": "CR-QB-0458",
+  "lo": "CR-10 e",
+  "loText": "Explain the Vasicek’s model, Credit Risk Plus (CreditRisk+) model, and the CreditMetrics ways of estimating the probability distribution of losses arising from defaults as well as modeling the default correlation.",
+  "outside": true,
+  "question": "Which of the following statements about credit VaR models is accurate?",
+  "options": {
+   "A": "CreditMetrics uses a Gaussian copula to calculate the exposure at default of each counterparty from correlated equity returns.",
+   "B": "Credit Risk Plus estimates default probability with a Gaussian copula that combines individual and systematic risk factors.",
+   "C": "Vasicek’s model applies a Gaussian copula to estimate the worst case default rate (WCDR) of a loan portfolio.",
+   "D": "CreditMetrics assumes that rating changes of different counterparties are independent."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Vasicek: Gaussian copula gives WCDR(T,X); portfolio loss percentile = sum of WCDR x EAD x LGD.\n2. CreditMetrics: the copula correlates rating transitions (via equity returns), not EAD.\n3. Credit Risk Plus: Poisson/negative binomial default counts, no Gaussian copula.\n4. Hence C.\n\n**REBUILT** — Option D (transition matrices built from internal default rates) was arguable since internal ratings may be used; replaced with a clearly false Credit‑Metrics statement and tightened the stem."
+ },
+ {
+  "id": "CR-QB-0468",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Commercial bank C has lent to companies A and B. Both A and B have a 9.0% probability of default, and their pairwise default correlation is 0.280. Which is nearest to the joint probability of default of A and B?",
+  "options": {
+   "A": "0.81%",
+   "B": "3.10%",
+   "C": "3.33%",
+   "D": "9.00%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Bernoulli default variables: $\\sigma_{A} = \\sigma_{B} = \\sqrt{0.09 \\times0.91} = 0.2862$.\n2. Covariance $= \\rho\\sigma_{A}\\sigma_{B} = 0.280 \\times0.09 \\times0.91 = 0.022932$.\n3. Joint PD $= \\pi_{A}\\pi_{B} + \\text{Cov} = 0.0081 + 0.022932 = 0.031032 \\approx3.10\\%$.\n\n**REBUILT** — Two distractors (6.20%, 8.72%) were not products of any realistic error; replaced with 3.33% (omitted the (1‑PD) term) and 9.00% (perfect‑correlation limit)."
+ },
+ {
+  "id": "CR-QB-0469",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "A creditor makes a \\$4 million loan to Company X and a \\$4 million loan to Company Y. Each company has a 7% default probability, and the default correlation between them is 0.6. Assuming loss given default of 100%, the expected loss from the scenario in which both loans default (a loss of \\$8 million) is closest to:",
+  "options": {
+   "A": "\\$39,200",
+   "B": "\\$351,680",
+   "C": "\\$312,480",
+   "D": "\\$560,000"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Joint PD $= \\rho\\pi(1 - \\pi) + \\pi^{2} = 0.6 \\times0.07 \\times0.93 + 0.07^{2}$.\n2. = 0.03906 + 0.0049 = 0.04396.\n3. Loss if both default = \\$4m $+ \\$4\\text{m} = \\$8$m (LGD 100%).\n4. Expected loss = 0.04396 × \\$8,000,000 = \\$351,680.\n\n**REBUILT** — Wording ’expected loss under worst‑case’ was ambiguous and the source formula was missing; restated as the expected loss from the joint‑default event and replaced unrealistic distractors."
+ },
+ {
+  "id": "CR-QB-0470",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "If two firms have independent default events, which of the following expressions is non‑zero?",
+  "options": {
+   "A": "$\\rho_{12}\\sqrt{\\pi_{1}(1 - \\pi_{1})}\\sqrt{\\pi_{2}(1 - \\pi_{2})}$",
+   "B": "$\\frac{\\pi_{12} - \\pi_{1}\\pi_{2}}{\\sqrt{\\pi_{1}(1 - \\pi_{1})}\\sqrt{\\pi_{2}(1 - \\pi_{2})}}$",
+   "C": "$\\pi_{12}/\\pi_{1}$",
+   "D": "$\\pi_{12} - \\pi_{1}\\pi_{2}$"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Independence means $\\pi_{12} = \\pi_{1}\\pi_{2}$.\n2. Then covariance $\\pi_{12} - \\pi_{1}\\pi_{2} = 0$ (option D), so default correlation $\\rho_{12} = 0$ (option B).\n3. Option A is $\\rho_{12}$ times the standard deviations, i.e. the covariance, which equals 0.\n4. Option C $= \\pi_{1}\\pi_{2}/\\pi_{1} = \\pi_{2} > 0$: the conditional default probability equals the unconditional one.\n\n**REBUILT** — Options were garbled by OCR; restated cleanly with each option a standard expression from the reading."
+ },
+ {
+  "id": "CR-QB-0471",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "The probability of default for firm 1 is 5% and for firm 2 is 1%. Their default correlation is 0.2. What is the joint probability of default?",
+  "options": {
+   "A": "0.50%",
+   "B": "0.05%",
+   "C": "0.06%",
+   "D": "0.48%"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. $\\sqrt{0.05 \\times0.95} = 0.21794$; $\\sqrt{0.01 \\times0.99} = 0.09950$.\n2. Covariance = 0.2 × 0.21794 × 0.09950 = 0.004337.\n3. $\\pi_{1}\\pi_{2} = 0.0005$.\n4. Joint PD = 0.0005 + 0.004337 = 0.004837 ≈ 0.48%.\n\n**REBUILT** — Replaced the 0.03% distractor with 0.50% (omitted the (1‑PD) terms) so each wrong option reflects a realistic error."
+ },
+ {
+  "id": "CR-QB-0472",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "A bank has issued loans to two companies, A and B, with default probabilities of 5% and 10%, respectively. What is the joint probability of default if their default correlation is 0.6?",
+  "options": {
+   "A": "3.92%",
+   "B": "4.74%",
+   "C": "4.42%",
+   "D": "0.80%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. $\\sqrt{0.05 \\times0.95 \\times0.10 \\times0.90} = \\sqrt{0.004275} = 0.06538$.\n2. Covariance = 0.6 × 0.06538 = 0.03923.\n3. $\\pi_{A}\\pi_{B} = 0.005$.\n4. Joint PD = 0.005 + 0.03923 = 0.04423 ≈ 4.42%.\n\n**REBUILT** — Replaced 5.78% and 7.04% (no realistic derivation) with errors that arise from the formula."
+ },
+ {
+  "id": "CR-QB-0473",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Given $\\pi_{1} = 0.025$, $\\pi_{2} = 0.035$ and $\\rho_{12} = 0.05$, determine the joint default probability of firms 1 and 2.",
+  "options": {
+   "A": "0.23%",
+   "B": "0.09%",
+   "C": "0.14%",
+   "D": "2.50%"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. $\\sqrt{0.025 \\times0.975} = 0.15612$; $\\sqrt{0.035 \\times0.965} = 0.18378$.\n2. Covariance = 0.05 × 0.15612 × 0.18378 = 0.001435.\n3. $\\pi_{1}\\pi_{2} = 0.000875$.\n4. Joint PD = 0.000875 + 0.001435 = 0.00231 ≈ 0.23%.\n\n**REBUILT** — Replaced 0.5% and 0.45% (no realistic derivation) with 0.09% (independence) and 2.50% (perfect‑dependence bound)."
+ },
+ {
+  "id": "CR-QB-0474",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Consider two loans to Company X and Company Y with PD(X) = 10.0% and PD(Y) = 4.0%. The joint default probability is PD(X and Y) = 3.930%. Which is nearest to the implied default correlation?",
+  "options": {
+   "A": "0.56",
+   "B": "0.60",
+   "C": "0.67",
+   "D": "Zero"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance = 0.0393 − 0.10 × 0.04 = 0.0353.\n2. $\\sigma_{X} = \\sqrt{0.10 \\times0.90} = 0.3$; $\\sigma_{Y} = \\sqrt{0.04 \\times0.96} = 0.19596$; product = 0.058788.\n3. $\\rho= 0.0353/0.058788 = 0.6005 \\approx0.60$.\n\n**REBUILT** — Replaced distractors (zero/0.30/0.15) with realistic formula errors, kept the same data."
+ },
+ {
+  "id": "CR-QB-0475",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two credits rated BBB‑ and BBB+ have default probabilities of 0.3% and 0.4%, respectively. If the joint probability that both default is 0.2%, what is their default correlation?",
+  "options": {
+   "A": "57.94%",
+   "B": "57.59%",
+   "C": "66.67%",
+   "D": "57.74%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance = 0.002 − 0.003 × 0.004 = 0.001988.\n2. $\\sigma_{1}\\sigma_{2} = \\sqrt{0.003 \\times0.997 \\times0.004 \\times0.996} = \\sqrt{1.19164 \\times10^{-5}} = 0.003452$.\n3. $\\rho= 0.001988/0.003452 = 0.5759$, i.e. 57.59%.\n\n**REBUILT** — Stem ambiguity (’portfolio default probability of 0.2%’, ’maximum’) clarified as joint default probability of 0.2%; distractors replaced by formula errors."
+ },
+ {
+  "id": "CR-QB-0476",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two credits have the same default probability $\\pi$. If $\\rho_{12}$ is the default correlation between them, which expression gives their joint default probability?",
+  "options": {
+   "A": "$\\pi_{12} = \\rho_{12} \\pi(1 - \\pi) + \\pi^{2}$",
+   "B": "$\\pi_{12} = \\rho_{12}$",
+   "C": "$\\pi_{12} = \\pi^{2}$",
+   "D": "$\\pi_{12} = \\pi^{3}$"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. General: $\\pi_{12} = \\rho_{12}\\sqrt{\\pi_{1}(1 - \\pi_{1})}\\sqrt{\\pi_{2}(1 - \\pi_{2})} + \\pi_{1}\\pi_{2}$.\n2. Set $\\pi_{1} = \\pi_{2} = \\pi$: the root product becomes $\\sqrt{\\pi^{2}(1 - \\pi)^{2}} = \\pi(1 - \\pi)$.\n3. So $\\pi_{12} = \\rho_{12}\\pi(1 - \\pi) + \\pi^{2}$.\n\n**REBUILT** — Stem said ratings differ yet ’equal’ PDs, and options C/D were garbled; restated for two credits with identical PD and cleaned options."
+ },
+ {
+  "id": "CR-QB-0477",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two credits have default probabilities $\\pi_{1} = 0.004$ and $\\pi_{2} = 0.010$. What is the joint probability of default if the default correlation is 10%?",
+  "options": {
+   "A": "0.0668%",
+   "B": "0.0628%",
+   "C": "0.0672%",
+   "D": "0.0044%"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. $\\pi_{12} = \\rho_{12}\\sqrt{\\pi_{1}(1 - \\pi_{1})}\\sqrt{\\pi_{2}(1 - \\pi_{2})} + \\pi_{1}\\pi_{2}$.\n2. $\\sqrt{0.004 \\times0.996} = 0.063119$; $\\sqrt{0.010 \\times0.990} = 0.099499$; product = 0.006280.\n3. Correlation term: 0.10 x 0.006280 = 0.000628.\n4. Independence term: 0.004 x 0.010 = 0.00004.\n5. $\\pi_{12} = 0.000628 + 0.00004 = 0.000668 = 0.0668\\%$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0478",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "McLeod Bank holds two credits, rated CCC and BBB, with default probabilities over horizon t of 0.008 and 0.004. The joint probability that both default over t is 0.00035. What is the default correlation?",
+  "options": {
+   "A": "5.65%",
+   "B": "6.22%",
+   "C": "5.62%",
+   "D": "0.318%"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Covariance = 0.00035 − 0.008 × 0.004 = 0.000318.\n2. $\\sigma_{1} = \\sqrt{0.008 \\times0.992} = 0.089084$; $\\sigma_{2} = \\sqrt{0.004 \\times0.996} = 0.063119$; product = 0.005623.\n3. $\\rho_{12} = 0.000318/0.005623 = 0.0565 = 5.65\\%$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0479",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Consider a BBB+ credit with default probability 0.0065 and a BBB‑ credit with default probability 0.0125. If defaults are uncorrelated, the joint default probability is 0.00008. If the default correlation is 9%, the joint default probability is closest to:",
+  "options": {
+   "A": "0.0008",
+   "B": "0.0009",
+   "C": "0.00008",
+   "D": "0.00009"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. $\\pi_{12} = \\rho\\sqrt{\\pi_{1}(1 - \\pi_{1})}\\sqrt{\\pi_{2}(1 - \\pi_{2})} + \\pi_{1}\\pi_{2}$.\n2. $\\sqrt{0.0065 \\times0.9935} = 0.080357$; $\\sqrt{0.0125 \\times0.9875} = 0.111099$; product = 0.008928.\n3. Correlation term: 0.09 x 0.008928 = 0.000804; independence term: 0.0065 x 0.0125 = 0.0000813.\n4. $\\pi_{12} = 0.000804 + 0.0000813 = 0.000885 \\approx0.0009$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0480",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "An investment firm holds two credits: one rated AAA with default probability 0.002 and one rated BBB with default probability 0.004 over horizon t. The joint default probability is 0.00018. What is the default correlation?",
+  "options": {
+   "A": "0.0638",
+   "B": "0.0610",
+   "C": "0.000172",
+   "D": "21.63"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance = 0.00018 − 0.002 × 0.004 = 0.000172.\n2. $\\sigma_{1} = \\sqrt{0.002 \\times0.998} = 0.044677$; $\\sigma_{2} = \\sqrt{0.004 \\times0.996} = 0.063119$; product = 0.002820.\n3. $\\rho= 0.000172/0.002820 = 0.0610$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0481",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two credits rated A‑ and BBB+ have one‑year default probabilities of 2.5% and 3.3%. The joint default probability is 0.8%. What is the implied default correlation?",
+  "options": {
+   "A": "28.68%",
+   "B": "25.73%",
+   "C": "24.98%",
+   "D": "0.72%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance = 0.008 − 0.025 × 0.033 = 0.007175.\n2. $\\sigma_{1} = \\sqrt{0.025 \\times0.975} = 0.156125$; $\\sigma_{2} = \\sqrt{0.033 \\times0.967} = 0.178638$; product = 0.027890.\n3. $\\rho= 0.007175/0.027890 = 0.2573 = 25.73\\%$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0482",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "An investment firm has exposure to a BBB credit with default probability 0.003 and a CCC credit with default probability 0.005 over horizon t. The joint default probability is 0.0002. The default correlation is closest to:",
+  "options": {
+   "A": "0.0518",
+   "B": "0.0480",
+   "C": "0.000185",
+   "D": "12.43"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Covariance = 0.0002 − 0.003 × 0.005 = 0.000185.\n2. $\\sigma_{1} = \\sqrt{0.003 \\times0.997} = 0.054690$; $\\sigma_{2} = \\sqrt{0.005 \\times0.995} = 0.070534$; product = 0.003857.\n3. $\\rho= 0.000185/0.003857 = 0.04796 \\approx0.0480$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0483",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Consider two speculative credits, rated BB and BB‑, with default probabilities of 2.00% and 3.00%. If their joint default probability is 0.40%, which is nearest to the implied default correlation?",
+  "options": {
+   "A": "0.0034",
+   "B": "0.1675",
+   "C": "0.1424",
+   "D": "5.96"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Covariance = 0.0040 − 0.02 × 0.03 = 0.0034.\n2. $\\sigma_{1} = \\sqrt{0.02 \\times0.98} = 0.140000$; $\\sigma_{2} = \\sqrt{0.03 \\times0.97} = 0.170587$; product = 0.023882.\n3. $\\rho= 0.0034/0.023882 = 0.1424$.\n\n**REBUILT** — Original distractors were arbitrary numbers with no traceable error; replaced with options that each reflect a realistic mistake."
+ },
+ {
+  "id": "CR-QB-0484",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two prime counterparties each have a one‑year marginal default probability of 5.0%. Default of each is modelled as a Bernoulli (binomial) event, and the default correlation between the two is 0. Which of the following is closest to the joint probability of default of the two counterparties?",
+  "options": {
+   "A": "0.25%.",
+   "B": "2.38%.",
+   "C": "5.00%.",
+   "D": "9.75%."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Joint default probability: $\\pi_{12} = \\rho\\sigma_{1}\\sigma_{2} + \\pi_{1}\\pi_{2}$.\n2. Each $\\sigma= \\sqrt{0.05 \\times0.95} = 0.2179$, but with $\\rho= 0$ the covariance term is 0.\n3. $\\pi_{12} = 0 + 0.05 \\times0.05 = 0.0025 = 0.25\\%$.\n\n**REBUILT** — Removed dependence on the unreproduced Bank Q exhibit and the pre‑computed standard deviation; made the stem self‑contained."
+ },
+ {
+  "id": "CR-QB-0485",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Two prime counterparties each have a one‑year marginal default probability of 5.0%. Default of each is modelled as a Bernoulli event, and the default correlation between the two is 0.5. Which of the following is closest to the joint probability of default of the two counterparties?",
+  "options": {
+   "A": "2.13%.",
+   "B": "2.38%.",
+   "C": "2.63%.",
+   "D": "11.15%."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. $\\sigma^{2} = 0.05 \\times0.95 = 0.0475$, so $\\sigma= 0.2179$.\n2. Covariance $= \\rho\\sigma_{1}\\sigma_{2} = 0.5 \\times0.0475 = 0.02375$.\n3. $\\pi_{12} = 0.02375 + \\pi_{1}\\pi_{2} = 0.02375 + 0.0025 = 0.02625 \\approx2.63\\%$.\n\n**REBUILT** — Made stem self‑contained (removed Bank Q reference) and replaced an unexplained 3.61% distractor with a realistic error (omitting one standard deviation)."
+ },
+ {
+  "id": "CR-QB-0486",
+  "lo": "CR-11 a",
+  "loText": "Define and calculate default correlation for credit portfolios.",
+  "outside": false,
+  "question": "Which of the following best defines the default correlation $\\rho_{12}$ for a two‑firm credit portfolio, where $\\pi_{1}, \\pi_{2}$ are the firms’ default probabilities and $\\pi_{12}$ is the joint default probability?",
+  "options": {
+   "A": "$\\rho_{12} = \\frac{\\pi_{12} - \\pi_{1}\\pi_{2}}{\\sqrt{\\pi_{1}(1 - \\pi_{1}) \\pi_{2}(1 - \\pi_{2})}}$",
+   "B": "$\\rho_{12} = \\frac{\\pi_{12} - \\pi_{1}\\pi_{2}}{\\pi_{1}(1 - \\pi_{1}) \\pi_{2}(1 - \\pi_{2})}$",
+   "C": "$\\rho_{12} = \\frac{\\pi_{12}}{\\sqrt{\\pi_{1}(1 - \\pi_{1}) \\pi_{2}(1 - \\pi_{2})}}$",
+   "D": "$\\rho_{12} = \\frac{\\pi_{12} - \\pi_{1}\\pi_{2}}{\\pi_{1}\\pi_{2}}$"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Each default indicator is Bernoulli: $E[x_{i}] = \\pi_{i}$, Var$(x_{i}) = \\pi_{i}(1 - \\pi_{i})$, $E[x_{1}x_{2}] = \\pi_{12}$.\n2. Covariance $= E[x_{1}x_{2}] - E[x_{1}]E[x_{2}] = \\pi_{12} - \\pi_{1}\\pi_{2}$.\n3. Correlation = covariance divided by the product of standard deviations, i.e. the square root of the product of variances, giving option A.\n\n**REBUILT** — Option formulas were lost as images; rewrote them in text with realistic incorrect variants."
+ },
+ {
+  "id": "CR-QB-0487",
+  "lo": "CR-11 b",
+  "loText": "Identify drawbacks in using the correlation-based credit portfolio framework.",
+  "outside": false,
+  "question": "According to Malz, each of the following is an important implication of default correlation in models of portfolio credit risk EXCEPT:",
+  "options": {
+   "A": "Default correlation is hard to measure or estimate from historical default data.",
+   "B": "Default correlation has a tremendous impact on the credit portfolio’s expected loss.",
+   "C": "Default correlations are small in magnitude, so an ”optically” small correlation can still have a large impact.",
+   "D": "With many credits, all pairwise correlations are often set equal to a single parameter, which must be nonnegative."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Default is a rare event, so history is thin and estimates vary widely by period and industry: A is true.\n2. Expected loss is the sum of exposure x default probability x LGD, which does not depend on correlation; correlation affects the volatility and extreme quantiles of loss (hence credit VaR): B is false.\n3. Default probabilities are small, so default correlations are small in magnitude, yet they have a large impact: C is true.\n4. A single common non‑negative parameter is used to avoid a non‑positive‑definite correlation matrix: D is true.\n\n**REBUILT** — Option D stated a pairwise‑correlation count (n(n‑1)/2) that differs from the GARP text’s N(N‑1); reworded D to the non‑negativity point only so exactly one option is false. LO changed to 29.b (drawbacks of the correlation framework)."
+ }
+]

@@ -1,0 +1,86 @@
+{
+ "id": "A19",
+ "tier": "A",
+ "title": "Non-Parametric VaR: Weighted HS, Bootstrap and FHS",
+ "returnOnLO": {
+  "rank": 49,
+  "action": "Grind"
+ },
+ "august": "Age-weighted and volatility-weighted HS.",
+ "maps": [
+  {
+   "number": 28,
+   "sources": "4 of 16",
+   "rating": "Very Important",
+   "tested": "A four-way sibling set (age-weighted, volatility-weighted, correlation-weighted, filtered), which is exactly the structure GARP builds four-statement audits from.",
+   "specifics": "Reported: 'bootstrap HS property question'; 'difference in non-parametric approaches'; 'expected shortfall in filtered historical simulation'. The polarity trap is documented in GARP's own materials: volatility-weighted HS adjusts historical returns upward when current volatility is above the historical level; the reversed version is the distractor."
+  }
+ ],
+ "vardeezReading": "MR-2: Very Important. \"a) know abt Bootstrapping method HS method b) Volatility weighted method c) Filtered HS method\".",
+ "los": [
+  {
+   "id": "MR-2 a",
+   "vardeez": "Bootstrapping HS method",
+   "pins": [
+    "S3"
+   ]
+  },
+  {
+   "id": "MR-2 b"
+  },
+  {
+   "id": "MR-2 c",
+   "vardeez": "Volatility-weighted and filtered HS methods",
+   "pins": [
+    "S1",
+    "S2",
+    "S4",
+    "S5"
+   ]
+  },
+  {
+   "id": "MR-2 d",
+   "pins": [
+    "S4"
+   ]
+  }
+ ],
+ "selectors": [
+  {
+   "id": "S1",
+   "name": "Age-weighted HS (BRW) weights and VaR",
+   "source": "workbook shape",
+   "what": "Boudoukh-Richardson-Whitelaw weights: w(1) = (1 - lambda)/(1 - lambda^n), w(i) = lambda^(i-1) x w(1), cumulative weight on the k most recent observations = (1 - lambda^k)/(1 - lambda^n). Rank the P/L from the worst loss, accumulate the weights and read the VaR where the cumulative weight reaches 1 - alpha (interpolation allowed).",
+   "theory": "Weights decay exponentially with age, lambda close to 1 means slow decay and equal-weight HS (1/n each) is the limit lambda -> 1; yesterday carries the full w(1) and the weights must sum to 1 through the 1 - lambda^n normaliser. Age-weighting reacts faster to recent large losses and reduces ghost effects, but shrinks the effective sample size and is ad hoc.",
+   "seenInAugust": true
+  },
+  {
+   "id": "S2",
+   "name": "Volatility-weighted HS (HW), polarity",
+   "source": "workbook shape",
+   "what": "Hull-White adjusted return r*(t,i) = r(t,i) x sigma(T,i)/sigma(t,i), the current volatility forecast over the forecast for day t; returns are scaled up when current volatility is above the volatility on the day observed and down when it is below, then VaR or ES is taken the equal-weight way. The reversed statement and the inverted ratio are the distractors.",
+   "theory": "Rescaling each historical return to today's volatility handles volatility changes directly through GARCH forecasts, which is why HW VaR and ES can exceed the largest historical loss; HW is semi-parametric and can be combined with age-weighting.",
+   "seenInAugust": true
+  },
+  {
+   "id": "S3",
+   "name": "Bootstrap HS property question",
+   "source": "workbook shape",
+   "what": "A property or statement question on bootstrapped historical simulation: resampling the data with replacement, one VaR or ES per resample (resample ES is the average of the losses exceeding the resample VaR), the best estimate being the mean of the resample estimates, use for precision and confidence intervals (percentile, BCa), the assumption of independence over time, and that the bootstrap cannot give a VaR above the largest historical loss."
+  },
+  {
+   "id": "S4",
+   "name": "Differences among the non-parametric approaches",
+   "source": "workbook shape",
+   "what": "Compares or contrasts basic HS, bootstrap, age-weighted, volatility-weighted, correlation-weighted and filtered HS, and their advantages and disadvantages: what each adjusts (age, volatility, correlation, standardised returns), which can exceed the largest historical loss, dependence on the data window and ghost effects."
+  },
+  {
+   "id": "S5",
+   "name": "Expected shortfall in filtered HS",
+   "source": "workbook shape",
+   "what": "Filtered historical simulation (Barone-Adesi et al.): fit an asymmetric GARCH, divide realised returns by their volatility forecasts to get iid standardised returns, bootstrap them, multiply by tomorrow's volatility forecast, then take VaR or ES (the average of the simulated losses beyond VaR). Tests that FHS extends easily to ES, that VaR and ES can exceed the largest historical loss, and that whole standardised vectors are bootstrapped for a multi-asset portfolio."
+  }
+ ],
+ "notSelected": "MR-2 b (non-parametric density estimation: surrogate pdf from histogram lines or kernels, VaR at any confidence level) carries no shape, no Map point and no Vardeez pointer, and the Choleski mechanics of correlation weighting and the bootstrap confidence-interval calculations are covered only as comparison or property points under S3 and S4.",
+ "widerSearch": "bootstrapped (HS|historical)|bootstrap historical|age-weighted|volatility-weighted|filtered historical|\\bFHS\\b|Boudoukh|Hull.and.White|weighted historical simulation|correlation-weighted"
+}

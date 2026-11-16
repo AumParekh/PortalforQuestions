@@ -1,0 +1,512 @@
+[
+ {
+  "id": "MR-T1-02",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": true,
+  "question": "A junior analyst claims that the classic Black-Scholes-Merton framework, which assumes geometric Brownian motion with constant volatility, \"produces a volatility smile.\" Which implied volatility shape is in fact the one consistent with the lognormal price distribution assumed by BSM?",
+  "options": {
+   "A": "A symmetric smile, because heavy tails are a feature of the lognormal distribution.",
+   "B": "A downward-sloping skew, because the lognormal distribution is positively skewed.",
+   "C": "A flat, horizontal line, because a single constant volatility prices every strike correctly.",
+   "D": "An inverted smile, or frown, because the lognormal distribution has thinner tails than the normal distribution."
+  },
+  "answer": "C",
+  "solution": "Concept tested: the flat smile as the null hypothesis implied by the model. Any curvature is evidence the market rejects the distributional assumption.\n\nBSM assumes constant volatility and a lognormal terminal price, equivalently normally distributed log returns. If both held exactly, one volatility would price every option correctly regardless of strike, so backing implied volatility out of each traded price would return the same number at every strike. Plotted, that is a horizontal line.\n\nIt follows that neither a smile nor a skew is consistent with BSM. Each is a measured departure from it:\n\n| Observed shape | Implied distribution relative to lognormal |\n|---|---|\n| Flat, horizontal | Lognormal. BSM holds. |\n| Symmetric smile | Heavy left tail and heavy right tail |\n| Frown, inverted smile | Thin left tail and thin right tail |\n| Downward-sloping skew | Heavy left tail, thin right tail. Typical equity pattern. |\n| Upward-sloping skew | Thin left tail, heavy right tail |"
+ },
+ {
+  "id": "MR-T2-31",
+  "lo": "MR-1 c",
+  "loText": "Estimate the expected shortfall given profit and loss (P&L) or return data.",
+  "outside": false,
+  "question": "A risk analyst at a commodity trading desk holds 20 daily profit and loss observations, in USD thousands, listed below in ascending order. She is asked for the 90% expected shortfall using the empirical distribution directly.\n\nTen worst P&L observations (USD thousands, ascending): -84, -61, -47, -38, -30, -25, -19, -14, -9, -5\n\nWhich is nearest to the 90% expected shortfall?",
+  "options": {
+   "A": "USD 47.0 thousand",
+   "B": "USD 61.0 thousand",
+   "C": "USD 64.0 thousand",
+   "D": "USD 72.5 thousand"
+  },
+  "answer": "D",
+  "solution": "Step 1. Locate the tail. With $n=20$ observations at 90% confidence, the tail contains the worst 10% of outcomes:\n\n$\\text{number of tail observations} = (1-0.90) \\times 20 = 2$\n\nThe two worst observations are -84 and -61.\n\nStep 2. Expected shortfall is the AVERAGE loss across those tail observations, not the cut-off value itself:\n\n$\\text{ES} = (84 + 61)/2 = 145/2 = 72.5$\n\nThe 90% expected shortfall is USD 72.5 thousand.\n\nThe relationship worth carrying: expected shortfall is always at least as large as VaR at the same confidence level, because it averages values that are all at or beyond the VaR threshold. Here the 90% VaR, under the curriculum (Dowd) convention that the VaR is observation number $(1-cl)\\times n+1 = 0.10\\times 20+1 = 3$, i.e. the third worst, is USD 47 thousand (the same rule used in the historical-simulation VaR questions). The ES of 72.5 averages the two losses beyond that cut-off and exceeds the VaR as it must. (Under the alternative $(1-cl)\\times n$ convention the VaR would be the second worst, USD 61 thousand; the ES of 72.5 still exceeds it.) If your expected shortfall ever comes out BELOW your VaR, you have made an error."
+ },
+ {
+  "id": "MR-T2-32",
+  "lo": "MR-1 c",
+  "loText": "Estimate the expected shortfall given profit and loss (P&L) or return data.",
+  "outside": false,
+  "question": "A risk manager is presenting to new analysts and wants to show that expected shortfall can be approximated as the average of value at risk figures computed at a series of confidence levels inside the tail. She uses the table below for a portfolio whose losses are measured in EUR millions, and approximates the 95% expected shortfall as the average of the five tail VaRs shown.\n\n| Confidence level | 96% | 97% | 98% | 99% | 99.9% |\n|---|---|---|---|---|---|\n| VaR (EUR m) | 18.0 | 20.5 | 24.0 | 30.0 | 42.5 |\n\nWhich is nearest to the resulting estimate of the 95% expected shortfall?",
+  "options": {
+   "A": "EUR 20.5 million",
+   "B": "EUR 24.0 million",
+   "C": "EUR 27.0 million",
+   "D": "EUR 30.0 million"
+  },
+  "answer": "C",
+  "solution": "Expected shortfall is the mean loss conditional on being in the tail. If the tail is sliced into equal-probability bands, the expected shortfall is approximated by averaging the VaR at the midpoint of each slice:\n\n$$\\text{ES} = \\frac{1}{k}\\sum_{i=1}^{k} \\text{VaR}_i$$\n\nWith $k=5$ slices:\n\n$\\text{ES} = (18.0+20.5+24.0+30.0+42.5)/5 = 135.0/5 = 27.0$\n\nThe estimate is EUR 27.0 million.\n\nTwo structural checks. The answer must lie strictly BETWEEN the smallest and largest tail VaR, since it is an average of them, so anything outside the range 18.0 to 42.5 is wrong on inspection. And the answer must EXCEED the 95% VaR itself, which is below 18.0 since VaR is increasing in the confidence level. Both hold.\n\nNote that the accuracy of the approximation improves as the number of slices rises. With a single slice the method degenerates to a VaR and understates the tail badly."
+ },
+ {
+  "id": "MR-T2-33",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Simon is using the age-weighted historical simulation approach to estimate the value at risk of a stock portfolio. Under age-weighted historical simulation, which of the following is true?",
+  "options": {
+   "A": "More recent observations are weighted more heavily and distant observations less heavily.",
+   "B": "All observations in the window are weighted equally.",
+   "C": "The decay parameter takes a value of 1.",
+   "D": "The historical window of observations must not exceed 250 days."
+  },
+  "answer": "A",
+  "solution": "Basic historical simulation gives every observation in the window the same weight, $1/n$. That treats a return from two years ago as exactly as informative about tomorrow as yesterday's return, which is implausible when volatility clusters.\n\nAge-weighted historical simulation replaces the equal weight with a geometrically decaying weight:\n\n$$w(i) = \\frac{\\lambda^{i-1}(1-\\lambda)}{1-\\lambda^n}$$\n\nwhere $i$ is the age of the observation in days, $n$ is the window length and $\\lambda$ is the decay parameter between 0 and 1. Because $\\lambda$ is raised to a power that grows with age, weight declines geometrically as observations get older.\n\nThe role of $\\lambda$ is the examinable nuance:\n\n| Value of lambda | Behaviour |\n|---|---|\n| close to 1 | Very slow decay. Weights approach equality and the method converges to BASIC historical simulation. |\n| exactly 1 | No decay at all. The method IS basic historical simulation. |\n| close to 0 | Very fast decay. Almost all weight sits on the most recent few observations, and the effective sample size collapses. |\n\nA further benefit: because old observations lose weight gradually rather than dropping out abruptly when they leave the window, age weighting reduces the discrete jumps in VaR that basic historical simulation produces when a large return rolls off."
+ },
+ {
+  "id": "MR-T2-34",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A risk analyst is explaining volatility-weighted historical simulation, the Hull and White approach, to a graduate trainee. Which statement best characterises what the method does and why?",
+  "options": {
+   "A": "It discards every historical return drawn from a period whose volatility differed materially from today's, shortening the effective window.",
+   "B": "It rescales each historical return by the ratio of today's volatility forecast to the volatility that prevailed on the day the return was observed, so the adjusted series reflects current market conditions.",
+   "C": "It rescales each historical return by the ratio of the volatility that prevailed when the return was observed to today's volatility forecast, so that quiet periods are amplified.",
+   "D": "It assigns geometrically declining weights by age, on the grounds that volatility is higher in recent data."
+  },
+  "answer": "B",
+  "solution": "Basic historical simulation implicitly assumes that the volatility prevailing when each historical return was observed is the same as today's. Volatility clusters, so that assumption fails: a 2% move drawn from a calm period and a 2% move drawn from a turbulent period carry very different information about tomorrow.\n\nHull and White's adjustment rescales every historical return onto today's volatility scale:\n\n$$r^*(t,i) = \\frac{\\sigma(T,i)}{\\sigma(t,i)} \\times r(t,i)$$\n\nwhere $r(t,i)$ is the return on asset $i$ at time $t$, $\\sigma(t,i)$ is the volatility estimate for asset $i$ at time $t$, and $\\sigma(T,i)$ is the CURRENT volatility forecast. Today's volatility sits in the NUMERATOR.\n\nThe direction is the whole question. If today is more volatile than the historical day, the ratio exceeds 1 and the historical return is scaled UP. If today is calmer, the ratio is below 1 and the return is scaled DOWN. Reversing the ratio would amplify exactly the wrong observations.\n\nTwo consequences worth holding:\n\n| Property | Consequence |\n|---|---|\n| It can produce losses larger than any in the sample | Scaling up a historical return during a volatility spike creates a value the raw data never contained. Basic and age-weighted historical simulation cannot do this. |\n| It uses the whole window | No observation is discarded. Every return is retained and rescaled, so the effective sample size i […]"
+ },
+ {
+  "id": "MR-T2-35",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which statement correctly captures the essence of a correlation-weighted approach within the historical simulation framework?",
+  "options": {
+   "A": "It forces all pairwise asset correlations to zero by partitioning returns into uncorrelated blocks, while leaving individual volatilities unchanged.",
+   "B": "It imposes a desired set of updated correlations among assets by systematically adjusting historical returns, typically without altering each asset's own volatility.",
+   "C": "It re-weights observed co-movements so that the sample correlation matrix becomes diagonal, leaving only variances.",
+   "D": "It replicates only those return paths whose correlations exceed a specified threshold and discards the rest."
+  },
+  "answer": "B",
+  "solution": "Basic historical simulation inherits whatever correlations happened to prevail over the sample window. If the analyst believes the current correlation structure differs, for example because correlations have risen in a stress episode, the historical sample must be adjusted.\n\nThe correlation-weighted approach substitutes the historical correlation matrix with a target one. Mechanically, the historical return matrix is transformed using the Cholesky decomposition of the two correlation matrices, so that the adjusted returns exhibit the desired correlations. Crucially, the adjustment acts on the DEPENDENCE structure only. Each asset's own volatility is left as it was, unless volatility weighting is applied as well.\n\nThe three weighted approaches update three different things, and keeping them apart is what this LO tests:\n\n| Approach | What it updates | What it leaves alone |\n|---|---|---|\n| Age-weighted | The weight on each observation, by age | Volatilities and correlations |\n| Volatility-weighted | The scale of each return, by volatility ratio | The correlation structure |\n| Correlation-weighted | The dependence structure between assets | Each asset's own volatility |"
+ },
+ {
+  "id": "MR-T2-36",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following most closely characterises the role of filtered historical simulation in estimating risk?",
+  "options": {
+   "A": "It fits a time-varying volatility model such as GARCH, standardises historical returns by the fitted conditional volatility, and then resamples the standardised residuals before rescaling to current volatility.",
+   "B": "It reorders past returns chronologically to match short-term volatility changes but leaves the correlation structure unaltered.",
+   "C": "It discards all returns falling outside a user-defined confidence interval, ensuring the final distribution contains no extreme tail events.",
+   "D": "It transforms each asset's average return to zero while holding the standard deviation fixed at its historical level."
+  },
+  "answer": "A",
+  "solution": "Filtered historical simulation addresses the same weakness as volatility weighting, the assumption of constant volatility, but does so by combining a parametric model with bootstrap resampling. The sequence is:\n\n| Step | What happens |\n|---|---|\n| 1. Model volatility | Fit a conditional volatility model, typically GARCH, to the return series |\n| 2. Standardise, or FILTER | Divide each historical return by its fitted conditional volatility, producing standardised residuals that are approximately independent and identically distributed |\n| 3. Resample | Bootstrap from the standardised residuals, which is legitimate precisely because standardising removed the volatility clustering that made the raw returns non-independent |\n| 4. Rescale and simulate | Multiply the resampled residuals by the CURRENT conditional volatility forecast and build simulated paths, from which VaR and expected shortfall are read |\n\nThe word FILTERED refers to step 2: the returns are filtered through the conditional volatility model.\n\nWhy it matters: standardising is what makes the bootstrap valid. Bootstrapping raw returns assumes they are independent and identically distributed, which volatility clustering violates. Filtered historical simulation removes the clustering first, bootstraps the residuals, then puts the clustering back. It is a semi-parametric method: parametric in the volatility model, non-par […]"
+ },
+ {
+  "id": "MR-T2-37",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A model validation analyst is comparing four refinements to basic historical simulation. Which of the following statements is correct?",
+  "options": {
+   "A": "Age weighting and volatility weighting both leave the effective sample size unchanged, whereas correlation weighting reduces it.",
+   "B": "Only filtered historical simulation is capable of producing a simulated loss larger than the worst loss in the historical sample.",
+   "C": "Volatility weighting and filtered historical simulation can both generate losses larger than any observed in the raw sample, whereas basic and age-weighted historical simulation cannot.",
+   "D": "All four refinements require the assumption that returns are independent and identically distributed, which is why none of them can accommodate volatility clustering."
+  },
+  "answer": "C",
+  "solution": "Basic historical simulation and age weighting both work with the RAW returns. Age weighting changes the probability attached to each observation but never changes the observation itself. It follows that neither method can ever report a loss worse than the worst loss in the window. That is a serious limitation in a rising-volatility environment, where the worst plausible loss today may exceed anything in the sample.\n\nVolatility weighting and filtered historical simulation both RESCALE returns by a volatility ratio. If today's volatility exceeds the volatility that prevailed when a large historical loss occurred, that loss is scaled UP, producing a value the raw data never contained.\n\n| Approach | Changes the observation? | Can exceed the historical worst? | Handles volatility clustering? |\n|---|---|---|---|\n| Basic historical simulation | No | NO | No |\n| Age-weighted | No, changes the weight only | NO | Partly, via recency |\n| Volatility-weighted | Yes, rescales by a volatility ratio | YES | Yes |\n| Correlation-weighted | Yes, adjusts the dependence structure | Yes, for a portfolio | Not directly; it targets correlation |\n| Filtered historical simulation | Yes, standardises then rescales | YES | Yes |\n\nOn sample size: none of the four discards observations, so all preserve the raw window. Age weighting does reduce the EFFECTIVE sample size, because concentrating weight on recen […]"
+ },
+ {
+  "id": "MR-T2-38",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "A risk analyst has 30 daily return observations for a portfolio. The ten worst observations, in percent, are listed below. Using the basic historical simulation approach, which is nearest to the value at risk at the 90% confidence level?\n\nTen worst return observations (%): -20, -18, -18, -17, -15, -14, -12, -10, -7, -3",
+  "options": {
+   "A": "15%",
+   "B": "16%",
+   "C": "17%",
+   "D": "18%"
+  },
+  "answer": "C",
+  "solution": "Historical simulation makes no distributional assumption. It orders the observed returns and reads the VaR off the empirical distribution at the required percentile.\n\nStep 1. Locate the position of the quantile. With $n$ observations at confidence level $cl$, the VaR is the observation in position:\n\n$$\\text{position} = (1-cl) \\times n + 1$$\n\n$\\text{position} = (1-0.90) \\times 30 + 1 = 3 + 1 = 4^{th}$ worst observation\n\nStep 2. Read off the fourth worst return from the ordered list: 1st: -20, 2nd: -18, 3rd: -18, 4th: -17, 5th: -15.\n\nThe 90% VaR is 17%. In words: the analyst is 90% confident that the daily loss will not exceed 17% of portfolio value.\n\nA note on convention, because it decides the answer: this convention uses $(1-cl) \\times n + 1$, which gives the fourth observation here. An alternative convention uses $(1-cl) \\times n$, which would give the third and an answer of 18%. Use the convention the stem or the curriculum specifies, and note that the two converge as $n$ grows."
+ },
+ {
+  "id": "MR-T2-39",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "A trader holds a single long position in stock KKJL, which closed yesterday at USD 100. You estimate a 95% historical simulation VaR from a 260-day moving window. As of yesterday the 16 worst one-day returns in that window were, in percent: -9.5, -8.0, -7.6, -7.4, -7.2, -7.18, -7.1, -6.9, -6.57, -6.56, -6.45, -6.4, -6.25, -6.05, -5.99, -5.85. Between yesterday and today the stock fell by 10% following an adverse disclosure. The return dropping out of the 260-day window is -3%. What is today's 95% historical VaR in absolute terms?",
+  "options": {
+   "A": "USD 5.445",
+   "B": "USD 5.625",
+   "C": "USD 6.05",
+   "D": "USD 6.25"
+  },
+  "answer": "B",
+  "solution": "Two things change between yesterday and today, and the question is built so that handling only one of them produces an offered answer.\n\nUpdate 1: the return window rolls. Today's return of -10% enters the window and -3% drops out. The -10% is worse than the previous worst of -9.5%, so it becomes the new first-ranked loss and every observation below it shifts down one position. The -3% that leaves was never in the worst 16, so its departure does not affect the tail ordering.\n\nLocate the quantile. With $n=260$ at 95% confidence:\n\n$\\text{position} = (1-0.95)\\times 260+1 = 13+1 = 14^{th}$ worst observation\n\n| Rank | Yesterday | Today, after -10% enters |\n|---|---|---|\n| 1 | -9.50 | -10.00 |\n| 12 | -6.40 | -6.45 |\n| 13 | -6.25 | -6.40 |\n| 14 | -6.05 | -6.25 |\n| 15 | -5.99 | -6.05 |\n\nThe 14th worst return moves from -6.05% to -6.25%.\n\nUpdate 2: the position value falls. The percentage VaR is applied to TODAY'S value, not yesterday's:\n\ntoday's price $=$ USD $100 \\times (1-0.10) = $ USD 90\n\n$\\text{VaR} = 90 \\times 6.25\\% = $ USD 5.625\n\nToday's 95% historical VaR is USD 5.625. Note that the VaR FALLS despite the arrival of a worse return, because the position value fell by 10% while the quantile worsened by only about 3%. That counterintuitive net result is exactly why the question is worth doing."
+ },
+ {
+  "id": "MR-T2-40",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "A risk analyst assumes that a desk's profit and loss over a specified period is normally distributed with a mean of 14.1 and a standard deviation of 28.2. What are the 95% VaR and the 99% VaR?",
+  "options": {
+   "A": "95% VaR 32.289; 99% VaR 51.4932",
+   "B": "95% VaR 36.225; 99% VaR 41.586",
+   "C": "95% VaR 46.389; 99% VaR 65.593",
+   "D": "95% VaR 60.489; 99% VaR 79.693"
+  },
+  "answer": "A",
+  "solution": "When the distribution is stated in profit and loss terms, a positive mean is an expected PROFIT and therefore offsets the tail loss:\n\n$$\\text{VaR}(\\alpha) = -\\mu_{P/L} + \\sigma_{P/L} \\times z_\\alpha$$\n\nwhere $\\mu$ is the mean profit and loss, $\\sigma$ its standard deviation, and $z$ the standard normal deviate for the confidence level.\n\n95% VaR $= -14.1 + 28.2 \\times 1.645 = -14.1 + 46.389 = 32.289$\n\n99% VaR $= -14.1 + 28.2 \\times 2.326 = -14.1 + 65.5932 = 51.4932$\n\nTwo sanity checks: the 99% figure must exceed the 95% figure, since VaR is increasing in the confidence level; and both must be positive here, since $28.2 \\times 1.645$ comfortably exceeds 14.1. Had the mean been large relative to the volatility term, the VaR could legitimately come out negative, meaning the position is expected to profit even at that quantile."
+ },
+ {
+  "id": "MR-T2-41",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "A portfolio has a beginning-period value of USD 200. Arithmetic returns are normally distributed with a mean of 5% and a standard deviation of 10%. What are the VaR figures at the 95% and 99% confidence levels respectively?",
+  "options": {
+   "A": "USD 1.65 and USD 2.33",
+   "B": "USD 23.0 and USD 36.6",
+   "C": "USD 33.0 and USD 46.6",
+   "D": "USD 43.0 and USD 56.6"
+  },
+  "answer": "B",
+  "solution": "When the distribution is stated in return terms, the VaR expression produces a PERCENTAGE that must then be applied to the portfolio value:\n\n$$\\text{VaR}(\\alpha) = [-\\mu_r + \\sigma_r \\times z_\\alpha] \\times P_{t-1}$$\n\nwhere $\\mu_r$ is the mean arithmetic return, $\\sigma_r$ its standard deviation, and $P_{t-1}$ the beginning-period value.\n\n95% VaR $= [-0.05 + 0.10 \\times 1.65] \\times 200 = [0.115] \\times 200 = $ USD 23.0\n\n99% VaR $= [-0.05 + 0.10 \\times 2.33] \\times 200 = [0.183] \\times 200 = $ USD 36.6\n\nThe two-stage structure is the point: solve in percentage terms, then convert. A candidate who reports 11.5% and 18.3% has done the modelling correctly and answered the wrong question."
+ },
+ {
+  "id": "MR-T2-42",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "An analyst has gathered the following information about a portfolio whose GEOMETRIC returns are normally distributed: mean 10%, standard deviation 40%, portfolio value USD 100 million. Which is nearest to the 95% lognormal VaR?",
+  "options": {
+   "A": "USD 35.3 million",
+   "B": "USD 42.8 million",
+   "C": "USD 66.0 million",
+   "D": "USD 74.7 million"
+  },
+  "answer": "B",
+  "solution": "The distinction between the two parametric cases turns on WHAT is assumed normal:\n\n| Assumption | Implication | VaR expression |\n|---|---|---|\n| ARITHMETIC returns are normal | Price can go negative; loss is unbounded | $\\text{VaR} = [-\\mu+\\sigma z]\\times P$ |\n| GEOMETRIC returns are normal | Price is lognormal and cannot go negative; loss is bounded at 100% of value | $\\text{VaR} = P\\times[1-\\exp(\\mu-\\sigma z)]$ |\n\nApplying the lognormal expression:\n\n$$\\text{VaR} = P \\times [1 - \\exp(\\mu - \\sigma z)]$$\n\n$\\mu - \\sigma z = 0.10 - 0.40 \\times 1.645 = 0.10 - 0.658 = -0.558$\n\n$\\exp(-0.558) = 0.5723$\n\n$\\text{VaR} = 100 \\times [1-0.5723] = 100 \\times 0.4277 = $ USD 42.77 million\n\nThe 95% lognormal VaR is approximately USD 42.8 million.\n\nStructural check: because the bracket is $[1-\\exp(\\cdot)]$ and the exponential is strictly positive, the lognormal VaR can never exceed 100% of portfolio value. The corresponding NORMAL VaR here would be $[-0.10+0.40\\times1.645]\\times 100 = $ USD 55.8 million, which is larger. The lognormal assumption is the less conservative of the two precisely because it forbids losses beyond total value."
+ },
+ {
+  "id": "MR-T2-43",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "Jacob Watson is estimating the one-year 99% VaR for a bank's equities portfolio and wants to compare the normal and lognormal assumptions. The portfolio is worth USD 1 million, the mean is 15% and the volatility is 25%. What are the two VaR figures?",
+  "options": {
+   "A": "Normal USD 432,500; lognormal USD 351,000",
+   "B": "Normal USD 351,000; lognormal USD 432,500",
+   "C": "Normal USD 460,000; lognormal USD 495,000",
+   "D": "Normal USD 499,000; lognormal USD 432,500"
+  },
+  "answer": "A",
+  "solution": "Normal assumption. Arithmetic returns are normal, so the loss is unbounded:\n\n$$\\text{VaR} = [-\\mu+\\sigma z]\\times P$$\n\n$\\text{VaR} = [-0.15+0.25\\times 2.33]\\times 1{,}000{,}000 = [-0.15+0.5825]\\times 1{,}000{,}000 = 0.4325\\times 1{,}000{,}000 = $ USD 432,500\n\nLognormal assumption. Geometric returns are normal, so the price is lognormal and the loss is capped at total value:\n\n$$\\text{VaR} = P\\times[1-\\exp(\\mu-\\sigma z)]$$\n\n$\\mu-\\sigma z = 0.15-0.5825 = -0.4325$\n\n$\\exp(-0.4325) = 0.6489$\n\n$\\text{VaR} = 1{,}000{,}000\\times[1-0.6489] = $ USD 351,100, approximately USD 351,000\n\nThe ordering is the examinable result. The lognormal VaR of USD 351,000 is SMALLER than the normal VaR of USD 432,500. Note the elegant structure: the exponent in the lognormal case is exactly the negative of the bracket in the normal case, -0.4325. Since $\\exp(-x) > 1-x$ for all non-zero $x$, the lognormal figure is always the smaller of the two. The result is general, not an artefact of these inputs."
+ },
+ {
+  "id": "MR-T2-44",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "What is the 95% parametric VaR of a portfolio composed of two independently and normally distributed stocks, A and B, where A is distributed $N(0.5, 1)$ and B is distributed $N(3, 15)$, the second parameter in each case being the VARIANCE? Assume the portfolio P equals A plus B.",
+  "options": {
+   "A": "1.54",
+   "B": "3.08",
+   "C": "4.87",
+   "D": "56.00"
+  },
+  "answer": "B",
+  "solution": "Step 1. Aggregate the two positions. The sum of two independent normal random variables is itself normal, with the means adding and the VARIANCES adding:\n\n$\\mu_P = 0.5+3 = 3.5$\n\n$\\text{Var}(P) = 1+15 = 16$ [variances add under independence, standard deviations do not]\n\n$\\sigma_P = \\sqrt{16}=4$\n\nStep 2. Apply the parametric VaR formula to the aggregated distribution:\n\n$$\\text{VaR} = -\\mu_P+\\sigma_P\\times z$$\n\n$\\text{VaR} = -3.5+4\\times 1.645 = -3.5+6.58 = 3.08$\n\nIndependence is what permits the simple addition of variances. With a correlation $\\rho$ the variance would be $1+15+2\\rho\\sqrt{1\\times15}$, and the VaR would rise with $\\rho$ exactly as the correlation results elsewhere in this reading establish."
+ },
+ {
+  "id": "MR-T2-45",
+  "lo": "MR-1 b",
+  "loText": "Estimate VaR using a parametric approach for both normal and lognormal asset price distributions.",
+  "outside": false,
+  "question": "An investment banker is evaluating a bond portfolio valued at CAD 150 million that contains CAD 20 million in bond X. The annualised standard deviations of returns are 12% for the overall portfolio and 9% for bond X. The correlation of returns between the portfolio and bond X is 0.60. Assuming a one-year 99% VaR and normally distributed returns, what is the INDIVIDUAL VaR of bond X?",
+  "options": {
+   "A": "CAD 1,453,879",
+   "B": "CAD 4,186,800",
+   "C": "CAD 4,636,800",
+   "D": "CAD 5,813,777"
+  },
+  "answer": "B",
+  "solution": "INDIVIDUAL VaR treats the position in isolation, as though it were the whole portfolio. It therefore uses only the position's own value and its own volatility:\n\n$$\\text{individual VaR} = \\text{position value} \\times z \\times \\sigma_{position}$$\n\n$\\text{individual VaR} = 20{,}000{,}000 \\times 2.326 \\times 0.09 = $ CAD 4,186,800\n\nThe correlation of 0.60 and the portfolio standard deviation of 12% are NOT used. They are supplied because they are required for the neighbouring measures, and confusing those measures is what the question tests:\n\n| Measure | Formula | Uses correlation? |\n|---|---|---|\n| Individual VaR | position value x z x sigma(position) | NO |\n| Component VaR | individual VaR x correlation with the portfolio | YES |\n| Marginal VaR | (portfolio VaR / portfolio value) x beta of the position | YES, through beta |\n| Undiversified portfolio VaR | sum of the individual VaRs | NO, it assumes correlation of one |\n\nComponent VaR here would be $4{,}186{,}800\\times0.60 = $ CAD 2,512,080, which is the position quantity that aggregates to the portfolio VaR."
+ },
+ {
+  "id": "MR-T2-46",
+  "lo": "MR-1 d",
+  "loText": "Estimate risk measures by estimating quantiles.",
+  "outside": false,
+  "question": "The mean return of a dataset has been calculated as 0.04 and the standard deviation as 0.32. With 90% confidence, what is the maximum percentage loss? Take the standard normal deviate at the 10th percentile as -1.28.",
+  "options": {
+   "A": "36.96%",
+   "B": "40.96%",
+   "C": "44.96%",
+   "D": "48.64%"
+  },
+  "answer": "A",
+  "solution": "A risk measure at a given confidence level is a QUANTILE of the return distribution. Rather than applying a VaR formula, invert the standardisation to recover the return at that quantile.\n\n$$Z = \\frac{X-\\mu}{\\sigma}$$\n\nRearranging for $X$, the return at the chosen quantile:\n\n$$X = \\mu + Z\\sigma$$\n\nAt 90% confidence the relevant point is the 10th percentile of the return distribution, where $Z=-1.28$:\n\n$X = 0.04+(-1.28)\\times0.32$\n\n$X = 0.04-0.4096 = -0.3696$\n\nThe return at the 10th percentile is -36.96%, so the maximum loss at 90% confidence is 36.96%. In words: there is a 10% probability that the loss exceeds 36.96%.\n\nNote the equivalence with the parametric VaR formula. Writing the loss as $-X$ gives $-\\mu-Z\\sigma = -\\mu+|Z|\\sigma$, which is exactly the VaR expression used with parametric approaches. The quantile route and the VaR formula are the same calculation approached from opposite directions, and recognising that saves time under pressure."
+ },
+ {
+  "id": "MR-T2-49",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "An analyst performing a historical simulation to measure the VaR of a portfolio uses a volatility-weighted approach. One month ago the actual return of the asset was 5% and its daily volatility estimate at that time was 2%. If the current daily volatility forecast is 1.5%, what is the volatility-adjusted return?",
+  "options": {
+   "A": "0.0281",
+   "B": "0.0375",
+   "C": "0.0500",
+   "D": "0.0667"
+  },
+  "answer": "B",
+  "solution": "The volatility-weighted historical simulation adjustment rescales each historical return onto the current volatility scale:\n\n$$r^*(t,i) = \\frac{\\sigma(T,i)}{\\sigma(t,i)} \\times r(t,i)$$\n\nwhere $\\sigma(T,i)$ is the CURRENT volatility forecast, $\\sigma(t,i)$ is the volatility estimate prevailing when the return was observed, and $r(t,i)$ is the raw historical return.\n\n$r^* = (1.5\\%/2.0\\%)\\times5\\% = 0.75\\times5\\% = 3.75\\% = 0.0375$\n\nCurrent volatility is LOWER than it was a month ago, so the historical return is scaled DOWN. That is the correct direction: a 5% move that occurred in a more turbulent environment is less impressive evidence about today than the raw figure suggests."
+ },
+ {
+  "id": "MR-T2-50",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Using the age-weighted historical simulation approach, what is the weight attached to an observation from 13 days ago, if the historical window contains 300 days and the decay parameter is 0.8?",
+  "options": {
+   "A": "0.01099",
+   "B": "0.01374",
+   "C": "0.01718",
+   "D": "0.06872"
+  },
+  "answer": "B",
+  "solution": "The weight attached to an observation $i$ days old is:\n\n$$w(i) = \\frac{\\lambda^{i-1}(1-\\lambda)}{1-\\lambda^n}$$\n\nwhere $\\lambda$ is the decay parameter and $n$ the window length. Note the exponent is $i-1$, not $i$, so that the most recent observation ($i=1$) carries weight $(1-\\lambda)/(1-\\lambda^n)$ rather than a decayed value.\n\nnumerator $= 0.8^{13-1}\\times(1-0.8) = 0.8^{12}\\times0.2$\n\n$0.8^{12} = 0.068719$\n\nnumerator $= 0.068719\\times0.2 = 0.0137439$\n\ndenominator $= 1-0.8^{300}$, which is indistinguishable from 1\n\n$w(13) = 0.0137439/1 = 0.01374$\n\nThe denominator is a normalising constant ensuring the weights across the whole window sum to one. With $\\lambda=0.8$ and $n=300$ it is effectively 1, since 0.8 raised to the power 300 is astronomically small. That is a general feature: whenever $\\lambda^n$ is negligible, the denominator can be ignored."
+ },
+ {
+  "id": "MR-T2-51",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "An analyst is working with stock A, whose distribution of the past 260 daily returns is highly NEGATIVELY skewed. Consider two positions: P1 is long stock A and P2 is short stock A. Which statement is most likely accurate about the 99% VaR of the two positions?",
+  "options": {
+   "A": "The absolute VaR of P1 exceeds the absolute VaR of P2.",
+   "B": "The absolute VaR of P1 is less than the absolute VaR of P2.",
+   "C": "The VaR of P1 equals the VaR of P2.",
+   "D": "The relationship cannot be determined from the information given."
+  },
+  "answer": "A",
+  "solution": "Negative skew means the distribution has a long LEFT tail: occasional very large negative returns, offset by more frequent small positive ones.\n\n| Position | Loses when | Which tail drives its VaR | Consequence |\n|---|---|---|---|\n| P1, long A | A falls | the LEFT tail, which is LONG | large VaR |\n| P2, short A | A rises | the RIGHT tail, which is SHORT | smaller VaR |\n\nThe long position is exposed to the extended tail, so its 99% quantile loss is large. The short position is exposed to the compressed tail, so its 99% quantile loss is smaller. Therefore the absolute VaR of P1 exceeds that of P2.\n\nThe general result: for a SYMMETRIC distribution the two VaRs are equal in absolute value, since the two tails are mirror images. Skewness is exactly what breaks the symmetry, and its SIGN determines which side is penalised. Positive skew would reverse the conclusion, making the short position the riskier of the two."
+ },
+ {
+  "id": "MR-T4-23",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": true,
+  "question": "A lognormal model with deterministic drift is specified as $d[\\ln(r)] = a(t)\\,dt + \\sigma\\, dw$. What does this specification imply about the distribution of the short rate and about its basis-point volatility?",
+  "options": {
+   "A": "The short rate is normally distributed, and its basis-point volatility is constant at sigma.",
+   "B": "The natural logarithm of the short rate is normally distributed, so the short rate is LOGNORMALLY distributed and cannot become negative, and its basis-point volatility is proportional to the rate itself.",
+   "C": "The short rate is lognormally distributed, and its basis-point volatility is proportional to the square root of the rate.",
+   "D": "The natural logarithm of the short rate is lognormally distributed, and the short rate therefore has a fatter right tail than a normal variable."
+  },
+  "answer": "B",
+  "solution": "The relationship between modelling the logarithm of the rate and the resulting distribution and volatility structure of the rate itself.\n\nThe specification places the stochastic term on the LOGARITHM of the rate:\n\n$$d[\\ln(r)] = a(t)\\,dt + \\sigma\\, dw$$\n\nSince $\\ln(r)$ is driven by a normal shock, $\\ln(r)$ is normally distributed. By definition, a variable whose natural logarithm is normally distributed is LOGNORMALLY distributed. So $r$ is lognormal.\n\nTwo consequences follow immediately:\n\n| Consequence | Why |\n|---|---|\n| The rate cannot become negative | A lognormal variable is strictly positive, since the exponential of any real number is positive. This is the structural advantage over the normal specifications. |\n| Basis-point volatility is PROPORTIONAL TO THE RATE | Applying Ito to $r = \\exp(\\ln r)$ gives a diffusion term of $\\sigma r$. So $\\sigma$ is the YIELD volatility, a proportional measure, while $\\sigma r$ is the basis-point volatility. |\n\nThe distinction between the two volatility measures is the examinable point across this family of models:\n\n$$\\text{yield volatility} = \\sigma, \\text{ a proportional or percentage measure}$$\n$$\\text{basis-point volatility} = \\sigma r \\text{ for the lognormal model}, \\ \\sigma\\sqrt{r} \\text{ for CIR}$$\n\nA yield volatility of 15% means the rate moves by 15% OF ITSELF per year, so at a rate of 4% the basis-point volatility is 60 basis p […]"
+ },
+ {
+  "id": "MR-FT-01",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "A risk analyst is assessing the precision of a VaR estimate by computing its standard error. On which quantities does the standard error of a quantile estimator depend?",
+  "options": {
+   "A": "The probability level $p$, the standard error of the sample $s$, and the variance of the quantile $q$.",
+   "B": "The probability density at the quantile, $f(q)$, the sample size $n$, and the probability level $p$.",
+   "C": "The sample size $n$, the probability level $p$, and the square root of the estimation error.",
+   "D": "The variance of the quantile $q$, the sample size $n$, and the probability density $f(q)$."
+  },
+  "answer": "B",
+  "solution": "This question tests the three inputs to the standard error of a quantile estimator, and why the density at the quantile is one of them.\n\nThe standard error of a quantile estimator is:\n\n$$se(\\hat q) = \\frac{1}{f(q)}\\sqrt{\\frac{p(1-p)}{n}}$$\n\nwhere $p$ is the cumulative probability defining the quantile, $n$ is the sample size, and $f(q)$ is the probability density of the assumed distribution evaluated at the quantile.\n\n| Input | Effect on the standard error | Why |\n|---|---|---|\n| Sample size $n$ | Larger $n$ gives a smaller standard error | $n$ sits in the denominator under a square root, so precision improves with the square root of the sample |\n| Probability $p$ | Effect runs through both terms and is not monotone on its own | $p(1-p)$ is largest at $p=0.5$ and shrinks toward either extreme |\n| Density $f(q)$ | Smaller density gives a larger standard error | $f(q)$ sits in the denominator. Deep in the tail the density is small, so tail quantiles are estimated imprecisely |\n\nThe density term is the one candidates omit, and it carries the most important message. Observations are sparse where the density is low, so the quantile can move a long way before the cumulative probability changes materially. That is why a 99.9% VaR is estimated far less precisely than a 95% VaR from the same sample, even though the $p(1-p)$ term is smaller at the higher confidence level."
+ },
+ {
+  "id": "MR-FT-02",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "An analyst estimates the 95% VaR from a sample of 1,000 daily returns assumed to be standard normal. At the 95% quantile the standard normal density is 0.1031. Which is nearest to the standard error of the quantile estimator, expressed in return units?",
+  "options": {
+   "A": "0.0007",
+   "B": "0.0069",
+   "C": "0.0668",
+   "D": "0.2914"
+  },
+  "answer": "C",
+  "solution": "This question applies the quantile standard error formula, including the division by the density at the quantile.\n\nThe standard error of a quantile estimator is:\n\n$$se(\\hat q) = \\frac{1}{f(q)}\\sqrt{\\frac{p(1-p)}{n}}$$\n\n**Step 1. Evaluate the numerator.** With $p=0.95$ and $n=1000$:\n\n$$p(1-p) = 0.95 \\times 0.05 = 0.0475$$\n$$\\frac{0.0475}{1000} = 0.0000475$$\n$$\\sqrt{0.0000475} = 0.006892$$\n\n**Step 2. Divide by the density at the quantile.**\n\n$$se(\\hat q) = \\frac{0.006892}{0.1031} = 0.0668$$\n\nThe standard error is approximately 0.0668 in return units.\n\n**Reading the result.** The 95% quantile of the standard normal is 1.645, so a 95% confidence interval around the VaR estimate is:\n\n$$1.645 \\pm 1.96 \\times 0.0668 = 1.645 \\pm 0.131 = [1.514,\\ 1.776]$$\n\nThat interval spans roughly 16% of the point estimate, from a sample of 1,000 observations. VaR estimates carry material estimation uncertainty even with several years of daily data, and reporting a VaR to several decimal places overstates what the sample supports.\n\nNote that $p(1-p)$ is symmetric, so using $p=0.05$ for the tail probability rather than $p=0.95$ for the cumulative probability gives the identical numerator."
+ },
+ {
+  "id": "MR-FT-03",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "A risk manager is comparing the precision of two VaR estimates computed from the same sample of 1,000 observations under the same distributional assumption: one at 95% confidence and one at 99.9% confidence. Which statement is correct?",
+  "options": {
+   "A": "The 99.9% VaR is estimated MORE precisely, because $p(1-p)$ is smaller at 99.9% than at 95%.",
+   "B": "The 99.9% VaR is estimated LESS precisely, because the fall in the density at the quantile outweighs the fall in $p(1-p)$, so the standard error rises as the confidence level moves further into the tail.",
+   "C": "The two are estimated with equal precision, because the sample size and the distributional assumption are identical.",
+   "D": "The comparison cannot be made without knowing the realised losses over the sample period."
+  },
+  "answer": "B",
+  "solution": "This question examines which of the two competing terms in the standard error dominates as the confidence level rises, and why deep-tail estimates are the least reliable.\n\nBoth terms in the standard error move as the confidence level rises, and they move in opposite directions:\n\n$$se(\\hat q) = \\frac{1}{f(q)}\\sqrt{\\frac{p(1-p)}{n}}$$\n\n| Term | At 95% | At 99.9% | Direction of effect on $se$ |\n|---|---|---|---|\n| $p(1-p)$ | $0.95 \\times 0.05 = 0.0475$ | $0.999 \\times 0.001 = 0.000999$ | Falls, which pushes $se$ down |\n| $f(q)$, density at the quantile | $\\phi(1.645) = 0.1031$ | $\\phi(3.090) = 0.00337$ | Falls sharply, which pushes $se$ up |\n| Net standard error | $\\sqrt{0.0000475}/0.1031 = 0.0668$ | $\\sqrt{0.000000999}/0.00337 = 0.297$ | Rises by a factor of roughly 4.4 |\n\nThe density falls far faster than $p(1-p)$ does, so the density term dominates. Moving from 95% to 99.9% confidence multiplies the standard error by roughly four and a half on the same sample.\n\nThe further into the tail one goes, the fewer observations lie near the quantile, so its position is pinned down by very little data – the same data-scarcity problem that motivates extreme value theory. A deep-tail VaR reported without a confidence interval conveys false precision, and comparisons between institutions at 99.9% confidence rest on estimates that may not be statistically distinguishable."
+ },
+ {
+  "id": "MR-FT-04",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "Two analysts estimate the 95% VaR of the same portfolio. Analyst A uses 250 daily observations and obtains a VaR of 2.10% with a standard error of 0.134%. Analyst B uses 1,000 observations and obtains 2.31% with a standard error of 0.067%. What is the most appropriate conclusion?",
+  "options": {
+   "A": "The estimates cannot be compared, because standard errors are only meaningful for parametric VaR and not for estimates read off a sample.",
+   "B": "Analyst A's estimate is more precise, because a smaller sample reduces the influence of stale observations.",
+   "C": "Analyst B's estimate is more precise, and because the two point estimates differ, Analyst A's model must be rejected.",
+   "D": "Analyst B's estimate is more precise, and because A's 95% confidence interval of roughly 1.84% to 2.36% contains B's point estimate, the two estimates are not statistically distinguishable."
+  },
+  "answer": "D",
+  "solution": "This question uses standard errors to construct confidence intervals and to judge whether two estimates genuinely differ.\n\n**Step 1. Compare precision.** The standard error scales with the inverse square root of the sample size, so quadrupling the sample should roughly halve the standard error:\n\n$$\\text{ratio of sample sizes} = \\frac{1000}{250} = 4, \\qquad \\text{expected ratio of standard errors} = \\frac{1}{\\sqrt{4}} = 0.5$$\n$$\\text{observed ratio} = \\frac{0.067}{0.134} = 0.50$$\n\nThe observed improvement matches the theoretical rate exactly, which is itself a useful consistency check. Analyst B's estimate is the more precise of the two.\n\n**Step 2. Build a confidence interval around the less precise estimate.**\n\n$$2.10\\% \\pm 1.96 \\times 0.134\\% = 2.10\\% \\pm 0.263\\% = [1.84\\%,\\ 2.36\\%]$$\n\n**Step 3. Judge.** Analyst B's point estimate of 2.31% falls inside that interval, so the difference between 2.10% and 2.31% is within the range attributable to sampling variation. The two estimates are not statistically distinguishable, and neither analyst's model is impugned by the difference.\n\nThis is the central use of a standard error in model evaluation: it converts an apparent discrepancy into a question about whether the discrepancy exceeds what sampling alone would produce."
+ },
+ {
+  "id": "MR-FT-05",
+  "lo": "MR-1 f",
+  "loText": "Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.",
+  "outside": false,
+  "question": "A data scientist wants to determine whether a return series is consistent with a particular distribution and decides to use a quantile-quantile plot. Which statement about QQ plots is correct?",
+  "options": {
+   "A": "A QQ plot evaluates the precision of a statistical estimator by displaying its confidence interval across quantiles.",
+   "B": "A QQ plot displays the significance level of a hypothesis test against the sample size.",
+   "C": "A QQ plot graphs the EMPIRICAL quantiles of the data against the THEORETICAL quantiles of a reference distribution, so that a straight line indicates the data are consistent with that reference.",
+   "D": "A QQ plot is valid only for samples of more than 100 observations, below which the quantiles cannot be ranked."
+  },
+  "answer": "C",
+  "solution": "This question tests what a QQ plot actually plots, and why linearity is the diagnostic.\n\nA QQ plot is a purely graphical diagnostic. On one axis sit the ordered observations from the sample, the empirical quantiles. On the other sit the quantiles that the reference distribution would predict at the same cumulative probabilities.\n\n- x-axis: theoretical quantile from the reference distribution at probability $p_{(i)}$\n- y-axis: the corresponding order statistic from the sample\n\nIf the data really came from the reference distribution, each empirical quantile should sit close to its theoretical counterpart, and the plotted points fall along a straight line. Departures from linearity are therefore departures from the reference distribution, and the shape of the departure identifies what kind (see the companion questions on tail weight and on scale/location).\n\nThe reference distribution is a choice. The normal is the usual default, which is why QQ plots are most often described as a normality check, but the same construction works against any candidate distribution, including a fitted $t$ or a generalized Pareto in tail work.\n\nThe method is informal by design. It produces no test statistic and no p-value, and its strength is that it shows WHERE a distributional assumption fails rather than merely reporting THAT it fails."
+ },
+ {
+  "id": "MR-FT-06",
+  "lo": "MR-1 f",
+  "loText": "Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.",
+  "outside": false,
+  "question": "An analyst constructs a QQ plot of daily equity returns against a normal reference distribution. The points lie close to a straight line through the middle of the plot, but at the LEFT end they fall BELOW the line and at the RIGHT end they rise ABOVE it, giving the plot an S-shape with both ends bending away. What does this indicate?",
+  "options": {
+   "A": "The empirical distribution has HEAVIER tails than the normal reference, since extreme observations are larger in magnitude than the normal predicts at both ends.",
+   "B": "The empirical distribution has LIGHTER tails than the normal reference, since the ends depart from the line.",
+   "C": "The empirical distribution is negatively skewed, since the left end departs from the line first.",
+   "D": "The empirical distribution has a different mean from the reference, which shifts both ends away from the line."
+  },
+  "answer": "A",
+  "solution": "This question reads tail weight from the direction in which the ends of a QQ plot bend away from the reference line.\n\nRead the plot end by end, remembering that the vertical axis carries the empirical quantile and the horizontal axis the theoretical one.\n\n| Where | What is observed | What it means |\n|---|---|---|\n| Left end, the loss tail | Empirical points sit below the line, so the observed quantile is more negative than the normal predicts | The worst losses are larger than a normal distribution would generate; the left tail is heavier |\n| Right end, the gain tail | Empirical points sit above the line, so the observed quantile is more positive than predicted | The largest gains are also larger than predicted; the right tail is heavier |\n| Middle | Points lie on the line | The centre of the distribution is well described by the normal |\n\nBoth ends bending away from the line in opposite vertical directions is the signature of excess kurtosis – the standard picture for daily equity returns, and the graphical counterpart of the fat-tails result that motivates extreme value theory and the volatility smile.\n\nThe full vocabulary of QQ plot shapes:\n\n| Shape | Diagnosis |\n|---|---|\n| Straight line through the origin with slope 1 | The data match the reference distribution |\n| Straight line, slope not equal to 1 | Same shape, different scale or volatility |\n| Straight line, non-zero i […]"
+ },
+ {
+  "id": "MR-FT-07",
+  "lo": "MR-1 f",
+  "loText": "Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.",
+  "outside": false,
+  "question": "A risk analyst plots a QQ plot of a return series against a standard normal reference. The points fall on a near-perfect straight line, but the line has a slope of about 2.0 and passes through the vertical axis well above the origin. What does this indicate?",
+  "options": {
+   "A": "The data are inconsistent with the normal family, since only a slope of exactly 1.0 and an intercept of exactly 0 indicate normality.",
+   "B": "The data are consistent with a NORMAL distribution, but with a larger standard deviation and a different mean than the standard normal reference. Linearity indicates the shape matches; the slope and intercept carry the scale and location.",
+   "C": "The data are heavily skewed, since a non-zero intercept indicates asymmetry.",
+   "D": "The slope indicates the degree of excess kurtosis, so a slope of 2.0 implies tails twice as heavy as the reference."
+  },
+  "answer": "B",
+  "solution": "This question separates shape from scale and location on a QQ plot: linearity carries the shape, while the slope and intercept carry the other two moments.\n\nA QQ plot against a standard normal reference compares the data with a distribution of mean zero and standard deviation one. If the data are normal but with a different mean and standard deviation, the relationship between the two sets of quantiles is exactly linear:\n\n$$q_{emp} = \\mu + \\sigma \\cdot z_{theo}$$\n\nThat is the equation of a straight line with intercept $\\mu$ and slope $\\sigma$. So:\n\n| Feature of the plot | What it measures |\n|---|---|\n| Linearity | The shape of the distribution. A straight line means the data belong to the same family as the reference |\n| Slope | The scale. A slope of 2.0 means the data have roughly twice the standard deviation of the reference |\n| Intercept | The location. A non-zero intercept means the mean differs from that of the reference |\n\nThe separation is the point of the technique. A QQ plot against a standard normal tests normality, not standard normality. Differences in mean and standard deviation are expected and are read off the line rather than counting as failures. This is why the diagnostic is powerful: it isolates the question of distributional family from the questions of level and volatility, which are estimated separately and are rarely the issue."
+ },
+ {
+  "id": "MR-QB-0001",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "You are assigned to calculate the VaR for the stock of Fooda Inc. The ten worst daily returns of the stock over the last 100 trading days are (unordered):\n\n−1.2% −0.7% −3.2% −2.6% −2.4% −2.0% −1.9% −1.7% −1.5% −1.5%\n\nUse the Dowd/Schweser convention that the HS VaR is the $(\\alpha n + 1)$th worst observation. Assuming i.i.d. returns and 20 trading days in a month, which of the following is closest to the 95% monthly VaR of Fooda Inc. (expressed as a loss)?",
+  "options": {
+   "A": "1.70%",
+   "B": "7.60%",
+   "C": "8.50%",
+   "D": "34.00%"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Order the returns from worst: −3.2, −2.6, −2.4, −2.0, −1.9, −1.7, −1.5, −1.5, −1.2, −0.7.\n2. Cut‑off observation: $\\alpha n + 1 = 0.05 \\times100 + 1 = 6$, so the 6th worst return is used.\n3. Daily 95% VaR = 1.70% (6th worst return −1.7%).\n4. Scale by the square root of time: $1.70\\% \\times\\sqrt{20} = 1.70\\% \\times4.4721 = 7.60\\%$.\n\n**REBUILT** — Original options mixed signs and included a figure (−1.4%) no realistic mistake produces; options replaced with positive‑loss figures from common errors and the HS convention stated."
+ },
+ {
+  "id": "MR-QB-0002",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "You are assigned to calculate the monthly VaR for the stock of Apex Inc. The ten worst monthly returns of the stock over the last 100 months are (unordered):\n\n−12% −7% −32% −26% −24% −20% −19% −17% −15% −14%\n\nUse the Dowd/Schweser convention that the HS VaR is the $(\\alpha n + 1)$th worst observation. Which of the following is closest to the 95% monthly VaR for Apex (expressed as a loss)?",
+  "options": {
+   "A": "32%",
+   "B": "18%",
+   "C": "17%",
+   "D": "19%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Order from worst: −32, −26, −24, −20, −19, −17, −15, −14, −12, −7.\n2. Cut‑off observation: $\\alpha n + 1 = 0.05 \\times100 + 1 = 6$.\n3. 6th worst monthly return = −17%, so the 95% monthly VaR = 17%. The data are already monthly, so no time scaling is needed.\n\n**REBUILT** — Option D (−14.5%) matched no realistic error and the HS convention was unstated; replaced the distractors with the 5th‑worst and 5th/6th‑average figures and stated the $(\\alpha n + 1)$ convention."
+ },
+ {
+  "id": "MR-QB-0003",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "Extending historical simulation (HS) estimates of VaR and expected shortfall to longer holding periods poses no theoretical difficulty, but it does create a practical problem. Which of the following best describes that problem?",
+  "options": {
+   "A": "As the holding period shortens, the number of available P/L observations falls, so daily HS estimates are the least reliable.",
+   "B": "As the holding period lengthens, the number of non‑overlapping P/L observations falls sharply, so longer‑horizon HS estimates rest on very few data points.",
+   "C": "HS requires a parametric distribution to be fitted to P/L, and its parameters must be re‑estimated for each new holding period.",
+   "D": "As the holding period lengthens, HS can no longer produce an expected shortfall estimate because ES requires daily data."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. HS for a longer horizon builds h‑day P/L by summing daily P/L over non‑overlapping blocks.\n2. With 1,000 daily observations (about 4 years at 250 days), 5‑day sums give 1,000/5 = 200 weekly observations and 20‑day sums give 1,000/20 = 50 monthly observations.\n3. With so few observations, especially in the tail, longer‑horizon HS VaR and ES become imprecise; this limits how long the holding period can practically be.\n\n**REBUILT** — Options B and D (’number of observations’ vs ’size of the data’ decreasing as holding period increases) were both defensible; distractors rewritten so only one option is correct."
+ },
+ {
+  "id": "MR-QB-0004",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "A dataset contains 30 return observations. The worst 10 returns (in %), ordered, are:\n\n−20 −18 −18 −17 −15 −14 −12 −10 −7 −3\n\nUse the Dowd/Schweser convention that the HS VaR is the $(\\alpha n+1)$th worst observation. What is the 90% historical‑simulation VaR?",
+  "options": {
+   "A": "17%",
+   "B": "18%",
+   "C": "16%",
+   "D": "15%"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Cut‑off observation: $\\alpha n + 1 = 0.10 \\times30 + 1 = 4$.\n2. Ordered worst returns: −20, −18, −18, −17, ...; the 4th worst is −17%.\n3. 90% VaR = 17%.\n\n**REBUILT** — Without a stated convention both 17% $(\\alpha n + 1)$ and 18% (αn) were defensible; stated the $(\\alpha n + 1)$ convention in the stem."
+ },
+ {
+  "id": "MR-QB-0005",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "A trader holds a single long position in stock KKJL; yesterday’s closing price was USD 100. You use a 95% historical‑simulation VaR based on a 260‑day moving window, taking the VaR as the $(\\alpha n + 1)$th worst return. As of yesterday, the 16 worst 1‑day returns (%) in the window were:\n\n−9.5 −8 −7.6 −7.4 −7.2 −7.18 −7.1 −6.9 −6.57 −6.56 −6.45 −6.4 −6.25 −6.05 −5.99 −5.85\n\nToday the stock fell 10% after an adverse news story. The return that drops out of the window today is −3%. What is today’s 95% HS VaR in USD?",
+  "options": {
+   "A": "USD 6.25",
+   "B": "USD 5.445",
+   "C": "USD 5.625",
+   "D": "USD 6.05"
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (AnalystPrep) said A; correct is C because the −6.25% cut‑off return must be applied to today’s position value of USD 90, not yesterday’s USD 100.\n\n**Step by step**\n\n1. Cut‑off observation: $\\alpha n + 1 = 0.05 \\times260 + 1 = 14$.\n2. Yesterday the 14th worst return was −6.05%.\n3. Today’s −10% return enters as the new worst; the −3% return leaving the window is not in the tail, so every listed return moves down one rank and the new 14th worst is −6.25% (yesterday’s 13th).\n4. Today’s position value = 100 × (1 − 0.10) = USD 90.\n5. VaR = 6.25% × 90 = USD 5.625."
+ },
+ {
+  "id": "MR-QB-0006",
+  "lo": "MR-1 a",
+  "loText": "Estimate VaR using a historical simulation approach.",
+  "outside": false,
+  "question": "Stock A’s past 260 daily returns display strong negative skewness. Portfolio P1 is long stock A and portfolio P2 is short the same amount of stock A. Using historical simulation, which statement about the 99% VaR is most likely accurate?",
+  "options": {
+   "A": "\\|VaR(P1)\\| > \\|VaR(P2)\\|",
+   "B": "\\|VaR(P1)\\| \\< \\|VaR(P2)\\|",
+   "C": "VaR(P1) = VaR(P2)",
+   "D": "Cannot be concluded from the given information"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Negative skew means a long left tail: large negative returns are more extreme than large positive returns.\n2. P1 (long) loses when returns are negative, so its 99% VaR is read from the long left tail.\n3. P2 (short) loses when returns are positive, so its 99% VaR is read from the shorter right tail of A’s returns.\n4. Hence the long position’s VaR is larger in magnitude: \\|VaR(P1)\\| > \\|VaR(P2)\\|."
+ }
+]

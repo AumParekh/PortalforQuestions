@@ -1,0 +1,191 @@
+TOPIC A19: Non-Parametric VaR: Weighted HS, Bootstrap and FHS (Tier A)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+Readings: MR-2 a, b, c, d · Non-Parametric Approaches (Dowd, Measuring Market Risk 2e, Ch.4; 2.2 Bootstrapped HS
+and non-parametric density estimation, 2.3 confidence intervals, 2.4 Weighted HS eqs. 2.2 to 2.6, 2.5 Advantages and
+Disadvantages, Appendix 2 The Bootstrap)
+ AUG 2026 RECALL  MAP TIER C · #28 · 4/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Your August 2026 recall: Age-weighted and volatility-weighted HS.
+  Map #28: “Reported: ‘bootstrap HS property question’; ‘difference in non-parametric approaches’; ‘expected short-
+  fall in filtered historical simulation’. The polarity trap is documented in GARP’s own materials: volatility-weighted
+  HS adjusts historical returns upward when current volatility is above the historical level: the reversed version is the
+  distractor.”
+  Shapes covered here:
+  S1 age-weighted HS (BRW): single weights, cumulative weights and the weighted VaR read-off (Q1, Q2, Q4)
+  S2 volatility-weighted HS (HW), with the polarity trap: returns scaled up when current volatility is above the historical
+  level (Q3, Q5)
+  S3 bootstrap HS property question (Q5)
+  S4 differences among the non-parametric approaches (Q5)
+  S5 expected shortfall in filtered historical simulation (Q5)
+  Revision notes
+  • Non-parametric approaches estimate risk measures without strong assumptions about the P/L distribution:
+  they “let the P/L data speak for themselves”. Core assumption: the near future will be sufficiently like the
+  recent past.
+  • HS P/L (eq. 2.1) is the P/L the current portfolio would have earned had it been held through the sample
+  period, not the P/L actually earned. Basic HS VaR is the highest loss observation outside the tail (1000 obs
+  at 95%: the 51st highest loss, 1.704 in the book’s example; 100 obs: the 6th); ES is the average of the losses
+  in the tail (2.196 against a true 2.063). See also A13 for MR-1 HS VaR.
+  • Bootstrapped HS (MR-2 a): resample from the existing data set with replacement; each resample gives a
+  VaR, and each resample ES is “the average of the losses in each resample exceeding the resample VaR”. The
+  best estimates are the means of the resample estimates (1000 resamples: about 1.669 and 2.114, closer to the
+  true 1.645 and 2.063). Often more accurate than the raw sample estimate and useful for gauging precision.
+  • Bootstrap confidence intervals (Appendix 2): the percentile interval reads the bounds off the quantiles of
+  the bootstrapped estimates (book: 95% VaR [1.554, 1.797], ES [1.986, 2.271]); the bias-corrected and accel-
+  erated (BCa ) method corrects the end-points and is transformation-respecting. The order-statistics approach
+  gives very similar intervals (VaR [1.552, 1.797]). Bootstrap estimates have little bias but often substantial
+  variance.
+  • Bootstrap limitation: standard bootstrap procedures presuppose that observations are independent over
+  time. Remedies: bootstrap GARCH residuals (exposes us to model and parameter risk), a block approach
+  (can “whiten” the data), or selection probabilities that depend on recently chosen observations.
+  • Non-parametric density estimation (MR-2 b): basic HS only gives VaR at discrete confidence levels set
+  by sample size (100 obs: 95% yes, 95.1% no). Drawing lines through the tops of histogram bars, or using
+  kernels, gives a surrogate pdf, so VaR can be estimated at any confidence level. Kernels are theoretically
+  superior, but four kernels all gave 1.735 versus basic HS 1.704: “they do not necessarily produce much better
+  estimates in practice”.
+  • Weighted HS is semi-parametric: it adds parametric features (GARCH volatility forecasts) to the HS frame-
+  work. Problems with equal weights: the 1/n weight is hard to justify, risk estimates are unresponsive to major
+  events, the iid assumption is unrealistic, and weights drop suddenly to zero at age n, creating ghost effects.
+  • Age-weighted HS (Boudoukh, Richardson and Whitelaw, BRW): weights decay exponentially with age;
+  λ close to 1 means slow decay. Equal-weight HS is the special case λ → 1. Rear-view mirror analogy:
+  equal-weight HS is safe only if the road is straight; age-weighting is safe if it bends gently.
+FRM Part II · Volume 1: Tier A  A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+  • Age-weighting attractions: (1) generalises traditional HS; (2) more responsive to large recent losses and
+  better with loss clusters; (3) reduces distortions from unlikely-to-recur events and reduces ghost effects (an
+  observation leaves with weight λn w(1) < 1/n); (4) lets the sample size grow over time, improving efficiency
+  and effectively eliminating ghost effects.
+  • Age-weighting drawbacks: reduces the effective sample size; a sequence of major profits or losses can
+  distort the risk profile; VaR can still be insufficiently responsive (Pritsker); the approach is ad hoc: except
+  for λ = 1 no asset-return process makes BRW theoretically correct.
+  ∗
+  • Volatility-weighted HS (Hull and White, HW): replace each historical return by rt,i  = (σT,i /σt,i ) rt,i .
+  Returns are increased when the current forecast is greater than the forecast for day t, and decreased when it
+  is less; then estimate VaR or ES in the traditional equal-weight way.
+  • HW advantages: handles volatility changes in a natural, direct way (age-weighting treats them “in a rather
+  arbitrary and restrictive way”); sensitive to current GARCH information; VaR and ES can exceed the maxi-
+  mum historical loss; HW evidence shows superior VaR to BRW. Can be combined with age-weighting and
+  with order-statistics or bootstrap confidence intervals.
+  • Correlation-weighted HS (Duffie and Pan suggestion): adjust returns to the current correlation matrix us-
+  ing Choleski matrices, R̃ = ÃA−1 R. A major generalisation of HW (correlations as well as volatilities).
+  Example 2.1: historical ρ = 0.3 to current 0.9 gives a second row [0.7629, 0.4569].
+  • Filtered HS (Barone-Adesi et al.): a semi-parametric bootstrap. Fit an asymmetric GARCH (leverage ef-
+  fect), divide realised returns by their volatility forecasts to get iid standardised returns, bootstrap these and
+  multiply by tomorrow’s volatility forecast. For a multi-asset portfolio, bootstrap whole standardised vectors,
+  which keeps the correlation structure without a variance-covariance matrix.
+  • FHS attractions and ES: combines HS with a sophisticated volatility treatment; fast; VaR and ES can exceed
+  the maximum historical loss; can be combined with order-statistics or bootstrap intervals. FHS “can also be
+  extended easily” to ES (Giannopoulos and Tunaru). Evidence is mixed: Pritsker finds FHS VaR may not pay
+  enough attention to extreme observations or time-varying correlations; “a partial response to the first point
+  would be to use ES instead of VaR”.
+  • Advantages of non-parametric methods (MR-2 d): intuitive and simple; accommodate fat tails, skewness
+  and other non-normal features; any position type including derivatives; easy on a spreadsheet; no covari-
+  ance matrices or curse of dimensionality; readily available data; easy to report; confidence intervals easy to
+  produce; can be refined with semi-parametric add-ons.
+  • Disadvantages: results are very (often completely) dependent on the historical data set; a quiet sample gives
+  VaR too low, a volatile sample too high; slow to reflect shifts and major events; unlikely-to-recur extremes
+  can dominate; ghost (shadow) effects; no allowance for plausible events that did not occur; constrained by
+  the largest historical loss, so poorly suited to extremes with small or medium samples.
+  • Window length: most experts want at least 500 daily observations; a longer window worsens aged data,
+  ghost effects, drowning-out of current news and data-collection problems. Never rely on non-parametric
+  methods alone: complement them with stress testing.
+  Formulas
+  1−λ  i−1  λi−1 (1 − λ)
+  Age weights (BRW), eq. 2.2. w(1) =  ,  w(i)  =  λ  w(1) =
+  1 − λn  1 − λn
+  i: age in days (i = 1 is yesterday); λ ∈ (0, 1): decay factor; n: observations in the window. Equal-weight HS gives
+  each observation 1/n.
+  Xk
+  1 − λk
+  Cumulative weight on the k most recent observations.  w(i) =
+  i=1
+  1 − λn
+  Age-weighted VaR. Rank P/L from the worst loss, attach each w(i), accumulate, and stop where the cumulative
+  weight reaches the tail probability 1 − α (interpolation allowed).
+  Equal-weight HS VaR. The [n(1 − α) + 1]th largest loss: the highest loss outside the tail.
+  ∗  σT,i
+  Volatility-adjusted return (HW), eq. 2.3. rt,i  =  rt,i (current forecast over the forecast for day t)
+  σt,i
+  Correlation adjustment, eqs. 2.4 and 2.5. R = Aε, R̃ = Ãε ⇒ R̃ = ÃA−1 R
+  FHS (AGARCH), eq. 2.6. rt = µ + εt , σt2 = ω + α(εt−1 + γ)2 + βσt−1  2
+  ; standardised return εt /σt , bootstrapped
+  and multiplied by tomorrow’s forecast.
+FRM Part II · Volume 1: Tier A  A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+  P
+  Bootstrap point estimate and percentile interval, eqs. 2.14 and 2.11. θ̂B = B1  B  B B
+  i θ̂i , interval [θ̂α , θ̂1−α ]
+  Exam traps
+  • Volatility polarity (the documented trap): HW scales returns up when current volatility is above the volatility
+  on the day they were observed. The reversed statement, and the inverted ratio σt /σT , are the distractors.
+  • Dropped normaliser: using w(i) = λi−1 (1−λ) without dividing by 1−λn (or using raw λi−1 as probabilities).
+  Weights then do not sum to 1.
+  • Exponent off by one: the weight on an i-day-old observation uses λi−1 ; yesterday’s observation carries the full
+  w(1).
+  • Tail-counting convention: VaR is the first observation outside the tail (100 obs at 95%: the 6th largest loss,
+  not the 5th). In age-weighted HS, keep accumulating until the cumulative weight first exceeds 1 − α.
+  • Sibling swap on the maximum loss: basic HS and the bootstrap cannot produce a VaR or ES above the largest
+  historical loss; HW and FHS can, because returns are rescaled to current volatility.
+  • Bootstrap scope: the standard bootstrap assumes independence over time; “resampling fixes clustering” is false.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  age-weighted HS (BRW): single weights, cumulative weights and the weighted VaR read-off  A19.1,  A19.2, A19.4
+S2  volatility-weighted HS (HW), with the polarity trap: returns scaled up when current volatility is above  A19.3, A19.5 the historical level
+S3  bootstrap HS property question  A19.5
+S4  differences among the non-parametric approaches  A19.5
+S5  expected shortfall in filtered historical simulation  A19.5
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-2  Non-Parametric Approaches
+  P1 ×3  P4 ×1  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: a) know abt Bootstrapping method HS method b) Volatility weighted method c) Filtered HS method
+  RECALL WORKBOOK SECTIONS
+  A13 Lognormal VaR
+  Tier A • Aug ✓• Map #14 (6/16) • TG ✓• 4 Qs • Vol 1 p.101 • LOs c
+  A19 Non-Parametric VaR: Weighted HS, Bootstrap and FHS
+  Tier A • Aug ✓• Map #28 (4/16) • TG ✓• 5 Qs • Vol 1 p.140 • LOs a to d
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a, c, d
+  P1  a  Apply the bootstrap historical simulation approach to estimate coherent risk measures.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Bootstrapping HS method
+  A19·S3 bootstrap HS property question
+  B2·S1 ES from a sample and its bootstrap resamples: exactly which losses enter the tail average, 4, 5 or 6
+  B2·S4 coherence: ES is subadditive, VaR is not (Q3)
+  P4  b  Describe historical simulation using non-parametric density estimation.
+  P1  c  Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the fil-
+  tered historical simulation approaches.
+  WORKBOOK A19, B2 + VARDEEZ FOCUS
+  ▶ Vardeez: Volatility-weighted and filtered HS methods
+  A19·S1 age-weighted HS (BRW): single weights, cumulative weights and the weighted VaR read-off
+  A19·S2 volatility-weighted HS (HW), with the polarity trap: returns scaled up when current volatility is above the historical
+  level
+  A19·S4 differences among the non-parametric approaches
+  A19·S5 expected shortfall in filtered historical simulation
+  B2·S3 ES within filtered historical simulation
+  P1  d  Identify advantages and disadvantages of non-parametric estimation methods.
+  WORKBOOK A19
+  A19·S4 differences among the non-parametric approaches
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+28  Non-Parametric Approaches: Bootstrap, Volatility-Weighted & Filtered HS
+  MARKET RISK  4 OF 16 SOURCES  VERY IMPORTANT
+  R2 · Non-Parametric Approaches
+  W H AT I S T E S T E D
+  A four-way sibling set — age-weighted, volatility-weighted, correlation-weighted, filtered
+  — which is exactly the structure GARP builds four-statement audits from.
+  SPECIFICS REPORTED
+  Reported: 'bootstrap HS property question'; 'difference in non-parametric approaches';
+  'expected shortfall in filtered historical simulation'. The polarity trap is documented in
+  GARP's own materials: volatility-weighted HS adjusts historical returns upward when
+  current volatility is above the historical level — the reversed version is the distractor.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Telegram consolidated list (08/08/25), Telegram recall — Sajan Singh (list 1)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 2.a Apply the bootstrap historical simulation approach to estimate coherent risk measures.
+  LO 2.b Describe historical simulation using non-parametric density estimation.
+  LO  2.c Compare and contrast the age-weighted, the volatilityweighted, the correlation-
+  weighted, and the filtered historical simulation approaches.
+  LO 2.d Identify advantages and disadvantages of non-parametric estimation methods.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #28 Non-Parametric Approaches: Bootstrap, Volatility-Weighted & Filtered HS: rank 49, Grind

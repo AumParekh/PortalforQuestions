@@ -1,0 +1,162 @@
+TOPIC C7: CMT Swap Valuation and OAS on a Rate Tree (Tier C)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+C7 CMT Swap Valuation and OAS on a Rate Tree
+Readings: MR-12 a, b, c, d, e, f, g, h, i, j · Arbitrage Pricing with Term Structure Models (Tuckman and Serrat, Fixed Income
+Securities 4e, Ch.7)
+ MAP TIER C · #33 · 3/16 SOURCES  VARDEEZ
+  Specifics reported
+  Map #33: “Reported: ‘decision tree question with OAS of CMT swap’. LO 12.h is the exact objective: value a
+  constant-maturity Treasury swap given an interest-rate tree and risk-neutral probabilities. LO 12.d, the true-vs-risk-
+  neutral probability distinction applied to interest-rate drift, is the conceptual partner and a standing polarity trap.”
+  Shapes covered here:
+  S1 value a CMT swap backward through a two-period rate tree with risk-neutral probabilities, inside an OAS wrapper
+  (Q1)
+  S2 OAS: shift the discount rates only, then read cheap versus rich from the sign (Q1)
+  S3 true versus risk-neutral probabilities and the drift they imply, with the real-world probabilities supplied as a temp-
+  tation (Q1).
+  Revision notes
+  • Expected discounted value is not price (MR-12 a): book tree, six-month rate 2% today, 2.50% or 1.50%
+  in six months with true probability 0.5 each; one-year spot 2.15%. The one-year zero’s expected discounted
+  value is 980.302, but its market price is 978.842: investors dislike the price uncertainty and penalise the risky
+  bond.
+  • Arbitrage pricing by replication (MR-12 b): a six-month call on a then six-month zero struck at 990 pays
+  0 (up) or 2.556 (down). Solve F.5 + .987654F1 = 0, F.5 + .992556F1 = 2.556: long 521.4375 one-
+  year zeros, short 515.0000 six-month zeros; price 0.504. Expected discounted value with true probabilities,
+  1.2653, overstates it. The probabilities never enter the replication; they matter only indirectly through current
+  bond prices.
+  • Risk-neutral pricing (MR-12 c): find the probabilities that make expected discounted values equal mar-
+  ket prices (p = 0.8009 recovers 978.842), then price any claim by expected discounted value under them:
+  (0.1991 × 2.556)/1.01 = 0.504. It works because an arbitrage-priced security’s price does not depend on
+  risk preferences; an imaginary risk-neutral economy with the same bond prices gives the same price.
+  • True versus risk-neutral probabilities and drift (MR-12 d, S3): with true probabilities 0.5 the drift of the
+  six-month rate is zero; under p = 0.8009 it is 0.8009(50) − 0.1991(50) = 30.09 bp. From date 1 to 2,
+  q = 0.6520 gives a risk-neutral drift of 15.20 bp. Risk-neutral probabilities put more weight on the high-rate
+  (low-price) states; MR-13 explains that a drift of a given number of basis points has the same pricing effect
+  as a risk premium of that size per year of duration.
+  • Multi-period extension (MR-12 e): add the 1.5-year zero (spot 2.25%, price 966.995) and solve for q at
+  date 1 (assumed equal from both states). The tree then implies the one-year rate in six months (2.5754% or
+  1.5754%): in a one-factor model the short-rate process determines every other rate. Replicating portfolios
+  change by date and state: dynamic replication.
+  • Recombining trees (MR-12 g): up-down lands on down-up. A nonrecombining tree has 2N end states (over
+  500,000 for 10 years of semiannual steps, over 500 billion for 20), so it is computationally unwieldy; effects
+  such as state-dependent volatility must be implemented more efficiently.
+  • CMT swap (MR-12 h, S1): pays N (yCMT − K)/2 every six months, where yCMT is the semiannually com-
+  pounded yield of a fixed maturity on the payment date (in practice 2-, 5- or 10-year Treasury yields; the book
+  uses the six-month yield). Value at each date-1 node = expected discounted value of date-2 payoffs plus that
+  node’s own date-1 payoff; then discount back to date 0.
+  • Book CMT result: USD 1,000,000 struck at 2%: date-1 values 5,719.52 and −4, 227.29, date-0 value
+  3,702.11. With true probabilities the value is close to zero (−6.07): the risk-neutral probabilities, not the
+  true ones, determine the arbitrage price even though 2% is the average rate under the true probabilities.
+  • Option-adjusted spread (MR-12 f, S2): the spread that, added to the model’s discount rates, recovers the
+  market price. Rates are shifted only for discounting, never for computing cash flows. Book: an OAS of 10 bp
+FRM Part II · Volume 2: Tiers B to D  C7 CMT Swap Valuation and OAS on a Rate Tree
+  takes the CMT value from 3,702.11 to 3,699.18. Positive OAS: market price below model price, the security
+  trades cheap; negative OAS: rich.
+  • OAS and expected return: under the risk-neutral process a security’s expected return is the short rate plus
+  OAS per period. Book: 1.00% over six months for the fairly priced swap, 1.05% (half of 2.10%) with a 10
+  bp OAS.
+  • P&L attribution with an OAS (MR-12 f): dP = (r0 + OAS)P dt + ∂P  ∂r (dr − E[dr]) + ∂ OAS dOAS: carry-
+  ∂P
+  roll-down, rate-change gains or losses, spread-change gains or losses. A hedged (∂P /∂r = 0) and financed
+  cheap security earns the OAS plus any convergence; risk premium terms cancel when factor risk is hedged.
+  • Reducing the time step (MR-12 i): smaller steps place cash flows close to tree dates and give a less coarse,
+  more realistic rate distribution, but demand more numerical care and computation. Weekly or monthly steps
+  may suffice for a 30-year callable; a one-month bond option needs much smaller steps. Step size can vary
+  across dates.
+  • Why not BSM for bonds (MR-12 j): a bond’s price converges to par at maturity; its price volatility must
+  decline toward maturity; and assuming a constant short rate while the bond price is random is inconsistent.
+  Hence models of the short rate (or the whole term structure). Practitioners still use versions of BSM for some
+  fixed income derivatives for simplicity.
+  • See also D12 and D18 (MR-13: how expectations, risk premium and convexity shape the tree’s term struc-
+  ture) and A7 (MR-14: the drift in Ho-Lee trees).
+  Formulas
+  p Vup + (1 − p) Vdown
+  Expected discounted value on a semiannual tree. Vnode =  + CFnode
+  1 + rnode /2
+  p Pup + (1 − p) Pdown
+  Risk-neutral probability from a zero price (eq. 12.7).  = Pmarket
+  1 + r0 /2
+  Risk-neutral drift over a step of ±∆. drift = p ∆ − (1 − p) ∆ = (2p − 1) ∆
+  yCMT − K
+  CMT swap payment (eq. 12.18). N  each half-year
+  Valuation at an OAS. discount at rnode + OAS; cash flows still from rnode . OAS > 0 ⇒ cheap; OAS < 0 ⇒ rich
+  Expected return with an OAS (eq. 12.35). E[dP /P ] = (r0 + OAS) dt
+  Book check (Figure 12.8). p = 0.8009, q = 0.6520, USD 1 million struck at 2%: 3,702.11 (model); 3,699.18 at
+  OAS 10 bp; −6.07 with true probabilities.
+  Exam traps
+  • True versus risk-neutral (wrong-input twin): the real-world probabilities (often 0.5) give the wrong price.
+  Only the risk-neutral probabilities recover market prices.
+  • OAS shifts discounting only: adding the OAS to the rates that set the CMT payments changes the cash flows
+  and inflates the value.
+  • Cheap versus rich (polarity flip): a positive OAS means the market price is below the model value: cheap. A
+  negative OAS means rich.
+  • Dropped term: each date-1 node value includes that node’s own payment as well as the discounted date-2
+  expectation.
+  • Same probability at every date: q at date 1 is solved separately (book 0.6520 versus 0.8009 at date 0); reusing
+  p is a named mistake.
+  • Intermediate result: the model value at zero OAS is a legitimate step, not the market price when an OAS is
+  quoted.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  value a CMT swap backward through a two-period rate tree with risk-neutral probabilities, inside an  C7.1 OAS wrapper
+S2  OAS: shift the discount rates only, then read cheap versus rich from the sign  C7.1
+S3  true versus risk-neutral probabilities and the drift they imply, with the real-world probabilities sup-  C7.1 plied as a temptation (Q1)
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-12  Arbitrage Pricing with Term Structure Models
+  P3 ×3  P4 ×7  VARDEEZ: MODERATE  WORKBOOK BEST: TIER C
+  Vardeez: a) CMT swap
+  RECALL WORKBOOK SECTIONS
+  C7 CMT Swap Valuation and OAS on a Rate Tree
+  Tier C • Map #33 (3/16) • 1 Qs • Vol 2 p.66 • LOs a to j
+  P4  a  Calculate the expected discounted value of a zero-coupon security using a binomial tree.
+  P4  b  Construct and apply an arbitrage argument to price a call option on a zero-coupon security using replicating
+  portfolios.
+  P4  c  Define risk-neutral pricing and apply it to option pricing.
+  P3  d  Explain the difference between true and risk-neutral probabilities and apply this difference to interest rate
+  drift.
+  WORKBOOK C7
+  C7·S3 true versus risk-neutral probabilities and the drift they imply, with the real-world probabilities supplied as a temp-
+  tation (Q1)
+  P4  e  Explain how the principles of arbitrage pricing of derivatives on fixed-income securities can be extended over
+  multiple periods.
+  P3  f  Define option-adjusted spread (OAS) and apply it to security pricing.
+  WORKBOOK C7
+  C7·S1 value a CMT swap backward through a two-period rate tree with risk-neutral probabilities, inside an OAS wrapper
+  C7·S2 OAS: shift the discount rates only, then read cheap versus rich from the sign
+  P4  g  Describe the rationale behind the use of recombining trees in option pricing.
+  P3  h  Calculate the value of a constant-maturity Treasury swap, given an interest rate tree and the risk-neutral prob-
+  abilities.
+  WORKBOOK C7 + VARDEEZ FOCUS
+  ▶ Vardeez: CMT swap
+  C7·S1 value a CMT swap backward through a two-period rate tree with risk-neutral probabilities, inside an OAS wrapper
+  P4  i  Evaluate the advantages and disadvantages of reducing the size of the time steps on the pricing of derivatives
+  on fixed- income securities.
+  P4  j  Evaluate the appropriateness of the Black-Scholes-Merton model when valuing derivatives on fixed-income
+  securities.
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+33  CMT Swaps, OAS & Risk-Neutral Pricing
+  MARKET RISK  3 OF 16 SOURCES  IMPORTANT
+  R12 · Arbitrage Pricing with Term Structure Models
+  W H AT I S T E S T E D
+  The sheet reduces the whole chapter to one item: 'CMT swap'. A recall confirms it
+  appeared with an OAS wrapper.
+  SPECIFICS REPORTED
+  Reported: 'decision tree question with OAS of CMT swap'. LO 12.h is the exact objective
+  — value a constant-maturity Treasury swap given an interest-rate tree and risk-neutral
+  probabilities. LO 12.d, the true-vs-risk-neutral probability distinction applied to interest-
+  rate drift, is the conceptual partner and a standing polarity trap.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Important Topics — 33-item exam recall
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 12.c Define risk-neutral pricing and apply it to option pricing.
+  LO 12.d Explain the difference between true and risk-neutral probabilities and apply this
+  difference to interest rate drift.
+  LO 12.f Define option-adjusted spread (OAS) and apply it to security pricing.
+  LO 12.h Calculate the value of a constant-maturity Treasury swap, given an interest rate tree
+  and the risk-neutral probabilities.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #33 CMT Swaps, OAS & Risk-Neutral Pricing: rank 58, Defer

@@ -1,0 +1,190 @@
+TOPIC C1: Regression Hedging, DV01 and PCA (Tier C)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+C1 Regression Hedging, DV01 and PCA
+Readings: MR-11 a, b, c, d, e, f, g, h · Regression Hedging and Principal Component Analysis (Tuckman and Serrat, Fixed
+Income Securities 4e, Ch.6)
+ MAP TIER C · #23 · 5/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #23: “Reported: ‘hedge ratio given beta, alpha, DV01’; ‘regression hedge: face amount if offsetting’; ‘DV01
+  hedging’; ‘regression-based hedge’. LO 11.a, the drawbacks of a plain DV01-neutral hedge, is the qualitative coun-
+  terpart and the reason the regression hedge exists. PCA as a hedging-portfolio construction (LO 11.h) is the adjacent
+  item.”
+  Shapes covered here:
+  S1 hedge ratio from a regression output that lists alpha, beta and both DV01s, with alpha as the tempting extra input
+  (Q1)
+  S2 face amount of the offsetting position in a regression hedge, paired with the hedged P&L volatility (Q1)
+  S3 DV01 hedging: the DV01-neutral amount as the planted distractor against the regression amount (Q1, Q2)
+  S4 drawbacks of a DV01-neutral hedge and why the regression hedge improves it (Q2)
+  S5 PCA as the construction of a hedging portfolio: how many PCs two hedging securities can neutralize, and the
+  risk-weight sum (Q2).
+  Revision notes
+  • DV01-neutral hedge and its drawback (MR-11 a, S3, S4): the trader sells face = face hedged × DV01 ratio
+  (book: USD 100 million × 0.2124/0.1910 = USD 111.2 million of the 30-year Treasury against 40-year
+  JNJ bonds). The hedge “assumes that the yields of the JNJ and Treasury bonds move up or down in parallel”.
+  Because the corporate bond trades at a changing spread and 40- and 30-year rates are not perfectly correlated,
+  the parallel-shift assumption is questionable.
+  • Regression model (MR-11 b): ∆ytJNJ = α + β ∆yt30 + εt . Least squares picks α̂, β̂ to minimise the sum of
+  squared residuals; squaring penalises large errors heavily and stops positive and negative errors offsetting.
+  Assumptions: the model is a true description, errors are identically distributed, independent of each other
+  and uncorrelated with the independent variable; then estimates are linear, unbiased, consistent and efficient.
+  • Reading the output (MR-11 c): book β̂ = 0.842 (std error 0.051), α̂ = 0.060 (std error 0.223), R2 = 77.5%,
+  standard error 2.00 bp. The 95% interval for α contains zero, so α = 0 cannot be rejected; the interval for
+  β, (0.740, 0.944), excludes one, so parallel shifts are rejected. In a one-variable regression R2 is the squared
+  correlation (88.0%). The intercept is economically odd if nonzero and does not enter the hedge (S1).
+  DV01JNJ
+  • Regression hedge face amount (MR-11 d, S2):  F 30  =  −F JNJ  β̂. Book: −100 ×
+  DV0130
+  (0.2124/0.1910) × 0.842 = −USD 93.6 million, so fewer Treasuries are sold than the DV01 hedge’s USD
+  111.2 million.
+  • Risk weight (MR-11 c): the DV01 of the hedge as a fraction of the DV01 of the hedged bonds equals β̂
+  (84.2%). The risk weight of a DV01-neutral hedge is always 100%.
+  • Why the regression hedge is better (MR-11 b, S4): it minimises the variance of the hedged P&L
+  (Appendix A6.1), whether or not yields move exactly by the regression line. Hedged P&L volatility
+  = |F JNJ DV01JNJ /100| × σε : book USD 212,400 × 2 bp = USD 424,800 per day. Whether that is ac-
+  ceptable depends on how much and how fast the trade makes money.
+  • Estimation window and stability: too short a window gives unreliable estimates, too long includes less
+  relevant data; an earlier episode (for example a past Fed tightening) may be more relevant than the recent
+  past. Results are in-sample; poor out-of-sample performance questions the stability of the coefficients (book
+  out-of-sample standard error 1.5 bp versus 2.0 in-sample).
+  • Two-variable regression hedge (MR-11 e): 20-year yield on 10- and 30-year yields (β̂ 10 = 0.465, β̂ 30 =
+  0.669, R2 = 94.7%, standard error 1.15 bp). The butterfly buys 20s and sells 10s and 30s: both shorts
+  defend against general rate rises, the 10-year short against flattening, the 30-year short against steepening.
+  Face amounts F 10 = −F 20 (DV0120 /DV0110 )β̂ 10 and similarly for 30s: USD 79.44 million and USD 50.69
+FRM Part II · Volume 2: Tiers B to D  C1 Regression Hedging, DV01 and PCA
+  million against USD 100 million 20s. Risk weights 46.5% and 66.9% sum to 113.4%: the hedge carries
+  13.4% more DV01 than the position.
+  • Level versus change regressions (MR-11 f): if the least-squares assumptions hold for one specification
+  they hold for the other. If error independence fails, estimates are still unbiased and consistent but may not
+  be efficient. Level errors tend to be persistent (serially correlated); change-on-change errors can also stay
+  positive while a yield trends toward its model value. Alternative: a level model with error dynamics εt =
+  ρεt−1 + νt , ρ < 1 (book: −4% yesterday, ρ = 75%, expected error −3% today).
+  • Reverse regression (MR-11 g): regressing the Treasury on JNJ gives β̂ = 0.921 (regression standard error
+  2.09 bp), a risk weight of 1/0.921 = 108.6% and USD 82.8 million JNJ against USD 93.6 million Treasuries.
+  Neither hedge is “wrong”: choosing to hedge USD 100 million JNJ fixes the trade and its risk (about USD
+  425,000 versus 374,000). The regression hedge minimises variance given the face amount of the bond being
+  hedged; other objectives give other constructions.
+  • Why PCA (MR-11 h): regression hedging is ad hoc (different bonds, windows and variable counts across
+  traders are different models of the term structure). PCA gives one empirical description usable across a
+  portfolio.
+  • PCA properties (MR-11 h): (1) the sum of the PC variances equals the sum of the rate variances; (2) the PCs
+  are uncorrelated with each other; (3) each PC has the maximum variance given the earlier ones. The first
+  three PCs explain an overwhelming fraction (USD swaps: 99.84%; level over 90%, slope about 8%, short
+  rate under 1%). Three PCs explain 74.54% of the one-year rate’s variation but over 99% for terms beyond
+  three years.
+  • Level, slope, short rate (MR-11 h): a one-standard-deviation level move is not particularly level from 1 to
+  7 years in the 2020 to 2021 sample; slope moves short rates down and long rates up (or the reverse); the
+  short-rate PC (also called curvature) adds explanatory power at the short end. A trader in 8- to 10-year swaps
+  can defend a one-factor approach; 3- to 6-year or long-end traders may need two factors; the very short end
+  may need three.
+  • Hedging with PCA (MR-11 h, S5): shift the curve by each PC, reprice, compute a ‘01 per PC, and choose
+  hedges that neutralise them. Book: receive 100 in 20-year swaps, pay 49.56 in 10s and 53.60 in 30s to
+  neutralise level and slope; risk weights 27.1% and 74.1% sum to 101.2%. “Only under the assumption of
+  parallel shifts do the risk weights always sum to 100%.” With two hedging securities only two PCs can be
+  hedged: the residual short-rate exposure was 0.007 per 100, so the trader may skip a third (15-year) swap
+  given transaction costs and the relative value view.
+  • See also A7 and A25 for term structure models whose factor shapes (parallel versus mean-reverting) give
+  the model-based counterpart of these empirical hedges.
+  Formulas
+  DV01P
+  DV01-neutral hedge. F H = −F P  (risk weight 100%)
+  DV01H
+  DV01P  −F H DV01H /100
+  Single-variable regression hedge (eq. 11.8). F H = −F P  β̂  risk weight  = β̂
+  DV01H  F P DV01P /100
+  F P DV01P
+  Hedged P&L volatility (eq. 11.12). σP&L =  σε (DV01 of the hedged position × regression standard
+  error)
+  DV0120 10  DV0120 30
+  Two-variable regression hedge (eqs. 11.18 to 11.21). F 10 = −F 20  10 β̂ ,  F 30 = −F 20  β̂
+  DV01  DV0130
+  10  30
+  DV01  30 DV01
+  PCA hedge (eqs. 11.30, 11.31). For each hedged PC k:  −F 10  k − F
+  PC10  k −
+  PC30
+  100  100
+  DV01
+  100  PC20
+  k =0
+  100  q  P
+  PC volatility of a rate (eq. 11.26). PC21 + PC22 + PC23 (PCs uncorrelated); variance share of PC k = PC2k / j PC2j
+FRM Part II · Volume 2: Tiers B to D  C1 Regression Hedging, DV01 and PCA
+  Exam traps
+  • Dropped term (beta): the DV01 ratio alone gives the DV01-neutral amount (risk weight 100%), not the re-
+  gression hedge. With β̂ < 1 the regression hedge sells fewer hedging bonds.
+  • Red herring (alpha): the intercept is reported but does not enter the face amount. Adding it to β̂ is a named
+  mistake.
+  • Wrong DV01 in the P&L volatility: σP&L uses the DV01 of the position being hedged, not of the hedge leg.
+  Using the hedge leg gives β̂ times the right answer.
+  • Direction of the regression: the dependent variable is the yield of the bond being hedged. A reverse regression
+  gives a different risk weight (108.6% versus 84.2% in the book), not the reciprocal of the same hedge.
+  • PCA polarity and absolutes: PCs are uncorrelated; two hedging securities neutralise only two PCs; PCA risk
+  weights need not sum to 100% (book 101.2%), only parallel-shift hedges do.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  hedge ratio from a regression output that lists alpha, beta and both DV01s, with alpha as the tempting  C1.1 extra input
+S2  face amount of the offsetting position in a regression hedge, paired with the hedged P&L volatility  C1.1
+S3  DV01 hedging: the DV01-neutral amount as the planted distractor against the regression amount  C1.1, C1.2
+S4  drawbacks of a DV01-neutral hedge and why the regression hedge improves it  C1.2
+S5  PCA as the construction of a hedging portfolio: how many PCs two hedging securities can neutralize,  C1.2 and the risk-weight sum (Q2)
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-11  Regression Hedging and Principal Component Analysis
+  P3 ×5  P4 ×3  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER C
+  Vardeez: a) Regression Hedge calculation (using the same formula, Beta as well as face value can be calculated)
+  RECALL WORKBOOK SECTIONS
+  C1 Regression Hedging, DV01 and PCA
+  Tier C • Map #23 (5/16) • TG ✓• 2 Qs • Vol 2 p.37 • LOs a to h
+  P3  a  Explain the drawbacks to using a DV01-neutral hedge for a bond position.
+  WORKBOOK C1
+  C1·S3 DV01 hedging: the DV01-neutral amount as the planted distractor against the regression amount
+  C1·S4 drawbacks of a DV01-neutral hedge and why the regression hedge improves it
+  P3  b  Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.
+  WORKBOOK C1
+  C1·S4 drawbacks of a DV01-neutral hedge and why the regression hedge improves it
+  P3  c  Calculate the regression hedge adjustment factor, beta.
+  WORKBOOK C1 + VARDEEZ FOCUS
+  ▶ Vardeez: Regression hedge: beta
+  C1·S1 hedge ratio from a regression output that lists alpha, beta and both DV01s, with alpha as the tempting extra input
+  P3  d  Calculate the face value of an offsetting position needed to carry out a regression hedge.
+  WORKBOOK C1 + VARDEEZ FOCUS
+  ▶ Vardeez: Regression hedge: face value (same formula)
+  C1·S2 face amount of the offsetting position in a regression hedge, paired with the hedged P&L volatility
+  C1·S3 DV01 hedging: the DV01-neutral amount as the planted distractor against the regression amount
+  P4  e  Calculate the face value of multiple offsetting swap positions needed to carry out a two-variable regression
+  hedge.
+  P4  f  Compare and contrast level and change regressions.
+  P4  g  Explain why and how a regression hedge differs from a hedge based on a reverse regression.
+  P3  h  Describe principal component analysis and explain how it is applied to constructing a hedging portfolio.
+  WORKBOOK C1
+  C1·S5 PCA as the construction of a hedging portfolio: how many PCs two hedging securities can neutralize, and the
+  risk-weight sum (Q2)
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+23  Regression Hedging, DV01 & PCA
+  MARKET RISK  5 OF 16 SOURCES  IMPORTANT
+  R11 · Regression Hedging and Principal Component Analysis
+  W H AT I S T E S T E D
+  Reported as a numerical in multiple sittings. The sheet notes that the same formula yields
+  both the beta and the face value, so one setup serves two question forms.
+  SPECIFICS REPORTED
+  Reported: 'hedge ratio given beta, alpha, DV01'; 'regression hedge: face amount if
+  offsetting'; 'DV01 hedging'; 'regression-based hedge'. LO 11.a — the drawbacks of a plain
+  DV01-neutral hedge — is the qualitative counterpart and the reason the regression hedge
+  exists. PCA as a hedging-portfolio construction (LO 11.h) is the adjacent item.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Important Topics — 33-item exam recall, Telegram consolidated list (08/08/25), Telegram
+  recall — Sajan Singh (list 1)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 11.a Explain the drawbacks to using a DV01-neutral hedge for a bond position.
+  LO 11.b Describe a regression hedge and explain how it can improve a standard DV01-neutral
+  hedge.
+  LO 11.c Calculate the regression hedge adjustment factor, beta.
+  LO 11.d Calculate the face value of an offsetting position needed to carry out a regression
+  hedge.
+  LO 11.h Describe principal component analysis and explain how it is applied to constructing a
+  hedging portfolio.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #23 Regression Hedging, DV01 & PCA: rank 38, Strike first

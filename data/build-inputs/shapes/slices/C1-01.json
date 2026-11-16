@@ -1,0 +1,437 @@
+[
+ {
+  "id": "MR-T3-01",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "A large investment fund has used a DV01-neutral hedge to manage its bond portfolio's interest rate exposure. Over time, market behaviour has exposed the limited realism of the approach. What is the critical drawback of relying on a DV01-neutral hedge?",
+  "options": {
+   "A": "It captures non-parallel yield curve shifts across multiple maturities.",
+   "B": "It assumes that all spread-related risks are neutralised by construction.",
+   "C": "Its accuracy improves as historical correlations become less stable.",
+   "D": "It assumes that yield changes are parallel across maturities, which is rarely the case."
+  },
+  "answer": "D",
+  "solution": "The parallel-shift assumption embedded in a DV01-neutral hedge, and why real curve movements break it.\n\nA DV01-neutral hedge sets the hedge so that the two DV01s offset:\n\n$$F_h \\times DV01_h = F_p \\times DV01_p$$\n\nwhere $F$ is face value and $DV01$ is the dollar value of a one basis point change in yield. The construction equates sensitivity to one basis point, which is only a complete hedge if both yields actually move by that same one basis point.\n\nThat is the parallel-shift assumption, and it is embedded implicitly rather than stated. In practice the curve steepens, flattens and twists, and the hedged bond and the hedging instrument sit at different points on it. A hedge calibrated to a parallel shift leaves residual exposure to every non-parallel movement.\n\nThe regression hedge exists precisely to relax this. It replaces the implicit assumption of a one-for-one yield relationship with an estimated slope coefficient obtained from historical data, so the hedge reflects how the two yields have actually moved together rather than how they would move under a parallel shift."
+ },
+ {
+  "id": "MR-T3-02",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "A bond trader is implementing a DV01-neutral hedge for a corporate bond position and notices discrepancies when market conditions change. Which of the following is a fundamental limitation of the approach in this context?",
+  "options": {
+   "A": "DV01-neutral hedges do not adequately account for liquidity differences between corporate and government bonds.",
+   "B": "DV01-neutral hedges can only be executed using complex derivative strategies.",
+   "C": "It inherently incorporates the convexity adjustments needed in volatile markets.",
+   "D": "The approach relies on static historical relationships between the two yields, which may not persist."
+  },
+  "answer": "D",
+  "solution": "The second drawback of DV01-neutral hedging: the yield relationship it assumes is static, so the hedge degrades as market regimes change.\n\nA DV01-neutral hedge fixes the hedge ratio from the two DV01s at a single point in time, and implicitly assumes the relationship between the two yields is one-for-one and unchanging. Two things then go wrong as conditions move.\n\n| Assumption | What actually happens |\n|---|---|\n| Yields move one for one | The corporate yield and the government yield move by different amounts, and the ratio between them varies with the credit cycle |\n| The relationship is stable over time | Correlations between corporate and government yields break down in stress, which is exactly when the hedge is needed most |\n\nThis is why the regression hedge is described as more flexible: the slope coefficient can be re-estimated over a rolling window, and it explicitly measures the historical co-movement rather than assuming it. Note, though, that the regression hedge inherits the same weakness in a milder form: it too is estimated from past data and can fail when the relationship shifts.\n\nThe two drawbacks in this LO are distinct: the previous question (MR-T3-01) concerns the shape of the shift (parallel versus non-parallel), while this question concerns the stability of the relationship over time. They are separate criticisms."
+ },
+ {
+  "id": "MR-T3-03",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "An investment fund is considering regression hedging to enhance its current DV01-neutral strategy. How does the regression hedge offer greater flexibility and precision, particularly with respect to the risk weight applied to the hedging instrument?",
+  "options": {
+   "A": "The risk weight adapts, being derived from the slope coefficient of a historical yield regression.",
+   "B": "The risk weight adjusts dynamically according to forecasts of market sentiment.",
+   "C": "The risk weight is fixed at inception and does not change thereafter.",
+   "D": "The risk weight is set without reference to any historical correlation between the two yields."
+  },
+  "answer": "A",
+  "solution": "What the regression hedge changes relative to a DV01-neutral hedge: the risk weight becomes an estimated slope rather than an implicit one.\n\nThe two hedges have the same structure and differ in exactly one term.\n\n$$\\text{DV01-neutral: } F_h = -F_p \\times \\frac{DV01_p}{DV01_h}$$\n\n$$\\text{Regression: } F_h = -F_p \\times \\frac{DV01_p}{DV01_h} \\times \\beta$$\n\nThe DV01-neutral hedge is the special case $\\beta = 1$, which is the algebraic statement of the assumption that the two yields move one for one. The regression hedge replaces that 1 with an estimate from data:\n\n$$\\Delta Y_p = \\alpha + \\beta \\times \\Delta Y_h + \\varepsilon$$\n\n$\\beta$ is the slope coefficient, and it answers the empirical question the DV01-neutral hedge assumes away: when the hedging instrument's yield moves one basis point, how many basis points does the hedged bond's yield move on average? If $\\beta = 0.8$, the hedged yield moves less than one for one and a smaller hedge position is required.\n\nThe gain in precision is therefore specific: the hedge is calibrated to observed co-movement rather than to an assumed identity. The cost is that $\\beta$ is an estimate, carrying estimation error and the risk that the relationship changes."
+ },
+ {
+  "id": "MR-T3-04",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "An asset manager must choose between a LEVEL regression and a CHANGE regression when modelling the relationship between a bond's yield and that of its hedging instrument. Which statement correctly characterises the two?",
+  "options": {
+   "A": "Level regression models absolute levels and captures long-run relationships, while change regression models first differences and reduces the risk of spurious correlation from non-stationary data.",
+   "B": "Both specifications produce the same slope coefficient, so the choice affects only the interpretation of the intercept.",
+   "C": "Level regression models first differences and captures short-term movements, while change regression models absolute levels and captures long-term trends.",
+   "D": "Change regression is preferred because it dampens all volatility signals in the data, producing a more stable hedge ratio."
+  },
+  "answer": "A",
+  "solution": "The distinction between regressing yield LEVELS and regressing yield CHANGES, and the statistical reason the change specification is normally preferred for hedging.\n\n| Specification | What is regressed | What it captures | Principal concern |\n|---|---|---|---|\n| LEVEL regression | $Y_p$ on $Y_h$, in levels | Long-run relationships between the two yields | Yield levels are highly persistent and close to non-stationary, so a level regression can show a strong fit that reflects common trending rather than a genuine hedging relationship |\n| CHANGE regression | $\\Delta Y_p$ on $\\Delta Y_h$ | Short-horizon co-movement, which is what a hedge is actually exposed to | Differencing discards level information and can amplify measurement noise |\n\nThe decisive argument for the change specification is spurious correlation. Two series that both trend over time will appear strongly related in levels even when no structural link exists. Differencing removes the common trend and leaves the co-movement that a hedge must actually neutralise.\n\nThis connects directly to the hedge itself. The hedge is rebalanced against changes in yields, so the beta that belongs in the hedge equation is the slope from a regression of changes on changes."
+ },
+ {
+  "id": "MR-T3-05",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "A financial analyst must explain why a regression hedge and a REVERSE regression hedge produce different hedge ratios for the same pair of bonds. What underlies the difference?",
+  "options": {
+   "A": "The regression hedge uses historical market data while the reverse regression hedge rests on theoretical assumptions.",
+   "B": "The regression hedge uses cumulative yield changes while the reverse regression hedge uses isolated single-day movements.",
+   "C": "The two approaches use identical calculations and therefore produce identical hedge ratios.",
+   "D": "The choice of which yield is the independent variable determines the direction in which sensitivity is measured, and the two slopes are not reciprocals of one another unless the fit is perfect."
+  },
+  "answer": "D",
+  "solution": "Why reversing the regression direction changes the estimated hedge ratio, which is a property of least squares rather than of the hedging application.\n\nA regression hedge regresses the hedged bond's yield change on the hedging instrument's yield change. A reverse regression does the opposite:\n\n$$\\text{regression: } \\Delta Y_p = \\alpha + \\beta \\times \\Delta Y_h$$\n$$\\text{reverse regression: } \\Delta Y_h = \\alpha^* + \\beta^* \\times \\Delta Y_p$$\n\nIntuitively one might expect $\\beta^*$ to equal $1/\\beta$. It does not. Least squares minimises the squared errors in the dependent variable only, so the two regressions minimise different quantities and produce different lines. The relationship is:\n\n$$\\beta \\times \\beta^* = R^2$$\n\nSince $R^2 \\le 1$, $\\beta^* \\le 1/\\beta$, with equality only when the fit is perfect. The weaker the relationship between the two yields, the further apart the two implied hedge ratios become.\n\nThe practical consequence is that the analyst must decide which yield is being explained. Regressing the hedged bond on the hedging instrument treats the hedging instrument's yield as the driver, which is the natural framing when hedging a less liquid bond with a liquid benchmark."
+ },
+ {
+  "id": "MR-T3-06",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "A portfolio manager is hedging the price movements of a corporate bond portfolio, with yield $Y_p$, using a government bond futures contract with yield $Y_h$. The correlation between the two is 0.8. The standard deviation of $Y_p$ is 0.05 and the standard deviation of $Y_h$ is 0.04. What is the regression hedge adjustment factor, beta?",
+  "options": {
+   "A": "0.64",
+   "B": "0.80",
+   "C": "1.00",
+   "D": "1.25"
+  },
+  "answer": "C",
+  "solution": "Computing the regression slope from a correlation and two standard deviations, which is the risk-minimising hedge ratio.\n\nThe regression slope is the covariance divided by the variance of the independent variable, which is the hedging instrument:\n\n$$\\beta = \\frac{\\text{Cov}(Y_h, Y_p)}{\\text{Var}(Y_h)}$$\n\nExpressing the covariance through the correlation:\n\n$$\\text{Cov}(Y_h, Y_p) = \\rho \\times \\sigma_{Y_p} \\times \\sigma_{Y_h}$$\n\n$$\\beta = \\frac{\\rho \\times \\sigma_{Y_p} \\times \\sigma_{Y_h}}{\\sigma_{Y_h}^2} = \\rho \\times \\frac{\\sigma_{Y_p}}{\\sigma_{Y_h}}$$\n\nSubstituting:\n\n$$\\beta = 0.8 \\times \\left(\\frac{0.05}{0.04}\\right) = 0.8 \\times 1.25 = 1.00$$\n\nThe hedge ratio is 1.00. Note the coincidence worth understanding: beta equals exactly one here, so the regression hedge and the DV01-neutral hedge would produce the same position. That happens whenever the correlation exactly offsets the ratio of volatilities, and it is not the general case.\n\nStructural check: the standard deviation of the hedged instrument sits in the numerator. Beta answers \"how much does $Y_p$ move per unit move in $Y_h$\", so $Y_p$ must be on top."
+ },
+ {
+  "id": "MR-T3-07",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "An analyst has four daily observations of yield changes for a corporate bond portfolio $Y_p$ and its hedging instrument $Y_h$, in basis points, shown below. She is separately advised that the sample covariance between the two series is 0.273. Using the sample variance of the hedging instrument, what is the regression hedge adjustment factor, beta?\n\n| Day | $Y_p$, change in bp | $Y_h$, change in bp |\n|---|---|---|\n| 1 | 1.5 | 2.0 |\n| 2 | 2.0 | 2.5 |\n| 3 | 1.0 | 1.5 |\n| 4 | 2.5 | 3.0 |",
+  "options": {
+   "A": "0.22",
+   "B": "0.66",
+   "C": "0.87",
+   "D": "1.53"
+  },
+  "answer": "B",
+  "solution": "Computing beta as covariance over the variance of the independent variable, where the variance must be calculated from data using the sample convention.\n\nStep 1. Compute the mean of the hedging instrument series. Only $Y_h$ is needed, because beta divides by the variance of the independent variable:\n\n$$\\bar{Y_h} = \\frac{2.0 + 2.5 + 1.5 + 3.0}{4} = \\frac{9.0}{4} = 2.25$$\n\nStep 2. Compute the sum of squared deviations.\n\nDeviations: $-0.25, +0.25, -0.75, +0.75$\n\nSquared: $0.0625 + 0.0625 + 0.5625 + 0.5625 = 1.25$\n\nStep 3. Convert to the sample variance, dividing by $n - 1$:\n\n$$\\text{Var}(Y_h) = \\frac{1.25}{4-1} = \\frac{1.25}{3} = 0.41667$$\n\nStep 4. Apply the regression slope formula:\n\n$$\\beta = \\frac{\\text{Cov}(Y_h, Y_p)}{\\text{Var}(Y_h)} = \\frac{0.273}{0.41667} = 0.655 \\approx 0.66$$\n\nThe $Y_p$ column is not required for this calculation. It is supplied because the covariance would normally be computed from it, but here the covariance is given directly, which makes the $Y_p$ column excess data.\n\nData note: the tabulated $Y_p$ column is not consistent with the stated covariance. Its deviations from its mean of 1.75 are identical to those of $Y_h$ ($-0.25, +0.25, -0.75, +0.75$), so the covariance implied by the table is $1.25/3 = 0.41667$ and the implied beta would be exactly 1.00. The question is framed so that the covariance of 0.273 is given as an input and the $Y_p$ column is n […]"
+ },
+ {
+  "id": "MR-T3-08",
+  "lo": "MR-11 d",
+  "loText": "Calculate the face value of an offsetting position needed to carry out a regression hedge.",
+  "outside": false,
+  "question": "An asset management firm is establishing a regression hedge for its bond portfolio. The face value of the bond to be hedged is USD 100 million with a DV01 of 0.300. The hedging instrument has a DV01 of 0.250, and the regression hedge adjustment factor has been estimated at 0.800. What face value of the offsetting position is required for a profit-and-loss neutral hedge?",
+  "options": {
+   "A": "-USD 66.7 million",
+   "B": "-USD 96.0 million",
+   "C": "-USD 120.0 million",
+   "D": "-USD 150.0 million"
+  },
+  "answer": "B",
+  "solution": "Converting a regression beta into a position size, where beta scales the DV01-neutral face value.\n\nThe regression hedge face value is the DV01-neutral face value scaled by beta:\n\n$$F_h = -F_p \\times \\frac{DV01_p}{DV01_h} \\times \\beta$$\n\nwhere $F_p$ is the face value of the position being hedged, $DV01_p$ and $DV01_h$ are the DV01s of the hedged bond and the hedging instrument, and beta is the regression adjustment factor. The negative sign indicates an offsetting position: short the hedging instrument against a long bond position.\n\n$$\\text{DV01 ratio} = \\frac{0.300}{0.250} = 1.20$$\n\n$$F_h = -100.0 \\times 1.20 \\times 0.800 = -100.0 \\times 0.96 = -\\text{USD } 96.0\\text{ million}$$\n\nReading the result: the DV01-neutral hedge alone would require USD 120.0 million, the face value that equalises the two DV01s. The estimated beta of 0.800 says the hedged bond's yield moves only eight tenths of a basis point for each basis point move in the hedging instrument, so a smaller hedge is needed. Scaling 120.0 by 0.800 gives 96.0.\n\nThat reading is also the fastest sanity check available: whenever beta is below 1, the regression hedge must be smaller than the DV01-neutral hedge."
+ },
+ {
+  "id": "MR-T3-09",
+  "lo": "MR-11 h",
+  "loText": "Describe principal component analysis and explain how it is applied to constructing a hedging portfolio.",
+  "outside": false,
+  "question": "An asset manager is using principal component analysis to structure a hedge for a bond portfolio. Which sequence of steps correctly applies the PCA methodology to hedge construction?",
+  "options": {
+   "A": "Identify the least impactful components first, so that initial variance is not misattributed.",
+   "B": "Use PCA to model the non-linear variances among otherwise unrelated instruments.",
+   "C": "Calculate the portfolio's sensitivities to the dominant principal components, then take hedging positions that neutralise those sensitivities.",
+   "D": "Reverse engineer the yield movements using estimates that do not depend on historical data."
+  },
+  "answer": "C",
+  "solution": "The mechanics of a PCA hedge: measure exposure to each principal component, then neutralise the dominant ones.\n\nPCA decomposes the correlated movements of many yields into a small number of uncorrelated factors, ordered by how much of the total variance each explains. The hedging application follows in three steps:\n\n| Step | What happens |\n|---|---|\n| 1. Decompose the curve | Apply PCA to historical yield changes across maturities, producing principal components ordered by variance explained |\n| 2. Measure exposure | Compute the portfolio's sensitivity to a one basis point move in each principal component, often called a PC01 |\n| 3. Neutralise | Take offsetting positions in hedging instruments so that the portfolio's exposure to the dominant components is driven to zero |\n\nThe ordering matters. Because the components are ranked by variance explained, hedging the first component removes the largest share of risk for a single trade. Adding the second and third gives progressively smaller improvements. A manager with one hedging instrument can neutralise one component; with two instruments, two components; and so on.\n\nThe advantage over a regression hedge is that the components are orthogonal by construction, so each can be hedged independently without the hedges interfering with one another."
+ },
+ {
+  "id": "MR-T3-10",
+  "lo": "MR-11 h",
+  "loText": "Describe principal component analysis and explain how it is applied to constructing a hedging portfolio.",
+  "outside": false,
+  "question": "A risk analyst applies principal component analysis to historical changes in a government yield curve across maturities and is asked to describe the output to the investment committee. Which statement is correct?",
+  "options": {
+   "A": "The first three components typically correspond to LEVEL, SLOPE and CURVATURE, they are uncorrelated with one another by construction, and the first alone usually explains the large majority of the total variance.",
+   "B": "The first three components typically correspond to LEVEL, SLOPE and CURVATURE, and each explains approximately one third of the total variance so that all three must be hedged together.",
+   "C": "The components are ordered by maturity rather than by variance explained, so the first component describes the shortest maturity on the curve.",
+   "D": "The components are correlated with one another, which is why hedging one component necessarily changes the exposure to the others."
+  },
+  "answer": "A",
+  "solution": "What the principal components of a yield curve are, their orthogonality, and the concentration of variance in the first component.\n\n| Component | Interpretation | Effect on the curve |\n|---|---|---|\n| First, LEVEL | A roughly parallel shift | All yields move in the same direction by similar amounts. Typically explains the large majority of total variance. |\n| Second, SLOPE | A steepening or flattening | Short and long yields move in opposite directions |\n| Third, CURVATURE | A butterfly movement | The intermediate maturities move in the opposite direction to the two ends |\n\nTwo structural properties are constructed rather than observed, and they are what make the technique useful for hedging: the components are mutually uncorrelated, or orthogonal; and the sum of the variances of the components equals the sum of the variances of the original rates.\n\nOrthogonality is the practical payoff. Because the components do not overlap, a hedge that neutralises exposure to the level factor leaves the slope and curvature exposures untouched, so each can be addressed independently. This is exactly what a hedge built on correlated individual yields cannot offer.\n\nThe concentration of variance in the first component is what justifies hedging only one or two factors in practice. Neutralising level exposure alone removes most of the interest rate risk, which is also why a DV01-neutral hedge, wh […]"
+ },
+ {
+  "id": "MR-T3-11",
+  "lo": "MR-11 h",
+  "loText": "Describe principal component analysis and explain how it is applied to constructing a hedging portfolio.",
+  "outside": false,
+  "question": "A head of rates risk is deciding between a regression hedge and a PCA-based hedge for a portfolio spanning many maturities. Which statement best characterises the trade-off?",
+  "options": {
+   "A": "The regression hedge handles multiple curve movements simultaneously, whereas a PCA hedge can address only parallel shifts.",
+   "B": "A PCA hedge requires no historical data, whereas the regression hedge must be estimated from a sample.",
+   "C": "Both approaches are estimated from historical data, but PCA decomposes the whole curve into uncorrelated factors that can each be hedged separately, whereas the regression hedge produces a single ratio against one chosen instrument.",
+   "D": "The two approaches are algebraically equivalent, so the choice between them is purely presentational."
+  },
+  "answer": "C",
+  "solution": "What PCA offers over a regression hedge: a multi-factor, orthogonal decomposition of the entire curve rather than a single bilateral hedge ratio.\n\n| | Regression hedge | PCA hedge |\n|---|---|---|\n| What is estimated | One slope coefficient, beta, from a bivariate regression | A full set of principal components from the covariance matrix of yield changes across maturities |\n| Scope | The relationship between one hedged yield and one hedging yield | The joint behaviour of the entire curve |\n| Factors hedged | Effectively one composite movement | As many orthogonal factors as there are hedging instruments |\n| Interference between hedges | Hedges against different instruments overlap, because the underlying yields are correlated | None. Components are uncorrelated, so each hedge is independent |\n\nBoth are empirical methods calibrated on historical data, and both therefore inherit the stability criticism raised against DV01-neutral hedging: a covariance matrix estimated in calm markets may not describe a stressed one.\n\nThe genuine advantage of PCA is decomposition. A portfolio spread across many maturities is exposed to level, slope and curvature simultaneously. A single regression against one instrument compresses all of that into one number. PCA separates the exposures so that each can be sized and hedged on its own terms."
+ },
+ {
+  "id": "MR-QB-0260",
+  "lo": "MR-5 a",
+  "loText": "Explain the principles underlying VaR mapping and describe the mapping process.",
+  "outside": true,
+  "question": "A risk manager is mapping a large fixed‑income portfolio to risk factors. The yield curve has 20 highly correlated vertices, and she wants to reduce them to a few uncorrelated primitive risk factors (such as level, slope and curvature) that explain most of the variation in rate changes. Which technique is most appropriate?",
+  "options": {
+   "A": "Natural language processing of central bank statements",
+   "B": "Random forest classification of bonds into investment‑grade and high‑yield",
+   "C": "Principal component analysis (PCA) of yield changes",
+   "D": "Logistic regression of default events on bond ratings"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Goal: dimension reduction, replacing many correlated factors by a few primitive ones, which is the essence of mapping.\n2. PCA decomposes the covariance matrix of yield changes into orthogonal components; for yield curves the first three (level, slope, curvature) typically explain the vast majority of variance.\n3. NLP deals with text, random forests and logistic regression are supervised classifiers: none constructs a small set of uncorrelated factors from correlated ones.\n4. Answer: C.\n\n**REBUILT** — Original distractors (hierarchical‑based logistic clusters, NLP) were nonsensical or irrelevant; stem made specific to reducing correlated yield‑curve factors and distractors made plausible ML techniques."
+ },
+ {
+  "id": "MR-QB-0524",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "A large investment fund uses a DV01‑neutral hedge to manage the interest rate exposure of its bond portfolio. Over time, market dynamics have shown this approach to be unrealistic. What is a critical drawback of relying on a DV01‑neutral hedge?",
+  "options": {
+   "A": "It captures non‑parallel yield curve shifts across multiple bond maturities.",
+   "B": "The strategy inherently assumes that all spread‑related risks are neutralized.",
+   "C": "It assumes yield changes are parallel across maturities, which is rarely the case.",
+   "D": "The accuracy of the hedge greatly improves with non‑static historical correlations."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A DV01‑neutral hedge sizes the offsetting position so that DV01 of the hedge equals DV01 of the position.\n2. This only works if the yield on the position and the yield on the hedging instrument change by the same number of basis points (a one‑for‑one, parallel move).\n3. In practice yields at different maturities (or nominal vs. real yields) do not move one‑for‑one, so the hedge leaves residual risk.\n4. Therefore the drawback is the assumption of parallel yield changes (C)."
+ },
+ {
+  "id": "MR-QB-0525",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "A trader hedges a corporate bond position with a DV01‑neutral position in another fixed‑income instrument but finds that the hedge performs poorly when market conditions change. Which of the following is the fundamental limitation of the DV01‑neutral approach?",
+  "options": {
+   "A": "It assumes the yields on the position and the hedging instrument change by the same number of basis points, whereas the actual changes can be proportionally larger or smaller and dispersed.",
+   "B": "It requires estimating a regression of historical yield changes, which may be unstable over time.",
+   "C": "It accounts for convexity and so over‑hedges when yields change by large amounts.",
+   "D": "It can be implemented only with complex derivative instruments, which limits its use."
+  },
+  "answer": "A",
+  "solution": "**Key correction:** Source key (AnalystPrep) said B (static historical correlations); that is a limitation of regression hedging. A DV01‑neutral hedge uses no historical data and instead assumes a one‑for‑one yield change, so the original item had no clean correct option.\n\n**Step by step**\n\n1. DV01‑neutral hedge: hedge DV01 equals position DV01.\n2. This is exact only if both yields move by the same number of basis points (beta = 1).\n3. In reality the relationship differs (e.g., nominal yield moves by more than 1 bp per 1 bp of real yield, with dispersion), leaving the position under‑ or over‑hedged.\n4. Option A states this; the others describe regression hedging, convexity or instrument type, none of which is the DV01 drawback.\n\n**REBUILT** — Source keyed B (static historical correlations), which describes a regression hedge limitation, not a DV01‑neutral hedge; rewrote the stem and options so exactly one option states the true DV01 limitation."
+ },
+ {
+  "id": "MR-QB-0526",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "If a trader is creating a fixed‑income hedge, which hedging methodology would be least effective if the trader is concerned about the dispersion of the change in the nominal yield for a particular change in the real yield?",
+  "options": {
+   "A": "One‑variable regression hedge.",
+   "B": "DV01 hedge.",
+   "C": "Two‑variable regression hedge.",
+   "D": "Principal components hedge."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The concern is that nominal yield changes are not one‑for‑one with real yield changes and are dispersed.\n2. A DV01 hedge assumes both yields change by the same number of basis points, so it ignores this relationship.\n3. Regression hedges (one‑ or two‑variable) estimate the empirical relationship (beta) from historical yield changes, and PCA hedges use the empirical factor structure of yield changes.\n4. So the DV01 hedge is least effective (B)."
+ },
+ {
+  "id": "MR-QB-0527",
+  "lo": "MR-11 a",
+  "loText": "Explain the drawbacks to using a DV01-neutral hedge for a bond position.",
+  "outside": false,
+  "question": "A trader hedges a long position in a nominal Treasury bond with TIPS, using a standard DV01‑neutral hedge. Which of the following is the main drawback of this hedge?",
+  "options": {
+   "A": "It assumes the nominal yield and the real yield change by the same number of basis points, whereas empirically the nominal yield tends to move by more than one basis point per basis point of real‑yield change.",
+   "B": "It requires the hedger to estimate the historical volatility of yield differences, which makes it harder to compute than a regression hedge.",
+   "C": "It can only be applied when the bond and the hedging instrument have identical maturities.",
+   "D": "It ignores the face value of the hedging instrument, so the hedge cannot be sized."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. A DV01‑neutral hedge sizes the offsetting position so that DV01 of the hedge equals DV01 of the bond, implicitly assuming a one‑for‑one change in the two yields ($\\Delta y_{hedge} = \\Delta y_{bond}$, i.e. $\\beta= 1$).\n2. Nominal and real yields do not move one‑for‑one; empirically the nominal yield changes by more than 1 bp per 1 bp change in the real yield, and the relationship is noisy.\n3. Hence the hedge is imprecise; a regression hedge corrects this by adjusting the DV01 hedge with the estimated $\\beta$ from historical yield changes.\n\n**REBUILT** — Original asked about key rate shifts vs DV01, which no 2026 MR LO covers; rebuilt to test the 11.a drawback of a DV01‑neutral hedge."
+ },
+ {
+  "id": "MR-QB-0528",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "A fixed‑income analyst currently hedges a long bond position with a DV01‑neutral hedge, which implicitly assumes that the hedging instrument’s yield and the bond’s yield change by the same number of basis points. How does a regression hedge improve on this approach?",
+  "options": {
+   "A": "It sets the hedge amount using the historical relationship between the two yield changes (the regression slope), rather than assuming a one‑for‑one move.",
+   "B": "It replaces the historical data with a forecast of tomorrow’s yield changes, so the hedge is always exactly right.",
+   "C": "It eliminates basis risk completely, because the regression residual is forced to zero.",
+   "D": "It sizes the hedge from the average historical price of the two securities rather than from yield changes."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. DV01‑neutral: F\\_hedge = F\\_exp × DV01\\_exp / DV01\\_hedge, which assumes Δy\\_exp = Δy\\_hedge.\n2. Regression: $\\Delta y_{exp} = \\alpha+ \\beta\\Delta y_{hedge} + \\epsilon$, estimated by least squares on historical yield changes.\n3. The hedge is scaled by $\\beta$: F\\_hedge = F\\_exp × (DV01\\_exp / DV01\\_hedge) × $\\beta$, reflecting actual historical co‑movement.\n4. The R‑squared and standard error indicate how much risk is removed and how much residual (basis) risk remains.\n\n**REBUILT** — Original distractors were vague and the correct option overclaimed (’ensuring’); rewrote stem and options so exactly one is clearly correct."
+ },
+ {
+  "id": "MR-QB-0529",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "Compared with a DV01‑neutral hedge, which of the following best describes the ’risk weight’ applied to the hedging instrument in a single‑variable regression hedge?",
+  "options": {
+   "A": "It is fixed at 1.0 because the hedge is built to be DV01‑neutral.",
+   "B": "It equals the regression slope coefficient $\\beta$ from historical yield changes, which can differ from 1.0.",
+   "C": "It equals the regression R‑squared, the proportion of variance explained.",
+   "D": "It equals the regression standard error, expressed in basis points."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The DV01‑neutral hedge implicitly uses a risk weight of 1 (equal yield changes).\n2. In $\\Delta y_{exp} = \\alpha+ \\beta\\Delta y_{hedge} + \\epsilon$, $\\beta$ is the historical bp move in the exposure yield per 1 bp move in the hedge yield.\n3. The regression hedge multiplies the DV01‑neutral face amount by $\\beta$, so $\\beta$ is the risk weight (e.g., $\\beta= 0.75$ cuts the hedge by 25%).\n\n**REBUILT** — Original correct option was loosely worded and the distractors were giveaways; restated around beta as the risk weight with plausible alternatives."
+ },
+ {
+  "id": "MR-QB-0530",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "In comparison to a yield‑based DV01 hedge, which of the following is the best argument in favor of a regression hedge?",
+  "options": {
+   "A": "The regression hedge minimizes the profit and loss (P&L) variance of the hedged position.",
+   "B": "The regression hedge is based on economic theory and future developments rather than empirical analysis.",
+   "C": "The regression hedge does not require any out‑of‑sample tests, which are often unreliable if the sample is small.",
+   "D": "The regression hedge solves for a risk‑weight which qualifies as a valid risk‑weighted asset under Basel regulations."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Least squares chooses $\\beta$ to minimise the sum of squared residuals.\n2. With exposure yield changes regressed on hedge yield changes, the residual is the hedged‑position P&L (per unit DV01).\n3. Hence the regression hedge minimises the variance of hedged P&L, while the DV01 hedge imposes a one‑for‑one yield move."
+ },
+ {
+  "id": "MR-QB-0531",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "A trader shorts \\$100.0 million of nominal US Treasury 3 5/8s bonds and, employing a single‑variable regression hedge, buys a face amount of 1 7/8s US TIPS. The bonds and the results of a regression of the nominal against the real yield are:\n\n| US T‑Bonds | Yield | DV01 |\n|---|---|---|\n| Nominal 3 5/8s | 3.275% | 0.0400 |\n| TIPS 1 7/8s | 1.237% | 0.0650 |\n\nLeast‑Squares Regression Analysis: Δ in Nominal Yield (bps) versus Δ in Real Yield (bps)\n\n| No. of Observations | 229 |  |\n|---|---|---|\n| R‑Squared | 68.0% |  |\n| Standard Error (bps) | 5.300 |  |\n| Regression Coeff | Value | Std Error |\n| Constant (α) | 0.0200 | 0.2529 |\n| Change in Real Yield (β) | 1.0940 | 0.0595 |\n\nWhich is nearest to an estimate of the daily volatility of the P&L of the hedged portfolio?",
+  "options": {
+   "A": "\\$2,380",
+   "B": "\\$43,760",
+   "C": "\\$67,323",
+   "D": "\\$212,000"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Dollar DV01 of the \\$100.0 million nominal position = 100,000,000 × 0.0400/100 = \\$40,000 per bp.\n2. Hedged P&L volatility = \\$ DV01 × regression standard error = \\$40,000 × 5.300 bp = \\$212,000 per day.\n3. Beta, R‑squared and alpha size the hedge or describe fit; they are not multiplied in for the P&L volatility."
+ },
+ {
+  "id": "MR-QB-0532",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "What is a key advantage of using a regression hedge to fine‑tune a DV01 hedge?",
+  "options": {
+   "A": "It assumes that term structure changes are driven by one factor.",
+   "B": "The proper hedge amount may be computed for any assumed change in the term structure.",
+   "C": "Bond price changes and returns can be estimated with proper measures of price sensitivity.",
+   "D": "It gives an estimate of the hedged portfolio’s volatility over time."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. The regression of exposure yield changes on hedge yield changes produces a residual standard error.\n2. That standard error, multiplied by the position’s dollar DV01, estimates the volatility of the hedged P&L.\n3. So the trader can compare the expected gain with historical volatility; none of the other options is a feature of regression hedging."
+ },
+ {
+  "id": "MR-QB-0533",
+  "lo": "MR-11 b",
+  "loText": "Describe a regression hedge and explain how it can improve a standard DV01-neutral hedge.",
+  "outside": false,
+  "question": "A trader uses a regression of changes in nominal yields on changes in real yields to set a single‑variable regression hedge. Which assumption about the slope coefficient (beta) underlies the hedge?",
+  "options": {
+   "A": "Beta is constant over time, so the historical estimate is assumed to hold over the hedging horizon.",
+   "B": "Beta equals 1.0, so the hedge is the same as the DV01‑neutral hedge.",
+   "C": "Beta is zero, so real yield changes do not affect nominal yields.",
+   "D": "Beta changes each day to match the latest yield move."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. The hedge face amount is scaled by the estimated $\\beta$ from historical data.\n2. Using that estimate for the future presumes the relationship between yield changes is stable, i.e., $\\beta$ is constant.\n3. In practice $\\beta$ varies, so it should be estimated over several periods and compared.\n\n**REBUILT** — Original options were vaguely worded (tracks nominal rates, volatile like both); rewrote so one option states constant beta and the others are realistic misconceptions."
+ },
+ {
+  "id": "MR-QB-0534",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "A portfolio manager hedges a corporate bond portfolio with a hedging instrument using a regression hedge. Daily changes in yield (in bps) over four days are:\n\n| Day | Yp (Corporate Bond Portfolio) | Yh (Hedging Instrument) |\n|---|---|---|\n| 1 | 1.2 | 2.0 |\n| 2 | 1.8 | 2.5 |\n| 3 | 0.8 | 1.5 |\n| 4 | 2.4 | 3.0 |\n\nUsing sample (n − 1) statistics, what is the regression hedge adjustment factor, β, of the portfolio yield change on the hedge yield change?",
+  "options": {
+   "A": "0.81",
+   "B": "0.92",
+   "C": "1.08",
+   "D": "1.44"
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (A, 0.66) relied on a stated covariance of 0.273 inconsistent with the table; the item was rebuilt with consistent data.\n\n**Step by step**\n\n1. Means: $Y\\bar{_{h}} = 2.25$, $Y\\bar{_{p}} = 1.55$.\n2. Deviations of Yh: −0.25, 0.25, −0.75, 0.75; of Yp: −0.35, 0.25, −0.75, 0.85.\n3. Sample covariance = (0.0875 + 0.0625 + 0.5625 + 0.6375)/3 = 1.35/3 = 0.45.\n4. Sample variance of Yh = (0.0625 + 0.0625 + 0.5625 + 0.5625)/3 = 1.25/3 = 0.4167.\n5. $\\beta= \\text{Cov}(Y_{p}, Y_{h})/\\text{Var}(Y_{h}) = 0.45/0.4167 = 1.08$.\n\n**REBUILT** — Source table implied covariance 0.4167 but stem stated 0.273 (inconsistent); replaced with new self‑consistent data and asked the candidate to compute covariance and variance from the table."
+ },
+ {
+  "id": "MR-QB-0535",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "Erica works for a market maker who is going to hedge the purchase of Johnson & Johnson (JNJ) bonds by selling Treasury bonds. To compare a yield‑based DV01 hedge to a regression hedge, Erica conducts a single‑variable regression; the summary results are:\n\nLeast‑Squares Regression\n\n| No. of Observations | 82 |  |\n|---|---|---|\n| R‑Squared | 77.5% |  |\n| Standard Error | 2.10 |  |\n| Regression Coeff | Value | Std Error |\n| Constant (α) | 0.060 | 0.223 |\n| Change in 30y Treasury Yield (β) | 0.842 | 0.193 |\n\nErica is interested in the advisability of a yield‑based DV01 hedge, which assumes parallel shifts in the yields of the two bonds. Her hypothesis test assumes a two‑sided 95.0% confidence level. Can she accept the null hypothesis of parallel shifts in yields of the two bonds?",
+  "options": {
+   "A": "She rejects the hypothesis of parallel shifts in the yields of the two bonds because the true beta is not one",
+   "B": "She accepts (i.e., cannot reject) the hypothesis of parallel shifts in the yields because the true beta might be one",
+   "C": "She rejects the hypothesis of parallel shifts in the yields of the two bonds because the alpha is not zero",
+   "D": "From a risk‑return perspective, the trade is not advised because the standard error of the regression exceeds two"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A DV01 hedge implicitly assumes a regression beta of 1, so H0: β = 1.\n2. t = (0.842 − 1)/0.193 = −0.819.\n3. Critical t (two‑sided 95%, 80 df) ≈ 1.99, and \\|−0.819\\| \\< 1.99; equivalently the 95% interval 0.842 ± 1.99 × 0.193 = \\[0.458, 1.226\\] contains 1.\n4. Cannot reject H0: a beta of one is statistically consistent with the data."
+ },
+ {
+  "id": "MR-QB-0536",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "A trader shorts \\$100.0 million of nominal US Treasury 3 5/8s bonds and hedges with a purchase of a face amount of 1 7/8s US TIPS based on the regression results of a single‑variable hedge, shown here:\n\n| US T‑Bonds | Yield | DV01 |\n|---|---|---|\n| Nominal 3 5/8s | 3.275% | 0.0400 |\n| TIPS 1 7/8s | 1.237% | 0.0700 |\n\nLeast‑Squares Regression Analysis: Δ in Nominal Yield (bps) versus Δ in Real Yield (bps)\n\n| No. of Observations | 229 |  |\n|---|---|---|\n| R‑Squared | 68.0% |  |\n| Standard Error (bps) | 2.200 |  |\n| Regression Coeff | Value | Std Error |\n| Constant (α) | 0.0200 | 0.2529 |\n| Change in Real Yield (β) | 1.3000 | 0.0510 |\n\nEach of the following is true about this regression hedge EXCEPT for which is false?",
+  "options": {
+   "A": "The regression model estimates a correlation between changes in the nominal and real yields of about 82.5%",
+   "B": "We can be 95% confident that the true value of beta is unity (1.0)",
+   "C": "The daily volatility of the P&L of the hedged portfolio is about \\$88,000",
+   "D": "The difference between a DV01‑hedge and a regression hedge is about \\$17.14 million face amount of the TIPS"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Correlation = $\\sqrt{0.680} = 0.825$: A true.\n2. t for H0: β = 1 is (1.30 − 1)/0.051 = 5.88; 95% CI ≈ 1.30 ± 1.97 × 0.051 = \\[1.20, 1.40\\], which excludes 1: B false.\n3. Nominal DV01 position = \\$100m × 0.0400/100 = \\$40,000 per bp; × residual SE 2.2 bps = \\$88,000: C true.\n4. DV01 hedge = 100 × 0.04/0.07 = \\$57.14m TIPS; regression hedge = 1.3 × 57.14 = \\$74.29m; difference \\$17.14m: D true."
+ },
+ {
+  "id": "MR-QB-0537",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "An analyst is calculating the hedge ratio for a bond portfolio using bond futures:\n\n| Input | Value |\n|---|---|\n| Correlation between portfolio and futures yield changes, ρ | 0.60 |\n| Standard deviation of bond portfolio yield changes, σp | 0.08 |\n| Standard deviation of bond futures yield changes, σh | 0.05 |\n\nWhat is the minimum‑variance (regression) hedge ratio, β?",
+  "options": {
+   "A": "0.38",
+   "B": "0.96",
+   "C": "1.60",
+   "D": "2.67"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. $\\beta= \\rho\\sigma_{p}/\\sigma_{h}$.\n2. σp/σh = 0.08/0.05 = 1.60.\n3. $\\beta= 0.60 \\times1.60 = 0.96$.\n\n**REBUILT** — Distractors were not products of realistic errors (1.92, 1.50, 1.20); replaced with wrong‑formula results (ignoring correlation, inverted ratio, dividing by correlation)."
+ },
+ {
+  "id": "MR-QB-0538",
+  "lo": "MR-11 c",
+  "loText": "Calculate the regression hedge adjustment factor, beta.",
+  "outside": false,
+  "question": "A portfolio manager is hedging the price movements of a corporate bond portfolio (Yp) using a government bond futures contract (Yh). The following data is available:\n\nThe correlation between the returns of the corporate bond portfolio and the government bond futures: ρ(Yh, Yp) = 0.8\n\nThe standard deviation of the returns of the corporate bond portfolio: σ(Yp) = 0.05\n\nThe standard deviation of the returns of the government bond futures: σ(Yh) = 0.04\n\nWhat is the hedge ratio (beta) that the portfolio manager should use to minimize the portfolio’s exposure to interest rate risk?",
+  "options": {
+   "A": "1.25",
+   "B": "1.00",
+   "C": "0.80",
+   "D": "0.64"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Cov(Yh,Yp) = 0.8 × 0.04 × 0.05 = 0.0016.\n2. Var(Yh) = 0.04² = 0.0016.\n3. $\\beta= 0.0016/0.0016 = 1.00$; equivalently ρσp/σh = 0.8 × 1.25 = 1.00."
+ },
+ {
+  "id": "MR-QB-0539",
+  "lo": "MR-11 d",
+  "loText": "Calculate the face value of an offsetting position needed to carry out a regression hedge.",
+  "outside": false,
+  "question": "An asset management firm is establishing a regression hedge for its bond portfolio. The face value of the bond to be hedged is \\$100 million with a DV01 of 0.300 (per \\$100 face). The hedging instrument has a DV01 of 0.250 (per \\$100 face), and the regression hedge adjustment factor, β̂ , is 0.800. What is the face value of the offsetting position required for the regression hedge?",
+  "options": {
+   "A": "‑\\$66.7 million",
+   "B": "‑\\$96.0 million",
+   "C": "‑\\$120.0 million",
+   "D": "‑\\$150.0 million"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Regression hedge: $F_{h} = -F_{p} \\times\\frac{DV01_{p}}{DV01_{h}} \\times\\hat{\\beta}$.\n2. DV01 ratio: 0.300/0.250 = 1.2.\n3. $F_{h} = -100 \\times1.2 \\times0.800 = -96.0$ million.\n\n**REBUILT** — Original distractors (128, 85, 110) did not correspond to any realistic error; replaced with results of omitting beta, inverting the DV01 ratio, and dividing by beta."
+ },
+ {
+  "id": "MR-QB-0540",
+  "lo": "MR-11 d",
+  "loText": "Calculate the face value of an offsetting position needed to carry out a regression hedge.",
+  "outside": false,
+  "question": "A bond with face value \\$10,000 and DV01 of 1,200 is to be hedged with a swap whose DV01 is 1,500 (both DV01s on a consistent per‑face basis). The regression hedge adjustment factor, β̂ , is 0.75. What is the face value of the hedging swap position?",
+  "options": {
+   "A": "‑\\$6,000",
+   "B": "‑\\$8,000",
+   "C": "‑\\$9,375",
+   "D": "‑\\$10,667"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. $F_{h} = -F_{p} \\times\\frac{DV01_{p}}{DV01_{h}} \\times\\hat{\\beta}$.\n2. DV01 ratio: 1,200/1,500 = 0.8.\n3. $F_{h} = -10{,}000 \\times0.8 \\times0.75 = -6{,}000$ dollars.\n\n**REBUILT** — Original distractors (‑7,500; ‑9,000; ‑12,000) were not tied to realistic errors; replaced with omit‑beta, inverted‑ratio and divide‑by‑beta results."
+ }
+]

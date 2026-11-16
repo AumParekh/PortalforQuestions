@@ -1,0 +1,276 @@
+TOPIC C2: Backtesting VaR: Exceedance vs PIT (Tier C)
+
+============================== 1. WORKBOOK SECTION (specifics reported, shapes, revision notes, formulas, traps)
+C2 Backtesting VaR: Exceedance vs PIT
+Readings: MR-4 a-f · Backtesting VaR (Jorion, Ch.6); MR-7 a-d · Beyond Exceedance-Based Backtesting of Value-at-Risk
+Models (Iercosan, Shcherbakova, McArthur and Alper, Ch.4); MR-18 c · Fundamental Review of the Trading Book (Hull,
+RMFI Ch.18, 18.3.1); ORR-21 c · Capital Regulation Before the Global Financial Crisis (Carey)
+ MAP TIER C · #21 · 4/16 SOURCES  TELEGRAM  VARDEEZ
+  Specifics reported
+  Map #21: “Reported: ‘backtesting VaR’; ‘PIT vs exceedance’: the point-in-time vs. exceedance-based distinction is
+  the direct subject of Reading 7 and appears twice in the consolidated list. Kupiec’s POF tests unconditional coverage
+  only; Christoffersen adds independence, giving conditional coverage. Type I = rejecting a correct model; Type II
+  = accepting a flawed one. Basel penalty zones (green/yellow/red) and their multiplier consequences are separately
+  examinable. This pair remains uncleared in your Confusables Registry.”
+  Shapes covered here:
+  S1 backtesting VaR: counting exceptions against the model (Q1)
+  S2 PIT-based versus exceedance-based backtesting (Q2)
+  S3 Kupiec POF (unconditional coverage) versus Christoffersen (independence, conditional coverage) (Q3)
+  S4 Type I versus Type II errors (Q3; trade-off in Q1)
+  S5 Basel penalty zones and the multiplier they set (Q1).
+  Revision notes
+  • Backtesting (MR-4 a): “a formal statistical framework that consists of verifying that actual losses are in line
+  with projected losses”. An exception (exceedance) is a day when the loss exceeds the previous day’s VaR.
+  Too many exceptions: the model underestimates risk (too little capital, regulatory penalties); too few: excess,
+  inefficient capital allocation.
+  • Which return? (MR-4 b): VaR assumes a frozen portfolio. The actual return is contaminated by intraday
+  trades, fees, commissions, spreads and net interest income; the hypothetical return applies fixed positions
+  to close-to-close returns; the cleaned return is actual minus non-mark-to-market items. Use both actual
+  and hypothetical: passing with hypothetical but failing with actual points to intraday trading; failing with
+  hypothetical means the methodology must be reexamined.
+  p(MR-4 c): under the null, exceptions x are binomial with mean pT and variance p(1 − p)T ;
+  • Failure rate test
+  z = (x − pT )/ p(1 − p)T , reject if |z| > 1.96 (JPM 1998: 20 exceptions at 95% over 252 days, z = 2.14,
+  reject). The test is fully nonparametric. Kupiec’s LRuc is χ2 (1): reject if LRuc > 3.841 (JPM: 3.91).
+  Nonrejection region at 99%, T = 252: N < 7; at 95%, T = 252: 6 < N < 20.
+  • The test confidence level is not the VaR confidence level (MR-4 c): Basel backtests a 99% VaR with a
+  decision rule at, for example, 95% test confidence.
+  • Type 1 and Type 2 errors (MR-4 d; S4): Type 1 is rejecting a correct model (bad luck penalised); Type 2 is
+  not rejecting an incorrect model. At p = 0.01, T = 250: more than four exceptions occur 10.8% of the time
+  under a correct model (Type 1); a model with true 97% coverage passes 12.8% of the time (Type 2). Power
+  = 1− Type 2 rate.
+  • Raising power (MR-4 d): exception tests have low power at high VaR confidence and short samples. Low-
+  ering the VaR confidence level to 95% (cutoff 17 exceptions, Type 1 12.5%) cuts Type 2 to 7.4%; raising T
+  to 1,000 (cutoff 14) gives Type 1 13.4% and Type 2 0.03%. Detection of systematic bias is hardest for small
+  p (rare events).
+  • Conditional coverage (MR-4 e; S3): exceptions should be evenly spread; bunching should invalidate the
+  model. Christoffersen’s LRind compares π0 (exception after a non-exception day) with π1 (exception after
+  an exception day); reject independence if LRind > 3.841. LRcc = LRuc + LRind ∼ χ2 (2): reject if
+  LRcc > 5.991. JPM: π0 = 14/232 = 6.0%, π1 = 6/20 = 30.0%, LRind = 9.53: exceptions cluster.
+  • Basel rules (MR-4 f; S5): daily exceptions of the 99% one-day VaR over the last 250 days; 2.5 expected.
+  Green 0 to 4 (k = 3); yellow 5 to 9 with plus factors 0.40, 0.50, 0.65, 0.75, 0.85; red 10 or more (plus 1.00,
+  automatic). In the yellow zone the penalty depends on the cause: basic integrity of the model and model
+  accuracy could be improved: penalty “should” apply; intraday trading: “should be considered”; bad luck:
+FRM Part II · Volume 2: Tiers B to D  C2 Backtesting VaR: Exceedance vs PIT
+  expected some of the time, and exceptions from sudden abnormal changes in rates, major political events or
+  natural disasters may be excluded.
+  • The capital formula (ORR-21 c): MR = max(VaRt−1 , m×VaRavg ), with 10-day 99% VaR and the 60-day
+  average; m ≥ 3. Carey’s summary (“five or less exceptions enabled the multiplier m to be 3”, 10 or more
+  required 4) is looser than Jorion’s Table 4.3; for MR-4 f questions use Jorion’s table.
+  • Two properties of an accurate VaR model (MR-7 a; S2): unconditional coverage (Kupiec) and indepen-
+  dence (Christoffersen). In a PIT backtest these become uniformity of the PITs on U (0, 1) and independence:
+  a perfectly accurate model gives i.i.d. U (0, 1) PITs (Rosenblatt).
+  • Deriving PITs (MR-7 b): pt+1 = Ft (P Lt+1 ), the model’s (previous day’s forecast) probability of observing
+  a loss below the actual P&L. Exceedances test one percentile; PITs carry information “at any percentile of
+  the forecast distribution”. Hull (MR-18 c) calls the same quantity the p-value, uniformly distributed if the
+  model works perfectly.
+  • Shape of the PIT histogram (MR-7 c): conservative misspecification (model distribution too wide) puts
+  P&L in the middle, a hump-shaped PIT histogram; aggressive misspecification (too narrow) puts realised
+  P&L in the tails, spikes at 0 and 1. The sample showed models conservative in the body but with tails thinner
+  than realised P&L at subportfolio level.
+  • Goodness-of-fit tests (MR-7 d): Kolmogorov-Smirnov measures the maximum distance between empirical
+  and uniform CDFs but lacks sensitivity in the tails; Anderson-Darling puts more weight on the tails (more
+  power for a 99% VaR); Cramer-von Mises uses the mean squared deviation. Independence of PITs: transform
+  to normals and regress on lags.
+  • Results and limits (MR-7 a, d): 67% of subportfolios passed Kupiec, 92% Christoffersen independence, 71%
+  conditional coverage, but only 21% passed KS and 11% A-D. Christoffersen ignores dependence beyond one
+  lag; Ljung-Box tests several lags; the Christoffersen and Pelletier duration test (exponential versus Weibull)
+  adds power. Banks do better on exceedance tests than on distribution tests.
+  • FRTB backtesting (MR-18 c): stressed ES is not backtested; each desk backtests a one-day VaR at 99%
+  and 97.5% over 12 months; more than 12 exceptions at 99% or more than 30 at 97.5% sends the desk to the
+  standardized approach. See also B2 for ES.
+  Formulas
+  x − pT
+  Normal approximation. z = p  , reject at 95% (two-tailed) if |z| > 1.96.
+  p(1 − p)T  h
+      T −N N N i
+  Kupiec POF. LRuc = −2 ln (1 − p)T −N pN + 2 ln 1 − N  T  T  ∼ χ2 (1), critical value 3.841.
+  T01  T11
+  Christoffersen. π0 =  , π1 =  ; LRind ∼ χ2 (1) (3.841); LRcc = LRuc + LRind ∼ χ2 (2)
+  T00 + T01  T10 + T11
+  (5.991).
+  Basel plus factors (Jorion Table 4.3). Exceptions 0 to 4: 0.00; 5: 0.40; 6: 0.50; 7: 0.65; 8: 0.75; 9: 0.85; 10+: 1.00.
+  k = 3 + plus factor.  
+  Market risk charge (Carey). MR = max VaRt−1 , k × VaRavg,60
+  PIT. pt+1 = Ft (P Lt+1 ) ∼ i.i.d. U (0, 1) under a correct model.
+  Duration test. Pr(D = d) = (1 − p)d−1 p; null: exponential durations (Weibull b = 1, a = p).
+  Exam traps
+  • Type 1 versus Type 2 (polarity flip): rejecting a correct model is Type 1 (the 10.8% for five or more exceptions);
+  accepting a flawed one is Type 2 (the 12.8%).
+  • Kupiec versus Christoffersen (sibling swap): Kupiec cannot see clustering if the count is right; Christof-
+  fersen’s independence test sees only one lag, not breaches a week apart.
+  • Excludable exceptions (scope error): only exceptions from sudden abnormal market moves, major political
+  events or natural disasters may be excluded; ordinary bad luck (“markets were particularly volatile or correlations
+  changed”) still counts.
+  • Plus-factor row off-by-one: 6 exceptions is +0.50, 7 is +0.65, 8 is +0.75; 5 is already yellow (+0.40) in
+  Jorion’s table.
+FRM Part II · Volume 2: Tiers B to D  C2 Backtesting VaR: Exceedance vs PIT
+  • PIT histogram polarity: PIT is the probability integral transform, not a point-in-time measure. A hump in the
+  middle means a conservative (too wide) model; spikes at the ends mean an aggressive (too narrow) one.
+  • KS versus A-D (sibling swap): Anderson-Darling, not Kolmogorov-Smirnov, weights the tails.
+
+============================== 2. WORKBOOK INDEX OF SHAPES (shape, wording, the workbook questions that drill it)
+S1  backtesting VaR: counting exceptions against the model  C2.1
+S2  PIT-based versus exceedance-based backtesting  C2.2
+S3  Kupiec POF (unconditional coverage) versus Christoffersen (independence, conditional coverage)  C2.3
+S4  Type I versus Type II errors  C2.3
+S5  Basel penalty zones and the multiplier they set (Q1)  C2.1
+
+============================== 3. MASTER LO MAP: the readings this topic covers (band, wording, Vardeez pointers, pinned shapes)
+  MR-4  Backtesting VaR
+  P3 ×4  P4 ×2  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER C
+  Vardeez: a) Understand calculation of Failure Rates & Model Validation calculation (using 2 table) b) Basel penalty zones Note: Pls
+  refer Crash course Notes for this chapter
+  ! Vardeez: refer to crash course notes for this chapter.
+  RECALL WORKBOOK SECTIONS
+  C2 Backtesting VaR: Exceedance vs PIT
+  Tier C • Map #21 (4/16) • TG ✓• 3 Qs • Vol 2 p.41 • LOs a to f
+  P4  a  Describe backtesting and exceptions and explain the importance of backtesting VaR models.
+  P4  b  Explain the significant difficulties in backtesting a VaR model.
+  P3  c  Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.
+  WORKBOOK C2 + VARDEEZ FOCUS
+  ▶ Vardeez: Failure rates and model verification calculation (using the 2 tables)
+  C2·S1 backtesting VaR: counting exceptions against the model
+  C2·S3 Kupiec POF (unconditional coverage) versus Christoffersen (independence, conditional coverage)
+  P3  d  Identify and describe Type I and Type II errors in the context of a backtesting process.
+  WORKBOOK C2
+  C2·S4 Type I versus Type II errors
+  P3  e  Explain the need to consider conditional coverage in the backtesting framework.
+  WORKBOOK C2
+  C2·S3 Kupiec POF (unconditional coverage) versus Christoffersen (independence, conditional coverage)
+  P3  f  Describe the Basel rules for backtesting.
+  WORKBOOK C2 + VARDEEZ FOCUS
+  ▶ Vardeez: Basel penalty zones
+  C2·S5 Basel penalty zones and the multiplier they set (Q1)
+
+  MR-7  Beyond Exceedance-Based Backtesting of Value-at-Risk Models
+  P3 ×4  VARDEEZ: IMPORTANT  WORKBOOK BEST: TIER C
+  Vardeez: New Topic (Remember Backtesting is imp) Highly Testable
+  ! New topic, highly testable. Backtesting is important.
+  RECALL WORKBOOK SECTIONS
+  C2 Backtesting VaR: Exceedance vs PIT
+  Tier C • Map #21 (4/16) • TG ✓• 3 Qs • Vol 2 p.41 • LOs a to d
+  P3  a  Identify the properties of an exceedance-based backtest that indicate a VaR model is accurate, and describe
+  how these properties are reflected in a PIT-based backtest.
+  WORKBOOK C2 + VARDEEZ FOCUS
+  C2·S2 PIT-based versus exceedance-based backtesting
+  P3  b  Explain how to derive probability integral transforms (PITs) in the context of validating a VaR model.
+  VARDEEZ FOCUS
+  P3  c  Describe how the shape of the distribution of PITs can be used as an indicator of the quality of a VaR model.
+  VARDEEZ FOCUS
+  P3  d  Describe backtesting using PITs, and compare the various goodness-of-fit tests that can be used to evaluate
+  the distribution of PITs: the Kolmogorov-Smirnov test, the Anderson-Darling test, and the Cramér-von Mises
+  test.
+  WORKBOOK C2 + VARDEEZ FOCUS
+  C2·S2 PIT-based versus exceedance-based backtesting
+
+  MR-18  Fundamental Review of the Trading Book
+  P1 ×3  VARDEEZ: VERY IMPORTANT  WORKBOOK BEST: TIER A
+  Vardeez: Again Full chapter is IMP (Refer GARP for Curve Risk)
+  ! Refer to the GARP book for curvature risk.
+  RECALL WORKBOOK SECTIONS
+  A4 Fundamental Review of the Trading Book (FRTB)
+  Tier A • Aug ✓• Map #5 (8/16) • TG ✓• 4 Qs • Vol 1 p.36 • LOs a to c
+  B2 Expected Shortfall and Coherence
+  Tier B • Map #12 (6/16) • TG ✓• 3 Qs • Vol 2 p.19 • LOs a, b
+  C2 Backtesting VaR: Exceedance vs PIT
+  Tier C • Map #21 (4/16) • TG ✓• 3 Qs • Vol 2 p.41 • LOs c
+  P1  a  Describe the changes to the Basel framework for calculating market risk capital under the Fundamental
+  Review of the Trading Book (FRTB) and the motivations for these changes.
+  WORKBOOK A4, B2 + VARDEEZ FOCUS
+  A4·S1 stressed ES at 97.5% replaces 10-day VaR at 99%, and why
+  A4·S5 FRTB vs Basel I (1996 Amendment), Basel II, Basel 2.5: overall changes
+  A4·S6 curvature risk charge, from the GARP text (Q4)
+  B2·S2 ES as the average of tail VaRs read off a confidence-level table, against the 99% VaR it replaces under FRTB
+  P1  b  Compare the various liquidity horizons proposed by the FRTB for different asset classes and explain
+  how a bank can calculate its expected shortfall using the various horizons.
+  WORKBOOK A4 + VARDEEZ FOCUS
+  A4·S2 liquidity horizons by asset class and the cascade ES
+  P1  c  Explain the FRTB revisions to Basel regulations in the following areas: - Classification of positions in
+  the trading book compared to the banking book. - Backtesting, profit and loss attribution, credit risk,
+  and securitizations.
+  WORKBOOK A4 + VARDEEZ FOCUS
+  A4·S3 standardized vs internal models approach, with the desk-level backtesting and P&L attribution tests that decide
+  which applies
+  A4·S4 trading book / banking book boundary
+Credit Risk Measurement and Management  20% • 16 Qs
+
+  ORR-21  Capital Regulation Before the Global Financial Crisis
+  P1 ×3  P3 ×3  P4 ×2  VARDEEZ: UNTIERED  WORKBOOK BEST: TIER A
+  ! Untiered in the sheet, but his theme ”Basel III: three components and comparison with Basel I and II” draws on this reading.
+  RECALL WORKBOOK SECTIONS
+  A4 Fundamental Review of the Trading Book (FRTB)
+  Tier A • Aug ✓• Map #5 (8/16) • TG ✓• 4 Qs • Vol 1 p.36 • LOs c
+  A31 Basel IRB Capital
+  Tier A • Aug ✓• 5 Qs • Vol 1 p.214 • LOs e, f
+  C2 Backtesting VaR: Exceedance vs PIT
+  Tier C • Map #21 (4/16) • TG ✓• 3 Qs • Vol 2 p.41 • LOs c
+  C5 Basel III Post-Crisis Reforms and Stress-Test Regimes
+  Tier C • Map #30 (4/16) • TG ✓• 2 Qs • Vol 2 p.56 • LOs d, g, h
+  D4 Stressed VaR and Market Risk Capital
+  Tier D • Map #73 (3/16) • TG ✓• 2 Qs • Vol 2 p.93 • LOs c, f
+  P3  a  Explain the motivations for introducing the Basel regulations, including key risk exposures addressed, and
+  explain the reasons for revisions to Basel regulations over time.
+  WORKBOOK C5
+  C5·S4 the Basel I / 1996 / II / 2.5 / III progression, each change attached to the right accord
+  P3  b  Explain the calculation of risk-weighted assets and the capital requirement per the original Basel I guidelines.
+  VARDEEZ FOCUS
+  ▶ Vardeez: Basel I (for the Basel III comparison)
+  P1  c  Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of
+  credit exposures and methods for calculating market risk capital for assets in the trading book.
+  WORKBOOK A4, C5, D4
+  A4·S5 FRTB vs Basel I (1996 Amendment), Basel II, Basel 2.5: overall changes
+  C5·S4 the Basel I / 1996 / II / 2.5 / III progression, each change attached to the right accord
+  D4·S2 market risk capital charge calculation: max(VaR(t−1), m × VaR(avg)), √10 scaling, multiplier from backtesting
+  P3  d  Describe changes to the Basel regulations made as part of Basel II, including the three pillars.
+  WORKBOOK C5 + VARDEEZ FOCUS
+  ▶ Vardeez: Basel II (for the Basel III comparison)
+  C5·S4 the Basel I / 1996 / II / 2.5 / III progression, each change attached to the right accord
+  P1  e  Compare the standardized internal ratings-based (IRB) approach, the foundation IRB approach, and
+  the advanced IRB approach for the calculation of credit risk capital under Basel II.
+  WORKBOOK A31
+  A31·S3 Foundation versus Advanced IRB inputs: supervisory LGD and the PD floor
+  P1  f  Calculate credit risk capital under Basel II utilizing the IRB approach.
+  WORKBOOK A31, D4
+  A31·S1 IRB capital for a single corporate loan under Advanced IRB, with the correlation formula and maturity adjustment:
+  the plain form
+  A31·S2 retail IRB: fixed correlation, no maturity adjustment, reported as RWA
+  D4·S3 mixed vignette: market stressed VaR charge plus credit capital given the 99.9th percentile default rate, one error
+  per option (Q2)
+  P4  g  Compare the basic indicator approach, the standardized approach, and the advanced measurement approach
+  for the calculation of operational risk capital under Basel II.
+  P4  h  Summarize elements of the Solvency II capital framework for insurance companies.
+
+============================== 4. CROSS-SOURCE PRIORITY MAP entries cited by the section
+21  Backtesting VaR: Failure Rates, Kupiec & Conditional Coverage
+  MARKET RISK  4 OF 16 SOURCES  IMPORTANT
+  R4, R7 · Backtesting VaR; Beyond Exceedance-Based Backtesting of Value-at-Risk Models: Methods for Backtesting the Entire Forecasting
+  Distribution Using Probability Integral Transform DIANA IERCOSAN, ALYSA SHCHERBAKOVA, DAVID MCARTHUR AND REBECCA ALPER
+  W H AT I S T E S T E D
+  Reported by name in two separate sittings' recalls and marked important by both sheets.
+  Reading 7 (Beyond Exceedance-Based Backtesting) is flagged as a new reading and
+  'highly testable'.
+  SPECIFICS REPORTED
+  Reported: 'backtesting VaR'; 'PIT vs exceedance' — the point-in-time vs. exceedance-based
+  distinction is the direct subject of Reading 7 and appears twice in the consolidated list.
+  Kupiec's POF tests unconditional coverage only; Christoffersen adds independence, giving
+  conditional coverage. Type I = rejecting a correct model; Type II = accepting a flawed
+  one. Basel penalty zones (green/yellow/red) and their multiplier consequences are
+  separately examinable. This pair remains uncleared in your Confusables Registry.
+  Sources: Vardeez importance sheet (xlsx), Vardeez must-do topics (handwritten),
+  Telegram consolidated list (08/08/25), Telegram recall — Sajan Singh (list 2)
+  L E A R N I N G O B J E C T I V E S — V E R B AT I M F R O M T H E G A R P S O U R C E
+  LO 4.a Describe backtesting and exceptions and explain the importance of backtesting VaR
+  models.
+  LO 4.c Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a
+  model verification test.
+  LO 4.d Identify and describe Type I and Type II errors in the context of a backtesting process.
+  LO 4.e Explain the need to consider conditional coverage in the backtesting framework.
+  LO 4.f Describe the Basel rules for backtesting.
+  LO 7.a Identify the properties of an exceedance-based backtest that indicate a VaR model is
+  accurate, and describe how these properties are reflected in a PIT-based backtest.
+  LO 7.b Explain how to derive probability integral transforms (PITs) in the context of validating
+  a VaR model.
+
+============================== 5. RETURN ON LEARNING OBJECTIVE (rank of 86 and action) for those entries
+Map #21 Backtesting VaR: Failure Rates, Kupiec & Conditional Coverage: rank 50, Grind

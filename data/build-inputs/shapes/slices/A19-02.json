@@ -1,0 +1,527 @@
+[
+ {
+  "id": "MR-QB-0107",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which statement correctly captures the essence of a correlation‑weighted approach within the historical simulation framework?",
+  "options": {
+   "A": "It forces all pairwise asset correlations to zero by partitioning returns into uncorrelated blocks while leaving individual volatilities unchanged.",
+   "B": "It imposes a desired set of updated correlations among assets by systematically adjusting historical returns, typically without altering each asset’s overall volatility.",
+   "C": "It re‑weights observed co‑movements to ensure the sample correlation matrix matches a diagonal matrix (i.e., only variances remain, covariances are nullified).",
+   "D": "It replicates only those return paths whose correlations exceed a specified threshold, discarding paths that deviate from the target correlation profile."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Correlation‑weighted HS replaces the historical correlation (variance‑covariance) matrix with an updated one.\n2. Historical returns are transformed (loosely, multiplied by the revised matrix) to give correlation‑adjusted returns; VaR/ES are then computed as usual."
+ },
+ {
+  "id": "MR-QB-0108",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following most closely characterizes the role of filtered historical simulation in estimating risk?",
+  "options": {
+   "A": "It fits a time‑varying volatility model (e.g., GARCH) and then adjusts historical returns before resampling, reflecting evolving market conditions.",
+   "B": "It reorders past returns chronologically to match any short‑term volatility changes but leaves correlation un‑altered.",
+   "C": "It discards all returns that fall outside a user‑defined confidence interval, ensuring that the final distribution is free of extreme tail events.",
+   "D": "It transforms each asset’s average return into a standardized zero mean but leaves the standard deviation fixed at its historical level."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. FHS fits a conditional volatility model (GARCH/asymmetric GARCH) to the history.\n2. Returns are standardized by the model’s volatility, the standardized residuals are bootstrapped, and the draws are rescaled by current volatility.\n3. VaR is read from the simulated distribution."
+ },
+ {
+  "id": "MR-QB-0109",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "An analyst implements filtered historical simulation on commodity returns. She fits a GARCH model, divides each day’s return by that day’s GARCH volatility, resamples the standardized returns, and rescales the draws by today’s volatility forecast. Which aspect best defines ”filtered” in this context?",
+  "options": {
+   "A": "Exponentially down‑weighting older observations",
+   "B": "Replacing the historical correlation matrix with a current one",
+   "C": "Removing time‑varying volatility using a conditional volatility model",
+   "D": "Excluding returns beyond the chosen confidence level"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The GARCH step estimates conditional volatility for each past day.\n2. Dividing returns by it removes heteroskedasticity, leaving roughly i.i.d. standardized residuals (the ”filtering”).\n3. These are bootstrapped and multiplied by the current volatility forecast to give returns consistent with today’s market.\n\n**REBUILT** — Original distractors (zero‑sum weighting, ignoring non‑positive returns) were implausible giveaways; replaced with the other HS refinements as distractors."
+ },
+ {
+  "id": "MR-QB-0110",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "If volatility(0) is the current (today’s) volatility estimate and volatility(t) is the volatility estimate on a previous day (t), which best describes volatility‑weighted historical simulation?",
+  "options": {
+   "A": "First, conduct typical historical simulation (HS) on return series. Then multiply VaR by volatility(0)/volatility(t)",
+   "B": "First, conduct typical historical simulation (HS) on return series. Then multiply VaR by volatility(t)/volatility(0)",
+   "C": "Each historical return(t) is replaced by: return(t)\\*volatility(0)/volatility(t). Then conduct typical historical simulation (HS) on adjusted return series",
+   "D": "Each historical return(t) is replaced by: return(t)\\*volatility(t)/volatility(0). Then conduct typical historical simulation (HS) on adjusted return series"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Each past return is rescaled: $r^{*}_{t} = r_{t} \\times\\sigma_{0}/\\sigma_{t}$ (current over then‑prevailing volatility).\n2. Returns rise when current volatility exceeds past volatility and fall when it is lower.\n3. Standard equal‑weighted HS VaR/ES is then run on the adjusted series. Example: −2.0%×20%/10% = −4.0%."
+ },
+ {
+  "id": "MR-QB-0111",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Two historical returns form a 2x1 vector with r1 = 10.0% and r2 = 12.0%. The historical correlation between the two series was 0.0, but the current correlation has risen to 0.40. Using Dowd’s correlation‑weighted historical simulation (Cholesky decomposition of the correlation matrices, with unit‑scale returns as in Dowd’s example), what are the correlation‑adjusted returns?",
+  "options": {
+   "A": "r1 = 10.0% and r2 = 11.0%",
+   "B": "r1 = 10.0% and r2 = 12.0%",
+   "C": "r1 = 10.0% and r2 = 15.0%",
+   "D": "r1 = 10.0% and r2 = 16.0%"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Historical correlation 0 means the historical Cholesky factor is the identity, so adjusted returns = current factor × historical returns.\n2. Current factor for ρ = 0.40: $L = \\begin{pmatrix} 1 & 0 \\\\ 0.40 & \\sqrt{1 - 0.40^{2}} \\end{pmatrix}$, with $\\sqrt{0.84} = 0.9165$.\n3. $r^{adj}_{1} = 1 \\times10\\% = 10.0\\%$.\n4. $r^{adj}_{2} = 0.40 \\times10\\% + 0.9165 \\times12\\% = 4.00\\% + 11.00\\% = 15.0\\%$ (exactly 14.998%).\n\n**REBUILT** — Original answer was right but distractors (8%, 18%) were arbitrary; replaced with options from realistic mistakes and stated the Cholesky convention."
+ },
+ {
+  "id": "MR-QB-0112",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "In regard to Dowd’s correlation‑weighted historical simulation, EACH of the following is TRUE EXCEPT:",
+  "options": {
+   "A": "The covariance/correlation matrix ”add‑on” to the non‑parametric historical simulation makes this a semi‑parametric approach",
+   "B": "It can be combined with volatility‑weighted historical simulation",
+   "C": "The weighting takes into account information about both volatilities and correlations",
+   "D": "Because actual historical returns are used, the ”curse of dimensionality” created by the need for many pairwise correlations is avoided"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. A: a parametric covariance/correlation update is added to non‑parametric HS, so it is semi‑parametric: true.\n2. B: the updated variances can be combined with volatility weighting: true.\n3. C: the updated matrix holds variances (diagonal) and covariances/correlations (off‑diagonal), so both are used: true.\n4. D: the approach needs historical and current correlation matrices for all asset pairs, so dimensionality is not avoided: false."
+ },
+ {
+  "id": "MR-QB-0113",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Filtered historical simulation includes EACH of the following steps EXCEPT:",
+  "options": {
+   "A": "Specify a conditional volatility model, e.g., GARCH(1,1)",
+   "B": "Convert actual historical returns into volatility‑standardized returns",
+   "C": "Bootstrap (simulate) from the series of standardized returns",
+   "D": "Fit a parametric VaR model to the standardized returns"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Step 1: fit a conditional volatility model (GARCH) ‑ option A.\n2. Step 2: standardize each historical return by its conditional volatility ‑ option B.\n3. Step 3: bootstrap standardized returns and rescale by the current volatility forecast ‑ option C.\n4. Step 4: read VaR/ES from the simulated distribution; no parametric VaR model is fitted, so D is not a step."
+ },
+ {
+  "id": "MR-QB-0114",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following most nearly describes the filtered historical simulation approach?",
+  "options": {
+   "A": "Pure parametric",
+   "B": "Pure simulation‑based",
+   "C": "Empirical",
+   "D": "Semi‑parametric"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. FHS uses a parametric conditional volatility model (e.g., GARCH) to filter returns.\n2. The standardized residuals are then resampled non‑parametrically by bootstrap.\n3. A parametric filter plus non‑parametric resampling is semi‑parametric."
+ },
+ {
+  "id": "MR-QB-0115",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Dowd cites EACH of the following as ADVANTAGES (”attractions”) of the filtered historical simulation approach EXCEPT:",
+  "options": {
+   "A": "It is fast",
+   "B": "It incorporates correlations without needing a variance‑covariance matrix or a conditional distribution of asset returns",
+   "C": "Unlike volatility‑weighted HS, which can produce VaR/ES estimates above the maximum historical loss, it will not produce VaR/ES in excess of the historical maximum",
+   "D": "It combines the attractions of non‑parametric HS with the ability to account for changing volatility conditions"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A, B and D are listed attractions (speed, no covariance matrix needed, HS plus time‑varying volatility).\n2. For C: both volatility‑weighted HS and FHS can produce estimates beyond the largest historical loss, and this is viewed as an advantage (can predict losses outside the historical range).\n3. C claims FHS cannot do this, so it is false."
+ },
+ {
+  "id": "MR-QB-0116",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A portfolio’s 250 daily losses over the last year are sorted; the worst five (USD millions) are 9.60, 7.40, 5.50, 4.00 and 3.00. The basic historical simulation 99.0% one‑day VaR is 5.50 million. The three worst losses were recent: 9.60 occurred 7 days ago, 7.40 occurred 5 days ago and 5.50 occurred 3 days ago. Using age‑weighted (hybrid) HS with decay λ = 0.850, weight on an observation i days old $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$, and no interpolation, what is the 99.0% VaR?",
+  "options": {
+   "A": "4.00 million",
+   "B": "5.50 million",
+   "C": "7.40 million",
+   "D": "9.60 million"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. With n = 250, $1 - \\lambda^{250} \\approx1$.\n2. Worst loss (7 days old): $w(7) = 0.85^{6} \\times0.15 = 5.66\\%$.\n3. The tail probability for 99% VaR is 1%, and the worst loss alone has weight 5.66% > 1%.\n4. Hence VaR is the worst loss, 9.60 million (for reference: 7.40 adds 7.83% to reach 13.49%; 5.50 adds 10.84% to reach 24.32%)."
+ },
+ {
+  "id": "MR-QB-0117",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Peter manages a large portfolio and wants to generate a one‑day value at risk (VaR), but he has the following preferences with respect to the approach:\n\n‑ He would like the approach to incorporate the cross‑sectional correlation structure on a given day\n\n‑ He would like to be able to incorporate autocorrelations in a long‑term forecast that will extend over at least 20 trading days\n\n‑ If the current regime suggests, he would like to be able to produce VaR estimates that exceed the greatest loss in the historical sample\n\nGiven these preferences, which of the following approaches is BEST?",
+  "options": {
+   "A": "Basic HS",
+   "B": "Bootstrap HS",
+   "C": "Filtered HS",
+   "D": "Volatility‑weighted HS"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Requirement 3: VaR above the worst historical loss requires rescaling returns by current‑versus‑historical volatility (or simulating from a fitted model). Basic HS and bootstrap HS only reuse observed losses, so they fail.\n2. Requirement 1: cross‑sectional correlation on a given day is kept by resampling/rescaling all assets’ returns for the same date together; this is satisfied by basic, bootstrap, volatility‑weighted and filtered HS.\n3. Requirement 2: multi‑day forecasts with autocorrelation/volatility dynamics need a time‑series model (GARCH) to simulate the volatility path forward over 20+ days. Only filtered HS combines a GARCH filter with bootstrapped standardized residuals.\n4. Only filtered HS meets all three, so the answer is C."
+ },
+ {
+  "id": "MR-QB-0118",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "An analyst at a commercial bank is evaluating how the bank applies historical simulation (HS) to estimate VaR and ES. The analyst focuses on the approaches used for weighting past return observations, including the age‑weighted, volatility‑weighted, correlation‑weighted, and filtered HS approaches. Which of the following statements is correct regarding the given weighting approach?",
+  "options": {
+   "A": "The age‑weighted approach typically specifies that observations that occurred after the cutoff date are given an equal weight while observations that occurred before the cutoff date are given a weight of zero.",
+   "B": "The volatility‑weighted approach adjusts historical returns in the sample by increasing them if the historical volatility forecast was higher than the current volatility forecast, and decreasing them if the historical volatility forecast was lower than the current volatility forecast.",
+   "C": "The correlation‑weighted approach uses matrix multiplication to adjust historical portfolio returns so that these returns reflect current volatilities and current correlations.",
+   "D": "The filtered HS approach allows the historical returns data to be trimmed or customized based on day of the week, magnitude of return, or any other characteristic of the data."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Age‑weighting assigns declining weights $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$ to older observations, so a hard cutoff with equal weights inside and zero outside is plain (equal‑weighted) HS, not age‑weighting. A is out.\n2. Volatility‑weighting scales each historical return by $\\sigma_{T}/\\sigma_{t}$ (current over then‑current volatility): it is scaled UP when current volatility exceeds the historical forecast and DOWN when it is lower. B states the reverse.\n3. Correlation‑weighting ’multiplies’ the historical returns by a matrix built from the revised (current) variance‑covariance matrix, so the adjusted returns reflect both current volatilities (diagonal) and current correlations (off‑diagonal). C is correct.\n4. Filtered HS combines HS with a conditional volatility model (GARCH), standardizes returns by forecast volatility and bootstraps them; it does not trim the data by day of week or return size. D is out."
+ },
+ {
+  "id": "MR-QB-0119",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "All of the following approaches improve the traditional historical simulation approach for estimating VaR except the:",
+  "options": {
+   "A": "volatility‑weighted historical simulation.",
+   "B": "age‑weighted historical simulation.",
+   "C": "market‑weighted historical simulation.",
+   "D": "correlation‑weighted historical simulation."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. The Schweser reading lists four improvements to equal‑weighted HS: age‑weighted, volatility‑weighted, correlation‑weighted and filtered HS.\n2. Volatility‑weighted (A), age‑weighted (B) and correlation‑weighted (D) are all on that list.\n3. ’Market‑weighted’ historical simulation is not one of the approaches, so C is the exception."
+ },
+ {
+  "id": "MR-QB-0120",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following statements about age‑weighting is most accurate?",
+  "options": {
+   "A": "The age‑weighting procedure incorporates estimates from GARCH models.",
+   "B": "If the decay factor in the model is close to 1, there is persistence within the dataset.",
+   "C": "When using this approach, the weight assigned on day i is equal to $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{i})$.",
+   "D": "The number of observations should at least exceed 250."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Weights decay geometrically: $w(i) = \\lambda^{i-1}(1 - \\lambda)/(1 - \\lambda^{n})$, with n the number of observations in the window.\n2. A decay factor $\\lambda$ near 1 means slow decay: old observations keep substantial weight (persistence); $\\lambda= 1$ collapses to equal‑weighted HS. B is correct.\n3. Check of C: the denominator must use n, not i. E.g. $\\lambda= 0.95, n = 10$: with $1 - \\lambda^{n}$ the weights sum to 1; with $1 - \\lambda^{i}$ they do not. C is wrong.\n4. GARCH estimates enter filtered HS (and volatility weighting), not age‑weighting; and no minimum of 250 observations is prescribed."
+ },
+ {
+  "id": "MR-QB-0121",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "Which of the following statements about volatility‑weighting is true?",
+  "options": {
+   "A": "Historic returns are adjusted, and the VaR calculation is more complicated.",
+   "B": "Historic returns are adjusted, and the VaR calculation procedure is the same.",
+   "C": "Current period returns are adjusted, and the VaR calculation is more complicated.",
+   "D": "Current period returns are adjusted, and the VaR calculation is the same."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Volatility weighting replaces each historical return by $r^{*}_{t} = r_{t} \\sigma_{T}/\\sigma_{t}$, where $\\sigma_{t}$ is the volatility forecast at the time of the return and $\\sigma_{T}$ is the current forecast.\n2. So it is the historical returns that are adjusted, not current‑period returns.\n3. VaR/ES are then computed in the usual HS way on the adjusted returns (sort and take the quantile); only the input data change."
+ },
+ {
+  "id": "MR-QB-0122",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A risk manager uses bootstrap historical simulation on a small loss dataset in which the worst observed daily loss is 4.8%. Which of the following is the key limitation of the approach in this setting?",
+  "options": {
+   "A": "Resamples cannot contain a loss larger than 4.8%, so the method cannot reflect plausible losses worse than any observed.",
+   "B": "Resamples require the returns to be normally distributed.",
+   "C": "The bootstrap estimate is less precise than the raw historical simulation estimate.",
+   "D": "Each resample is drawn without replacement, which shrinks the sample size."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Bootstrapping draws only from observations in the dataset (with replacement).\n2. Therefore no resample can contain a loss beyond the largest observed (4.8%), and events absent from the sample cannot appear.\n3. This is a data limitation of historical methods; the bootstrap does improve precision, is non‑parametric, and samples with replacement.\n\n**REBUILT** — Original options were vague (bias, narrow intervals and amplified noise were all arguable); rebuilt around the clear, reading‑supported limitation that resamples cannot exceed the worst observed loss."
+ },
+ {
+  "id": "MR-QB-0123",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "Which of the following is the chief drawback or limitation of the standard (i.e., unmodified) bootstrap procedure?",
+  "options": {
+   "A": "It employs a random number generator, which is too arbitrary.",
+   "B": "It is difficult to compute standard errors of estimators.",
+   "C": "It presupposes that observations are independent over time.",
+   "D": "It cannot be implemented parametrically; it requires a non‑parametric dataset."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Standard bootstrap resamples observations at random with replacement, treating each observation as an independent draw from the same distribution (i.i.d.).\n2. If returns show serial dependence or time‑varying volatility (e.g., volatility clustering), resampling destroys that structure and ignores it.\n3. Hence the key limitation is the independence assumption (it is violated by data with seasonality or volatility clustering)."
+ },
+ {
+  "id": "MR-QB-0124",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "In regard to non‑parametric estimation methods, EACH of the following is an ADVANTAGE EXCEPT:",
+  "options": {
+   "A": "Intuitive and easy to implement on a spreadsheet",
+   "B": "Avoids the dimension problems and complex variance‑covariance matrices of parametric methods",
+   "C": "Good at allowing for plausible events that did not actually occur in the sample period",
+   "D": "Not hindered by skewness or fat tails in the data"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Recall the advantages: intuitive and computationally simple (even on a spreadsheet); not hindered by skewness, fat tails and other parametric violations; avoids covariance matrices and dimension problems; data readily available; can combine weighting schemes.\n2. A, B and D are on this list.\n3. Non‑parametric estimates come only from the historical sample, so they cannot accommodate plausible large‑impact events that did not occur in the window. This is a listed disadvantage, so C is the exception.\n\n**REBUILT** — Option D (easy confidence intervals) is not a Schweser‑listed advantage and is debatable; replaced it with the fat‑tail/skewness advantage so only C is the non‑advantage."
+ },
+ {
+  "id": "MR-QB-0125",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "In regard to non‑parametric estimation methods, EACH of the following is a DISADVANTAGE EXCEPT:",
+  "options": {
+   "A": "Difficult to communicate to senior management",
+   "B": "Cannot easily be applied to new instruments or markets that lack sufficient history",
+   "C": "More constrained than parametric methods by the largest loss in the historical dataset",
+   "D": "Difficulty detecting abrupt shifts (e.g., a permanent change in exchange rate risk) during the sample period"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Disadvantages: dependence on historical data; too‑high estimates after volatile periods and too‑low after quiet ones; difficulty detecting structural shifts; cannot handle events outside the sample; difficulty estimating losses beyond the maximum loss; need sufficient data.\n2. B, C and D match these items.\n3. Non‑parametric methods are intuitive and simple, so communication is easy. A is an advantage, hence the exception.\n\n**REBUILT** — Option B (ghosting/shadow effects) is outside the Schweser reading; replaced it with the Schweser disadvantage that new instruments or markets lack sufficient data."
+ },
+ {
+  "id": "MR-QB-0126",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A risk manager has only 63 daily P/L observations for a new portfolio, all from a low‑volatility regime. The board wants VaR at 99.5%, 99.9% and 99.99% confidence. Other portfolios are reported with non‑parametric methods because they are intuitive and simple. Which approach is most appropriate here?",
+  "options": {
+   "A": "Basic historical simulation, since it is intuitive and consistent with the other portfolios",
+   "B": "Bootstrap historical simulation with many resamples to generate additional tail observations",
+   "C": "Age‑weighted historical simulation to emphasize the most recent observations",
+   "D": "A parametric (distributional) approach, because the sample is too short and too calm to support nonparametric estimates at such confidence levels"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Each observation carries probability 1/63 = 1.59%.\n2. Tail probabilities required: 0.5%, 0.1%, 0.01%, all far below 1.59%. Expected observations beyond them: 63 × 0.005 = 0.32, 63 × 0.001 = 0.06, 63 × 0.0001 = 0.006.\n3. So these VaRs lie beyond the worst observed loss; non‑parametric methods (including resampling and reweighting) cannot produce losses larger than the sample maximum, and a quiet regime understates risk.\n4. A distributional assumption (possibly with tail modeling) is needed to extrapolate, so D.\n\n**REBUILT** — Original options were partly nonsensical (OHS with Richardson extrapolation, pseudo‑random bootstrap) and the answer was hedged; rebuilt around the data‑sufficiency / beyond‑sample‑maximum disadvantage."
+ },
+ {
+  "id": "MR-QB-0127",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A bank is proposing to add Position (A) to Portfolio (P). (A) is large relative to (P), and both contain heavy‑tailed (non‑normal) returns that defy distributional assumptions. The bank’s risk manager needs a method that is computationally simple and easy to communicate. Which is the best method?",
+  "options": {
+   "A": "Parametric VaR with marginal VaR",
+   "B": "Historical simulation",
+   "C": "Monte Carlo simulation",
+   "D": "Delta‑normal VaR"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. The position is large, so local (linear) valuation is inadequate: this rules out delta‑normal and parametric approaches.\n2. Returns are heavy‑tailed, so a normal assumption is inappropriate; a non‑parametric method avoids distributional assumptions.\n3. The choice is between historical simulation and Monte Carlo. HS uses actual data with full revaluation and is intuitive, whereas Monte Carlo needs a specified process and heavy computation. HS wins."
+ },
+ {
+  "id": "MR-QB-0128",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A risk analyst at an investment bank is evaluating the historical simulation approach to estimating ES. Which of the following statements accurately describes an advantage of the historical simulation approach to estimating ES?",
+  "options": {
+   "A": "Since the data reflect actual historical events, an ES estimate derived from this data is more accurate than an estimate derived from using parametric methods.",
+   "B": "The precision of ES estimates and their responsiveness to new market observations can typically be enhanced by increasing the length of the sample period.",
+   "C": "Major shifts in markets, their structure, or the factors that influence them can be ignored since any effects of these shifts will be included in historical datasets.",
+   "D": "Features such as fat tails and skewness are easily accommodated without making assumptions about the distribution."
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Historical simulation uses the empirical distribution, so no distributional form is imposed.\n2. Hence fat tails and skewness present in the data pass directly into the ES estimate: D.\n3. A, B and C each overstate: accuracy depends on the sample; a longer window trades responsiveness for precision; structural shifts enter the window only slowly."
+ },
+ {
+  "id": "MR-QB-0129",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A hedge fund manager has asked her risk analyst to incorporate nonparametric methods into their statistical modeling program. The analyst, used to parametric methods, is concerned about using nonparametric methods. Which of the following statements would accurately reflect the analyst’s concerns?",
+  "options": {
+   "A": "Historical data is a relatively small input to the calculations.",
+   "B": "Model outputs tend to exhibit positive skewness and fat tails.",
+   "C": "These methods may be less reliable for newer markets or instruments.",
+   "D": "Volatile data periods lead to value at risk (VaR) and expected shortfall (ES) estimates that are too low."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Non‑parametric estimation relies critically on historical data.\n2. New markets or instruments lack sufficient history, so estimates are unreliable: C.\n3. A reverses the dependence; B confuses outputs with imposed shape; D reverses the direction of the volatile‑period bias."
+ },
+ {
+  "id": "MR-QB-0130",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "All of the following items are generally considered advantages of nonparametric estimation methods except:",
+  "options": {
+   "A": "ability to accommodate skewed data.",
+   "B": "availability of data.",
+   "C": "use of historical data.",
+   "D": "little or no reliance on covariance matrices."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Recall the advantages in the reading: intuitive and simple, not hindered by skewness or fat tails, no complex variance‑covariance matrices, and readily available data that needs no adjustment.\n2. Recall the disadvantages: results depend critically on historical data (quiet periods understate VaR/ES, volatile periods overstate it), structural shifts are hard to detect, and events not in the sample cannot be captured.\n3. Option C, reliance on historical data, is therefore a disadvantage, so it is the exception."
+ },
+ {
+  "id": "MR-QB-0131",
+  "lo": "MR-2 d",
+  "loText": "Identify advantages and disadvantages of non-parametric estimation methods.",
+  "outside": false,
+  "question": "A bank is proposing to add Position (A) to Portfolio (P). (A) is large relative to (P), and both contain heavy‑tailed (i.e., non‑normal risk factors) returns that defy distributional assumptions. The bank’s Risk Manager needs a method that is computationally simple and easy to communicate. Which is the best method given the situation and the risk manager’s preference?",
+  "options": {
+   "A": "Parametric VaR with marginal VaR",
+   "B": "Historical Simulation",
+   "C": "Monte Carlo Simulation",
+   "D": "Delta‑normal VaR"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Heavy‑tailed, non‑normal returns rule out methods that assume normality (delta‑normal, parametric VaR).\n2. A large position means a marginal (local, linear) approximation of the portfolio change is unreliable, so a full‑revaluation approach is needed.\n3. That leaves historical simulation and Monte Carlo as full‑revaluation, distribution‑free‑capable methods.\n4. Monte Carlo requires specifying a joint distribution and many simulated paths, so it is not computationally simple or easy to communicate.\n5. Historical simulation uses actual past returns (captures fat tails and skew), is computationally simple (even on a spreadsheet) and intuitive to explain: choose B."
+ },
+ {
+  "id": "MR-QB-0234",
+  "lo": "MR-4 e",
+  "loText": "Explain the need to consider conditional coverage in the backtesting framework.",
+  "outside": true,
+  "question": "An analyst evaluates the latest backtest results of his firm’s VaR model. He concludes that the firm should shift to a VaR model that uses filtered historical simulation with GARCH volatility, and his primary reason is that his statistical test shows that a conditional coverage framework is necessary. Which of the following is the MOST likely proximate justification for a shift to a conditional coverage model?",
+  "options": {
+   "A": "Extreme losses are bunching (i.e., not independent) in the sample.",
+   "B": "His test provides evidence of a long‑run (unconditional) volatility in the series.",
+   "C": "The historical sample is not large enough to give sufficiently low Type I and Type II error rates.",
+   "D": "His Kupiec test implies a confidence region that extends to zero exceptions, so he cannot evaluate outcomes with few exceptions."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. The basic (unconditional) backtest treats daily exceptions as independent Bernoulli trials.\n2. Evidence that exceptions bunch contradicts independence, i.e., there is time variation in risk.\n3. A conditional model (e.g., GARCH‑filtered HS) that updates volatility through time is the remedy."
+ },
+ {
+  "id": "MR-QB-0593",
+  "lo": "MR-12 e",
+  "loText": "Explain how the principles of arbitrage pricing of derivatives on fixed-income securities can be extended over multiple periods.",
+  "outside": true,
+  "question": "Which of the following is the term used to describe the process of valuing a bond using a binomial interest rate tree?",
+  "options": {
+   "A": "Bootstrapping",
+   "B": "Backward induction",
+   "C": "Backtesting",
+   "D": "Bootstrap historical simulation"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Start at the final maturity nodes where the bond value is its payoff (face value plus any coupon).\n2. At each earlier node, take the average of the two next‑period values (including coupons) and discount at the node’s one‑period rate.\n3. Repeat back to date 0; this right‑to‑left procedure is backward induction."
+ },
+ {
+  "id": "MR-WB-2a-4",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A market risk analyst at a Canadian asset manager estimates the 1-day 95% expected shortfall of an equity portfolio using bootstrapped historical simulation. Each resample contains 100 daily P/L observations drawn with replacement from the historical sample. For illustration, only three resamples are used:\n\n- ES computed from resample 1: CAD 7.10 million; ES computed from resample 2: CAD 7.32 million\n- Ten largest losses in resample 3, in CAD million, ranked: 9.8, 8.1, 7.4, 6.9, 6.9, 6.2, 5.6, 5.3, 5.0, 4.8\n\nWhich of the following is closest to the bootstrapped estimate of the 1-day 95% ES?",
+  "options": {
+   "A": "CAD 7.32 million",
+   "B": "CAD 7.41 million",
+   "C": "CAD 7.49 million",
+   "D": "CAD 7.82 million"
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Size of the tail**\n\n$(1 - \\alpha) n = (1 - 0.95) \\times100 = 5$ losses\n\n⇒ Five of the 100 resampled losses lie in the 5% tail. The 95% VaR is the 6th largest loss, CAD 6.2 million, the highest loss outside the tail.\n\n**Step 2 – ES of resample 3**\n\nES$^{(3)} = \\frac{9.8 + 8.1 + 7.4 + 6.9 + 6.9}{5} = \\frac{39.1}{5} = 7.82$\n\n⇒ Average of the losses exceeding the resample VaR. The repeated 6.9 is legitimate: resampling with replacement can draw the same day twice.\n\n**Step 3 – Bootstrap point estimate**\n\n$$\\hat{E}\\text{S}^{B} = \\frac{7.10 + 7.32 + 7.82}{3} = \\frac{22.24}{3} = 7.41$$\n\n**Interpretation**\n\nThe bootstrapped 95% ES is about CAD 7.41 million: on the worst 5% of days the portfolio is expected to lose that amount on average. Averaging across resamples is what makes the bootstrap estimate more accurate than a single raw sample estimate (Dowd: 2.114 against 2.196 for basic HS).\n\n**LO:** MR-1 c; MR-2 a: Apply the bootstrap historical simulation approach to estimate coherent risk measures. • **Ref-** **erence:** Dowd, Measuring Market Risk 2e, Ch.3, 1.2 (footnote 2) and 1.4; Ch.4, 2.2 Basic and Bootstrapped Historical Simulation"
+ },
+ {
+  "id": "MR-WB-2a-5",
+  "lo": "MR-2 a",
+  "loText": "Apply the bootstrap historical simulation approach to estimate coherent risk measures.",
+  "outside": false,
+  "question": "A risk analyst at a Hong Kong bank estimates the 1-day 97.5% VaR and expected shortfall of a HKD 2 billion trading book using bootstrapped historical simulation. The historical window holds 500 daily P/L observations, and each resample contains 200 observations drawn with replacement. For illustration, three resamples are used. The seven largest losses in each resample (HKD million) are:\n\n| Rank | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n|---|---|---|---|---|---|---|---|\n| Resample 1 | 12.4 | 10.9 | 9.8 | 9.1 | 8.7 | 8.2 | 7.9 |\n| Resample 2 | 13.1 | 11.0 | 9.5 | 9.5 | 8.4 | 8.0 | 7.6 |\n| Resample 3 | 11.8 | 10.2 | 9.9 | 8.9 | 8.6 | 7.7 | 7.5 |\n\nUsing the convention that VaR is the highest loss outside the tail, which of the following is closest to the bootstrapped 97.5% VaR and ES?",
+  "options": {
+   "A": "VaR HKD 7.97 million; ES HKD 9.76 million",
+   "B": "VaR HKD 7.97 million; ES HKD 10.12 million",
+   "C": "VaR HKD 8.20 million; ES HKD 10.30 million",
+   "D": "VaR HKD 8.57 million; ES HKD 10.51 million"
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Size of the tail in each resample**\n\n$(1 - \\alpha) n = (1 - 0.975) \\times200 = 5$ losses\n\n⇒ The ES averages the 5 largest losses of each resample; the VaR is the 6th largest, the highest loss outside the tail.\n\n**Step 2 – Resample VaRs and their mean**\n\nVaR$^{(1)} = 8.2, \\text{VaR}^{(2)} = 8.0, \\text{VaR}^{(3)} = 7.7 \\Rightarrow$ V$\\hat{a}\\text{R}^{B} = \\frac{8.2 + 8.0 + 7.7}{3} = 7.97$\n\n**Step 3 – Resample ESs and their mean**\n\nES$^{(1)} = \\frac{50.9}{5} = 10.18, \\text{ES}^{(2)} = \\frac{51.5}{5} = 10.30, \\text{ES}^{(3)} = \\frac{49.4}{5} = 9.88$\n\n$$\\hat{E}\\text{S}^{B} = \\frac{10.18 + 10.30 + 9.88}{3} = \\frac{30.36}{3} = 10.12$$\n\n⇒ On the worst 2.5% of days the book is expected to lose about HKD 10.1 million; the VaR threshold is about HKD 8.0 million.\n\n**Interpretation**\n\nThe ES is above the VaR, as it must be, because it averages only losses beyond the VaR. The 500-observation window and the HKD 2 billion book size are not needed: what matters is the resample size (200) and the confidence level. The repeated 9.5 in resample 2 is a normal feature of drawing with replacement.\n\n**LO:** MR-2 a: Apply the bootstrap historical simulation approach to estimate coherent risk measures. • **Reference:** Dowd, Measuring Market Risk 2e, Ch.4, 2.2 Bootstrapped Historical Simulation; Ch.3, 1.2 and 1.4"
+ },
+ {
+  "id": "MR-WB-2c-8",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "The CRO of a European bank is merging a credit trading desk, whose losses are heavily skewed, with a rates desk. A junior risk analyst is preparing a report recommending that the bank replace its basic historical simulation VaR with an expected shortfall estimated by filtered historical simulation (FHS). Which of the following statements is correct for the analyst to include in the report?",
+  "options": {
+   "A": "Because VaR is subadditive for skewed loss distributions, the combined 99% VaR of the two desks cannot exceed the sum of their stand-alone VaRs.",
+   "B": "Because FHS bootstraps from the historical data set, its VaR and ES estimates, like those of basic HS, cannot exceed the largest historical loss.",
+   "C": "Because ES averages all tail losses, its estimators have smaller standard errors than VaR estimators, and the advantage grows as tails become heavier.",
+   "D": "Because ES is subadditive, the combined ES of the two desks cannot exceed the sum of their stand-alone ESs, and FHS can be extended to estimate ES."
+  },
+  "answer": "D",
+  "solution": "**Step 1 – Coherence**\n\nA coherent risk measure satisfies monotonicity, positive homogeneity, translation invariance and subadditivity, $\\rho(X + Y ) \\le\\rho(X) + \\rho(Y )$. ES is coherent; VaR “may not always satisfy the subadditivity condition” (ORR-19), and “may not behave in a sub-additive fashion” (Gregory, CR-14).\n\n**Step 2 – FHS and ES**\n\nFHS bootstraps GARCH-standardised returns and rescales them by tomorrow’s volatility forecast; Dowd notes that it “can also be extended easily to allow for the estimation of ES as well as VaR”. Using ES is also the suggested response to Pritsker’s finding that FHS VaR may not pay enough attention to extreme observations.\n\n**Interpretation**\n\nD is correct. For a merger involving a skewed credit book, ES is the measure that guarantees the combined number cannot exceed the sum of the parts, so desk limits and capital allocation stay consistent with the firm-wide figure.\n\n**LO:** MR-2 c; ORR-19 a; CR-14 j: Describe the approaches used and the challenges faced in modeling derivatives risk.\n\n- **Reference:** Dowd, Measuring Market Risk 2e, Ch.4, 2.4 and footnotes 13 and 15; Ch.3, 1.5; BCBS (2009), Range of Practices, risk measures section; Gregory, The xVA Challenge 4e, Ch.2\n\nMR-2 • Non-Parametric Approaches • Vardeez: VERY IMPORTANT"
+ },
+ {
+  "id": "MR-WB-6a-7",
+  "lo": "MR-6 a",
+  "loText": "Describe some important considerations for a bank in assessing the conceptual soundness of a VaR model during the validation process.",
+  "outside": true,
+  "question": "A model validation analyst at a US bank holding company is writing the validation report for the trading desk’s historical-simulation VaR model, covering conceptual soundness, sensitivity analysis, confidence intervals and benchmarking. Which of the following statements is correct for the analyst to include in the report?",
+  "options": {
+   "A": "A VaR model fitted by applying a GARCH model to the desk’s actual P&L history would fail the conceptual soundness test, because its VaR would not fall when the trader cuts positions.",
+   "B": "Confidence intervals for historical-simulation VaR are typically narrower than those for filtered historical simulation, and they become narrower still when estimated over stress periods.",
+   "C": "Under the regulatory loss function, which penalizes only exceedances, a P&L-based GARCH VaR outperformed the banks’ positional VaR models at most of the banks studied.",
+   "D": "The component VaR of a position with scarce valuation data is best estimated by regressing changes in portfolio value on the full time series of that position’s value changes."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – Purpose test (Section 6.3)**\n\n“A crucial aspect of VaR modeling; its key purpose is to show how risk changes when positions change.” A VaR built on actual P&L history is unaffected when positions are cut, because the history does not change; a VaR on the pseudo history of the current portfolio does fall.\n\n⇒ Such a model “is not fit for purpose and thus fails a crucial conceptual soundness test”, even though Berkowitz and O’Brien found the P&L GARCH model more accurate as a forecast.\n\n**Step 2 – Check the remaining validation claims**\n\nConfidence intervals (Section 6.5, Table 6.1): FHS narrowest; HS “particularly wide” in stress periods. Benchmarking (Section 6.8): positional VaR wins under the regulatory loss function at every bank; P&L VaR wins under the check loss at 16 of 19. Sensitivity (Section 6.4): with scarce data the regression approach “is diﬀicult to implement”; Tasche and Hallerbach use the position’s change on the day that determines the HS VaR.\n\n**Interpretation**\n\nA is correct. It is the reason a validator may use the P&L GARCH VaR as a benchmark but not as the risk management model. The other three options are tested again in MR-6 b, c and d.\n\n**LO:** MR-6 a, b, c, d (all four LOs of the reading). • **Reference:** Lynch, Validating Bank Holding Companies’ Value-at-Risk Models for Market Risk, Sections 6.3, 6.4, 6.5, 6.8\n\nMR-6 • Validating Bank Holding […]"
+ },
+ {
+  "id": "MR-WB-6c-5",
+  "lo": "MR-6 c",
+  "loText": "Describe the challenges a financial institution could face when calculating confidence intervals for VaR.",
+  "outside": true,
+  "question": "A risk analyst bootstraps confidence intervals for two VaR models of the same trading book: a historical-simulation VaR and a GARCH(1,1) VaR. Which of the following statements is correct?",
+  "options": {
+   "A": "For the historical-simulation VaR, resampling the pseudo history with replacement assumes daily value changes are independent, so dependence over time is not reflected.",
+   "B": "For the GARCH VaR, the analyst should resample the raw daily value changes directly, because the GARCH model already accounts for their dependence.",
+   "C": "For the GARCH VaR, the parameters estimated on the original sample should be held fixed in every bootstrap sample, so that estimation risk is kept out.",
+   "D": "Filtered historical simulation typically yields the widest intervals of the three, because it combines GARCH volatility with an empirical distribution."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – HS bootstrap**\n\nDrawing observations from the pseudo history with replacement treats the changes as independent over time.\n\n⇒ It is non-parametric, like HS itself, but it does not reflect dependence.\n\n**Step 2 – GARCH bootstrap**\n\nThe standardised residuals $z_{t}$ are IID, so resample them, rebuild the series, and re-estimate the GARCH equation on each sample so that estimation risk enters the interval.\n\n**Interpretation**\n\nThe two bootstraps are designed differently because the bootstrap must mimic the dependence of the data. FHS, which keeps the re-estimated residuals, gives the narrowest intervals in Table 6.1.\n\n**LO:** MR-6 c: Describe the challenges a financial institution could face when calculating confidence intervals for VaR.\n\n- **Reference:** Lynch, Section 6.5 (Christoffersen and Goncalves 2005)"
+ },
+ {
+  "id": "CR-QB-0596",
+  "lo": "CR-13 h",
+  "loText": "Discuss alternative approaches used to estimate default correlation.",
+  "outside": true,
+  "question": "In the implied copula approach of Hull and White, what is the simplest version of the model assumed, and what is implied from the market prices of CDO tranches?",
+  "options": {
+   "A": "Each company has its own hazard rate, and their distributions are implied from historical tranche prices.",
+   "B": "Each company has its own hazard rate, and the individual hazard rates are implied from tranche prices.",
+   "C": "A single average hazard rate applies to all companies over the life of the CDO, and its probability distribution is implied from current tranche prices.",
+   "D": "A fixed average hazard rate applies to all companies, and it is estimated from historical default data rather than tranche prices."
+  },
+  "answer": "C",
+  "solution": "**Key correction:** Source key (D) was correct for the original wording; after rewording the correct option is C.\n\n**Step by step**\n\n1. The implied copula is analogous to implied volatility: it is backed out of market quotes, not historical data.\n2. The simplest version assumes one average hazard rate common to all companies in the portfolio over the CDO’s life.\n3. That average hazard rate has a probability distribution, which is implied from the pricing of tranches.\n4. Option C states exactly this.\n\n**REBUILT** — Original options B and D differed only in a trailing clause and option A cited historical data; rewrote options so each wrong one reflects a distinct realistic error."
+ },
+ {
+  "id": "CR-WB-20p-4",
+  "lo": "CR-20 p",
+  "loText": "Describe the various wrong-way modeling methods including hazard rate approaches, structural approaches, parametric approaches, and jump approaches.",
+  "outside": true,
+  "question": "Following Hull and White (2011), a bank links each counterparty’s default probability to the value of its portfolio through a simple functional relationship. For one hedge fund, the team calibrates the dependency parameter by computing the value of its portfolio with the fund on dates over the past five years and comparing those values with the fund’s credit spread on the same dates. Which of the following is the most important condition for this calibration to be reliable?",
+  "options": {
+   "A": "The fund’s credit spread must be quoted in a liquid quanto CDS market, so that a jump in the FX rate at default can be implied.",
+   "B": "The current portfolio must be similar in nature to the one used in the historical calibration, and the history must show a meaningful relationship between portfolio value and spread.",
+   "C": "The correlation between the fund’s spread and interest rates must be close to +100%, otherwise the approach generates only weak dependence.",
+   "D": "The default time and the exposure distribution must first be mapped onto a bivariate Gaussian distribution before the parameter can be estimated."
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Identify the method**\n\nA simple functional link between default probability and portfolio value, calibrated from past portfolio values against the counterparty’s spread, is Hull and White’s parametric approach.\n\n**Step 2 – When is the calibration reliable?**\n\nGARP: “This approach obviously requires that the current portfolio of trades with the counterparty is similar in nature to that used in the historical calibration, in addition to the historical data showing a meaningful relationship.”\n\n⇒ B is the condition.\n\n**Interpretation**\n\nIf the hedge fund has changed strategy, the historical link between its portfolio value and its spread says little about today’s WWR; a what-if calibration is the alternative GARP mentions.\n\n**LO:** CR-20 p: Describe the various wrong-way modeling methods including hazard rate approaches, structural approaches, parametric approaches, and jump approaches. • **Reference:** Gregory, The xVA Challenge 4e, Ch.17 (GARP CR Ch.20), 20.6.3 Wrong-Way Risk Models"
+ },
+ {
+  "id": "CR-WB-21e-5",
+  "lo": "CR-21 e",
+  "loText": "Describe a stress test that can be performed on CVA.",
+  "outside": true,
+  "question": "A CVA desk computes CVA with market-implied default probabilities and a model in which exposure and the counterparty’s default probability are correlated, as in Hull and White (2012). The correlation estimate is highly uncertain. Which additional stress test does the chapter recommend?",
+  "options": {
+   "A": "A stress of the alpha multiplier applied to EPE, since alpha converts exposure into a loan equivalent.",
+   "B": "A stress of the bank’s own default probability, since the DVA term captures wrong-way risk.",
+   "C": "A stress of LGD alone, since LGD is the only CVA input that does not depend on market variables.",
+   "D": "A stress of the correlation between exposure and the default probability, to see the profit-and-loss impact if the correlation is wrong."
+  },
+  "answer": "D",
+  "solution": "**Step 1 – What a market-based PD allows**\n\n“It is possible in these circumstances to incorporate a correlation between the probability of default and the exposure.” Hull and White (2012) “also demonstrate an important stress test that is available, a stress of the correlation between exposure and the probability of default”.\n\n**Step 2 – Why run it**\n\n“Since there is likely to be a high degree of uncertainty around the correlation, a financial institution should run stress tests to determine the impact on profit and loss if the correlation is wrong.”\n\n**Interpretation**\n\nThis is the market view’s answer to wrong-way risk, which the credit-view stresses can only screen for through stressed current exposure.\n\n**LO:** CR-21 e: Describe a stress test that can be performed on CVA. • **Reference:** Lynch (GARP CR Ch.21), 21.5"
+ }
+]

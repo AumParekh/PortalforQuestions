@@ -123,7 +123,7 @@ export interface SessionConfig {
   /** Defaults to 'drill' when absent. */
   mode?: SessionMode;
   /** Set for sessions started from the Question library, so leaving one returns there instead of Session Setup. */
-  origin?: 'library';
+  origin?: 'library' | 'shapes';
   /** Free-text search applied before filters (see lib/search.ts). */
   searchQuery?: string;
   filters?: SessionFilters;

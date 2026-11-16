@@ -1,0 +1,587 @@
+[
+ {
+  "id": "MR-T1-01",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "A risk analyst at an equity derivatives desk is presenting to a group of newly hired analysts and wants to define the volatility smile precisely. Which of the following best defines a volatility smile?",
+  "options": {
+   "A": "The plot of an option's historical volatility, measured across successive trading days, for a series of options with different expiration dates.",
+   "B": "The plot of the implied volatility of an option with a given time to maturity, as a function of its strike price.",
+   "C": "The plot of the implied volatility of an option with a given strike price, as a function of its time to maturity.",
+   "D": "The plot of the market price of an option with a given time to maturity, as a function of its strike price."
+  },
+  "answer": "B",
+  "solution": "Concept tested: the two axes of the smile, and how implied volatility varies as the strike parameter varies while maturity is held fixed.\n\nImplied volatility is the volatility input that, when fed into Black-Scholes-Merton, returns a model price exactly equal to the observed traded price:\n\n$$c(S, K, \\sigma_{implied}, r, q, T) = c_{\\text{market}}$$\n\nThere is no closed-form solution; it is found by iteration, and because vega is strictly positive the solution is unique. The three related plots differ only in which parameter is varied and which is held fixed:\n\n| Plot | Y-axis | X-axis varies | Held fixed |\n|---|---|---|---|\n| Volatility smile | Implied volatility | Strike $K$ | Maturity $T$ |\n| Volatility term structure | Implied volatility | Maturity $T$ | Strike $K$ |\n| Volatility surface | Implied volatility | Both $K$ and $T$ | Nothing |\n\nA volatility skew is the name given to a smile that is not symmetric, which in practice means any smile that is not flat."
+ },
+ {
+  "id": "MR-T1-02",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "A junior analyst claims that the classic Black-Scholes-Merton framework, which assumes geometric Brownian motion with constant volatility, \"produces a volatility smile.\" Which implied volatility shape is in fact the one consistent with the lognormal price distribution assumed by BSM?",
+  "options": {
+   "A": "A symmetric smile, because heavy tails are a feature of the lognormal distribution.",
+   "B": "A downward-sloping skew, because the lognormal distribution is positively skewed.",
+   "C": "A flat, horizontal line, because a single constant volatility prices every strike correctly.",
+   "D": "An inverted smile, or frown, because the lognormal distribution has thinner tails than the normal distribution."
+  },
+  "answer": "C",
+  "solution": "Concept tested: the flat smile as the null hypothesis implied by the model. Any curvature is evidence the market rejects the distributional assumption.\n\nBSM assumes constant volatility and a lognormal terminal price, equivalently normally distributed log returns. If both held exactly, one volatility would price every option correctly regardless of strike, so backing implied volatility out of each traded price would return the same number at every strike. Plotted, that is a horizontal line.\n\nIt follows that neither a smile nor a skew is consistent with BSM. Each is a measured departure from it:\n\n| Observed shape | Implied distribution relative to lognormal |\n|---|---|\n| Flat, horizontal | Lognormal. BSM holds. |\n| Symmetric smile | Heavy left tail and heavy right tail |\n| Frown, inverted smile | Thin left tail and thin right tail |\n| Downward-sloping skew | Heavy left tail, thin right tail. Typical equity pattern. |\n| Upward-sloping skew | Thin left tail, heavy right tail |"
+ },
+ {
+  "id": "MR-T1-03",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "Three traders at three different firms observe exactly the same set of traded market prices for European options on the same underlying, with identical strikes and maturity. Each independently computes an implied volatility smile. Which statement is most accurate?",
+  "options": {
+   "A": "All three must obtain the same smile, because implied volatility is derived from observed market prices and those prices are identical for all three.",
+   "B": "All three must obtain the same smile, because put-call parity forces a unique implied volatility at each strike.",
+   "C": "The three smiles will coincide only if all three use the same option pricing model, because implied volatility is defined relative to a model.",
+   "D": "The three smiles will differ at every strike, because implied volatility cannot be uniquely recovered from an option price."
+  },
+  "answer": "C",
+  "solution": "Concept tested: implied volatility is a model-dependent parameter, not a market observable. The price is observed; the volatility is inferred through a model.\n\nImplied volatility is defined implicitly as the $\\sigma$ solving:\n\n$$\\text{Model}(S, K, \\sigma, r, q, T) = \\text{observed market price}$$\n\nThe left side contains a model. Change the model and the $\\sigma$ that solves the equation changes, even though the right side has not moved. A trader using a stochastic volatility model and a trader using BSM will back out different numbers from an identical price.\n\nPut-call parity does force the call and put implied volatilities to agree at a given strike and maturity, but only within a single model. It says nothing about agreement across models.\n\nNote also that within a given model the solution is unique, because vega is strictly positive and the model price is therefore strictly increasing in $\\sigma$. Uniqueness is not the issue; model choice is."
+ },
+ {
+  "id": "MR-T1-04",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "A trader observes a European call and a European put on the same non-dividend-paying stock. The two options share an identical strike price of USD 60.00 and an identical maturity of six months. Which statement most accurately describes the relationship between their implied volatilities?",
+  "options": {
+   "A": "The implied volatilities are identical, because put-call parity forces the dollar pricing error of the model to be the same for both options.",
+   "B": "The implied volatilities differ, because a put's payoff is bounded above while a call's payoff is unbounded.",
+   "C": "The implied volatilities are identical only when both options are at the money.",
+   "D": "The implied volatilities are identical only if the underlying price distribution is genuinely lognormal."
+  },
+  "answer": "A",
+  "solution": "Concept tested: put-call parity implies a single volatility smile, and a single volatility surface, for European calls and European puts.\n\nPut-call parity is a no-arbitrage identity that binds model prices and market prices alike:\n\n$$c_{BSM} + Ke^{-rT} = p_{BSM} + S_0$$\n$$c_{market} + Ke^{-rT} = p_{market} + S_0$$\n\nSubtracting the second from the first, the $Ke^{-rT}$ and $S_0$ terms cancel exactly:\n\n$$c_{BSM} - c_{market} = p_{BSM} - p_{market}$$\n\nIn words: the dollar pricing error BSM commits on the call is exactly the dollar pricing error it commits on the put. Since the BSM price of each is strictly increasing in volatility, the single volatility that drives the call error to zero must also drive the put error to zero.\n\nTherefore the implied volatility of a European call always equals that of a European put with the same strike and maturity. Extending across all strikes, the smile is shared. Extending across strikes and maturities, the surface is shared. The results also hold to a good approximation for American options."
+ },
+ {
+  "id": "MR-T1-05",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "The risk-free rate is 5.0% per annum and a non-dividend-paying stock trades at USD 80.00. The two most liquid options on the stock are a European call and a European put, both struck at USD 70.00 and both maturing in three months. The implied volatility of the call is 30.0% and the implied volatility of the put is 38.0%. Which trade most directly exploits this situation?",
+  "options": {
+   "A": "Buy the call, sell the put, and short the stock.",
+   "B": "Buy the put, sell the call, and buy the stock.",
+   "C": "Buy the call, buy the put, and sell a straddle.",
+   "D": "No trade. Different implied volatilities for a call and a put at the same strike and maturity are a normal feature of the volatility surface."
+  },
+  "answer": "A",
+  "solution": "Concept tested: unequal implied volatilities at a common strike and maturity signal a put-call parity violation, and the arbitrage is executed by buying the cheap option, selling the rich one, and neutralising the resulting synthetic forward.\n\nStep 1. Diagnose. Parity requires the two implied volatilities to be equal. The put carries 38.0% against the call's 30.0%, and price is increasing in implied volatility, so the put is rich and the call is cheap relative to one another.\n\nStep 2. Identify the overpriced side of the parity relation.\n\n$$c + Ke^{-rT} = p + S_0$$\n\nWith the put rich, the right-hand portfolio (put plus stock) is worth more in the market than the left-hand portfolio (call plus a bond paying $K$). Sell the expensive portfolio and buy the cheap one: sell the rich side (short the put and short the stock), buy the cheap side (buy the call and lend $Ke^{-rT}$).\n\nThat is: buy the call, sell the put, short the stock. Cross-check the structure. Long call plus short put at the same strike is a synthetic long forward carrying full directional exposure. Shorting the stock neutralises it, leaving a locked-in profit with no directional risk, the signature of an arbitrage rather than a bet."
+ },
+ {
+  "id": "MR-T1-06",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": false,
+  "question": "A colleague asserts that equity prices and equity volatility are empirically negatively correlated. The table below shows BSM model prices computed with a constant volatility of 30.0% alongside observed market prices for European options on a stock trading at USD 60.00. All options have six months to maturity and the risk-free rate is 5.0% per annum.\n\n| Strike $K$ | $K/S$ | BSM call (30%) | BSM put (30%) | Market call | Market put |\n|---|---|---|---|---|---|\n| USD 45.00 | 0.75 | 16.45 | 0.34 | 17.78 | 1.67 |\n| USD 50.00 | 0.83 | 12.23 | 0.99 | 13.29 | 2.05 |\n| USD 55.00 | 0.92 | 8.63 | 2.27 | 9.19 | 2.83 |\n| USD 60.00 | 1.00 | 5.78 | 4.30 | 5.78 | 4.30 |\n| USD 65.00 | 1.08 | 3.69 | 7.08 | 3.19 | 6.58 |\n| USD 70.00 | 1.17 | 2.25 | 10.52 | 1.53 | 9.80 |\n| USD 75.00 | 1.25 | 1.32 | 14.47 | 0.67 | 13.82 |\n\nWhat is the shape of the implied volatility curve, and is it consistent with the colleague's assertion?",
+  "options": {
+   "A": "An upward-sloping skew, and it is consistent with the assertion.",
+   "B": "A downward-sloping skew, and it is consistent with the assertion.",
+   "C": "A symmetric smile, but it is not consistent with the assertion.",
+   "D": "A frown, but it is not consistent with the assertion."
+  },
+  "answer": "B",
+  "solution": "Concept tested: reading the direction of the implied volatility curve from the sign of the model pricing error across strikes, and linking a downward skew to negative price-volatility correlation.\n\nThe shortcut: because vega is strictly positive, implied volatility exceeds 30.0% at any strike where the market price exceeds the BSM price at 30.0%, and falls below 30.0% wherever the market price is lower. No implied volatility need be solved for.\n\n| Strike | Call error (market minus model) | Implied volatility versus 30% |\n|---|---|---|\n| USD 45.00 | +1.33 | above |\n| USD 50.00 | +1.06 | above |\n| USD 55.00 | +0.56 | above |\n| USD 60.00 | 0.00 | equal |\n| USD 65.00 | -0.50 | below |\n| USD 70.00 | -0.72 | below |\n| USD 75.00 | -0.65 | below |\n\nImplied volatility falls monotonically as strike rises: a downward-sloping skew, the typical equity pattern.\n\nConsistency: negative correlation between price and volatility means a falling stock is a more volatile stock. That stretches the lower tail of the implied distribution relative to lognormal, raising the value and hence the implied volatility of options struck low, which are the out-of-the-money puts and in-the-money calls. Exactly the pattern in the table, so the shape is consistent.\n\nA second cross-check confirming the shared-smile result: the put errors equal the call errors at every strike. At $K=45.00$: $1.67-0.34=1.33=17.78-16. […]"
+ },
+ {
+  "id": "MR-T1-07",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": false,
+  "question": "An analyst computes implied volatilities from traded call options on a large-cap technology stock. The resulting skew is typical of equity options: implied volatility is a decreasing function of strike price. She draws four conclusions.\n\nI. The implied distribution has negative skewness and negative excess kurtosis.\nII. For identical strikes and maturities, the out-of-the-money put carries a higher implied volatility than the in-the-money call.\nIII. Compared with the normal distribution, the implied distribution has a lighter left tail.\nIV. Compared with the lognormal distribution, the implied distribution has a lighter right tail.\n\nWhich of her conclusions is necessarily true?",
+  "options": {
+   "A": "IV only",
+   "B": "I only",
+   "C": "II and III only",
+   "D": "I, II and IV only"
+  },
+  "answer": "A",
+  "solution": "Concept tested: precisely what a downward skew does and does not license you to infer about the implied distribution.\n\nBase result: a downward skew means high implied volatility at low strikes and low implied volatility at high strikes. Low strikes price the left tail (out-of-the-money puts, in-the-money calls); high strikes price the right tail. So relative to the lognormal benchmark the implied distribution has a heavier left tail and a lighter right tail.\n\nIV is necessarily true: a direct restatement of the base result, with the correct benchmark (lognormal) and the correct direction (lighter right tail).\n\nI is not necessarily true: one heavy tail and one light tail does not pin down overall excess kurtosis, which measures total tail weight and can come out positive, zero, or negative. Negative excess kurtosis would require both tails to be light, which the skew contradicts on the left.\n\nII is false: at a common strike and maturity, put-call parity forces the European call and the European put to share one implied volatility, whatever the shape of the skew. The skew describes how implied volatility varies across strikes; it creates no gap between a call and a put at the same strike.\n\nIII is false on two counts: the skew implies a heavier, not lighter, left tail; and the benchmark is the lognormal distribution, not the normal."
+ },
+ {
+  "id": "MR-T1-08",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": false,
+  "question": "A quantitative analyst believes that the volatility of a particular asset is uncertain and positively correlated with the asset's price. Relative to prices implied by a constant volatility assumption, which of the following is most plausible?",
+  "options": {
+   "A": "Lower prices for out-of-the-money puts and higher prices for in-the-money puts.",
+   "B": "Lower prices for out-of-the-money calls and higher prices for in-the-money calls.",
+   "C": "Lower prices for at-the-money calls and higher prices for at-the-money puts.",
+   "D": "Lower prices for in-the-money puts and higher prices for out-of-the-money puts."
+  },
+  "answer": "A",
+  "solution": "Concept tested: the two-step mapping from a price-volatility correlation assumption, to a tail shape, to relative option prices by strike.\n\nStep 1. Correlation to tails. Positive correlation means high prices come with high volatility and low prices with low volatility. The upper tail is stretched and the lower tail compressed relative to lognormal: a heavier right tail and a lighter left tail. This is the reverse of the equity pattern, which arises from negative correlation.\n\nStep 2. Tails to strikes. Convert moneyness into strike position explicitly:\n\n| Priced off the | Which options | Effect here |\n|---|---|---|\n| Left tail, low strikes | out-of-the-money puts and in-the-money calls | lighter tail, so cheaper |\n| Right tail, high strikes | out-of-the-money calls and in-the-money puts | heavier tail, so more expensive |\n\nSo out-of-the-money puts get cheaper and in-the-money puts get more expensive. Equivalently, in-the-money calls get cheaper and out-of-the-money calls more expensive. Implied volatility is therefore an increasing function of strike, an upward-sloping or reverse skew."
+ },
+ {
+  "id": "MR-T1-09",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": false,
+  "question": "A derivatives strategist is preparing an internal note on how the shape of the implied volatility curve reflects the implied distribution of log returns. Which statement is correct?",
+  "options": {
+   "A": "A platykurtic implied log return distribution, with kurtosis below 3, produces a symmetric smile.",
+   "B": "A leptokurtic implied log return distribution, with kurtosis above 3, produces an inverted smile, or frown.",
+   "C": "A normal mixture implied log return distribution produces a frown, because mixing two normal distributions reduces kurtosis below 3.",
+   "D": "A platykurtic implied log return distribution produces a frown, in which at-the-money options carry a higher implied volatility than both deep in-the-money and deep out-of-the-money options."
+  },
+  "answer": "D",
+  "solution": "Concept tested: the sign of excess kurtosis in the implied log return distribution determines whether the volatility curve smiles or frowns.\n\nBSM assumes normally distributed log returns, kurtosis exactly 3. Deep in-the-money and deep out-of-the-money options are priced off the tails; at-the-money options are priced off the centre.\n\n| Implied log return distribution | Tails versus normal | Wing options | Curve shape |\n|---|---|---|---|\n| Leptokurtic, kurtosis above 3 | Heavy, worth more than BSM says | expensive | Smile |\n| Platykurtic, kurtosis below 3 | Light, worth less than BSM says | cheap | Frown |\n| Normal, kurtosis equal to 3 | as assumed, correctly priced | -- | Flat |\n\nThe mechanism is direct: heavier tails than BSM assumes mean the market pays more for wing options than a single constant volatility would justify, and because vega is positive, paying more means backing out a higher implied volatility. Both wings lift and the curve smiles.\n\nThe normal mixture case: a mixture of two normal distributions with different variances always has kurtosis above 3, even though each component is normal. Mixing variances fattens the tails, so a normal mixture produces a smile. This is also the link to conditional heteroskedasticity: a GARCH process is conditionally normal but unconditionally heavy tailed."
+ },
+ {
+  "id": "MR-T1-10",
+  "lo": "MR-17 e",
+  "loText": "Describe the volatility smile for equity options and foreign currency options and provide possible explanations for its shape.",
+  "outside": false,
+  "question": "An options market maker is explaining to a graduate trainee that the implied volatility curve is computed from observed market prices and is therefore sensitive to order flow, not only to beliefs about the true distribution. Which of the following is most likely to steepen the downward-sloping skew typically observed in equity index options?",
+  "options": {
+   "A": "Event-driven hedge funds increasing their demand for long positions in out-of-the-money call options on takeover candidates.",
+   "B": "An increase in the risk-free rate used to discount all option payoffs.",
+   "C": "Market makers becoming more willing to write high-delta call options and less willing to write low-delta call options.",
+   "D": "End users such as pension funds increasing their demand for long positions in out-of-the-money put options for downside protection."
+  },
+  "answer": "D",
+  "solution": "Concept tested: implied volatility is a function of the observed price, so supply and demand shift the curve independently of any change in beliefs about the distribution.\n\nThe equity skew is high implied volatility at low strikes and low implied volatility at high strikes. Steepening it means pushing the left side up, the right side down, or both.\n\nOption (d): out-of-the-money puts sit at low strikes. Excess demand bids their prices up, and a higher price at a low strike backs out a higher implied volatility on the left, steepening the skew. This is the demand-side expression of crashophobia (Rubinstein).\n\nOption (a): out-of-the-money calls sit at high strikes. Excess demand there lifts the right side, which flattens the skew and, if strong enough, reverses it.\n\nOption (c): convert delta into strike before reasoning. A high-delta call is deep in the money and struck low; a low-delta call is out of the money and struck high. Greater willingness to write high-delta calls adds supply at low strikes, depressing left-side implied volatility, while reduced willingness to write low-delta calls lifts the right side. Both effects flatten the skew. The curriculum case runs the other way: writers who prefer low-delta calls increase the supply of out-of-the-money calls, depress their price and depress right-side implied volatility, which steepens the skew."
+ },
+ {
+  "id": "MR-T1-11",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": false,
+  "question": "Most participants in a currency options market treat exchange rates as lognormally distributed and use a single constant volatility across all strikes in BSM. A risk analyst has concluded that the true distribution has materially heavier tails than lognormal on both sides, and she is indifferent to the direction of the move. Which trade most directly exploits her view?",
+  "options": {
+   "A": "Long butterfly",
+   "B": "Short straddle",
+   "C": "Long bull spread",
+   "D": "Long strangle"
+  },
+  "answer": "D",
+  "solution": "Concept tested: a smile-shaped mispricing is a long-volatility, direction-neutral view concentrated in the wings, which points to a strangle rather than a straddle.\n\nIf both tails are heavier than the market's flat-volatility model implies, then deep out-of-the-money options on both sides are systematically underpriced. She wants to be long precisely those instruments and neutral on direction.\n\nA long strangle buys an out-of-the-money call at a high strike and an out-of-the-money put at a low strike. Both legs are the underpriced instruments and the combination has no directional bias.\n\nA long straddle would also express a long-volatility, direction-neutral view, but it buys at-the-money options, and the at-the-money strike is exactly where the lognormal assumption is least wrong. The strangle concentrates the position where the mispricing lives.\n\nDiscipline: check the sign of net vega. Both legs of a strangle are long options, so net vega is positive, matching a long-volatility view."
+ },
+ {
+  "id": "MR-T1-12",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": false,
+  "question": "A volatility trader uses four labels for the archetypal shapes of the implied volatility curve plotted against $K/S$: SMILE (both wings elevated), FROWN (both wings depressed, at-the-money highest), DOWNWARD SKEW (implied volatility decreasing in strike) and UPWARD SKEW (implied volatility increasing in strike). Consider four scenarios.\n\nI. The asset's volatility is positively correlated with the asset's price.\nII. The underlying's price distribution has a heavy left tail and a thin right tail.\nIII. The underlying is an exchange rate that a central bank holds inside a very narrow band.\nIV. The option matures in one week and, because of an imminent announcement, the underlying stock is expected to jump by more than 16% either up or down within the week.\n\nWhich sequence of shapes correctly corresponds to scenarios I through IV?",
+  "options": {
+   "A": "I. Upward skew, II. Downward skew, III. Frown, IV. Frown",
+   "B": "I. Smile, II. Downward skew, III. Upward skew, IV. Smile",
+   "C": "I. Downward skew, II. Upward skew, III. Frown, IV. Smile",
+   "D": "I. Upward skew, II. Downward skew, III. Smile, IV. Smile"
+  },
+  "answer": "A",
+  "solution": "Concept tested: mapping four distinct economic mechanisms onto four curve shapes. The single anticipated jump is the counterintuitive one and decides the question.\n\nScenario I. Positive price-volatility correlation stretches the upper tail and compresses the lower one: heavy right, light left. High strikes become expensive and low strikes cheap, so implied volatility increases in strike: upward skew.\n\nScenario II. Heavy left and thin right is the standard equity pattern by construction. Low strikes expensive, high strikes cheap, implied volatility decreases in strike: downward skew.\n\nScenario III. A currency pinned inside a narrow band cannot travel far in either direction. Both tails are truncated relative to lognormal, so both wings are cheap and the at-the-money point is relatively dearest: frown. This is the light-tailed platykurtic case.\n\nScenario IV. An anticipated large jump either up or down produces a bimodal distribution: mass piles up at two outcomes and the middle is hollowed out. The at-the-money option is struck in the hollow and is expensive relative to a lognormal benchmark with the same total variance, while the deep in-the-money and deep out-of-the-money options sit beyond the two humps, where the distribution is actually thinner than lognormal, and are cheap. At-the-money implied volatility exceeds both wings: frown."
+ },
+ {
+  "id": "MR-T1-13",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": false,
+  "question": "An FX options desk observes that exchange rates satisfy neither of the two conditions required for an asset price to be lognormally distributed. Which statement about the resulting volatility smile is correct?",
+  "options": {
+   "A": "Exchange rate volatility is non-constant and exchange rates jump; as option maturity increases, the volatility smile becomes less pronounced.",
+   "B": "Exchange rate volatility is non-constant and exchange rates jump; as option maturity increases, the volatility smile becomes more pronounced.",
+   "C": "Exchange rates satisfy the constant volatility condition but violate the smooth-diffusion condition; the effect of jumps on implied volatility is independent of maturity.",
+   "D": "Exchange rate volatility is non-constant and exchange rates jump, but because both effects are strike-independent they shift the level of the curve without changing its shape."
+  },
+  "answer": "A",
+  "solution": "Concept tested: the two conditions for lognormality, both of which FX violates, and the direction of the maturity effect on the pronouncedness of the smile.\n\nTwo conditions are required for an asset price to be lognormally distributed: (1) constant volatility of the asset, and (2) smooth price changes with no jumps, that is, a pure diffusion process.\n\nExchange rates violate both. FX volatility is stochastic and time varying, and FX rates jump on interventions, peg breaks and policy announcements. Hence the pronounced FX smile.\n\nThe maturity effect requires care, because the two channels behave differently and one behaves differently for prices than for implied volatilities:\n\n| Channel | Effect on prices as maturity rises | Effect on implied volatility as maturity rises |\n|---|---|---|\n| Non-constant volatility | More pronounced | Less pronounced |\n| Jumps | Less pronounced | Less pronounced |\n\nThe smile plots implied volatilities, so only the right-hand column governs its shape. Both channels weaken there, so the volatility smile becomes less pronounced as maturity increases. This is directly visible in any volatility surface: the one-month row is far more curved across strikes than the five-year row."
+ },
+ {
+  "id": "MR-T1-14",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": false,
+  "question": "A model validation analyst is reviewing the use of standard geometric Brownian motion, the pure diffusion process underlying BSM, across a set of currency exposures. For which of the following is standard GBM most likely to be an adequate representation of the price process?",
+  "options": {
+   "A": "A major, highly liquid currency pair.",
+   "B": "A currency held at a fixed peg to another currency by its central bank.",
+   "C": "An emerging market currency subject to periodic devaluations.",
+   "D": "Any currency, provided the modelling horizon is short."
+  },
+  "answer": "A",
+  "solution": "Concept tested: which FX regimes are diffusion-like and which require an explicit jump component, and how the importance of jumps varies with the horizon.\n\nStandard GBM is a pure diffusion: sample paths are continuous, so the process never moves by a discrete amount in an instant. It is adequate in markets deep and liquid enough that price discovery is close to continuous.\n\nMajor currency pairs trade in the deepest markets in the world with near-continuous order flow, so of the four this is where a diffusion fits best. Not perfectly, since even major pairs jump on central bank surprises, which is why the FX smile exists at all, but closest.\n\nOn the horizon question the relationship runs opposite to intuition: the shorter the horizon, the more important it is to model jumps. Over a short horizon there is little time for continuous diffusion to accumulate, so a single jump dominates the total variation. Over long horizons the contribution of jumps dissipates relative to accumulated diffusion and the process becomes hard to distinguish from a pure diffusion."
+ },
+ {
+  "id": "MR-T1-15",
+  "lo": "MR-17 e",
+  "loText": "Describe the volatility smile for equity options and foreign currency options and provide possible explanations for its shape.",
+  "outside": false,
+  "question": "A CRO asks why equity index options display a pronounced downward-sloping volatility skew, rather than the roughly symmetric smile seen in currency options. Which pair of explanations is the one offered in the curriculum?",
+  "options": {
+   "A": "Capital structure leverage, whereby a fall in equity value raises the debt-to-equity ratio and therefore raises equity volatility; and crashophobia, whereby traders bid up out-of-the-money puts because they fear a repeat of a market crash.",
+   "B": "Capital structure leverage, whereby a rise in equity value raises the debt-to-equity ratio and therefore raises equity volatility; and crashophobia, whereby traders bid up out-of-the-money calls because they fear missing a rally.",
+   "C": "Mean reversion in equity volatility; and the fact that equity index options are cash-settled while currency options are physically settled.",
+   "D": "The absence of natural two-sided hedging demand in equity markets; and the fact that equity prices are lognormally distributed while exchange rates are not."
+  },
+  "answer": "A",
+  "solution": "Concept tested: the two curriculum explanations for the equity skew, one fundamental (financial leverage) and one behavioural or technical (crashophobia). Both push in the same direction.\n\nExplanation 1: capital structure leverage. Firm value is split between debt and equity. If equity value falls while the debt load is roughly fixed, the debt-to-equity ratio rises. Higher financial leverage amplifies the effect of a given change in enterprise value on the residual equity claim, so equity volatility rises. Falling price implies rising volatility, a negative price-volatility relationship, which fattens the left tail and lifts implied volatility at low strikes.\n\nThe magnitude is material. Consider a firm with EBIT of 20 million and EBIT volatility of 20%, a standard deviation of 4 million. If it takes on perpetual interest expense of 10 million per year, earnings available to equity fall to 10 million while their standard deviation stays at 4 million, so, holding the price-to-earnings multiple constant, equity volatility doubles to 40% ($20\\% \\times 20/(20-10)$). Raising interest expense to 15 million takes equity volatility to 80% ($20\\% \\times 20/(20-15)$). With zero debt, equity volatility equals EBIT volatility exactly.\n\nExplanation 2: crashophobia. Rubinstein's explanation, dated to the October 1987 crash. Participants attach more weight to a sharp downward move than a logno […]"
+ },
+ {
+  "id": "MR-T1-16",
+  "lo": "MR-17 g",
+  "loText": "Describe volatility term structures and volatility surfaces and how they may be used to price options.",
+  "outside": false,
+  "question": "The volatility term structure for options on an equity index is currently downward sloping, with short-dated implied volatilities well above long-dated implied volatilities. Which would be the most plausible explanation?",
+  "options": {
+   "A": "Mean reversion in volatility",
+   "B": "Platykurtosis in returns, relative to lognormal",
+   "C": "Serial correlation in returns",
+   "D": "Independence of successive returns"
+  },
+  "answer": "A",
+  "solution": "Concept tested: the volatility term structure as an expectation of average future volatility, and mean reversion as the mechanism capable of generating either slope.\n\nThe term structure plots implied volatility against time to maturity at a given strike. A long-dated implied volatility is, loosely, the market's expectation of average volatility over the life of the option.\n\nMean reversion means volatility is pulled back toward a long-run level: short-dated volatility high implies expected to fall implies downward-sloping term structure; short-dated volatility low implies expected to rise implies upward-sloping term structure.\n\nMean reversion is the candidate whose slope depends on the current level of volatility relative to its long-run level, which is exactly what makes it the explanation for a term structure shape. Given that short-dated volatility is currently high, it delivers the observed downward slope."
+ },
+ {
+  "id": "MR-T1-17",
+  "lo": "MR-17 g",
+  "loText": "Describe volatility term structures and volatility surfaces and how they may be used to price options.",
+  "outside": false,
+  "question": "An analyst states that if observed volatility follows a GARCH(1,1) process, then an upward-sloping volatility term structure is implied. Which is the most appropriate assessment of this statement?",
+  "options": {
+   "A": "Correct, because GARCH(1,1) assigns declining weights to older observations, which raises long-horizon volatility.",
+   "B": "Correct, because GARCH(1,1) includes a long-run variance term, which is always above the current conditional variance.",
+   "C": "Incorrect, because GARCH(1,1) implies mean reversion in volatility, so the term structure slopes upward or downward depending on whether current volatility is below or above the long-run level.",
+   "D": "Incorrect, because GARCH(1,1) implies no relationship between current volatility and expected future volatility."
+  },
+  "answer": "C",
+  "solution": "Concept tested: GARCH(1,1) is a mean-reverting variance process, so it generates either slope. The direction is set by the current level relative to the long-run level, not by the model.\n\nIn GARCH(1,1) the conditional variance is a weighted average of three terms: a long-run variance, the previous period's squared return, and the previous conditional variance, with the three weights summing to one. The presence of a fixed long-run variance carrying positive weight is exactly what makes the process mean reverting: variance forecasts at increasing horizons converge geometrically toward the long-run level.\n\nCurrent variance above long-run implies forecasts decline with horizon implies downward slope. Current variance below long-run implies forecasts rise with horizon implies upward slope.\n\nThe model alone does not determine the direction; the current level relative to the long-run level does. The analyst's statement is false as an unconditional claim."
+ },
+ {
+  "id": "MR-T1-18",
+  "lo": "MR-17 i",
+  "loText": "Explain the impact of a single asset price jump on a volatility smile.",
+  "outside": false,
+  "question": "A stock trades at USD 50.00. A regulatory decision will be announced within the next week, and the market is confident that the stock will jump sharply either up or down when it lands. A trader is pricing one-week options across a range of strikes. What shape should the implied volatility curve take, and why?",
+  "options": {
+   "A": "A pronounced smile, because the anticipated jump fattens both tails of the distribution relative to lognormal.",
+   "B": "A downward-sloping skew, because the possibility of a sharp fall fattens the left tail.",
+   "C": "A frown, because the anticipated jump makes the distribution bimodal, so at-the-money options are expensive relative to a lognormal benchmark while deep in-the-money and deep out-of-the-money options are cheap.",
+   "D": "A flat curve, because a jump affects the level of volatility but not its variation across strikes."
+  },
+  "answer": "C",
+  "solution": "Concept tested: a single anticipated two-sided jump produces a bimodal, not a fat-tailed, distribution, and therefore a frown rather than a smile.\n\nThe key is what the distribution actually looks like. The market is not saying that extreme moves are open-endedly more likely than lognormal allows. It is saying the stock will end up in one of two places and is unlikely to sit still. The terminal distribution is bimodal: two humps with a hollow in the middle where the current price sits.\n\nPrice options against a lognormal benchmark calibrated to the same total variance:\n\n| Strike region | Probability mass versus lognormal | Option price | Implied volatility |\n|---|---|---|---|\n| At the money, in the hollow | Lower near the centre, higher at moderate distances either way | Expensive | High |\n| Deep in and deep out, beyond the humps | Lower; the distribution does not extend far past the humps | Cheap | Low |\n\nThe curve is therefore highest at the money and falls away on both sides: a frown, the inverse of a smile."
+ },
+ {
+  "id": "MR-T1-43",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "A treasury analyst at a US bank is checking a dealer quote for no-arbitrage consistency. The spot value of a foreign currency is USD 0.5500. The continuously compounded risk-free rate is 4.0% per annum in the United States and 8.0% per annum in the foreign country. A one-year European call on the foreign currency struck at USD 0.5700 trades at USD 0.0325, and its implied volatility is 23.8% per annum. Applying put-call parity with the foreign risk-free rate in the role of the dividend yield $q$, which is nearest to the no-arbitrage value of the corresponding European put?",
+  "options": {
+   "A": "USD 0.0302",
+   "B": "USD 0.0525",
+   "C": "USD 0.0724",
+   "D": "USD 0.0948"
+  },
+  "answer": "C",
+  "solution": "Put-call parity for a currency option, where the foreign risk-free rate plays the role of a continuous dividend yield. The stated implied volatility is a distraction and is not needed.\n\nPut-call parity for an asset paying a continuous yield $q$:\n\n$$p + S_0 e^{-qT} = c + Ke^{-rT} \\quad\\Rightarrow\\quad p = c + Ke^{-rT} - S_0 e^{-qT}$$\n\nAssign each rate to its correct leg. The domestic rate $r$ discounts the strike, because the strike is a domestic-currency cash flow. The foreign rate $q$ discounts the spot, because holding the foreign currency earns the foreign rate.\n\n$$Ke^{-rT} = 0.5700 \\times e^{-0.04\\times1} = 0.5700 \\times 0.960789 = 0.547650$$\n$$S_0 e^{-qT} = 0.5500 \\times e^{-0.08\\times1} = 0.5500 \\times 0.923116 = 0.507714$$\n$$p = 0.0325 + 0.547650 - 0.507714 = 0.072436$$\n\nThe put is worth approximately USD 0.0724. The implied volatility of 23.8% is not required and must not be used: parity is a no-arbitrage identity holding independently of any pricing model, and consistency with the call's 23.8% is guaranteed automatically by the equality of call and put implied volatility."
+ },
+ {
+  "id": "MR-T1-44",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "An analyst estimates a stock's volatility at 34.0% per annum and uses that estimate in BSM to value a European call, obtaining a model price of USD 6.95. The call actually trades at USD 7.23. Using the same 34.0% volatility, he then values a European put on the same stock with the same strike and the same maturity, obtaining a BSM model price of USD 5.12. Which is nearest to the likely market price of the put?",
+  "options": {
+   "A": "USD 4.84",
+   "B": "USD 5.12",
+   "C": "USD 5.33",
+   "D": "USD 5.40"
+  },
+  "answer": "D",
+  "solution": "The dollar pricing error of BSM is identical for a European call and a European put that share a strike and a maturity.\n\nFrom put-call parity applied to both model and market prices, the pricing errors must be equal:\n\n$$c_{BSM} - c_{market} = p_{BSM} - p_{market}$$\n$$6.95 - 7.23 = 5.12 - p_{market} \\;\\Rightarrow\\; -0.28 = 5.12 - p_{market} \\;\\Rightarrow\\; p_{market} = 5.12+0.28 = 5.40$$\n\nInterpretation: BSM at 34.0% underprices the call by USD 0.28, and parity forces exactly the same USD 0.28 underpricing on the put. Equivalently, both options carry the same implied volatility and that implied volatility is above 34.0%, since the market pays more than the model says they are worth."
+ },
+ {
+  "id": "MR-T1-45",
+  "lo": "MR-17 g",
+  "loText": "Describe volatility term structures and volatility surfaces and how they may be used to price options.",
+  "outside": false,
+  "question": "A financial engineer maintains the volatility surface below. The body of the table contains implied volatilities in percent computed from BSM. The rows are time to maturity and the columns are the ratio of strike to asset price, $K/S_0$. The asset price $S_0$ is USD 30.00. She needs to value an out-of-the-money call with a strike of USD 33.00 and a maturity of 4.0 years. Using bilinear interpolation, which is nearest to the implied volatility she should use?\n\n| Maturity | $K/S=0.50$ | $K/S=0.75$ | $K/S=1.00$ | $K/S=1.25$ | $K/S=1.50$ |\n|---|---|---|---|---|---|\n| 1 month | 36.9 | 28.9 | 20.9 | 14.9 | 15.2 |\n| 3 months | 35.3 | 28.3 | 21.3 | 15.8 | 16.3 |\n| 6 months | 32.9 | 26.9 | 20.9 | 16.0 | 16.8 |\n| 1 year | 32.1 | 27.1 | 22.1 | 17.1 | 17.5 |\n| 2 years | 29.8 | 25.8 | 21.8 | 16.8 | 18.0 |\n| 5 years | 30.0 | 27.0 | 24.0 | 18.0 | 19.4 |",
+  "options": {
+   "A": "17.60",
+   "B": "19.80",
+   "C": "21.00",
+   "D": "23.27"
+  },
+  "answer": "C",
+  "solution": "Two-dimensional interpolation on a volatility surface, and the discipline of consuming both coordinates before answering.\n\nStep 1. Locate the target cell: $K/S_0 = 33.00/30.00 = 1.10$, maturity $=4.0$ years. Neither coordinate lies on the grid; the target sits between columns 1.00 and 1.25 and between rows 2 years and 5 years.\n\nStep 2. Interpolate along the strike dimension in each bracketing row. Weight on the upper column $=(1.10-1.00)/(1.25-1.00)=0.40$.\nRow 2 years: $21.8+(16.8-21.8)\\times0.40=21.8-2.00=19.80$.\nRow 5 years: $24.0+(18.0-24.0)\\times0.40=24.0-2.40=21.60$.\n\nStep 3. Interpolate along the maturity dimension between those two results. Weight on the 5-year value $=(4-2)/(5-2)=0.6667$.\n\n$$\\text{implied volatility}=19.80+(21.60-19.80)\\times0.6667=19.80+1.20=21.00$$\n\nThe engineer uses 21.00% as the volatility input to BSM or to a binomial tree."
+ },
+ {
+  "id": "MR-T1-46",
+  "lo": "MR-17 g",
+  "loText": "Describe volatility term structures and volatility surfaces and how they may be used to price options.",
+  "outside": false,
+  "question": "A stock trades at USD 50.00 and the risk-free rate is 3.0% per annum. For a series of European options with three months to maturity, observed market prices and the implied volatilities they generate are shown below. The market put price at the USD 46.00 strike has been omitted.\n\n| Strike | Market call | Market put | Implied volatility |\n|---|---|---|---|\n| USD 42.00 | 9.02 | 0.70 | 36.6% |\n| USD 44.00 | 8.32 | 1.99 | 47.9% |\n| USD 46.00 | 7.64 | omitted | 54.5% |\n| USD 48.00 | 7.05 | 4.69 | 59.7% |\n| USD 50.00 | 6.50 | 6.13 | 63.8% |\n| USD 52.00 | 5.31 | 6.92 | 60.2% |\n| USD 54.00 | 4.17 | 7.77 | 56.3% |\n| USD 56.00 | 3.09 | 8.68 | 51.8% |\n| USD 58.00 | 1.69 | 9.26 | 42.1% |\n\nWhich of the following is correct?",
+  "options": {
+   "A": "The market price of the put is USD 3.30, and this is LOWER than the BSM model price computed with the at-the-money volatility of 63.8%.",
+   "B": "The market price of the put is USD 3.30, and this is HIGHER than the BSM model price computed with the at-the-money volatility of 63.8%.",
+   "C": "The market price of the put is USD 4.13, and this is LOWER than the BSM model price computed with the at-the-money volatility of 63.8%.",
+   "D": "The market price of the put is USD 4.13, and this is EQUAL to the BSM model price computed with the at-the-money volatility of 63.8%."
+  },
+  "answer": "A",
+  "solution": "Recovering a missing market price by put-call parity, then reading the direction of the mispricing from the frown shape of the surface. A two-part conjunction item.\n\nPart 1. Recover the market put price by put-call parity, using the observed market call at the same strike; no volatility is required.\n\n$$p = c + Ke^{-rT} - S_0, \\qquad Ke^{-rT} = 46.00\\times e^{-0.03\\times0.25} = 46.00\\times0.992528 = 45.65629$$\n$$p = 7.64 + 45.65629 - 50.00 = 3.2963 \\approx \\text{USD } 3.30$$\n\nPart 2. Determine the direction relative to the model price at 63.8%. The fast route is the shape of the curve: implied volatility peaks at 63.8% at the money and falls away on both sides, reaching 36.6% at the far left and 42.1% at the far right, a frown. The USD 46.00 strike carries 54.5%, below the at-the-money 63.8%. Since vega is positive, pricing that option with the higher at-the-money volatility must produce a higher price than the market pays, so the market price is lower.\n\nConfirming by direct computation with $S=50.00$, $K=46.00$, $r=0.03$, $T=0.25$, $\\sigma=0.638$:\n\n$$d_1=\\frac{\\ln(50/46)+(0.03+0.638^2/2)\\times0.25}{0.638\\sqrt{0.25}}=\\frac{0.083382+0.058381}{0.319}=0.4444,\\quad d_2=0.4444-0.319=0.1254$$\n$$N(-d_1)=0.3284,\\quad N(-d_2)=0.4501$$\n$$p_{model} = 45.65629\\times0.4501 - 50.00\\times0.3284 = 20.549-16.421 = 4.13$$\n\nModel price USD 4.13 against market price USD 3.30: the market price is lo […]"
+ },
+ {
+  "id": "MR-FT-08",
+  "lo": "MR-17 f",
+  "loText": "Describe alternative ways of characterizing the volatility smile.",
+  "outside": false,
+  "question": "A volatility desk plots its smile against the ratio of strike to forward price, $K/F(0)$, rather than against the raw strike price $K$. Which of the following best explains this choice?",
+  "options": {
+   "A": "The smile plotted against raw strike shifts as the asset price moves, whereas moneyness-based measures such as $K/S(0)$ and $K/F(0)$ are far more stable; and $F(0)$, not $S(0)$, is the risk-neutral expected asset price on the maturity date, which is why traders often define at-the-money as $K = F(0)$.",
+   "B": "$K/F(0)$ removes the dependence of the smile on time to maturity entirely, which allows a single curve to be used for every maturity.",
+   "C": "$K/F(0)$ converts implied volatility into a coherent risk measure, which raw strike price does not.",
+   "D": "$K/F(0)$ is required for put-call parity to hold, whereas parity fails when the smile is plotted against raw strike price."
+  },
+  "answer": "A",
+  "solution": "This question covers the four alternative horizontal axes for the volatility smile, and the specific rationale attaching to each.\n\n| Horizontal axis | Rationale |\n|---|---|\n| Strike price $K$ | The simple or typical presentation. Unstable: the whole curve tends to travel when the asset price moves |\n| $K/S(0)$, moneyness | Dividing out the asset price holds the curve still, making it much more stable than raw $K$ |\n| $K/F(0)$, strike over forward | A refinement. $F(0)$ is the risk-neutral expectation of the terminal asset price, so it is the natural centre of the terminal distribution. Traders accordingly define at-the-money as $K = F(0)$ rather than $K = S(0)$ |\n| Option delta | Embeds time to maturity, since delta depends on $T$. Extends the smile to instruments other than European and American calls and puts. At-the-money becomes the 0.50-delta call or the $-0.50$-delta put |\n| $\\frac{1}{\\sqrt{T}}\\ln\\!\\left[\\frac{K}{F(0)}\\right]$ | Explicitly dampens, but does not remove, the dependence on time to maturity |\n\nThe correct option states both parts of the $K/F(0)$ rationale correctly: stability relative to raw strike, and the forward price as the risk-neutral centre of the distribution."
+ },
+ {
+  "id": "MR-FT-09",
+  "lo": "MR-17 f",
+  "loText": "Describe alternative ways of characterizing the volatility smile.",
+  "outside": false,
+  "question": "A trader plots the volatility smile for vanilla European options with implied volatility on the vertical axis and option DELTA on the horizontal axis, ordering the horizontal axis so that STRIKE PRICE increases from left to right. Ignoring the market shorthand conventionally used to label such plots, which is the most plausible left-to-right sequence of ACTUAL deltas at five points on the curve?",
+  "options": {
+   "A": "Call deltas = [0.90, 0.75, 0.50, 0.25, 0.10]",
+   "B": "Call deltas = [0.10, 0.25, 0.50, 0.75, 0.90]",
+   "C": "Call deltas = [0.10, 0.25, 0.50, 0.25, 0.10]",
+   "D": "Put deltas = [0.10, 0.25, 0.50, 0.25, 0.10]"
+  },
+  "answer": "A",
+  "solution": "This question covers delta as an alternative horizontal axis for the smile, and the difference between market shorthand labels and actual signed deltas.\n\nTwo facts settle this completely.\n\n**Fact 1: monotonicity and direction.** A European call's delta, $N(d_1)$, is a strictly decreasing function of strike. A deep in-the-money call is struck low and has a delta near 1.0; a deep out-of-the-money call is struck high and has a delta near 0.0. Since the axis is ordered by increasing strike, the sequence of call deltas must fall monotonically from left to right.\n\n**Fact 2: one-to-one mapping.** Delta is a strictly monotone function of strike, so no delta value can appear twice on the curve. Any sequence that falls and then rises, or rises and then falls, is impossible for a single instrument type.\n\nThe market shorthand labels these five points as 10, 25, 50, 25, 10 – meaning the 10-delta put, the 25-delta put, at the money, the 25-delta call, and the 10-delta call. That labelling looks symmetric only because it switches instrument at the middle point. Expressed consistently:\n\n- as call deltas: $[0.90,\\ 0.75,\\ 0.50,\\ 0.25,\\ 0.10]$\n- as put deltas: $[-0.10,\\ -0.25,\\ -0.50,\\ -0.75,\\ -0.90]$\n\nDelta is used as an axis because it embeds time to maturity, since delta depends on $T$ as well as on moneyness, and it extends the smile to instruments other than European and American calls and p […]"
+ },
+ {
+  "id": "MR-FT-10",
+  "lo": "MR-17 f",
+  "loText": "Describe alternative ways of characterizing the volatility smile.",
+  "outside": false,
+  "question": "The implied distribution of a certain asset class exhibits, relative to the lognormal distribution, a LIGHTER left tail and a HEAVIER right tail. A trader defines the risk reversal as the difference in implied volatility, computed under BSM, between a 0.25 delta call and a $-0.25$ delta put:\n\n$$RR = \\sigma_{imp}[0.25\\text{ delta call}] - \\sigma_{imp}[-0.25\\text{ delta put}]$$\n\nWhich of the following is most likely true of the risk reversal?",
+  "options": {
+   "A": "The risk reversal is negative.",
+   "B": "The risk reversal is zero.",
+   "C": "The risk reversal is positive.",
+   "D": "The risk reversal is approximately equal to the implied volatility of the 0.50 delta call, that is, the at-the-money call."
+  },
+  "answer": "C",
+  "solution": "This question covers the risk reversal as a scalar summary of the direction of skew, and its sign under a reverse (upward-sloping) skew.\n\n**Step 1. Translate tails into a slope.** A lighter left tail means low-strike options are relatively cheap, so implied volatility is low at low strikes. A heavier right tail means high-strike options are relatively expensive, so implied volatility is high at high strikes. Implied volatility is therefore an increasing function of strike: an upward-sloping, or reverse, or forward skew – the opposite of the usual equity pattern.\n\n**Step 2. Locate the two legs.** A 0.25 delta call has a delta well below 0.50, so it is out of the money and struck high. A $-0.25$ delta put has a delta between $-0.50$ and 0, so it is also out of the money and struck low. Both legs are out-of-the-money options, one on each wing, which is exactly what makes the risk reversal a measure of skew rather than of level.\n\n**Step 3. Sign it.** The call leg sits on the high-strike side, where implied volatility is high. The put leg sits on the low-strike side, where implied volatility is low. Therefore:\n\n$$RR = (\\text{high implied volatility}) - (\\text{low implied volatility}) > 0$$\n\nThe risk reversal is positive. As a sanity check on the general rule: a negative risk reversal is the signature of the standard equity skew, where out-of-the-money puts carry higher implied volat […]"
+ },
+ {
+  "id": "MR-FT-11",
+  "lo": "MR-17 h",
+  "loText": "Explain the impact of the volatility smile on the calculation of an option’s Greek letter risk measures.",
+  "outside": false,
+  "question": "A newly hired analyst asserts that because BSM vega is always positive and peaks for at-the-money options, the implied volatility smile must be hump-shaped with a peak at the money. Which of the following is most accurate?",
+  "options": {
+   "A": "The analyst is correct; the vega profile and the implied volatility smile are two views of the same underlying function.",
+   "B": "If the implied volatility smile is a perfectly flat, horizontal line, then Greek vega is zero.",
+   "C": "Vega is the first derivative of the implied volatility smile; that is, it plots the slopes of lines tangent to the implied volatility plot.",
+   "D": "Under BSM, vega is always positive and highest for an at-the-money option, but these properties neither predict nor constrain the shape of the corresponding implied volatility smile, which is free to be a skew, a smirk, a frown, or any other shape."
+  },
+  "answer": "D",
+  "solution": "This question tests that vega is a model-based partial derivative computed at a point, while the smile is a market-determined artefact; they are different objects with different axes.\n\n| | Vega | Implied volatility smile |\n|---|---|---|\n| What it is | First partial derivative of the BSM option value with respect to the volatility input | The set of volatility inputs that force the BSM price to equal each observed market price |\n| Determined by | The model alone | Market prices: supply, demand, and beliefs about the true distribution |\n| Axes | Option value sensitivity, plotted against asset price or strike, with volatility held fixed | Implied volatility, plotted against strike, with volatility solved for |\n\nVega is positive because more volatility is always worth more to an option holder. That positivity is what makes the price-to-volatility mapping monotone and therefore invertible, which is what allows the smile to be constructed at all. But knowing that vega is positive and hump-shaped tells you nothing about where market prices will sit relative to a single-volatility model, and therefore nothing about the shape of the smile.\n\nThe BSM model assumes the underlying follows a lognormal distribution with constant volatility. Vega measures the rate of change of the option price given a change in that constant. Shifts in supply and demand can produce any smile shape without chan […]"
+ },
+ {
+  "id": "MR-FT-12",
+  "lo": "MR-17 h",
+  "loText": "Explain the impact of the volatility smile on the calculation of an option’s Greek letter risk measures.",
+  "outside": false,
+  "question": "A one-year at-the-money call struck at USD 100.00 trades at USD 13.28, from which an analyst infers an implied volatility of 30.0% per annum. Under BSM the call's delta, $N(d_1)$, is 0.60, so the put with the same strike and maturity carries a BSM delta of $N(d_1) - 1.0 = 0.60 - 1.0 = -0.40$. However, the equity option exhibits a steep implied volatility skew which implies, relative to the lognormal distribution, a heavy left tail and a light right tail: implied volatility is a DECREASING function of $K/S(0)$. Which of the following describes the relationship between the TRUE deltas and the BSM deltas?",
+  "options": {
+   "A": "True call delta is HIGHER than 0.60, and true put delta is HIGHER than $-0.40$.",
+   "B": "True call delta is LOWER than 0.60, and true put delta is LOWER than $-0.40$.",
+   "C": "True call delta equals 0.60, and true put delta equals $-0.40$.",
+   "D": "The relationship cannot be determined, because delta is only a first-order approximation."
+  },
+  "answer": "A",
+  "solution": "This question shows how the existence of a smile adds a second term to delta, with the sign of that term following directly from the slope of the skew, and put-call parity then fixing the put delta.\n\nBSM delta holds volatility constant as the asset price moves. In reality, when the asset price moves the option's implied volatility moves too, because the option's position on the smile changes. Extend delta by the chain rule:\n\n$$\\text{true delta} = \\frac{\\partial c}{\\partial S} + \\frac{\\partial c}{\\partial \\sigma_{imp}} \\times \\frac{\\partial \\sigma_{imp}}{\\partial S}$$\n\nThe first term is the BSM delta, 0.60. The second term is vega multiplied by the sensitivity of implied volatility to the asset price. Sign each factor separately.\n\n$$\\text{vega} = \\frac{\\partial c}{\\partial \\sigma_{imp}} > 0 \\quad \\text{(always, for any option)}$$\n\nFor the skew factor: implied volatility is a decreasing function of $K/S(0)$. The strike $K$ is fixed for a given option, so when $S$ rises, $K/S(0)$ falls, and therefore implied volatility rises:\n\n$$\\frac{\\partial \\sigma_{imp}}{\\partial S} > 0 \\quad \\text{(the standard equity-option result)}$$\n\nThe product of two positive quantities is positive, so the second term adds to the BSM delta:\n\n$$\\text{true call delta} > 0.60$$\n\nFor the put, put-call parity fixes the relationship between the deltas exactly:\n\n$$p = c - S + Ke^{-rT} \\quad \\Rightarrow \\quad \\fr […]"
+ },
+ {
+  "id": "MR-FT-13",
+  "lo": "MR-17 h",
+  "loText": "Explain the impact of the volatility smile on the calculation of an option’s Greek letter risk measures.",
+  "outside": false,
+  "question": "A call option is struck at USD 20.00 and is currently at the money, so that $d_1 = 0$ and the BSM delta is 0.50. Asset returns are not lognormal. Instead, the implied distribution has a LIGHT left tail and a HEAVY right tail. What happens to the TRUE delta of the call as the stock price rises toward USD 21.00, moving the option from at the money to slightly in the money?",
+  "options": {
+   "A": "Delta remains 0.50.",
+   "B": "Delta rises above 0.50.",
+   "C": "Delta falls below 0.50.",
+   "D": "The net effect is indeterminate."
+  },
+  "answer": "D",
+  "solution": "This question shows that the two components of true delta can reinforce or oppose one another, and that under a reverse skew they oppose, so the net sign cannot be determined without magnitudes.\n\nApply the same decomposition as in the companion question and sign each term separately.\n\n$$\\text{true delta} = \\frac{\\partial c}{\\partial S} + \\text{vega} \\times \\frac{\\partial \\sigma_{imp}}{\\partial S}$$\n\n**Term 1: the standard BSM effect.** As the stock rises from USD 20.00 to USD 21.00 the call moves from at the money toward in the money, so $N(d_1)$ rises above 0.50. Term 1 is positive.\n\n**Term 2: the smile effect.** A light left tail and a heavy right tail means implied volatility is an increasing function of $K/S(0)$. The strike is fixed at USD 20.00, so a rise in $S$ lowers $K/S(0)$, which therefore lowers implied volatility. Since vega is positive, term 2 is negative.\n\nThe two terms pull in opposite directions. Without knowing the steepness of the skew and the size of vega, the net effect on true delta cannot be signed. The answer is indeterminate.\n\nContrast with the two related cases, which complete the learning objective:\n\n| Case | Term 1 | Term 2 | Net effect on true delta |\n|---|---|---|---|\n| Flat smile (no skew) | positive | zero (vega $\\times$ 0) | Unambiguously the BSM direction |\n| Standard equity skew | positive | positive | Unambiguously higher than BSM delta |\n| Re […]"
+ },
+ {
+  "id": "MR-QB-0496",
+  "lo": "MR-9 c",
+  "loText": "Identify the best-fit distribution for equity, bond, and default correlations.",
+  "outside": true,
+  "question": "Consider the following four statements about the best distributional fit to equity prices, equity correlations, bond correlations, and default probability correlations:\n\nI. Assuming a sharp volatility skew (i.e., continuously decreasing), equity prices are best fit by a lognormal distribution\n\nII. Equity correlations can be fit by a normal or lognormal distribution\n\nIII. Bond correlations can be fit by a normal or generalized extreme value (GEV) distribution\n\nIV. Default probability correlations can be fit by a normal or generalized extreme value (GEV) distribution\n\nWhich of the above is (are) TRUE?",
+  "options": {
+   "A": "None are true",
+   "B": "III only",
+   "C": "I and II only",
+   "D": "All are true"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. I: lognormal prices correspond to a flat volatility smile; a sharp skew implies a fatter left tail, so false.\n2. II: equity correlations fit poorly with normal/lognormal (and beta); Johnson SB fits best, so false.\n3. III: bond correlations are best fit by GEV and normal also fits well, so true.\n4. IV: default probability correlations are best fit by Johnson SB like equity, so false.\n5. Only III is true."
+ },
+ {
+  "id": "MR-QB-0501",
+  "lo": "MR-10 a",
+  "loText": "Explain the purpose of copula functions and how they are applied in finance.",
+  "outside": true,
+  "question": "What is a copula function?",
+  "options": {
+   "A": "A copula correlates a stock price (S) and its volatility (σ) which allows it to model equity‑implied volatility skew.",
+   "B": "A copula function joins (n) univariate distributions to one multivariate (n‑dimensional) distribution.",
+   "C": "A copula function solves for the conditional P\\[X\\|Y\\] as a function of the product of P\\[Y\\|X\\] and the ratio of marginal probabilities P\\[X\\]/P\\[Y\\].",
+   "D": "A copula function is a limiting (special) case of the Pearson model, such that it only analyzes the linear relationship between variables."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A copula maps n univariate (marginal) distributions onto a known distribution and joins them.\n2. The result is one n‑dimensional joint distribution that keeps the original marginals and adds a dependence structure.\n3. Check the others: A is a stochastic volatility idea, C is Bayes’ rule, D is a linear‑correlation statement."
+ },
+ {
+  "id": "MR-QB-0768",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "Option traders in equity and foreign currency markets often refer to a ”volatility smile.” Which of the following statements gives the correct definition of a volatility smile?",
+  "options": {
+   "A": "The plot of the implied volatility of financial markets that determines option prices.",
+   "B": "The plot of the implied volatility of an option with a given maturity as a function of its strike price.",
+   "C": "The plot of the implied volatility of an option with an infinite life as a function of its current price.",
+   "D": "The pattern of changes in historical volatility across trading days for options with different expiration dates."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. A volatility smile is built from implied volatilities, backed out of observed option prices with the BSM model.\n2. Holding maturity fixed, implied volatility is computed for a range of strikes.\n3. Implied volatility is then plotted against strike (or strike/stock price); a non‑flat curve is the smile or skew.\n4. Only B describes this construction."
+ },
+ {
+  "id": "MR-QB-0770",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "Two traders look at the same European option on the same underlying, with the same market price, strike and maturity. Trader 1 uses the Black‑Scholes‑Merton model and Trader 2 uses a different option pricing model. Which statement about the implied volatility each trader calculates, and hence the volatility smile each plots, is most accurate?",
+  "options": {
+   "A": "The implied volatilities must be identical, because they are backed out of the same market price.",
+   "B": "The implied volatilities can differ, because implied volatility depends on the pricing model used to invert the market price.",
+   "C": "The implied volatilities must be identical, because volatility is a property of the underlying asset alone.",
+   "D": "The implied volatilities can differ only if the traders use different historical data windows."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Implied volatility is the volatility input that makes a model price equal the market price.\n2. Different models map volatility to price differently, so the same market price implies a different volatility under each model.\n3. Hence the smile each trader plots is model‑dependent; traders agree only if they use the same model.\n\n**REBUILT** — True/false item with no options converted to a four‑option MCQ with a single defensible answer."
+ },
+ {
+  "id": "MR-QB-0771",
+  "lo": "MR-17 a",
+  "loText": "Describe a volatility smile and volatility skew.",
+  "outside": false,
+  "question": "An analyst notes that a plot of option vega against the underlying stock price is hump‑shaped: vega is highest for at‑the‑money options and lower for out‑of‑the‑money options. Which statement about whether this plot is consistent with the volatility smile is most accurate?",
+  "options": {
+   "A": "It is consistent with the smile, because the smile also shows the largest values for at‑the‑money options.",
+   "B": "It is not the smile: vega is a model‑based sensitivity of option value to volatility, whereas the smile plots implied volatility against strike (or K/S).",
+   "C": "It is consistent with the smile, because high vega at‑the‑money means at‑the‑money options must have the highest implied volatility.",
+   "D": "It is not the smile, because under Black‑Scholes‑Merton vega would be constant across strikes, while implied volatility would be hump‑shaped."
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key (BT answers L2.T5.06.3) said False, which is the same conclusion as option B; the BT notes version gave no key.\n\n**Step by step**\n\n1. The volatility smile plots implied volatility on the vertical axis against strike price or K/S on the horizontal axis.\n2. The vega curve plots the partial derivative of the option value with respect to volatility against the stock price; it is computed from the model, not observed from market prices.\n3. If BSM held exactly, implied volatility would be flat across strikes (no smile), yet the vega curve would still be hump‑shaped.\n4. Hence the hump in vega says nothing about the smile; the statement is false and B describes why.\n\n**REBUILT** — True/false item (BT notes version had no answer) converted to a four‑option MCQ with the reasoning made explicit; remapped to 17.a since it tests what a volatility smile is."
+ },
+ {
+  "id": "MR-QB-0776",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "Which of the following statements about the implied volatility of European options is correct?",
+  "options": {
+   "A": "For the same strike and maturity, the implied volatility of a European call equals that of a European put, so their volatility smiles are identical.",
+   "B": "For the same strike and maturity, the implied volatility of a European put is higher than that of a European call whenever the underlying price distribution is not lognormal.",
+   "C": "A European call with a shorter maturity has the same implied volatility as a European put with a longer maturity at the same strike.",
+   "D": "For the same strike and maturity, the implied volatility of a European call is higher than that of a European put because calls have unlimited upside."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Put‑call parity $c - p = S_{0} - Ke^{-rT}$ holds for market and BSM prices alike, so $c_{mkt} - c_{BSM} = p_{mkt} - p_{BSM}$.\n2. The volatility that sets $c_{BSM} = c_{mkt}$ therefore also sets $p_{BSM} = p_{mkt}$.\n3. Hence call and put implied volatilities coincide for the same K and T: A.\n\n**REBUILT** — Original option D (smile most relevant near the money) was a loosely true statement, giving two defensible answers; replaced with a clearly false distractor."
+ },
+ {
+  "id": "MR-QB-0777",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "The spot value of a foreign currency is \\$0.55. The risk‑free interest rates are 4% per year in the U.S. and 8% per year in the foreign country (continuously compounded). A European call on the currency with a 1‑year maturity and a strike of \\$0.57 has a market price of \\$0.0325 (implied volatility 14.5%). Using put‑call parity with the foreign risk‑free rate as the continuous yield, what is the price of the European put with the same strike and maturity?",
+  "options": {
+   "A": "\\$0.0302",
+   "B": "\\$0.0724",
+   "C": "\\$0.0525",
+   "D": "\\$0.0517"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Parity for currency options: $p = c + Ke^{-r}d^{T} - S_{0}e^{-r_{f}T}$.\n2. $Ke^{-r}d^{T} = 0.57e^{-0.04} = 0.54761$; $S_{0}e^{-r_{f}T} = 0.55e^{-0.08} = 0.50771$.\n3. $p = 0.0325 + 0.54761 - 0.50771 = 0.0724$.\n\n**REBUILT** — Original distractors were not tied to specific errors (one, 0.0419, matched none); replaced with error‑based options and the stem made explicit about continuous rates."
+ },
+ {
+  "id": "MR-QB-0778",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "The implied volatility of a European put is found to be 25%, meaning that the BSM put price equals the market put price at that volatility. A European call has the same strike price and maturity as the put. Using put‑call parity, what can be concluded about the call’s implied volatility?",
+  "options": {
+   "A": "It is also 25%, because parity forces the call’s pricing error to equal the put’s pricing error, which is zero at 25%.",
+   "B": "It is greater than 25%, because calls carry more upside risk than puts.",
+   "C": "It is less than 25%, because the put premium includes a crash premium that the call lacks.",
+   "D": "It cannot be determined without knowing the current underlying price."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Parity holds for both prices: $p_{BSM} - p_{mkt} = c_{BSM} - c_{mkt}$.\n2. At 25% the put’s BSM price equals its market price, so the left side is zero.\n3. Thus $c_{BSM} = c_{mkt}$ at 25%: the call’s implied volatility is 25%.\n\n**REBUILT** — Original stem was a statement scenario with a distractor on American puts and different strikes; rewritten as a direct question with clean options."
+ },
+ {
+  "id": "MR-QB-0779",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "The spot exchange rate is \\$1.60 per unit of foreign currency. Continuously compounded risk‑free rates are 5% per year in the U.S. and 3% per year in the foreign country. A 1‑year European call on the currency with a strike of \\$1.55 trades at \\$0.12. What is the price of the 1‑year European put with the same strike, consistent with put‑call parity?",
+  "options": {
+   "A": "\\$0.1022",
+   "B": "\\$0.0700",
+   "C": "\\$0.0417",
+   "D": "\\$0.1173"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. $p = c + Ke^{-r}d^{T} - S_{0}e^{-r_{f}T}$.\n2. $1.55e^{-0.05} = 1.47443$; $1.60e^{-0.03} = 1.55273$.\n3. $p = 0.12 + 1.47443 - 1.55273 = 0.0417$.\n\n**REBUILT** — Source data were unrealistic (call 1.35 on a 1.73 spot, giving a put of 1.10) and option B (1.098) was nearly identical to the key; rebuilt with consistent data and error‑based options."
+ },
+ {
+  "id": "MR-QB-0780",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "A stock trades at \\$40. A 6‑month European call with strike \\$30 has an implied volatility of 35%, and a 6‑month European call with strike \\$50 has an implied volatility of 28%. The risk‑free rate is 5% (continuous) and no dividends are expected. Using BSM, the call prices are \\$11.155 and \\$0.725, so put‑call parity gives put prices of \\$0.414 (strike 30) and \\$9.490 (strike 50). What are the implied volatilities of the 6‑month European puts with strikes of \\$30 and \\$50?",
+  "options": {
+   "A": "35% for the K = 30 put and 28% for the K = 50 put",
+   "B": "28% for the K = 30 put and 35% for the K = 50 put",
+   "C": "31.5% for both puts (the average of the two call volatilities)",
+   "D": "Both puts have a lower implied volatility than the matching calls, since the puts are priced by parity from lower call values"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Parity: $p = c + Ke^{-rT} - S_{0}$; K = 30: $11.155 + 30e^{-0.025} - 40 = 0.414$; K = 50: $0.725 + 50e^{-0.025} - 40 = 9.490$.\n2. Parity holds for BSM prices at any volatility, so a put priced by parity from a call at volatility σ has BSM‑implied volatility σ.\n3. So the put IVs are 35% (K = 30) and 28% (K = 50), equal to the calls’ at each strike.\n\n**REBUILT** — Original required DerivaGem and open‑ended explanation; converted to a self‑contained MCQ on the parity implication with prices supplied."
+ },
+ {
+  "id": "MR-QB-0781",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": false,
+  "question": "The risk‑free rate is 5.0% (continuously compounded) and the stock price is USD 80.00. A European call and a European put on the stock both have strike USD 70.00 (K/S0 = 0.875) and maturity three months. The market‑implied volatility of the call is 30.0% and that of the put is 38.0%. Which trade exploits this scenario?",
+  "options": {
+   "A": "Buy the call, sell the put, and short the stock",
+   "B": "Sell the call, buy the put, and buy the stock",
+   "C": "Buy the call, sell the put, and buy the stock",
+   "D": "Sell the call, buy the put, and short the stock"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Put‑call parity holds regardless of the price distribution, so a call and put with the same strike and maturity must have the same implied volatility. Here 30% vs 38% means parity is violated.\n2. Higher implied volatility means a higher price, so the put is rich and the call is cheap relative to each other.\n3. Check: BSM call at 30% = 11.845; BSM put at 38% = 1.790. Market $C - P = 10.055$.\n4. Parity requires $C - P = S_{0} - Ke^{-rT} = 80 - 70e^{-0.05(0.25)} = 80 - 69.130 = 10.870$.\n5. Long call plus short put (a synthetic long stock) costs 10.055, less than the 10.870 it should cost, so it is cheap. Buy it and short the real stock as the offset.\n6. Arbitrage profit = 10.870 ‑ 10.055 = USD 0.815 per share, risk‑free.\n\n**REBUILT** — Merged two copies (one misprinted K/S as 0.90); replaced the self‑cancelling straddle distractors with realistic wrong‑direction/wrong‑hedge trades."
+ }
+]

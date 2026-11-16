@@ -101,7 +101,18 @@ export interface TierGroup {
   sectionKeys: string[];
 }
 
-export function TierCard({ tier, progress, onOpen }: { tier: TierGroup; progress: FileProgress; onOpen: () => void }) {
+export function TierCard({
+  tier,
+  progress,
+  onOpen,
+  unit = ['section', 'sections'],
+}: {
+  tier: TierGroup;
+  progress: FileProgress;
+  onOpen: () => void;
+  /** What the tier is made of: workbook sections, or the topics of Exam shapes. */
+  unit?: [string, string];
+}) {
   const total = tier.questionIds.length;
   const sections = tier.sectionKeys.length;
   return (
@@ -122,7 +133,7 @@ export function TierCard({ tier, progress, onOpen }: { tier: TierGroup; progress
           <AccuracyChip accuracy={progress.accuracy} />
         </span>
         <span className="mt-0.5 block text-[15px] leading-snug text-slate-600 dark:text-slate-400">
-          {tier.info.description} · {sections} {sections === 1 ? 'section' : 'sections'}
+          {tier.info.description} · {sections} {sections === 1 ? unit[0] : unit[1]}
         </span>
         <span className="mt-2 flex items-center gap-3">
           <ProgressBar value={total ? progress.attempted / total : 0} label={`${tier.info.name} attempted`} />

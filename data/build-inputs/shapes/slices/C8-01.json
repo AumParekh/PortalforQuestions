@@ -1,0 +1,557 @@
+[
+ {
+  "id": "CR-T1-33",
+  "lo": "CR-20 b",
+  "loText": "Describe credit value adjustment (CVA).",
+  "outside": true,
+  "question": "A counterparty risk manager is documenting how CVA behaves across the trades within a single netting set. Which of the following statements about netting sets is correct?",
+  "options": {
+   "A": "Within a netting set, quantities such as expected exposure and CVA are non-multiplicative, which results in reduced overall risk.",
+   "B": "Within a netting set, quantities such as expected exposure and CVA are additive, which results in reduced overall risk.",
+   "C": "Within a netting set, quantities such as expected exposure and CVA are multiplicative, which results in reduced overall risk.",
+   "D": "Within a netting set, quantities such as expected exposure and CVA are non-additive, which results in reduced overall risk."
+  },
+  "answer": "D",
+  "solution": "Netting makes exposure and CVA sub-additive, so the netting set total is less than the sum of standalone values, which is why trade-level attribution requires incremental or marginal CVA.\n\nUnder a legally enforceable netting agreement, only the net mark-to-market across all trades with the counterparty is at risk on default. Positive and negative positions offset.\n\n$$EE_{\\text{netting set}} = E[\\max(\\sum_{i} V_{i}, 0)] \\le \\sum_{i} E[\\max(V_{i}, 0)] = \\sum_{i} EE_{i}$$\n\nThe inequality is strict whenever any two trades can move in opposite directions. Because CVA is computed from exposure, it inherits the same property:\n\n$$CVA_{\\text{netting set}} \\le \\sum_{i} CVA_{i}^{\\text{standalone}}$$\n\nThis is non-additivity, more precisely sub-additivity. The whole is smaller than the sum of the parts.\n\n**Why the word matters practically.** If CVA were additive, each trade's contribution would simply be its standalone CVA and attribution would be trivial. Because it is not, allocating the netting set's CVA back to individual trades requires incremental CVA, which measures the change in netting set CVA when a trade is added, or marginal CVA, which decomposes the total into contributions that sum exactly."
+ },
+ {
+  "id": "CR-T4-01",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "A counterparty risk analyst has simulated the future value of a single netting set at four annual time points. Five equally likely scenarios were generated at each point, and the resulting statistics are shown below. All figures are in USD millions.\n\n| Time point | Expected mark-to-market | Expected exposure | 97.5% potential future exposure |\n|---|---|---|---|\n| Year 1 | +2.0 | 5.0 | 14.0 |\n| Year 2 | +1.0 | 7.0 | 19.0 |\n| Year 3 | -1.0 | 6.0 | 16.0 |\n| Year 4 | -3.0 | 3.0 | 9.0 |\n\nWhich of the following gives the expected positive exposure, the effective expected positive exposure, and the maximum exposure over the four year horizon?",
+  "options": {
+   "A": "EPE 5.25; EEPE 6.25; maximum exposure 19.0",
+   "B": "EPE 5.25; EEPE 5.25; maximum exposure 19.0",
+   "C": "EPE 6.25; EEPE 5.25; maximum exposure 7.0",
+   "D": "EPE 5.25; EEPE 6.25; maximum exposure 7.0"
+  },
+  "answer": "A",
+  "solution": "**Step 1. Expected positive exposure.** EPE is the simple time average of expected exposure over the horizon.\n\n$$EPE = \\frac{1}{T}\\sum_t EE(t) = \\frac{5.0+7.0+6.0+3.0}{4} = \\frac{21.0}{4} = 5.25$$\n\n**Step 2. Effective expected exposure, then effective EPE.** Effective EE is defined as the running maximum of expected exposure to date, so it can never decline:\n\n$$EEE(t) = \\max[EEE(t-1), EE(t)]$$\n\n| Time point | EE(t) | EEE(t) |\n|---|---|---|\n| Year 1 | 5.0 | 5.0 |\n| Year 2 | 7.0 | 7.0 |\n| Year 3 | 6.0 | 7.0 |\n| Year 4 | 3.0 | 7.0 |\n\n$$EEPE = \\frac{5.0+7.0+7.0+7.0}{4} = \\frac{26.0}{4} = 6.25$$\n\n**Step 3. Maximum exposure.** The highest potential future exposure across all time points, which is the worst case at the chosen confidence level.\n\n$$\\text{Maximum exposure} = \\max_t PFE(t) = 19.0, \\text{ at year 2}$$\n\n**The three relationships that must hold.**\n\n$EEPE \\geq EPE$, always, because effective EE is the running maximum of EE.\n\nMaximum exposure $\\geq$ any individual PFE $\\geq$ the corresponding EE.\n\n**Note on expected mark-to-market.** Expected MtM can be negative, as it is at years 3 and 4, because it averages over both positive and negative future values. Expected exposure cannot, because exposure is floored at zero:\n\n$$Exposure(t) = \\max(V(t), 0), \\text{ so } EE(t) = E[\\max(V(t),0)] \\geq 0$$\n\nThat floor is why EE of 3.0 coexists with an expected MtM of -3.0 at year 4."
+ },
+ {
+  "id": "CR-T4-02",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Which of the following statements correctly defines the potential future exposure of a derivatives contract?",
+  "options": {
+   "A": "The credit exposure on a future date, modelled at a specified confidence interval.",
+   "B": "The expected credit exposure on a future date, conditional on positive market values.",
+   "C": "The minimum potential loss if the counterparty defaults.",
+   "D": "The difference between the expected exposure and the credit exposure on a future date."
+  },
+  "answer": "A",
+  "solution": "The distinction that governs this whole learning objective. At every future date the value of the netting set is a distribution, not a number. Different metrics read different points off that distribution.\n\n| Metric | What it reads off the distribution | Typical use |\n|---|---|---|\n| Expected mark-to-market | The mean of V(t), which may be negative | Understanding the drift of the trade |\n| Expected exposure, EE | The mean of max(V(t), 0), never negative | CVA and capital |\n| Potential future exposure, PFE | A high quantile of max(V(t), 0) | Credit limits |\n| Maximum exposure | The highest PFE across all future dates | Worst-case limit setting |\n\n$$PFE(t,\\alpha) = \\text{the } \\alpha \\text{ quantile of the distribution of } \\max(V(t),0)$$\n\n$$EE(t) = E[\\max(V(t),0)], \\text{ the mean of the same distribution}$$\n\n**Why PFE is the larger figure.** A typical confidence level is 95% or 97.5%, so PFE sits far into the right tail while EE sits at the centre. PFE answers what could happen in an adverse case; EE answers what happens on average.\n\n**Which is used for what.** PFE is a limit measure: credit lines are set against it, because a limit must control the bad case. EE and EPE are pricing and capital measures: CVA is computed from expected exposure, because a valuation adjustment is an expectation, and Basel capital uses effective EPE."
+ },
+ {
+  "id": "CR-T4-03",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "To address shortcomings of expected exposure and expected positive exposure, the Basel Committee introduced effective expected exposure and effective expected positive exposure. What was the reason for these measures?",
+  "options": {
+   "A": "EE and EPE may underestimate exposure for short-dated transactions and do not take account of roll-over risk.",
+   "B": "EE and EPE may overestimate exposure for short-dated transactions and do not take account of roll-over risk.",
+   "C": "EE and EPE may underestimate exposure for long-dated transactions and do not take account of roll-over risk.",
+   "D": "EE and EPE may underestimate exposure for short-dated transactions and take account only of roll-over risk."
+  },
+  "answer": "A",
+  "solution": "**The problem being solved.** A short-dated trade has an exposure profile that rises and then falls to zero at maturity. Averaging that profile over the capital horizon produces a low EPE. But a bank that rolls the trade over at maturity does not see its exposure fall to zero: a new trade replaces the old one and exposure resumes. Basing capital on the declining profile therefore understates the true ongoing exposure.\n\n**The fix.** Effective expected exposure is defined as the running maximum, so the profile is not permitted to decline:\n\n$$EEE(t) = \\max[EEE(t-1), EE(t)]$$\n$$EEPE = \\text{time average of } EEE(t) \\text{ over the first year}$$\n\nBy construction EEPE is at least EPE, and the gap is largest for profiles that peak early and decay, which is exactly the short-dated rolled-over case.\n\n| Profile shape | Effect on EPE | Effect of the effective adjustment |\n|---|---|---|\n| Rising throughout the year | EPE captures it adequately | EEPE equals EPE; no adjustment |\n| Peaks early then declines | EPE understates ongoing exposure if the trade is rolled | EEPE locks in the peak and exceeds EPE |\n\n**The direction to fix in memory.** The concern is understatement for short-dated transactions. Long-dated trades already have profiles that build over time and are less affected, because their EE is naturally non-decreasing over the first year.\n\n**Where it is used.** Regulatory exposure  […]"
+ },
+ {
+  "id": "CR-T4-04",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "A risk analyst is explaining to a new team member why the expected mark-to-market of a netting set can be negative while its expected exposure cannot. Which of the following is correct?",
+  "options": {
+   "A": "Expected exposure applies a floor at zero to each simulated future value before averaging, whereas expected mark-to-market averages positive and negative values together; consequently expected exposure is always at least the greater of expected mark-to-market and zero.",
+   "B": "Expected exposure applies a floor at zero after averaging the simulated future values, so expected exposure equals the greater of expected mark-to-market and zero.",
+   "C": "Expected mark-to-market and expected exposure are identical for any netting set with a symmetric future value distribution, since the positive and negative values offset exactly.",
+   "D": "Expected exposure can be negative whenever the netting set is out of the money, in which case the institution owes the counterparty and the exposure is recorded as a liability."
+  },
+  "answer": "A",
+  "solution": "**The order of operations is the entire content of this question.**\n\n$$\\text{Expected MtM}(t) = E[V(t)]$$\n$$\\text{Expected exposure}(t) = E[\\max(V(t), 0)]$$\n\nThe maximum operator sits inside the expectation. Each simulated path is floored at zero individually, and only then are the floored values averaged. Negative scenarios contribute zero rather than a negative number, so they cannot pull the average down.\n\n**A worked illustration.** Suppose three equally likely future values of +12, 0 and -12.\n\n| Scenario | V(t) | max(V(t), 0) |\n|---|---|---|\n| 1 | +12 | 12 |\n| 2 | 0 | 0 |\n| 3 | -12 | 0 |\n| Average | 0.0 = expected MtM | 4.0 = expected exposure |\n\nExpected MtM is zero and expected exposure is 4.0. The gap is entirely produced by the floor.\n\n**Why option (b) is the natural but wrong reading.** Applying the floor after averaging would give max(0, 0) = 0 in the illustration, which understates exposure. By Jensen's inequality the correct ordering always gives the larger figure:\n\n$$E[\\max(V,0)] \\geq \\max(E[V], 0)$$\n\n**The practical consequence.** A netting set whose expected value is zero, such as a par swap at inception, still carries substantial expected exposure and therefore a real CVA charge. If the floor were applied after averaging, such a trade would appear to have no counterparty risk at all, which is plainly wrong.\n\n**The symmetric case.** A symmetric distribution about […]"
+ },
+ {
+  "id": "CR-T4-05",
+  "lo": "CR-19 c",
+  "loText": "Identify factors that affect the calculation of the credit exposure profile and summarize the impact of collateral on exposure.",
+  "outside": false,
+  "question": "A counterparty risk analyst is explaining why the exposure profile of an interest rate swap rises and then falls over its life. Which of the following correctly identifies the two competing effects and their interaction with collateral?",
+  "options": {
+   "A": "A diffusion effect that increases uncertainty about future value as the horizon lengthens, offset by an amortisation effect that reduces the remaining cash flows at risk as the swap approaches maturity; collateral truncates the profile at the threshold plus the exposure accruing over the margin period of risk.",
+   "B": "A diffusion effect that reduces uncertainty as the horizon lengthens, offset by an amortisation effect that increases the remaining cash flows at risk; collateral removes the profile entirely once a credit support annex is in place.",
+   "C": "A diffusion effect and an amortisation effect that both increase exposure over time, producing a monotonically rising profile; collateral shifts the entire profile downward by the amount of collateral held.",
+   "D": "A single effect, namely the volatility of the underlying rate, with collateral reducing the profile to zero at every point at which a margin call is made."
+  },
+  "answer": "A",
+  "solution": "**The two competing effects.**\n\n| Effect | Direction over time | Driver |\n|---|---|---|\n| Diffusion | Increases exposure | Uncertainty about the market factor grows with the square root of the horizon |\n| Amortisation | Decreases exposure | Fewer remaining cash flows are at risk as maturity approaches |\n\nFor an interest rate swap the diffusion effect dominates early, when many cash flows remain and uncertainty is building, and the amortisation effect dominates late, when few cash flows remain regardless of how far rates have moved. The result is the characteristic bell or hump shape, peaking roughly one third of the way through the life of the swap.\n\n**Why the profile does not peak at maturity.** At maturity the remaining cash flows are zero, so exposure must be zero however uncertain rates have become. Amortisation always wins at the end.\n\n**What collateral does.** Collateralisation does not remove exposure; it truncates the profile at a residual level:\n\n$$\\text{Residual exposure} \\approx \\text{Threshold} + \\text{Minimum Transfer Amount} + \\text{exposure accruing over the margin period of risk}$$\n\nThe first two terms are contractual and known. The third is the amount by which exposure can move between the last effective margin call and close-out, and it is the term that grows with volatility and with the length of the remargining period.\n\n**Other factors affecting the profile. […]"
+ },
+ {
+  "id": "CR-T4-06",
+  "lo": "CR-19 c",
+  "loText": "Identify factors that affect the calculation of the credit exposure profile and summarize the impact of collateral on exposure.",
+  "outside": false,
+  "question": "An investment bank has multiple derivative positions open with a key counterparty, including a currency swap and an interest rate swap, under a single netting agreement. Under which of the following scenarios would the bank experience the greatest netting advantage?",
+  "options": {
+   "A": "The currency swap and the interest rate swap have a strong positive correlation.",
+   "B": "The currency swap and the interest rate swap have a weak positive correlation.",
+   "C": "The currency swap and the interest rate swap are uncorrelated with each other.",
+   "D": "The currency swap and the interest rate swap have a strong negative correlation."
+  },
+  "answer": "D",
+  "solution": "**How netting works.** Under an enforceable netting agreement only the net mark-to-market across the netting set is at risk on default. The netting benefit is the difference between the sum of individual positive exposures and the exposure on the net position:\n\n$$\\text{Netting benefit} = \\sum_i \\max(V_i, 0) - \\max\\left(\\sum_i V_i, 0\\right)$$\n\n**Why negative correlation maximises the benefit.** The benefit exists only when trades take opposite signs. Strongly negatively correlated trades are in opposite states most of the time, so the offset is frequent and large.\n\n| Correlation between the two trades | Typical states | Netting benefit |\n|---|---|---|\n| Strong positive | Both positive or both negative together | Minimal; the net is close to the sum |\n| Uncorrelated | Independent signs | Moderate |\n| Strong negative | One positive while the other is negative | Greatest |\n\n**The formal result.** For n trades with equal volatility and average correlation $\\rho$, the netting factor is:\n\n$$\\text{Netting factor} = \\frac{\\sqrt{n + n(n-1)\\rho}}{n}$$\n\nIt equals 1 at $\\rho = 1$, meaning no benefit at all, and falls as $\\rho$ declines. At $\\rho = 0$ with two trades the factor is $\\sqrt{2}/2 = 0.707$, a 29% reduction. Negative correlation drives it lower still.\n\n**The intuition to hold.** Netting rewards offsetting positions. A netting set of trades that all move together provides no benefi […]"
+ },
+ {
+  "id": "CR-T4-07",
+  "lo": "CR-19 d",
+  "loText": "Identify typical credit exposure profiles for various derivative contracts and combination profiles.",
+  "outside": false,
+  "question": "A risk analyst is determining which instrument is most likely to exhibit a bell-shaped or humped potential future exposure profile over time. Which of the following best fits that description?",
+  "options": {
+   "A": "An equity-linked note",
+   "B": "An interest rate cap",
+   "C": "A plain vanilla interest rate swap",
+   "D": "A credit default swap on a corporate bond"
+  },
+  "answer": "C",
+  "solution": "**Why the swap is humped.** Exposure is the net of two effects. Early in the life of the swap the diffusion effect dominates, because rates have had little time to move but many cash flows remain at risk. Late in the life the amortisation effect dominates, because few cash flows remain regardless of how far rates have moved. The profile peaks at roughly one third of the swap's life and falls to zero at maturity.\n\n| Instrument | Typical PFE profile | Reason |\n|---|---|---|\n| Plain vanilla interest rate swap | Humped, peaking early and falling to zero | Diffusion builds while amortisation erodes remaining cash flows |\n| Cross-currency swap | Rising to maturity | Principal is exchanged at maturity, so the largest cash flow is last |\n| Foreign exchange forward | Rising to maturity | A single cash flow at maturity, so no amortisation |\n| Purchased option, premium paid upfront | Rising, and one-sided | Exposure only ever runs one way, toward the buyer |\n| Credit default swap protection bought | Rising, and jump prone | Value moves with the reference credit and can gap on a credit event |\n\n**The contrast that matters most.** A cross-currency swap does not hump. Because principal is exchanged at maturity, the largest cash flow is the last one, so amortisation never takes hold and the profile keeps rising to maturity. That single structural difference, principal exchange, changes the sh […]"
+ },
+ {
+  "id": "CR-T4-08",
+  "lo": "CR-19 h",
+  "loText": "Explain the impact of collateralization on exposure and assess the risk associated with the remargining period, threshold, and minimum transfer amount.",
+  "outside": false,
+  "question": "An investment firm engages in frequent derivative transactions in volatile markets. Its current policy mandates a remargining period of three days, and the risk department is debating whether shortening the period would more effectively mitigate risk.\n\nHow would shortening the remargining period affect the firm's risk exposure?",
+  "options": {
+   "A": "Shortening the remargining period will decrease operational costs by reducing the frequency of collateral adjustments.",
+   "B": "A shorter remargining period will increase exposure to market volatility and counterparty risk.",
+   "C": "Reducing the remargining period will decrease exposure, because less time elapses during which the position can move against the firm before collateral is called and received.",
+   "D": "The remargining period has no effect on exposure, since the threshold and minimum transfer amount determine the residual entirely."
+  },
+  "answer": "C",
+  "solution": "**What the remargining period governs.** Collateral is not continuous. Between one effective margin call and the next, the position can move against the firm with no corresponding collateral being received. The relevant window is the margin period of risk:\n\n$$\\text{Margin period of risk} = \\text{remargining period} + \\text{notice, dispute and settlement time} + \\text{close-out period}$$\n\n**How exposure scales with it.** Under a diffusion assumption, the exposure accruing over a window of length $\\tau$ grows with its square root:\n\n$$\\text{Exposure over the margin period} \\approx \\sigma \\times \\sqrt{\\tau}$$\n\nIf the whole window $\\tau$ were cut from three days to one, the margin-period component of exposure would fall by a factor of $\\sqrt{3}$, about 42%. Shortening only the remargining period gives a smaller proportional reduction, because the notice, settlement and close-out days in the margin period of risk are unchanged, and the threshold and minimum transfer amount components are unaffected.\n\n**The residual after collateralisation.**\n\n$$\\text{Residual exposure} \\approx \\text{Threshold} + \\text{Minimum Transfer Amount} + \\sigma\\sqrt{\\text{margin period of risk}}$$\n\nAll three terms contribute, which is why option (d) fails: the margin period term is a genuine and often dominant component, particularly in volatile markets.\n\n| Parameter | Effect of increasing it on residual expos […]"
+ },
+ {
+  "id": "CR-T4-09",
+  "lo": "CR-19 h",
+  "loText": "Explain the impact of collateralization on exposure and assess the risk associated with the remargining period, threshold, and minimum transfer amount.",
+  "outside": false,
+  "question": "A proprietary trading firm is reassessing the threshold for collateral calls in its derivative portfolio. How would adjusting the threshold affect the firm's credit risk?",
+  "options": {
+   "A": "Increasing the threshold will reduce credit risk, by requiring more collateral to be posted and thus providing greater protection.",
+   "B": "Lowering the threshold will reduce credit risk, by requiring collateral to be posted for smaller changes in exposure.",
+   "C": "Changing the threshold has no significant impact on credit risk but affects the operational efficiency of managing collateral.",
+   "D": "A higher threshold decreases the frequency of collateral calls, thereby decreasing credit risk while reducing administrative costs."
+  },
+  "answer": "B",
+  "solution": "**What the threshold is.** An unsecured credit line granted to the counterparty. No collateral is called until exposure exceeds it.\n\n$$\\text{Credit Support Amount} = \\max(0, \\text{Exposure} + \\text{Independent Amount} - \\text{Threshold})$$\n\nThe threshold enters with a negative sign, so raising it directly reduces the collateral required and raises the uncollateralised exposure one for one.\n\n| Threshold | Collateral called | Uncollateralised exposure | Operational burden |\n|---|---|---|---|\n| Higher | Less | More | Lower |\n| Lower | More | Less | Higher |\n| Zero | From the first dollar of exposure | Minimum transfer amount plus margin period exposure only | Highest |\n\n**The trade.** A lower threshold means collateral is called sooner and more often. Credit risk falls; operational burden and funding pressure on the counterparty rise. At a threshold of zero the position is collateralised from the first dollar of exposure, leaving only the minimum transfer amount and the margin period exposure as residual.\n\n**Why option (d) is internally contradictory.** It correctly observes that a higher threshold reduces call frequency and administrative cost, then concludes that credit risk decreases. Fewer calls means less collateral means more exposure. The two clauses cannot both be true.\n\n**Practical calibration.** Thresholds are typically tiered to counterparty credit quality, with weak co […]"
+ },
+ {
+  "id": "CR-T4-10",
+  "lo": "CR-19 h",
+  "loText": "Explain the impact of collateralization on exposure and assess the risk associated with the remargining period, threshold, and minimum transfer amount.",
+  "outside": false,
+  "question": "A collateral manager is negotiating a credit support annex and must set the minimum transfer amount. Which statement best describes its purpose and its risk consequence?",
+  "options": {
+   "A": "The minimum transfer amount prevents uneconomic transfers of trivial sums, and it adds directly to the uncollateralised exposure, since exposure can move by up to that amount without triggering a call.",
+   "B": "The minimum transfer amount is the smallest exposure at which collateral becomes payable, so it performs the same function as the threshold and the two should be set equal.",
+   "C": "The minimum transfer amount reduces uncollateralised exposure, because it guarantees that any transfer made is at least that size.",
+   "D": "The minimum transfer amount affects only the rounding of collateral transfers and has no bearing on residual exposure."
+  },
+  "answer": "A",
+  "solution": "**Purpose.** Every collateral transfer costs something: instruction, settlement, reconciliation and custody. Calling for a trivial sum is uneconomic. The minimum transfer amount suppresses calls below an agreed size.\n\n**Risk consequence.** The suppressed amount is uncollateralised. Exposure can move by up to the minimum transfer amount, in either direction, without any transfer being made:\n\n$$\\text{Residual exposure} \\approx \\text{Threshold} + \\text{Minimum Transfer Amount} + \\text{exposure accruing over the margin period of risk}$$\n\nIt is therefore additive to the threshold in its effect on residual exposure, even though the two perform different functions.\n\n| Parameter | What it suppresses | Applies |\n|---|---|---|\n| Threshold | All collateralisation below a level of exposure | Once, at the bottom of the exposure range |\n| Minimum transfer amount | Transfers below a given size | At every level of exposure, including above the threshold |\n| Rounding | Fractional amounts within a transfer | After the transfer amount is determined |\n\n**Why it is not the same as the threshold, which option (b) claims.** The threshold is a level of exposure below which nothing is collateralised at all. The minimum transfer amount is a size of transfer below which no movement occurs, and it applies at every level of exposure, including well above the threshold. A netting set with a zero threshold a […]"
+ },
+ {
+  "id": "CR-T4-12",
+  "lo": "CR-21 a",
+  "loText": "Differentiate among current exposure, peak exposure, expected exposure, and expected positive exposure.",
+  "outside": true,
+  "question": "A risk committee member asks how current exposure, peak exposure, expected exposure and expected positive exposure differ from one another. Which of the following is correct?",
+  "options": {
+   "A": "Current exposure is today's positive mark-to-market; peak exposure is a high quantile of exposure at a future date; expected exposure is the mean of exposure at a future date; and expected positive exposure is the time average of expected exposure over a horizon.",
+   "B": "Current exposure is today's positive mark-to-market; peak exposure is the mean of exposure at a future date; expected exposure is a high quantile at a future date; and expected positive exposure is the maximum of expected exposure over a horizon.",
+   "C": "All four measures are quantiles of the exposure distribution, differing only in the confidence level applied, with current exposure at the median and peak exposure at the 99th percentile.",
+   "D": "Expected exposure and expected positive exposure are identical, since exposure is floored at zero and therefore always positive; the two terms are used interchangeably in practice."
+  },
+  "answer": "A",
+  "solution": "**Two questions separate the four measures.** Mean or quantile? And one date or averaged across the horizon?\n\n| Measure | Mean or quantile | Single date or averaged | Typical use |\n|---|---|---|---|\n| Current exposure | Neither; an observed value | Today | Immediate risk reporting and collateral calls |\n| Peak exposure | High quantile | A single future date | Credit limit setting |\n| Expected exposure | Mean | A single future date | Input to CVA |\n| Expected positive exposure | Mean | Averaged across the horizon | Regulatory capital, via effective EPE |\n\n$$\\text{Current exposure} = \\max(V(0), 0), \\text{ an observed number}$$\n$$EE(t) = E[\\max(V(t),0)], \\text{ a mean at a single future date}$$\n$$PFE(t,\\alpha) = \\text{the } \\alpha \\text{ quantile of } \\max(V(t),0), \\text{ at a single future date}$$\n$$EPE = \\frac{1}{T}\\sum_t EE(t), \\text{ a time average across the horizon}$$\n\n**Peak exposure.** Peak exposure is a high quantile at a given future date, which is the same construct as potential future exposure. Maximum exposure is the highest such quantile across all dates, and is the measure typically used to set a credit line for the whole life of a netting set.\n\n**Why EPE and EE are not the same, which option (d) claims.** EE is a function of time; EPE is a single number obtained by averaging EE across time. Confusing them makes the effective EPE construction impossible to state, si […]"
+ },
+ {
+  "id": "CR-T4-18",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "A portfolio has a current mark-to-market value of 15. Variation margin of 10 is held, and segregated initial margin of 6 has been posted bilaterally.\n\nIgnoring close-out costs, determine the counterparty credit risk exposure and the exposure for funding risks respectively.",
+  "options": {
+   "A": "Counterparty risk exposure 0; funding exposure 13",
+   "B": "Counterparty risk exposure 7; funding exposure 0",
+   "C": "Counterparty risk exposure 13; funding exposure 0",
+   "D": "Counterparty risk exposure 0; funding exposure 11"
+  },
+  "answer": "D",
+  "solution": "This question is retained despite the arithmetic being trivial: the demand is definitional, testing the sign with which posted segregated initial margin enters two different exposure measures, not the calculation of any of the named exposure metrics. It is retained because the counterparty exposure against funding exposure distinction is the natural companion to the collateral material elsewhere in this tier.\n\nBilateral posting means each party posts 6 of segregated initial margin, so two different amounts are involved. The initial margin received (6) reduces counterparty credit exposure; the initial margin posted (6) increases funding exposure. Each affects only one of the two measures, which is the entire point of the question.\n\n**Counterparty credit risk exposure.** What is at risk if the counterparty defaults. Both variation margin held and initial margin held reduce it, floored at zero:\n\n$$\\text{CCR exposure} = \\max(0, MtM - \\text{variation margin held} - \\text{initial margin held})$$\n$$= \\max(0, 15-10-6) = \\max(0,-1) = 0$$\n\nThe position is slightly over-collateralised, so no counterparty credit exposure remains.\n\n**Funding exposure.** What must be funded. Variation margin received can generally be used, but segregated initial margin posted cannot be recovered or reused, so it is a funding drain:\n\n$$\\text{Funding exposure} = MtM - \\text{variation margin held} + \\text{initi […]"
+ },
+ {
+  "id": "CR-FT-18",
+  "lo": "CR-12 a",
+  "loText": "Assess the credit risks of derivatives.",
+  "outside": false,
+  "question": "A dealer is valuing a credit default swap on which it has bought protection, and must account for the credit risk of the protection seller. Which of the following correctly describes the adjustment?",
+  "options": {
+   "A": "The risk-free value of the swap is reduced by a CVA term reflecting the joint event that the protection seller defaults while the swap has positive value to the buyer, and the adjustment is larger the higher the correlation between the seller and the reference entity.",
+   "B": "The risk-free value is reduced by a CVA term computed from the seller's default probability alone, since the correlation between the seller and the reference entity affects the timing of the loss but not its size.",
+   "C": "No adjustment is required, because a credit default swap is collateralised by definition and the protection buyer's exposure is therefore always zero.",
+   "D": "The risk-free value is increased by a DVA term reflecting the buyer's own default probability, and no adjustment is made for the seller, since the buyer bears no exposure to the seller once the premium has been paid."
+  },
+  "answer": "A",
+  "solution": "A purchased CDS carries counterparty exposure to the protection seller that is inherently wrong-way: the swap is most valuable precisely when credit conditions have deteriorated and the seller is least able to pay.\n\n**The exposure being valued.** A purchased CDS has positive value to the buyer when the reference entity's credit has deteriorated. That is exactly when the buyer needs the seller to perform.\n\n$$\\text{Risky value} = \\text{Risk-free value} - CVA$$\n$$CVA = LGD_{seller} \\times \\sum_t EE(t) \\times PD_{seller}(t) \\times DF(t)$$\n\n**Why correlation is central rather than incidental.** The standard CVA formula above assumes exposure and seller default are independent. For a CDS that assumption is untenable. Both the value of the protection and the seller's default probability are driven by the same credit cycle, so the correct quantity is expected exposure conditional on the seller defaulting, which exceeds unconditional expected exposure.\n\n| Correlation between seller and reference entity | Value of the protection | CVA |\n|---|---|---|\n| Zero | Close to the risk-free value | Modest |\n| Positive | Reduced | Larger |\n| Approaching one | Approaching zero | Approaching the full risk-free value |\n\n**The limiting case.** If the seller and the reference entity were perfectly correlated, the protection would be worthless: the seller would fail in every state in which the protectio […]"
+ },
+ {
+  "id": "CR-FT-26",
+  "lo": "CR-19 e",
+  "loText": "Explain how payment frequencies and exercise dates affect the exposure profile of various securities.",
+  "outside": false,
+  "question": "A counterparty risk analyst is explaining how contractual features and portfolio aggregation shape an exposure profile. Which of the following is correct?",
+  "options": {
+   "A": "More frequent payments reduce exposure by resetting the accumulated mark-to-market more often, and an exercise date on an option truncates the profile because the position either terminates or converts; aggregating transactions under an enforceable netting agreement reduces exposure below the sum of the individual profiles, and the reduction is largest when transaction values are negatively correlated.",
+   "B": "More frequent payments increase exposure because each payment date creates a settlement risk window, and exercise dates have no effect on the profile since the underlying risk continues regardless; aggregation reduces exposure most when transaction values are positively correlated.",
+   "C": "Payment frequency affects only operational cost and not the exposure profile, since exposure depends solely on the volatility of the underlying; aggregation has no effect on exposure unless the transactions are in the same currency.",
+   "D": "More frequent payments reduce exposure, and aggregation reduces exposure by an amount that is independent of correlation, since netting is a legal mechanism rather than a statistical one."
+  },
+  "answer": "A",
+  "solution": "Cash flow timing truncates the accumulation of mark-to-market value, and netting benefit depends on how transaction values co-move.\n\n**Payment frequency.** Exposure on a swap is the accumulated difference between what has been paid and what has been received since the last settlement. Each payment resets part of that accumulation to zero.\n\n| Feature | Effect on the exposure profile |\n|---|---|\n| More frequent payments | Lowers the profile; less mark-to-market accumulates between resets |\n| Exercise date | Truncates the profile; the position terminates or converts |\n| Principal exchange at maturity | Raises the profile toward maturity; the largest flow is last |\n| Aggregation under netting | Lowers total exposure below the sum of individual profiles |\n\nA quarterly-paying swap therefore has a lower exposure profile than an otherwise identical annual-paying swap, because value has less time to build between resets.\n\n**Exercise dates.** An option's exposure profile is truncated at the exercise date. Either the option is exercised, converting into the underlying position with its own profile, or it expires worthless and exposure falls to zero. A Bermudan or American feature creates multiple such points and generally lowers the profile relative to a European equivalent.\n\n**Aggregation.** Under an enforceable netting agreement:\n\n$$EE_{\\text{netting set}} = E\\left[\\max\\left(\\sum_i V_i, […]"
+ },
+ {
+  "id": "CR-FT-27",
+  "lo": "CR-20 h",
+  "loText": "Explain how netting can be incorporated into the CVA calculation.",
+  "outside": true,
+  "question": "A CVA desk is refining its calculation to reflect an enforceable netting agreement and a credit support annex. Which of the following correctly describes how each is incorporated?",
+  "options": {
+   "A": "Netting is incorporated by computing expected exposure on the netted portfolio rather than trade by trade, so that CVA is computed once for the netting set and allocated to trades through incremental or marginal CVA; collateral is incorporated by replacing the exposure profile with the collateralised residual, which is driven by the threshold, the minimum transfer amount and the exposure accruing over the margin period of risk, with segregated initial margin further reducing it.",
+   "B": "Netting is incorporated by computing CVA trade by trade and then subtracting a netting benefit adjustment at the portfolio level; collateral is incorporated by setting expected exposure to zero for any netting set covered by a credit support annex.",
+   "C": "Netting has no effect on CVA because CVA is driven by the counterparty's credit spread rather than by exposure; collateral reduces CVA only to the extent that the collateral itself is credit risky.",
+   "D": "Both are incorporated by applying a fixed regulatory multiplier to the uncollateralised CVA, since the alpha factor of 1.4 already reflects typical netting and collateral arrangements."
+  },
+  "answer": "A",
+  "solution": "Netting changes the exposure profile that enters CVA, so CVA becomes a netting set quantity requiring allocation; collateral replaces that profile with a residual governed by the CSA parameters and the margin period of risk.\n\n**Netting in CVA.** CVA is computed from expected exposure, so netting enters by changing the exposure profile itself:\n\n$$CVA_{\\text{netting set}} = LGD \\times \\sum_t EE_{\\text{netted}}(t) \\times PD(t) \\times DF(t)$$\n\nBecause EE is computed on the net portfolio, CVA becomes a property of the netting set rather than of any individual trade, and it is non-additive:\n\n$$CVA_{\\text{netting set}} \\leq \\sum_i CVA_i^{\\text{standalone}}$$\n\nAllocation to trades therefore requires incremental CVA for pricing a new trade and marginal CVA for attributing the existing charge.\n\n**Collateral in CVA.** The exposure profile is replaced by the collateralised residual.\n\n| CSA parameter | Direction of effect on CVA |\n|---|---|\n| Higher threshold | Increases CVA; more exposure left uncollateralised |\n| Higher minimum transfer amount | Increases CVA |\n| Longer margin period of risk | Increases CVA; exposure accrues over a longer unprotected window |\n| Higher initial margin | Decreases CVA; absorbs the residual |\n\n**Why collateral does not take CVA to zero, which disposes of option (b).** Three residual terms survive. The threshold is uncollateralised by agreement. The minimum tr […]"
+ },
+ {
+  "id": "CR-QB-0527",
+  "lo": "CR-12 a",
+  "loText": "Assess the credit risks of derivatives.",
+  "outside": false,
+  "question": "Bank A and Bank B have a bilateral swap under an ISDA Master Agreement with a zero‑threshold, two‑way collateral agreement. The margin period of risk (cure period) is 10 days: Bank B stops posting collateral 10 days before default, so Bank A holds collateral equal to the swap value 10 days before the default. That value was \\$40 million. Bank B defaults at time $T$, just before the next margin call, when the swap value to Bank A is \\$50 million. What is Bank A’s credit exposure to Bank B at default?",
+  "options": {
+   "A": "\\$0",
+   "B": "\\$10 million",
+   "C": "\\$40 million",
+   "D": "\\$50 million"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Collateral held by A = value 10 days before default = \\$40 million.\n2. Current value of the swap to A at default = \\$50 million (positive, so B owes A).\n3. Exposure = max(value at default ‑ collateral held, 0) = 50 − 40 = \\$10 million.\n4. A is an unsecured creditor for \\$10 million.\n\n**REBUILT** — Source said collateral reflected the value 9 days earlier although the margin period is 10 days; rewrote so the collateral is based on the value one full margin period (10 days) before default."
+ },
+ {
+  "id": "CR-QB-0528",
+  "lo": "CR-12 a",
+  "loText": "Assess the credit risks of derivatives.",
+  "outside": false,
+  "question": "A bank and a nonfinancial counterparty have a two‑way, zero‑threshold collateral agreement: each side must post collateral equal to max$(V, 0)$, where $V$ is the value of the transactions to the other side. The cure period (margin period of risk) is 10 days, so the counterparty stops posting or returning collateral 10 days before default. In a simulation trial, the value of the outstanding transactions to the bank at time $T$ is \\$80 million, and 10 days earlier it was \\$90 million. The counterparty defaults at $T$. What is the bank’s exposure?",
+  "options": {
+   "A": "\\$0",
+   "B": "\\$10 million",
+   "C": "\\$80 million",
+   "D": "\\$90 million"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Collateral held by the bank = value 10 days earlier = \\$90 million.\n2. Value owed to the bank at default = \\$80 million.\n3. Collateral held (\\$90m) exceeds the amount owed (\\$80m), so the bank is fully covered.\n4. Exposure = max(80 ‑ 90, 0) = \\$0.\n\n**REBUILT** — Source asked which outcome was ’possible’ with loosely worded options; rewrote as a numeric exposure question using the Hull cure‑period convention with an excess‑collateral twist."
+ },
+ {
+  "id": "CR-QB-0529",
+  "lo": "CR-12 a",
+  "loText": "Assess the credit risks of derivatives.",
+  "outside": false,
+  "question": "In a bilaterally cleared derivatives transaction between two companies (Company A and Company B), Company B defaults. The value of the transactions for Company A is a positive \\$50,000, and the collateral posted by Company B is \\$30,000. In this situation, Company A is a(n):",
+  "options": {
+   "A": "secured creditor in the amount of \\$20,000.",
+   "B": "secured creditor in the amount of \\$80,000.",
+   "C": "unsecured creditor in the amount of \\$20,000.",
+   "D": "unsecured creditor in the amount of \\$80,000."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Value owed to A = \\$50,000; collateral held from B = \\$30,000.\n2. Uncollateralized amount = 50,000 ‑ 30,000 = \\$20,000.\n3. The uncovered part is an unsecured claim against B’s estate."
+ },
+ {
+  "id": "CR-QB-0530",
+  "lo": "CR-12 a",
+  "loText": "Assess the credit risks of derivatives.",
+  "outside": false,
+  "question": "Under an ISDA Master Agreement, Company B defaults and Company A is the nondefaulting party. Collateral is posted by both sides. In which of the following situations will Company A most likely incur a loss, becoming an unsecured creditor?",
+  "options": {
+   "A": "Transactions are worth \\$20 (thousand) to A, and B has posted \\$35 (thousand) of collateral to A.",
+   "B": "Transactions are worth \\$40 (thousand) to A, and B has posted \\$40 (thousand) of collateral to A.",
+   "C": "Transactions are worth \\$30 (thousand) to B, and A has posted \\$50 (thousand) of collateral to B.",
+   "D": "Transactions are worth \\$30 (thousand) to B, and A has posted \\$30 (thousand) of collateral to B."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. A loss arises in two cases: (1) value to the nondefaulting party is positive and exceeds the defaulter’s collateral; (2) value to the defaulter is positive and is less than the collateral posted by the nondefaulting party.\n2. A: value to A is 20 and A holds 35, so collateral covers the claim; no loss.\n3. B: 40 vs 40 held; fully covered; no loss.\n4. C: value to B is 30 but A posted 50; the excess of 20 must be recovered from B’s estate, so A is an unsecured creditor for 20.\n5. D: A posted 30 against 30 owed; nothing excess; no loss.\n\n**REBUILT** — Source was a vague ’all of the above’ question with a giveaway answer and not testing the Hull ISDA loss conditions; rewrote to test when the nondefaulting party incurs a loss."
+ },
+ {
+  "id": "CR-QB-0657",
+  "lo": "CR-14 j",
+  "loText": "Describe the approaches used and the challenges faced in modeling derivatives risk.",
+  "outside": true,
+  "question": "A bank that has long applied backtested market‑risk VaR models is extending its framework to measure counterparty risk using potential future exposure (PFE). A senior risk officer asks the model validation team how PFE modeling differs from VaR. Which of the following is the most accurate response?",
+  "options": {
+   "A": "PFE is the credit risk analogue of VaR but looks years ahead rather than a few days, which adds complexity and makes the models prone to misinterpretation and misuse.",
+   "B": "PFE is easier to backtest than VaR because it is measured over a single day.",
+   "C": "PFE measures the loss from a fall in value of the portfolio, whereas VaR measures only gains on the portfolio.",
+   "D": "PFE avoids correlation and dependency problems because it is derived from the counterparty’s default probability alone."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. PFE is the counterparty risk equivalent of VaR, measuring credit exposure from gains.\n2. Its horizon is many years versus a short VaR horizon (a few days), so historical simulation and backtesting are harder.\n3. Dependency between risk factors, including wrong‑way risk, must also be modeled, adding complexity.\n\n**NEW** — No source question covered this LO adequately; written from the 2026 reading (content per the GARP 2026 book) in GARP practice‑exam style."
+ },
+ {
+  "id": "CR-QB-0693",
+  "lo": "CR-15 e",
+  "loText": "Describe credit value adjustment (CVA) and compare the use of CVA and credit limits in evaluating and mitigating counterparty risk.",
+  "outside": true,
+  "question": "Traditional counterparty credit risk management depends on credit limits, but a more sophisticated approach employs a credit value adjustment (CVA). According to Gregory, which is the key advantage of CVA over a credit line?",
+  "options": {
+   "A": "CVA can include potential future exposure (PFE), but credit limits cannot incorporate PFE",
+   "B": "CVA incorporates a portfolio perspective, but credit limits are not portfolio credit risk management",
+   "C": "CVA enables transaction decisions based on profitability at the trade level, whereas limits only control exposure at the portfolio level",
+   "D": "CVA includes default probability, recovery, and correlation between counterparties, but credit limits cannot"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Credit limits are set on exposure (typically PFE) and act at the portfolio level; a trade is accepted or refused depending on whether it breaches the limit.\n2. So with a limit the implicit price of counterparty risk is zero (accepted) or infinite (rejected).\n3. CVA is the actual price of counterparty risk, defined at the trade and counterparty level.\n4. Hence a trade can be judged on whether its revenue exceeds the CVA, i.e. on profitability. This is the key advantage."
+ },
+ {
+  "id": "CR-QB-0752",
+  "lo": "CR-16 c",
+  "loText": "Describe the effectiveness of netting in reducing credit exposure under various scenarios.",
+  "outside": true,
+  "question": "The table shows four equally likely scenarios and the mark‑to‑market (MtM) values of two trades with the same counterparty, covered by a netting agreement.\n\n| Scenario | Trade 1 | Trade 2 |\n|---|---|---|\n| Scenario 1 | −20 | +25 |\n| Scenario 2 | −25 | +15 |\n| Scenario 3 | −15 | −5 |\n| Scenario 4 | −25 | −15 |\n\nThe expected exposure without netting is (25 + 15 + 0 + 0)/4 = 10. What is the netting benefit to the expected exposure (expected exposure without netting minus expected exposure with netting)?",
+  "options": {
+   "A": "0",
+   "B": "1.25",
+   "C": "8.75",
+   "D": "10.0"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Exposure with netting per scenario max$(V_{1} + V_{2}, 0)$: S1 max(5, 0) = 5; S2 max(−10, 0) = 0; S3 0; S4 0.\n2. Expected exposure with netting = (5 + 0 + 0 + 0)/4 = 1.25.\n3. Benefit = 10 − 1.25 = 8.75.\n\n**REBUILT** — Stem carried OCR damage and confusing extra remarks about correlation; rewrote as a clean scenario table with the benefit defined as the reduction in expected exposure."
+ },
+ {
+  "id": "CR-QB-0898",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Freecone Financial entered into an interest rate swap in which it pays semi‑annual fixed payments at 3.0% per annum and receives floating payments on a notional of \\$50.0 million. The floating rate is six‑month SOFR, which is also the discount rate. The swap has a remaining life of 1.25 years. The floating rate for the exchange in three months was set three months ago at 2.40%. As with a LIBOR‑based swap, the floating rate is observed at the start of each six‑month period and paid at its end. The SOFR term structure is currently flat at 2.60% per annum, continuously compounded. Which of the following is nearest to Freecone’s current exposure on this swap?",
+  "options": {
+   "A": "Zero",
+   "B": "‑\\$335,900",
+   "C": "+\\$335,900",
+   "D": "+\\$1,335,900"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. Remaining payment dates: t = 0.25, 0.75, 1.25. Fixed payment = 50m x 3.0%/2 = \\$750,000 each.\n2. Floating payments: first = 50m x 2.40%/2 = \\$600,000 (already set); the other two = 50m x (e^{0.026 x 0.5} ‑1) = \\$654,243 each (forward rate from the flat curve).\n3. Net (floating ‑ fixed) PVs: (600,000‑750,000)e^{‑0.026x0.25} = ‑149,028; (654,243‑750,000)e^{‑0.026x0.75} = ‑93,907; (654,243‑750,000)e^{‑0.026x1.25} = ‑92,695.\n4. Swap MtM to Freecone = ‑149,028 ‑ 93,907 ‑ 92,695 = about ‑\\$335,600, i.e. nearest to ‑\\$335,900.\n5. Current exposure = max(MtM, 0) = max(‑335,600, 0) = 0."
+ },
+ {
+  "id": "CR-QB-0899",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Which of the following statements about expected mark‑to‑market (expected future value) and expected exposure (EE) for a derivatives position at a future date is FALSE?",
+  "options": {
+   "A": "Expected MtM can be negative.",
+   "B": "EE always equals expected MtM.",
+   "C": "EE is greater than or equal to expected MtM.",
+   "D": "Expected MtM can differ significantly from the current MtM."
+  },
+  "answer": "B",
+  "solution": "**Key correction:** Source key (D, ’expected MtM approximately zero’ is false) is defensible only loosely, and source option B (expected MtM approximately equals expected replacement cost) is also questionable; the item was rebuilt.\n\n**Step by step**\n\n1. Expected MtM averages all outcomes, positive and negative; EE averages max(V,0), i.e. negatives set to zero.\n2. Since max(V,0) >= V in every scenario, EE >= expected MtM, with equality only if no outcome is negative.\n3. Hence B (always equal) is false; A, C, D are true (drift, cash flows and long horizons move expected MtM away from today’s value).\n\n**REBUILT** — Original key relied on ’approximately zero’ (true only at inception) and option B equated expected MtM with replacement cost (really EE); rewrote the options so exactly one statement is false."
+ },
+ {
+  "id": "CR-QB-0900",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Which of the following correctly defines the 99% potential future exposure (PFE) of a portfolio at a given future date?",
+  "options": {
+   "A": "The average of the positive exposures across all scenarios at that date.",
+   "B": "The average of the portfolio values across all scenarios at that date, including negative values.",
+   "C": "The exposure level that would be exceeded at that date with a probability of no more than 1%.",
+   "D": "The average, over time, of the expected exposure out to that date."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. PFE is the worst exposure at a given date at a high confidence level, analogous to VaR.\n2. At 99% confidence, the PFE is the 99th percentile of exposure: exceeded with probability at most 100% ‑ 99% = 1%.\n3. Statement C matches; A, B, D define EE, expected future value and EPE respectively.\n\n**REBUILT** — Original option A said ’confidence interval’ and was loosely worded; rewrote around the GARP definition (exceeded with probability no more than 1 minus the confidence level)."
+ },
+ {
+  "id": "CR-QB-0901",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "The 95% potential future exposure (PFE) profile of a swap is shown below.\n\n| Month | 0 | 12 | 24 | 36 | 48 | 60 | 72 |\n|---|---|---|---|---|---|---|---|\n| 95% PFE (\\$ millions) | 0 | 1.8 | 4.2 | 4.6 | 3.1 | 1.2 | 0 |\n\nWhat is the maximum PFE over the life of the swap, and when does it occur?",
+  "options": {
+   "A": "\\$4.2 million at month 24",
+   "B": "\\$2.1 million (average of the profile)",
+   "C": "\\$3.1 million at month 48",
+   "D": "\\$4.6 million at month 36"
+  },
+  "answer": "D",
+  "solution": "**Step by step**\n\n1. Maximum PFE is the highest PFE value across the horizon.\n2. Scan values: 0, 1.8, 4.2, 4.6, 3.1, 1.2, 0.\n3. The highest is \\$4.6 million at month 36.\n\n**REBUILT** — Original relied on a missing graph (points X, Y, Z); replaced with a data table of 95% PFE by month."
+ },
+ {
+  "id": "CR-QB-0902",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Bank Y pays fixed on a 5‑year \\$50 million interest rate swap. What does Bank Y’s 12‑month expected exposure (EE) represent?",
+  "options": {
+   "A": "The average, across all scenarios 12 months ahead, of the swap’s value to Y with negative values replaced by zero.",
+   "B": "The average, across all scenarios 12 months ahead, of the swap’s value to Y including negative values.",
+   "C": "The average of only those scenarios in which the swap’s value to Y is strictly positive.",
+   "D": "The average of the expected exposures from inception to month 12."
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. EE at a date is the mean of max(V,0) over all scenarios at that date.\n2. Zero and negative outcomes still enter the average, contributing zero with their probability.\n3. That is option A.\n\n**REBUILT** — Original option B (’considering only positive values’) was ambiguous; reworded options to separate EE (negatives set to zero within the average) from the conditional mean of positives."
+ },
+ {
+  "id": "CR-QB-0903",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Banks X and Y enter into a 5‑year \\$50 million interest rate swap in which X pays floating and Y pays fixed. Bank X has a 95% 12‑month potential future exposure (PFE) of \\$3 million. This is equivalent to saying that:",
+  "options": {
+   "A": "12 months ahead, we are 95% confident that X’s gain on the swap will be \\$3 million or more.",
+   "B": "12 months ahead, we are 95% confident that X’s gain on the swap will be \\$3 million or less.",
+   "C": "12 months ahead, X’s loss on the swap will not exceed \\$3 million.",
+   "D": "12 months ahead, X’s gain on the swap will be exactly \\$3 million with probability 95%."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. PFE is the exposure exceeded with probability no more than 1 ‑ confidence = 5%.\n2. X’s exposure is its gain (positive MtM) on the swap.\n3. So with 95% confidence, X’s 12‑month gain is at most \\$3 million."
+ },
+ {
+  "id": "CR-QB-0904",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "The future value of a portfolio at a given date is normally distributed with mean \\$0 and standard deviation \\$10 million. Which row correctly gives expected future value, expected exposure (EE), and 95% PFE (in \\$ millions)?",
+  "options": {
+   "A": "0, 16.45, 3.99",
+   "B": "0, 10.00, 16.45",
+   "C": "0, 3.99, 16.45",
+   "D": "0, 3.99, 23.26"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Expected future value = mean = 0.\n2. EE = E\\[max(V,0)\\] = $\\sigma\\phi(0) = 10 \\times0.3989 = 3.99$.\n3. 95% PFE = $\\mu+ 1.645\\sigma= 16.45$.\n4. Ordering: expected value 0 \\< EE 3.99 \\< PFE 16.45.\n\n**REBUILT** — Original claimed PFE ’must’ exceed EE, which is not generally true (e.g. a deeply out‑of‑the‑money portfolio); replaced with a numeric normal‑distribution case."
+ },
+ {
+  "id": "CR-QB-0905",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Banks X and Y enter into a vanilla 5‑year interest rate swap with a notional of \\$100 million and semiannual payments. Bank X pays six‑month Libor (floating) and Bank Y pays the fixed swap rate of 5%. Bank X calculates a 12‑month potential future exposure (PFE) on the swap of \\$7.5 million at the 99% confidence level. Which statement is the correct interpretation?",
+  "options": {
+   "A": "There is a 1% probability that Bank X’s exposure to Y in 12 months will be \\$7.5 million or less.",
+   "B": "Bank X is 99% confident that its loss on the swap in 12 months will be no more than \\$7.5 million because of market moves alone.",
+   "C": "There is at most a 1% probability that Bank X’s positive mark‑to‑market gain on the swap (its exposure to Bank Y) will exceed \\$7.5 million in 12 months.",
+   "D": "Bank X is 99% confident that its exposure to Bank Y in 12 months will be at least \\$7.5 million."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. PFE is the worst exposure at a future date at a given confidence level, analogous to VaR.\n2. Exposure is positive MtM (a gain for X that is lost if Y defaults): max$(\\text{MtM}, 0)$.\n3. A 99% PFE of \\$7.5m means the exposure exceeds \\$7.5m with probability no more than 100% − 99% = 1%; equivalently X is 99% confident the exposure will not exceed \\$7.5m.\n4. Only C states this; the fixed/floating roles and notional are not needed.\n\n**REBUILT** — Original options were badly worded (option A ungrammatical, C vague about what ’gain’ means); rewrote options so exactly one correctly states the PFE meaning."
+ },
+ {
+  "id": "CR-QB-0906",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Over a period of 5 months, the bank has had counterparty exposures as follows:\n\n| Period | EE (Expected Exposure) \\$m | PFE (95.0% Potential Future Exposure) \\$m | EEE (Effective non‑decreasing EE) \\$m |\n|---|---|---|---|\n| 1 | 5 | 9.8 | 5 |\n| 2 | 10 | 19.6 | 10 |\n| 3 | 9 | 17.64 | 10 |\n| 4 | 5 | 9.8 | 10 |\n| 5 | 4 | 7.84 | 10 |\n\nWhich row correctly gives the Expected Positive Exposure (EPE), the Effective Expected Positive Exposure (EEPE) and the maximum potential future exposure?",
+  "options": {
+   "A": "EPE = \\$6.6m, EEPE = \\$9m and Maximum PFE = \\$19.6m",
+   "B": "EPE = \\$9m, EEPE = \\$6.6m and Maximum PFE = \\$7.84m",
+   "C": "EPE = \\$6.6m, EEPE = \\$10m and Maximum PFE = \\$19.6m",
+   "D": "EPE = \\$6.6m, EEPE = \\$12.9m and Maximum PFE = \\$19.6m"
+  },
+  "answer": "A",
+  "solution": "**Step by step**\n\n1. EPE is the average of the EE profile: (5 + 10 + 9 + 5 + 4)/5 = 6.6.\n2. EEPE is the average of the effective (non‑decreasing) EE: (5 + 10 + 10 + 10 + 10)/5 = 9.0.\n3. Maximum PFE is the highest PFE over the period: max(9.8, 19.6, 17.64, 9.8, 7.84) = 19.6.\n4. Row A matches all three."
+ },
+ {
+  "id": "CR-QB-0907",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Credit exposure is asymmetric and, according to Gregory, can be likened to an option position. Which of the following best describes this?",
+  "options": {
+   "A": "Credit exposure = min(MtM, 0), a long option position",
+   "B": "Credit exposure = min(‑MtM, 0), a long option position",
+   "C": "Credit exposure = max(MtM, 0), a short option position",
+   "D": "Credit exposure = max(‑MtM, 0), a long protective put"
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. Positive exposure is max$(\\text{MtM}, 0)$: the party loses if the value is positive (in its favour, counterparty defaults) and does not gain if it is negative.\n2. The payoff has an option shape (a call‑like payoff on MtM struck at zero), so options‑pricing ideas such as volatility apply.\n3. From the surviving party’s perspective it is a short option position, because the exposure constitutes a loss: the defaulting counterparty holds the option not to pay.\n4. Only C has the correct payoff and the short position."
+ },
+ {
+  "id": "CR-QB-0908",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Each of the following is true about potential future exposure (PFE) EXCEPT which is false?",
+  "options": {
+   "A": "PFE varies with the confidence level, like value at risk (VaR).",
+   "B": "PFE will approximately equal the notional at contract inception.",
+   "C": "PFE is an estimate of credit exposure on a future date.",
+   "D": "Maximum PFE is the highest PFE value over a stated time frame."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. PFE is the worst exposure at a future date at a given confidence level, equivalent to VaR for exposure (A and C true).\n2. Maximum PFE is the peak of the PFE profile over the time frame (D true).\n3. At inception a typical derivative such as a swap or forward has zero MtM and no time for values to move, so PFE is near zero, not the notional.\n4. B is therefore the false statement.\n\n**REBUILT** — Original option D (’PFE must be at least zero’) is debatable because PFE can be defined at low confidence levels on the negative side; replaced with an unambiguous true statement about maximum PFE."
+ },
+ {
+  "id": "CR-QB-0909",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Suppose a mark‑to‑market (MtM) is normally distributed with mean $\\mu= 2.0\\%$ and standard deviation $\\sigma= 5.0\\%$. Each of the following is true about the expected exposure (EE) EXCEPT which is FALSE?",
+  "options": {
+   "A": "The EE is greater than 2.0%.",
+   "B": "The EE is greater than the 95% potential future exposure (PFE).",
+   "C": "An increase in the mean assumption will increase the EE.",
+   "D": "An increase in the standard deviation assumption will increase the EE."
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. EE is the expected positive part of MtM: EE $= \\mu\\Phi(\\mu/\\sigma) + \\sigma\\phi(\\mu/\\sigma) = 3.15\\%$.\n2. 95% PFE $= \\mu+ 1.645\\sigma= 2 + 8.22 = 10.22\\%$.\n3. EE (3.15%) is below the 95% PFE (10.22%), so B is false.\n4. A: 3.15% > 2.0%, true (setting negative values to zero lifts the average above the mean). C and D: EE rises with $\\mu$ (3.84% at $\\mu= 3\\%$) and with $\\sigma$ (3.53% at $\\sigma= 6\\%$)."
+ },
+ {
+  "id": "CR-QB-0910",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "Suppose a mark‑to‑market (MtM) is normally distributed with mean $\\mu= 1.0\\%$ and standard deviation $\\sigma= 3.0\\%$. Each of the following is true about the potential future exposure (PFE) EXCEPT which is FALSE?",
+  "options": {
+   "A": "PFE is similar to value at risk (VaR), except it is defined further into the future and is associated with a future gain rather than a loss.",
+   "B": "The 99% PFE is greater than the 95% PFE, which is greater than the expected exposure (EE).",
+   "C": "If the mean is reduced by 1.0% to $\\mu= 0$, the PFE will increase by 1.0%.",
+   "D": "The PFE is defined only at a specific future point in time; it does not incorporate or average the entire life of the position."
+  },
+  "answer": "C",
+  "solution": "**Step by step**\n\n1. 99% PFE = 1 + 2.326(3) = 7.98%; 95% PFE = 1 + 1.645(3) = 5.93%; EE = 1(0.631) + 3(0.377) = 1.76%. So 7.98 > 5.93 > 1.76 and B is true.\n2. With $\\mu= 0$: 99% PFE = 2.326(3) = 6.98%, which is 1.0% lower, not higher. C is false.\n3. A and D are the standard definitions: PFE is a point‑in‑time upper quantile (gain), unlike EPE which averages across time."
+ },
+ {
+  "id": "CR-QB-0911",
+  "lo": "CR-19 a",
+  "loText": "Describe and calculate the following metrics for credit exposure: expected mark-to-market, expected exposure, potential future exposure, expected positive exposure and negative exposure, effective expected positive exposure, and maximum exposure.",
+  "outside": false,
+  "question": "A one‑year trade has the following expected exposure (EE) profile (in USD millions):\n\n| Time (years) | 0.2 | 0.4 | 0.6 | 0.8 | 1.0 |\n|---|---|---|---|---|---|\n| Expected exposure (EE) | 0.20 | 0.35 | 0.30 | 0.40 | 0.25 |\n\nWhich series is the effective expected exposure (effective EE) at the five dates?",
+  "options": {
+   "A": "0.20, 0.35, 0.30, 0.40, 0.25",
+   "B": "0.20, 0.35, 0.35, 0.40, 0.40",
+   "C": "0.34, 0.34, 0.34, 0.34, 0.34",
+   "D": "0.20, 0.35, 0.35, 0.40, 0.25"
+  },
+  "answer": "B",
+  "solution": "**Step by step**\n\n1. Effective EE is the non‑decreasing version of EE: EffEE$_{t} = \\text{max}(\\text{EffEE}_{t-1}, \\text{EE}_{t})$.\n2. t=0.2: 0.20. t=0.4: max(0.20, 0.35) = 0.35.\n3. t=0.6: EE falls to 0.30, so effective EE stays at 0.35.\n4. t=0.8: max(0.35, 0.40) = 0.40. t=1.0: EE falls to 0.25, so effective EE stays at 0.40.\n5. Series: 0.20, 0.35, 0.35, 0.40, 0.40.\n\n**REBUILT** — Original depended on a missing chart; replaced with a data table of EE and asked for the effective EE series."
+ }
+]

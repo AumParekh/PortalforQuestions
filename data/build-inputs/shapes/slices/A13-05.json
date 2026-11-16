@@ -1,0 +1,467 @@
+[
+ {
+  "id": "MR-WB-2c-3",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A market risk manager at a UK bank estimates 1-day 95% VaR for a GBP trading book using age-weighted historical simulation with $n = 100$ daily observations and $\\lambda= 0.96$. The nine largest historical losses, ranked from worst, and their ages in days are:\n\n| Rank | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |\n|---|---|---|---|---|---|---|---|---|---|\n| Loss (GBP million) | 7.4 | 6.9 | 6.1 | 5.6 | 5.2 | 4.8 | 4.5 | 4.3 | 4.0 |\n| Age (days) | 85 | 3 | 58 | 10 | 47 | 72 | 6 | 30 | 21 |\n\nThe bank takes VaR to be the first ranked loss at which the cumulative probability weight exceeds 5% (no interpolation). Which of the following is closest to the age-weighted 95% VaR?",
+  "options": {
+   "A": "GBP 4.8 million",
+   "B": "GBP 5.6 million",
+   "C": "GBP 6.1 million",
+   "D": "GBP 6.9 million"
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Weight on the most recent observation**\n\n$$w(1) = \\frac{1 - 0.96}{1 - 0.96^{100}} = \\frac{0.04}{1 - 0.016870} = \\frac{0.04}{0.98313} = 0.040686$$\n\n**Step 2 – Age weights of the largest losses,** $w(i) = 0.96^{i-1} \\times0.040686$\n\n$$w(85) = 0.96^{84} \\times0.040686 = 0.00132 w(3) = 0.96^{2} \\times0.040686 = 0.03750$$\n\n$$w(58) = 0.96^{57} \\times0.040686 = 0.00397 w(10) = 0.96^{9} \\times0.040686 = 0.02818$$\n\n⇒ The worst loss is 85 days old and counts for only 0.13%; the 3-day-old loss counts for 3.75%.\n\n**Step 3 – Cumulate down the ranking**\n\nAfter rank 1: 0.00132; after rank 2: 0.03882; after rank 3: 0.04279; after rank 4: 0.04279 + 0.02818 = 0.07096 > 0.05.\n\n⇒ The 5% tail is exhausted at rank 4: the first three losses sit inside the tail and the 10-day-old loss of GBP 5.6 million is where the cumulative weight first exceeds 5%.\n\n**Step 4 – Age-weighted VaR**\n\nVaR$_{95\\%} = \\text{GBP} 5.6$ million\n\n**Interpretation**\n\nTwo recent large losses (ages 3 and 10) carry heavy weights, so the age-weighted VaR (5.6) is above the equal-weight HS VaR (4.8). This is the BRW attraction: VaR is more responsive to recent large losses and clusters. Reversing the age ordering (heaviest weights on the oldest data) would give 4.3.\n\n**LO:** MR-2 c: Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.  […]"
+ },
+ {
+  "id": "MR-WB-2c-4",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "A risk analyst at a US hedge fund applies the Hull and White volatility-weighted historical simulation approach to a USD 25 million single-asset position. The asset’s beta to the S&P 500 is 1.3. The most recent EWMA forecast of daily volatility is 1.2%. The ten daily returns in the window and the EWMA volatility forecast that applied on each day are:\n\n| Day | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |\n|---|---|---|---|---|---|---|---|---|---|---|\n| Return (%) | −3.1 | 1.2 | −2.6 | −0.9 | 1.8 | −2.2 | 0.7 | −1.7 | 0.4 | −1.2 |\n| Vol forecast (%) | 2.4 | 1.5 | 2.0 | 1.1 | 1.6 | 1.3 | 1.0 | 0.9 | 1.2 | 1.4 |\n\nUsing the convention that VaR is the highest loss outside the tail, which of the following is closest to the 1-day 90% volatility-weighted HS VaR?",
+  "options": {
+   "A": "USD 0.51 million",
+   "B": "USD 0.57 million",
+   "C": "USD 0.65 million",
+   "D": "USD 1.08 million"
+  },
+  "answer": "A",
+  "solution": "**Step 1 – Volatility-adjusted returns, eq. 2.3**\n\n$$r^{*}_{t} = \\frac{\\sigma_{T}}{\\sigma_{t}} r_{t} = \\frac{1.2\\%}{\\sigma_{t}} r_{t}$$\n\nDay 1: $\\frac{1.2}{2.4}(-3.1\\%) = -1.550\\%$ Day 3: $\\frac{1.2}{2.0}(-2.6\\%) = -1.560\\%$\n\nDay 4: $\\frac{1.2}{1.1}(-0.9\\%) = -0.982\\%$ Day 6: $\\frac{1.2}{1.3}(-2.2\\%) = -2.031\\%$\n\nDay 8: $\\frac{1.2}{0.9}(-1.7\\%) = -2.267\\%$ Day 10: $\\frac{1.2}{1.4}(-1.2\\%) = -1.029\\%$\n\n(The four positive returns stay positive after scaling and do not enter the left tail.)\n\n⇒ Day 1’s −3.1% happened when volatility was 2.4%, twice today’s level, so it is halved; Day 8’s −1.7% happened in a calm 0.9% regime and is scaled up to −2.27%.\n\n**Step 2 – Locate the VaR observation**\n\nWith 10 observations and a 10% tail, one observation sits in the tail, so VaR is the 2nd largest adjusted loss. Ranked adjusted losses: 2.267%, 2.031%, 1.560%, 1.550%, …\n\n⇒ The 90% VaR return is −2.031% (Day 6).\n\n**Step 3 – Convert to currency**\n\nVaR$_{90\\%} = 0.02031 \\times25 = \\text{USD} 0.508$ million\n\n**Interpretation**\n\nBecause current volatility (1.2%) is below the levels prevailing on the worst raw days, volatility-weighting lowers VaR relative to basic HS (USD 0.65 million). The HW approach makes the estimate appropriately sensitive to current volatility. The beta is irrelevant.\n\n**LO:** MR-2 c: Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, a […]"
+ },
+ {
+  "id": "MR-WB-2c-8",
+  "lo": "MR-2 c",
+  "loText": "Compare and contrast the age-weighted, the volatility-weighted, the correlation-weighted, and the filtered historical simulation approaches.",
+  "outside": false,
+  "question": "The CRO of a European bank is merging a credit trading desk, whose losses are heavily skewed, with a rates desk. A junior risk analyst is preparing a report recommending that the bank replace its basic historical simulation VaR with an expected shortfall estimated by filtered historical simulation (FHS). Which of the following statements is correct for the analyst to include in the report?",
+  "options": {
+   "A": "Because VaR is subadditive for skewed loss distributions, the combined 99% VaR of the two desks cannot exceed the sum of their stand-alone VaRs.",
+   "B": "Because FHS bootstraps from the historical data set, its VaR and ES estimates, like those of basic HS, cannot exceed the largest historical loss.",
+   "C": "Because ES averages all tail losses, its estimators have smaller standard errors than VaR estimators, and the advantage grows as tails become heavier.",
+   "D": "Because ES is subadditive, the combined ES of the two desks cannot exceed the sum of their stand-alone ESs, and FHS can be extended to estimate ES."
+  },
+  "answer": "D",
+  "solution": "**Step 1 – Coherence**\n\nA coherent risk measure satisfies monotonicity, positive homogeneity, translation invariance and subadditivity, $\\rho(X + Y ) \\le\\rho(X) + \\rho(Y )$. ES is coherent; VaR “may not always satisfy the subadditivity condition” (ORR-19), and “may not behave in a sub-additive fashion” (Gregory, CR-14).\n\n**Step 2 – FHS and ES**\n\nFHS bootstraps GARCH-standardised returns and rescales them by tomorrow’s volatility forecast; Dowd notes that it “can also be extended easily to allow for the estimation of ES as well as VaR”. Using ES is also the suggested response to Pritsker’s finding that FHS VaR may not pay enough attention to extreme observations.\n\n**Interpretation**\n\nD is correct. For a merger involving a skewed credit book, ES is the measure that guarantees the combined number cannot exceed the sum of the parts, so desk limits and capital allocation stay consistent with the firm-wide figure.\n\n**LO:** MR-2 c; ORR-19 a; CR-14 j: Describe the approaches used and the challenges faced in modeling derivatives risk.\n\n- **Reference:** Dowd, Measuring Market Risk 2e, Ch.4, 2.4 and footnotes 13 and 15; Ch.3, 1.5; BCBS (2009), Range of Practices, risk measures section; Gregory, The xVA Challenge 4e, Ch.2\n\nMR-2 • Non-Parametric Approaches • Vardeez: VERY IMPORTANT"
+ },
+ {
+  "id": "MR-WB-17c-8",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A junior trader at a Canadian dealer prices every European option on a stock index, and every European option on USD/CAD, with a single lognormal volatility per underlying equal to that underlying’s at-the-money implied volatility. A market risk analyst compares the resulting model prices with market prices of options with the same maturity. Which of the following conclusions should the analyst reach?",
+  "options": {
+   "A": "Deep out-of-the-money index puts are priced below market, because the implied distribution has a heavier left tail than the lognormal.",
+   "B": "Deep out-of-the-money index calls are priced below market, because the implied distribution has a heavier right tail than the lognormal.",
+   "C": "Deep out-of-the-money USD/CAD puts are priced above market, because the implied distribution has a thinner left tail than the lognormal.",
+   "D": "Options at every strike are priced at market, because put-call parity forces one implied volatility on every option with the same maturity."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – What a single lognormal volatility assumes**\n\nBSM with one volatility assumes a lognormal distribution. The market prices with a smile, which corresponds to the implied distribution (Hull 17.2, 17.3 and Appendix).\n\n**Step 2 – Index options**\n\nThe equity implied distribution has a heavier left tail and a less heavy right tail than the lognormal. A deep OTM put pays off only in the left tail, so the market prices it relatively high, at an implied volatility above the at-the-money level. The trader’s at-the-money volatility therefore prices it below market. A deep OTM call pays off only in the thin right tail and is priced relatively low by the market, so the trader prices it above market.\n\n**Step 3 – FX options**\n\nThe FX implied distribution has heavier tails on both sides. Both deep OTM puts and deep OTM calls carry implied volatilities above the at-the-money level, so the trader prices both wings below market. Table 17.1 supports the market: 3 SD daily moves occur on 1.30% of days versus 0.27% under the lognormal model.\n\n**Interpretation**\n\nThe trader is selling tail protection too cheaply on index puts and on both FX wings: the trade Business Snapshot 17.1 describes, from the wrong side.\n\n**LO:** MR-17 c: Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the und […]"
+ },
+ {
+  "id": "MR-WB-17d-2",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A currency options strategist at a Japanese bank studies daily moves in 10 exchange rates against the USD over ten years and compares the frequencies with those predicted by a lognormal model:\n\n| Daily move | Real world | Lognormal model |\n|---|---|---|\n| > 1 SD | 23.32% | 31.73% |\n| > 3 SD | 1.30% | 0.27% |\n| > 5 SD | 0.24% | 0.00% |\n\nWhich of the following conclusions is most consistent with the data?",
+  "options": {
+   "A": "Exchange rate distributions are more peaked and have heavier tails than the lognormal, so deep out-of-the-money calls and puts should trade at higher implied volatilities than at-the-money options.",
+   "B": "Exchange rate distributions have heavier tails than the lognormal only on the downside, so only deep out-of-the-money puts should trade at higher implied volatilities than at-the-money options.",
+   "C": "Moves larger than 1 SD occur less often than the lognormal predicts, so exchange rate distributions have thinner tails and deep out-of-the-money options should trade at lower implied volatilities than at-the-money options.",
+   "D": "Moves larger than 3 SD occur about five times as often as the lognormal predicts, so the at-the-money implied volatility should be raised while implied volatility stays flat across strikes."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – Read the tails**\n\nBeyond 3 SD: 1.30% versus 0.27% (about 4.8×). Beyond 5 SD: 0.24% versus essentially zero. Large moves are far more frequent than lognormal: heavy tails.\n\n**Step 2 – Read the centre**\n\nBeyond 1 SD: 23.32% versus 31.73%. More days than predicted fall inside 1 SD: the distribution is more peaked.\n\n**Step 3 – Implication for options**\n\nHeavy tails on both sides make deep OTM calls and puts worth more than BSM at the ATM volatility, so their implied volatilities are higher: a smile.\n\n**Interpretation**\n\nHull’s point is that the table supports the smile traders use. The table counts moves of either sign, which is why the conclusion is about both wings.\n\n**LO:** MR-17 d: Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility. • **Reference:** Hull, OFOD 11e, Ch.20 (GARP MR-17), 17.2, Table 17.1, Business Snapshot 17.1"
+ },
+ {
+  "id": "MR-WB-1e-4",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "A market risk analyst estimates the 99% VaR of a standardised P/L series at $q = 2.326$ from $n = 1{,}000$ observations and wants a 90% confidence interval using the quantile standard error with a bin width of 0.2. For the fitted distribution, the probability of a loss greater than 2.426 is 0.0076 and the probability of a profit or a loss smaller than 2.226 is 0.9870. Which of the following is closest to the 90% confidence interval for the VaR?",
+  "options": {
+   "A": "\\[1.14, 3.51\\]",
+   "B": "\\[1.37, 3.28\\]",
+   "C": "\\[1.49, 3.16\\]",
+   "D": "\\[2.32, 2.33\\]"
+  },
+  "answer": "C",
+  "solution": "**Step 1 – Probability mass in the bin**\n\n$$f(q) = 1 - 0.0076 - 0.9870 = 0.0054$$\n\n⇒ The bin is 2.326 ± 0.1 = \\[2.226, 2.426\\], and $p = 0.0076$ is the probability beyond its top.\n\n**Step 2 – Standard error**\n\nse$(q) = \\frac{\\sqrt{0.0076 \\times0.9924/1000}}{0.0054} = \\frac{0.002747}{0.0054} = 0.5086$\n\n**Step 3 – 90% interval**\n\n2.326 ± 1.645 × 0.5086 = 2.326 ± 0.837 = \\[1.49, 3.16\\]\n\n⇒ Even with 1,000 observations, the 99% VaR could plausibly lie anywhere from about 1.5 to 3.2.\n\n**Interpretation**\n\nCompare Dowd’s 95% interval with the same bin width, \\[1.15, 2.14\\] (se 0.30): moving out to 99% makes the estimate markedly less precise (se 0.51).\n\n**LO:** MR-1 e: Evaluate estimators of risk measures by estimating their standard errors. • **Reference:** Dowd, Measuring Market Risk 2e, Ch.3, 1.5, eqs. 1.26 and 1.27, Example 1.6"
+ },
+ {
+  "id": "MR-WB-1e-5",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "A risk manager re-runs Dowd’s confidence interval for a 95% VaR estimated from 1,000 observations, widening the bin around the quantile from 0.1 to 0.2. The interval moves from about \\[0.61, 2.68\\] to about \\[1.15, 2.14\\]. Which of the following statements is correct?",
+  "options": {
+   "A": "The interval narrows because the probability mass in the wider bin roughly doubles; since the bin width is arbitrary, the reported precision partly reflects a modelling choice.",
+   "B": "The interval narrows because the left-tail probability $p$ falls from 0.045 to 0.0405, and $p$ is the only input that changes when the bin is widened.",
+   "C": "The interval narrows, and because the quantile standard error gives symmetric intervals it is the most reliable approach for extreme quantiles such as the 99.9% VaR.",
+   "D": "The interval should have widened, because a wider bin admits more observations and therefore more sampling noise around the quantile."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – What changes when** $h$ **doubles**\n\n$f(q)$ goes from 0.0104 to 0.0207 (it roughly doubles), and $p$ falls slightly from 0.045 to 0.0405.\n\n**Step 2 – Effect on the standard error**\n\nse falls from 0.630 to 0.301, driven mainly by the larger $f(q)$ in the denominator.\n\n⇒ The interval narrows. But $h$ is “essentially arbitrary”, so the narrower interval is partly a product of the analyst’s choice.\n\n**Interpretation**\n\nDowd’s own comment: even with $h = 0.2$ (“probably as wide as we can reasonably go”) the interval is still rather wide.\n\n**LO:** MR-1 e: Evaluate estimators of risk measures by estimating their standard errors. • **Reference:** Dowd, Measuring Market Risk 2e, Ch.3, 1.5, Example 1.6"
+ },
+ {
+  "id": "MR-WB-1e-6",
+  "lo": "MR-1 e",
+  "loText": "Evaluate estimators of risk measures by estimating their standard errors.",
+  "outside": false,
+  "question": "A validation team compares the precision of several risk-measure estimators computed from the same 1,000-day history. Which of the following conclusions is consistent with GARP’s reading on standard errors?",
+  "options": {
+   "A": "The 99% VaR estimate is less precise than the 95% VaR estimate, because the probability mass around the quantile falls faster than $p(1 - p)$ as the quantile moves into the tail.",
+   "B": "The 99% VaR estimate is more precise than the 95% VaR estimate, because $p(1-p)$ is smaller at $p = 0.01$ than at $p = 0.05$.",
+   "C": "ES estimators always have smaller standard errors than VaR estimators, because averaging tail quantiles removes the effect of large but infrequent losses.",
+   "D": "Once the sample exceeds 1,000 observations, the standard error no longer needs to be reported alongside the risk measure."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – Tail direction**\n\nMoving from the 95% to the 99% quantile lowers $p(1 - p)$ but lowers $f(q)$ much more, because observations are sparse in the tail. With $n = 1{,}000$ and $h = 0.2$: se 0.30 at 95%, 0.51 at 99%.\n\n⇒ GARP: “the more extreme the quantile, the less precise its estimator”.\n\n**Step 2 – ES versus VaR**\n\nYamai and Yoshiba found ES standard errors much bigger than VaR’s for heavy-tailed distributions; Acerbi found them roughly comparable in realistic ranges. Neither says ES is always more precise.\n\n**Interpretation**\n\nDowd’s practical advice is to report the standard error every time, whatever the sample size.\n\n**LO:** MR-1 e: Evaluate estimators of risk measures by estimating their standard errors. • **Reference:** Dowd, Measuring Market Risk 2e, Ch.3, 1.5, Figure 1.9; Standard Errors in Estimators of Coherent Risk Measures\n\nMR-1 • Estimating Market Risk Measures: An Introduction and Overview • Vardeez: VERY IMPORTANT"
+ },
+ {
+  "id": "MR-WB-1f-5",
+  "lo": "MR-1 f",
+  "loText": "Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution.",
+  "outside": false,
+  "question": "A risk analyst plots the quantiles of a daily P/L series in USD thousands (vertical axis) against standard normal quantiles (horizontal axis). The points lie very close to a straight line along the whole range, including both tails; the line has an intercept of about 5 and a slope of about 40. Which of the following is the most appropriate conclusion?",
+  "options": {
+   "A": "The P/L is not normal, because the plot does not follow the 45-degree line.",
+   "B": "The P/L has fat tails, because its quantiles are about 40 times larger than the normal quantiles.",
+   "C": "The P/L is consistent with a normal distribution with a mean of about USD 5,000 and a standard deviation of about USD 40,000.",
+   "D": "The P/L is positively skewed, because the intercept of the line is above zero."
+  },
+  "answer": "C",
+  "solution": "**Step 1 – A straight line means the shape fits**\n\nThe points lie on a straight line throughout, including the tails, so the empirical distribution has the same shape as the normal reference.\n\n**Step 2 – Read location and scale from the line**\n\nIf empirical $= a + b\\times$ normal quantile, then $a$ estimates the location and $b$ the scale: mean about 5 and standard deviation about 40, in USD thousands.\n\n⇒ A normal with mean about USD 5,000 and standard deviation about USD 40,000.\n\n**Interpretation**\n\nDowd: a linear QQ plot means the reference fits “up to a linear transformation”, and the intercept and slope give a rough idea of the location and scale parameters.\n\n**LO:** MR-1 f: Interpret quantile-quantile (QQ) plots to identify the characteristics of a distribution. • **Reference:** Dowd, Measuring Market Risk 2e, Ch.3, 1.6"
+ },
+ {
+  "id": "MR-WB-15e-8",
+  "lo": "MR-15 e",
+  "loText": "Calculate the short-term rate change and describe the basis point volatility using the CIR and lognormal models.",
+  "outside": true,
+  "question": "A rates desk calibrates three short-rate models so that each gives a basis-point volatility of 100 bp when the short rate is 8%: a normal model (constant basis-point volatility), the CIR model (basis-point volatility $\\sigma\\sqrt{r}$) and a lognormal model (basis-point volatility $\\sigma r$). The parameters are then held fixed while the short rate falls to 2%. Which of the following is closest to the basis-point volatilities of the CIR model and of the lognormal model at the 2% rate?",
+  "options": {
+   "A": "CIR 25 bp; lognormal 50 bp",
+   "B": "CIR 50 bp; lognormal 25 bp",
+   "C": "CIR 100 bp; lognormal 100 bp",
+   "D": "CIR 200 bp; lognormal 400 bp"
+  },
+  "answer": "B",
+  "solution": "**Step 1 – Calibrate at 8%**\n\n$$\\sigma_{CIR}\\sqrt{0.08} = 0.01 \\Rightarrow\\sigma_{CIR} = 0.035355 \\sigma_{Y} \\times0.08 = 0.01 \\Rightarrow\\sigma_{Y} = 0.125$$\n\n**Step 2 – Re-evaluate at 2%**\n\nCIR: $0.035355 \\times\\sqrt{0.02} = 0.0050 = 50$ bp Lognormal: 0.125 × 0.02 = 0.0025 = 25 bp\n\n⇒ Equivalently, CIR scales by $\\sqrt{2/8} = 0.5$ and the lognormal by 2/8 = 0.25.\n\n**Interpretation**\n\nWhen rates fall, the lognormal model’s basis-point volatility shrinks fastest, CIR’s more slowly, and the normal model’s not at all (Figure 1). In yield-volatility terms CIR is now at 50/200 = 25% while the lognormal stays at 12.5%.\n\n**LO:** MR-15 e: Calculate the short-term rate change and describe the basis point volatility using the CIR and lognormal models. • **Reference:** GARP MR Ch.15, 15.2, eqs. 15.6 to 15.8 and Figure 15.2\n\nMR-15 • The Art of Term Structure Models: Volatility and Distribution • Vardeez: VERY IMPORTANT"
+ },
+ {
+  "id": "MR-WB-15f-2",
+  "lo": "MR-15 f",
+  "loText": "Describe lognormal models with deterministic drift and mean reversion.",
+  "outside": true,
+  "question": "A junior quant describes the lognormal model with deterministic drift (the “Salomon Brothers” model), $dr = a(t) r dt + \\sigma r dw$, to a model validation committee. Which of the following descriptions is correct?",
+  "options": {
+   "A": "The natural logarithm of the short rate follows a Ho-Lee-type process with a time-dependent drift, so the short rate is lognormal and every node of its tree is positive.",
+   "B": "The natural logarithm of the short rate reverts toward a time-dependent central tendency ln $\\theta(t)$, so the short rate is lognormal and every node of its tree is positive.",
+   "C": "The short rate follows a Ho-Lee-type process with a time-dependent drift, so the short rate is normal and low nodes of its tree may become negative.",
+   "D": "The basis-point volatility of the short rate is proportional to the square root of the rate, so the short rate is non-negative but not lognormal."
+  },
+  "answer": "A",
+  "solution": "**Step 1 – Apply Ito’s lemma**\n\n$d[\\text{ln} r] = [a(t) - \\frac{1}{2}\\sigma^{2}] dt + \\sigma dw = a\\tilde{(} t) dt + \\sigma dw$: a Ho-Lee process written on ln $r$.\n\n**Step 2 – Consequences**\n\nln $r$ is normal, so $r$ is lognormal; nodes are $r_{0}\\text{e}^{(\\cdot)} > 0$.\n\n⇒ “The Ho-Lee model based on the natural logarithm of the short rate.”\n\n**Interpretation**\n\nThe drift is deterministic and time-dependent (fitted to bond prices), with no mean reversion. That is what separates it from Black-Karasinski.\n\n**LO:** MR-15 f: Describe lognormal models with deterministic drift and mean reversion. • **Reference:** GARP MR Ch.15, 15.3, eqs. 15.9 to 15.12"
+ },
+ {
+  "id": "MR-HQ-14c-04",
+  "lo": "MR-14 c",
+  "loText": "Describe methods for addressing the possibility of negative short-term rates in term structure models.",
+  "outside": true,
+  "question": "A model validator at a Brazilian development bank is reviewing a proposal to replace the normal distribution in its BRL short-rate tree with a probability distribution under which rates cannot become negative. Which of the following statements in the validation report is most accurate?\n\n*Conventions for this paper:* Unless stated otherwise, “Model 1” is the short-rate process $dr$ = $\\sigma dw$ with normally distributed rates and no drift, where $\\sigma$ is the annual basis-point volatility and $dw$ is normal with mean zero and standard deviation $\\sqrt{dt}$.",
+  "options": {
+   "A": "Lognormally distributed rates cannot become negative, and because the change is localised around zero, the model’s dynamics for rates well above zero are left as the normal model postulated.",
+   "B": "Lognormally distributed rates cannot become negative, but they only make negative rates less likely, so a zero floor would still be needed to rule negative rates out completely.",
+   "C": "Lognormally distributed rates cannot become negative, whereas chi-squared distributed rates can, so only the lognormal choice addresses the negative-rate problem in the tree.",
+   "D": "Lognormally distributed rates cannot become negative, but building a model around a distribution that rules out negative rates may result in volatilities that are unacceptable for the purpose."
+  },
+  "answer": "D",
+  "solution": "**Method 1: changing the distribution of rates**\n\nStem in one line: most accurate validation statement on replacing the normal distribution with a non-negative one.\n\n**Concept and theory**\n\nThe first remedy attacks the cause: if the normal distribution allows negative values, use a distribution that does not. GARP: “Changing the distribution of interest rates is one solution. To take but one of many examples, lognormally distributed rates . . . cannot become negative.” Schweser names lognormal or chi-squared distributions as “always non-negative”.\n\nThe cost is that the new distribution governs every rate, not just rates near zero. GARP: “building a model around a probability distribution that rules out negative rates or makes them less likely may result in volatilities that are unacceptable for the purpose at hand.” Schweser: it “may introduce other undesirable characteristics such as skewness or inappropriate volatilities.”\n\n|  | Change the distribution | Set negative rates to zero |\n|---|---|---|\n| How | Use a non-negative distribution (lognormal; chi-squared) | Build the tree as desired, then replace negative rates with 0 |\n| Where it changes dynamics | Across the entire range of rates | Localised around zero and negative rates |\n| Main drawback | Volatilities may be unacceptable (skewness) | Observed distribution differs from the shadow one near zero |\n\n**Applying it to thi […]"
+ },
+ {
+  "id": "MR-HQ-15d-03",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": true,
+  "question": "A senior risk analyst at a Swiss private bank is labelling the short-rate processes in the bank’s CHF model library. In the table, $\\lambda$($t$) is a deterministic function of time and $a$, $k$, $\\theta$, $\\alpha$ are positive parameters.\n\n| Process | Dynamics |\n|---|---|\n| P | $dr$ = $ar dt$ + $\\sigma r dw$ |\n| Q | $dr$ = $k$($\\theta- r$) $dt$ + $\\sigma r dw$ |\n| R | $dr$ = $k$($\\theta- r$) $dt$ + $\\sigma\\sqrt{r} dw$ |\n| S | $dr$ = $\\lambda$($t$) $dt$ + $\\sigma e^{-\\alpha t} dw$ |\n\nWhich of the following statements is most accurate?\n\n*Conventions for this paper:* Throughout, $r$ is the short-term rate, $dt$ the time step, $dw$ a normally distributed shock with mean zero and standard deviation $\\sqrt{dt}$, and “basis-point volatility” the annualized standard deviation of $dr$.",
+  "options": {
+   "A": "P is the simplest lognormal model (Model 4): its drift and its random shocks are both proportional to the rate, and $\\sigma$ is a constant yield volatility.",
+   "B": "Q is the simplest lognormal model (Model 4): its drift reverts toward $\\theta$, its random shocks are proportional to the rate, and $\\sigma$ is a constant yield volatility.",
+   "C": "R is the simplest lognormal model (Model 4): its drift reverts toward $\\theta$, its random shocks are proportional to the rate, and $\\sigma$ is a constant yield volatility.",
+   "D": "P is the simplest lognormal model (Model 4): its drift and its random shocks are both proportional to the rate, and $\\sigma$ is a yield volatility that decays over time."
+  },
+  "answer": "A",
+  "solution": "**Identifying the simplest lognormal process (Model 4)**\n\nStem in one line: which label correctly identifies Model 4 among four candidate processes?\n\n**Concept and theory**\n\nAfter CIR, GARP describes a second way to tie volatility to the rate: make basis-point volatility proportional to the rate. Then $\\sigma$ is “often called yield volatility” because it is a percentage of the rate. GARP gives two examples:\n\nCourtadon: $dr$ = $k$($\\theta- r$) $dt$ + $\\sigma r dw$ (15.4)\n\nModel 4 (simplest lognormal): $dr$ = $ar dt$ + $\\sigma r dw$ (15.5)\n\nwhere $a$ is a constant drift rate (the drift is $a$ times the rate), $\\sigma$ the constant yield volatility, and the other symbols are as before. “In these two specifications, yield volatility is constant”. The two differ only in the drift: Courtadon mean reverts toward $\\theta$; Model 4’s drift is proportional to the rate and has no long-run level. GARP adds that a variation of Model 4 is developed in the next section (LO 15.f).\n\n| Process | Drift | Random term | Name |\n|---|---|---|---|\n| P | $ar$ (proportional) | $\\sigma r$ | Model 4, simplest lognormal |\n| Q | $k$($\\theta- r$) (mean reverting) | $\\sigma r$ | Courtadon |\n| R | $k$($\\theta- r$) (mean reverting) | $\\sigma\\sqrt{r}$ | CIR |\n| S | $\\lambda$($t$) (time dependent) | $\\sigma e^{-\\alpha t}$ | Model 3 |\n\n**Applying it to this question**\n\nFind the process whose drift is $ar$ and who […]"
+ },
+ {
+  "id": "MR-HQ-15d-08",
+  "lo": "MR-15 d",
+  "loText": "Describe the short-term rate process under the Cox-Ingersoll-Ross (CIR) and lognormal models.",
+  "outside": true,
+  "question": "An internal auditor at a UK building society is reviewing a GBP model risk report. The report contains a chart of the ten-year terminal distributions of the short rate under a normal model, the CIR model and a lognormal model, calibrated to the same mean and standard deviation. The auditor must choose which statement to keep in the report’s commentary. Which statement is most accurate?\n\n*Conventions for this paper:* Throughout, $r$ is the short-term rate, $dt$ the time step, $dw$ a normally distributed shock with mean zero and standard deviation $\\sqrt{dt}$, and “basis-point volatility” the annualized standard deviation of $dr$.",
+  "options": {
+   "A": "The CIR and lognormal distributions are non-negative and skewed right, while the normal distribution assigns positive probability to negative rates.",
+   "B": "The CIR and lognormal distributions are non-negative and skewed left, while the normal distribution assigns positive probability to negative rates.",
+   "C": "Because all three are calibrated to the same mean and standard deviation, all three assign the same probability to rates below zero.",
+   "D": "The lognormal distribution is non-negative but the CIR distribution is not, because the CIR mean reversion can pull the rate below zero."
+  },
+  "answer": "A",
+  "solution": "**Shape of the terminal distributions**\n\nStem in one line: which commentary on the ten-year normal, CIR and lognormal terminal distributions is most accurate?\n\n**Concept and theory**\n\nA normal model’s terminal distribution is symmetric and unbounded, so it always gives some probability to negative rates. Schweser: “the normal distribution will always imply a positive probability of negative interest rates. In addition, the longer the forecast horizon, the greater the likelihood of negative rates occurring.” The CIR and lognormal processes cannot cross zero (Q4), so their terminal distributions sit entirely on non-negative rates. Schweser: “the lognormal and CIR terminal distributions are always non-negative and skewed right.”\n\n| Distribution | Negative rates | Shape |\n|---|---|---|\n| Normal | Positive probability | Symmetric |\n| CIR | None | Skewed right |\n| Lognormal | None | Skewed right |\n\n**Applying it to this question**\n\nThe auditor needs a statement that gets both the sign property and the skew direction right for all three models. Only A does.\n\n**Fragile fact.** Non-negative goes with right skew. The normal’s negative-rate probability rises with the horizon (Schweser).\n\n**Reference**\n\nLO 15.d (verbatim above). GARP Ch. 15, §15.2, Figure 15.3. Schweser Reading 15, Module 15.2, Figure 15.1 discussion. Schweser-only (condensed source): the words “skewed right” and the horiz […]"
+ },
+ {
+  "id": "MR-HQ-17b-12",
+  "lo": "MR-17 b",
+  "loText": "Explain the implications of put-call parity on the implied volatility of call and put options.",
+  "outside": true,
+  "question": "A board risk committee member at a US bank reviews an incident report. A trader saw that 1-year European calls and puts on a non-dividend-paying stock, both with a strike of USD 45, had implied volatilities of 26% and 31% respectively. The trader did not act, arguing that (i) the stock’s distribution has a heavier left tail than the lognormal, which justifies a higher volatility for the put, and (ii) an arbitrage would be riskless only if the stock price were lognormal. Which response is most accurate?\n\n*Conventions for this paper:* Unless stated otherwise, all interest rates and yields are continuously compounded per annum, options are European, and “BSM” means the Black-Scholes-Merton model.",
+  "options": {
+   "A": "The trader is right: a heavier left tail than the lognormal justifies a higher implied volatility for the put than for the call, so no arbitrage exists.",
+   "B": "The trader is wrong: buying the call, selling the put, shorting the stock and lending USD 45$e^{-rT}$ locks in a profit whatever the distribution.",
+   "C": "The trader is wrong: selling the call, buying the put, buying the stock and borrowing USD 45$e^{-rT}$ locks in a profit whatever the distribution.",
+   "D": "The trader is partly right: the arbitrage exists, but its profit is riskless only if the stock price is lognormal, as the volatilities are BSM-implied."
+  },
+  "answer": "B",
+  "solution": "**The trader’s two objections to the arbitrage**\n\nStem in one line: 1-year USD 45 call at 26%, put at 31%; trader cites a heavy left tail and says the arbitrage needs lognormality.\n\n**Concept and theory**\n\nTwo different ideas are being mixed. (1) Across strikes, a heavier left tail than the lognormal raises low-strike implied volatilities relative to high-strike ones: that is the equity skew (LO 17.c, 17.e). (2) Across option types at one strike, parity forces one implied volatility, whatever the distribution. GARP Practice Question 17.17 asks exactly whether such an arbitrage “work\\[s\\] only when the lognormal assumption underlying Black-Scholes-Merton holds.” It does not: parity compares payoffs at maturity, and BSM is used only to translate prices into implied volatilities.\n\n**Applying it to this question**\n\nPut at 31% > call at 26%: the put is rich, so $p$ + $S_{0} > c$ + $Ke^{-rT}$ (no dividends). Sell the rich side (write the put, short the stock) and buy the cheap side (buy the call, lend 45$e^{-rT}$ ). At $T$ : call minus put = $S_{T} -$ 45; short stock = $-S_{T}$ ; loan repaid = +45; total zero in every state. The profit is collected today and depends on no distribution.\n\n**Fragile fact.** Heavy tails explain differences across strikes; parity forbids differences across types at one strike. Put rich: buy call, sell put, short stock, lend.\n\n**Reference**\n\nLO 17.b. GARP  […]"
+ },
+ {
+  "id": "MR-HQ-17c-01",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A senior risk analyst at a Swiss private bank is preparing a CHF options training note for newly hired analysts on how to read a volatility smile against the implied distribution of the underlying asset price. Which of the following statements should the analyst include as the most accurate?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "Where the implied distribution has more probability than the lognormal in the region in which an option pays off, the option is relatively cheap, and so its implied volatility is relatively low.",
+   "B": "Where the implied distribution has more probability than the lognormal in the region in which an option pays off, the option is relatively expensive, and so its implied volatility is relatively high.",
+   "C": "Where the implied distribution has more probability than a normal distribution of the price in the region in which an option pays off, the option is relatively expensive, and so its implied volatility is relatively high.",
+   "D": "Where the implied distribution has more probability than the lognormal in the region in which an option pays off, buying that option guarantees a profit, because it will finish in the money more often than its price assumes."
+  },
+  "answer": "B",
+  "solution": "**Reading a smile against the implied distribution**\n\nStem in one line: which training-note statement correctly links implied probability, option price and implied volatility?\n\n**Concept and theory**\n\nImplied volatility is not a forecast in its own right. It is the number that, when put into the BSM formula, reproduces an option’s market price. BSM assumes that the asset price at maturity is lognormal, so a single volatility fixes the whole distribution. If market prices are generated by some other risk-neutral distribution (the implied distribution), each strike needs its own BSM volatility to match its market price, and the plot of those volatilities against $K/S_{0}$ is the smile.\n\nThe chain GARP uses (§17.2, §17.3) has three links:\n\n| Implied distribution vs log- normal | Option price vs lognormal price | Implied volatility |\n|---|---|---|\n| More probability where the option pays off | Relatively high | Relatively high |\n| Less probability where the option pays off | Relatively low | Relatively low |\n\nThe benchmark is “a lognormal distribution with the same mean and standard deviation as the implied distribution”. A deep out-of-the-money call with strike $K_{2}$ “pays off only if the exchange rate proves to be above $K_{2}$”; if the implied probability of that is higher than the lognormal’s, “we therefore expect the implied distribution to give a relatively high price for t […]"
+ },
+ {
+  "id": "MR-HQ-17c-02",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A treasury analyst at a Singapore bank observes that the implied volatilities of one-month USD/SGD options are lowest for options with $K/S_{0}$ = 1.0 and become progressively higher as options move either into or out of the money. Which of the following best describes the implied distribution of the exchange rate in one month compared with the lognormal?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "Heavier tails and a flatter centre: small moves are less likely, and intermediate moves more likely, than under the lognormal.",
+   "B": "A heavier left tail and a less heavy right tail: large falls in USD/SGD are more likely, and large rises less likely, than under the lognormal.",
+   "C": "Lighter tails and a more peaked centre: large moves are less likely, and small moves more likely, than under the lognormal.",
+   "D": "Heavier tails and a more peaked centre: small and large moves are both more likely, and intermediate moves less likely, than under the lognormal."
+  },
+  "answer": "D",
+  "solution": "**Shape of the currency implied distribution**\n\nStem in one line: USD/SGD implied volatility lowest at the money and rising both ways; describe the implied distribution versus the lognormal.\n\n**Concept and theory**\n\nGARP §17.2: the foreign currency smile has “relatively low” implied volatility at the money that “becomes progressively higher as an option moves either into the money or out of the money.” This smile “corresponds to the implied distribution shown by the solid line in Figure 17.2” and “the implied distribution has heavier tails than the lognormal distribution.”\n\nFootnote 1 adds the part candidates forget: “This is known as kurtosis. Note that, in addition to having a heavier tail, the implied distribution is more ‘peaked.’ Both small and large movements in the exchange rate are more likely than with the lognormal distribution. Intermediate movements are less likely.” The logic is a constraint: the two distributions have the same mean and standard deviation, so extra mass in the tails must be balanced by extra mass in the centre and less in the shoulders.\n\n| Region of outcomes | Small moves | Intermediate moves | Large moves |\n|---|---|---|---|\n| Implied vs lognormal (currencies) | More likely | Less likely | More likely |\n\n**Applying it to this question**\n\nThe pattern in the stem is the symmetric currency smile. Its implied distribution has heavier tails in both dir […]"
+ },
+ {
+  "id": "MR-HQ-17c-04",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A risk consultant reviewing the JPY index option book of a Japanese securities firm extracts the following three-month implied volatilities for Nikkei 225 options. The index’s realized volatility over the past 90 days was 21.0%.\n\n| $K/S_{0}$ | 0.85 | 0.90 | 0.95 | 1.00 | 1.05 | 1.10 | 1.15 |\n|---|---|---|---|---|---|---|---|\n| Implied volatility (%) | 27.5 | 24.8 | 22.1 | 19.6 | 17.8 | 16.5 | 15.7 |\n\nWhich of the following statements about the implied distribution of the index level in three months should the consultant include in the report?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "It has a heavier right tail and a less heavy left tail than the lognormal, so large rises are more likely than large falls.",
+   "B": "It has a heavier left tail and a heavier right tail than the lognormal, so large rises and large falls are both more likely.",
+   "C": "It has a heavier left tail and a less heavy right tail than the lognormal, so large falls are more likely and large rises less likely.",
+   "D": "It has a heavier left tail than the lognormal and a right tail identical to the lognormal, so only large falls differ in likelihood."
+  },
+  "answer": "C",
+  "solution": "**Shape of the equity implied distribution**\n\nStem in one line: Nikkei 225 implied volatility falls from 27.5% to 15.7% as $K/S_{0}$ rises; describe the implied distribution.\n\n**Concept and theory**\n\nGARP §17.3: for equity options “the volatility decreases as the strike price increases”. The volatility smile for equities “corresponds to the implied probability distribution given by the solid line in Figure 17.4”, and “the implied distribution has a heavier left tail and a less heavy right tail than the lognormal distribution.” Schweser puts the same result as a “left-skewed implied distribution of equity price changes”: traders believe “the probability of large down movements in price is greater than large up movements in price, as compared with a lognormal distribution.”\n\nThe consistency check runs strike by strike. Low strikes are priced off the left tail: a heavier left tail makes low-strike options dear and their implied volatilities high. High strikes are priced off the right tail: a less heavy right tail makes high-strike options cheap and their implied volatilities low.\n\n**Applying it to this question**\n\nRead the table from left to right: 27.5% at 0.85 down to 15.7% at 1.15. Implied volatility is above the at-the-money 19.6% at every low strike and below it at every high strike. High implied volatility at low strikes means more left-tail mass than the lognormal; low impl […]"
+ },
+ {
+  "id": "MR-HQ-17c-08",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A junior analyst at a CNY commodity trading house is told that, for six-month options on an underlying price, the implied distribution has a heavier right tail and a less heavy left tail than the lognormal. Which of the following best describes the volatility smile and the relative pricing of options compared with lognormal prices?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "Implied volatility rises with strike; deep out-of-the-money calls and deep in-the-money puts are relatively expensive, while deep out-of-the-money puts and deep in-the-money calls are relatively cheap.",
+   "B": "Implied volatility rises with strike; deep out-of-the-money calls and deep in-the-money calls are relatively expensive, while deep out-of-the-money puts and deep in-the-money puts are relatively cheap.",
+   "C": "Implied volatility falls with strike; deep out-of-the-money puts and deep in-the-money calls are relatively expensive, while deep out-of-the-money calls and deep in-the-money puts are relatively cheap.",
+   "D": "Implied volatility is U-shaped in strike; deep out-of-the-money calls and deep out-of-the-money puts are both relatively expensive, while at-the-money options are relatively cheap."
+  },
+  "answer": "A",
+  "solution": "**Heavier right tail, lighter left tail**\n\nStem in one line: implied distribution has a heavier right tail and a less heavy left tail; what smile and which options are relatively expensive?\n\n**Concept and theory**\n\nThis is the mirror image of the equity case. In GARP §17.3 a heavier left tail and lighter right tail make low-strike options dear and high-strike options cheap, so implied volatility falls with strike. Reverse both tails and every link reverses: high-strike options pay off in the heavier right tail and are dear; low-strike options pay off in the lighter left tail and are cheap. Implied volatility therefore rises with strike (GARP Practice Question 17.6(b)).\n\nWhich options sit at each strike?\n\n| Strike | Pays off in | Options at that strike | Relative price here |\n|---|---|---|---|\n| High | Right tail (heavier) | OTM call, ITM put | Expensive |\n| Low | Left tail (lighter) | OTM put, ITM call | Cheap |\n\nThe in-the-money option at a strike shares the out-of-the-money option’s volatility (GARP §17.1).\n\n**Applying it to this question**\n\nHeavier right tail ⇒ high strikes dear ⇒ deep out-of-the-money calls and deep in-the-money puts expensive. Lighter left tail ⇒ low strikes cheap ⇒ deep out-of-the-money puts and deep in-the-money calls cheap. Implied volatility rises with strike. That is A.\n\n**Fragile fact.** Under an upward-sloping smile the expensive pair is the deep OT […]"
+ },
+ {
+  "id": "MR-HQ-17c-09",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "An internal auditor at a US bank finds that the FX desk prices all strikes of one-month EUR/USD options at a single implied volatility equal to the current at-the-money implied volatility, while the market quotes the usual foreign currency smile. Which of the following findings is most accurate?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "The practice is harmless, because put-call parity holds for any distribution and so keeps the desk’s prices consistent with the market at every strike.",
+   "B": "The practice is equivalent to assuming a lognormal distribution; it understates the probability of extreme moves and so underprices deep out-of-the-money options in both wings.",
+   "C": "The practice is equivalent to assuming a lognormal distribution; it overstates the probability of extreme moves and so overprices deep out-of-the-money options in both wings.",
+   "D": "The practice is equivalent to using the market’s implied distribution, provided the at-the-money volatility is taken from current market prices."
+  },
+  "answer": "B",
+  "solution": "**One volatility for every strike**\n\nStem in one line: an FX desk prices all EUR/USD strikes at the at-the-money volatility while the market shows a smile; what is the finding?\n\n**Concept and theory**\n\nGARP Summary: “The Black-Scholes-Merton model and its extensions assume that the probability distribution of the underlying asset at any given future time is lognormal. This assumption is not the one made by traders.” For exchange rates, traders assume a distribution with “a heavier right tail and a heavier left tail than the lognormal distribution”, and “Traders use volatility smiles to allow for nonlognormality.” A single volatility across all strikes is the lognormal assumption itself: one $\\sigma$ fixes one lognormal distribution, and that distribution reproduces BSM prices at every strike. A flat implied volatility curve and a lognormal implied distribution are two descriptions of the same thing.\n\n**Applying it to this question**\n\nThe desk’s flat volatility equals the bottom of the market’s U-shaped curve. It therefore assumes lognormal tails, which are thinner than the market’s implied tails in both directions. Too little probability of extreme moves ⇒ deep out-of-the-money calls and puts priced below market ⇒ both wings underpriced.\n\n**Fragile fact.** Flat smile ⇔ lognormal. Against a currency smile, a flat at-the-money volatility underprices both wings.\n\n**Reference**\n\nLO […]"
+ },
+ {
+  "id": "MR-HQ-17c-11",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A risk consultant advising an Australian fund tests whether the equity skew on an AUD stock implies a heavy left tail. The stock price is AUD 50, the stock pays no dividends, the risk-free rate is 4.0% and the options mature in three months. The at-the-money implied volatility is 25%. The consultant prices calls at the market’s skew volatilities and, for comparison, at a flat 25%:\n\n| Strike (AUD) | 36 | 38 | 40 |\n|---|---|---|---|\n| Skew implied volatility (%) | 34.0 | 33.0 | 32.0 |\n| Call price at skew volatility (AUD) | 14.4204 | 12.5012 | 10.6274 |\n| Call price at flat 25% (AUD) | 14.3636 | 12.3994 | 10.4652 |\n\nUsing the butterfly-spread approach, which of the following correctly gives the probability that the stock price in three months lies between AUD 37 and AUD 39 under each set of prices, and the correct conclusion?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "Skew 0.0229, flat 0.0152; the implied left tail is less heavy than the lognormal.",
+   "B": "Skew 0.0152, flat 0.0229; the implied left tail is less heavy than the lognormal.",
+   "C": "Skew 0.0229, flat 0.0152; the implied left tail is heavier than the lognormal.",
+   "D": "Skew 0.0459, flat 0.0303; the implied left tail is heavier than the lognormal."
+  },
+  "answer": "C",
+  "solution": "**Skew versus flat volatility in the left wing**\n\nStem in one line: AUD stock at 50, three-month calls at 36, 38, 40 priced at skew volatilities and at a flat 25%; compare $P$ (37 $< S_{T} <$ 39) and conclude.\n\n**Concept and theory**\n\nThe comparison GARP makes in Example 17A.1 is exactly this: derive the implied probability of a price bucket from the market’s smile, then compare it with the probability from a lognormal at a single volatility. In Hull’s example the implied probability of a price between 6 and 7 (a deep left-tail bucket) exceeds the single-volatility lognormal figure, while the right-tail bucket shows the reverse, which is the heavier-left, lighter-right shape of §17.3 seen in numbers. The butterfly estimate of a bucket probability is\n\n$P$ ($K - \\delta/$2 $< S_{T} < K$ + $\\delta/$2) $\\approx e^{rT} \\frac{c_{1} \\text{+} c_{3} - 2c_{2}}{\\delta}$\n\nwith symbols as in Q10.\n\n**Applying it to this question**\n\n$K$ = 38, $\\delta$ = 2, $r$ = 0.04, $T$ = 0.25, so $e^{rT}$ = $e^{0.01}$ = 1.01005.\n\nSkew prices:\n\n$\\text{Butterfly}_{\\text{skew}}$ = 14.4204 + 10.6274 − 2(12.5012) = 0.0454\n\n$P_{\\text{skew}}$ = 1.01005 × 0.0454/2 = 0.0229\n\nFlat 25% prices:\n\n$\\text{Butterfly}_{\\text{flat}}$ = 14.3636 + 10.4652 − 2(12.3994) = 0.0300\n\n$P_{\\text{flat}}$ = 1.01005 × 0.0300/2 = 0.0152\n\nInterpretation: a fall of roughly 22% to 26% (to between 37 and 39) has a 2.29% risk-neutral probabili […]"
+ },
+ {
+  "id": "MR-HQ-17c-12",
+  "lo": "MR-17 c",
+  "loText": "Compare the shape of the volatility smile (or skew) to the shape of the implied distribution of the underlying asset price and to the pricing of options on the underlying asset.",
+  "outside": true,
+  "question": "A member of the board risk committee at a Japanese bank reads a paper comparing how equity and currency option traders price options relative to the BSM lognormal assumption. Which of the following statements in the paper is NOT correct?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means a lognormal distribution with the same mean and standard deviation as the implied distribution, rates are continuously compounded, and all options are European.",
+  "options": {
+   "A": "Equity option traders price as though large up movements in the underlying are more likely, and large down movements less likely, than under the lognormal.",
+   "B": "Currency option traders price as though extreme movements in the exchange rate, in either direction, are more likely than under the lognormal.",
+   "C": "For equity options, a deep out-of-the-money call has a relatively low price and a relatively low implied volatility, because the implied right tail is less heavy.",
+   "D": "For currency options, a deep out-of-the-money put has a relatively high price and a relatively high implied volatility, because the implied left tail is heavier."
+  },
+  "answer": "A",
+  "solution": "**What equity and currency traders assume**\n\nStem in one line: which statement comparing equity and currency option pricing with the lognormal is NOT correct?\n\n**Concept and theory**\n\nSchweser’s key concept for LO 17.c is a two-line summary of the whole LO: “Currency traders believe there is a greater chance of extreme price movements than predicted by a lognormal distribution. Equity traders believe the probability of large down movements in price is greater than large up movements in price, as compared with a lognormal distribution.” GARP’s Summary says the same: traders “assume the probability distribution of an equity price has a heavier left tail and a less heavy right tail than the lognormal distribution. They also assume that the probability distribution of an exchange rate has a heavier right tail and a heavier left tail.”\n\n| Market | Implied distribution vs lognormal | Smile shape |\n|---|---|---|\n| Equity | Heavier left, less heavy right | Downward-sloping skew |\n| Currency | Heavier left and right | U-shaped smile |\n\n**Applying it to this question**\n\nTest each statement against the table. B (currency, extreme moves either way more likely) is true. C (equity deep OTM call relatively cheap and low volatility, thin right tail) is true, GARP §17.3. D (currency deep OTM put relatively dear and high volatility, heavy left tail) is true, GARP §17.2. A reverses the equity tai […]"
+ },
+ {
+  "id": "MR-HQ-17d-01",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A junior risk analyst at a Singapore bank is presenting to newly hired analysts on the risk-neutral distribution of the USD/SGD exchange rate implied by the volatility smile the FX desk uses to price options. She compares it with a lognormal distribution that has the same mean and standard deviation. Which of the following statements best describes the comparison?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "The implied distribution has a heavier left tail and a less heavy right tail, and it is less peaked than the lognormal distribution.",
+   "B": "The implied distribution has heavier left and right tails and is more peaked, so both small and large moves are more likely than under the lognormal distribution.",
+   "C": "The implied distribution has heavier left and right tails and is flatter in the centre, so small moves are less likely than under the lognormal distribution.",
+   "D": "The implied distribution has heavier tails only relative to a lognormal with a lower standard deviation; with the same mean and standard deviation the two coincide."
+  },
+  "answer": "B",
+  "solution": "**Implied FX distribution versus the lognormal**\n\nStem in one line: how does the USD/SGD distribution implied by the smile compare with a lognormal of the same mean and standard deviation?\n\n**Concept and theory**\n\nThe Black-Scholes-Merton (BSM) model assumes the exchange rate at any future date is lognormal with one constant volatility. Traders do not price that way: they let the volatility depend on strike, producing the currency volatility smile. GARP (§17.2) shows how to back out the risk-neutral probability distribution consistent with that smile, the implied distribution, and compares it with a lognormal that has the same mean and standard deviation. Holding the first two moments equal is what makes the comparison meaningful: any difference must be in the shape.\n\nGARP: “It can be seen that the implied distribution has heavier tails than the lognormal distribution.” Footnote 1 adds: “This is known as kurtosis. Note that, in addition to having a heavier tail, the implied distribution is more ‘peaked.’ Both small and large movements in the exchange rate are more likely than with the lognormal distribution. Intermediate movements are less likely.”\n\n| Region of outcomes | Implied FX distribution vs lognormal | Where it shows on the smile |\n|---|---|---|\n| Centre (small moves) | More likely (more peaked) | at the money, implied volatility is relatively low (GARP §17.2) |\n| Shoul […]"
+ },
+ {
+  "id": "MR-HQ-17d-02",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A model validator at a German bank is reviewing the section of the FX option model documentation that explains why EUR exchange rates are not lognormally distributed. The section contains four statements:\n\nI. One condition for an asset price to be lognormal is that its volatility is constant; the volatility of an exchange rate is far from constant.\n\nII. A second condition is that the price changes smoothly with no jumps; exchange rates frequently jump, sometimes in response to the actions of central banks.\n\nIII. Non-constant volatility makes extreme outcomes more likely, whereas jumps make extreme outcomes less likely because they tend to be reversed.\n\nIV. Exchange rates depart from the lognormal mainly because their volatility rises as the currency weakens, through the same leverage effect seen in equities.\n\nWhich of the statements should the validator accept as accurate?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "I only",
+   "B": "I, II and III only",
+   "C": "I, II and IV only",
+   "D": "I and II only"
+  },
+  "answer": "D",
+  "solution": "**Why exchange rates are not lognormal**\n\nStem in one line: which of four statements on the reasons exchange rates are not lognormal are accurate?\n\n**Concept and theory**\n\nGARP §17.2, “Reasons for the Smile in Foreign Currency Options”, asks why exchange rates are not lognormally distributed and answers through the conditions a lognormal requires:\n\n1. The volatility of the asset is constant.\n2. The price of the asset changes smoothly with no jumps.\n\n“In practice, neither of these conditions is satisfied for an exchange rate. The volatility of an exchange rate is far from constant, and exchange rates frequently exhibit jumps, sometimes in response to the actions of central banks. It turns out that both a nonconstant volatility and jumps will have the effect of making extreme outcomes more likely.”\n\nSchweser condenses this to: “exchange rate volatility is not constant and frequently jumps from one level to another, which increases the likelihood of extreme currency rate levels.”\n\n**Applying it to this question**\n\nStatement I: condition 1 and its failure. True. Statement II: condition 2 and its failure, including GARP’s central bank remark. True. Statement III: the first half is right, but it reverses the effect of jumps; GARP says both effects make extreme outcomes more likely. False. Statement IV: attributes the departure to a volatility that rises as the currency weakens, by le […]"
+ },
+ {
+  "id": "MR-HQ-17d-05",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "An internal auditor at a Swiss bank is reviewing a CHF model-risk memo that cites Hull’s study of daily exchange rate movements as evidence against the lognormal assumption. The memo states:\n\nI. The study examined daily movements in 10 exchange rates against the US dollar over 2005 to 2015, measuring each move in units of the standard deviation of the daily percentage change.\n\nII. Daily changes greater than 3 standard deviations occurred on 1.30% of days, compared with 0.27% predicted by the lognormal model.\n\nIII. Daily changes greater than 1 standard deviation occurred more often than the lognormal model predicts, confirming that moves of every size are larger than lognormal.\n\nIV. The lognormal model implies that percentage changes over one day are almost exactly normally distributed, so normal tail frequencies are the benchmark.\n\nWhich of the statements are accurate?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "I and II only",
+   "B": "I, II and III only",
+   "C": "II and IV only",
+   "D": "I, II and IV only"
+  },
+  "answer": "D",
+  "solution": "**Hull’s empirical evidence on daily exchange rate moves**\n\nStem in one line: which statements in a memo on Hull’s 2005 to 2015 FX study are accurate?\n\n**Concept and theory**\n\nGARP §17.2, “Empirical Results”, tests whether traders are right to assume heavier tails, using Table 17.1: daily movements of 10 exchange rates against the US dollar over 2005 to 2015. The method has three stages: (1) compute the standard deviation of the daily percentage change for each rate; (2) count how often the actual change exceeded 1, 2, . . . , 6 standard deviations; (3) compare with how often this would happen if percentage changes were normally distributed. GARP: “The lognormal model implies that percentage changes are almost exactly normally distributed over a one-day time period.”\n\n| Move greater than | Real world (%) | Lognormal model (%) |\n|---|---|---|\n| 1 SD | 23.32 | 31.73 |\n| 2 SD | 4.67 | 4.55 |\n| 3 SD | 1.30 | 0.27 |\n| 4 SD | 0.49 | 0.01 |\n| 5 SD | 0.24 | 0.00 |\n| 6 SD | 0.13 | 0.00 |\n\nGARP’s conclusion: “The table therefore provides evidence to support the existence of heavy tails (Figure 17.2) and the volatility smile used by traders (Figure 17.1).” Note the first row: moves beyond 1 SD are less frequent than under the lognormal, the empirical face of the “more peaked” centre (footnote 1).\n\n**Applying it to this question**\n\nI: sample and measurement unit match GARP. True. II: 1.30% […]"
+ },
+ {
+  "id": "MR-HQ-17d-06",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A risk analyst at an Indian bank tests the lognormal assumption for USD/INR using 3,200 daily percentage changes, each measured in units of the sample standard deviation. For reference, she also records the frequencies reported in Hull’s 2005 to 2015 study of 10 exchange rates.\n\n| Move greater than | USD/INR days observed | Hull real world (%) | Lognormal model (%) |\n|---|---|---|---|\n| 1 SD | 752 | 23.32 | 31.73 |\n| 3 SD | 41 | 1.30 | 0.27 |\n\nThe sample mean daily change is +0.01% and the sample standard deviation is 0.58%. Which of the following is closest to the ratio of observed to lognormal-predicted days for moves greater than 3 SD, together with the correct interpretation?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "About 4.7; the distribution is less peaked than lognormal, because moves greater than 1 SD occur more often than the lognormal model predicts.",
+   "B": "About 4.7; the distribution has heavier tails and is more peaked than lognormal, because moves greater than 1 SD occur less often than predicted.",
+   "C": "About 0.21; the distribution has thinner tails than lognormal, so a single flat volatility overprices deep-out-of-the-money USD/INR options.",
+   "D": "About 1.0; the tails are no heavier than lognormal, so a single flat volatility prices deep-out-of-the-money USD/INR options correctly."
+  },
+  "answer": "B",
+  "solution": "**Reading daily USD/INR data against the lognormal**\n\nStem in one line: 3,200 USD/INR days, 752 beyond 1 SD and 41 beyond 3 SD; find the 3 SD observed-to-lognormal ratio and interpret.\n\n**Concept and theory**\n\nGARP’s Table 17.1 method: under the lognormal model, daily percentage changes are almost exactly normal, so the predicted number of days with a move beyond $k$ standard deviations is\n\n$E_{k}$ = $n \\times p_{k},$\n\nwhere $n$ is the number of daily observations and $p_{k}$ is the lognormal (normal) probability of a move greater than $k$ SD in either direction (31.73% for 1 SD, 0.27% for 3 SD in GARP’s table). The diagnostic is the ratio $O_{k}/E_{k}$ of observed days $O_{k}$ to predicted days. A ratio well above 1 in the far tail means heavier tails than lognormal; a ratio below 1 at 1 SD means fewer moderate-to-large moves and therefore more small moves, i.e. a more peaked distribution.\n\n**Applying it to this question**\n\nFormula: $O_{k}/E_{k}$ with $E_{k}$ = $n p_{k}$, using the lognormal column.\n\n$E_{3}$ = 3,200 × 0.0027 = 8.64 days\n\n$O_{3}/E_{3}$ = 41/8.64 = 4.745 ≈ 4.7\n\n$E_{1}$ = 3,200 × 0.3173 = 1,015.4 days\n\n$O_{1}/E_{1}$ = 752/1,015.4 = 0.741\n\nMeaning: moves beyond 3 SD occur almost five times as often as the lognormal predicts (heavy tails), while moves beyond 1 SD occur only about three quarters as often (more peaked). Both are the FX characteristics described by GA […]"
+ },
+ {
+  "id": "MR-HQ-17d-08",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A risk consultant is presenting a case study to the investment committee of a US hedge fund. In the mid-1980s most market participants were comfortable using the Black-Scholes-Merton lognormal assumption for exchange rates, but a few traders had analysed daily currency movements and knew that the lognormal assumption was a poor one. Which of the following best describes the strategy that exploited this knowledge and how the episode ended?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "Buy deep-out-of-the-money calls and puts on a variety of currencies and wait; the opportunity disappeared by the late 1980s, once currency options were priced with a smile.",
+   "B": "Sell deep-out-of-the-money calls and puts on a variety of currencies and keep the premiums; the opportunity disappeared by the late 1980s, once options were priced with a smile.",
+   "C": "Buy deep-out-of-the-money puts only, since currency distributions have a heavy left tail and a thin right tail; the opportunity disappeared by the late 1980s.",
+   "D": "Buy at-the-money calls and puts on a variety of currencies, since the lognormal model misprices these most; the opportunity disappeared by the late 1980s."
+  },
+  "answer": "A",
+  "solution": "**Business Snapshot 17.1: making money from foreign currency options**\n\nStem in one line: which strategy exploited knowledge of heavy FX tails in the mid-1980s, and how did the episode end?\n\n**Concept and theory**\n\nIf the market prices every currency option with one constant volatility (a lognormal), but the true distribution has heavier tails, then options that pay off only in the tails, deep-out-of-the-money calls and puts, are priced too low. GARP Business Snapshot 17.1 asks what you should do if you alone know this. “The answer is that you should buy deep-out-of-the-money call and put options on a variety of different currencies and wait. These options will be relatively inexpensive and more of them will close in the money than the lognormal model predicts. The present value of your payoffs will on average be much greater than the cost of the options.” Historically: “In the mid-1980s, a few traders knew about the heavy tails of foreign exchange probability distributions. Everyone else thought that the lognormal assumption of Black-Scholes-Merton was reasonable. The few traders who were well informed followed the strategy we have described and made lots of money. By the late 1980s everyone realized that foreign currency options should be priced with a volatility smile and the trading opportunity disappeared.”\n\nTwo design points: both wings, because both tails are heavy; a va […]"
+ },
+ {
+  "id": "MR-HQ-17d-09",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "The treasurer of a Canadian pension fund wants the probability that USD/CAD (CAD per USD), now 1.3600, will be below 1.1500 in 6 months. Assume the exchange rate is lognormal with a volatility of 9% per annum and a risk-neutral drift of ($r_{\\text{CAD}} - r_{\\text{USD}}$) per annum. Both interest rates are 3.0% per annum, the fund’s hedge notional is USD 40 million, and the 1-month at-the-money implied volatility is 7.5%. Which of the following is closest to the lognormal probability, together with the correct judgement implied by the volatility smile usually observed for exchange rates?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "3.45%; the usual currency smile implies this lognormal estimate is too low.",
+   "B": "0.46%; the usual currency smile implies this lognormal estimate is too high.",
+   "C": "0.42%; the usual currency smile implies this lognormal estimate is too low.",
+   "D": "0.46%; the usual currency smile implies this lognormal estimate is too low."
+  },
+  "answer": "D",
+  "solution": "**Lognormal tail probability for USD/CAD and its bias**\n\nStem in one line: USD/CAD 1.3600, 9% volatility, 6 months, equal rates; lognormal probability of ending below 1.1500, and is it too high or too low?\n\n**Concept and theory**\n\nUnder the lognormal assumption the log of the exchange rate at time $T$ is normally distributed:\n\nln $S_{T} \\sim N (\\text{ln} S_{0}$ + $\\left(r - r_{f} - \\frac{\\sigma^{2}}{2} \\right) T, \\sigma\\sqrt{T})$\n\nwhere $S_{0}$ is the current exchange rate, $S_{T}$ the rate at $T$ , $r$ the domestic (here CAD) risk-free rate, $r_{f}$ the foreign (here USD) risk-free rate, $\\sigma$ the annual volatility and $T$ the horizon in years; the second argument is the standard deviation. Hence\n\n$P$ ($S_{T} < K$) = $N$ ($z$)$, z$ = $\\frac{\\text{ln(}K/S_{0}\\text{)} - \\left(r - r_{f} - \\sigma^{2}/2\\right) T}{\\sigma\\sqrt{T}} ,$\n\nwith $N$ (·) the standard normal distribution function. GARP §17.2 then tells us how to judge such an estimate: the currency smile used by traders “implies that they consider that the lognormal distribution understates the probability of extreme movements in exchange rates”, and Table 17.1 shows they are right.\n\n**Applying it to this question**\n\nInputs: $S_{0}$ = 1.3600, $K$ = 1.1500, $\\sigma$ = 0.09, $T$ = 0.5, $r$ = $r_{f}$ = 0.03.\n\nln($K/S_{0}$) = ln(1.1500/1.3600) = −0.167723\n\nmean of ln($S_{T} /S_{0}$) = (0.03 − 0.03 − 0.5 × $\\text{0.09}^{2}$) × […]"
+ },
+ {
+  "id": "MR-HQ-17d-12",
+  "lo": "MR-17 d",
+  "loText": "Describe characteristics of foreign exchange rate distributions and their implications on option prices and implied volatility.",
+  "outside": true,
+  "question": "A senior risk analyst at a Chinese bank is preparing a training note on how the implied distribution of a major exchange rate affects option pricing. The note compares the implied distribution with a lognormal distribution of the same mean and standard deviation, for a deep-out-of-the-money put with strike $K_{1}$ ($K_{1}/S_{0}$ well below 1.0) and a deep-out-of-the-money call with strike $K_{2}$ ($K_{2}/S_{0}$ well above 1.0):\n\nI. The $K_{2}$ call pays off only if the rate ends above $K_{2}$; the implied distribution makes this more likely than the lognormal, so it gives the call a relatively high price.\n\nII. The $K_{1}$ put pays off only if the rate ends below $K_{1}$; its heavier left tail is offset by the more peaked centre, so the put is priced close to its lognormal value.\n\nIII. The relatively high prices of the $K_{1}$ put and the $K_{2}$ call correspond to relatively high implied volatilities at both ends of the volatility smile.\n\nIV. Relatively high prices for deep-out-of-the-money options correspond to relatively low implied volatilities, since far from the money a small volatility change moves price a lot.\n\nWhich of the statements are correct?\n\n*Conventions for this paper:* Unless stated otherwise, “lognormal” means the Black-Scholes-Merton assumption of a lognormal exchange rate with constant volatility.",
+  "options": {
+   "A": "I only",
+   "B": "I and IV only",
+   "C": "I and III only",
+   "D": "I, II and III only"
+  },
+  "answer": "C",
+  "solution": "**From tail probability to price to implied volatility, both wings**\n\nStem in one line: which of four statements linking the FX implied distribution to the prices and implied volatilities of a deep-OTM put ($K_{1}$) and call ($K_{2}$) are correct?\n\n**Concept and theory**\n\nGARP §17.2 shows that the currency smile (Figure 17.1) and the implied distribution (Figure 17.2) are two views of the same thing by walking through both wings. For the deep-OTM call at $K_{2}$: it “pays off only if the exchange rate proves to be above $K_{2}$”; the implied distribution makes this more likely than the lognormal; so it gives “a relatively high price for the option. A relatively high price leads to a relatively high implied volatility.” For the deep-OTM put at $K_{1}$: it “pays off only if the exchange rate proves to be below $K_{1}$”; “the probability of this is also higher for the implied probability distribution than for the lognormal distribution”; so “a relatively high price, and a relatively high implied volatility, for this option as well.”\n\nThe link from price to implied volatility is monotonic: implied volatility is the BSM volatility that reproduces the market price, and a higher volatility gives a higher BSM price (the BSM vega is positive, GARP §17.6), so a relatively high price must map to a relatively high implied volatility.\n\n**Applying it to this question**\n\nI: GARP’s $K_{2}$ arg […]"
+ },
+ {
+  "id": "MR-HQ-17e-08",
+  "lo": "MR-17 e",
+  "loText": "Describe the volatility smile for equity options and foreign currency options and provide possible explanations for its shape.",
+  "outside": true,
+  "question": "A risk consultant is advising a Brazilian bank that has started making markets in BRL/USD options, which it prices with a volatility smile. The bank’s ALCO asks why exchange rates do not follow the lognormal distribution assumed by the Black-Scholes-Merton model. Which of the following explanations is most accurate?",
+  "options": {
+   "A": "Exchange-rate volatility is close to constant, but rates frequently jump, sometimes in response to central bank actions; the jumps alone make extreme outcomes more likely than under a lognormal distribution.",
+   "B": "Exchange-rate volatility is far from constant and rates frequently jump, sometimes in response to central bank actions; both features make extreme outcomes less likely than under a lognormal distribution.",
+   "C": "Exchange-rate volatility is far from constant and rates frequently jump, sometimes in response to central bank actions; both features make extreme outcomes more likely than under a lognormal distribution.",
+   "D": "Exchange rates are negatively correlated with their volatility, as equity prices are, so that declines in the rate are amplified, making large falls more likely than under a lognormal distribution."
+  },
+  "answer": "C",
+  "solution": "**Why exchange rates are not lognormal**\n\nStem in one line: most accurate explanation, for a BRL/USD market maker’s ALCO, of why exchange rates are not lognormal.\n\n**Concept and theory**\n\nGARP 17.2 identifies two conditions for an asset price to have a lognormal distribution:\n\n1. the volatility of the asset is constant;\n2. the price of the asset changes smoothly, with no jumps.\n\nNeither holds for an exchange rate. Its volatility is far from constant, and exchange rates frequently exhibit jumps, sometimes in response to the actions of central banks. Both a nonconstant volatility and jumps have the effect of making extreme outcomes more likely. More probability in both tails makes deep out-of-the-money calls (high strikes) and deep out-of-the-money puts (low strikes) relatively valuable, which is why both wings of the currency smile are high.\n\nSchweser says the same in condensed form: exchange-rate volatility is not constant and frequently jumps from one level to another, which increases the likelihood of extreme currency levels.\n\n**Applying it to this question**\n\nThe answer must (i) reject both lognormal conditions, (ii) give the direction, extreme outcomes more likely, and (iii) not import the equity story. C does all three.\n\n**Fragile fact.** Two failed lognormal conditions for currencies: volatility not constant, prices not smooth (jumps, sometimes central bank driven). Both  […]"
+ },
+ {
+  "id": "MR-HQ-17i-02",
+  "lo": "MR-17 i",
+  "loText": "Explain the impact of a single asset price jump on a volatility smile.",
+  "outside": true,
+  "question": "A risk consultant advising a Brazilian asset manager is explaining the effect of a pending court ruling on a BRL-listed stock. The ruling, due in two days, is expected either to raise the price by a large amount or to reduce it by a large amount. Which of the following best describes the probability distribution of the stock price in 1 month, and the benchmark against which the reading compares it?",
+  "options": {
+   "A": "A mixture of two lognormal distributions, one for each outcome of the ruling, giving a bimodal shape; it is compared with a lognormal having the same mean and the same standard deviation.",
+   "B": "A mixture of two lognormal distributions, one for each outcome of the ruling, giving a bimodal shape; it is compared with a lognormal having the same mean but a lower standard deviation.",
+   "C": "A single unimodal distribution with a heavier left tail and a heavier right tail; it is compared with a lognormal having the same mean and the same standard deviation.",
+   "D": "A single unimodal distribution with a heavier left tail and a less heavy right tail; it is compared with a lognormal having the same mean and the same standard deviation."
+  },
+  "answer": "A",
+  "solution": "**The price distribution after an anticipated jump**\n\nStem in one line: what distribution does a pending two-way court ruling create, and what is the benchmark?\n\n**Concept and theory**\n\nGARP: the probability distribution of the stock price in 1 month “might then consist of a mixture of two lognormal distributions, the first corresponding to favorable news, the second to unfavorable news.” Figure 17.5 plots it (solid line) against “a lognormal distribution with the same mean and standard deviation as this distribution” (dashed line). GARP concludes: “The true probability distribution is bimodal (certainly not lognormal).”\n\nWhy fix the mean and standard deviation? To isolate shape: with the first two moments equal, any difference in option prices comes from the jump distribution having two humps (one near each post-news price) and less probability in the extreme tails, not from a different level of volatility.\n\n| Case | Shape | Tails versus lognormal | Source |\n|---|---|---|---|\n| Single jump | Bimodal mixture | Two humps, thin extremes | GARP §17.8 |\n| Currency | Unimodal | Both tails heavier | GARP §17.2 |\n| Equity | Unimodal | Left heavier, right less heavy | GARP §17.3 |\n\n**Applying it to this question**\n\nTwo outcomes give a bimodal mixture of two lognormals; the benchmark lognormal has the same mean and SD. Only A has both halves right.\n\n**Fragile fact.** The benchmark logno […]"
+ }
+]
