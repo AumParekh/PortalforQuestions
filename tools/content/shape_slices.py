@@ -4,6 +4,7 @@
     shape_slices.py slice <TOPIC>              writes data/build-inputs/shapes/slices/<TOPIC>-<nn>.json
     shape_slices.py check <result.json>        validates a judge's file against its slice
     shape_slices.py reconcile <TOPIC>          joins the two independent judgements of each slice
+    shape_slices.py tiebreak <TOPIC>           slices of the questions the two judges split on, for a third judge
     shape_slices.py topiccheck <TOPIC>         validates topics/<TOPIC>.json (see AUTHOR.md)
 
 A topic's candidates are the questions of its learning objectives plus, from the rest of the library, those its
@@ -148,7 +149,7 @@ def reconcile(topic_id: str):
     """Agreement of the two judges, per question: both keep (selectors in common), both drop, or split."""
     res = os.path.join(SHAPES, 'results')
     out = []
-    for name in sorted(f[:-5] for f in os.listdir(os.path.join(SHAPES, 'slices')) if f.startswith(topic_id + '-')):
+    for name in sorted(f[:-5] for f in os.listdir(os.path.join(SHAPES, 'slices')) if re.fullmatch(rf'{topic_id}-\d+\.json', f)):
         a, b = (load(os.path.join(res, f'{name}.{who}.json')) for who in ('a', 'b'))
         for q, x, y in zip(load(os.path.join(SHAPES, 'slices', f'{name}.json')), a, b):
             sx, sy = ({m['selector'] for m in r['matches']} for r in (x, y))
@@ -165,6 +166,20 @@ def reconcile(topic_id: str):
     print(f'{topic_id}: {len(out)} judged twice: {tally}')
 
 
+def tiebreak(topic_id: str):
+    """Slices of the questions on which the two judges split (one placed it, the other did not), for a third judge."""
+    split = {r['id'] for r in load(os.path.join(SHAPES, 'results', f'{topic_id}.reconciled.json')) if r['state'] == 'split'}
+    rows = [q for name in sorted(os.listdir(os.path.join(SHAPES, 'slices'))) if re.fullmatch(rf'{topic_id}-\d+\.json', name)
+            for q in load(os.path.join(SHAPES, 'slices', name)) if q['id'] in split]
+    for old in os.listdir(os.path.join(SHAPES, 'slices')):
+        if old.startswith(topic_id + '-tb'):
+            os.remove(os.path.join(SHAPES, 'slices', old))
+    for k in range(0, len(rows), SIZE):
+        with open(os.path.join(SHAPES, 'slices', f'{topic_id}-tb{k // SIZE + 1:02d}.json'), 'w', encoding='utf8') as f:
+            json.dump(rows[k:k + SIZE], f, ensure_ascii=False, indent=1)
+    print(f'{topic_id}: {len(rows)} split questions for a third judge')
+
+
 def main():
     cmd, arg = sys.argv[1], sys.argv[2]
     if cmd == 'slice':
@@ -175,6 +190,8 @@ def main():
         sys.exit(1 if bad else 0)
     elif cmd == 'reconcile':
         reconcile(arg)
+    elif cmd == 'tiebreak':
+        tiebreak(arg)
     elif cmd == 'topiccheck':
         bad = topic_problems(arg)
         print('\n'.join(bad) if bad else 'ok')

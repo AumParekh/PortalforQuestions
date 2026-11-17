@@ -12,8 +12,10 @@ candidate questions. For each question decide which of the topic's **selectors**
   - `V1`, ...: Vardeez's focus points that no numbered shape covers.
   The file also gives the candidate's own August 2026 recall, the Map's notes, the learning objectives with Vardeez's
   pointers, and which selectors the Master LO Map pins to which learning objective.
-- `topics/<ID>.notes.txt`: the workbook's revision notes, formulas and traps for the topic (plain text; some formulas
-  are broken across lines). Read it first: it tells you what each selector means in the source's own terms.
+- `topics/<ID>.source.txt`: what the sources say about the topic, read off the PDFs (plain text; some formulas are
+  broken across lines). Part 1, the workbook's revision notes, formulas and traps, tells you what each selector means
+  in the source's own terms; read it before judging. (The two trial topics have `topics/<ID>.notes.txt` as well: the
+  same notes.)
 - `slices/<slice>.json`: the candidates. Each has `id`, `lo`, `loText`, `outside`, `question`, `options`, `answer`,
   `solution` (may be cut short). Read the question, the options, the correct answer and the solution.
 
