@@ -99,6 +99,8 @@ export interface TierGroup {
   info: RecallTierInfo;
   questionIds: string[];
   sectionKeys: string[];
+  /** True when the tier's questions come from the exam shapes (its judged topics) rather than its sections. */
+  byShape?: boolean;
 }
 
 export function TierCard({

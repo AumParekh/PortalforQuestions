@@ -9,7 +9,7 @@ import { useSession } from '../store/session';
 import { useUi } from '../store/ui';
 import { hasActiveFilters, localToday, matchesFilters } from '../lib/queue';
 import { shuffle as shuffled } from '../components/dashboard/launch';
-import { RECALL_TIERS } from '../lib/recallTiers';
+import { RECALL_SECTIONS, RECALL_TIERS } from '../lib/recallTiers';
 import { navigate } from '../lib/router';
 import { ChapterSearch, matchesQuery } from '../components/setup/ChapterSearch';
 import { FilterChip } from '../components/setup/FilterSheet';
@@ -259,6 +259,17 @@ export function ShapesScreen() {
       return next;
     });
 
+  // Topics are matched to shapes tier by tier, so some may still be on their way.
+  const pending = useMemo(() => {
+    const have = new Set(topics.map((t) => t.id));
+    const parts = RECALL_TIERS.map((info) => {
+      const all = RECALL_SECTIONS.filter((x) => x.tier === info.id);
+      const ready = all.filter((x) => have.has(x.id)).length;
+      return ready === all.length ? null : ready === 0 ? `${info.name}: not matched yet` : `${info.name}: ${ready} of ${all.length} topics ready`;
+    }).filter((x): x is string => x !== null);
+    return parts.length > 0 ? `Still being matched to shapes. ${parts.join('; ')}. Until a topic is ready, find its questions through New Session (choose tiers) or the Question library.` : '';
+  }, [topics]);
+
   // Arriving from a tier card: start at that tier. Coming back from a session: bring the row opened last into view.
   const scrolled = useRef(false);
   useEffect(() => {
@@ -320,6 +331,9 @@ export function ShapesScreen() {
             The tier topics, holding only the questions that practise what was reported: the recall workbook's shapes, the Priority Map and Vardeez's
             focus. Open a topic and tap a shape to solve every question in it.
           </p>
+          {pending && (
+            <p className="rounded-xl bg-amber-50 px-3 py-2 text-[15px] text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">{pending}</p>
+          )}
           <ChapterSearch value={query} onChange={setQuery} placeholder="Find a topic or shape, RAROC" label="Find a topic or shape" />
           <ScopeChips filters={filters} onChange={setFilters} effect="are included" />
           <FilterChip active={shuffle} title="Otherwise the recall workbook's questions come first, then bank order" onClick={() => setShuffle((v) => !v)}>

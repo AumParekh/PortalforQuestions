@@ -48,12 +48,17 @@ def main():
     recall = load(os.path.join(SHAPES, 'recall-shapes.json'))
     rulings = load(os.path.join(RESULTS, 'decisions.json'))
     order = {q: n for n, q in enumerate(library)}
-    topics, problems, tally = [], [], Counter()
+    topics, problems, tally, waiting = [], [], Counter(), []
     for sec in tiers['sections']:
         tid = sec['id']
         path = os.path.join(SHAPES, 'topics', f'{tid}.json')
         votes = judgements(tid) if os.path.exists(path) else {}
         if not votes:
+            continue
+        # A topic goes in only once every one of its slices has been judged twice.
+        slices = [f[:-5] for f in os.listdir(os.path.join(SHAPES, 'slices')) if re.fullmatch(rf'{tid}-\d+\.json', f)]
+        if not all(os.path.exists(os.path.join(RESULTS, f'{n}.{j}.json')) for n in slices for j in 'ab'):
+            waiting.append(tid)
             continue
         t = load(path)
         ids = [s['id'] for s in t['selectors']]
@@ -108,6 +113,8 @@ def main():
         json.dump({'topics': topics}, f, ensure_ascii=False, separators=(',', ':'))
         f.write('\n')
     print(f'{len(topics)} topics; questions kept by tier (a question can sit in several topics): {dict(tally)}')
+    if waiting:
+        print('not yet fully judged, left out:', ' '.join(waiting))
     for p in problems:
         print('PROBLEM', p)
     sys.exit(1 if problems else 0)

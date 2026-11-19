@@ -78,20 +78,21 @@ export function PracticeScreen() {
   // Recall-workbook tiers. With the exam shapes loaded, a tier holds the questions that practise a reported shape of
   // one of its topics; without them, every question whose learning objective one of its sections covers.
   const tierGroups = useMemo((): TierGroup[] => {
-    if (byShape) {
-      return RECALL_TIERS.map((info) => {
-        const topics = shapeTopics.filter((t) => t.tier === info.id);
-        const ids = new Set(topics.flatMap((t) => t.selectors.flatMap((s) => s.questions.map(([id]) => id))).filter((id) => byId[id]));
-        return { info, questionIds: [...ids], sectionKeys: topics.map((t) => t.id) };
-      }).filter((t) => t.questionIds.length > 0);
-    }
     const sections = buildCatalog(subjectQuestions, 'section');
-    return RECALL_TIERS.map((info) => ({
-      info,
-      questionIds: subjectQuestions.filter((q) => tiersOf(q).includes(info.id)).map((q) => q.id),
-      sectionKeys: sections.filter((it) => it.code?.startsWith(info.id)).map((it) => it.key),
-    })).filter((t) => t.questionIds.length > 0);
-  }, [subjectQuestions, shapeTopics, byShape, byId]);
+    // Tier by tier: a tier whose topics have been matched to shapes shows those; the others keep their sections.
+    return RECALL_TIERS.map((info): TierGroup => {
+      const topics = shapeTopics.filter((t) => t.tier === info.id);
+      if (topics.length > 0) {
+        const ids = new Set(topics.flatMap((t) => t.selectors.flatMap((s) => s.questions.map(([id]) => id))).filter((id) => byId[id]));
+        return { info, questionIds: [...ids], sectionKeys: topics.map((t) => t.id), byShape: true };
+      }
+      return {
+        info,
+        questionIds: subjectQuestions.filter((q) => tiersOf(q).includes(info.id)).map((q) => q.id),
+        sectionKeys: sections.filter((it) => it.code?.startsWith(info.id)).map((it) => it.key),
+      };
+    }).filter((t) => t.questionIds.length > 0);
+  }, [subjectQuestions, shapeTopics, byId]);
   const progressByTier = useMemo(() => tierGroups.map((t) => fileProgress(t, states)), [tierGroups, states]);
   const none = subjectQuestions.length === 0;
 
@@ -181,7 +182,7 @@ export function PracticeScreen() {
           title="By tier"
           hint={
             byShape
-              ? 'Recall workbook topics, Tier A first, holding only the questions that practise a reported shape. Tap a tier to open its topics.'
+              ? 'Recall workbook tiers, Tier A first. A tier counted in topics holds only the questions that practise a reported exam shape; tap it to open its topics. A tier counted in sections still holds every question of its learning objectives.'
               : 'Recall workbook sections, Tier A first. Tap a tier to choose its sections; a question can sit in more than one tier.'
           }
         >
@@ -191,9 +192,9 @@ export function PracticeScreen() {
                 key={t.info.id}
                 tier={t}
                 progress={progressByTier[i]}
-                unit={byShape ? ['topic', 'topics'] : undefined}
+                unit={t.byShape ? ['topic', 'topics'] : undefined}
                 onOpen={() => {
-                  if (!byShape) return openSetupWith('section', t.sectionKeys);
+                  if (!t.byShape) return openSetupWith('section', t.sectionKeys);
                   useUi.getState().setPendingShapesTier(t.info.id);
                   navigate('/shapes');
                 }}
