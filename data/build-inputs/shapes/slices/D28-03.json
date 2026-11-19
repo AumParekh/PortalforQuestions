@@ -1,0 +1,482 @@
+[
+ {
+  "id": "IR-HQ-4b-01",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A junior risk analyst at a Canadian asset manager is preparing a slide for newly hired analysts on why the firm’s equity team refines its alphas before running its optimizer. The team’s mandates carry client restrictions (no short sales, a cap on cash) and the team adds its own restrictions (sector neutrality, limits on individual active positions). Which statement on the slide is most accurate?",
+  "options": {
+   "A": "Such restrictions can make the portfolio less efficient and complicate the optimization; refining the alphas so that a simple optimization produces the restricted portfolio lets the team see what each restriction does to its alphas.",
+   "B": "Such restrictions generally make the portfolio more efficient, since they shield it from unreasonable alphas; refining the alphas so that a simple optimization produces the restricted portfolio is how the team captures that gain.",
+   "C": "Refining the alphas can embed the client’s restrictions, such as the short-sale ban, but restrictions the team adds for robustness, such as sector neutrality, must still be imposed directly as optimizer constraints.",
+   "D": "Because refining the alphas embeds every restriction in the inputs, the resulting portfolio carries none of the efficiency cost of the restrictions, since the optimizer itself is run without any constraint."
+  },
+  "answer": "A",
+  "solution": "Analyst’s onboarding slide: why the team refines alphas when mandates carry client and manager restrictions.\n\n**Concept and theory**\n\nGARP frames implementation as building the best portfolio given the inputs and the investment constraints. With the “right” alphas, active management would be a simple mean/variance problem: maximize active return minus a penalty for active risk. In practice two sets of restrictions intrude. Client restrictions are agreed in the mandate: most institutional managers take no short positions and limit cash, and some restrict asset coverage for liquidity or self-dealing reasons. GARP says these limits “can make the portfolio less efficient, but they are hard to avoid”. Manager restrictions are added by the manager: neutrality across sectors or industries, limits […]"
+ },
+ {
+  "id": "IR-HQ-4b-02",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A risk consultant in London is reviewing an equity manager’s implementation manual, which contains the four statements below about replacing the manager’s constrained optimizer with refined alphas.\n\n|  | Statement |\n|---|---|\n| I | Any portfolio construction procedure, however sophisticated, can be replaced by first refining the alphas and then running a simple unconstrained mean/variance optimization. |\n| II | This equivalence shows that complicated implementation schemes add no value and should be abandoned in favour of the unconstrained optimizer. |\n| III | The replacement optimization keeps the original alphas and raises the active risk aversion until the active holdings match those of the constrained portfolio. |\n| IV | If the implementation scheme is partly a safeguard against unreasonable inputs, that problem can be attacked directly, by preprocessing the alphas or by designing procedures that explicitly act as an input moderator. |\n\nWhich of the statements are consistent with the source reading?",
+  "options": {
+   "A": "I and III only",
+   "B": "II and IV only",
+   "C": "I, III and IV only",
+   "D": "I and IV only"
+  },
+  "answer": "D",
+  "solution": "Consultant audits four manual statements about replacing a constrained optimizer with refined alphas.\n\n**Concept and theory**\n\nGARP’s central claim in 4.2 is an equivalence: “We can replace any portfolio construction process, regardless of its sophistication, by a process that first refines the alphas and then uses a simple unconstrained mean/variance optimization to determine the active positions.” The replacement needs two ingredients: modified alphas $\\alpha^{'}$ (Equation 4.1) and an appropriate active risk aversion (Equation 4.2, $\\lambda^{'}_{\\text{A}} =$ IR/(2$\\psi_{\\text{P}})$), where $\\text{h}_{\\text{PA}}$, $\\psi_{\\text{P}}$ and IR are the active holdings, active risk and ex ante information ratio produced by the sophisticated procedure. In the Table 4.1 illustration, the constrai […]"
+ },
+ {
+  "id": "IR-HQ-4b-03",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A senior risk analyst at a US endowment is validating a manager’s claim that a constrained optimization can be reproduced by an unconstrained one run on modified alphas. The constrained run used an active risk aversion of $\\lambda_{\\text{A}} =$ 0.10. The constrained active holdings, the original alphas and the covariance matrix of the two stocks (in percent squared) are below.\n\n| Stock | Original alpha (%) | Active holding (%) | Covariance with P | Covariance with Q |\n|---|---|---|---|---|\n| P | 3.40 | 3.0 | 400 | 120 |\n| Q | −2.60 | −1.0 | 120 | 900 |\n\nWhat modified alpha for stock Q would make the unconstrained optimization, at the same active risk aversion, reproduce the constrained active holdings?",
+  "options": {
+   "A": "−0.54%",
+   "B": "−1.80%",
+   "C": "−1.08%",
+   "D": "−2.60%"
+  },
+  "answer": "C",
+  "solution": "Validating reverse optimization: modified alpha of stock Q from $\\lambda_{\\text{A}}$, V and the constrained active holdings.\n\n**Concept and theory**\n\nThe simple unconstrained problem in GARP footnote 1 is\n\nmax $\\text{h}^{\\text{T}}_{\\text{PA}}\\alpha^{'} - \\lambda_{\\text{A}} \\text{h}^{\\text{T}}_{\\text{PA}}\\text{Vh}_{\\text{PA}}$,\n\n$\\text{h}_{\\text{PA}}$\n\nwhere $\\text{h}_{\\text{PA}}$ is the vector of active holdings (portfolio minus benchmark weights), $\\alpha^{'}$ the vector of alphas fed to the optimizer, V the covariance matrix and $\\lambda_{\\text{A}}$ the active risk aversion. Setting the derivative to zero gives the first-order condition\n\n$\\alpha^{'} =$ 2 $\\lambda_{\\text{A}} \\text{V h}_{\\text{PA}}$.\n\nRead forwards, it tells the optimizer which holdings to pick for given alphas. Read in re […]"
+ },
+ {
+  "id": "IR-HQ-4b-04",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A portfolio manager at a Japanese trust bank runs an optimization with two constraints: no short sales, and no holding more than 4 percentage points above its benchmark weight. She then reverse-engineers the modified alphas that make an unconstrained optimization, at the same active risk aversion, produce the constrained portfolio. Part of the output is below.\n\n| Stock | Benchmark weight (%) | Original alpha (%) | Constrained holding (%) | Modified alpha (%) |\n|---|---|---|---|---|\n| Akira Rail | 3.0 | −2.9 | 0.0 | −0.95 |\n| Hoshi Foods | 5.0 | 3.6 | 9.0 | 0.88 |\n| Kaze Steel | 4.0 | 1.1 | 5.2 | 0.27 |\n| Mori Bank | 6.0 | −0.6 | 4.9 | −0.21 |\n\nWhich conclusion is most accurate?",
+  "options": {
+   "A": "The modified alphas are pulled toward zero as a set because the constraints moved the portfolio closer to the benchmark, and the fall in their standard deviation is in effect a cut in the manager’s IC.",
+   "B": "The modified alphas are pushed away from zero as a set because the constraints force larger bets in the unconstrained names, and the rise in their standard deviation is in effect a gain in the manager’s IC.",
+   "C": "Only the alphas of stocks at a binding constraint (Akira Rail and Hoshi Foods) are modified, and the fall in their standard deviation is in effect a cut in the manager’s IC for those two names.",
+   "D": "The modified alphas are pulled toward zero as a set because the constraints lowered the residual volatility of the stocks, and the fall in their standard deviation leaves the manager’s IC unchanged."
+  },
+  "answer": "A",
+  "solution": "Trust-bank manager compares original and modified alphas after no-short and overweight-cap constraints.\n\n**Concept and theory**\n\nIn GARP’s Table 4.1 illustration, an unconstrained optimization shorts two stocks and puts almost 18% in one name. Adding a no-short rule and a cap of 5 points over benchmark removes the shorts, cuts the big position to the cap, and makes “the other positions also adjust”. The modified alphas that reproduce this portfolio are “pulled in toward zero relative to the original alphas, as we would expect, since the constraints moved the optimal portfolio closer to the benchmark”. Their standard deviation fell from 2.00% to 0.57%.\n\nBecause alphas have the structure $\\alpha= \\text{volatility} \\times\\text{IC} \\times$ score, with residual volatility roughly constant, a sm […]"
+ },
+ {
+  "id": "IR-HQ-4b-05",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A treasury analyst at an Australian superannuation fund is reviewing an external manager’s implementation report for an AUD equity mandate. The manager’s alphas, before constraints, have the natural scale implied by its skill. After a no-short-sale constraint and position limits are imposed, the manager reverse-engineers the modified alphas that reproduce the constrained portfolio.\n\n| Item | Value |\n|---|---|\n| Information coefficient (IC) of the original alphas | 0.06 |\n| Typical residual risk (%) | 25 |\n| Standard deviation of original alphas (%) | 1.50 |\n| Standard deviation of modified alphas (%) | 0.60 |\n| Active risk aversion used in both runs | 0.0833 |\n| Number of stocks in the universe | 120 |\n\nWhich statement best describes the effect of the constraints?",
+  "options": {
+   "A": "The constraints effectively shrank the IC by 40%, to about 0.036.",
+   "B": "The constraints effectively shrank the IC by 60%, to about 0.024.",
+   "C": "The constraints effectively shrank the IC by 84%, to about 0.0096.",
+   "D": "The IC is unchanged at 0.06, since constraints change the holdings and not the forecasts."
+  },
+  "answer": "B",
+  "solution": "Super fund analyst measures the effective IC shrink when alpha scale falls from 1.50% to 0.60%.\n\n**Concept and theory**\n\nThe natural scale of alphas is Std$\\{\\alpha\\} = \\text{volatility} \\times$ IC. With residual volatility unchanged, any change in the scale of the alphas the optimizer effectively uses maps one-for-one into a change in IC:\n\n$\\text{IC}_{\\text{eff}} = \\text{IC} \\times\\frac{\\text{Std}\\{\\alpha^{'}\\}}{\\text{Std}\\{\\alpha\\}}$ , shrink = 1 $- \\frac{\\text{Std}\\{\\alpha^{'}\\}}{\\text{Std}\\{\\alpha\\}}$ .\n\nSchweser: comparing the scale of the refined alphas with the scale of the original alphas lets us “calculate the decrease in the information coefficient that results from the decrease in the scale”.\n\n**Applying it to this question**\n\nCheck the natural scale: 25% × 0.06 = 1.50%, equal t […]"
+ },
+ {
+  "id": "IR-HQ-4b-06",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A portfolio manager at a GBP equity fund receives raw alpha forecasts from a new analyst. Across the coverage list the raw forecasts have mean 0% and standard deviation 4.5%. The manager’s information coefficient is 0.05 and the typical residual risk of the stocks is 24%. Stock K has a raw forecast of 6.3%. The manager rescales the forecasts so that they have the scale implied by her skill.\n\nWhat alpha should she use for stock K after rescaling?",
+  "options": {
+   "A": "1.40%",
+   "B": "0.45%",
+   "C": "1.68%",
+   "D": "23.63%"
+  },
+  "answer": "C",
+  "solution": "GBP fund manager rescales a new analyst’s raw forecasts (std 4.5%) to the scale implied by IC 0.05 and residual risk 24%.\n\n**Concept and theory**\n\nGARP: alphas have a natural structure, $\\alpha= \\text{volatility} \\times\\text{IC} \\times$ score, where volatility is residual risk, IC is the correlation between forecasts and outcomes and the score has mean 0 and standard deviation 1 across the set. Hence the alphas should have mean 0 and scale Std$\\{\\alpha\\} = \\text{volatility} \\times$ IC. “If the alphas input to portfolio construction do not have the proper scale, then rescale them.” Rescaling preserves each forecast’s position in the cross-section (its score) and restores the magnitude the manager’s skill justifies. Without it, an overconfident analyst’s forecasts would drive oversized activ […]"
+ },
+ {
+  "id": "IR-HQ-4b-07",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "An internal auditor at a Singapore insurer is checking a training note on scaling alphas written by the in-house equity team. Which of the following statements in the note is NOT correct?",
+  "options": {
+   "A": "Alphas have the structure alpha $= \\text{volatility} \\times\\text{IC} \\times$ score; with IC and residual risk roughly constant and the score having mean 0 and standard deviation 1, the alphas should have mean 0 and standard deviation of volatility × IC.",
+   "B": "With an IC of 0.05 and residual risk of 30%, the alpha scale is 1.5%, so roughly two-thirds of stocks should have alphas within ±1.5% and roughly 5% should have alphas beyond ±3.0%.",
+   "C": "As an alternative to the IC route, the scale can be set from the ex ante information ratio: compute the information ratio implied by the alphas and, if needed, rescale them by the ratio of the desired to the implied information ratio.",
+   "D": "Since the alpha scale is fixed by the residual volatility of the stocks, a manager whose information coefficient falls should leave the scale of her alphas unchanged and alter only their ranking."
+  },
+  "answer": "D",
+  "solution": "Auditor checks four statements in a training note on scaling alphas; find the incorrect one.\n\n**Concept and theory**\n\nScaling gives the alphas the magnitude justified by skill. The structure $\\alpha= \\text{volatility} \\times\\text{IC} \\times$ score means the scale has two factors. Residual volatility is a property of the stocks and is roughly constant across the set. The IC is a property of the manager: GARP says “the scale of the alphas will depend on the information coefficient of the manager”. GARP’s numerical example: IC 0.05 and residual risk 30% give a scale of 1.5%; with roughly normal scores, about two-thirds of alphas lie within ±1.5% and about 5% lie beyond ±3.0%. GARP footnote 3 gives a second route: compute the information ratio implied by the alphas, $\\text{IR}_{0} = \\sqrt{\\alp […]"
+ },
+ {
+  "id": "IR-HQ-4b-08",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A risk consultant in Shanghai is checking whether a CNY equity manager’s alphas are consistent with the manager’s stated ex ante information ratio of 0.60. Following the information-ratio approach to scaling, the consultant runs an optimization with unrestricted cash, no constraints, no limits on holdings and an active risk aversion of 0.5. The optimizer reports that the alpha of the optimal active portfolio, $\\text{h}^{\\text{T}}_{\\text{PA}}\\alpha$, is 2.25. The manager’s production optimizer uses an active risk aversion of 0.08.\n\nStock M currently has an alpha of 3.0%. What is its alpha after the consultant’s rescaling?",
+  "options": {
+   "A": "0.80%",
+   "B": "1.20%",
+   "C": "7.50%",
+   "D": "0.48%"
+  },
+  "answer": "B",
+  "solution": "Consultant rescales a CNY manager’s alphas to match an ex ante IR of 0.60, given an implied portfolio alpha of 2.25.\n\n**Concept and theory**\n\nGARP footnote 3 offers a scaling route that uses the information ratio instead of the IC. The information ratio implied by a set of alphas is\n\n$\\text{IR}_{0} = \\sqrt{\\alpha^{\\text{T}}\\text{V}^{-1}\\alpha}$.\n\nIt can be computed by running an optimization with unrestricted cash, no constraints and an active risk aversion of 0.5. Then the optimal active portfolio is $\\text{h}_{\\text{PA}} = \\text{V}^{-1}\\alpha$, because $\\text{h}_{\\text{PA}} = \\text{V}^{-1}\\alpha$/(2$\\lambda_{\\text{A}})$ and 2$\\lambda_{\\text{A}} =$ 1, and its alpha is $\\text{h}^{\\text{T}}_{\\text{PA}}\\alpha= \\alpha^{\\text{T}}\\text{V}^{-1}\\alpha= (\\text{IR}_{0})^{2}$. If IR is the desired e […]"
+ },
+ {
+  "id": "IR-HQ-4b-09",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A junior risk analyst at a Frankfurt asset manager is trimming the alphas of a EUR equity portfolio. The manager’s IC is 0.06 and the typical residual risk is 25%. Following the team’s procedure, every alpha larger in magnitude than three times the alpha scale is examined in detail.\n\n| Stock | Alpha (%) | Benchmark wt (%) | Finding of the detailed review |\n|---|---|---|---|\n| V | 7.2 | 1.2 | Driven by a stale earnings figure |\n| W | −6.0 | 2.5 | Genuine; supported by the research |\n| X | 4.2 | 0.8 | Genuine; supported by the research |\n| Y | 5.1 | 1.9 | Genuine; supported by the research |\n\nWhat are the alphas of V, W, X and Y after trimming?",
+  "options": {
+   "A": "V 0.0%; W −4.5%; X 4.2%; Y 4.5%",
+   "B": "V 4.5%; W −4.5%; X 4.2%; Y 4.5%",
+   "C": "V 0.0%; W −3.0%; X 3.0%; Y 3.0%",
+   "D": "V 0.0%; W −6.0%; X 4.2%; Y 4.5%"
+  },
+  "answer": "A",
+  "solution": "Analyst trims four EUR alphas using a 3 × scale threshold, with one questionable data point.\n\n**Concept and theory**\n\nVery large positive or negative alphas “can have undue influence” on the optimizer: it will pile into them. GARP’s first trimming procedure:\n\n1. Closely examine all stocks with alphas greater in magnitude than, say, three times the scale of the alphas.\n2. Alphas that depend on questionable data should be ignored: set to zero.\n3. The remaining genuine alphas are pulled in to three times scale in magnitude (sign kept).\n\nAlphas inside the threshold are left alone. Schweser: questionable alphas are set to zero and the remaining large ones reduced to some multiple of the scale.\n\n**Applying it to this question**\n\nThe threshold comes from the alpha scale:\n\nscale = 25% × 0.06 = 1.5 […]"
+ },
+ {
+  "id": "IR-HQ-4b-10",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A member of the risk committee of a Brazilian pension fund is evaluating a BRL equity manager’s proposal to replace its current trimming rule with a more extreme one: forcing the alphas into a normal distribution with benchmark alpha equal to 0 and the required scale factor. Which evaluation of the proposal is most accurate?",
+  "options": {
+   "A": "The transformation keeps the size information in the alphas and discards only their ranking, so it is the milder of the two trimming approaches and needs no further checks.",
+   "B": "The transformation gives benchmark alpha 0 and the required scale by construction, so once it is applied there is no need to recheck benchmark neutrality or scaling.",
+   "C": "The transformation is the milder of the two trimming approaches, since it changes only alphas beyond three times scale and leaves all other alphas exactly as forecast.",
+   "D": "The transformation is the more extreme approach, since it typically uses only the ranking information in the alphas, and benchmark neutrality and scaling must be rechecked afterwards."
+  },
+  "answer": "D",
+  "solution": "Risk committee member evaluates a proposal to force alphas into a normal distribution.\n\n**Concept and theory**\n\nGARP gives two trimming approaches.\n\n|  | First approach | Second, “more extreme” approach |\n|---|---|---|\n| What it does | Examines alphas beyond about 3 × scale; zero for questionable data; pull genuine ones in to 3 × scale | Forces all alphas into a normal distribution with benchmark alpha 0 and the required scale factor |\n| Information used | Sizes and ranks; inside alphas untouched | Typically only the ranking; sizes ignored |\n| Follow-up | None specified | Recheck benchmark neutrality and scaling |\n\nWhy recheck? The mapping (footnote 4) assigns each stock a normal variate based on its rank and benchmark weights; the result is then shifted and stretched “after adjustments fo […]"
+ },
+ {
+  "id": "IR-HQ-4b-11",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "A quantitative analyst at a Canadian pension plan is applying the extreme trimming procedure to five CAD stocks. The assets are ordered so that $\\alpha_{1} \\le\\alpha_{2} \\le$ . . . , with $\\text{p}_{1} =$ 0.5 $\\text{h}_{\\text{B,1}}$ and $\\text{p}_{\\text{n}} = \\text{p}_{\\text{n}}-_{1} +$ 0.5 $(\\text{h}_{\\text{B,n}}-_{1} + \\text{h}_{\\text{B,n}})$ for n ≥ 2, where $\\text{h}_{\\text{B,n}}$ is the benchmark weight; the normal variate $\\text{z}_{\\text{n}} \\text{solves p}_{\\text{n}} = \\Phi(\\text{z}_{\\text{n}})$.\n\n| p | $\\Phi^{-1}(\\text{p})$ |\n|---|---|\n| 0.050 | −1.645 |\n| 0.250 | −0.674 |\n| 0.275 | −0.598 |\n| 0.500 | 0.000 |\n| 0.600 | 0.253 |\n| 0.725 | 0.598 |\n| 0.850 | 1.036 |\n| 0.925 | 1.440 |\n\n| Stock | Raw alpha (%) | Benchmark wt (%) |\n|---|---|---|\n| Kappa | 2.1 | 25 |\n| Lambda | −3.4 | 10 |\n| Mu | 0.4 | 20 |\n| Nu | 6.8 | 15 |\n| Xi | −0.9 | 30 |\n\nWhat is the normal variate z for Kappa, before the adjustments for location and scale?",
+  "options": {
+   "A": "0.253",
+   "B": "1.036",
+   "C": "0.598",
+   "D": "−0.598"
+  },
+  "answer": "C",
+  "solution": "Analyst maps five CAD stocks into normal variates using benchmark weights; find z for Kappa.\n\n**Concept and theory**\n\nGARP footnote 4 sets out the mechanics of the extreme trim. Order the assets by alpha from lowest to highest. Give each asset a cumulative probability that sits at the midpoint of its benchmark weight on a cumulative scale:\n\n$\\text{p}_{1} =$ 0.5 $\\text{h}_{\\text{B,1}}$, $\\text{p}_{\\text{n}} = \\text{p}_{\\text{n}-1} +$ 0.5 $(\\text{h}_{\\text{B,n}-1} + \\text{h}_{\\text{B,n}}) (\\text{n} \\ge$ 2),\n\nso that 0 $< \\text{p}_{1} < \\cdot\\cdot\\cdot< \\text{p}_{\\text{N}} <$ 1. Then find $\\text{z}_{\\text{n}}$ with $\\Phi(\\text{z}_{\\text{n}}) = \\text{p}_{\\text{n}}$, $\\Phi$ the cumulative standard normal. The $\\text{z}_{\\text{n}}$ are used as alphas after adjustments for location and scale. Usi […]"
+ },
+ {
+  "id": "IR-HQ-4b-12",
+  "lo": "IM-4 b",
+  "loText": "Evaluate the motivation for and the methods used for refining alphas in the implementation process.",
+  "outside": false,
+  "question": "The CRO of a Singapore asset manager is reviewing its SGD equity process. Today the team copes with unrealistic, biased alphas by limiting active stock positions, limiting turnover and forcing holdings in some categories to match the benchmark. The CIO asks the CRO to recommend a process consistent with the source reading’s preferred treatment of flawed alpha inputs. Which recommendation is most consistent with it?",
+  "options": {
+   "A": "Scale and trim the raw alphas first, then neutralize them, so that neutralization works on clean inputs; then keep the existing output limits unchanged as the main defence against flawed alphas.",
+   "B": "Neutralize the alphas, then scale and trim them as the final step; seek the best risk and cost estimates; then use a powerful construction tool with as few added constraints as possible.",
+   "C": "Drop the existing output limits as invalid, since limits on positions and turnover cannot compensate for faulty inputs; then optimize the raw alphas with no constraints and no alpha analysis.",
+   "D": "Keep the output limits and add more of them, since adding constraints, rather than refining the alphas, is what strengthens the link between research and portfolio construction."
+  },
+  "answer": "B",
+  "solution": "CRO recommends replacing output limits with the source’s preferred direct treatment of flawed alphas.\n\n**Concept and theory**\n\nGARP’s summary: alpha inputs are often unrealistic and biased, and covariances and transactions costs are measured imperfectly. “The standard reaction is to compensate for flawed inputs by regulating the outputs”: limits on active positions, limits on turnover, holdings in categories forced to match the benchmark. These are “valid approaches, as long as we recognize that their purpose is to compensate for faulty inputs.” GARP prefers “a direct attack on the causes”: treat flawed alphas with alpha analysis (remove biases, trim outlandish values, scale alphas in line with expectations for value added), which “strengthens the link between research and portfolio constr […]"
+ },
+ {
+  "id": "IR-HQ-4c-01",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A senior risk analyst at a Brazilian asset manager is presenting the firm’s alpha analysis process to newly hired quantitative analysts. The firm’s equity team refines its raw BRL-denominated stock alphas before passing them to an unconstrained mean/variance optimizer. One slide summarizes what neutralization does. Which of the following statements should the analyst include on the slide as the most accurate?",
+  "options": {
+   "A": "Neutralization adjusts the size of the alphas so that their standard deviation across stocks equals residual volatility multiplied by the information coefficient.",
+   "B": "Neutralization is imposed after scaling and trimming, as the final step of alpha analysis, so that the alphas sent to the optimizer are free of any unwanted bets.",
+   "C": "Neutralization removes biases or undesirable bets from the alphas, and the adjustment has implications both for the alphas themselves and for the resulting portfolio.",
+   "D": "Neutralization removes all active risk from the resulting portfolio, because once neutralized the alphas carry no information beyond that already in the benchmark."
+  },
+  "answer": "C",
+  "solution": "Senior risk analyst at a Brazilian asset manager chooses the most accurate slide statement on what neutralization does.\n\n**Concept and theory**\n\nGrinold and Kahn (GARP Chapter 4) argue that any constrained portfolio construction process can be replaced by refining the alphas first and then running a simple unconstrained mean/variance optimization. Alpha analysis is that refinement. It has three tools:\n\n| Tool | What it does | Where it sits |\n|---|---|---|\n| Scaling | Gives the alphas the natural scale Std$\\{\\alpha\\} = \\text{volatility} \\times$ IC | Imposed as a final step (GARP footnote 2) |\n| Trimming | Examines alphas beyond about three times scale; zeroes bad data, pulls genuine ones in to three times scale | Imposed as a final step |\n| Neutralization | Removes biases or undesirable bet […]"
+ },
+ {
+  "id": "IR-HQ-4c-02",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A risk consultant hired by a UK defined benefit pension scheme is reviewing the process of one of its GBP equity managers. Each quarter the manager back tests its alphas under four alternative neutralizations (benchmark, cash, industry and factor) and adopts whichever produced the highest back-tested information ratio. In interviews, the manager’s research head concedes that the stock alphas contain no information that distinguishes one industry from another. Which recommendation by the consultant is most consistent with the recommended approach to neutralization?",
+  "options": {
+   "A": "Decide in advance how to neutralize the alphas and, because they contain no information distinguishing industries, make them industry-neutral rather than choosing the best backtested performer.",
+   "B": "Keep choosing the neutralization with the best back-tested information ratio each quarter, because realized performance is the most objective basis for selecting among the alternatives.",
+   "C": "Decide in advance how to neutralize the alphas, but leave them industry-unadjusted, because alphas that contain no industry information cannot create any active industry bets.",
+   "D": "Decide in advance how to neutralize the alphas and apply benchmark neutralization only, because a portfolio with a beta of 1 relative to the benchmark carries no active industry bets."
+  },
+  "answer": "A",
+  "solution": "Consultant reviews a GBP manager that picks the best back-tested neutralization each quarter although its alphas contain no industry information.\n\n**Concept and theory**\n\nNeutralization is “a sophisticated procedure, but it isn’t uniquely defined”, so the manager must choose which bets to remove. GARP’s general principle: “we should consider a priori how to neutralize our alphas. The choices will include benchmark, cash, industry, and factor neutralization.” The test GARP gives for industries is a question about the information content of the alphas: “Do our alphas contain any information distinguishing one industry from another? If not, then industry-neutralize.” Finally: “The a priori approach works better than simply trying all possibilities and choosing the best performer.” The logic i […]"
+ },
+ {
+  "id": "IR-HQ-4c-03",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "The CRO of a Japanese trust bank is reviewing an internal memo on how the bank’s JPY equity team makes its alphas benchmark-neutral before optimization. The memo contains the four statements below. Which statement is NOT correct?",
+  "options": {
+   "A": "By definition the benchmark portfolio has an alpha of zero, although the benchmark may still experience exceptional return over the period.",
+   "B": "If the initial alphas imply a nonzero alpha for the benchmark, the neutralization process recenters the alphas so that this benchmark alpha is removed.",
+   "C": "Setting the benchmark alpha to zero avoids benchmark timing, and from the portfolio perspective the optimal portfolio will then have a beta of 1.",
+   "D": "Benchmark neutrality is uniquely defined, because once the alphas are recentered only one portfolio can hedge out the active beta that they imply."
+  },
+  "answer": "D",
+  "solution": "CRO of a Japanese trust bank audits four memo statements on benchmark-neutral alphas and must find the false one.\n\n**Concept and theory**\n\nAn alpha is an expected residual (or active) return. The benchmark, measured against itself, has no residual return expectation, so “by definition, the benchmark portfolio has 0 alpha, although the benchmark may experience exceptional return” (GARP). If a set of stock alphas, weighted by benchmark weights, adds up to a nonzero number, the alphas are implicitly forecasting that the benchmark will beat (or lag) its own consensus expectation. That is a benchmark-timing bet hidden inside stock alphas. Benchmark neutralization removes it:\n\n- Alpha side: “the neutralization process recenters the alphas to remove the benchmark alpha.”\n- Portfolio side: “the op […]"
+ },
+ {
+  "id": "IR-HQ-4c-04",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A member of the risk committee of a Singapore insurer is reviewing an SGD equity mandate. The external manager’s optimized portfolio has a beta of 1.12 against the benchmark, whose beta is by construction 1.00. The manager states that it has no view on the direction of the market and that the beta arose only as a by-product of its stock alphas. Which of the following best describes the implicit bet and the appropriate response?",
+  "options": {
+   "A": "The portfolio is betting that the benchmark will beat the risk-free rate, so it should outperform when benchmark excess returns are positive; the alphas should be benchmark-neutralized so that the portfolio beta matches the benchmark beta.",
+   "B": "The portfolio is betting that the benchmark will beat the risk-free rate, so it should outperform when benchmark excess returns are positive; the alphas should be rescaled so that their standard deviation equals residual volatility times the IC.",
+   "C": "The portfolio is betting that the benchmark will trail the risk-free rate, so it should outperform when benchmark excess returns are negative; the alphas should be benchmark-neutralized so that the portfolio beta matches the benchmark beta.",
+   "D": "The portfolio is betting that the benchmark will beat the risk-free rate, so it should outperform when benchmark excess returns are positive; the alphas need no adjustment, because benchmark neutralization is applied only when a market bet is intended."
+  },
+  "answer": "A",
+  "solution": "Singapore insurer’s risk committee member diagnoses an unintended portfolio beta of 1.12 and chooses the fix.\n\n**Concept and theory**\n\nActive return can be split into a beta part and a residual part. Writing Schweser’s verbal example in symbols (notation added here, not printed in the source), with benchmark excess return $\\text{r}_{\\text{B}} - \\text{r}_{\\text{f}}$ and active beta $\\beta_{\\text{A}} = \\beta_{\\text{P}} -$ 1:\n\n$\\text{r}_{\\text{P}} - \\text{r}_{\\text{B}} = \\beta_{\\text{A}} (\\text{r}_{\\text{B}} - \\text{r}_{\\text{f}} ) +$ residual active return.\n\nIf $\\beta_{\\text{A}} \\not=$ 0, the portfolio carries a bet on the benchmark’s excess return, which is benchmark timing. Schweser’s example: an active portfolio with beta 1.1 against a benchmark beta of 1 “represents an active bet on mark […]"
+ },
+ {
+  "id": "IR-HQ-4c-05",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A portfolio manager at an Australian superannuation fund is making the alphas of an AUD equity sleeve benchmark-neutral. The benchmark contains four stocks. Betas are measured against the benchmark, and the manager’s information coefficient is 0.06.\n\n| Stock | Benchmark weight | Beta | Alpha (%) |\n|---|---|---|---|\n| W | 0.40 | 1.20 | 0.80 |\n| X | 0.30 | 0.90 | −0.30 |\n| Y | 0.20 | 0.80 | 0.50 |\n| Z | 0.10 | 0.90 | −0.60 |\n\nThe benchmark-neutral alpha of stock W is closest to:",
+  "options": {
+   "A": "0.32%",
+   "B": "0.48%",
+   "C": "0.53%",
+   "D": "0.68%"
+  },
+  "answer": "B",
+  "solution": "Australian superannuation PM computes the benchmark-neutral alpha of stock W from a four-stock benchmark table.\n\n**Concept and theory**\n\nLet $\\text{h}_{\\text{B,n}}$ be the benchmark weight of stock n, $\\alpha_{\\text{n}}$ its alpha and $\\beta_{\\text{n}}$ its beta against the benchmark. The benchmark alpha implied by the alphas is the benchmark-weighted average\n\n$\\alpha_{\\text{B}} = \\sum_{\\text{n}} \\text{h}_{\\text{B,n}} \\alpha_{\\text{n}}$,\n\nand the benchmark-neutral alpha subtracts the part of each alpha that is explained by the stock’s beta times the benchmark alpha:\n\n$\\alpha^{\\text{BN}}_{\\text{n}} = \\alpha_{\\text{n}} - \\beta_{\\text{n}} \\alpha_{\\text{B}}$.\n\nBecause $\\sum_{\\text{n}} \\text{h}_{\\text{B,n}} \\beta_{\\text{n}} = \\beta_{\\text{B}} =$ 1 when betas are measured against the benchmark,  […]"
+ },
+ {
+  "id": "IR-HQ-4c-06",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "An internal auditor at a German bank is validating a EUR equity team’s alpha refinement file. The file shows, for four benchmark stocks, the beta, the modified alpha produced by earlier refinements, and the benchmark-neutral alpha computed from it.\n\n| Stock | Beta | Modified alpha (%) | Benchmark-neutral alpha (%) |\n|---|---|---|---|\n| P | 1.40 | 0.900 | 0.872 |\n| Q | 0.60 | −0.400 | −0.412 |\n| R | 1.00 | 0.250 | 0.230 |\n| S | 0.80 | −0.550 | −0.566 |\n\nWhich of the following conclusions is the auditor most justified in reaching?",
+  "options": {
+   "A": "The benchmark alpha implied by the modified alphas was 2.8 basis points, as shown by the size of the adjustment made to stock P.",
+   "B": "After the adjustment the benchmark alpha is 2 basis points, so the alphas still contain a small bet on the benchmark’s performance.",
+   "C": "The adjustment is small for every stock, which is consistent with the optimal portfolio before neutralization having had a beta very close to 1.",
+   "D": "The adjustment should be identical for every stock, because benchmark neutralization subtracts the benchmark alpha from each stock’s alpha."
+  },
+  "answer": "C",
+  "solution": "German bank’s internal auditor interprets a four-stock table of modified and benchmark-neutral alphas.\n\n**Concept and theory**\n\nThe benchmark-neutral alpha is $\\alpha^{\\text{BN}}_{\\text{n}} = \\alpha_{\\text{n}} - \\beta_{\\text{n}}\\alpha_{\\text{B}}$, so the implied benchmark alpha can be backed out from any row as\n\n$\\alpha_{\\text{B}} = \\frac{\\alpha_{\\text{n}} - \\alpha^{\\text{BN}}_{\\text{n}}}{\\beta_{\\text{n}}}$ .\n\nAfter the adjustment, the benchmark alpha is zero (benchmark alpha shifts from $\\alpha_{\\text{B}}$ to 0). In GARP’s Table 4.2 example the benchmark alpha was only 1.6 bp, so subtracting $\\beta_{\\text{n}}\\alpha_{\\text{B}}$ “does not change the alpha very much”, and GARP adds that “this small change in alpha is consistent with the observation that the optimal portfolio before benchmark […]"
+ },
+ {
+  "id": "IR-HQ-4c-07",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A junior analyst at a Chinese fund management company is preparing notes for the CNY equity desk on cash-neutral alphas. The draft contains the following statements:\n\nI. Cash-neutral alphas are alphas that will not lead to any active cash position in the optimal portfolio.\n\nII. The alphas can be made both cash-neutral and benchmark-neutral at the same time.\n\nIII. Making the alphas cash-neutral sets the benchmark’s alpha to zero, so a separate benchmark neutralization becomes unnecessary.\n\nIV. Cash neutralization is a form of benchmark timing, because it requires the manager to forecast the return of the benchmark relative to cash.\n\nWhich of the statements are correct?",
+  "options": {
+   "A": "I only",
+   "B": "I and II only",
+   "C": "I, II and III only",
+   "D": "II and IV only"
+  },
+  "answer": "B",
+  "solution": "Junior analyst at a Chinese fund company audits four statements about cash-neutral alphas.\n\n**Concept and theory**\n\nIntuitively (an explanatory gloss; the source states only the definition quoted below), a mean-variance optimizer funds or absorbs the net active position through cash. If the alphas are, on balance, positive across the stocks the optimizer can buy, the optimizer will be tempted to move out of cash into stocks; if they are on balance negative, it will hold extra cash. Either outcome is an active cash position, which is a bet on stocks versus cash that the stock-selection research never intended. GARP: “In the same spirit, we may also want to make the alphas cash-neutral; i.e., the alphas will not lead to any active cash position. It is possible to make the alphas both cash- a […]"
+ },
+ {
+  "id": "IR-HQ-4c-08",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A portfolio manager at a Canadian public pension plan runs a CAD equity portfolio with a multiple-factor risk model containing a size factor, a momentum factor and a set of industry factors. After a review of her forecasting record, she classifies momentum as a source of value added, because she has demonstrated skill in forecasting it, and classifies size and the industry factors as sources of risk. She then makes her alphas risk-factor-neutral. Which of the following best describes the neutralized alphas?",
+  "options": {
+   "A": "The alphas of all factors, including momentum, are zero, so the neutralized alphas contain only stock-specific information.",
+   "B": "The alpha of the momentum factor is zero while the size and industry alphas are kept, so the alphas contain size, industry and stock-specific information.",
+   "C": "The alphas of the size and industry factors are zero, and this guarantees that the optimized portfolio will have zero active risk against the benchmark.",
+   "D": "The alphas of the size and industry factors are zero, and the neutralized alphas contain momentum information together with stock-specific information."
+  },
+  "answer": "D",
+  "solution": "Canadian pension PM classifies momentum as value added and size and industries as risk, then neutralizes; what do the alphas contain?\n\n**Concept and theory**\n\nA multiple-factor model splits return into common-factor parts (size, momentum, industries and so on) and a stock-specific part. GARP: “A manager can identify each of those dimensions as either a source of risk or a source of value added. By this definition, the manager does not have any ability to forecast the risk factors. Therefore, he or she should neutralize the alphas against the risk factors. The neutralized alphas will include only information on the factors the manager can forecast, along with specific asset information. Once neutralized, the alphas of the risk factors will be 0.”\n\n| Factor class | Manager’s ability | Treatm […]"
+ },
+ {
+  "id": "IR-HQ-4c-09",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A quantitative equity analyst at a US university endowment is making a USD stock portfolio’s alphas industry-neutral. The benchmark’s energy industry contains three stocks; the weights below are percentages of the total benchmark.\n\n| Stock | Benchmark weight (% of benchmark) | Beta | Alpha (%) |\n|---|---|---|---|\n| E1 | 3.0 | 1.30 | 1.10 |\n| E2 | 1.5 | 0.80 | −0.40 |\n| E3 | 0.5 | 1.10 | 2.00 |\n\nAfter the alphas are adjusted so that, weighted by the benchmark, they imply no active bet on the energy industry, the industry-neutral alpha of stock E2 is closest to:",
+  "options": {
+   "A": "−1.14%",
+   "B": "−1.30%",
+   "C": "−0.44%",
+   "D": "+0.34%"
+  },
+  "answer": "A",
+  "solution": "US endowment analyst computes the industry-neutral alpha of energy stock E2 from benchmark weights given as a percentage of the whole benchmark.\n\n**Concept and theory**\n\nAn industry-neutral portfolio carries no active bet on any industry. GARP’s simple approach: “Calculate the (capitalization-weighted) alpha for each industry, then subtract the industry average alpha from each alpha in that industry.” For industry I with benchmark (capitalization) weights $\\text{h}_{\\text{B,n}}$:\n\n$\\bar{\\alpha}_{\\text{I}} = \\frac{\\sum_{\\text{n}\\in\\text{I}} \\text{h}_{\\text{B,n}} \\alpha_{\\text{n}}}{\\sum_{\\text{n}\\in\\text{I}} \\text{h}_{\\text{B,n}}}$ , $\\alpha^{\\text{IN}}_{\\text{n}} = \\alpha_{\\text{n}} - \\bar{\\alpha}_{\\text{I}} (\\text{n} \\in\\text{I})$.\n\nAfter the subtraction the cap-weighted alpha of each indu […]"
+ },
+ {
+  "id": "IR-HQ-4c-10",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A board member of a French insurer’s investment committee is comparing two EUR equity managers. Manager X’s alphas come from a stock-selection model whose signals contain no information distinguishing one industry from another. Manager Y runs an industry-rotation process and has a documented record of skill in forecasting relative industry returns. Both managers refine their alphas before an unconstrained optimization. Which policy on industry neutralization of the alphas is most appropriate?",
+  "options": {
+   "A": "Industry-neutralize the alphas of both managers, because industry neutralization always lowers active risk without any loss of value added.",
+   "B": "Industry-neutralize the alphas of Manager Y only, because Y’s deliberate industry positions are the source of bias that neutralization is meant to remove.",
+   "C": "Industry-neutralize the alphas of Manager X only, because Y’s industry forecasts are a source of value added that should remain in the alphas.",
+   "D": "Industry-neutralize neither manager’s alphas, because neutralization of alphas covers benchmark and cash bets but does not extend to industry bets."
+  },
+  "answer": "C",
+  "solution": "French insurer’s board member decides which of two EUR managers should industry-neutralize: X (no industry information) or Y (proven industry skill).\n\n**Concept and theory**\n\nNeutralization is not a blanket rule; it depends on what the alphas know. GARP asks, a priori: “Do our alphas contain any information distinguishing one industry from another? If not, then industry-neutralize.” The risk-factor framework generalizes this: each factor is either a source of risk (cannot forecast, neutralize) or a source of value added (can forecast, keep). GARP also says “we can modify the alphas to achieve desired active common-factor positions”. So an industry bet that the manager can forecast is a desired position; an industry tilt the manager cannot forecast is a bias to remove.\n\n**Applying it to thi […]"
+ },
+ {
+  "id": "IR-HQ-4c-11",
+  "lo": "IM-4 c",
+  "loText": "Describe neutralization and the different approaches used for refining alphas to be neutral.",
+  "outside": false,
+  "question": "A supervisor at a Hong Kong securities regulator is reviewing an HKD fund manager’s description of its portfolio construction process. Instead of adding constraints to its mean/variance optimizer, the manager refines its alphas, including making them benchmark-neutral, and then runs an unconstrained optimization. The supervisor asks what benchmark neutralization is equivalent to and how it affects active risk. Which response is most accurate?",
+  "options": {
+   "A": "It is equivalent to adding a constraint on portfolio beta in the optimization, and it increases active risk because the alphas are moved away from the raw forecasts.",
+   "B": "It is equivalent to adding a constraint on portfolio beta in the optimization, and it reduces active risk by matching the portfolio’s beta to the benchmark’s beta.",
+   "C": "It is equivalent to adding a no-short-sales constraint in the optimization, and it reduces active risk by matching the portfolio’s beta to the benchmark’s beta.",
+   "D": "It is equivalent to adding a constraint on portfolio beta in the optimization, and it reduces active risk to zero because every difference from the benchmark is removed."
+  },
+  "answer": "B",
+  "solution": "Hong Kong regulator asks what benchmark neutralization of alphas is equivalent to and how it affects active risk.\n\n**Concept and theory**\n\nGARP Section 4.2: “We can replace any portfolio construction process, regardless of its sophistication, by a process that first refines the alphas and then uses a simple unconstrained mean/variance optimization to determine the active positions.” Every constraint therefore has an alpha-side twin. For benchmark neutrality, the portfolio-side result is a beta of 1 (GARP). Schweser states the twin explicitly: matching the active portfolio beta to the benchmark beta “is referred to as benchmark neutralization. Note that this neutralization is equivalent to adding a constraint on portfolio beta in a mean-variance optimization.” On risk, Schweser: “neutraliza […]"
+ },
+ {
+  "id": "IR-HQ-4d-01",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A senior risk analyst at an Australian superannuation fund is presenting to newly hired analysts on how the fund’s external quantitative equity manager treats transaction costs when it builds AUD portfolios against the S&P/ASX 200. Which of the following statements is most accurate?",
+  "options": {
+   "A": "Transaction costs are the cost of holding a portfolio that differs from the benchmark, so they enter construction as a second penalty alongside the active risk penalty.",
+   "B": "Transaction costs make construction simpler, since by discouraging trades they shrink the set of candidate portfolios that the manager has to compare.",
+   "C": "Transaction costs, the cost of moving from one portfolio to another, add a third element to the trade-off between alpha and active risk and reduce active return relative to the benchmark.",
+   "D": "Transaction costs, like the current portfolio, are measured with near certainty, so they add a known deduction to active return but no estimation error."
+  },
+  "answer": "C",
+  "solution": "Senior analyst briefs new hires on how an AUD quant equity manager treats transaction costs in portfolio construction.\n\n**Concept and theory**\n\nPortfolio construction, in GARP’s framing, takes a set of inputs (the current portfolio, alphas, covariance estimates, transaction cost estimates and an active risk aversion) and produces a revised portfolio. Without costs the objective is simple to state: maximize value added, which GARP defines as the portfolio’s alpha less a penalty for active variance. Grinold and Kahn describe this as a struggle between two forces, alpha and active risk, and use the image of juggling: “any klutz can juggle two rubber chickens.” Transaction costs are the third chicken. GARP defines them as “the cost of moving from one portfolio to another”; Schweser adds that t […]"
+ },
+ {
+  "id": "IR-HQ-4d-02",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "The chief risk officer of a Canadian public pension plan is reviewing a consultant’s memo on the plan’s CAD equity optimizer. The memo ranks how much the plan would gain from better information on each optimizer input. Which of the following statements in the memo is most accurate?",
+  "options": {
+   "A": "Transaction cost estimates are uncertain, though less so than alpha forecasts, so perfect information on returns would be worth much more than perfect information on transaction costs.",
+   "B": "Transaction cost estimates are more uncertain than alpha forecasts, so perfect information on transaction costs would be worth much more than perfect information on returns.",
+   "C": "Accurate estimation of transaction costs is just as important as accurate forecasts of exceptional return, because both remove the same amount of uncertainty from value added.",
+   "D": "Transaction cost estimates are less uncertain than alpha forecasts, so they are a minor input whose inclusion does not change how precisely the alphas must be estimated."
+  },
+  "answer": "A",
+  "solution": "CRO reviews a consultant’s memo ranking the value of better information on each optimizer input.\n\n**Concept and theory**\n\nEvery optimizer input except the current portfolio is an estimate, so a natural question is which estimate deserves the most effort. GARP addresses it directly in Section 4.4: “It has been said that accurate estimation of transactions costs is just as important as accurate forecasts of exceptional return. That is an overstatement, but it does point out the crucial role transactions costs play.” Footnote 5 explains why it is an overstatement: perfect information about returns is much more valuable than perfect information about costs, because returns are much less certain than costs, so accurate estimation of returns removes far more uncertainty.\n\nSchweser condenses the  […]"
+ },
+ {
+  "id": "IR-HQ-4d-03",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "An internal auditor at a UK life insurer’s asset management arm is reviewing the methodology document for the optimizer that runs its GBP active equity mandate. The document contains the four statements below on the treatment of transaction costs. Which of the statements is NOT correct?",
+  "options": {
+   "A": "The objective of portfolio construction is to maximize risk-adjusted annual active return.",
+   "B": "Transaction costs are incurred at the point in time when the portfolio is rebalanced, while the alphas and the active risk are realized over the investment horizon.",
+   "C": "Each trade’s cost is amortized so that it can be compared with the annual rate of gain from alpha and the annual rate of loss from active risk.",
+   "D": "Because alphas are forecast over a one-year horizon, every trade’s cost should be amortized at the same rate, whatever the anticipated holding period of the position."
+  },
+  "answer": "D",
+  "solution": "Internal auditor checks four methodology statements on how a GBP optimizer treats transaction costs; find the false one.\n\n**Concept and theory**\n\nThe second complication that costs bring is a mismatch of timing. GARP 4.1 warns: “We must be careful to compare transactions costs incurred at a point in time with returns and risk realized over a period of time.” Section 4.4 sets out the fix in four steps:\n\n1. The objective is to maximize risk-adjusted annual active return.\n2. Rebalancing incurs costs at that point in time, while alphas and active risk are expected over the next year.\n3. A rule is needed to allocate the costs over the one-year period: the costs are amortized so that they can be compared with the annual rate of gain from alpha and the annual rate of loss from active risk.\n4. “Th […]"
+ },
+ {
+  "id": "IR-HQ-4d-04",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A portfolio manager at a Tokyo asset manager is choosing between two ideas for the same slot in a TOPIX-benchmarked JPY fund. Assume perfect certainty, no difference in active risk, and that Idea X can be replaced every three months by a similar stock with the same profile.\n\n| Item | Idea X | Idea Y |\n|---|---|---|\n| Expected alpha (% per year) | 5.00 | 3.60 |\n| Cost of each purchase or each sale (% of value) | 0.45 | 0.60 |\n| Anticipated holding period (months) | 3 | 18 |\n| Position size (JPY billion) | 2.0 | 2.0 |\n\nWhich of the following best describes the annual alpha of each idea net of amortized transaction costs?",
+  "options": {
+   "A": "Idea X: 3.20%; Idea Y: 3.20%",
+   "B": "Idea X: 1.40%; Idea Y: 2.80%",
+   "C": "Idea X: 4.10%; Idea Y: 2.40%",
+   "D": "Idea X: 4.78%; Idea Y: 1.80%"
+  },
+  "answer": "B",
+  "solution": "Tokyo PM compares a 3-month rotation idea with an 18-month hold, net of amortized costs; position size is irrelevant.\n\n**Concept and theory**\n\nGARP’s example sets up two stocks, each with an annual alpha of 4%, each priced at \\$100 and costing \\$0.75 to buy and \\$0.75 to sell. Stock 1 gains \\$2 in 6 months and can then be replaced by a similar stock; stock 2 gains \\$8 over 24 months. Over 2 years the stock 1 sequence pays costs of \\$0.75, \\$1.50, \\$1.50, \\$1.50 and \\$0.75 (total \\$6), for a 1% annual return; stock 2 pays \\$1.50 in total, for 3.25% a year. The annualized cost is 3% for stock 1 and 0.75% for stock 2. The general rule:\n\n$\\text{TC}_{\\text{ann}} = \\frac{\\text{TC}_{\\text{RT}}}{\\text{h}}$ , net alpha $= \\alpha- \\text{TC}_{\\text{ann}}$.\n\nThree details trip people up: (i) the round […]"
+ },
+ {
+  "id": "IR-HQ-4d-05",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A treasury analyst at a Singapore bank is assessing a single SGD stock idea for the bank’s active equity book. The alpha accrues at a constant annual rate while the position is held, and the position will return to cash at the end of its holding period with no successor trade.\n\n| Item | Value |\n|---|---|\n| Expected alpha (% per year) | 2.40 |\n| Purchase cost (% of value) | 0.40 |\n| Sale cost (% of value) | 0.50 |\n| Residual volatility (% per year) | 28.00 |\n| Information coefficient | 0.06 |\n\nIgnoring active risk, what is the minimum anticipated holding period for which the expected alpha at least covers the annualized transaction cost?",
+  "options": {
+   "A": "4.5 months",
+   "B": "2.0 months",
+   "C": "32 months",
+   "D": "9 months"
+  },
+  "answer": "A",
+  "solution": "Singapore analyst finds the break-even holding period for a single stock idea; volatility and IC are irrelevant.\n\n**Concept and theory**\n\nBecause a trade’s cost is paid at one moment while its alpha accrues over time, the same trade can be worth doing or not depending on how long the position is held. GARP’s rule turns this into a break-even condition. The trade is worthwhile (ignoring active risk) when annual alpha at least covers annualized cost:\n\n$\\alpha\\ge\\frac{\\text{TC}_{\\text{RT}}}{\\text{h}} \\Leftarrow\\Rightarrow$ h $\\ge\\text{h}^{*} = \\frac{\\text{TC}_{\\text{RT}}}{\\alpha}$ .\n\n$\\text{h}^{*}$ is the break-even holding period in years: hold for less and the costs, paid at a faster annual rate, exceed the alpha; hold for longer and the trade adds value. The condition works because GARP am […]"
+ },
+ {
+  "id": "IR-HQ-4d-06",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "The chief investment officer of a Brazilian pension fund oversees two external managers, P and Q, who hold the same stock in their BRL mandates and receive the same upgrade to its alpha forecast. For each manager, moving the position to the new optimum would add 1.2% per year of expected alpha on the position, and the round-trip cost of the trade is 0.9%. Manager P expects to revise the position again in 6 months; Manager Q expects to hold it for 18 months. Ignoring changes in active risk, which of the following statements is most accurate?",
+  "options": {
+   "A": "Both managers should trade, because the 1.2% expected annual alpha gain exceeds the 0.9% round-trip cost.",
+   "B": "Manager P should trade and Manager Q should not, because the longer holding period exposes Q to more transaction costs.",
+   "C": "Manager Q should trade and Manager P should not, even though both managers have received the same new information.",
+   "D": "Neither manager should trade, because new information about alpha never justifies incurring transaction costs."
+  },
+  "answer": "C",
+  "solution": "Brazilian CIO compares two managers with the same alpha upgrade but different anticipated holding periods.\n\n**Concept and theory**\n\nSchweser’s Key Concepts list the first implication of transaction costs: they “may make it optimal not to rebalance even with the arrival of new information.” The reason is the timing mismatch. New information raises the expected annual alpha of a position, but acting on it means paying a cost now. Whether the gain covers the cost depends on how long the revised position will be held, because the cost is amortized at a rate set by the anticipated holding period (GARP 4.4). Schweser’s Key Concepts say this explicitly: the point-in-time cost and over-the-horizon benefit make “rebalancing decisions dependent on the estimated holding period of portfolio assets.”\n\n […]"
+ },
+ {
+  "id": "IR-HQ-4d-07",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A risk consultant is validating the optimizer of a USD active equity manager. The manager’s raw alphas have a cross-sectional standard deviation twice the scale implied by its information coefficient and residual volatility. Before transaction costs were modeled, the manager compensated by doubling active risk aversion, and the optimizer then produced the intended active holdings. Transaction costs have now been added to the optimizer, but the alphas are still unrescaled and risk aversion is still doubled. Which of the following best describes the consultant’s finding?",
+  "options": {
+   "A": "The doubled risk aversion restores the alpha versus active risk balance, but the inflated alphas understate trade benefits relative to costs, so the manager will trade too little until the alphas are rescaled.",
+   "B": "The doubled risk aversion restores the alpha versus active risk balance, but the inflated alphas overstate trade benefits relative to costs, so the manager will trade too much until the alphas are rescaled.",
+   "C": "The doubled risk aversion restores both the alpha versus active risk and the alpha versus cost balances, because a scale error can always be offset by adjusting active risk aversion.",
+   "D": "The doubled risk aversion restores the balance between transaction costs and active risk, which is the only new trade-off that costs introduce, so no rescaling of the alphas is needed."
+  },
+  "answer": "B",
+  "solution": "Consultant validates a USD optimizer that offset over-scaled alphas with doubled risk aversion, then added costs.\n\n**Concept and theory**\n\nGARP 4.4 explains why costs force precision on the alpha scale. Without costs, the optimizer maximizes $\\text{h}^{\\top}\\alpha- \\lambda_{\\text{A}} \\text{h}^{\\top}$Vh over active holdings h (GARP footnote 1), where V is the covariance matrix. Its first-order condition gives\n\n$\\text{h}^{*} = \\frac{\\text{V}^{-1}\\alpha}{2\\lambda_{\\text{A}}}$ .\n\nDoubling every alpha and doubling $\\lambda_{\\text{A}} \\text{leaves h}^{*}$ unchanged. That is GARP’s “single knob”: “we can offset any problem in setting the scale of the alphas by increasing or decreasing the active risk aversion.” The problem is one-dimensional.\n\nTransaction costs add a term that does not scale with […]"
+ },
+ {
+  "id": "IR-HQ-4d-08",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A portfolio manager at a Frankfurt asset manager runs a EUR equity rotation strategy in which each position is held for 3 months and then replaced by a similar one. The latest attribution report shows the following.\n\n| Item | Value |\n|---|---|\n| Gross expected alpha (% per year) | 5.00 |\n| Alpha net of amortized transaction costs (% per year) | 2.60 |\n| Tracking error (% per year) | 3.50 |\n| Assets under management (EUR million) | 400.00 |\n\nThe manager proposes to hold each position for 9 months instead, with the same round-trip cost per trade and, by assumption, the same gross expected alpha of 5.00% per year. The annual alpha net of amortized transaction costs under the proposal is closest to:",
+  "options": {
+   "A": "1.80%",
+   "B": "4.40%",
+   "C": "4.55%",
+   "D": "4.20%"
+  },
+  "answer": "D",
+  "solution": "Frankfurt PM backs out the round-trip cost of a 3-month rotation and re-applies it to a 9-month hold.\n\n**Concept and theory**\n\nGARP’s rule links three quantities: round-trip cost, holding period and annualized cost, $\\text{TC}_{\\text{ann}} =$ $\\text{TC}_{\\text{RT}}$/h. The round trip is a property of the trade (what it costs to get in and out); the annualized cost is a property of the trade and the holding period. When a report gives only gross and net alpha, the annualized cost is their difference, and the round trip can be recovered by multiplying back by the holding period:\n\n$\\text{TC}_{\\text{ann}} = \\alpha_{\\text{gross}} - \\alpha_{\\text{net}}$, $\\text{TC}_{\\text{RT}} = \\text{TC}_{\\text{ann}} \\times$ h.\n\nThe recovered round trip can then be amortized over any other holding period. This  […]"
+ },
+ {
+  "id": "IR-HQ-4d-09",
+  "lo": "IM-4 d",
+  "loText": "Explain the implications of transaction costs on portfolio construction.",
+  "outside": false,
+  "question": "A member of the risk committee of a Chinese insurer’s asset management company is reviewing a CNY A-share manager whose optimizer amortizes every trade’s round-trip cost over a fixed one-year period. The book holds tactical trades, each held for about 3 months, and core holdings, each held for about 2 years; every round trip costs 0.8% of value. Which of the following is the most likely consequence of this amortization rule?",
+  "options": {
+   "A": "The optimizer understates the annual cost of the tactical trades and overstates that of the core holdings, tilting the portfolio toward short-horizon trades.",
+   "B": "The optimizer overstates the annual cost of the tactical trades and understates that of the core holdings, tilting the portfolio toward long-horizon holdings.",
+   "C": "The optimizer measures both kinds of trade correctly, because a trade’s round-trip cost is the same whatever period it is amortized over.",
+   "D": "The optimizer misstates active risk rather than costs, because the amortization period affects only the penalty for active risk."
+  },
+  "answer": "A",
+  "solution": "Risk committee member reviews a CNY optimizer that amortizes every round trip over a fixed one year.\n\n**Concept and theory**\n\nGARP requires costs to be allocated over the one-year comparison period, and adds that “the rate of amortization will depend on the anticipated holding period.” Its example shows the two directions: “For a 6-month holding period, we double the round-trip transactions cost to get the annual transactions cost, and for a 24-month holding period, we halve the round-trip transactions cost.” A rule that charges every round trip once per year is right only for one-year holds:\n\n| Holding period | Correct $\\text{TC}_{\\text{ann}}$ (%) | One-year rule (%) | Error |\n|---|---|---|---|\n| 3 months (h = 0.25) | 3.20 | 0.80 | understated, factor 4 |\n| 2 years (h = 2) | 0.40 | 0.80 | […]"
+ }
+]

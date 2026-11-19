@@ -1,0 +1,362 @@
+[
+ {
+  "id": "MR-PY-022",
+  "lo": "MR-4 a",
+  "loText": "Describe backtesting and exceptions and explain the importance of backtesting VaR models.",
+  "outside": false,
+  "question": "An analyst at a bank is asked to evaluate the efficacy of the VaR model that the bank used over the last year. While evaluating the model, the analyst finds that the bank experienced more VaR exceptions than were forecast by the bank’s VaR model and examines both the reason this occurred and its potential impact on the bank. Which of the following is correct regarding the analyst’s examination of the situation?",
+  "options": {
+   "A": "The confidence level of the backtest performed on the VaR model was set too low.",
+   "B": "The model is most likely overestimating the market risk faced by the bank.",
+   "C": "The risk-taking units of the bank will likely be allocated less capital than they should be.",
+   "D": "The bank’s regulator will impose a financial penalty on the bank."
+  },
+  "answer": "C",
+  "solution": "**Concept**\n\nAn exception is a day on which the loss exceeds VaR. Too many exceptions mean VaR is too low: the model understates risk, and capital allocated on the basis of that VaR is too small.\n\n**Exam trap.** Polarity: too many exceptions ⇒ risk underestimated ⇒ too little capital. Regulatory penalties are not automatic; exceptions caused by bad luck may not be penalised."
+ },
+ {
+  "id": "MR-PY-023",
+  "lo": "MR-4 c",
+  "loText": "Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.",
+  "outside": false,
+  "question": "Michael Roy, a risk analyst at a large multinational bank, is backtesting the VaR model of the bank. The model being tested is a daily, 98% VaR model. If the backtest is conducted for one year at a 95% confidence level, and assuming 252 days in a year, what is the number of daily losses that will lead Roy to conclude that the model is not calibrated correctly?",
+  "options": {
+   "A": "8",
+   "B": "9",
+   "C": "10",
+   "D": "All three choices"
+  },
+  "answer": "C",
+  "solution": "**Concept**\n\nUnder a correct model the number of exceptions $x$ in $T$ days is binomial with mean $pT$ and variance $p(1 - p)T$, where $p = 1 - c$ is the VaR tail probability. The model is rejected when $z = \\frac{x - pT}{\\sqrt{p(1 - p)T}}$ exceeds the cut-off for the test confidence level (1.96 at 95%). Keep the two confidence levels apart: 98% belongs to the VaR, 95% to the test.\n\n**Working**\n\n$p = 0.02$, $T = 252$, cut-off = 1.96.\n\n**Mean:** $pT = 0.02 \\times252 = 5.04$\n\n**Standard deviation:** $\\sqrt{0.02 \\times0.98 \\times252} = \\sqrt{4.9392} = 2.222$\n\n**Largest acceptable count:** $x < 5.04 + 1.96 \\times2.222 = 9.40$\n\nNine exceptions are still acceptable. Ten is the first count that rejects the model.\n\n**Exam trap.** Using $p = 0.05$ (the test level) instead of $p = 0.02$ (the VaR tai […]"
+ },
+ {
+  "id": "MR-PY-024",
+  "lo": "MR-4 c",
+  "loText": "Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.",
+  "outside": false,
+  "question": "Paul Ferguson, FRM, works as an analyst at a U.S.-based bank. He wishes to test the bank’s 1-day 99.5% VaR model over a 1-year horizon at a 99% confidence level. Assuming 252 days in a year, determine the maximum number of daily losses exceeding the 1-day 99.5% VaR that is acceptable to conclude that the model is well calibrated.",
+  "options": {
+   "A": "2",
+   "B": "3",
+   "C": "4",
+   "D": "5"
+  },
+  "answer": "C",
+  "solution": "**Concept**\n\nSame failure-rate test, solved for the largest number of exceptions that keeps $z$ inside the cut-off. At a 99% test confidence level (two-tailed) the cut-off is 2.576.\n\n**Working**\n\n$p = 0.005$, $T = 252$.\n\n**Mean:** $pT = 0.005 \\times252 = 1.26$\n\n**Standard deviation:** $\\sqrt{0.005 \\times0.995 \\times252} = \\sqrt{1.2537} = 1.1197$\n\n**Largest acceptable count:** $x = 1.26 + 2.576 \\times1.1197 = 1.26 + 2.884 = 4.14$\n\nSo up to 4 exceptions are acceptable.\n\n**Exam trap.** Round down: the question asks for the maximum acceptable count, and 4.14 means the fifth exception crosses the line. Also check the test level: 1.96 would give 3.45, i.e. 3 (option B)."
+ },
+ {
+  "id": "MR-PY-025",
+  "lo": "MR-4 c",
+  "loText": "Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.",
+  "outside": false,
+  "question": "A large investment firm has a trading book whose size changes depending on the perceived trading opportunities among traders. According to the firm’s chief risk analyst, the one-day VaR, at the 95% confidence level, is GBP 110 million. Suppose you were asked to evaluate how good a job the analyst is doing in estimating the one-day VaR. Assuming that losses are i.i.d., which of the following would serve as convincing evidence that the manager is performing poorly?",
+  "options": {
+   "A": "Over the past 250 days, there is no exception",
+   "B": "Over the past 250 days, the mean loss is GBP 132 million",
+   "C": "Over the past 250 days, the largest loss is GBP 1.1 billion",
+   "D": "Over the past 250 days, there are seven exceptions"
+  },
+  "answer": "A",
+  "solution": "**Concept**\n\nA VaR model can fail in either direction. Too many exceptions means risk is understated. Too few means VaR is set too high, which is also a calibration failure. The evidence is the exception count compared with its binomial expectation, not the size of individual losses.\n\n**Working**\n\nExpected exceptions = (1 − 0.95) × 250 = 12.5, with standard deviation $\\sqrt{250 \\times0.05 \\times0.95} = 3.45$. **Zero exceptions:** probability $0.95^{250} \\approx2.7 \\times10^{-6}$. Essentially impossible under a correct model. **Seven exceptions:** $z = (7 - 12.5)/3.45 = -1.60$, inside ±1.96, so it is consistent with chance.\n\n**Exam trap.** “Performing poorly” does not mean “too many losses”. An over-conservative VaR fails the backtest too. With a changing trading book, loss sizes are even l […]"
+ },
+ {
+  "id": "MR-PY-026",
+  "lo": "MR-4 c",
+  "loText": "Evaluate the accuracy of a VaR model based on exceptions or failure rates by using a model verification test.",
+  "outside": false,
+  "question": "A risk manager is backtesting a company’s 1-day 99.5% VaR model over a 10-year horizon at the 95% confidence level. Assuming 250 trading days in a year and that daily returns are i.i.d., which of the following is closest to the maximum number of daily losses exceeding the 1-day 99.5% VaR in 10 years that is acceptable to conclude that the model is calibrated correctly?",
+  "options": {
+   "A": "19",
+   "B": "25",
+   "C": "35",
+   "D": "39"
+  },
+  "answer": "A",
+  "solution": "**Concept**\n\nFailure-rate test again, now with a long sample. More days means more expected exceptions and a tighter test.\n\n**Working**\n\n$p = 0.005$, $T = 250 \\times10 = 2{,}500$, cut-off = 1.96.\n\n**Mean:** $pT = 0.005 \\times2{,}500 = 12.5$\n\n**Standard deviation:** $\\sqrt{0.005 \\times0.995 \\times2{,}500} = \\sqrt{12.4375} = 3.527$\n\n**Largest acceptable count:** 12.5 + 1.96 × 3.527 = 12.5 + 6.91 = 19.4, so 19.\n\n**Exam trap.** $T$ is the number of days (2,500), not the number of years. Using $T = 250$ gives 3.4 and no matching option."
+ },
+ {
+  "id": "MR-PY-027",
+  "lo": "MR-4 d",
+  "loText": "Identify and describe Type I and Type II errors in the context of a backtesting process.",
+  "outside": false,
+  "question": "A model validation team at a bank is backtesting the bank’s VaR model. In preparation for the backtest, one of the team members expresses a concern that the validation process could result in the team committing a Type I error or a Type II error and discusses the characteristics of these errors with the team. Which of the following is correct regarding Type I and Type II errors?",
+  "options": {
+   "A": "The probability of committing a Type II error decreases when the sample size increases and the level of significance is held constant.",
+   "B": "A backtest is considered statistically powerful if it minimizes the probability of committing a Type II error regardless of the probability of committing a Type I error.",
+   "C": "A Type I error is committed when an incorrectly specified model is accepted.",
+   "D": "A Type II error is committed when a correctly specified model is rejected."
+  },
+  "answer": "A",
+  "solution": "**Concept**\n\nType I error: rejecting a correct model. Type II error: failing to reject an incorrect model. The power of a test is its ability to reject a wrong model. A larger sample narrows the non-rejection region for a correct model, so a wrong model is rejected more easily and the Type II error rate falls.\n\n**Exam trap.** Options C and D are the two definitions swapped. Option B’s “regardless of Type I” is the absolute-claim trap: a powerful test keeps both error rates low."
+ },
+ {
+  "id": "MR-PY-028",
+  "lo": "MR-4 d",
+  "loText": "Identify and describe Type I and Type II errors in the context of a backtesting process.",
+  "outside": false,
+  "question": "A newly hired risk analyst at a mid-size bank is assisting in backtesting the bank’s VaR model. Currently, the 1-day VaR is estimated at the 95% confidence level but the bank is considering a change to estimating 1-day VaR at the 99% confidence level, as recommended in the Basel framework. Which of the following statements concerning this change is correct?",
+  "options": {
+   "A": "The decision to accept or reject a VaR model based on the results of a backtest that uses a two-tailed 95% confidence level is less reliable when applied to a 99% VaR model than when applied to a 95% VaR model.",
+   "B": "The 95% VaR model is less likely to be rejected by a backtest than the 99% VaR model.",
+   "C": "When using a two-tailed 90% confidence level test in a backtest, there is a smaller probability of incorrectly rejecting a 95% VaR model than a 99% VaR model.",
+   "D": "Using a 99% VaR model will lower the probability of committing both Type I error and Type II error."
+  },
+  "answer": "A",
+  "solution": "**Concept**\n\nTwo confidence levels are in play. The VaR confidence level (95% or 99%) sets how many exceptions to expect. The test confidence level (here a two-tailed 95%) sets the cut-off for rejecting the model. A 95% VaR produces about five times as many expected exceptions as a 99% VaR, which gives the backtest more information and more power.\n\n**Exam trap.** Do not confuse the VaR confidence level with the test confidence level. Higher VaR confidence sounds more rigorous but makes the backtest weaker."
+ },
+ {
+  "id": "MR-PY-029",
+  "lo": "MR-4 d",
+  "loText": "Identify and describe Type I and Type II errors in the context of a backtesting process.",
+  "outside": false,
+  "question": "A model gives a VaR value of \\$5 million for a portfolio at a 99% confidence interval. A one-year backtest conducted at the 95% confidence level reveals that losses exceeded \\$5 million on 8 occasions. The model is accepted as accurate. Assuming 252 days in a year, which of these statements is most likely true?",
+  "options": {
+   "A": "A Type I error has occurred",
+   "B": "A Type II error has occurred",
+   "C": "Both Type I and Type II errors have occurred",
+   "D": "The model has been accepted correctly"
+  },
+  "answer": "B",
+  "solution": "**Concept**\n\nIn backtesting, the null hypothesis is that the VaR model is correct. A Type I error rejects a correct model. A Type II error accepts an incorrect model. To decide which applies, first run the failure-rate test.\n\n**Working**\n\n$p = 0.01$, $T = 252$, $x = 8$.\n\n$$z = \\frac{x - pT}{\\sqrt{p(1 - p)T}} = \\frac{8 - 2.52}{\\sqrt{0.01 \\times0.99 \\times252}} = \\frac{5.48}{1.580} = 3.47$$\n\n3.47 > 1.96, so the evidence says the model understates risk and should be rejected. It was accepted anyway.\n\n**Exam trap.** Polarity: Type I = reject a good model, Type II = accept a bad model. Regulators worry most about Type II, because a bad model that passes leaves the bank under-capitalised."
+ },
+ {
+  "id": "MR-PY-030",
+  "lo": "MR-4 d",
+  "loText": "Identify and describe Type I and Type II errors in the context of a backtesting process.",
+  "outside": false,
+  "question": "A newly recruited intern has been tasked with backtesting a firm’s VaR model. Since inception, the firm has always calculated 1-day VaRs at the 95% level of confidence. In light of changes in required practices as dictated by the Basel framework, the intern has recommended a shift to the 99% level of confidence. What will be the implication of making this switch?",
+  "options": {
+   "A": "Decisions on whether to accept or reject VaR models based on backtesting will be more reliable",
+   "B": "The power of statistical tests will increase",
+   "C": "The 95% VaR model is less likely to be rejected using backtesting than the 99% VaR model",
+   "D": "Decisions on whether to accept or reject VaR models based on backtesting will be less reliable"
+  },
+  "answer": "D",
+  "solution": "**Concept**\n\nThe power of a backtest is its ability to reject a wrong model (to avoid a Type II error). Power comes from having enough exceptions to work with. A higher VaR confidence level means fewer expected exceptions in the same sample, so the test has less information and less power.\n\n**Exam trap.** Polarity. Higher VaR confidence sounds “more rigorous” but weakens the backtest. This is why 1-day 99% backtests over 250 days are statistically feeble, and why the Basel zones were calibrated around that weakness.\n\n**Learning objectives tested:** MR-4d, MR-4c."
+ },
+ {
+  "id": "MR-PY-031",
+  "lo": "MR-4 f",
+  "loText": "Describe the Basel rules for backtesting.",
+  "outside": false,
+  "question": "A regulatory analyst at an investment bank is reviewing the Basel Committee rules for backtesting VaR models. The analyst notes that under the Basel framework, a penalty can be given to banks that have more than four exceptions to their 1-day 99% VaR over the last 250 trading days. Which of the following scenarios is most likely to result in a penalty?",
+  "options": {
+   "A": "A large move in interest rates occurs in conjunction with a small move in correlations.",
+   "B": "The bank’s model calculates interest rate risk based on the median duration of the bonds in the portfolio.",
+   "C": "A sudden market crisis in an emerging market, which leads to losses in the equity positions in that country.",
+   "D": "A sudden devastating earthquake that causes major losses in the bank’s key area of operation."
+  },
+  "answer": "B",
+  "solution": "**Concept**\n\nUnder the Basel backtesting rules (1-day 99% VaR, 250 days), up to four exceptions is the green zone, five to nine the yellow zone and ten or more the red zone. In the yellow zone the supervisor decides whether to apply a penalty according to the cause: basic integrity of the model or a model that could be more accurate (penalty), intraday trading (penalty should be considered), or bad luck (no penalty).\n\n**Exam trap.** Ask whose fault the exception is. If the bank could have fixed it (model imprecision), expect a penalty. If the market did it, expect none."
+ },
+ {
+  "id": "OR-HQ-21c-01",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A senior risk analyst at a German Landesbank is presenting the history of derivatives capital rules to newly hired analysts. She drafts four statements about the treatment of netting before and after the 1995 Amendment to the 1988 Basel Accord:\n\nI. Under the original 1988 Accord, a bank that hedged a swap by entering an offsetting swap with the same counterparty attracted an add-on on each swap, so hedging was discouraged.\n\nII. The original 1988 Accord gave almost no credit for netting because the Basel Committee judged netting to be economically meaningless between counterparties that had signed a master agreement.\n\nIII. The 1995 Amendment allowed reductions in credit equivalent amounts only where enforceable bilateral netting agreements were in place.\n\nIV. Equity and commodity derivatives, which the original 1988 Accord did not address, continued to fall outside the add-on framework after the 1995 Amendment.\n\nWhich of the statements are accurate?",
+  "options": {
+   "A": "I and II only",
+   "B": "II and IV only",
+   "C": "I and III only",
+   "D": "I, III and IV only"
+  },
+  "answer": "C",
+  "solution": "Stem summary: German Landesbank analyst auditing four statements on netting before and after the 1995 Amendment.\n\n**Concept and theory**\n\nCredit exposure on a derivative. When a bank holds an OTC derivative, it loses money on counterparty default only if the contract has a positive value to the bank at that moment (the bank is owed money). If the value is negative, the bank owes the counterparty and loses nothing from the default. On top of today’s value, the value can move before any default occurs, so Basel I added a “potential future exposure” add-on. Under the original 1988 Accord the credit equivalent amount of each contract was\n\nCEA = max($V,$ 0) + $D \\times L,$\n\nwhere $V$ is the current market value, $D$ is the add-on factor and $L$ is the notional principal. Each contract was treat […]"
+ },
+ {
+  "id": "OR-HQ-21c-02",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A treasury analyst at a French bank is checking the netting inputs used under the 1995 Amendment for two corporate counterparties. An enforceable bilateral netting agreement is in place with each counterparty, but there is no netting agreement that links the two counterparties. The bank’s derivative positions are shown below.\n\n| Counterparty | Instrument | Notional (EUR m) | Market value (EUR m) |\n|---|---|---|---|\n| X | Interest rate swap | 250 | 14 |\n| X | Foreign exchange forward | 120 | −6 |\n| X | Interest rate swap | 180 | 4 |\n| Y | Equity swap | 90 | −9 |\n| Y | Commodity forward | 60 | 3 |\n\nThe net replacement ratio (NRR) for the bank’s derivatives book is closest to:",
+  "options": {
+   "A": "0.571",
+   "B": "0.286",
+   "C": "0.333",
+   "D": "0.667"
+  },
+  "answer": "A",
+  "solution": "Stem summary: French bank analyst computing the NRR across two counterparties with separate netting agreements.\n\n**Concept and theory**\n\nWhat the NRR measures. The net replacement ratio tells the regulator how much of the bank’s current credit exposure survives netting. “Replacement” refers to the cost of replacing contracts with positive value if the counterparty defaults. GARP defines\n\nNRR = $\\frac{\\text{max}\\left(\\sum_{i} V_{i}, 0\\right)}{_{i} \\text{max(}V_{i}, \\text{0)}}\\sum,$\n\ncomputed counterparty by counterparty and then aggregated. The numerator is current exposure with netting: for each counterparty, net all values and floor the result at zero, then add across counterparties. The denominator is current exposure without netting: the sum of every positive value, with each negative v […]"
+ },
+ {
+  "id": "OR-HQ-21c-03",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A junior risk analyst at a US bank is computing the credit equivalent amount under the 1995 Amendment for the bank’s derivatives with a single corporate counterparty. One enforceable bilateral netting agreement covers all four trades.\n\n| Trade | Type | Maturity (years) | Notional (USD m) | Value (USD m) | Add-on (%) |\n|---|---|---|---|---|---|\n| 1 | Interest rate swap | 3.0 | 400 | 9 | 0.5 |\n| 2 | Interest rate swap | 4.0 | 200 | −4 | 0.5 |\n| 3 | FX forward | 2.0 | 150 | 3 | 5.0 |\n| 4 | Commodity swap | 1.5 | 50 | −2 | 10.0 |\n\nThe credit equivalent amount for this counterparty is closest to:",
+  "options": {
+   "A": "USD 21.50 million",
+   "B": "USD 18.40 million",
+   "C": "USD 10.85 million",
+   "D": "USD 16.85 million"
+  },
+  "answer": "D",
+  "solution": "Stem summary: US bank analyst computing the CEA for four netted trades with one counterparty.\n\n**Concept and theory**\n\nThe two parts of the CEA. The credit equivalent amount converts an off-balance-sheet derivative position into an on-balance-sheet loan equivalent that can then be risk-weighted. It has a current exposure part (what the bank would lose if the counterparty defaulted today) and an add-on for potential future exposure (how much the exposure could grow before default).\n\nThe 1995 formula. With an enforceable bilateral netting agreement, GARP gives\n\nCEA = max$(\\sum_{i} V_{i},$ 0$)$ + $\\sum_{j} [$0.4 $D_{j}$ + 0.6 $D_{j} \\times\\text{NRR}],$\n\nwhere $V_{i}$ are the market values of the trades with the counterparty, $D_{j}$ = add-on $\\text{factor}_{j} \\times$ total notional of type $ […]"
+ },
+ {
+  "id": "OR-HQ-21c-04",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A risk consultant is validating the counterparty credit engine of a UK bank. For one counterparty, covered by an enforceable bilateral netting agreement, the bank holds four swaps whose market values exactly offset one another.\n\n| Swap | Notional (GBP m) | Market value (GBP m) | Add-on factor (%) |\n|---|---|---|---|\n| Interest rate swap A | 200 | 15 | 0.5 |\n| Interest rate swap B | 200 | −10 | 0.5 |\n| FX swap C | 60 | 10 | 5.0 |\n| FX swap D | 60 | −15 | 5.0 |\n\nWhich of the following statements about the credit equivalent amount (CEA) for this counterparty under the 1995 Amendment is most accurate?",
+  "options": {
+   "A": "The CEA is GBP 0.0 million, because full netting removes both the current exposure and the potential future exposure.",
+   "B": "The CEA is GBP 3.2 million, because 40% of the gross add-on is retained even when the NRR equals zero.",
+   "C": "The CEA is GBP 4.8 million, because 60% of the gross add-on is retained even when the NRR equals zero.",
+   "D": "The CEA is GBP 33.0 million, because positive market values and add-ons are still counted for each swap separately."
+  },
+  "answer": "B",
+  "solution": "Stem summary: Consultant validating the CEA for a UK counterparty whose four swaps exactly offset.\n\n**Concept and theory**\n\nWhy netting cannot remove the whole add-on. The add-on covers future movements. A perfect offset today says nothing certain about the future, and GARP notes that the NRR is a single average across all positions that ignores differences in the impact of netting across derivative types. The 1995 formula therefore never lets netting reduce more than 60% of the add-on:\n\nCEA = max$(\\sum_{i} V_{i},$ 0$)$ + $\\sum_{j} [$0.4 $D_{j}$ + 0.6 $D_{j} \\times\\text{NRR}].$\n\nWhen NRR = 0 (perfect current offset), the second term becomes 0.4 $\\sum_{j} D_{j}$ : 40% of the gross add-on survives. When NRR = 1 (no netting benefit), the full add-on applies.\n\n| Case | Add-on retained | Curren […]"
+ },
+ {
+  "id": "OR-HQ-21c-05",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "An internal auditor at a Brazilian commercial bank is preparing training material on how bank capital rules evolved before Basel II. Which of the following statements best describes the purpose and scope of the 1996 Amendment to the 1988 Basel Accord?",
+  "options": {
+   "A": "It added capital for the market risk of banking book positions, such as loans held for investment, because the 1988 credit risk rules did not capture that risk.",
+   "B": "It added capital for the operational risk of trading book positions, because the 1987 stock market crash had exposed weaknesses in trading controls.",
+   "C": "It replaced the 1988 credit risk charge with a market risk charge for all positions, because every asset held by a bank had to be marked to market.",
+   "D": "It added capital for the market risk of trading book positions, which are marked to market, because the 1988 credit risk rules did not capture that risk."
+  },
+  "answer": "D",
+  "solution": "Stem summary: Brazilian bank auditor choosing the statement that best describes the 1996 Amendment.\n\n**Concept and theory**\n\nTwo books, two risks. Banks hold positions for two purposes. The trading book holds bonds, marketable equities, commodities, foreign currencies and most derivatives held for trading; these are marked to market (fair value accounting), so their main risk is a change in market value. The banking book holds loans and some debt securities held for investment; these are not marked to market, and their main risk is credit risk (Schweser, 1996 Amendment section).\n\nThe gap the 1996 Amendment filled. The 1988 Accord and its 1995 netting amendment measured credit risk only. GARP: “While market risk (i.e., changes in market value of trading book assets) is the primary risk for  […]"
+ },
+ {
+  "id": "OR-HQ-21c-06",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "The chief risk officer of a mid-sized bank with a small trading book is explaining to the board why the bank will calculate market risk capital with the standardized approach of the 1996 Amendment rather than with internal models. Which of the following descriptions of the standardized approach is most accurate?",
+  "options": {
+   "A": "It sets charges separately for five categories of positions, computes specific risk and general market risk separately, and implicitly treats positions as perfectly correlated.",
+   "B": "It sets charges from the bank’s own VaR for five categories of positions, computes specific risk and general market risk separately, and recognizes correlations within categories.",
+   "C": "It sets charges separately for five categories of positions, but covers only general market risk, leaving the specific risk of each position to the credit risk charge.",
+   "D": "It sets charges separately for five categories of positions and generally produces lower capital than the internal models approach for banks with large trading books."
+  },
+  "answer": "A",
+  "solution": "Stem summary: CRO of a small-trading-book bank describing the standardized approach to the board.\n\n**Concept and theory**\n\nThe standardized approach. The regulator specifies most of the details, based on observable characteristics of positions such as remaining maturity. GARP lists five categories:\n\n1. fixed income securities and interest rate derivatives other than options (remaining maturity a key driver);\n2. equity securities and equity derivatives other than options;\n3. foreign exchange;\n4. commodities;\n5. all types of options.\n\nWithin each, capital is calculated separately for specific risk (idiosyncratic changes in a particular position’s value) and general market risk (general movements in market prices). Charges are summed across positions and categories. Summing charges is the sam […]"
+ },
+ {
+  "id": "OR-HQ-21c-07",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A supervisor at a national banking regulator is reviewing a bank’s application to calculate market risk capital with the internal models-based approach of the 1996 Amendment. Which of the following statements in the supervisor’s review note is least accurate?",
+  "options": {
+   "A": "The bank’s internally developed risk measures become inputs to formulas specified by the regulator, with monitoring built in to limit manipulation of those measures.",
+   "B": "The bank must meet qualitative criteria, such as sound risk management, an independent risk management unit, limits, and active involvement of the board.",
+   "C": "The bank’s model captures correlations across the five categories of positions as of right, while correlations within a category are allowed only at the supervisor’s discretion.",
+   "D": "The bank must compute a 10-day 99% VaR from at least one year of daily data, usually by scaling a one-day VaR by the square root of 10."
+  },
+  "answer": "C",
+  "solution": "Stem summary: Supervisor reviewing an internal models application: least accurate statement.\n\n**Concept and theory**\n\nA change in philosophy. GARP calls the internal models-based approach “a major change in philosophy”: for the first time banks could use their own risk measures as the inputs to formulas specified by regulators. To limit manipulation of those internal measures, monitoring was built in. The 1996 Amendment also set qualitative criteria for model users, for example sound risk management, independent risk management units, limits and active involvement of the board.\n\nThe VaR specification. A 10-day VaR at the 99th percentile, based on at least one year of daily data, usually computed as a one-day VaR scaled by $\\sqrt{10}$ (GARP: “usually using a scaled one-day VaR multiplied by […]"
+ },
+ {
+  "id": "OR-HQ-21c-08",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A junior risk analyst at the trading arm of a Japanese bank is computing today’s general market risk capital charge (MR) under the internal models-based approach of the 1996 Amendment. The bank’s supervisor has identified no deficiencies in the bank’s models or systems.\n\n| Input | Value |\n|---|---|\n| One-day 99% VaR computed for the previous business day (JPY bn) | 4.0 |\n| Average 10-day 99% VaR over the last 60 business days (JPY bn) | 3.6 |\n| Backtesting exceptions in the most recent 250 days | 3 |\n| Tier 3 capital outstanding (JPY bn) | 8.0 |\n\nThe general market risk capital charge (MR) is closest to:",
+  "options": {
+   "A": "JPY 10.80 billion",
+   "B": "JPY 12.65 billion",
+   "C": "JPY 37.95 billion",
+   "D": "JPY 40.00 billion"
+  },
+  "answer": "B",
+  "solution": "Stem summary: Japanese bank analyst computing MR from a one-day VaR, a 60-day average and the backtesting result.\n\n**Concept and theory**\n\nThe general market risk charge. Under the internal models-based approach GARP gives\n\nMR = max$\\left(\\text{VaR}_{t-1}, m \\times\\text{VaR}_{avg}\\right),$\n\nwhere $\\text{VaR}_{t-1}$ is the 10-day 99% VaR computed for the preceding business day, $\\text{VaR}_{avg}$ is the average 10-day 99% VaR over the past 60 days, and $m$ is a multiplier never less than 3 (higher if the supervisor finds deficiencies in models or systems, or if backtesting shows too many exceptions). Why the maximum of two terms. GARP notes that with $m$ = 3 the averaged term was usually larger than the previous day’s 10-day VaR, so it is the normal driver. The previous-day term binds only  […]"
+ },
+ {
+  "id": "OR-HQ-21c-09",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "The treasurer of a Canadian bank is preparing the bank’s capital plan under the 1988 Accord as amended in 1996. The bank uses the internal models-based approach for its trading book, and its market risk charges have already been computed.\n\n| Item | CAD million |\n|---|---|\n| Credit risk-weighted assets under the 1988 Accord | 4,000 |\n| General market risk capital charge (MR) | 30 |\n| Specific risk capital charge (SR) | 10 |\n| Tier 1 capital currently held | 260 |\n\nThe minimum total capital the bank must hold for credit risk and market risk combined is closest to:",
+  "options": {
+   "A": "CAD 323.2 million",
+   "B": "CAD 350.0 million",
+   "C": "CAD 820.0 million",
+   "D": "CAD 360.0 million"
+  },
+  "answer": "D",
+  "solution": "Stem summary: Canadian bank treasurer combining credit RWA with MR and SR into a total capital requirement.\n\n**Concept and theory**\n\nTurning a capital charge into RWA. The 1988 Accord expresses capital as at least 8% of risk-weighted assets. Market risk charges (MR and SR) come out directly as capital amounts, not as RWA. To put them on the same footing, GARP multiplies them by 12.5:\n\nMarket risk RWA = 12.5 $\\times\\sum_{j\\text{=1}}^{5}$(MR$_{j}$ + $\\text{SR}_{j}$ ), 12.5 = $\\frac{1}{0.08} .$\n\nGARP’s footnote: 12.5 is the inverse of 8%; it turns a capital requirement into an RWA measure so that “the usual multipliers on risk weighted assets could also be applied”; the adjustment is based on the total capital requirement, not Tier 1. Total capital is then\n\nTotal capital = 0.08 $\\times($Credi […]"
+ },
+ {
+  "id": "OR-HQ-21c-10",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A risk consultant is advising a bank on the specific risk component of its trading book capital under the 1996 Amendment. The consultant’s draft memo contains four statements:\n\nI. Specific risk reflects idiosyncratic changes in the value of a particular position, such as a change in an issuer’s credit spread, while general market risk reflects broad movements in market prices.\n\nII. Where a bank uses its internal model for specific risk, the multiplier applied is 4 rather than the 3 applied to general market risk.\n\nIII. Specific risk capital calculated with internal models cannot be less than half of the specific risk capital calculated with the standardized approach.\n\nIV. Specific risk capital is required only for equity positions, because the interest rate VaR fully captures the risk of fixed income positions.\n\nWhich of the statements are accurate?",
+  "options": {
+   "A": "I, II and III only",
+   "B": "I and IV only",
+   "C": "II and III only",
+   "D": "I, II, III and IV"
+  },
+  "answer": "A",
+  "solution": "Stem summary: Consultant’s memo: four statements on the specific risk charge.\n\n**Concept and theory**\n\nTwo layers of market risk. A position’s value moves for two reasons. General market risk comes from broad market variables: interest rates, exchange rates, equity indices, commodity prices. Specific risk comes from idiosyncratic changes in that position’s value. Schweser’s example: a corporate bond has interest rate risk (general, captured by VaR) and credit risk, such as a change in the issuer’s credit spread (specific). An equity has index risk (general) and company-specific price risk (specific).\n\nRules for specific risk under the 1996 Amendment (GARP).\n\n- Capital for SR was required for fixed income, equity instruments and derivatives.\n- It could be determined with the standardized ap […]"
+ },
+ {
+  "id": "OR-HQ-21c-11",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A credit analyst at a rating agency is reviewing the 1999 capital plan of a Chinese bank that calculates market risk capital under the 1996 Amendment. The bank’s market risk capital requirement is CNY 500 million. The treasurer proposes to meet the whole requirement by issuing unsecured subordinated notes with an original maturity of three years. Which assessment of the proposal is most accurate?",
+  "options": {
+   "A": "The notes qualify as Tier 3 capital and can meet the full CNY 500 million, because Tier 3 capital was created for market risk.",
+   "B": "The notes do not qualify as Tier 3 capital, because such subordinated debt needs an original maturity of more than five years.",
+   "C": "The notes qualify as Tier 3 capital but can meet only about CNY 350 million, with the rest met from other capital.",
+   "D": "The notes qualify as Tier 3 capital but can meet only credit risk capital, so market risk must be met with Tier 1 capital."
+  },
+  "answer": "C",
+  "solution": "Stem summary: Rating analyst assessing a plan to fund a CNY 500 million market risk requirement entirely with 3-year subordinated notes.\n\n**Concept and theory**\n\nBackground from Basel I. Tier 1 capital (equity) absorbs losses; Tier 2 capital, which includes subordinated debt with an original maturity of more than five years, is subordinate to depositors and protects them if the bank fails (Schweser 62.b). The 1996 Amendment added a third class of capital, usable only against the new market risk requirement.\n\nTier 3 capital (GARP). Composed mainly of unsecured subordinated debt with an original maturity of at least two years. It could be used to meet part of the market risk capital requirement: only about 70% of the market risk requirement could be satisfied with Tier 3. Schweser adds that  […]"
+ },
+ {
+  "id": "OR-HQ-21c-12",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "A model validation analyst at a Swiss bank is documenting how the bank’s VaR backtesting meets the requirements of the 1996 Amendment. Which description of the required procedure is most accurate?",
+  "options": {
+   "A": "Each day, the bank compares actual losses with its 10-day 99% VaR, recomputed with its current model, for each of the most recent 250 days.",
+   "B": "Each day, the bank compares actual losses with its one-day 99% VaR, recomputed with its current model, for each of the most recent 250 days.",
+   "C": "Each day, the bank compares actual losses with its one-day 99% VaR, as originally reported by past models, for each of the most recent 250 days.",
+   "D": "Each day, the bank compares actual losses with its one-day 99% VaR, recomputed with its current model, for each of the most recent 60 days."
+  },
+  "answer": "B",
+  "solution": "Stem summary: Swiss bank validator choosing the correct description of the 1996 backtesting procedure.\n\n**Concept and theory**\n\nWhy backtest. The internal models approach lets the bank’s own VaR drive capital, and GARP notes that monitoring was built in “to limit manipulation of the internal measures”. Backtesting checks the model against realized losses: a 99% one-day VaR should be exceeded on about 1% of days, about 2.5 days in 250. Too many exceedances suggest the model understates risk.\n\nThe procedure (GARP). The 1996 Amendment required daily backtesting. Each day, for each model, the bank uses its current model and procedures to calculate a one-day 99% VaR for each of the most recent 250 days and compares each day’s actual loss with that VaR. Each day with an actual loss larger than t […]"
+ },
+ {
+  "id": "OR-HQ-21c-13",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "The head of market risk at an Australian bank is briefing the asset and liability committee on the effect of this year’s backtesting results. Last year the supervisor applied the minimum multiplier. Assume the VaR figures below are unchanged and the supervisor applies the 1996 Amendment rules.\n\n| Input | Value |\n|---|---|\n| Backtesting exceptions in 250 days, last year | 3 |\n| Backtesting exceptions in 250 days, this year | 12 |\n| 10-day 99% VaR for the previous business day (AUD m) | 40 |\n| Average 10-day 99% VaR over the last 60 business days (AUD m) | 30 |\n| Specific risk capital charge (AUD m) | 15 |\n\nThe increase in the bank’s general market risk capital charge (MR) is closest to:",
+  "options": {
+   "A": "AUD 0 million",
+   "B": "AUD 40 million",
+   "C": "AUD 30 million",
+   "D": "AUD 375 million"
+  },
+  "answer": "C",
+  "solution": "Stem summary: Australian bank: capital impact of backtesting exceptions rising from 3 to 12.\n\n**Concept and theory**\n\nFrom exceptions to the multiplier (GARP).\n\n| Exceptions in 250 days | Multiplier $m$ |\n|---|---|\n| Five or fewer | 3 may be applied |\n| Six to nine | Larger multiplier at the supervisor’s discretion |\n| Ten or more | 4 required |\n\nWith a correct 99% model, about 2.5 exceptions are expected in 250 days, so ten or more is four times that expectation; the rule then raises the multiplier, and capital, mechanically.\n\nWhere the multiplier acts. MR = $\\text{max(VaR}_{t-1}, m \\times\\text{VaR}_{avg}$): only the averaged term carries $m$. Specific risk has its own charge and does not depend on this backtest result in the question.\n\n**Applying it to this question**\n\nLast year: $m$ = 3 […]"
+ },
+ {
+  "id": "OR-PY-177",
+  "lo": "ORR-21 c",
+  "loText": "Describe measures introduced in the 1995 and 1996 amendments, including guidelines for netting of credit exposures and methods for calculating market risk capital for assets in the trading book.",
+  "outside": false,
+  "question": "Pillar 1 of the Basel II framework allows banks to use a host of approaches to compute capital requirements for operational risk, credit risk, and market risk. Which of the following Basel II approaches allows a bank to explicitly recognize diversification benefits?",
+  "options": {
+   "A": "The Foundation Internal Ratings Based (IRB) Approach for credit risk",
+   "B": "The Advanced IRB Approach for credit risk",
+   "C": "The Standardized Approach for operational risk",
+   "D": "The Internal Models Approach for market risk"
+  },
+  "answer": "D",
+  "solution": "**Concept**\n\nThe 1996 Amendment let banks use an internal models approach for market risk, based on their own VaR models. Because VaR is computed on the whole trading portfolio with empirical correlations, diversification is recognised explicitly. The credit risk IRB approaches use a supervisory formula with prescribed correlations.\n\n**Exam trap.** “Internal” does not mean “free to model correlation”. Under IRB the bank supplies inputs to a formula it cannot change."
+ }
+]

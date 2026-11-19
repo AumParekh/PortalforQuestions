@@ -2,6 +2,7 @@
 """Candidate questions for a tier topic, in slices for the shape judges, and the checks on what the judges return.
 
     shape_slices.py slice <TOPIC>              writes data/build-inputs/shapes/slices/<TOPIC>-<nn>.json
+    shape_slices.py extend <TOPIC>             adds slices for candidates that joined the library since
     shape_slices.py check <result.json>        validates a judge's file against its slice
     shape_slices.py reconcile <TOPIC>          joins the two independent judgements of each slice
     shape_slices.py tiebreak <TOPIC>           slices of the questions the two judges split on, for a third judge
@@ -73,6 +74,24 @@ def slice_topic(topic_id: str):
         with open(os.path.join(SHAPES, 'slices', f'{topic_id}-{k + 1:02d}.json'), 'w', encoding='utf8') as f:
             json.dump(rows[k * per:(k + 1) * per], f, ensure_ascii=False, indent=1)
     print(f'{topic_id}: {len(rows)} candidates ({sum(r["outside"] for r in rows)} from outside its LOs) in {n} slices')
+
+
+def extend_topic(topic_id: str):
+    """Slices for the candidates no slice holds yet (questions added to the library since the topic was sliced);
+    the slices already judged are left as they are."""
+    topic = load(os.path.join(SHAPES, 'topics', f'{topic_id}.json'))
+    names = sorted(f for f in os.listdir(os.path.join(SHAPES, 'slices')) if re.fullmatch(rf'{topic_id}-\d+\.json', f))
+    held = {q['id'] for name in names for q in load(os.path.join(SHAPES, 'slices', name))}
+    # Outside candidates are capped by strength: with the cap already used, only a topic's own new questions join.
+    rows = [r for r in candidates(topic) if r['id'] not in held and not r['outside']]
+    last = max((int(n[len(topic_id) + 1:-5]) for n in names), default=0)
+    n = -(-len(rows) // SIZE)
+    per = -(-len(rows) // n) if n else 0
+    for k in range(n):
+        with open(os.path.join(SHAPES, 'slices', f'{topic_id}-{last + k + 1:02d}.json'), 'w', encoding='utf8') as f:
+            json.dump(rows[k * per:(k + 1) * per], f, ensure_ascii=False, indent=1)
+    print(f'{topic_id}: {len(rows)} new candidates in {n} more slices')
+    return n
 
 
 def problems(result_path: str) -> list:
@@ -184,6 +203,8 @@ def main():
     cmd, arg = sys.argv[1], sys.argv[2]
     if cmd == 'slice':
         slice_topic(arg)
+    elif cmd == 'extend':
+        extend_topic(arg)
     elif cmd == 'check':
         bad = problems(arg)
         print('\n'.join(bad) if bad else 'ok')
