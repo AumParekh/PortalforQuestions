@@ -21,7 +21,7 @@ SHAPES = os.path.join(ROOT, 'data', 'build-inputs', 'shapes')
 CONTENT = os.path.join(ROOT, 'content')
 FILES = ('IR', 'MR', 'CR', 'LR', 'OR', 'CI')
 SIZE = 40
-SOLUTION_CHARS = 1400
+SOLUTION_CHARS = 800
 OUTSIDE_CAP = 30
 FORMS = {'calculation', 'concept', 'trap'}
 
