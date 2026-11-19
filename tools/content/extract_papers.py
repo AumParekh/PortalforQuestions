@@ -12,7 +12,7 @@ key (Q, Answer, Target tested) and give each question a solution in six lettered
     c  Why <X> is correct          f  Reference
 
 Three templates share this structure and differ only in fonts and in how a solution is headed ("Q1. <title>",
-"Solution Q1 (Answer: B)", "Solution Q1  Answer: B"). Text is the portal's content format; see pdf_layout.py.
+"Solution Q1 (Answer: B)", "Solution Q1  Answer: B", "Solution Q1  Correct answer: B"). Text is the portal's content format; see pdf_layout.py.
 """
 from __future__ import annotations
 
@@ -41,26 +41,38 @@ _EX = {
     '': '', '': '', '': '', '': '', '': '', '': '',
     '': '', '': '', '': '', '': '', '': '', '': '',
 }
+# Slots 14 and 15 are the big slashes. Some editions report a slot by its number where others give its letter.
+_EX.update({14: '/', 15: '\\backslash '})
+_EX.update({ord(k): v for k, v in list(_EX.items()) if isinstance(k, str) and len(k) == 1 and ord(k) < 128 and ord(k) not in _EX})
 GLYPHS = {(font, k): v for font in ('LMMathExtension10-Regular', 'CMEX10') for k, v in _EX.items()}
 #: Heights (ems) of the tall brackets: \\big, \\Big, \\bigg and \\Bigg, by slot number or by the letter reported for it.
 _TALL = {**dict.fromkeys((0, 1, 2, 3, 8, 9), 1.2), **dict.fromkeys((16, 17, 'h', 'i', 'n', 'o'), 1.8),
          **dict.fromkeys((18, 19, 20, 21, 26, 27), 2.4), **dict.fromkeys((32, 33, 34, 35, 40, 41, ' ', '!', '"', '#', '(', ')'), 3.0)}
+_TALL.update({ord(k): v for k, v in list(_TALL.items()) if isinstance(k, str) and ord(k) not in _TALL})
 TALL = {(font, k): v for font in ('LMMathExtension10-Regular', 'CMEX10') for k, v in _TALL.items()}
+#: Sum and product signs (text size, display size), by letter or by slot number; the Palatino templates take them
+#: from PazoMath, whose box is the ink.
+BIG_OPS = {(font, k): (v, 1.4, 1.04) for font in ('LMMathExtension10-Regular', 'CMEX10') for k, v in {
+    'P': '\\sum', 'X': '\\sum', 80: '\\sum', 88: '\\sum', 'Q': '\\prod', 'Y': '\\prod', 81: '\\prod', 89: '\\prod'}.items()}
+BIG_OPS.update({('PazoMath', '∑'): ('\\sum', 1.0, None), ('PazoMath', '∏'): ('\\prod', 1.0, None)})
 #: Fraction bars and radical bars; every other rule is a table rule or the running head's.
 MATH_RULE = (0.33, 0.47)
 CLIP = (58.0, 790.0)
+#: The buttons are lettered in Helvetica and start left of the text.
+MARGIN = 62.0
 
-_HEAD_LO = re.compile(r'LO\s*(\d+)\.([a-z])(?![a-z])')
+#: "LO 14.a", or the bank's number after the official code: "LO LTR1A (Schweser 66.a)".
+_HEAD_LO = re.compile(r'(?:LO|Schweser)\s*(\d+)\.([a-z])(?![a-z])')
 _Q = re.compile(r'^Q(\d+)\.$')
 _SOL_TITLED = re.compile(r'^Q(\d+)\.\s+\S')
-_SOL = re.compile(r'^Solution Q(\d+)\s*\(?\s*Answer:\s*([A-E])\s*\)?$')
+_SOL = re.compile(r'^Solution Q(\d+)\s*\(?\s*(?:Correct answer|Answer):\s*([A-E])\s*\)?$')
 _SEC = re.compile(r'^\(?([a-f])[.)]\s+(\S.*)$')
 _OPT = re.compile(r'^([A-E])\.$')
 _WRONG = re.compile(r'^(?:Options? )?([A-E](?:(?:, | and |, and )[A-E])*)(?=$|[\s.(:,])')
 _SOLUTIONS = re.compile(r'^(Answer [Kk]ey|Solutions|Part \d+: Solutions|Solutions follow)$')
 _WHY = re.compile(r'^Why ([A-E]) is\b')
 _CORRECT = re.compile(r'^Option ([A-E]) is correct')
-_KEY_ROW = re.compile(r'^\|\s*(\d+)\s*\|\s*([A-E])\s*\|\s*(.*?)\s*\|$')
+_KEY_ROW = re.compile(r'^\|\s*Q?(\d+)\s*\|\s*([A-E])\s*\|\s*(.*?)\s*\|$')
 
 
 def running_lo(page) -> tuple | None:
@@ -123,7 +135,7 @@ def parse(pages: list) -> tuple:
                     q['options'][section[4:]].append(ln)
                 continue
             # ---- solutions
-            if ln.kind == 'table' and re.search(r'\|\s*Q\s*\|\s*Answer\s*\|', ln.text.split('\n')[0]):
+            if ln.kind == 'table' and re.search(r'\|\s*(?:Q|Question)\s*\|\s*Answer\s*\|', ln.text.split('\n')[0]):
                 for row in ln.text.split('\n')[2:]:
                     m = _KEY_ROW.match(row.strip())
                     if m:
@@ -138,6 +150,9 @@ def parse(pages: list) -> tuple:
                 m = _SOL_TITLED.match(bp)
                 if m:
                     head = (int(m.group(1)), None, plain[m.end() - 1:].strip())
+                elif _Q.match(bp):
+                    # A title that opens with a symbol ("Q3. z-test on a pooled sample"): only the number is bold.
+                    head = (int(_Q.match(bp).group(1)), None, plain[len(bp):].strip())
             if head:
                 sol = paper['questions'].get(head[0])
                 section, last_wrong = 'summary', None
@@ -160,6 +175,10 @@ def parse(pages: list) -> tuple:
                         sol['flags'].append('answer-conflict')
                     sol['answer'] = sol['answer'] or w.group(1)
                 continue
+            # A paper may leave out the "(d)" heading: the wrong options then follow the correct one's reason directly.
+            if section == 'c' and bp and sol['answer'] and re.fullmatch(r'Options? [A-E](?:(?:, | and |, and )[A-E])*', bp) and sol['answer'] not in re.findall(r'[A-E]', bp[6:]):
+                section = 'd'
+                sol['sections'].setdefault('d', [])
             if section == 'summary':
                 sol['summary'].append(ln)
             elif section == 'd':
@@ -368,6 +387,8 @@ def extract(pdf_path: str, first: int = 1, last: int | None = None) -> dict:
     L.OWN_BAR_RADICALS = True
     L.WRAPPED_ROWS = True
     L.SUP_SHIFT = 0.04
+    L.SEPARATOR_MIN = 400.0
+    L.BIG_OPS = BIG_OPS
     L.TALL = TALL
     L.MATH_FONT = lambda font: 'math' in font.lower() or font.startswith('CM')
     L.MATH_ITALIC_FONT = lambda font: font.startswith('CMMI') or font.startswith('LMMathItalic')
@@ -377,24 +398,35 @@ def extract(pdf_path: str, first: int = 1, last: int | None = None) -> dict:
     unknown = {}
     pages, all_lines = [], []
     for page in pdf.pages[first - 1:last]:
+        # The linked editions put buttons in the left margin ("View solution", "Back to Q3", "Index").
+        page = page.filter(lambda o: not (o.get('object_type') == 'char' and o['x0'] < MARGIN and 'Helvetica' in o['fontname']))
         lines = L.page_lines(page, GLYPHS, unknown, None, clip=CLIP)
         pages.append((page.page_number, running_lo(page), lines))
         all_lines += lines
         page.flush_cache()
     vocab = B.build_vocab(all_lines)
-    # Text margins of this template: where question lines start, and how far full lines reach.
-    starts = Counter(round(ln.x0, 1) for ln in all_lines if ln.kind == 'text' and _Q.match(ln.bold_prefix or ''))
-    left = starts.most_common(1)[0][0] if starts else 62.4
-    ends = Counter(round(ln.x1) for ln in all_lines if ln.kind == 'text' and ln.x1 > 500)
-    right = float(ends.most_common(1)[0][0]) if ends else 532.9
+    # Text margins of a template: where question lines start, and how far full lines reach. A PDF may bind papers
+    # of several templates, so each paper is measured on its own pages.
+    def margins(lines, default):
+        starts = Counter(round(ln.x0, 1) for ln in lines if ln.kind == 'text' and _Q.match(ln.bold_prefix or ''))
+        ends = Counter(round(ln.x1) for ln in lines if ln.kind == 'text' and ln.x1 > 500)
+        return (starts.most_common(1)[0][0] if starts else default[0], float(ends.most_common(1)[0][0]) if ends else default[1])
+
+    left, right = margins(all_lines, (62.4, 532.9))
+    by_lo, lo = {}, None
+    for _, page_lo, lines in pages:
+        lo = page_lo or lo
+        by_lo.setdefault(lo, []).extend(lines)
+    paper_margins = {k: margins(v, (left, right)) for k, v in by_lo.items()}
     papers, problems = parse(pages)
     questions, summary = [], []
     for p in papers:
         if p['lo'] is None:
             problems.append(f"p{p['page']}: pages with no LO in the running head")
             continue
-        facts = header_facts(p, vocab, left, right)
-        done = [finish(p, p['questions'][n], vocab, left, right) for n in p['order']]
+        pl, pr = paper_margins.get(p['lo'], (left, right))
+        facts = header_facts(p, vocab, pl, pr)
+        done = [finish(p, p['questions'][n], vocab, pl, pr) for n in p['order']]
         for d in done:
             d['wording'], d['of'], d['instructions'] = facts['wording'], len(done), facts['instructions']
         questions += done

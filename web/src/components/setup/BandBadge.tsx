@@ -57,3 +57,15 @@ export function HighQualityBadge() {
     </span>
   );
 }
+
+/** Marks a question from the past-paper compilation. */
+export function PastYearBadge() {
+  return (
+    <span
+      title="From past papers: practice exams and the past 10-year papers book"
+      className="inline-flex shrink-0 items-center rounded-md bg-sky-100 px-1.5 py-0.5 text-[13px] font-semibold leading-none text-sky-900 dark:bg-sky-500/20 dark:text-sky-100"
+    >
+      Past year
+    </span>
+  );
+}

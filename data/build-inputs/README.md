@@ -49,6 +49,16 @@ needs `pdfplumber` and poppler's `pdftotext`).
   a set: put the PDF in `question-banks/pdf/`, add its name to `PAPERS` in `build_question_bank.py` under its
   subject, run with `--extract`, and clear whatever the build reports as blocked with an entry in `overrides.json`.
   These questions are left out of the LO-type count above, so adding a set never changes an LO's type.
+- The four `HQ_FRM2_*_Linked.pdf` sets (market risk, operational risk, liquidity, investment management) hold every
+  paper of the earlier, smaller sets and replace them: the questions already imported keep their ids and wording.
+  Their margin buttons ("View solution", "Back to Q3") are dropped by the reader, and the limits of display sums
+  are put back on the sum sign.
+- Past papers (`PY_All_Valid_Questions_2026.pdf`, read by `extract_pastyear.py`): the compilation of practice-exam
+  questions (2022 to 2026) and the past 10-year papers book, 313 questions with worked solutions. They go into the
+  bank with `pastYear: true` (ids `XX-PY-nnn`), which is what the library's "All past year" section and the
+  "Past year questions only" chip show. A paper question the bank already holds is tagged where it is.
+- Drawings (a QQ plot, a rate tree) are cut from the PDF page into `web/public/figures/` and named in
+  `overrides.json`, which puts the picture in place of the labels the reader finds scattered on the page.
 - `question-banks/import-report.json` and `lo-coverage.csv` (questions per official LO) are
   written by the build.
 - `lo-map/existing-lo-map.json`: the official LO chosen for each question that was already in

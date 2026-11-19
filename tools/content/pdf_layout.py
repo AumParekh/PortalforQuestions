@@ -39,6 +39,8 @@ class Item:
     big: bool = False
     #: A math-font glyph whose ASCII letters are italic variables (TeX's math italic), not upright text.
     mathit: bool = False
+    #: For a big operator that may carry limits above and below it: (LaTeX, depth, axis), see BIG_OPS.
+    op: tuple = ()
 
     @property
     def cy(self) -> float:
@@ -202,6 +204,12 @@ def MATH_ITALIC_FONT(font: str) -> bool:
 #: reference point; TALL_DESCENT is that font's descent in ems. Empty unless a document family fills it.
 TALL = {}
 TALL_DESCENT = 0.6
+#: Big operators by (font, slot or character) -> (LaTeX, depth, axis). In a display formula their limits are set
+#: above and below them, centred, in a smaller size; page_lines() puts those back on the operator (opt-in: empty
+#: leaves them as lines of their own). `depth`: how far the ink reaches below the top of the glyph's box, in ems of
+#: its size (the box of a TeX extension glyph sits at the top of the ink). `axis`: where the centre line of the
+#: formula's row sits, likewise; None when the box is centred on it already.
+BIG_OPS = {}
 
 
 def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bool = False) -> list:
@@ -253,9 +261,42 @@ def load_items(page, cid_text: dict, unknown: dict | None = None, keep_empty: bo
                 mathit=MATH_ITALIC_FONT(font),
                 color=tuple(round(float(x), 2) for x in color),
                 big=big,
+                op=BIG_OPS.get(slot if slot is not None else (font, text), ()),
             )
         )
     return out
+
+
+def _attach_limits(items: list) -> list:
+    """Puts the limits of display operators back on them: the small glyphs centred above and below a sum sign become
+    its superscript and subscript, and the operator joins the row of its formula."""
+    used = set()
+
+    def centred(s, band):
+        runs = []
+        for c in sorted(band, key=lambda i: i.x0):
+            if runs and c.x0 - runs[-1][-1].x1 < 3.0:
+                runs[-1].append(c)
+            else:
+                runs.append([c])
+        for r in runs:
+            if abs((r[0].x0 + r[-1].x1) / 2 - s.cx) < 2.0:
+                return r
+        return None
+
+    for s in [i for i in items if i.op]:
+        latex, depth, axis = s.op
+        ink = s.top + depth * s.size
+        small = [i for i in items if id(i) not in used and i is not s and not i.op and i.latex is None and i.size <= 0.9 * s.size]
+        up = centred(s, [i for i in small if s.top - 9.5 <= i.top and i.bottom <= s.top + 5.0])
+        lo = centred(s, [i for i in small if ink - 2.5 <= i.top <= ink + 8])
+        if not up and not lo:
+            continue
+        used.update(id(i) for i in (up or []) + (lo or []))
+        s.latex = latex + ('_{' + _math_tokens(lo) + '}' if lo else '') + ('^{' + _math_tokens(up) + '}' if up else '') + ' '
+        if axis is not None:
+            s.anchor = s.top + axis * s.size
+    return [i for i in items if id(i) not in used]
 
 
 def horizontal_rules(page) -> list:
@@ -869,6 +910,9 @@ def cluster_lines(items: list) -> list:
 
 #: Line widths (pt) of the bars the math font draws; set per document family before reading pages.
 MATH_RULE = (0.55, 0.75)
+#: A rule at least this long that no formula or table uses is a separator across the page, not something missed
+#: (opt-in: None flags every unused rule).
+SEPARATOR_MIN = None
 
 
 def find_tables(rules: list) -> list:
@@ -1074,6 +1118,8 @@ def page_lines(page, cid_text: dict, unknown: dict | None = None, box_kind=None,
         if m and (_font(c['fontname']), int(m.group(1))) in flag_cids:
             special.append(((c['top'] + c['bottom']) / 2, flag_cids[(_font(c['fontname']), int(m.group(1)))]))
     items = [i for i in items if i.text]
+    if BIG_OPS:
+        items = _attach_limits(items)
     rules = [r for r in horizontal_rules(page) if clip[0] <= r['y'] <= clip[1]]
     tables = find_tables(rules)
     table_ys = {round(y, 1) for t in tables for y in t['rules']}
@@ -1097,7 +1143,7 @@ def page_lines(page, cid_text: dict, unknown: dict | None = None, box_kind=None,
             if ln.top - 14 <= y <= ln.bottom + 14 and name not in ln.flags:
                 ln.flags.append(name)
         if left:
-            near = [r for r in left if ln.top - 2 <= r['y'] <= ln.bottom + 2 and ln.x0 - 2 <= r['x0'] <= ln.x1 + 2]
+            near = [r for r in left if ln.top - 2 <= r['y'] <= ln.bottom + 2 and ln.x0 - 2 <= r['x0'] <= ln.x1 + 2 and not (SEPARATOR_MIN and r['x1'] - r['x0'] >= SEPARATOR_MIN)]
             if near:
                 ln.flags.append('unused-rule')
         cy = (ln.top + ln.bottom) / 2

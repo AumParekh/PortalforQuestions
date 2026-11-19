@@ -2,7 +2,7 @@ import { AlertTriangle, BookOpen, CheckCircle2, ChevronDown, Clock, Flag, ListCh
 import type { AnswerRecord, Question } from '../types';
 import { recallSectionsOf } from '../lib/catalog';
 import { Markdown } from './Markdown';
-import { BandBadge, HighQualityBadge, KindBadge } from './setup/BandBadge';
+import { BandBadge, HighQualityBadge, KindBadge, PastYearBadge } from './setup/BandBadge';
 
 interface Props {
   question: Question;
@@ -69,6 +69,7 @@ export function SolutionPanel({ question, record, marked, onToggleMark }: Props)
               <BandBadge band={question.band} />
               {question.loKind && <KindBadge kind={question.loKind} />}
               {question.highQuality && <HighQualityBadge />}
+              {question.pastYear && <PastYearBadge />}
             </p>
             <p className="text-slate-700 dark:text-slate-300">{question.loText}</p>
             <p className="text-slate-600 dark:text-slate-400">{question.reading}</p>

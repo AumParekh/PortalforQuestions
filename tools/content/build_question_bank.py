@@ -52,15 +52,19 @@ SUBJECTS = OrderedDict([
 ])
 #: High-quality question papers by portal file code. Their reading numbers are the bank's (SUBJECTS gives the offset).
 PAPERS = OrderedDict([
-    ('IR', ['HQ_RMIM_Ch8-9-10-11-14_All_LOs.pdf']),
-    ('MR', ['HQ_MarketRisk_R14-18_All_LOs.pdf']),
-    ('OR', ['HQ_OR_Ch8-16_All_LOs.pdf']),
+    ('IR', ['HQ_FRM2_RMIM_Linked.pdf']),
+    ('MR', ['HQ_FRM2_Market_Risk_Linked.pdf']),
+    ('OR', ['HQ_FRM2_ORR_Linked.pdf']),
+    ('LR', ['HQ_FRM2_LTR_Linked.pdf']),
 ])
+#: The compilation of past papers (practice exams and the 10-year book): one PDF for every subject.
+PAST_PAPERS = 'PY_All_Valid_Questions_2026.pdf'
+PAST_TIER = 'Past Papers'
 RECALL_SOURCE = re.compile(r'^Workbook ([A-D]\d+\.\d+)\b')
 BANK_TIER = 'Question Bank'
 WORKBOOK_TIER = 'Workbook'
 HQ_TIER = 'High Quality'
-IMPORTED = ('-QB-', '-WB-', '-HQ-')
+IMPORTED = ('-QB-', '-WB-', '-HQ-', '-PY-')
 #: What every paper's instructions say; anything else in them is notation its questions rely on.
 PAPER_BOILERPLATE = re.compile(r'^Instructions:\s*|choose the single best answer for each question\.\s*|Answers and solutions begin after the blank page\.\s*', re.I)
 #: Flags that mean the text may be wrong; a question keeps them only until an override clears them.
@@ -170,6 +174,7 @@ def run_extraction():
     for pdfs in PAPERS.values():
         for pdf in pdfs:
             jobs.append(subprocess.Popen([sys.executable, os.path.join(here, 'extract_papers.py'), os.path.join(QB, 'pdf', pdf), os.path.join(EXTRACTED, pdf[:-4] + '.json')]))
+    jobs.append(subprocess.Popen([sys.executable, os.path.join(here, 'extract_pastyear.py'), os.path.join(QB, 'pdf', PAST_PAPERS), os.path.join(EXTRACTED, PAST_PAPERS[:-4] + '.json')]))
     if any(j.wait() != 0 for j in jobs):
         sys.exit('extraction failed')
 
@@ -310,11 +315,81 @@ def _attach_scripts(text: str) -> str:
     return '$'.join(parts)
 
 
+_ACCENT = {'ˆ': 'hat', '¯': 'bar', '˜': 'tilde'}
+_ACCENT_BASE = re.compile(r'(\\[A-Za-z]+|\\text\{[A-Za-z]\}|[A-Za-z])$')
+
+
+def _accents(text: str) -> str:
+    """A symbol under a hat, bar or tilde is read as the symbol's formula and then the accent, "$\\beta$ˆ": put the
+    accent on the symbol, and join a subscript that follows ("$\\epsilon$ˆ$_{t}$")."""
+    if not any(a in text for a in _ACCENT):
+        return text
+    parts = re.split(r'(?<!\\)\$', text)
+    if len(parts) % 2 == 0:
+        return text
+    i = 1
+    while i < len(parts):
+        nxt = parts[i + 1] if i + 1 < len(parts) else ''
+        m = _ACCENT_BASE.search(parts[i])
+        if nxt[:1] in _ACCENT and m:
+            parts[i] = parts[i][:m.start()] + '\\' + _ACCENT[nxt[0]] + '{' + m.group(1) + '}'
+            parts[i + 1] = nxt[1:]
+            if parts[i + 1] == '' and i + 2 < len(parts):
+                parts[i:i + 3] = [parts[i] + parts[i + 2]]
+                continue
+        i += 2
+    return '$'.join(parts)
+
+
+def _bars(text: str) -> str:
+    """A letter under a bar is read as the letter and a macron, "s¯": set it as a formula so the bar sits on top."""
+    if '¯' not in text:
+        return text
+    parts = re.split(r'(?<!\\)\$', text)
+    if len(parts) % 2 == 0:
+        return text
+    bar = re.compile(r'([A-Za-z])¯')
+    for i in range(0, len(parts), 2):
+        # Next to a formula the letter joins it (two formulas side by side would read as "$$").
+        m = bar.match(parts[i])
+        if m and i > 0:
+            parts[i - 1] += r'\bar{\text{' + m.group(1) + '}}'
+            parts[i] = parts[i][m.end():]
+        m = re.search(r'([A-Za-z])¯$', parts[i])
+        if m and i + 1 < len(parts) and not re.search(r'[A-Za-z]$', parts[i][:m.start()]):
+            parts[i + 1] = r'\bar{\text{' + m.group(1) + '}}' + parts[i + 1]
+            parts[i] = parts[i][:m.start()]
+        parts[i] = bar.sub(lambda m: r'$\bar{\text{' + m.group(1) + '}}$', parts[i])
+    for i in range(1, len(parts), 2):
+        parts[i] = bar.sub(lambda m: r'\bar{\text{' + m.group(1) + '}}', parts[i])
+    return '$'.join(parts)
+
+
+_TEXT_GROUP = re.compile(r'\\text\{([^{}]*)\}')
+
+
+def _math_glyphs(text: str) -> str:
+    """A capital delta or sigma inside a formula is read as a text glyph; KaTeX has them only as math symbols."""
+    if '∆' not in text and 'Σ' not in text:
+        return text
+    parts = re.split(r'(?<!\\)\$', text)
+    if len(parts) % 2 == 0:
+        return text
+
+    def group(m):
+        pieces = re.split('([∆Σ])', m.group(1))
+        return ''.join(('\\Delta ' if x == '∆' else '\\Sigma ' if x == 'Σ' else '\\text{' + x + '}') for x in pieces if x)
+
+    for i in range(1, len(parts), 2):
+        parts[i] = _TEXT_GROUP.sub(group, parts[i]).replace('∆', '\\Delta ').replace('Σ', '\\Sigma ')
+    return '$'.join(parts)
+
+
 def _delta(value):
     if isinstance(value, str):
         # A delta inside a formula is read as a text glyph; KaTeX has it only as a math symbol.
         # (A long implication arrow is drawn as "=" and "⇒" side by side: one arrow is meant.)
-        return _attach_scripts(value.replace(r'\text{∆}', r'\Delta ').replace(r'=$\Rightarrow', r'$\Rightarrow'))
+        return _attach_scripts(_math_glyphs(_bars(_accents(value))).replace(r'\text{∆}', r'\Delta ').replace(r'=$\Rightarrow', r'$\Rightarrow'))
     if isinstance(value, dict):
         return {k: _delta(v) for k, v in value.items()}
     return value
@@ -377,6 +452,42 @@ def from_papers(code: str, area: str, offset: int, label: str, subject: str, dat
     return out
 
 
+def from_pastyear(code: str, area: str, subject: str, data: dict, lo_index: dict, overrides: dict, report: dict) -> list:
+    """The past-paper questions of one subject. A question that tests several LOs is filed under the first."""
+    out = []
+    for q in data['questions']:
+        m = re.match(r'^([A-Z]+)-(\d+)([a-z])$', q['lo'])
+        if not m or m.group(1) != area:
+            continue
+        key = f"{code}-PY-{q['n']:03d}"
+        q, flags = apply_override(q, overrides.get(key, {}), key)
+        q = {k: _delta(v) for k, v in q.items()}
+        blocking = sorted(set(flags) & BLOCKING) + [f for f in flags if f.startswith(('options-', 'others-', 'no-'))]
+        if blocking:
+            report['blocked'].append((key, blocking))
+            continue
+        lo = lo_index.get(f'{area}-{m.group(2)} {m.group(3)}')
+        if lo is None:
+            report['blocked'].append((key, [f"no official LO {q['lo']}"]))
+            continue
+        parts = [f"**Concept**\n\n{q['concept']}"]
+        if q['working']:
+            parts.append(f"**Working**\n\n{q['working']}")
+        if q['trap']:
+            parts.append('**Exam trap.** ' + q['trap'])
+        if q['keynote']:
+            parts.append('**Answer-key note.** ' + q['keynote'])
+        if q['note']:
+            parts.append('**Note.** ' + q['note'])
+        if len(q['los']) > 1:
+            parts.append('**Learning objectives tested:** ' + ', '.join(q['los']) + '.')
+        parts.append(f"**Source:** {q['source']} (All past year questions, Question {q['n']}).")
+        item = question(key, subject, PAST_TIER, lo, q['stem'], q['options'], q['answer'], '\n\n'.join(parts), dict(q['others']), q['source'])
+        item['pastYear'] = True
+        out.append(item)
+    return out
+
+
 def tag_tier(q: dict, lo_tiers: dict):
     """Sets the question's recall tier (A-D) and the workbook sections that cover its LO; clears them if none do."""
     hit = lo_tiers.get(q['lo'])
@@ -396,7 +507,7 @@ def tag_kinds(questions: list, lo_index: dict, kinds: dict, numerical: Counter):
     """
     # The high-quality papers are left out of the count: a set written to cover an LO evenly says nothing about how
     # often the LO is examined as a calculation, and adding one must not change the type of an LO.
-    counted = [q for q in questions if '-HQ-' not in q['id']]
+    counted = [q for q in questions if '-HQ-' not in q['id'] and '-PY-' not in q['id']]
     total = Counter(q['lo'] for q in counted)
     for q in counted:
         if q['notes']['loType'] == 'Numerical':
@@ -473,11 +584,13 @@ def main():
     tiers = load(os.path.join(INPUTS, 'lo-map', 'tiers.json'))
     write_tiers_module(tiers)
     section_titles = {sec['id']: sec['title'] for sec in tiers['sections']}
-    report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'hq-repeats': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
+    report = {'open-ended': [], 'blocked': [], 'lo-wording': [], 'reading-title': set(), 'bank-repeat': 0, 'duplicates': [], 'hq-repeats': [], 'py-repeats': [], 'invalid': [], 'unmapped-existing': [], 'recall': set()}
     coverage = Counter()
     kinds, numerical = {}, Counter()
     totals, hq = OrderedDict(), {}
     seen_text = {}
+    past_data = load(os.path.join(EXTRACTED, PAST_PAPERS[:-4] + '.json'))
+    py = {}
     for code, (area, bank, offset, workbook, label) in SUBJECTS.items():
         path = os.path.join(CONTENT, f'{code}.json')
         content = load(path)
@@ -487,6 +600,7 @@ def main():
             if any(tag in q['id'] for tag in IMPORTED):
                 continue
             q.pop('highQuality', None)
+            q.pop('pastYear', None)
             new_lo = lo_index.get(existing_lo.get(q['id'], {}).get('lo'))
             if new_lo is None or new_lo['area'] != area:
                 report['unmapped-existing'].append(q['id'])
@@ -529,18 +643,34 @@ def main():
                 own[sig] = q
                 papers.append(q)
         final += papers
+        # Past papers: the same rule. A paper question already in the bank is tagged where it is.
+        past = []
+        for q in from_pastyear(code, area, subject, past_data, lo_index, overrides, report):
+            bad = check(q)
+            if bad:
+                report['invalid'].append((q['id'], bad))
+                continue
+            sig = norm(q['question'] + ' ' + ' '.join(sorted(o['text'] for o in q['options'])))
+            if sig in own:
+                own[sig]['pastYear'] = True
+                report['py-repeats'].append((q['id'], own[sig]['id']))
+                continue
+            own[sig] = q
+            past.append(q)
+        final += past
         content['questions'] = kept + final
         for q in content['questions']:
             tag_tier(q, tiers['los'])
         tag_kinds(content['questions'], lo_index, kinds, numerical)
-        content['tiers'] = [t for t in content.get('tiers', []) if t not in (BANK_TIER, WORKBOOK_TIER, HQ_TIER)] + sorted({q['tier'] for q in final})
+        content['tiers'] = [t for t in content.get('tiers', []) if t not in (BANK_TIER, WORKBOOK_TIER, HQ_TIER, PAST_TIER)] + sorted({q['tier'] for q in final})
         with open(path, 'w', encoding='utf8') as f:
             json.dump(content, f, ensure_ascii=False, indent=1)
             f.write('\n')
         for q in content['questions']:
             coverage[q['lo']] += 1
-        totals[code] = (len(kept), sum(1 for q in final if q['tier'] == BANK_TIER), sum(1 for q in final if q['tier'] == WORKBOOK_TIER), len(papers))
+        totals[code] = (len(kept), sum(1 for q in final if q['tier'] == BANK_TIER), sum(1 for q in final if q['tier'] == WORKBOOK_TIER), len(papers) + len(past))
         hq[code] = sum(1 for q in content['questions'] if q.get('highQuality'))
+        py[code] = (len(past), sum(1 for q in content['questions'] if q.get('pastYear')))
 
     with open(os.path.join(QB, 'lo-coverage.csv'), 'w', newline='', encoding='utf8') as f:
         w = csv.writer(f)
@@ -552,6 +682,7 @@ def main():
     for code, (a, b, c, d) in totals.items():
         print(f'{code:5s} {a:13d} {b:5d} {c:9d} {d:7d} {a + b + c + d:6d} {hq[code]:13d}')
     print('all  ', *(sum(t[i] for t in totals.values()) for i in range(4)), sum(sum(t) for t in totals.values()), sum(hq.values()))
+    print('past papers (added, tagged in all):', py, sum(v[1] for v in py.values()))
     bands = Counter()
     for lo_id, n in coverage.items():
         if lo_id in lo_index:
@@ -573,7 +704,7 @@ def main():
     in_bank = {q.get('recall') for code in SUBJECTS for q in load(os.path.join(CONTENT, f'{code}.json'))['questions']} - {None}
     report['recall-missing'] = sorted(recall_ids - in_bank)
     print(f"recall-volume questions: {len(recall_ids)} in the two volumes, {len(recall_ids & in_bank)} of them in the bank")
-    for name in ('blocked', 'invalid', 'duplicates', 'hq-repeats', 'lo-wording', 'unmapped-existing', 'recall-missing'):
+    for name in ('blocked', 'invalid', 'duplicates', 'hq-repeats', 'py-repeats', 'lo-wording', 'unmapped-existing', 'recall-missing'):
         print(f'{name}: {len(report[name])}')
         for item in report[name][:12]:
             print('   ', item)

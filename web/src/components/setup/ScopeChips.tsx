@@ -5,8 +5,8 @@ import { FilterChip } from './FilterSheet';
 import { BAND_OPTIONS, KIND_OPTIONS } from './filterModel';
 
 /**
- * Priority (P1 to P4), LO type (Numerical, Conceptual, Both), "High quality questions only" and "Recall workbook
- * only" chips. They narrow the questions; `effect` finishes the helper lines ("go into the session" on Session Setup).
+ * Priority (P1 to P4), LO type (Numerical, Conceptual, Both), "High quality questions only", "Past year questions only" and
+ * "Recall workbook only" chips. They narrow the questions; `effect` finishes the helper lines ("go into the session" on Session Setup).
  */
 export function ScopeChips({
   filters,
@@ -21,6 +21,7 @@ export function ScopeChips({
   const kinds = filters.kinds ?? [];
   const questions = useContent((s) => s.subjectQuestions);
   const highQuality = useMemo(() => questions.reduce((n, q) => n + (q.highQuality ? 1 : 0), 0), [questions]);
+  const pastYear = useMemo(() => questions.reduce((n, q) => n + (q.pastYear ? 1 : 0), 0), [questions]);
   // Kept in the printed order (P1…P4, Numerical…Both) whatever order they were tapped in.
   const toggleBand = (b: Band) =>
     onChange((f) => {
@@ -71,11 +72,22 @@ export function ScopeChips({
         >
           High quality questions only
         </FilterChip>
+        <FilterChip
+          active={filters.pastYearOnly === true}
+          title="Only the questions from past papers: practice exams and the past 10-year papers book"
+          onClick={() => onChange((f) => ({ ...f, pastYearOnly: !f.pastYearOnly }))}
+        >
+          Past year questions only
+        </FilterChip>
       </div>
       <p className="text-[15px] text-slate-600 dark:text-slate-400">
-        {filters.highQualityOnly
+        {filters.highQualityOnly && filters.pastYearOnly
+          ? `Only questions that are both high quality and from past papers ${effect}.`
+          : filters.pastYearOnly
+            ? `Only the ${pastYear.toLocaleString()} past year questions ${effect}: practice exams of 2022 to 2026 and the past 10-year papers book.`
+            : filters.highQualityOnly
           ? `Only the ${highQuality.toLocaleString()} high quality questions ${effect}.`
-          : `All question sets. ${highQuality.toLocaleString()} questions are tagged high quality: one paper per learning objective, each with a full worked solution.`}
+          : `All question sets. ${pastYear.toLocaleString()} are past year questions. ${highQuality.toLocaleString()} questions are tagged high quality: one paper per learning objective, each with a full worked solution.`}
       </p>
       <FilterChip
         active={filters.recallOnly === true}

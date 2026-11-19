@@ -757,7 +757,7 @@ export function SessionSetupScreen() {
                 </button>
               )}
               {filterCount > 0 && (
-                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands, kinds, recallOnly: filters.recallOnly, highQualityOnly: filters.highQualityOnly })} className={pillClass}>
+                <button type="button" onClick={() => setFilters({ ...EMPTY_FILTERS, bands, kinds, recallOnly: filters.recallOnly, highQualityOnly: filters.highQualityOnly, pastYearOnly: filters.pastYearOnly })} className={pillClass}>
                   <X className="h-4 w-4" aria-hidden="true" />
                   Clear {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
                 </button>

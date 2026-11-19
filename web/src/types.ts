@@ -65,6 +65,8 @@ export interface Question {
   recall?: string;
   /** True for the questions of the high quality question sets (the "High quality questions" filter). */
   highQuality?: boolean;
+  /** True for the questions of the past-paper compilation (the library's "All past year" section). */
+  pastYear?: boolean;
   question: string;
   options: QuestionOption[];
   answer: OptionKey;
@@ -142,6 +144,8 @@ export interface SessionFilters {
   recallOnly?: boolean;
   /** Only the questions of the high quality question sets. */
   highQualityOnly?: boolean;
+  /** Only the questions of the past-paper compilation. */
+  pastYearOnly?: boolean;
   status: ProgressFilter[];
   trapOperators: TrapOperator[];
   hasTrap: boolean | null;

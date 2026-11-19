@@ -25,8 +25,9 @@ import { profileKey } from '../games/profile';
 const STORAGE_KEY = 'frm.library.v1';
 const SEARCH_DEBOUNCE_MS = 150;
 
-/** The whole bank, or only the questions flagged for review (the flag on the question screen). */
-type LibraryView = 'all' | 'marked';
+/** The whole bank, only the questions flagged for review (the flag on the question screen), or only the questions
+ * of the past-paper compilation. */
+type LibraryView = 'all' | 'marked' | 'pastYear';
 
 interface Stored {
   view: LibraryView;
@@ -47,7 +48,7 @@ function loadStored(): Stored {
     const d = JSON.parse(raw) as Record<string, unknown> | null;
     if (!d || typeof d !== 'object') return DEFAULTS;
     return {
-      view: d.view === 'marked' ? 'marked' : 'all',
+      view: d.view === 'marked' || d.view === 'pastYear' ? d.view : 'all',
       filters: sanitizeFilters(d.filters),
       shuffle: d.shuffle === true,
       open: Array.isArray(d.open) ? d.open.filter((k): k is string => typeof k === 'string') : [],
@@ -96,6 +97,7 @@ function LoRow({
   query,
   filtered,
   marked,
+  pastYear,
   progress,
   last,
   onStart,
@@ -105,12 +107,15 @@ function LoRow({
   filtered: boolean;
   /** In the "Marked for review" view the count is of flagged questions. */
   marked: boolean;
+  /** In the "All past year" view only the LO's past year questions are listed and counted. */
+  pastYear: boolean;
   progress: GroupProgress | undefined;
   last: boolean;
   onStart: () => void;
 }) {
   const { item, ids } = row;
-  const total = item.questionIds.length;
+  // In the past year view the row counts only its past year questions.
+  const total = pastYear ? ids.length : item.questionIds.length;
   // A code query ("MR-2 c") names the row; its letters are not words to mark in the wording.
   const mark = loCodeTest(query) ? '' : query;
   return (
@@ -176,6 +181,7 @@ export function LibraryScreen() {
     useUi.getState().setPendingLibraryView(null);
   }, []);
   const markedView = view === 'marked';
+  const pastYearView = view === 'pastYear';
   // In the marked view everything listed is worth seeing, so groups start unfolded; this holds the ones folded by hand.
   const [foldedMarked, setFoldedMarked] = useState<Set<string>>(() => new Set());
   const [filters, setFilters] = useState<SessionFilters>(initial.filters);
@@ -211,20 +217,25 @@ export function LibraryScreen() {
 
   const rowsFor = (f: SessionFilters): Row[] => {
     const active = hasActiveFilters(f);
-    if (!active && !markedView) return named.map((item) => ({ item, ids: item.questionIds }));
+    if (!active && !markedView && !pastYearView) return named.map((item) => ({ item, ids: item.questionIds }));
     const today = localToday();
     return named
       .map((item) => ({
         item,
         ids: item.questionIds.filter(
-          (id) => byId[id] && (!markedView || states[id]?.markedForReview) && (!active || matchesFilters(byId[id], states[id], f, today)),
+          (id) =>
+            byId[id] &&
+            (!markedView || states[id]?.markedForReview) &&
+            (!pastYearView || byId[id].pastYear) &&
+            (!active || matchesFilters(byId[id], states[id], f, today)),
         ),
       }))
       .filter((r) => r.ids.length > 0);
   };
-  const rows = useMemo(() => rowsFor(filters), [named, filters, byId, states, markedView]); // eslint-disable-line react-hooks/exhaustive-deps
+  const rows = useMemo(() => rowsFor(filters), [named, filters, byId, states, markedView, pastYearView]); // eslint-disable-line react-hooks/exhaustive-deps
   // Every flagged question of the bank, whatever the search and filters say: the number on the view switch.
   const markedTotal = useMemo(() => questions.reduce((n, q) => n + (states[q.id]?.markedForReview ? 1 : 0), 0), [questions, states]);
+  const pastYearTotal = useMemo(() => questions.reduce((n, q) => n + (q.pastYear ? 1 : 0), 0), [questions]);
 
   const subjects = useMemo((): Subject[] => {
     const out = new Map<string, Subject>();
@@ -272,7 +283,7 @@ export function LibraryScreen() {
     if (markedView) setFoldedMarked(open ? new Set() : new Set(allGroupKeys));
     else setOpenGroups(open ? new Set(allGroupKeys) : new Set());
   };
-  const noun: [string, string] = markedView ? ['marked question', 'marked questions'] : ['question', 'questions'];
+  const noun: [string, string] = markedView ? ['marked question', 'marked questions'] : pastYearView ? ['past year question', 'past year questions'] : ['question', 'questions'];
 
   // Coming back from a session: bring the LO opened last into view, once the list is there. Otherwise start at the
   // top (the page keeps the scroll position of the screen it came from).
@@ -340,11 +351,12 @@ export function LibraryScreen() {
 
       <main className="mx-auto max-w-[720px] space-y-5 px-4 pb-16 pt-4">
         <section aria-label="Find a learning objective" className="space-y-3">
-          <div role="group" aria-label="Show" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
+          <div role="group" aria-label="Show" className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800">
             {(
               [
                 ['all', 'All questions'],
                 ['marked', `Marked for review (${markedTotal.toLocaleString()})`],
+                ['pastYear', `All past year (${pastYearTotal.toLocaleString()})`],
               ] as [LibraryView, string][]
             ).map(([value, label]) => (
               <button
@@ -352,7 +364,7 @@ export function LibraryScreen() {
                 type="button"
                 aria-pressed={view === value}
                 onClick={() => setView(value)}
-                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 text-[15px] font-medium leading-tight transition-colors ${
+                className={`inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-center text-[15px] font-medium leading-tight transition-colors ${
                   view === value
                     ? 'bg-card-light text-primary-700 shadow-sm dark:bg-card-dark dark:text-primary-100'
                     : 'text-slate-700 hover:bg-white/60 dark:text-slate-300 dark:hover:bg-slate-700/60'
@@ -366,7 +378,9 @@ export function LibraryScreen() {
           <p className="text-[15px] text-slate-600 dark:text-slate-400">
             {markedView
               ? 'The questions you flagged, by subject, chapter and learning objective. Tap one to go through its flagged questions; un-flag a question while solving it to take it off this list.'
-              : 'Open a subject, then a chapter, and tap a learning objective to solve every question in it.'}
+              : pastYearView
+                ? 'Questions from past papers only: the practice exams of 2022 to 2026 and the past 10-year papers book, each with a worked solution. Open a subject, then a chapter, and tap a learning objective.'
+                : 'Open a subject, then a chapter, and tap a learning objective to solve every question in it.'}
           </p>
           <SetupSearch
             value={searchText}
@@ -391,7 +405,7 @@ export function LibraryScreen() {
               {filterCount > 0 && (
                 <button
                   type="button"
-                  onClick={() => setFilters({ ...EMPTY_FILTERS, bands: filters.bands, kinds: filters.kinds, recallOnly: filters.recallOnly, highQualityOnly: filters.highQualityOnly })}
+                  onClick={() => setFilters({ ...EMPTY_FILTERS, bands: filters.bands, kinds: filters.kinds, recallOnly: filters.recallOnly, highQualityOnly: filters.highQualityOnly, pastYearOnly: filters.pastYearOnly })}
                   className={pillClass}
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
@@ -427,6 +441,8 @@ export function LibraryScreen() {
                     ? `No learning objective or chapter matches “${query.trim()}”.`
                     : markedView
                       ? 'No marked question matches the current search and filters.'
+                      : pastYearView
+                        ? 'No past year question matches the current search and filters.'
                       : 'No questions match the current filters.'}
               </p>
               <div className="flex flex-wrap gap-2">
@@ -518,6 +534,7 @@ export function LibraryScreen() {
                                       query={searchActive ? query : ''}
                                       filtered={filtersActive}
                                       marked={markedView}
+                                      pastYear={pastYearView}
                                       progress={progressByKey.get(row.item.key)}
                                       last={lastKey === row.item.key}
                                       onStart={() => start([row], row.item.key)}
