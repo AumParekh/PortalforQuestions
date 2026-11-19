@@ -57,6 +57,8 @@ function saveStored(value: Stored) {
   }
 }
 
+/** Recall workbook sections with no learning objective in the Master LO Map: not examinable in 2026, so no topic. */
+const OUT_OF_SYLLABUS = new Set(['B5', 'D17']);
 const tierKey = (tier: RecallTier) => `t|${tier}`;
 const topicKey = (id: string) => `p|${id}`;
 const shapeKey = (topic: string, id: string) => `s|${topic}|${id}`;
@@ -263,7 +265,7 @@ export function ShapesScreen() {
   const pending = useMemo(() => {
     const have = new Set(topics.map((t) => t.id));
     const parts = RECALL_TIERS.map((info) => {
-      const all = RECALL_SECTIONS.filter((x) => x.tier === info.id);
+      const all = RECALL_SECTIONS.filter((x) => x.tier === info.id && !OUT_OF_SYLLABUS.has(x.id));
       const ready = all.filter((x) => have.has(x.id)).length;
       return ready === all.length ? null : ready === 0 ? `${info.name}: not matched yet` : `${info.name}: ${ready} of ${all.length} topics ready`;
     }).filter((x): x is string => x !== null);
